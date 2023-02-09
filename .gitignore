@@ -48,6 +48,7 @@ Thumbs.db
 # Next
 .now
 .vercel
-/.next/
+/apps/knowii/.next
 
 # App
+/backups
