@@ -1,0 +1,18 @@
+# This configuration is only used for local development
+version: '3.8'
+services:
+  # MUST match the information configured in application.properties
+  knowii-backend-postgresql:
+    image: postgres:15.1
+    # volumes:
+    #   - ~/volumes/knowii/backend/postgresql/:/var/lib/postgresql/data/
+    container_name: knowii-postgresql
+    environment:
+      - POSTGRES_DB=knowii
+      - POSTGRES_USER=knowii
+      - POSTGRES_PASSWORD=HelloWorld
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    # If you want to expose these ports outside your dev machine,
+    # remove the "127.0.0.1:" prefix
+    ports:
+      - 127.0.0.1:5433:5432
