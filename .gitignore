@@ -38,5 +38,16 @@ testem.log
 .DS_Store
 Thumbs.db
 
-# Next.js
-.next
+# local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Next
+.now
+.vercel
+/.next/
+
+# App
