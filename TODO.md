@@ -3,8 +3,9 @@
 - Setup CI
 - Test deployment on DigitalOcean
 - Switch to pnpm
-- Setup devcontainer
 - Setup sonar (use sonar.yml in tools/docker?)
 - Add robots.txt
 - Add regex for usernames: ^(?>[a-zA-Z0-9!$&*+=?^_`{|}~.-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)\*)|(?>[_.@A-Za-z0-9-]+)$
 - Add blacklist for usernames
+- Add .nvmrc
+- Configure/test devcontainer

@@ -1,12 +1,11 @@
 # This configuration is only used for local development
 version: '3.8'
 services:
-  # MUST match the information configured in application.properties
-  knowii-backend-postgresql:
+  knowii-db:
     image: postgres:15.1
     # volumes:
     #   - ~/volumes/knowii/backend/postgresql/:/var/lib/postgresql/data/
-    container_name: knowii-postgresql
+    container_name: knowii-db
     environment:
       - POSTGRES_DB=knowii
       - POSTGRES_USER=knowii
@@ -15,4 +14,4 @@ services:
     # If you want to expose these ports outside your dev machine,
     # remove the "127.0.0.1:" prefix
     ports:
-      - 127.0.0.1:5433:5432
+      - 127.0.0.1:5444:5432
