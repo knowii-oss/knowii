@@ -1,0 +1,2 @@
+- Switch to pnpm
+- Setup devcontainer

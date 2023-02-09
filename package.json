@@ -5,11 +5,15 @@
   "private": true,
   "scripts": {
     "clean": "npx rimraf ./dist",
-    "format": "npx nx format",
+    "format:check": "npx nx format:check",
+    "format": "npx nx format:write",
+    "lint": "npx nx workspace-lint",
+    "migrate": "npx nx migrate latest",
     "prepare": "husky install",
     "start:database": "docker-compose --file ./tools/docker/postgresql.yml up --detach",
     "stop:database": "docker-compose --file ./tools/docker/postgresql.yml down --verbose",
-    "test": "npx nx test knowii"
+    "test": "npx nx test knowii",
+    "update": "npm run migrate"
   },
   "dependencies": {
     "@nrwl/next": "15.6.3",
