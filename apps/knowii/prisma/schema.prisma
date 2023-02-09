@@ -1,0 +1,96 @@
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Prisma schema file
+// Reference doc: https://www.prisma.io/docs/concepts/components/prisma-schema
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Data sources
+/// Reference: https://www.prisma.io/docs/concepts/components/prisma-schema/data-sources
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+datasource db {
+    provider = "postgresql"
+    // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
+    // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
+    url      = env("DATABASE_URL")
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// NextAuth data model
+/// Reference: https://github.com/hexrcs/prisma-next-auth/blob/master/prisma/schema.prisma
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+model Account {
+  id                 String    @id @default(cuid())
+  userId             String    @map("user_id")
+  type               String    @map("type")
+  provider           String    @map("provider")
+  providerAccountId  String    @map("provider_account_id")
+  refreshToken       String?   @map("refresh_token") @db.Text
+  accessToken        String?   @map("access_token") @db.Text
+  expires_at         Int?      @map("expires_at")
+  token_type         String?   @map("token_type")
+  scope              String?   @map("scope")
+  id_token           String?   @map("id_token") @db.Text
+  session_state      String?   @map("session_state")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+
+  @@index([provider], name: "provider")
+  @@index([providerAccountId], name: "providerAccountId")
+  @@index([userId], name: "userId")
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([sessionToken], name: "sessionToken")
+  @@map("sessions")
+}
+
+model User {
+  id            String             @id @default(cuid())
+  name          String?            @default("")
+  givenName     String             @default("") @map("given_name")
+  familyName    String             @default("") @map("family_name")
+  email         String?            @unique @default("")
+  emailVerified DateTime?          @map("email_verified")
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @default(now()) @updatedAt @map("updated_at")
+  userRole      KnowiiUserRole     @default(USER) @map("user_role")
+
+  @@index([email], name: "email")
+  @@map("users")
+}
+
+model VerificationRequest {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@index([token], name: "token")
+  @@map("verification_requests")
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// App Data model
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+enum KnowiiUserRole {
+  USER
+  ADMIN
+}
