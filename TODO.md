@@ -4,7 +4,9 @@
 - Test deployment on DigitalOcean
 - Switch to pnpm
 - Setup sonar (use sonar.yml in tools/docker?)
-- Add robots.txt
 - Add regex for usernames: ^(?>[a-zA-Z0-9!$&*+=?^_`{|}~.-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)\*)|(?>[_.@A-Za-z0-9-]+)$
 - Add blacklist for usernames
 - Configure/test devcontainer
+- Complete robots.txt, prevent going to API
+- Add browserslist config
+- Add playwright (vs nx?)
