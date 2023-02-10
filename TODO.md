@@ -1,7 +1,12 @@
-- Setup Prisma
-- Run `npx nx connect-to-nx-cloud` to enable [remote caching](https://nx.app) and make CI faster.
-- Setup CI
-- Test deployment on DigitalOcean
+- Create db seed to test locally
+- Create project on Supabaase
+- Configure auth
+- Create/configure project on Vercel
+- Buy domain
+- Configure Cloudflare DNS/sec
+- Configure Vercel to use the domain
+- Setup CI pipeline
+- Create environment branches
 - Switch to pnpm
 - Setup sonar (use sonar.yml in tools/docker?)
 - Add regex for usernames: ^(?>[a-zA-Z0-9!$&*+=?^_`{|}~.-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)\*)|(?>[_.@A-Za-z0-9-]+)$
