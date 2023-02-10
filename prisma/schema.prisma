@@ -3,6 +3,10 @@
 // Reference doc: https://www.prisma.io/docs/concepts/components/prisma-schema
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// @db.Timestamptz(3) is a native database type for PostgreSQL
+// documentation: https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#postgresql-6
+// the (3) corresponds to the precision: https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-time/
+
 generator client {
     provider = "prisma-client-js"
 }
@@ -36,15 +40,15 @@ model Account {
   scope              String?   @map("scope")
   id_token           String?   @map("id_token") @db.Text
   session_state      String?   @map("session_state")
-  createdAt          DateTime  @default(now()) @map("created_at")
-  updatedAt          DateTime  @default(now()) @updatedAt @map("updated_at")
+  createdAt          DateTime  @db.Timestamptz(3) @default(now()) @map("created_at")
+  updatedAt          DateTime  @db.Timestamptz(3) @default(now()) @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@unique([provider, providerAccountId])
 
-  @@index([provider], name: "provider")
-  @@index([providerAccountId], name: "providerAccountId")
-  @@index([userId], name: "userId")
+  @@index([provider], name: "idx_account_provider")
+  @@index([providerAccountId], name: "idx_account_provider_account_id")
+  @@index([userId], name: "idx_account_user_id")
   @@map("accounts")
 }
 
@@ -55,25 +59,28 @@ model Session {
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([sessionToken], name: "sessionToken")
+  @@index([sessionToken], name: "idx_session_session_token")
   @@map("sessions")
 }
 
 model User {
   id            String             @id @default(cuid())
-  name          String?            @default("")
+  name          String?            @unique @default("")
   givenName     String             @default("") @map("given_name")
   familyName    String             @default("") @map("family_name")
   email         String?            @unique @default("")
   emailVerified DateTime?          @map("email_verified")
+  userRole      KnowiiUserRole     @default(USER) @map("user_role")
   image         String?
   accounts      Account[]
   sessions      Session[]
-  createdAt     DateTime           @default(now()) @map("created_at")
-  updatedAt     DateTime           @default(now()) @updatedAt @map("updated_at")
-  userRole      KnowiiUserRole     @default(USER) @map("user_role")
+  ownerOf       Community[]        @relation(name: "community_owners")
+  adminOf       Community[]        @relation(name: "community_admins")
+  memberOf      Community[]        @relation(name: "community_members")
+  createdAt     DateTime           @db.Timestamptz(3) @default(now()) @map("created_at")
+  updatedAt     DateTime           @db.Timestamptz(3) @default(now()) @updatedAt @map("updated_at")
 
-  @@index([email], name: "email")
+  @@index([email], name: "idx_user_email")
   @@map("users")
 }
 
@@ -82,7 +89,7 @@ model VerificationRequest {
   token      String   @unique
   expires    DateTime
 
-  @@index([token], name: "token")
+  @@index([token], name: "idx_verification_request_token")
   @@map("verification_requests")
 }
 
@@ -94,3 +101,19 @@ enum KnowiiUserRole {
   USER
   ADMIN
 }
+
+model Community {
+  id            String             @id @default(cuid())
+  name          String             @unique @default("")
+  description   String             @default("") @map("given_name")
+  owners        User[]             @relation(name: "community_owners")
+  admins        User[]             @relation(name: "community_admins")
+  members       User[]             @relation(name: "community_members")
+  createdAt     DateTime           @db.Timestamptz(3) @default(now()) @map("created_at")
+  updatedAt     DateTime           @db.Timestamptz(3) @default(now()) @updatedAt @map("updated_at")
+
+  @@index([name], name: "idx_community_name")
+  @@map("community")
+}
+
+/// TODO add resources
