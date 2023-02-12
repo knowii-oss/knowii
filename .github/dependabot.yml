@@ -1,0 +1,7 @@
+# we integrate dependabot config for github so that your dependencies can be updated automatically
+version: 2
+updates:
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'daily'
