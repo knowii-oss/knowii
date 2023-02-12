@@ -26,7 +26,7 @@
     "export:knowii": "npx nx export knowii",
     "format:check": "npx nx format:check",
     "format": "npx nx format:write",
-    "lint": "npx nx workspace-lint  && npm run tsc",
+    "lint": "npx next lint ./apps/knowii && npx nx workspace-lint  && npm run tsc",
     "migrate": "npx nx migrate latest",
     "nx": "nx",
     "postinstall": "npm run db:client:generate",
