@@ -1,5 +1,7 @@
 'use strict';
 
+/** @type {import('tailwindcss').Config} */
+
 const { join } = require('path');
 const { createGlobPatternsForDependencies } = require('@nrwl/react/tailwind');
 const { spacing } = require('tailwindcss/defaultTheme');
