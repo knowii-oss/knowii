@@ -23,6 +23,7 @@
     "db:schema:validate:prod": "dotenv -e apps/knowii/.env.prod -- npx prisma validate",
     "db:start": "docker-compose --file ./tools/docker/docker-compose-postgresql.yml up --detach && sleep 1s",
     "db:stop": "docker-compose --file ./tools/docker/docker-compose-postgresql.yml down",
+    "db:studio": "dotenv -e apps/knowii/.env.local -- npx prisma studio",
     "export:knowii": "npx nx export knowii",
     "format:check": "npx nx format:check",
     "format": "npx nx format:write",
