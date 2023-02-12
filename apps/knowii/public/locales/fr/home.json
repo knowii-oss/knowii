@@ -1,0 +1,70 @@
+{
+  "hero": {
+    "title": "Welcome to your new web app!",
+    "description": "Built whatever you like with supastarter. We are sure it's gonna be awesome."
+  },
+  "signupButton": "Create an account",
+  "dashboardButton": "Dashboard",
+  "documentationButton": "Documentation",
+  "features": {
+    "title": "Features",
+    "description": "Everything you need to build your next web application!",
+    "authentication": {
+      "title": "Authentication",
+      "highlights": {
+        "1": "Ready to use authentication with supabase",
+        "2": "Email and password, magic link and all supported OAuth providers",
+        "3": "All authentication components (login, signup, password reset, profile) included"
+      }
+    },
+    "i18n": {
+      "title": "Internationalization",
+      "highlights": {
+        "1": "next-i18next integrated to support full internationalization",
+        "2": "All components prepared to be translated",
+        "3": "Translation flow ready to used with translation management tool or in VSCode via i18n-ally."
+      }
+    },
+    "dataFetching": {
+      "title": "Data fetching",
+      "highlights": {
+        "1": "tanstack-query included to enable caching and easy refetching",
+        "2": "Auto-generated types from supabase schema for typed data fetching"
+      }
+    },
+    "mailTemplates": {
+      "title": "Mail templates",
+      "highlights": {
+        "1": "Customizable MJML templates",
+        "2": "Ready-to-use templates for all supabase email notifications"
+      }
+    },
+    "dx": {
+      "title": "Developer Experience",
+      "highlights": {
+        "1": "Clean and scalable application structure",
+        "2": "Typesafe code with TypeScript",
+        "3": "ESLint and Prettier ready to be used"
+      }
+    },
+    "customization": {
+      "title": "Fully customizable",
+      "highlights": {
+        "1": "All components are fully customizable",
+        "2": "Dark mode support",
+        "3": "Chakra UI theme is easy to extend"
+      }
+    },
+    "serverless": {
+      "title": "Serverless architecture",
+      "highlights": {
+        "1": "Built to be used with serverless platforms like Vercel",
+        "2": "Scalable for every use case"
+      }
+    }
+  },
+  "pricing": {
+    "description": "We offer a plan for every need. You can start with the free plan and upgrade whenever you need more features.",
+    "title": "Pricing"
+  }
+}
