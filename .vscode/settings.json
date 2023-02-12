@@ -1,0 +1,8 @@
+{
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": true
+  },
+  "i18n-ally.localesPaths": ["public/locales"],
+  "i18n-ally.keystyle": "nested"
+}
