@@ -17,6 +17,8 @@
     "db:migration:status": "dotenv -e apps/knowii/.env.local -- npx prisma migrate status --preview-feature",
     "db:migration:status:prod": "dotenv -e apps/knowii/.env.prod -- npx prisma migrate status --preview-feature",
     "db:reset": "npm run db:clean && npm run db:start && npm run db:migration:deploy && npm run db:seed",
+    "db:schema:introspect": "dotenv -e apps/knowii/.env.local -- npx prisma introspect",
+    "db:schema:introspect:prod": "dotenv -e apps/knowii/.env.prod -- npx prisma introspect",
     "db:schema:validate": "dotenv -e apps/knowii/.env.local -- npx prisma validate",
     "db:schema:validate:prod": "dotenv -e apps/knowii/.env.prod -- npx prisma validate",
     "db:start": "docker-compose --file ./tools/docker/docker-compose-postgresql.yml up --detach && sleep 1s",
