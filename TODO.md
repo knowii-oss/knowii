@@ -1,6 +1,13 @@
 - Create db seed to test locally
+  - https://www.prisma.io/docs/guides/database/seed-database
+  - fix seed script
+- Add Zod
+- Create user zod schema (user.intf.ts)
+- Create community zod schema
 - Create project on Supabaase
 - Configure auth
+  - https://supabase.com/docs/guides/getting-started/tutorials/with-nextjs
+  - Check supastarter
 - Create/configure project on Vercel
 - Buy domain
 - Configure Cloudflare DNS/sec
@@ -15,3 +22,6 @@
 - Complete robots.txt, prevent going to API
 - Add browserslist config
 - Add playwright (vs nx?)
+- darkMode: ['class', '[data-theme="dark"]'],
+- Retrieve mdx-components config from dsebastien.net old code
+- Translate

@@ -1,0 +1,54 @@
+{
+  "dashboard": {
+    "pageTitle": "Dashboard",
+    "pageDescription": "This is a private page that only logged in users can see. Here you can see an example client management."
+  },
+  "clients": {
+    "list": {
+      "columns": {
+        "name": "Name",
+        "email": "Email",
+        "phone": "Phone"
+      },
+      "empty": "You have not created any clients yet. Click the button at the top right to add one.",
+      "noResults": "No clients found",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "title": "Clients",
+    "createButton": "Add client",
+    "form": {
+      "controls": {
+        "name": "Name",
+        "email": "Email",
+        "phone": "Phone"
+      },
+      "add": {
+        "title": "Add client"
+      },
+      "edit": {
+        "title": "Edit client"
+      },
+      "submitButton": "Save client",
+      "errorMessage": "An error occured while trying to save the client. Please try again.",
+      "successMessage": "The client was saved successfully!"
+    },
+    "upgradeToCreateMore": "You have to upgrade your plan to create more clients."
+  },
+  "confirmModal": {
+    "cancel": "Cancel",
+    "confirm": "Confirm"
+  },
+  "deleteClientModal": {
+    "title": "Delete client",
+    "description": "Do you really want to delete this client? This action cannot be undone."
+  },
+  "deleteClient": {
+    "errorMessage": "There was an error trying to delete the client. Please try again.",
+    "successMessage": "The client was deleted successfully."
+  },
+  "noSubscriptionAlert": {
+    "upgradeButton": "Upgrade subscription",
+    "message": "You don't have any active subscription. On the free plan, you can only have 1 client. Upgrade to a paid plan to add more clients."
+  }
+}

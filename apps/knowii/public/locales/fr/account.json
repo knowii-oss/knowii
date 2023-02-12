@@ -1,0 +1,16 @@
+{
+  "account": "Account",
+  "updateUserName": {
+    "errorMessage": "Your name could not be updated. Please try again.",
+    "successMessage": "Your name has been updated."
+  },
+  "subscription": {
+    "title": "Subscription",
+    "currentlySubscribed": "You are currently subscribed to the following plan:",
+    "notSubscribed": "You are not currently subscribed to a plan."
+  },
+  "password": "Password",
+  "changeMyPassword": "Change my password",
+  "manageSubscription": "Manage subscription",
+  "upgradeAccount": "Upgrade account"
+}
