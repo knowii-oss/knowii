@@ -22,7 +22,7 @@
     "inlineSources": false,
     "isolatedModules": true,
     "jsx": "preserve",
-    "lib": ["es2018", "dom"],
+    "lib": ["esnext", "dom"],
     "listEmittedFiles": false,
     "listFiles": false,
     "module": "esnext",

@@ -1,4 +1,10 @@
 {
   "extends": "./tsconfig.base.json",
+  "ts-node": {
+    "compilerOptions": {
+      "module": "CommonJS"
+    },
+    "esm": true
+  },
   "exclude": ["apps/*-e2e", "dist", "node_modules", "tmp"]
 }
