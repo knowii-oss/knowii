@@ -21,6 +21,7 @@
     "db:schema:introspect:prod": "dotenv -e apps/knowii/.env.prod -- npx prisma introspect",
     "db:schema:validate": "dotenv -e apps/knowii/.env.local -- npx prisma validate",
     "db:schema:validate:prod": "dotenv -e apps/knowii/.env.prod -- npx prisma validate",
+    "db:seed": "dotenv -e apps/knowii/.env.local -- npx prisma db seed",
     "db:start": "docker-compose --file ./tools/docker/docker-compose-postgresql.yml up --detach && sleep 1s",
     "db:stop": "docker-compose --file ./tools/docker/docker-compose-postgresql.yml down",
     "db:studio": "dotenv -e apps/knowii/.env.local -- npx prisma studio",
@@ -41,10 +42,10 @@
   },
   "dependencies": {
     "@nrwl/next": "15.6.3",
+    "@paralleldrive/cuid2": "2.0.1",
     "@prisma/client": "4.10.1",
     "@tailwindcss/typography": "0.5.9",
     "ajv": "8.12.0",
-    "cuid": "3.0.0",
     "i18next": "22.4.9",
     "next": "13.1.1",
     "next-connect": "0.13.0",
@@ -53,11 +54,11 @@
     "react-dom": "18.2.0",
     "react-icons": "4.7.1",
     "rxjs": "7.8.0",
-    "tailwindcss": "3.2.6",
     "tslib": "^2.3.0"
   },
   "devDependencies": {
     "@babel/preset-react": "^7.14.5",
+    "@faker-js/faker": "7.6.0",
     "@nrwl/cypress": "15.6.3",
     "@nrwl/eslint-plugin-nx": "15.6.3",
     "@nrwl/jest": "15.6.3",
@@ -104,8 +105,12 @@
     "react-test-renderer": "18.2.0",
     "rimraf": "4.1.2",
     "sass": "1.55.0",
+    "tailwindcss": "3.2.6",
     "ts-jest": "28.0.5",
     "ts-node": "10.9.1",
     "typescript": "~4.8.2"
+  },
+  "prisma": {
+    "seed": "ts-node --transpile-only --project ./tsconfig.app.json prisma/seed.ts"
   }
 }
