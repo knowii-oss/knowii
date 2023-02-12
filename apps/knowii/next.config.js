@@ -1,7 +1,10 @@
 //@ts-check
+/** @type {import('next').NextConfig} */
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const helpers = require('../../helpers');
+
+const { i18n } = require('./next-i18next.config');
 
 console.debug(`> Building on NODE_ENV="${process.env.NODE_ENV}"`);
 
@@ -18,6 +21,7 @@ const nextConfig = {
    * https://github.com/vercel/next.js/blob/canary/packages/next/next-server/server/config.ts#L12-L63
    * https://nextjs.org/docs/api-reference/next.config.js/introduction
    */
+  i18n,
   nx: {
     // Set this to true if you would like to to use SVGR
     // See: https://github.com/gregberge/svgr
