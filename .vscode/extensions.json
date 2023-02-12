@@ -1,8 +1,10 @@
 {
   "recommendations": [
-    "nrwl.angular-console",
+    "attilabuti.vscode-mjml",
+    "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
     "firsttris.vscode-jest-runner",
-    "dbaeumer.vscode-eslint"
+    "lokalise.i18n-ally",
+    "nrwl.angular-console"
   ]
 }
