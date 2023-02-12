@@ -1,6 +1,3 @@
-- Create db seed to test locally
-  - https://www.prisma.io/docs/guides/database/seed-database
-  - fix seed script
 - Add Zod
 - Create user zod schema (user.intf.ts)
 - Create community zod schema
@@ -25,3 +22,8 @@
 - darkMode: ['class', '[data-theme="dark"]'],
 - Retrieve mdx-components config from dsebastien.net old code
 - Translate
+- Learn framer motion
+- Use Tailwind UI
+- Remove ChakraUI
+- Immer
+- XState
