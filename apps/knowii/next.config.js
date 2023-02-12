@@ -32,6 +32,10 @@ const nextConfig = {
    */
   poweredByHeader: false,
   /**
+   * Enable strict mode
+   */
+  reactStrictMode: true,
+  /**
    * Configure Sass
    */
   sassOptions: {
