@@ -21,6 +21,7 @@
     "db:schema:introspect:prod": "dotenv -e apps/knowii/.env.prod -- npx prisma introspect",
     "db:schema:validate": "dotenv -e apps/knowii/.env.local -- npx prisma validate",
     "db:schema:validate:prod": "dotenv -e apps/knowii/.env.prod -- npx prisma validate",
+    "db:pull": "dotenv -e apps/knowii/.env.local -- npx prisma db pull",
     "db:seed": "dotenv -e apps/knowii/.env.local -- npx prisma db seed",
     "db:start": "docker-compose --file ./tools/docker/docker-compose-postgresql.yml up --detach && sleep 1s",
     "db:stop": "docker-compose --file ./tools/docker/docker-compose-postgresql.yml down",

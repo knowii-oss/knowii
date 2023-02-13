@@ -1,3 +1,6 @@
+- supabase-db-setup
+- schema.prisma
+- ## Should use connection pool: https://supabase.com/docs/guides/integrations/prisma#connection-pooling-with-supabase
 - Add Zod
 - Create user zod schema (user.intf.ts)
 - Create community zod schema
@@ -27,3 +30,6 @@
 - Remove ChakraUI
 - Immer
 - XState
+- Read https://www.ziadmtl.dev/blog/using-supabase-with-typescript
+- Read https://github.com/prisma/prisma/issues/5128
+- prisma migrate dev vs prisma migrate: https://www.prisma.io/docs/concepts/components/prisma-migrate/migrate-development-production
