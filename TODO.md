@@ -1,3 +1,6 @@
+- Create proxy functions for supabase auth functions (auth.uid(), auth.email(), auth.role(), etc)
+  - Create dummy functions as part of the Prisma migration
+  - Replace the dummy implementation with calls to the auth schema after that (using create/replace function)
 - Add Zod
 - Create user zod schema (user.intf.ts)
 - Create community zod schema
