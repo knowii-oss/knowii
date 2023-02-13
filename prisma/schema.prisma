@@ -13,61 +13,61 @@ datasource db {
 }
 
 model Clients {
-  id                String            @id @db.Uuid @default(uuid())
-  name              String            @unique
-  given_name        String            @default("")
-  family_name       String            @default("")
-  email             String?
-  user_role         KnowiiUserRole    @default(USER)
-  image_url         String?
-  phone             String?
-  user_id           String            @default(dbgenerated("auth.uid()")) @db.Uuid
-  created_at        DateTime          @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
-  updated_at        DateTime          @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt
-  adminOf          Communities[]    @relation("community_admins")
-  memberOf         Communities[]    @relation("community_members")
-  ownerOf          Communities[]    @relation("community_owners")
+  id                   String               @id @db.Uuid @default(uuid())
+  name                 String               @unique
+  given_name           String               @default("")
+  family_name          String               @default("")
+  email                String?
+  user_role            KnowiiUserRole       @default(USER)
+  image_url            String?
+  phone                String?
+  user_id              String               @default(dbgenerated("auth.uid()")) @db.Uuid
+  created_at           DateTime             @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
+  updated_at           DateTime             @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt
+  adminOf              Communities[]        @relation("community_admins")
+  memberOf             Communities[]        @relation("community_members")
+  ownerOf              Communities[]        @relation("community_owners")
 
   @@schema("public")
   @@map("clients")
 }
 
 model Customers {
-  user_id            String @id @db.Uuid
-  stripe_customer_id String
+  user_id              String               @id @db.Uuid
+  stripe_customer_id   String
 
   @@schema("public")
   @@map("customers")
 }
 
 model Prices {
-  id                String                 @id @db.Uuid @default(uuid())
-  product_id        String?                @db.Uuid
-  active            Boolean?
-  description       String?
-  unit_amount       BigInt?
-  currency          String?
-  type              PricingType?
-  interval          PricingPlanInterval?
-  interval_count    Int?
-  trial_period_days Int?
-  metadata          Json?
-  products          Products?              @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  subscriptions     Subscriptions[]
+  id                   String               @id @db.Uuid @default(uuid())
+  product_id           String?              @db.Uuid
+  active               Boolean?
+  description          String?
+  unit_amount          BigInt?
+  currency             String?
+  type                 PricingType?
+  interval             PricingPlanInterval?
+  interval_count       Int?
+  trial_period_days    Int?
+  metadata             Json?
+  products             Products?            @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  subscriptions        Subscriptions[]
 
   @@schema("public")
   @@map("prices")
 }
 
 model Products {
-  id            String          @id @db.Uuid @default(uuid())
-  active        Boolean?
-  name          String?
-  description   String?
-  image         String?
-  metadata      Json?
-  prices        Prices[]
-  subscriptions Subscriptions[]
+  id                   String               @id @db.Uuid @default(uuid())
+  active               Boolean?
+  name                 String?
+  description          String?
+  image                String?
+  metadata             Json?
+  prices               Prices[]
+  subscriptions        Subscriptions[]
 
   @@schema("public")
   @@map("products")
@@ -130,14 +130,14 @@ enum SubscriptionStatus {
 }
 
 model Communities {
-  id                String            @id @db.Uuid @default(uuid())
-  name              String            @unique @default("")
-  description       String            @default("") @map("description")
-  created_at        DateTime          @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
-  updated_at        DateTime          @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt
-  admins            Clients[]         @relation("community_admins")
-  members           Clients[]         @relation("community_members")
-  owners            Clients[]         @relation("community_owners")
+  id                   String               @id @db.Uuid @default(uuid())
+  name                 String               @unique @default("")
+  description          String               @default("") @map("description")
+  created_at           DateTime             @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
+  updated_at           DateTime             @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt
+  admins               Clients[]            @relation("community_admins")
+  members              Clients[]            @relation("community_members")
+  owners               Clients[]            @relation("community_owners")
 
   @@index([name], map: "idx_community_name")
   @@map("communities")
