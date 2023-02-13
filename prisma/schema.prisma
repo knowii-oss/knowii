@@ -5,49 +5,11 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-/// //////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// NextAuth data model
-/// Reference: https://github.com/hexrcs/prisma-next-auth/blob/master/prisma/schema.prisma
-/// //////////////////////////////////////////////////////////////////////////////////////////////////////////
-model Account {
-  id                String   @id @default(cuid())
-  userId            String   @map("user_id")
-  type              String   @map("type")
-  provider          String   @map("provider")
-  providerAccountId String   @map("provider_account_id")
-  refreshToken      String?  @map("refresh_token")
-  accessToken       String?  @map("access_token")
-  expires_at        Int?     @map("expires_at")
-  token_type        String?  @map("token_type")
-  scope             String?  @map("scope")
-  id_token          String?  @map("id_token")
-  session_state     String?  @map("session_state")
-  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-  @@index([provider], map: "idx_account_provider")
-  @@index([providerAccountId], map: "idx_account_provider_account_id")
-  @@index([userId], map: "idx_account_user_id")
-  @@map("accounts")
-}
-
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique @map("session_token")
-  userId       String   @map("user_id")
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([sessionToken], map: "idx_session_session_token")
-  @@map("sessions")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 model User {
-  id            String         @id @default(cuid())
+  id            String         @id @default(uuid())
   name          String?        @unique @default("")
   givenName     String         @default("") @map("given_name")
   familyName    String         @default("") @map("family_name")
@@ -57,8 +19,6 @@ model User {
   image         String?
   createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt     DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
-  accounts      Account[]
-  sessions      Session[]
   adminOf       Community[]    @relation("community_admins")
   memberOf      Community[]    @relation("community_members")
   ownerOf       Community[]    @relation("community_owners")
@@ -67,17 +27,8 @@ model User {
   @@map("users")
 }
 
-model VerificationRequest {
-  identifier String
-  token      String   @unique
-  expires    DateTime
-
-  @@index([token], map: "idx_verification_request_token")
-  @@map("verification_requests")
-}
-
 model Community {
-  id          String   @id @default(cuid())
+  id          String   @id @default(uuid())
   name        String   @unique @default("")
   description String   @default("") @map("given_name")
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
