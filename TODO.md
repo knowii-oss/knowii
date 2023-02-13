@@ -1,6 +1,3 @@
-- Create proxy functions for supabase auth functions (auth.uid(), auth.email(), auth.role(), etc)
-  - Create dummy functions as part of the Prisma migration
-  - Replace the dummy implementation with calls to the auth schema after that (using create/replace function)
 - Add Zod
 - Create user zod schema (user.intf.ts)
 - Create community zod schema
@@ -24,7 +21,7 @@
 - Add community visibility and visibility enum (public, private)
 - Row level security vs prisma
   - Create middleware: https://github.com/prisma/prisma/issues/5128
-  - Use SQL statements in supabase-db-setup.sql
+  - Use SQL statements in supabase-db-seed.sql
   - https://medium.com/@kavitanambissan/prisma-with-supabase-rls-policies-c72b68a62330
   - https://github.com/prisma/prisma/issues/12735
 - Configure/test devcontainer
@@ -41,3 +38,5 @@
 - Translate
 - darkMode: ['class', '[data-theme="dark"]'],
 - Switch to pnpm
+- Add policies for the communities table
+-
