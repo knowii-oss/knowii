@@ -1,13 +1,6 @@
-- supabase-db-setup
-- schema.prisma
-- ## Should use connection pool: https://supabase.com/docs/guides/integrations/prisma#connection-pooling-with-supabase
 - Add Zod
 - Create user zod schema (user.intf.ts)
 - Create community zod schema
-- Create project on Supabaase
-- Configure auth
-  - https://supabase.com/docs/guides/getting-started/tutorials/with-nextjs
-  - Check supastarter
 - Create/configure project on Vercel
 - Buy domain
 - Configure Cloudflare DNS/sec
@@ -15,10 +8,8 @@
 - Setup CI pipeline
 - Create environment branches
 - Switch to pnpm
-- Setup sonar (use sonar.yml in tools/docker?)
 - Add regex for usernames: ^(?>[a-zA-Z0-9!$&*+=?^_`{|}~.-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)\*)|(?>[_.@A-Za-z0-9-]+)$
 - Add blacklist for usernames
-- Configure/test devcontainer
 - Complete robots.txt, prevent going to API
 - Add browserslist config
 - Add playwright (vs nx?)
@@ -37,3 +28,7 @@
 - Row level security vs prisma
   - Create middleware
   - Use SQL statements in supabase-db-setup.sql
+  - https://medium.com/@kavitanambissan/prisma-with-supabase-rls-policies-c72b68a62330
+- Configure/test devcontainer
+- Test Supabase GraphQL: https://supabase.com/blog/graphql-now-available
+- Setup sonar (use sonar.yml in tools/docker?)
