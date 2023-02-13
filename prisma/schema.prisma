@@ -14,14 +14,14 @@ datasource db {
 
 model Clients {
   id                   String               @id @db.Uuid @default(uuid())
-  name                 String               @unique
+  name                 String               @default("")
   given_name           String               @default("")
   family_name          String               @default("")
   email                String               @default("")
   user_role            KnowiiUserRole       @default(USER)
   image_url            String               @default("")
   phone                String               @default("")
-  user_id              String               @default(dbgenerated("auth.uid()")) @db.Uuid
+  user_id              String               @db.Uuid
   created_at           DateTime             @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
   updated_at           DateTime             @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt
   adminOf              Communities[]        @relation("community_admins")
@@ -151,3 +151,5 @@ enum KnowiiUserRole {
   @@map("user_role")
   @@schema("public")
 }
+
+/// WARNING: Whenever adding a new table, think about enabling Row Level Security at the DB level if possible (cfr supabase-db-seed.sql)
