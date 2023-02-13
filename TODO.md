@@ -10,15 +10,9 @@
 - Configure Vercel to use the domain
 - Setup CI pipeline
 - Create environment branches
-- Switch to pnpm
 - Add regex for usernames: ^(?>[a-zA-Z0-9!$&*+=?^_`{|}~.-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)\*)|(?>[_.@A-Za-z0-9-]+)$
 - Add blacklist for usernames
-- Complete robots.txt, prevent going to API
-- Add browserslist config
-- Add playwright (vs nx?)
-- darkMode: ['class', '[data-theme="dark"]'],
 - Retrieve mdx-components config from dsebastien.net old code
-- Translate
 - Learn framer motion
 - Use Tailwind UI
 - Remove ChakraUI
@@ -41,3 +35,9 @@
 - Check out Supabase discord bot
 - Check out Supabase telegram bot
 - Check out Supabase slack bot
+- Complete robots.txt, prevent going to API
+- Add browserslist config
+- Add playwright (vs nx?)
+- Translate
+- darkMode: ['class', '[data-theme="dark"]'],
+- Switch to pnpm

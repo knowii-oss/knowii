@@ -4,8 +4,8 @@ Documentation: https://www.notion.so/Knowii-05e0911d5fcb413388fc07b59eae7354
 
 ## Dev environment setup
 
-- Install node 16.17.1
-- Install npm 8.15.0
+- Install node 16.17.1+
+- Install npm 8.15.0+
 - Install Docker
 - Create apps/knowii/.env.local based on .env.example
   - For DATABASE_URL and DIRECT_URL: https://app.supabase.com/project/fcqecmvnmuurjkmrteem
