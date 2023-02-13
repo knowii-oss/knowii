@@ -34,4 +34,6 @@
 - Read https://github.com/prisma/prisma/issues/5128
 - prisma migrate dev vs prisma migrate: https://www.prisma.io/docs/concepts/components/prisma-migrate/migrate-development-production
 - Add community visibility and visibility enum (public, private)
-- Row level security vs prisma: Create middleware
+- Row level security vs prisma
+  - Create middleware
+  - Use SQL statements in supabase-db-setup.sql
