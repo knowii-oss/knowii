@@ -7,10 +7,13 @@ Documentation: https://www.notion.so/Knowii-05e0911d5fcb413388fc07b59eae7354
 - Install node 16.17.1
 - Install npm 8.15.0
 - Install Docker
-- Run `npm install`
 - Create apps/knowii/.env.local based on .env.example
-- Start the database: `npm run db:start`
-- Deploy the DB schema: `npm run db:migration:deploy`
+  - For DATABASE_URL and DIRECT_URL: https://app.supabase.com/project/fcqecmvnmuurjkmrteem
+  - For SHADOW_DATABASE_URL: https://app.supabase.com/project/cipnhztmttjipgawzbqt
+- Login to Supabase: `npx supabase login`
+- Run `npm install`
+- Start the local Supabase instance: `npm run db:start`
+- Deploy the DB migrations: `npm run db:migration:deploy`
 
 ## App
 

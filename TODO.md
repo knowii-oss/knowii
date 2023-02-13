@@ -26,9 +26,15 @@
 - prisma migrate dev vs prisma migrate: https://www.prisma.io/docs/concepts/components/prisma-migrate/migrate-development-production
 - Add community visibility and visibility enum (public, private)
 - Row level security vs prisma
-  - Create middleware
+  - Create middleware: https://github.com/prisma/prisma/issues/5128
   - Use SQL statements in supabase-db-setup.sql
   - https://medium.com/@kavitanambissan/prisma-with-supabase-rls-policies-c72b68a62330
+  - https://github.com/prisma/prisma/issues/12735
 - Configure/test devcontainer
 - Test Supabase GraphQL: https://supabase.com/blog/graphql-now-available
 - Setup sonar (use sonar.yml in tools/docker?)
+- Check out Supabase multiplayer
+- Check out Supabase full text search
+- Check out Supabase discord bot
+- Check out Supabase telegram bot
+- Check out Supabase slack bot
