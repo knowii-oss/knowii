@@ -48,7 +48,7 @@
     "@emotion/react": "11.10.5",
     "@emotion/styled": "11.10.5",
     "@next/font": "13.1.6",
-    "@nrwl/next": "15.6.3",
+    "@nrwl/next": "15.7.0",
     "@paralleldrive/cuid2": "2.0.1",
     "@prisma/client": "4.10.1",
     "@supabase/auth-helpers-nextjs": "0.5.4",
