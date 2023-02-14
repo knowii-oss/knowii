@@ -84,7 +84,7 @@
     "@types/jest": "28.1.1",
     "@types/node": "18.13.0",
     "@types/react": "18.0.28",
-    "@types/react-dom": "18.0.9",
+    "@types/react-dom": "18.0.10",
     "@typescript-eslint/eslint-plugin": "^5.36.1",
     "@typescript-eslint/parser": "^5.36.1",
     "autoprefixer": "10.4.13",
