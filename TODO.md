@@ -1,3 +1,4 @@
+- Test triggers
 - Add Zod
 - Create user zod schema (user.intf.ts)
 - Create community zod schema
@@ -39,4 +40,4 @@
 - darkMode: ['class', '[data-theme="dark"]'],
 - Switch to pnpm
 - Add policies for the communities table
--
+- https://github.com/vercel/nextjs-subscription-payments
