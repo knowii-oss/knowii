@@ -8,7 +8,6 @@
     "clean": "npx rimraf ./dist",
     "clean:install": "npx rimraf ./package-lock.json && npx rimraf ./node_modules && npm install",
     "db:admin": "docker run --rm -p 5050:5050 thajeztah/pgadmin4",
-    "db:backup": "mkdir -p ./backups/database && docker exec -u knowii knowii-db pg_dump -Cc | xz > ./backups/database/$(date -u +%Y-%m-%d)_postgres-knowii_backup.sql.xz",
     "db:clean": "rimraf ./supabase && npx supabase init",
     "db:client:generate": "npx prisma generate",
     "db:init": "npm run db:migration:deploy && npm run db:seed",
