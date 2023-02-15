@@ -38,6 +38,29 @@
 - Add playwright (vs nx?)
 - Translate
 - darkMode: ['class', '[data-theme="dark"]'],
-- Switch to pnpm
 - Add policies for the communities table
 - https://github.com/vercel/nextjs-subscription-payments
+
+Knowii
+
+- Category
+  - Name
+  - Description
+- Resource
+  - Upvotes
+  - Downvotes
+  - Community (link to community)
+  - Tags (link to tag)
+- Tags
+  - Name
+  - Community (link to community)
+- Quotes
+  - Text
+  - Author (link to person)
+- Person
+  - Given name
+  - Last name
+  - Quotes (link to Quotes)
+  - User account (link to user)
+- Organization
+  - ...
