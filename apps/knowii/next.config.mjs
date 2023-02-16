@@ -1,15 +1,17 @@
 //@ts-check
 /** @type {import('next').NextConfig} */
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const helpers = require('../../helpers');
+import { withNx } from '@nrwl/next/plugins/with-nx.js';
+import { root } from '../../helpers.mjs';
+import { i18nConfig } from './next-i18next.config.mjs';
 
-const { i18n } = require('./next-i18next.config');
+console.log(`> Building in "${process.env.NODE_ENV}" mode (NODE_ENV)`);
 
-console.debug(`> Building on NODE_ENV="${process.env.NODE_ENV}"`);
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { withNx } = require('@nrwl/next/plugins/with-nx');
+/**
+ * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
+ * This is especially useful for Docker builds.
+ */
+!process.env.SKIP_ENV_VALIDATION && (await import('./env.mjs'));
 
 /**
  * @type {import('@nrwl/next/plugins/with-nx').WithNxOptions}
@@ -21,7 +23,7 @@ const nextConfig = {
    * https://github.com/vercel/next.js/blob/canary/packages/next/next-server/server/config.ts#L12-L63
    * https://nextjs.org/docs/api-reference/next.config.js/introduction
    */
-  i18n,
+  i18n: i18nConfig.i18n,
   nx: {
     // Set this to true if you would like to to use SVGR
     // See: https://github.com/gregberge/svgr
@@ -39,7 +41,7 @@ const nextConfig = {
    * Configure Sass
    */
   sassOptions: {
-    includePaths: [helpers.root('apps/knowii/styles')],
+    includePaths: [root('apps/knowii/styles')],
   },
   typescript: {
     /**
@@ -51,4 +53,4 @@ const nextConfig = {
   },
 };
 
-module.exports = withNx(nextConfig);
+export default withNx(nextConfig);
