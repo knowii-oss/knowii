@@ -6,7 +6,7 @@ const { join } = require('path');
 const { createGlobPatternsForDependencies } = require('@nrwl/react/tailwind');
 const { spacing } = require('tailwindcss/defaultTheme');
 
-const { theme, fonts } = require('./theme');
+const { theme } = require('./theme');
 
 module.exports = {
   // the NODE_ENV thing is for https://github.com/Acidic9/prettier-plugin-tailwind/issues/29
