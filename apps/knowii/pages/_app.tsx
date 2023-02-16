@@ -5,7 +5,7 @@ import '../styles/tailwind.scss';
 import '../styles/components.scss';
 import '../styles/tailwind-utilities.scss';
 import '../styles/fonts.scss';
-import '../styles/styles.scss';
+import '../styles/global.scss';
 import { ThemeProvider } from 'next-themes';
 import React from 'react';
 import ThemeSwitcher from '../components/theme-switcher';
