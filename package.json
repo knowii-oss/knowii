@@ -47,6 +47,7 @@
     "serve": "pnpm run start:knowii",
     "start": "pnpm run start:knowii",
     "start:knowii": "nx run knowii:serve",
+    "tailwind": "tailwind --config ./apps/knowii/tailwind.config.js",
     "test": "nx test knowii",
     "tsc": "pnpm exec tsc -p ./tsconfig.app.json --noEmit",
     "update": "pnpm run migrate"
