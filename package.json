@@ -3,6 +3,15 @@
   "version": "0.0.0",
   "license": "All rights reserved",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DeveloPassion/knowii.git"
+  },
+  "bugs": {
+    "url": "https://github.com/DeveloPassion/knowii/issues"
+  },
+  "homepage": "https://github.com/DeveloPassion/knowii#readme",
+  "author": "dSebastien <sebastien@developassion.be> (https://dsebastien.net)",
   "scripts": {
     "build": "cross-env NODE_ENV=production npx nx run knowii:build",
     "clean": "pnpm exec rimraf ./dist",
