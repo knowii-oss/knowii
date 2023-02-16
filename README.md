@@ -54,3 +54,11 @@ Note that the `:prod` commands should be used primarily from the CI/CD environme
 ## Git pre-commit hooks
 
 When you try to create a commit, hooks are executed to perform verifications and ensure code quality/formatting. Those are configured by Husky. Check out the `.husky/pre-commit` file, as well as the lint-staged configuration: `.lintstaged.js`
+
+## Environment variables
+
+When new environment variables are necessary, they should:
+
+- Be added to ./app/knowii/.env.example
+- Be added to ./apps/knowii/env.mjs (for type safety)
+- Be configured on Vercel

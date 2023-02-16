@@ -40,6 +40,10 @@
 - darkMode: ['class', '[data-theme="dark"]'],
 - Add policies for the communities table
 - https://github.com/vercel/nextjs-subscription-payments
+- Improve pre-commit hooks: should not compile/format the whole project but only staged files
+- Remove .github/workflows/sbom.yml once Dependabot supports pnpm: https://github.com/dependabot/dependabot-core/issues/1736
+- Next.js experimental appDir
+- Switch theme.js to theme.mjs or theme.json
 
 Knowii
 
