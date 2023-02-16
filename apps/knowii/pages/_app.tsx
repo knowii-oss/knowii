@@ -2,7 +2,6 @@ import { AppProps } from 'next/app';
 import Head from 'next/head';
 
 import '../styles/tailwind.scss';
-import '../styles/components.scss';
 import '../styles/tailwind-utilities.scss';
 import '../styles/fonts.scss';
 import '../styles/global.scss';

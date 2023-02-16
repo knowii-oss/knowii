@@ -1,6 +1,6 @@
 'use strict';
 
-/** @type {import('tailwindcss').Config} */
+/** @type {import('../../node_modules/tailwindcss').Config} */
 
 const { join } = require('path');
 const { createGlobPatternsForDependencies } = require('@nrwl/react/tailwind');
@@ -12,7 +12,7 @@ module.exports = {
   // the NODE_ENV thing is for https://github.com/Acidic9/prettier-plugin-tailwind/issues/29
   mode: process.env.NODE_ENV ? 'jit' : undefined,
   content: [
-    join(__dirname, 'apps/**/!(*.stories|*.spec).{ts,tsx,html}'),
+    join(__dirname, '**/*.{js,ts,jsx,tsx,css,html,mdx,scss}'),
     // The expression below will also include the libraries that we depend on implicitly (cfr project.json file of NX)
     ...createGlobPatternsForDependencies(__dirname),
   ],
@@ -21,6 +21,7 @@ module.exports = {
     extend: {
       fontFamily: {
         knowii: [
+          'Lato',
           'AvenirNext',
           '-apple-system',
           'BlinkMacSystemFont',
