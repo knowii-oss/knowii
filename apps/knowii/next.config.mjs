@@ -2,7 +2,6 @@
 /** @type {import('next').NextConfig} */
 
 import { withNx } from '@nrwl/next/plugins/with-nx.js';
-import { root } from '../../helpers.mjs';
 import { i18nConfig } from './next-i18next.config.mjs';
 
 console.log(`> Building in "${process.env.NODE_ENV}" mode (NODE_ENV)`);
@@ -37,12 +36,8 @@ const nextConfig = {
    * Enable strict mode
    */
   reactStrictMode: true,
-  /**
-   * Configure Sass
-   */
-  sassOptions: {
-    includePaths: [root('apps/knowii/styles')],
-  },
+  trailingSlash: false,
+  swcMinify: true,
   typescript: {
     /**
      * `lint:types` ran in CI already so we can safely assume no errors
