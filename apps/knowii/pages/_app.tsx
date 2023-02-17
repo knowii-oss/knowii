@@ -8,6 +8,7 @@ import '../styles/global.scss';
 import { ThemeProvider } from 'next-themes';
 import React from 'react';
 import ThemeSwitcher from '../components/theme-switcher';
+import useRouterScroll from '../lib/client/utils/use-router-scroll';
 
 /**
  * Wrapper around all pages
@@ -16,6 +17,11 @@ import ThemeSwitcher from '../components/theme-switcher';
  * @constructor
  */
 const App = ({ Component, pageProps }: AppProps) => {
+  useRouterScroll({
+    behavior: 'smooth',
+    idOfElementToScroll: '__next',
+  });
+
   return (
     <>
       <Head>

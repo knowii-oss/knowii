@@ -53,6 +53,7 @@
 - Use body className = loading to set a loading effect
 - Create account for me
 - Add support for profile picture and picture upload
+- Validate route scroll works fine
 
 Knowii
 
