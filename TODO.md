@@ -26,7 +26,6 @@
   - https://medium.com/@kavitanambissan/prisma-with-supabase-rls-policies-c72b68a62330
   - https://github.com/prisma/prisma/issues/12735
 - Configure/test devcontainer
-- Test Supabase GraphQL: https://supabase.com/blog/graphql-now-available
 - Setup sonar (use sonar.yml in tools/docker?)
 - Check out Supabase multiplayer
 - Check out Supabase full text search
@@ -44,6 +43,16 @@
 - Remove .github/workflows/sbom.yml once Dependabot supports pnpm: https://github.com/dependabot/dependabot-core/issues/1736
 - Next.js experimental appDir
 - Switch theme.js to theme.mjs or theme.json
+- Review manifests
+- Update manifests under public
+- Generate sitemap
+- Use person microdata in constants
+- Add RSS feed
+- Add plausible analytics
+- Fix background color
+- Use body className = loading to set a loading effect
+- Create account for me
+- Add support for profile picture and picture upload
 
 Knowii
 
@@ -67,4 +76,7 @@ Knowii
   - Quotes (link to Quotes)
   - User account (link to user)
 - Organization
+
   - ...
+
+- Test Supabase GraphQL: https://supabase.com/blog/graphql-now-available
