@@ -39,7 +39,7 @@ export default class CustomDocument extends Document<{
 
           <meta content="/static/browserconfig.xml" name="msapplication-config" />
         </Head>
-        <body>
+        <body className="loading">
           <ColorModeScript initialColorMode={customTheme.config.initialColorMode} />
           <Main />
           <NextScript />
