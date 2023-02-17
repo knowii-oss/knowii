@@ -13,7 +13,7 @@ export type PromiseType<T extends PromiseLike<any>> = T extends PromiseLike<infe
  */
 export type PromiseReturnType<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  T extends (...args: any) => Promise<any>
+  T extends (...args: any) => Promise<any>,
 > = PromiseType<ReturnType<T>>;
 
 /**
