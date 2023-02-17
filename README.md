@@ -9,14 +9,12 @@ Documentation: https://www.notion.so/Knowii-05e0911d5fcb413388fc07b59eae7354
 - Install pnpm: `npm install --global pnpm`
 - Install Docker
 - Install psql (to be able to execute SQL scripts against the database, including the db seed script)
-- Create apps/knowii/.env.local based on .env.example
-  - For DATABASE_URL and DIRECT_URL: https://app.supabase.com/project/fcqecmvnmuurjkmrteem
-  - For SHADOW_DATABASE_URL: https://app.supabase.com/project/cipnhztmttjipgawzbqt
 - Login to Supabase: `pnpx supabase login`
 - Run `pnpm install`
-- Start the local Supabase instance: `pnpm run db:start`
-- Initialize the database: `pnpm run db:init`
-  - This will deploy required functions/triggers/data
+- Prepare and run the local Supabase instance: `pnpm run db:reset`
+- Create apps/knowii/.env.local based on .env.example
+  - For DATABASE_URL and DIRECT_URL: http://localhost:12345
+  - For SHADOW_DATABASE_URL: https://app.supabase.com/project/cipnhztmttjipgawzbqt
 
 ## App
 
