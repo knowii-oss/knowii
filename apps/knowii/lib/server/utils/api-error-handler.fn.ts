@@ -14,7 +14,7 @@ export const apiErrorHandler = async (
   res: NextApiResponse,
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  _next: any
+  _next: any,
 ): Promise<void> => {
   // FIXME improve
   console.log(err);

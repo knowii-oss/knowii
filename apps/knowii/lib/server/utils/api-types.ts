@@ -7,7 +7,7 @@ import type { RequestHandler as NextConnectRequestHandler, Middleware as NextCon
 export type Middleware<
   ReturnType = undefined,
   // eslint-disable-next-line @typescript-eslint/ban-types
-  ExtendedApiRequest = {}
+  ExtendedApiRequest = {},
 > = NextConnectMiddleware<NextApiRequest & ExtendedApiRequest, NextApiResponse<ReturnType>>;
 
 /**
@@ -16,7 +16,7 @@ export type Middleware<
 export type NextRequestHandler<
   ReturnType = undefined,
   // eslint-disable-next-line @typescript-eslint/ban-types
-  ExtendedApiRequest = {}
+  ExtendedApiRequest = {},
 > = NextConnectRequestHandler<
   // allows overwriting e.g. query
   NextApiRequest & ExtendedApiRequest,
