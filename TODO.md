@@ -6,7 +6,6 @@
 - Buy domain
 - Configure Cloudflare DNS/sec
 - Configure Vercel to use the domain
-- Setup CI pipeline
 - Create environment branches
 - Add regex for usernames: ^(?>[a-zA-Z0-9!$&*+=?^_`{|}~.-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)\*)|(?>[_.@A-Za-z0-9-]+)$
 - Add blacklist for usernames
@@ -54,6 +53,9 @@
 - Create account for me
 - Add support for profile picture and picture upload
 - Validate route scroll works fine
+- Review mail templates and adapt and rename folder
+- Remove dependency on Axios
+- Remove usage of Supabase client and supabase types generation (?)
 
 Knowii
 
@@ -80,4 +82,7 @@ Knowii
 
   - ...
 
+- Setup CI pipeline
+- Create .env.prod within CI
+- Explore https://supabase.com/docs/guides/database/testing
 - Test Supabase GraphQL: https://supabase.com/blog/graphql-now-available
