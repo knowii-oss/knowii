@@ -1,6 +1,6 @@
 import { version } from '../../../../../package.json';
 import { NextApiRequest, NextApiResponse } from 'next';
-import { NextRequestHandler } from '../../../server/utils/api-types';
+import { NextRequestHandler } from '../../../lib/server/utils/api-types';
 
 export interface VersionResponse {
   version: string;
