@@ -1,5 +1,4 @@
-- Test triggers
-- Add Zod
+- Test DB user creation/update etc triggers
 - Create user zod schema (user.intf.ts)
 - Create community zod schema
 - Create/configure project on Vercel
@@ -7,8 +6,6 @@
 - Configure Cloudflare DNS/sec
 - Configure Vercel to use the domain
 - Create environment branches
-- Add regex for usernames: ^(?>[a-zA-Z0-9!$&*+=?^_`{|}~.-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)\*)|(?>[_.@A-Za-z0-9-]+)$
-- Add blacklist for usernames
 - Retrieve mdx-components config from dsebastien.net old code
 - Learn framer motion
 - Use Tailwind UI
@@ -56,6 +53,9 @@
 - Review mail templates and adapt and rename folder
 - Remove dependency on Axios
 - Remove usage of Supabase client and supabase types generation (?)
+- Translate stuff
+- Add regex for usernames: ^(?>[a-zA-Z0-9!$&*+=?^_`{|}~.-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)\*)|(?>[_.@A-Za-z0-9-]+)$
+- Add blacklist for usernames
 
 Knowii
 
@@ -86,3 +86,8 @@ Knowii
 - Create .env.prod within CI
 - Explore https://supabase.com/docs/guides/database/testing
 - Test Supabase GraphQL: https://supabase.com/blog/graphql-now-available
+- Add Privacy policy and link in footer
+- Add Terms of service and link in footer
+- Replace "process.env.NODE_ENV === 'development'" with usage of constants
+  - Make sure it works once deployed to prod!
+- Add PWA
