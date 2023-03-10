@@ -15,7 +15,7 @@ import {
 import { useTranslation } from 'next-i18next';
 import Link from 'next/link';
 import { FaEnvelope, FaTwitter } from 'react-icons/fa';
-import Logo from '../Logo';
+import { Logo } from '@knowii/client-ui';
 
 export default function Footer() {
   const { t } = useTranslation('common');
@@ -28,9 +28,9 @@ export default function Footer() {
             <Logo />
             <HStack>
               <IconButton
-                aria-label="Twitter"
+                aria-label="Email"
                 as="a"
-                href="mailto:contact@supastarter.dev"
+                href="mailto:sebastien@developassion.be"
                 colorScheme="primary"
                 variant="ghost"
                 fontSize="xl"
@@ -40,7 +40,7 @@ export default function Footer() {
               <IconButton
                 aria-label="Twitter"
                 as="a"
-                href="https://twitter.com/supastarter"
+                href="https://twitter.com/dSebastien"
                 colorScheme="twitter"
                 variant="ghost"
                 fontSize="xl"

@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { NextRequestHandler } from '../../../lib/server/utils/api-types';
+import { NextRequestHandler } from '@knowii/server';
 
 export interface PingResponse {
   pong: string;

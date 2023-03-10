@@ -1,11 +1,11 @@
 import { Container, Heading, Text, VStack } from '@chakra-ui/react';
 
-interface Props {
+interface SectionHeadlineProps {
   title: string;
   description?: string;
 }
 
-export default function SectionHeadline({ title, description }: Props) {
+export default function SectionHeadline({ title, description }: SectionHeadlineProps) {
   return (
     <Container maxW="5xl" textAlign={{ base: 'left', md: 'center' }} mb={16}>
       <VStack spacing={2} justify="start" align={{ base: 'start', md: 'center' }}>

@@ -4,13 +4,8 @@ import { useTranslation } from 'next-i18next';
 import Link from 'next/link';
 import { useEffect } from 'react';
 import { FaBars } from 'react-icons/fa';
-import Logo from '../Logo';
-import LanguageSwitch from './LanguageSwitch';
-import { useMobileBreakpoint, useScrollTop } from './layout';
-import ColorModeSwitch from '../ColorModeSwitch';
-import Menu from './Menu';
+import { ColorModeSwitch, LanguageSwitch, Logo, Menu, MobileDrawerMenu, useMobileBreakpoint, useScrollTop } from '@knowii/client-ui';
 import UserMenu from './UserMenu';
-import MobileDrawerMenu from './MobileDrawerMenu';
 
 export default function NavBar({ hideMenu }: { hideMenu?: boolean }) {
   const { t } = useTranslation('common');

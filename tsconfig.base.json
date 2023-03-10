@@ -39,8 +39,10 @@
     "noUnusedParameters": true,
     "outDir": "dist/out-tsc/dummy",
     "paths": {
-      "@/components/*": ["apps/knowii/client/components/*"],
-      "@/lib/*": ["apps/knowii/lib/*"]
+      "@knowii/client": ["libs/client/src/index.ts"],
+      "@knowii/client-ui": ["libs/client-ui/src/index.ts"],
+      "@knowii/common": ["libs/common/src/index.ts"],
+      "@knowii/server": ["libs/server/src/index.ts"]
     },
     "preserveConstEnums": true,
     "pretty": true,

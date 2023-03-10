@@ -56,3 +56,6 @@ compiled-lang
 
 # App
 /backups
+
+# Next.js
+.next

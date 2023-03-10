@@ -8,8 +8,8 @@ import '../styles/global.scss';
 import { ThemeProvider } from 'next-themes';
 import React, { useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { SITE_TITLE } from '../lib/constants';
-import useRouterScroll from '../lib/client/utils/use-router-scroll';
+import { SITE_TITLE } from '@knowii/common';
+import useRouterScroll from '../../../libs/client/src/lib/utils/use-router-scroll';
 import { appWithTranslation, SSRConfig } from 'next-i18next';
 import { GetServerSideProps } from 'next';
 import { NextApiRequestCookies } from 'next/dist/server/api-utils';
@@ -52,7 +52,7 @@ const App = ({ Component, pageProps }: AppProps<{ cookies?: NextApiRequestCookie
     });
 
     return () => subscription.unsubscribe();
-  }, [supabaseClient.auth, router.asPath]);
+  }, [supabaseClient.auth, router]);
 
   useRouterScroll({
     behavior: 'smooth',
