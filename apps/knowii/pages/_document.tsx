@@ -9,11 +9,11 @@ import { customTheme } from '../chakra-ui.config';
 export default class CustomDocument extends Document<{
   styleTags: ReactElement[];
 }> {
-  static getInitialProps = async (ctx: DocumentContext): Promise<DocumentInitialProps> => {
+  static override getInitialProps = async (ctx: DocumentContext): Promise<DocumentInitialProps> => {
     return await Document.getInitialProps(ctx);
   };
 
-  render(): JSX.Element {
+  override render(): JSX.Element {
     return (
       <Html lang="en">
         <Head>
