@@ -1,6 +1,6 @@
 import { Box, Container, useColorModeValue } from '@chakra-ui/react';
 import { useTranslation } from 'next-i18next';
-import SubscriptionTable from '../common/SubscriptionTable';
+import { SubscriptionTable } from '@knowii/client-ui';
 import SectionHeadline from './SectionHeadline';
 
 function Pricing() {

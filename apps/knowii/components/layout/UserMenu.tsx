@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useCallback } from 'react';
 import { FaSignOutAlt, FaUser } from 'react-icons/fa';
-import { useUserName } from '../../lib/client/auth';
+import { useUserName } from '@knowii/client';
 
 export default function UserMenu() {
   const { t } = useTranslation('common');

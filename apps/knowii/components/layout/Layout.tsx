@@ -3,7 +3,7 @@ import Head from 'next/head';
 import { PropsWithChildren, useMemo } from 'react';
 import NavBar from './NavBar';
 import Footer from './Footer';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../../lib/constants';
+import { SITE_DESCRIPTION, SITE_TITLE } from '@knowii/common';
 
 export default function Layout({
   pageTitle,
