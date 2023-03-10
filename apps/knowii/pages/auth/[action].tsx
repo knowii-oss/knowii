@@ -7,6 +7,7 @@ import Head from 'next/head';
 import { useMemo } from 'react';
 import { ColorModeSwitch, ForgotPasswordForm, LanguageSwitch, Logo, ResetPasswordForm, SigninForm, SignupForm } from '@knowii/client-ui';
 import { Database, redirectPath } from '@knowii/common';
+import { i18nConfig } from '../../../../next-i18next.config.mjs';
 
 const authActions = ['signup', 'signin', 'forgot-password', 'reset-password'];
 
@@ -46,7 +47,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     };
   }
 
-  const translations = await serverSideTranslations(ctx.locale ? ctx.locale : 'en', ['common', 'auth']);
+  const translations = await serverSideTranslations(ctx.locale ? ctx.locale : 'en', ['common', 'auth'], i18nConfig);
 
   return {
     props: {
@@ -102,7 +103,7 @@ export default function AuthPage({ action }: { action: string }) {
                 </HStack>
 
                 <Text py={1} color="gray.500">
-                  © by yourapp. {t('footer.allRightsReserved', { ns: 'common' })}
+                  © Knowii. {t('footer.allRightsReserved', { ns: 'common' })}
                 </Text>
               </HStack>
             </VStack>

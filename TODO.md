@@ -57,6 +57,7 @@
 - Add regex for usernames: ^(?>[a-zA-Z0-9!$&*+=?^_`{|}~.-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)\*)|(?>[_.@A-Za-z0-9-]+)$
 - Add blacklist for usernames
 - Add NX tags to prevent using the wrong libs/apps from the wrong places: https://nx.dev/core-features/enforce-project-boundaries
+- Move the theme.js file to the root of the workspace to reuse it across apps?
 
 Knowii
 
