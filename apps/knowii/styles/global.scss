@@ -6,7 +6,7 @@ html,
 body,
 body > div:first-child,
 #__next {
-  @apply min-w-full h-full min-h-full m-0 p-0 bg-gradient-to-b from-gray-100 to-gray-200 dark:from-gray-900 dark:to-black font-knowii text-base font-normal;
+  @apply m-0 p-0 font-knowii text-base font-normal;
   -webkit-text-size-adjust: 100%;
   letter-spacing: -0.1px;
   /* Standard line height */
@@ -61,10 +61,10 @@ svg {
   @apply h-full min-h-full w-full min-w-full;
 }
 
-.wp-button {
-  @apply bg-purple-500 dark:bg-purple-400 hover:bg-purple-600 dark:hover:bg-purple-500 px-3 py-1 rounded-md font-medium text-sm text-purple-100 dark:text-gray-200 hover:text-white focus:outline-none focus:ring-2 focus:ring-purple-300 focus:ring-opacity-50 ease-in-out transition-all duration-300;
+h1 {
+  @apply text-4xl lg:text-5xl font-semibold #{!important};
 }
 
-h1 {
-  @apply text-3xl font-semibold #{!important};
+h2 {
+  @apply text-xl lg:text-2xl #{!important};
 }
