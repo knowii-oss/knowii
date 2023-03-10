@@ -3,11 +3,14 @@ import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
 import { useMemo } from 'react';
 import { useSubscriptionActions, useUserSubscriptions } from '@knowii/client';
-import { Loader } from '@knowii/client-ui';
+import { Loader } from '../common/Loader';
 import { AccountSection } from './AccountSection';
 import { formatPrice } from '@knowii/common';
 
-export function Subscription() {
+// eslint-disable-next-line
+export interface SubscriptionProps {}
+
+export function Subscription(_props: SubscriptionProps) {
   const router = useRouter();
   const { t } = useTranslation(['account', 'common']);
   const { locale } = useRouter();

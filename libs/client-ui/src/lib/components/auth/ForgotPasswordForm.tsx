@@ -20,7 +20,10 @@ import { FaAt } from 'react-icons/fa';
 import { useAuthRedirectUrl } from '@knowii/client';
 import { AuthFormWrapper } from './AuthFormWrapper';
 
-export function ForgotPasswordForm() {
+// eslint-disable-next-line
+export interface ForgotPasswordFormProps {}
+
+export function ForgotPasswordForm(_props: ForgotPasswordFormProps) {
   const supabaseClient = useSupabaseClient();
   const { t } = useTranslation('auth');
   const redirectTo = useAuthRedirectUrl(`/auth/callback?redirectAfterSignin=${encodeURIComponent('/auth/reset-password')}`);

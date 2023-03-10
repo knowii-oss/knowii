@@ -3,11 +3,14 @@ import { useTranslation } from 'next-i18next';
 import { FaMoon, FaSun } from 'react-icons/fa';
 import { useTheme } from 'next-themes';
 
+// eslint-disable-next-line
+export interface ColorModeSwitchProps {}
+
 /**
  * Switch between light and dark mode
  * @constructor
  */
-export function ColorModeSwitch() {
+export function ColorModeSwitch(_props: ColorModeSwitchProps) {
   const { t } = useTranslation('common');
   // ChakraUI color mode
   const { colorMode, toggleColorMode } = useColorMode();

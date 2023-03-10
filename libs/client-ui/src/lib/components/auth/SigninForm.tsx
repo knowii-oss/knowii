@@ -29,7 +29,10 @@ import { AuthFormWrapper } from './AuthFormWrapper';
 import { SigninModeSwitch, SigninMode } from './SigninModeSwitch';
 import { SocialSignInButton } from './SocialSignInButton';
 
-export function SigninForm() {
+// eslint-disable-next-line
+export interface SigninFormProps {}
+
+export function SigninForm(_props: SigninFormProps) {
   const { t } = useTranslation('auth');
   const [mode, setMode] = useState<SigninMode>(SigninMode.MagicLink);
   const router = useRouter();

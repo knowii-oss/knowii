@@ -6,7 +6,10 @@ import PricingPlanBox from './SubscriptionItem';
 import UserSubscriptionAlert from './UserSubscriptionAlert';
 import { useSubscriptionPlans, useUserSubscriptions } from '@knowii/client';
 
-export function SubscriptionTable() {
+// eslint-disable-next-line
+export interface SubscriptionTableProps {}
+
+export function SubscriptionTable(_props: SubscriptionTableProps) {
   const { t } = useTranslation('common');
   const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month');
   const { plans } = useSubscriptionPlans();
