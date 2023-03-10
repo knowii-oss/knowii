@@ -4,7 +4,11 @@ import { useTranslation } from 'next-i18next';
 import Link from 'next/link';
 import { useMobileBreakpoint } from './layout';
 
-export function Menu({ mobileMode }: { mobileMode?: boolean }) {
+export interface MenuProps {
+  mobileMode?: boolean;
+}
+
+export function Menu({ mobileMode }: MenuProps) {
   const { t } = useTranslation('common');
   const user = useUser();
   const menuItemColor = useColorModeValue('gray.600', 'gray.200');

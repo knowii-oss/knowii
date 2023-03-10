@@ -5,7 +5,10 @@ import { useCallback } from 'react';
 import { FaGlobeAmericas } from 'react-icons/fa';
 import { LocaleCode, localeNames } from '@knowii/common';
 
-export function LanguageSwitch() {
+// eslint-disable-next-line
+export interface LanguageSwitchProps {}
+
+export function LanguageSwitch(_props: LanguageSwitchProps) {
   const { t } = useTranslation('common');
   const router = useRouter();
   const { locales, locale: activeLocale, pathname, query, asPath } = router;

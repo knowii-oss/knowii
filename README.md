@@ -60,3 +60,7 @@ When new environment variables are necessary, they should:
 - Be added to ./app/knowii/.env.example
 - Be added to ./apps/knowii/env.mjs (for type safety)
 - Be configured on Vercel
+
+## Developing components
+
+Create reusable components in the 'client-ui' library. Test those using Storybook: `pnpm run storybook:client-ui`

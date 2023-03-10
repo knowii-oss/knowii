@@ -21,7 +21,10 @@ import { FaEye, FaEyeSlash, FaLock } from 'react-icons/fa';
 import { redirectPath } from '@knowii/common';
 import { AuthFormWrapper } from './AuthFormWrapper';
 
-export function ResetPasswordForm() {
+// eslint-disable-next-line
+export interface ResetPasswordFormProps {}
+
+export function ResetPasswordForm(_props: ResetPasswordFormProps) {
   const { t } = useTranslation('auth');
   const router = useRouter();
   const supabaseClient = useSupabaseClient();

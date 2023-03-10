@@ -3,7 +3,10 @@ import { useTranslation } from 'next-i18next';
 import { FaStar } from 'react-icons/fa';
 import { useUserName, useSubscriptionActions, useUserSubscriptions } from '@knowii/client';
 
-export function UserSubscriptionAlert() {
+// eslint-disable-next-line
+export interface UserSubscriptionAlertProps {}
+
+export function UserSubscriptionAlert(_props: UserSubscriptionAlertProps) {
   const { t } = useTranslation('common');
   const highlightColor = useColorModeValue('primary.500', 'primary.400');
   const userName = useUserName();

@@ -23,7 +23,10 @@ import { redirectPath } from '@knowii/common';
 import { useAuthRedirectUrl } from '@knowii/client';
 import { AuthFormWrapper } from './AuthFormWrapper';
 
-export function SignupForm() {
+// eslint-disable-next-line
+export interface SignupFormProps {}
+
+export function SignupForm(_props: SignupFormProps) {
   const { t } = useTranslation('auth');
   const supabaseClient = useSupabaseClient();
   const router = useRouter();
