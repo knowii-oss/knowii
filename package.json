@@ -13,7 +13,7 @@
   "homepage": "https://github.com/DeveloPassion/knowii#readme",
   "author": "dSebastien <sebastien@developassion.be> (https://dsebastien.net)",
   "scripts": {
-    "build": "cross-env NODE_ENV=production npx nx run knowii:build",
+    "build": "cross-env NODE_ENV=production pnpm exec nx run knowii:build",
     "clean": "pnpm exec rimraf ./dist",
     "clean:install": "pnpm exec rimraf pnpm-lock.yaml && pnpm exec rimraf ./node_modules && pnpm exec rimraf dist && pnpm install",
     "db:admin": "docker run --rm -p 5050:5050 thajeztah/pgadmin4",
