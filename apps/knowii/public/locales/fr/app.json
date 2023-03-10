@@ -30,7 +30,7 @@
         "title": "Edit client"
       },
       "submitButton": "Save client",
-      "errorMessage": "An error occured while trying to save the client. Please try again.",
+      "errorMessage": "An error occurred while trying to save the client. Please try again.",
       "successMessage": "The client was saved successfully!"
     },
     "upgradeToCreateMore": "You have to upgrade your plan to create more clients."
