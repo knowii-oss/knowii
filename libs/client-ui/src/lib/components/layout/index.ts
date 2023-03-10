@@ -1,3 +1,3 @@
 export * from './layout';
-export * from './Menu';
-export * from './MobileDrawerMenu';
+export * from './menu';
+export * from './mobile-drawer-menu';

@@ -1,5 +1,5 @@
 import type { ComponentStory, ComponentMeta } from '@storybook/react';
-import { LanguageSwitch } from './LanguageSwitch';
+import { LanguageSwitch } from './language-switch';
 
 const Story: ComponentMeta<typeof LanguageSwitch> = {
   component: LanguageSwitch,
