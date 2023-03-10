@@ -1,4 +1,4 @@
-import { i18nConfig } from '../../../../../next-i18next.config.mjs';
+//import { i18nConfig } from '../../../../../next-i18next.config.mjs';
 
 export const localeNames = {
   fr: 'Français',
@@ -7,7 +7,9 @@ export const localeNames = {
 
 export type LocaleCode = keyof typeof localeNames;
 
-export const defaultLocale = (i18nConfig.i18n.defaultLocale || 'en') as LocaleCode;
+// FIXME should be as below but breaks with Jest (because of .mjs import)
+//export const defaultLocale = (i18nConfig.i18n.defaultLocale || 'en') as LocaleCode;
+export const defaultLocale = 'en' as LocaleCode;
 
 export const localeCurrencies = {
   fr: 'EUR',

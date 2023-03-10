@@ -49,7 +49,14 @@ export function useSubscriptionPlans() {
   );
 
   const localizedPlans = useMemo(() => {
-    const translations: Record<string, { name?: string; description?: string; features?: string[] }> = {
+    const translations: Record<
+      string,
+      {
+        name: string | null;
+        description: string | null;
+        features: string[];
+      }
+    > = {
       [SubscriptionPlanId.Basic]: {
         name: t('subscriptionPlans.basic.name'),
         description: t('subscriptionPlans.basic.description'),
