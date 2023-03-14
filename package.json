@@ -101,7 +101,7 @@
     "@babel/preset-typescript": "7.12.13",
     "@faker-js/faker": "7.6.0",
     "@nrwl/cypress": "15.7.0",
-    "@nrwl/eslint-plugin-nx": "15.7.0",
+    "@nrwl/eslint-plugin-nx": "15.8.6",
     "@nrwl/jest": "15.7.0",
     "@nrwl/js": "15.7.0",
     "@nrwl/linter": "15.7.0",
