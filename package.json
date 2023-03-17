@@ -102,7 +102,7 @@
     "@faker-js/faker": "7.6.0",
     "@nrwl/cypress": "15.7.0",
     "@nrwl/eslint-plugin-nx": "15.7.0",
-    "@nrwl/jest": "15.7.0",
+    "@nrwl/jest": "15.8.7",
     "@nrwl/js": "15.7.0",
     "@nrwl/linter": "15.7.0",
     "@nrwl/nx-cloud": "15.0.3",
