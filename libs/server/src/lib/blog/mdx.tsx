@@ -105,7 +105,7 @@ export async function getMdx({ type, slug, locale }: { type: WebsiteDataType; sl
     readingTime: readingTime(content),
     slug: slug || '',
     title: '',
-    publishedAt: '',
+    publishedOn: '',
     summary: '',
     image: '',
     categories: [],

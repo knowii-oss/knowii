@@ -111,7 +111,7 @@ export function BlogPostPage({ source, frontMatter }: BlogPostPageProps) {
               author={author}
               authorImage={frontMatter.authorImage}
               authorLink={authorLink}
-              publishedAt={frontMatter.publishedAt}
+              publishedOn={frontMatter.publishedOn}
             />
           </VStack>
         </PageHeader>

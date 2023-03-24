@@ -5,7 +5,7 @@ export interface FrontMatter {
   slug?: string;
   title: string;
   summary: string;
-  publishedAt: string;
+  publishedOn: string;
   image: string;
   /**
    * Image details will be added automatically

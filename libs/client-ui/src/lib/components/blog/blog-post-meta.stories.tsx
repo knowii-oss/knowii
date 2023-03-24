@@ -13,5 +13,5 @@ export const Primary = Template.bind({});
 Primary.args = {
   author: 'Foo Bar',
   authorLink: 'https://twitter.com/dSebastien',
-  publishedAt: '2023-02-10',
+  publishedOn: '2023-02-10',
 };

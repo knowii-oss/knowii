@@ -8,10 +8,10 @@ interface BlogPostMetaProps {
   author: string;
   authorImage?: string;
   authorLink: string;
-  publishedAt: string;
+  publishedOn: string;
 }
 
-export function BlogPostMeta({ author, authorImage, authorLink, publishedAt }: BlogPostMetaProps) {
+export function BlogPostMeta({ author, authorImage, authorLink, publishedOn }: BlogPostMetaProps) {
   const { t } = useTranslation(I18N_TRANSLATIONS_BLOG);
 
   return (
@@ -35,7 +35,7 @@ export function BlogPostMeta({ author, authorImage, authorLink, publishedAt }: B
           <VStack align="start" spacing={0}>
             <Text>{t('publishedOn')}</Text>
             <Text fontWeight="bold" as="span">
-              {publishedAt}
+              {publishedOn}
             </Text>
           </VStack>
         </HStack>
