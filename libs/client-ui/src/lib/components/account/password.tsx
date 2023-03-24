@@ -3,7 +3,7 @@ import { useTranslation } from 'next-i18next';
 import Link from 'next/link';
 import { AccountSection } from './account-section';
 
-/* eslint-disable-next-line */
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface PasswordProps {}
 
 export function Password(_props: PasswordProps) {

@@ -1,5 +1,13 @@
 html {
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0); /* no blue flashes */
+  touch-action: manipulation;
+  font-feature-settings: 'case' 1, 'rlig' 1, 'calt' 0;
+}
+
+html,
+body {
+  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 html,
