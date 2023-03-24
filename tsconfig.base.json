@@ -22,7 +22,7 @@
     "inlineSources": false,
     "isolatedModules": true,
     "jsx": "preserve",
-    "lib": ["esnext", "dom"],
+    "lib": ["esnext", "DOM", "DOM.Iterable"],
     "listEmittedFiles": false,
     "listFiles": false,
     "module": "esnext",

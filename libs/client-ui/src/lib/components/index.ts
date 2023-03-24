@@ -1,5 +1,6 @@
 export * from './account';
 export * from './auth';
+export * from './blog';
 export * from './common';
 export * from './layout';
 export * from './color-mode-switch';

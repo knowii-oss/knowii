@@ -1,5 +1,8 @@
 export interface FrontMatter {
-  slug: string;
+  /**
+   * Override the default slug if needed
+   */
+  slug?: string;
   title: string;
   summary: string;
   publishedAt: string;

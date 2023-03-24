@@ -1,0 +1,22 @@
+{
+  "siteName": "Knowii",
+  "title": "Knowii — Knowledge, Ideas and Inspiration",
+  "description": "Where all communities belong. A place for your Knowledge, your Ideas and Inspiration.",
+  "author": "Sébastien Dubois",
+  "authorAlias": "dSebastien",
+  "url": "https://knowii.net",
+  "domain": "knowii.net",
+  "keywords": ["community content curation", "knowledge management", "community knowledge management", "content curation"],
+  "contact": {
+    "mail": "sebastien@developassion.be"
+  },
+  "social": {
+    "blogSebastien": "https://dsebastien.net",
+    "githubSebastien": "https://github.com/dSebastien",
+    "linkedInSebastien": "https://www.linkedin.com/in/sebastiend/",
+    "mediumSebastien": "https://medium.com/@dSebastien",
+    "twitterSebastien": "https://twitter.com/dSebastien",
+    "youtubeSebastien": "https://youtube.com/@dSebastien",
+    "newsletterSebastien": "https://www.dsebastien.net/#/portal/signup"
+  }
+}

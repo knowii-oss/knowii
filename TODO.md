@@ -1,4 +1,5 @@
 - Test DB user creation/update etc triggers
+- Check ClientFormModalProps usage and avoid any!!!
 - Create user zod schema (user.intf.ts)
 - Create community zod schema
 - Create/configure project on Vercel
@@ -22,42 +23,23 @@
   - https://medium.com/@kavitanambissan/prisma-with-supabase-rls-policies-c72b68a62330
   - https://github.com/prisma/prisma/issues/12735
 - Configure/test devcontainer
-- Setup sonar (use sonar.yml in tools/docker?)
 - Check out Supabase multiplayer
 - Check out Supabase full text search
 - Check out Supabase discord bot
 - Check out Supabase telegram bot
 - Check out Supabase slack bot
 - Complete robots.txt, prevent going to API
-- Add browserslist config
 - Add playwright (vs nx?)
-- Translate
 - darkMode: ['class', '[data-theme="dark"]'],
-- Add policies for the communities table
 - https://github.com/vercel/nextjs-subscription-payments
-- Improve pre-commit hooks: should not compile/format the whole project but only staged files
-- Remove .github/workflows/sbom.yml once Dependabot supports pnpm: https://github.com/dependabot/dependabot-core/issues/1736
-- Next.js experimental appDir
 - Switch theme.js to theme.mjs or theme.json
-- Review manifests
-- Update manifests under public
-- Generate sitemap
 - Use person microdata in constants
-- Add RSS feed
-- Add plausible analytics
 - Fix background color
 - Use body className = loading to set a loading effect
 - Create account for me
 - Add support for profile picture and picture upload
-- Validate route scroll works fine
 - Review mail templates and adapt and rename folder
-- Remove dependency on Axios
 - Remove usage of Supabase client and supabase types generation (?)
-- Translate stuff
-- Add regex for usernames: ^(?>[a-zA-Z0-9!$&*+=?^_`{|}~.-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)\*)|(?>[_.@A-Za-z0-9-]+)$
-- Add blacklist for usernames
-- Add NX tags to prevent using the wrong libs/apps from the wrong places: https://nx.dev/core-features/enforce-project-boundaries
-- Move the theme.js file to the root of the workspace to reuse it across apps?
 
 Knowii
 
