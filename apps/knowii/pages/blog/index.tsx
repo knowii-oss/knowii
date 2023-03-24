@@ -53,7 +53,7 @@ export function BlogPage({ entries }: BlogPageProps) {
         <Container maxW="5xl">
           <VStack spacing={4} align="stretch">
             {entries?.map(({ slug, frontMatter: { title, summary, image, publishedOn } }) => (
-              <BlogPost key={slug} slug={slug} title={title} summary={summary} image={image} date={publishedOn} />
+              <BlogPost key={slug} slug={slug} title={title} summary={summary} image={image} publishedOn={publishedOn} />
             ))}
           </VStack>
         </Container>

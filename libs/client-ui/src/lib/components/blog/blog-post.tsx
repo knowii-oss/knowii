@@ -3,17 +3,13 @@ import { useTranslation } from 'next-i18next';
 import Image from 'next/image';
 import NextLink from 'next/link';
 import { useMemo } from 'react';
-import { I18N_TRANSLATIONS_BLOG } from '@knowii/common';
+import { FrontMatter, I18N_TRANSLATIONS_BLOG, RequiredPick } from '@knowii/common';
+import { format, parseISO } from 'date-fns';
 
-export type BlogPostProps = {
-  slug: string;
-  title: string;
-  date: string;
-  summary?: string;
-  image?: string;
-};
+type BlogPostProps = RequiredPick<FrontMatter, 'slug' | 'title' | 'publishedOn' | 'summary' | 'image'>;
 
-export function BlogPost({ slug, title, date, summary, image }: BlogPostProps) {
+// FIXME rename to blog post overview
+export function BlogPost({ slug, title, publishedOn, summary, image }: BlogPostProps) {
   const { t } = useTranslation(I18N_TRANSLATIONS_BLOG);
 
   const link = useMemo(() => `/blog/${slug}`, [slug]);
@@ -44,7 +40,7 @@ export function BlogPost({ slug, title, date, summary, image }: BlogPostProps) {
             <VStack spacing={1} align="start">
               {/* Date */}
               <Text fontSize="sm" color="primary.300" textTransform="uppercase" fontWeight="bold">
-                {date}
+                {format(parseISO(publishedOn), 'MMMM dd, yyyy')}
               </Text>
               {/* Title */}
               <Heading fontSize="2xl">
