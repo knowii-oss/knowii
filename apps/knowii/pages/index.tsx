@@ -3,10 +3,10 @@ import { GetServerSideProps } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 
 //import styles from './index.module.scss';
-import Hero from '../components/home/Hero';
-import Features from '../components/home/Features';
-import Layout from '../components/layout/Layout';
-import Pricing from '../components/home/Pricing';
+import { Hero } from '../components/home/hero';
+import { Features } from '../components/home/features';
+import { Layout } from '../components/layout/layout';
+import { Pricing } from '../components/home/pricing';
 
 import { i18nConfig } from '../../../next-i18next.config.mjs';
 

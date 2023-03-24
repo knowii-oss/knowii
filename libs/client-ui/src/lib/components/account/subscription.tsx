@@ -7,7 +7,7 @@ import { Loader } from '../common/loader';
 import { AccountSection } from './account-section';
 import { formatPrice } from '@knowii/common';
 
-// eslint-disable-next-line
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface SubscriptionProps {}
 
 export function Subscription(_props: SubscriptionProps) {
