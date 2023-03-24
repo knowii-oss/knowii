@@ -71,5 +71,10 @@
     "title": "Your subscription",
     "manage": "Manage subscription",
     "text": "Hey {{ userName }}! You are currently subscribed to the {{ planName }} plan. To manage your subscription or upgrade your plan, click the button below."
+  },
+  "pageNotFound": {
+    "title": "Doh...",
+    "message": "You seem to be lost...",
+    "goBackHomeLink": "\uD83D\uDC49 Go back home"
   }
 }

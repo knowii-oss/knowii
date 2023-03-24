@@ -2,7 +2,7 @@ import { Box, Button, Container, HStack, IconButton, useColorModeValue, useDiscl
 import { useUser } from '@supabase/auth-helpers-react';
 import { useTranslation } from 'next-i18next';
 import Link from 'next/link';
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { FaBars } from 'react-icons/fa';
 import { ColorModeSwitch, LanguageSwitch, Logo, Menu, MobileDrawerMenu, useMobileBreakpoint, useScrollTop } from '@knowii/client-ui';
 import { UserMenu } from './user-menu';
