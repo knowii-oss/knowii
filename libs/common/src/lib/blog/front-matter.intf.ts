@@ -21,6 +21,10 @@ export interface FrontMatter {
    */
   authorImage?: string;
   /**
+   * Link for the author avatar
+   */
+  authorLink?: string;
+  /**
    * Whether the post is published or not
    */
   published: boolean;
