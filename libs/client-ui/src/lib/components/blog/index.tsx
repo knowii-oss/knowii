@@ -1,5 +1,6 @@
 export * from './blog-post';
 export * from './blog-post-centered-content';
+export * from './blog-post-meta';
 export * from './blog-post-note';
 export * from './blog-post-quote';
 export * from './blog-post-signature';

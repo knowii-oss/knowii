@@ -7,7 +7,19 @@ export interface FrontMatter {
   summary: string;
   publishedAt: string;
   image: string;
+  /**
+   * Image details will be added automatically
+   */
+  imageDetails?: {
+    width: number;
+    height: number;
+    src: string;
+  };
   author?: string;
+  /**
+   * Image to use for the author. Default will be used if not provided
+   */
+  authorImage?: string;
   /**
    * Whether the post is published or not
    */
