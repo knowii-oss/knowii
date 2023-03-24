@@ -1,48 +1,17 @@
 - Test DB user creation/update etc triggers
-- Check ClientFormModalProps usage and avoid any!!!
+  - Create account for me
 - Create user zod schema (user.intf.ts)
 - Create community zod schema
-- Create/configure project on Vercel
-- Buy domain
-- Configure Cloudflare DNS/sec
-- Configure Vercel to use the domain
-- Create environment branches
-- Retrieve mdx-components config from dsebastien.net old code
-- Learn framer motion
-- Use Tailwind UI
-- Remove ChakraUI
-- Immer
-- XState
-- Read https://www.ziadmtl.dev/blog/using-supabase-with-typescript
-- Read https://github.com/prisma/prisma/issues/5128
-- prisma migrate dev vs prisma migrate: https://www.prisma.io/docs/concepts/components/prisma-migrate/migrate-development-production
-- Add community visibility and visibility enum (public, private)
-- Row level security vs prisma
-  - Create middleware: https://github.com/prisma/prisma/issues/5128
-  - Use SQL statements in supabase-db-seed.sql
-  - https://medium.com/@kavitanambissan/prisma-with-supabase-rls-policies-c72b68a62330
-  - https://github.com/prisma/prisma/issues/12735
-- Configure/test devcontainer
-- Check out Supabase multiplayer
-- Check out Supabase full text search
-- Check out Supabase discord bot
-- Check out Supabase telegram bot
-- Check out Supabase slack bot
-- Complete robots.txt, prevent going to API
-- Add playwright (vs nx?)
+- Read
 - darkMode: ['class', '[data-theme="dark"]'],
 - https://github.com/vercel/nextjs-subscription-payments
-- Switch theme.js to theme.mjs or theme.json
-- Use person microdata in constants
 - Fix background color
 - Use body className = loading to set a loading effect
-- Create account for me
-- Add support for profile picture and picture upload
-- Review mail templates and adapt and rename folder
-- Remove usage of Supabase client and supabase types generation (?)
 
 Knowii
 
+- Community
+  - Visibility (public/private) and correspondong enum
 - Category
   - Name
   - Description
@@ -66,12 +35,5 @@ Knowii
 
   - ...
 
-- Setup CI pipeline
-- Create .env.prod within CI
-- Explore https://supabase.com/docs/guides/database/testing
-- Test Supabase GraphQL: https://supabase.com/blog/graphql-now-available
-- Add Privacy policy and link in footer
-- Add Terms of service and link in footer
-- Replace "process.env.NODE_ENV === 'development'" with usage of constants
-  - Make sure it works once deployed to prod!
-- Add PWA
+-
+-

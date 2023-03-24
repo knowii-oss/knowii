@@ -3,7 +3,6 @@ import sizeOf from 'image-size';
 import { MDXRemoteSerializeResult } from 'next-mdx-remote';
 import { serialize } from 'next-mdx-remote/serialize';
 import path from 'path';
-import rehypePrism from 'rehype-prism';
 import rehypeSlug from 'rehype-slug';
 import rehypeImgSize from 'rehype-img-size';
 import fs from 'fs';
@@ -85,11 +84,7 @@ export async function getMdx({ type, slug, locale }: { type: WebsiteDataType; sl
       rehypePlugins: [
         [rehypeImgSize as any, { dir: `public/images/${type}` }], // FIXME fix this path
         /**
-         * Highlight code blocks with Prism: https://prismjs.com/
-         */
-        rehypePrism,
-        /**
-         * Add id to headings
+         * Add id to post headings
          * Reference: https://github.com/rehypejs/rehype-slug
          */
         rehypeSlug,
