@@ -2,11 +2,10 @@ import React, { ReactElement } from 'react';
 import Document, { Html, Head, Main, NextScript, DocumentContext, DocumentInitialProps } from 'next/document';
 import { ColorModeScript } from '@chakra-ui/react';
 import { customTheme } from '../chakra-ui.config';
-import { IS_BROWSER } from '@knowii/common';
+import { IS_BROWSER, SITE_AUTHOR_MICRODATA } from '@knowii/common';
 import Script from 'next/script';
+import { i18nConfig } from '../../../next-i18next.config.mjs';
 
-// eslint-disable-next-line  @typescript-eslint/no-var-requires
-const siteAuthor = require('../../../libs/common/src/lib/metadata.json').author;
 // eslint-disable-next-line  @typescript-eslint/no-var-requires
 const siteDescription = require('../../../libs/common/src/lib/metadata.json').description;
 // eslint-disable-next-line  @typescript-eslint/no-var-requires
@@ -22,7 +21,7 @@ const siteMicrodata = {
   name: siteName,
   alternateName: siteTitle,
   description: siteDescription,
-  publisher: siteAuthor,
+  publisher: SITE_AUTHOR_MICRODATA,
   url: IS_BROWSER ? window.location.origin : '',
 };
 
@@ -37,8 +36,10 @@ export default class CustomDocument extends Document<{
   };
 
   override render(): JSX.Element {
+    const currentLocale = this.props.__NEXT_DATA__.locale ?? i18nConfig.i18n.defaultLocale;
+
     return (
-      <Html lang="en">
+      <Html lang={currentLocale}>
         <Head>
           <meta charSet="utf-8" />
           <meta name="robots" content="index,follow,max-image-preview:large" />

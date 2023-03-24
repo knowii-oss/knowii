@@ -125,3 +125,8 @@ export const assertNotNull = <T>(input?: T | null): T => {
   }
   throw new Error('Object should not be null'); // This will result in a 500
 };
+
+/**
+ * Pick fields from a type and make those required
+ */
+export type RequiredPick<T, K extends keyof T> = Required<Pick<T, K>>;
