@@ -5,7 +5,7 @@ interface SectionHeadlineProps {
   description?: string;
 }
 
-export default function SectionHeadline({ title, description }: SectionHeadlineProps) {
+export function SectionHeadline({ title, description }: SectionHeadlineProps) {
   return (
     <Container maxW="5xl" textAlign={{ base: 'left', md: 'center' }} mb={16}>
       <VStack spacing={2} justify="start" align={{ base: 'start', md: 'center' }}>
@@ -21,3 +21,5 @@ export default function SectionHeadline({ title, description }: SectionHeadlineP
     </Container>
   );
 }
+
+export default SectionHeadline;

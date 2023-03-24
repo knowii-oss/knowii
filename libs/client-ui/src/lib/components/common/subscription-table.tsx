@@ -6,7 +6,7 @@ import PricingPlanBox from './subscription-item';
 import UserSubscriptionAlert from './user-subscription-alert';
 import { useSubscriptionPlans, useUserSubscriptions } from '@knowii/client';
 
-// eslint-disable-next-line
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface SubscriptionTableProps {}
 
 export function SubscriptionTable(_props: SubscriptionTableProps) {

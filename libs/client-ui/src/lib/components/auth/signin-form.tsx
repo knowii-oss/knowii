@@ -29,7 +29,7 @@ import { AuthFormWrapper } from './auth-form-wrapper';
 import { SigninModeSwitch, SigninMode } from './signin-mode-switch';
 import { SocialSigninButton } from './social-signin-button';
 
-// eslint-disable-next-line
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface SigninFormProps {}
 
 export function SigninForm(_props: SigninFormProps) {

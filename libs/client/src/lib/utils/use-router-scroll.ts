@@ -16,7 +16,7 @@ import { IS_BROWSER } from '@knowii/common';
  * @param {number} [options.left=0] Specifies the number of pixels along the X axis to scroll the window.
  * @param {number} [options.top=0] Specifies the number of pixels along the Y axis to scroll the window.
  */
-function useRouterScroll({
+export function useRouterScroll({
   behavior = 'smooth',
   left = 0,
   top = 0,
