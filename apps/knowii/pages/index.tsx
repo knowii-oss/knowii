@@ -9,11 +9,13 @@ import { Layout } from '../components/layout/layout';
 import { Pricing } from '../components/home/pricing';
 
 import { i18nConfig } from '../../../next-i18next.config.mjs';
+import { I18N_TRANSLATIONS_COMMON, I18N_TRANSLATIONS_HOME } from '@knowii/common';
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   //const supabase = createServerSupabaseClient(ctx);
 
-  const translations = await serverSideTranslations(ctx.locale ? ctx.locale : 'en', ['common', 'home'], i18nConfig);
+  const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
+  const translations = await serverSideTranslations(locale, [I18N_TRANSLATIONS_COMMON, I18N_TRANSLATIONS_HOME], i18nConfig);
 
   return {
     props: { ...translations },

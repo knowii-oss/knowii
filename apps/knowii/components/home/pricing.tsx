@@ -2,12 +2,13 @@ import { Box, Container, useColorModeValue } from '@chakra-ui/react';
 import { useTranslation } from 'next-i18next';
 import { SubscriptionTable } from '@knowii/client-ui';
 import { SectionHeadline } from './section-headline';
+import { I18N_TRANSLATIONS_HOME } from '@knowii/common';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface PricingProps {}
 
 export function Pricing(_props: PricingProps) {
-  const { t } = useTranslation('home');
+  const { t } = useTranslation(I18N_TRANSLATIONS_HOME);
 
   return (
     <Box as="section" id="pricing" px={8} py={16} borderTop="2px solid" borderColor={useColorModeValue('gray.100', 'gray.700')}>

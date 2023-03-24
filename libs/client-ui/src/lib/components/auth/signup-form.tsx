@@ -19,7 +19,7 @@ import { useRouter } from 'next/router';
 import { FormEvent, useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { FaAt, FaEye, FaEyeSlash, FaLock, FaUserAlt } from 'react-icons/fa';
-import { redirectPath } from '@knowii/common';
+import { I18N_TRANSLATIONS_AUTH, redirectPath } from '@knowii/common';
 import { useAuthRedirectUrl } from '@knowii/client';
 import { AuthFormWrapper } from './auth-form-wrapper';
 
@@ -27,7 +27,7 @@ import { AuthFormWrapper } from './auth-form-wrapper';
 export interface SignupFormProps {}
 
 export function SignupForm(_props: SignupFormProps) {
-  const { t } = useTranslation('auth');
+  const { t } = useTranslation(I18N_TRANSLATIONS_AUTH);
   const supabaseClient = useSupabaseClient();
   const router = useRouter();
   const redirectTo = useAuthRedirectUrl();

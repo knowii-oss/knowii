@@ -6,7 +6,7 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import Head from 'next/head';
 import { useMemo } from 'react';
 import { ColorModeSwitch, ForgotPasswordForm, LanguageSwitch, Logo, ResetPasswordForm, SigninForm, SignupForm } from '@knowii/client-ui';
-import { Database, redirectPath } from '@knowii/common';
+import { Database, I18N_TRANSLATIONS_AUTH, I18N_TRANSLATIONS_COMMON, redirectPath } from '@knowii/common';
 import { i18nConfig } from '../../../../next-i18next.config.mjs';
 
 const authActions = ['signup', 'signin', 'forgot-password', 'reset-password'];
@@ -47,7 +47,8 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     };
   }
 
-  const translations = await serverSideTranslations(ctx.locale ? ctx.locale : 'en', ['common', 'auth'], i18nConfig);
+  const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
+  const translations = await serverSideTranslations(locale, [I18N_TRANSLATIONS_COMMON, I18N_TRANSLATIONS_AUTH], i18nConfig);
 
   return {
     props: {
@@ -59,7 +60,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 };
 
 export default function AuthPage({ action }: { action: string }) {
-  const { t } = useTranslation(['auth', 'common']);
+  const { t } = useTranslation([I18N_TRANSLATIONS_COMMON, I18N_TRANSLATIONS_AUTH]);
 
   const actionTitles: Record<string, string> = useMemo(
     () => ({

@@ -26,7 +26,7 @@ import Link from 'next/link';
 import { useCallback, useState } from 'react';
 import { FaEdit, FaTrash, FaUserPlus } from 'react-icons/fa';
 import { useUserPermissions } from '@knowii/client';
-import { Database } from '@knowii/common';
+import { Database, I18N_TRANSLATIONS_APP } from '@knowii/common';
 import { Loader } from '../../common/loader';
 import { ConfirmModal } from '../confirm-modal';
 import { ClientFormModal } from './client-form-modal';
@@ -44,7 +44,7 @@ export interface ClientsListProps {}
 export function ClientsList(_props: ClientsListProps) {
   const supabaseClient = useSupabaseClient<Database>();
   const queryClient = useQueryClient();
-  const { t } = useTranslation('app');
+  const { t } = useTranslation(I18N_TRANSLATIONS_APP);
   const toast = useToast();
   const { isUserSubscribed, loading: loadingPermissions } = useUserPermissions();
   const formModal = useDisclosure();

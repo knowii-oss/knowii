@@ -16,6 +16,7 @@ import { useTranslation } from 'next-i18next';
 import Link from 'next/link';
 import { FaEnvelope, FaTwitter } from 'react-icons/fa';
 import { Logo } from '@knowii/client-ui';
+import { I18N_TRANSLATIONS_COMMON } from '@knowii/common';
 
 // eslint-disable-next-line  @typescript-eslint/no-var-requires
 const author = require('../../../../libs/common/src/lib/metadata.json').author;
@@ -28,7 +29,7 @@ const social = require('../../../../libs/common/src/lib/metadata.json').social;
 interface FooterProps {}
 
 export function Footer(_props: FooterProps) {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation(I18N_TRANSLATIONS_COMMON);
 
   return (
     <Box as="footer" bg={useColorModeValue('gray.50', 'gray.700')} px={4} py={16}>

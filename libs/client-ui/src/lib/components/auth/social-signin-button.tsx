@@ -21,7 +21,7 @@ import {
   FaTwitter,
 } from 'react-icons/fa';
 import { SiNotion } from 'react-icons/si';
-import { redirectPath } from '@knowii/common';
+import { I18N_TRANSLATIONS_AUTH, redirectPath } from '@knowii/common';
 import { useAuthRedirectUrl } from '@knowii/client';
 
 export interface SocialSignInButtonProps {
@@ -31,7 +31,7 @@ export interface SocialSignInButtonProps {
 
 export function SocialSigninButton({ provider, redirectAfterSignin }: SocialSignInButtonProps) {
   const supabaseClient = useSupabaseClient();
-  const { t } = useTranslation('auth');
+  const { t } = useTranslation(I18N_TRANSLATIONS_AUTH);
   // TODO extract string to auth constants
   const redirectTo = useAuthRedirectUrl(`/auth/callback?redirectAfterSignin=${encodeURIComponent(redirectAfterSignin ?? redirectPath)}`);
 

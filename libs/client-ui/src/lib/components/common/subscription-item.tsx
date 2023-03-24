@@ -2,7 +2,7 @@ import { Box, Button, Heading, ListItem, Text, UnorderedList, useColorModeValue,
 import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
 import { useMemo } from 'react';
-import { defaultCurrency, formatPrice, localeCurrencies, SubscriptionPlan } from '@knowii/common';
+import { defaultCurrency, formatPrice, I18N_TRANSLATIONS_COMMON, localeCurrencies, SubscriptionPlan } from '@knowii/common';
 import { useSubscriptionActions } from '@knowii/client';
 
 export interface SubscriptionItemProps {
@@ -14,7 +14,7 @@ export interface SubscriptionItemProps {
 
 export function SubscriptionItem({ plan, billingInterval, isHighlighted, hideSubscribeButton }: SubscriptionItemProps) {
   const router = useRouter();
-  const { t } = useTranslation('common');
+  const { t } = useTranslation(I18N_TRANSLATIONS_COMMON);
   const { subscribe, loading } = useSubscriptionActions();
   const bgColor = useColorModeValue('primary.50', 'gray.900');
   const highlightColor = useColorModeValue('primary.500', 'primary.400');

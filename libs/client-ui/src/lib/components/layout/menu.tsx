@@ -3,13 +3,14 @@ import { useUser } from '@supabase/auth-helpers-react';
 import { useTranslation } from 'next-i18next';
 import Link from 'next/link';
 import { useMobileBreakpoint } from './layout';
+import { I18N_TRANSLATIONS_COMMON } from '@knowii/common';
 
 export interface MenuProps {
   mobileMode?: boolean;
 }
 
 export function Menu({ mobileMode }: MenuProps) {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation(I18N_TRANSLATIONS_COMMON);
   const user = useUser();
   const menuItemColor = useColorModeValue('gray.600', 'gray.200');
   const isMobile = useMobileBreakpoint();

@@ -3,6 +3,7 @@ import { useTranslation } from 'next-i18next';
 import Image from 'next/image';
 import NextLink from 'next/link';
 import { useMemo } from 'react';
+import { I18N_TRANSLATIONS_BLOG } from '@knowii/common';
 
 export type BlogPostProps = {
   slug: string;
@@ -13,7 +14,7 @@ export type BlogPostProps = {
 };
 
 export function BlogPost({ slug, title, date, summary, image }: BlogPostProps) {
-  const { t } = useTranslation('blog');
+  const { t } = useTranslation(I18N_TRANSLATIONS_BLOG);
 
   const link = useMemo(() => `/blog/${slug}`, [slug]);
 

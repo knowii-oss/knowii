@@ -1,7 +1,7 @@
 import { SimpleGrid, Tab, TabList, Tabs, useColorModeValue, VStack } from '@chakra-ui/react';
 import { useTranslation } from 'next-i18next';
 import { useState } from 'react';
-import { recommendedPlanId } from '@knowii/common';
+import { I18N_TRANSLATIONS_COMMON, recommendedPlanId } from '@knowii/common';
 import PricingPlanBox from './subscription-item';
 import UserSubscriptionAlert from './user-subscription-alert';
 import { useSubscriptionPlans, useUserSubscriptions } from '@knowii/client';
@@ -10,7 +10,7 @@ import { useSubscriptionPlans, useUserSubscriptions } from '@knowii/client';
 export interface SubscriptionTableProps {}
 
 export function SubscriptionTable(_props: SubscriptionTableProps) {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation(I18N_TRANSLATIONS_COMMON);
   const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month');
   const { plans } = useSubscriptionPlans();
   const { currentlySubscribedPlan } = useUserSubscriptions();

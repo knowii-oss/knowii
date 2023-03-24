@@ -8,13 +8,15 @@ import { FaUser } from 'react-icons/fa';
 import { EditableText, Password, Subscription } from '@knowii/client-ui';
 import Layout from '../components/layout/layout';
 import { useUserName } from '@knowii/client';
+import { i18nConfig } from '../../../next-i18next.config.mjs';
+import { I18N_TRANSLATIONS_ACCOUNT, I18N_TRANSLATIONS_COMMON } from '@knowii/common';
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const locale = ctx.locale!; // FIXME replace by the default locale if not available
+  const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
+  const translations = await serverSideTranslations(locale, [I18N_TRANSLATIONS_COMMON, I18N_TRANSLATIONS_ACCOUNT], i18nConfig);
 
   return {
-    props: { ...(await serverSideTranslations(locale, ['common', 'account'])) },
+    props: { ...translations },
   };
 };
 
@@ -22,7 +24,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 interface AccountPageProps {}
 
 export function AccountPage(_props: AccountPageProps) {
-  const { t } = useTranslation('account');
+  const { t } = useTranslation(I18N_TRANSLATIONS_ACCOUNT);
   const supabaseClient = useSupabaseClient();
   const userName = useUserName();
   const toast = useToast();
