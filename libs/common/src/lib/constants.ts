@@ -56,7 +56,6 @@ export const I18N_TRANSLATIONS_AUTH = 'auth';
 export const I18N_TRANSLATIONS_BLOG = 'blog';
 export const I18N_TRANSLATIONS_COMMON = 'common';
 export const I18N_TRANSLATIONS_HOME = 'home';
-export const I18N_TRANSLATIONS_404 = 'lost';
 
 /**
  * Meta
