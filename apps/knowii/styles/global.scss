@@ -8,6 +8,7 @@ html,
 body {
   text-rendering: optimizeLegibility;
   -moz-osx-font-smoothing: grayscale;
+  @apply antialiased;
 }
 
 html,

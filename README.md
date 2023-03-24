@@ -64,3 +64,10 @@ When new environment variables are necessary, they should:
 ## Developing components
 
 Create reusable components in the 'client-ui' library. Test those using Storybook: `pnpm run storybook:client-ui`
+
+## Adding a locale
+
+To add a locale:
+
+- Create the files under apps/knowii/public/locales/<lang>
+- Edit i18next.d.ts

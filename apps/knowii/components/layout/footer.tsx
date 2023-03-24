@@ -21,7 +21,7 @@ import { I18N_TRANSLATIONS_COMMON } from '@knowii/common';
 // eslint-disable-next-line  @typescript-eslint/no-var-requires
 const author = require('../../../../libs/common/src/lib/metadata.json').author;
 // eslint-disable-next-line  @typescript-eslint/no-var-requires
-const contact = require('../../../../libs/common/src/lib/metadata.json').contact;
+const contacts = require('../../../../libs/common/src/lib/metadata.json').contacts;
 // eslint-disable-next-line  @typescript-eslint/no-var-requires
 const social = require('../../../../libs/common/src/lib/metadata.json').social;
 
@@ -38,7 +38,7 @@ export function Footer(_props: FooterProps) {
           <VStack align="start" spacing={3}>
             <Logo />
             <HStack>
-              <IconButton aria-label="Email" as="a" href={`mailto:${contact.mail}`} colorScheme="primary" variant="ghost" fontSize="xl">
+              <IconButton aria-label="Email" as="a" href={`mailto:${contacts.mail}`} colorScheme="primary" variant="ghost" fontSize="xl">
                 <FaEnvelope />
               </IconButton>
               <IconButton aria-label="Twitter" as="a" href={social.twitterSebastien} colorScheme="twitter" variant="ghost" fontSize="xl">

@@ -10,11 +10,14 @@ import { BlogPostMeta, PageHeader } from '@knowii/client-ui';
 import { mdxComponents } from '@knowii/client';
 import { Layout } from '../../components/layout/layout';
 import { getImageSize, getMdx, getMdxFilePaths } from '@knowii/server';
-import { FrontMatter, I18N_TRANSLATIONS_BLOG, I18N_TRANSLATIONS_COMMON, WebsiteDataType } from '@knowii/common';
+import { FrontMatter, I18N_TRANSLATIONS_BLOG, I18N_TRANSLATIONS_COMMON, SITE_AUTHOR_MICRODATA, WebsiteDataType } from '@knowii/common';
 import { i18nConfig } from '../../../../next-i18next.config.mjs';
+import Script from 'next/script';
 
 // eslint-disable-next-line  @typescript-eslint/no-var-requires
 const siteAuthor = require('../../../../libs/common/src/lib/metadata.json').author;
+// eslint-disable-next-line  @typescript-eslint/no-var-requires
+const siteAuthorAvatar = require('../../../../libs/common/src/lib/metadata.json').avatars.sebastien;
 // eslint-disable-next-line  @typescript-eslint/no-var-requires
 const siteAuthorLink = require('../../../../libs/common/src/lib/metadata.json').social.twitterSebastien;
 
@@ -24,10 +27,11 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
 
   const mdxProps = await getMdx({ type: WebsiteDataType.BLOG, slug, locale });
 
-  // get cover image size
+  // Get cover image size
   const image = mdxProps?.frontMatter.image;
   if (image) {
     const imageSize = getImageSize({ imagePath: image });
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     mdxProps!.frontMatter.imageDetails = {
       width: imageSize?.width ?? 1,
       height: imageSize?.height ?? 1,
@@ -79,7 +83,23 @@ export function BlogPostPage({ source, frontMatter }: BlogPostPageProps) {
   const metaImage = useMemo(() => frontMatter.imageDetails?.src ?? null, [frontMatter]);
 
   const author = frontMatter.author ?? siteAuthor;
+  const authorImage = frontMatter.authorImage ?? siteAuthorAvatar;
   const authorLink = frontMatter.authorLink ?? siteAuthorLink;
+
+  const datePublished = new Date(frontMatter.publishedOn).toISOString();
+
+  /**
+   * Reference: https://schema.org/Article
+   */
+  const articleMicrodata = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: frontMatter.title,
+    description: frontMatter.summary,
+    image: frontMatter.image,
+    datePublished,
+    author: SITE_AUTHOR_MICRODATA,
+  };
 
   return (
     <>
@@ -89,7 +109,21 @@ export function BlogPostPage({ source, frontMatter }: BlogPostPageProps) {
           <meta property="twitter:image" content={metaImage} />
         </Head>
       )}
-      <Layout customMeta={{ title: pageTitle }}>
+      <Layout
+        customMeta={{
+          author,
+          title: pageTitle,
+          description: frontMatter.summary,
+          image: frontMatter.image,
+          date: datePublished,
+          type: 'article',
+          keywords: frontMatter.keywords.join(', '),
+          canonicalUrl: frontMatter.canonicalUrl,
+        }}
+      >
+        <Script id="article-microdata-script" type="application/ld+json">
+          {JSON.stringify(articleMicrodata)}
+        </Script>
         <PageHeader title={frontMatter.title} align="center" containerMaxWidth="3xl">
           <VStack spacing={6} mt={6}>
             {frontMatter.imageDetails && (
@@ -107,12 +141,7 @@ export function BlogPostPage({ source, frontMatter }: BlogPostPageProps) {
                 />
               </Box>
             )}
-            <BlogPostMeta
-              author={author}
-              authorImage={frontMatter.authorImage}
-              authorLink={authorLink}
-              publishedOn={frontMatter.publishedOn}
-            />
+            <BlogPostMeta author={author} authorImage={authorImage} authorLink={authorLink} publishedOn={frontMatter.publishedOn} />
           </VStack>
         </PageHeader>
         <Box px={4} py={12}>

@@ -1,3 +1,42 @@
+// eslint-disable-next-line  @typescript-eslint/no-var-requires
+const siteAuthor = require('./metadata.json').author;
+// eslint-disable-next-line  @typescript-eslint/no-var-requires
+const siteAuthorGivenName = require('./metadata.json').authorGivenName;
+// eslint-disable-next-line  @typescript-eslint/no-var-requires
+const siteAuthorFamilyName = require('./metadata.json').authorFamilyName;
+// eslint-disable-next-line  @typescript-eslint/no-var-requires
+const siteAuthorWebsite = require('./metadata.json').social.blogSebastien;
+// eslint-disable-next-line  @typescript-eslint/no-var-requires
+const siteAuthorTwitter = require('./metadata.json').social.twitterSebastien;
+// eslint-disable-next-line  @typescript-eslint/no-var-requires
+const siteAuthorYouTube = require('./metadata.json').social.youtubeSebastien;
+// eslint-disable-next-line  @typescript-eslint/no-var-requires
+const siteAuthorLinkedIn = require('./metadata.json').social.linkedInSebastien;
+// eslint-disable-next-line  @typescript-eslint/no-var-requires
+const siteAuthorGitHub = require('./metadata.json').social.githubSebastien;
+// eslint-disable-next-line  @typescript-eslint/no-var-requires
+const siteAuthorMedium = require('./metadata.json').social.mediumSebastien;
+// eslint-disable-next-line  @typescript-eslint/no-var-requires
+const siteAuthorDevTo = require('./metadata.json').social.devToSebastien;
+// eslint-disable-next-line  @typescript-eslint/no-var-requires
+const siteAuthorLinktree = require('./metadata.json').social.linktreeSebastien;
+// eslint-disable-next-line  @typescript-eslint/no-var-requires
+const siteAuthorTwitch = require('./metadata.json').social.twitchSebastien;
+// eslint-disable-next-line  @typescript-eslint/no-var-requires
+const siteAuthorStackOverflow = require('./metadata.json').social.stackOverflowSebastien;
+// eslint-disable-next-line  @typescript-eslint/no-var-requires
+const siteAuthorFacebook = require('./metadata.json').social.facebookSebastien;
+// eslint-disable-next-line  @typescript-eslint/no-var-requires
+const siteAuthorHashnode = require('./metadata.json').social.hashnodeSebastien;
+// eslint-disable-next-line  @typescript-eslint/no-var-requires
+const siteAuthorReddit = require('./metadata.json').social.redditSebastien;
+// eslint-disable-next-line  @typescript-eslint/no-var-requires
+const siteAuthorSubstack = require('./metadata.json').social.substackSebastien;
+// eslint-disable-next-line  @typescript-eslint/no-var-requires
+const siteAuthorRole = require('./metadata.json').roles.sebastien;
+// eslint-disable-next-line  @typescript-eslint/no-var-requires
+const siteAuthorAvatar = require('./metadata.json').avatars.sebastien;
+
 /**
  * Utils
  */
@@ -17,6 +56,7 @@ export const I18N_TRANSLATIONS_AUTH = 'auth';
 export const I18N_TRANSLATIONS_BLOG = 'blog';
 export const I18N_TRANSLATIONS_COMMON = 'common';
 export const I18N_TRANSLATIONS_HOME = 'home';
+export const I18N_TRANSLATIONS_404 = 'lost';
 
 /**
  * Meta
@@ -28,28 +68,30 @@ export const BUILD_TIMESTAMP = Date.now();
  * Author microdata
  * Reference: https://schema.org/Person
  */
-export const SITE_AUTHOR = {
+export const SITE_AUTHOR_MICRODATA = {
   '@context': 'https://schema.org/',
   '@type': 'Person',
-  name: 'Sébastien Dubois',
-  familyName: 'Dubois',
-  givenName: 'Sébastien',
-  image: 'https://www.dsebastien.net/content/images/2022/12/Seb-2022.jpg',
-  url: 'https://dsebastien.net',
+  name: siteAuthor,
+  familyName: siteAuthorFamilyName,
+  givenName: siteAuthorGivenName,
+  image: siteAuthorAvatar,
+  url: siteAuthorWebsite,
   sameAs: [
-    'https://twitter.com/dSebastien',
-    'https://youtube.com/@dSebastien',
-    'https://www.linkedin.com/in/sebastiend/',
-    'https://github.com/dsebastien',
-    'https://dsebastien.medium.com/',
-    'https://dev.to/dsebastien',
-    'https://www.twitch.tv/dsebastien',
-    'https://stackoverflow.com/users/226630/dsebastien',
-    'https://www.facebook.com/trankill',
-    'https://dsebastien.hashnode.dev/',
-    'https://www.reddit.com/user/lechtitseb/',
+    siteAuthorTwitter,
+    siteAuthorYouTube,
+    siteAuthorLinkedIn,
+    siteAuthorGitHub,
+    siteAuthorMedium,
+    siteAuthorDevTo,
+    siteAuthorLinktree,
+    siteAuthorTwitch,
+    siteAuthorStackOverflow,
+    siteAuthorFacebook,
+    siteAuthorHashnode,
+    siteAuthorReddit,
+    siteAuthorSubstack,
   ],
-  jobTitle: 'Founder',
+  jobTitle: siteAuthorRole,
   worksFor: {
     '@type': 'Organization',
     name: 'DeveloPassion',

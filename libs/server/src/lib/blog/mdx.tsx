@@ -62,8 +62,6 @@ export interface MdxEntry {
  * @param imagePath
  */
 export function getImageSize({ imagePath }: { imagePath: string }) {
-  console.log('src: ', imagePath);
-
   const filePath = path.join(root, IMAGES_FOLDER_PATH, imagePath);
 
   return sizeOf(filePath);

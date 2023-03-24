@@ -1,15 +1,10 @@
 import { Avatar, Box, HStack, Icon, Text, VStack } from '@chakra-ui/react';
 import { useTranslation } from 'next-i18next';
 import { FaCalendarAlt } from 'react-icons/fa';
-import { I18N_TRANSLATIONS_BLOG } from '@knowii/common';
+import { FrontMatter, I18N_TRANSLATIONS_BLOG, RequiredPick } from '@knowii/common';
 import Link from 'next/link';
 
-interface BlogPostMetaProps {
-  author: string;
-  authorImage?: string;
-  authorLink: string;
-  publishedOn: string;
-}
+type BlogPostMetaProps = RequiredPick<FrontMatter, 'author' | 'authorImage' | 'authorLink' | 'publishedOn'>;
 
 export function BlogPostMeta({ author, authorImage, authorLink, publishedOn }: BlogPostMetaProps) {
   const { t } = useTranslation(I18N_TRANSLATIONS_BLOG);
@@ -18,7 +13,7 @@ export function BlogPostMeta({ author, authorImage, authorLink, publishedOn }: B
     <Box>
       <HStack gap={8} lineHeight="short" fontSize="sm">
         <HStack>
-          <Link href={authorLink} className="rounded-full">
+          <Link href={authorLink} rel="noopener noreferrer" className="rounded-full">
             <Avatar name={author} src={authorImage} size="sm" />
           </Link>
           <VStack align="start" spacing={0}>

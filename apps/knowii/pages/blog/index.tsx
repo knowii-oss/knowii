@@ -21,7 +21,7 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
     .filter((entry) => entry.frontMatter?.published)
     /* Sort entries by date descending */
     .sort((a, b) => {
-      return b.frontMatter.publishedAt > a.frontMatter.publishedAt ? 1 : -1;
+      return b.frontMatter.publishedOn > a.frontMatter.publishedOn ? 1 : -1;
     });
 
   const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
@@ -52,8 +52,8 @@ export function BlogPage({ entries }: BlogPageProps) {
       <Box px={4} py={12}>
         <Container maxW="5xl">
           <VStack spacing={4} align="stretch">
-            {entries?.map(({ slug, frontMatter: { title, summary, image, publishedAt } }) => (
-              <BlogPost key={slug} slug={slug} title={title} summary={summary} image={image} date={publishedAt} />
+            {entries?.map(({ slug, frontMatter: { title, summary, image, publishedOn } }) => (
+              <BlogPost key={slug} slug={slug} title={title} summary={summary} image={image} date={publishedOn} />
             ))}
           </VStack>
         </Container>
