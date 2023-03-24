@@ -12,6 +12,7 @@ import readingTime from 'reading-time';
 
 const root = process.cwd();
 const CONTENT_FOLDER_PATH = `${BASE_APP_FOLDER}/content`;
+const IMAGES_FOLDER_PATH = `${BASE_APP_FOLDER}/public`;
 
 export function getFilesList({ type, locale }: { type: WebsiteDataType.BLOG; locale: string }): string[] {
   let retVal: string[] = [];
@@ -41,8 +42,10 @@ export async function getFileBySlug({
 }): Promise<string | null> {
   let source = null;
 
+  const filePath = path.join(root, CONTENT_FOLDER_PATH, type, locale, `${slug}.mdx`);
+
   try {
-    source = await fs.readFileSync(path.join(root, CONTENT_FOLDER_PATH, type, locale, `${slug}.mdx`), 'utf8');
+    source = await fs.readFileSync(filePath, 'utf8');
   } catch {}
 
   return source;
@@ -56,22 +59,14 @@ export interface MdxEntry {
 
 /**
  * Get the size of the given image
- * @param src
- * @param dir
+ * @param imagePath
  */
-export function getImageSize(src: string, dir?: string) {
-  const absolutePathRegex = /^(?:[a-z]+:)?\/\//;
+export function getImageSize({ imagePath }: { imagePath: string }) {
+  console.log('src: ', imagePath);
 
-  if (absolutePathRegex.exec(src)) {
-    return;
-  }
+  const filePath = path.join(root, IMAGES_FOLDER_PATH, imagePath);
 
-  const shouldJoin = !path.isAbsolute(src) || src.startsWith('/');
-  if (dir && shouldJoin) {
-    src = path.join(dir, src);
-  }
-
-  return sizeOf(src);
+  return sizeOf(filePath);
 }
 
 export async function getMdx({ type, slug, locale }: { type: WebsiteDataType; slug: string; locale: string }): Promise<MdxEntry | null> {
