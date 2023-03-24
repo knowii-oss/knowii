@@ -1,9 +1,12 @@
 import { Box, Container, Flex, Heading, ListItem, Stack, UnorderedList, useColorModeValue, VStack } from '@chakra-ui/react';
 import { useTranslation } from 'next-i18next';
 import { FaCloud } from 'react-icons/fa';
-import SectionHeadline from './SectionHeadline';
+import { SectionHeadline } from './section-headline';
 
-export default function Features() {
+// eslint-disable-next-line
+interface FeaturesProps {}
+
+export function Features(_props: FeaturesProps) {
   const { t } = useTranslation('home');
   const itemBorder = useColorModeValue('primary.100', 'gray.700');
 
@@ -55,3 +58,5 @@ export default function Features() {
     </Box>
   );
 }
+
+export default Features;

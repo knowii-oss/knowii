@@ -3,7 +3,7 @@ import { useTranslation } from 'next-i18next';
 import { FaMoon, FaSun } from 'react-icons/fa';
 import { useTheme } from 'next-themes';
 
-// eslint-disable-next-line
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ColorModeSwitchProps {}
 
 /**

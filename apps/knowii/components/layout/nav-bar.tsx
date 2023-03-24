@@ -5,9 +5,13 @@ import Link from 'next/link';
 import { useEffect } from 'react';
 import { FaBars } from 'react-icons/fa';
 import { ColorModeSwitch, LanguageSwitch, Logo, Menu, MobileDrawerMenu, useMobileBreakpoint, useScrollTop } from '@knowii/client-ui';
-import UserMenu from './UserMenu';
+import { UserMenu } from './user-menu';
 
-export default function NavBar({ hideMenu }: { hideMenu?: boolean }) {
+interface NavBarProps {
+  hideMenu?: boolean;
+}
+
+export function NavBar({ hideMenu }: NavBarProps) {
   const { t } = useTranslation('common');
   const user = useUser();
   const mobileDrawerDisclosure = useDisclosure();
@@ -39,7 +43,6 @@ export default function NavBar({ hideMenu }: { hideMenu?: boolean }) {
               <Logo />
               {!hideMenu && <Menu />}
             </HStack>
-
             <HStack spacing={4}>
               <HStack>
                 <LanguageSwitch />
@@ -65,3 +68,5 @@ export default function NavBar({ hideMenu }: { hideMenu?: boolean }) {
     </>
   );
 }
+
+export default NavBar;

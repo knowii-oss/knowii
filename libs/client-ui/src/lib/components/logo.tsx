@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-// eslint-disable-next-line
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface LogoProps {}
 
 export function Logo(_props: LogoProps) {

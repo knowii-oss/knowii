@@ -7,7 +7,10 @@ import { useCallback } from 'react';
 import { FaSignOutAlt, FaUser } from 'react-icons/fa';
 import { useUserName } from '@knowii/client';
 
-export default function UserMenu() {
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface UserMenuProps {}
+
+export function UserMenu(_props: UserMenuProps) {
   const { t } = useTranslation('common');
   const supabaseClient = useSupabaseClient();
   const router = useRouter();
@@ -35,3 +38,5 @@ export default function UserMenu() {
     </Menu>
   );
 }
+
+export default UserMenu;

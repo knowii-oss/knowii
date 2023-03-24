@@ -3,7 +3,7 @@ import { useTranslation } from 'next-i18next';
 import { FaStar } from 'react-icons/fa';
 import { useUserName, useSubscriptionActions, useUserSubscriptions } from '@knowii/client';
 
-// eslint-disable-next-line
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface UserSubscriptionAlertProps {}
 
 export function UserSubscriptionAlert(_props: UserSubscriptionAlertProps) {

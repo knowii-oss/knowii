@@ -6,16 +6,22 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useCallback } from 'react';
 import { FaUser } from 'react-icons/fa';
 import { EditableText, Password, Subscription } from '@knowii/client-ui';
-import Layout from '../components/layout/Layout';
+import Layout from '../components/layout/layout';
 import { useUserName } from '@knowii/client';
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const locale = ctx.locale!; // FIXME replace by the default locale if not available
+
   return {
-    props: { ...(await serverSideTranslations(ctx.locale!, ['common', 'account'])) },
+    props: { ...(await serverSideTranslations(locale, ['common', 'account'])) },
   };
 };
 
-export default function AccountPage() {
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface AccountPageProps {}
+
+export function AccountPage(_props: AccountPageProps) {
   const { t } = useTranslation('account');
   const supabaseClient = useSupabaseClient();
   const userName = useUserName();
@@ -40,7 +46,7 @@ export default function AccountPage() {
   );
 
   return (
-    <Layout pageTitle={t('account')}>
+    <Layout customMeta={{ title: t('account') }}>
       <Box textAlign="center" px={8} pt={36} pb={16} mt={-20} bg={useColorModeValue('primary.50', 'gray.900')}>
         <VStack spacing={4}>
           <Flex w={36} h={36} bg="primary.500" rounded="full" fontSize="7xl" align="center" justify="center" color="white">
@@ -59,3 +65,5 @@ export default function AccountPage() {
     </Layout>
   );
 }
+
+export default AccountPage;

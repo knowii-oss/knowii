@@ -20,7 +20,7 @@ import { FaAt } from 'react-icons/fa';
 import { useAuthRedirectUrl } from '@knowii/client';
 import { AuthFormWrapper } from './auth-form-wrapper';
 
-// eslint-disable-next-line
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ForgotPasswordFormProps {}
 
 export function ForgotPasswordForm(_props: ForgotPasswordFormProps) {

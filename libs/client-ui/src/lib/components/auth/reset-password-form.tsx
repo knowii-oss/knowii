@@ -21,7 +21,7 @@ import { FaEye, FaEyeSlash, FaLock } from 'react-icons/fa';
 import { redirectPath } from '@knowii/common';
 import { AuthFormWrapper } from './auth-form-wrapper';
 
-// eslint-disable-next-line
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ResetPasswordFormProps {}
 
 export function ResetPasswordForm(_props: ResetPasswordFormProps) {

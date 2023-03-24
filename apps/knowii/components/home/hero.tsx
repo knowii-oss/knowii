@@ -3,7 +3,10 @@ import { useUser } from '@supabase/auth-helpers-react';
 import { useTranslation } from 'next-i18next';
 import Link from 'next/link';
 
-export default function Hero() {
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface HeroProps {}
+
+export function Hero(_props: HeroProps) {
   const { t } = useTranslation('home');
 
   const user = useUser();
@@ -20,3 +23,5 @@ export default function Hero() {
     </div>
   );
 }
+
+export default Hero;

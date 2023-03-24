@@ -1,9 +1,12 @@
 import { Box, Container, useColorModeValue } from '@chakra-ui/react';
 import { useTranslation } from 'next-i18next';
 import { SubscriptionTable } from '@knowii/client-ui';
-import SectionHeadline from './SectionHeadline';
+import { SectionHeadline } from './section-headline';
 
-function Pricing() {
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface PricingProps {}
+
+export function Pricing(_props: PricingProps) {
   const { t } = useTranslation('home');
 
   return (

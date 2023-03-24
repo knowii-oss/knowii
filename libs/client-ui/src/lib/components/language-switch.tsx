@@ -5,7 +5,7 @@ import { useCallback } from 'react';
 import { FaGlobeAmericas } from 'react-icons/fa';
 import { LocaleCode, localeNames } from '@knowii/common';
 
-// eslint-disable-next-line
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface LanguageSwitchProps {}
 
 export function LanguageSwitch(_props: LanguageSwitchProps) {

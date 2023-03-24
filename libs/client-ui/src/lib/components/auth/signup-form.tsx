@@ -23,7 +23,7 @@ import { redirectPath } from '@knowii/common';
 import { useAuthRedirectUrl } from '@knowii/client';
 import { AuthFormWrapper } from './auth-form-wrapper';
 
-// eslint-disable-next-line
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface SignupFormProps {}
 
 export function SignupForm(_props: SignupFormProps) {
