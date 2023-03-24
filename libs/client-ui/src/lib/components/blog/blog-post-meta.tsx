@@ -3,10 +3,11 @@ import { useTranslation } from 'next-i18next';
 import { FaCalendarAlt } from 'react-icons/fa';
 import { FrontMatter, I18N_TRANSLATIONS_BLOG, RequiredPick } from '@knowii/common';
 import Link from 'next/link';
+import { parseISO, format } from 'date-fns';
 
-type BlogPostMetaProps = RequiredPick<FrontMatter, 'author' | 'authorImage' | 'authorLink' | 'publishedOn'>;
+type BlogPostMetaProps = RequiredPick<FrontMatter, 'author' | 'authorImage' | 'authorLink' | 'publishedOn' | 'readingTime'>;
 
-export function BlogPostMeta({ author, authorImage, authorLink, publishedOn }: BlogPostMetaProps) {
+export function BlogPostMeta({ author, authorImage, authorLink, publishedOn, readingTime }: BlogPostMetaProps) {
   const { t } = useTranslation(I18N_TRANSLATIONS_BLOG);
 
   return (
@@ -30,7 +31,9 @@ export function BlogPostMeta({ author, authorImage, authorLink, publishedOn }: B
           <VStack align="start" spacing={0}>
             <Text>{t('publishedOn')}</Text>
             <Text fontWeight="bold" as="span">
-              {publishedOn}
+              <time dateTime={format(parseISO(publishedOn), 'yyyy-MM-dd')}>
+                {format(parseISO(publishedOn), 'MMMM dd, yyyy')} ({readingTime?.text})
+              </time>
             </Text>
           </VStack>
         </HStack>

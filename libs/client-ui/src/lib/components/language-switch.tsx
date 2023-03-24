@@ -15,7 +15,7 @@ export function LanguageSwitch(_props: LanguageSwitchProps) {
 
   const changeLocale = useCallback(
     (locale: string) => {
-      document.cookie = `NEXT_LOCALE=${locale}`;
+      document.cookie = `NEXT_LOCALE=${locale}; max-age=31536000; path=/`;
       router.replace({ pathname, query }, asPath, { locale });
     },
     [pathname, query, asPath, router],

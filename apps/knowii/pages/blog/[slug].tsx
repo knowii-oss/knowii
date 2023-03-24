@@ -101,6 +101,9 @@ export function BlogPostPage({ source, frontMatter }: BlogPostPageProps) {
     author: SITE_AUTHOR_MICRODATA,
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const readingTime = frontMatter.readingTime!;
+
   return (
     <>
       {metaImage && (
@@ -141,7 +144,13 @@ export function BlogPostPage({ source, frontMatter }: BlogPostPageProps) {
                 />
               </Box>
             )}
-            <BlogPostMeta author={author} authorImage={authorImage} authorLink={authorLink} publishedOn={frontMatter.publishedOn} />
+            <BlogPostMeta
+              author={author}
+              authorImage={authorImage}
+              authorLink={authorLink}
+              publishedOn={frontMatter.publishedOn}
+              readingTime={readingTime}
+            />
           </VStack>
         </PageHeader>
         <Box px={4} py={12}>
