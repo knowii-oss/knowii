@@ -13,6 +13,11 @@ import { getImageSize, getMdx, getMdxFilePaths } from '@knowii/server';
 import { FrontMatter, I18N_TRANSLATIONS_BLOG, I18N_TRANSLATIONS_COMMON, WebsiteDataType } from '@knowii/common';
 import { i18nConfig } from '../../../../next-i18next.config.mjs';
 
+// eslint-disable-next-line  @typescript-eslint/no-var-requires
+const siteAuthor = require('../../../../libs/common/src/lib/metadata.json').author;
+// eslint-disable-next-line  @typescript-eslint/no-var-requires
+const siteAuthorLink = require('../../../../libs/common/src/lib/metadata.json').social.twitterSebastien;
+
 export const getStaticProps: GetStaticProps = async (ctx) => {
   const slug = ctx.params?.['slug'] as string;
   const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
@@ -73,6 +78,9 @@ export function BlogPostPage({ source, frontMatter }: BlogPostPageProps) {
   const pageTitle = frontMatter.title ? `${frontMatter.title} - ${t('blog')}` : t('blog'); // FIXME change title
   const metaImage = useMemo(() => frontMatter.imageDetails?.src ?? null, [frontMatter]);
 
+  const author = frontMatter.author ?? siteAuthor;
+  const authorLink = frontMatter.authorLink ?? siteAuthorLink;
+
   return (
     <>
       {metaImage && (
@@ -99,7 +107,12 @@ export function BlogPostPage({ source, frontMatter }: BlogPostPageProps) {
                 />
               </Box>
             )}
-            <BlogPostMeta author={frontMatter.author ?? ''} authorImage={frontMatter.authorImage} publishedAt={frontMatter.publishedAt} />
+            <BlogPostMeta
+              author={author}
+              authorImage={frontMatter.authorImage}
+              authorLink={authorLink}
+              publishedAt={frontMatter.publishedAt}
+            />
           </VStack>
         </PageHeader>
         <Box px={4} py={12}>
