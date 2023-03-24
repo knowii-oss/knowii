@@ -7,7 +7,7 @@ import { root } from './helpers.mjs';
  */
 export const i18nConfig = {
   // https://www.i18next.com/overview/configuration-options#logging
-  debug: process.env.NODE_ENV === 'development',
+  debug: false, // to enable debug mode in dev: process.env.NODE_ENV === 'development',
   i18n: {
     defaultLocale: 'en',
     locales: ['en', 'fr'],
