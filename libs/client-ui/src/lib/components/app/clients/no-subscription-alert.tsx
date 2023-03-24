@@ -1,6 +1,7 @@
 import { Alert, Button, Text, VStack } from '@chakra-ui/react';
 import { useTranslation } from 'next-i18next';
 import Link from 'next/link';
+import { I18N_TRANSLATIONS_APP } from '@knowii/common';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface NoSubscriptionAlertProps {}
@@ -10,7 +11,7 @@ export interface NoSubscriptionAlertProps {}
  * @constructor
  */
 export function NoSubscriptionAlert(_props: NoSubscriptionAlertProps) {
-  const { t } = useTranslation('app');
+  const { t } = useTranslation(I18N_TRANSLATIONS_APP);
   return (
     <Alert p={6} variant="left-accent" colorScheme="primary" rounded="md" mb={8}>
       <VStack align="start" gap={3}>

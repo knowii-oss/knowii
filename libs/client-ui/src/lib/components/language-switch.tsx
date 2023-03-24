@@ -3,13 +3,13 @@ import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
 import { useCallback } from 'react';
 import { FaGlobeAmericas } from 'react-icons/fa';
-import { LocaleCode, localeNames } from '@knowii/common';
+import { I18N_TRANSLATIONS_COMMON, LocaleCode, localeNames } from '@knowii/common';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface LanguageSwitchProps {}
 
 export function LanguageSwitch(_props: LanguageSwitchProps) {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation(I18N_TRANSLATIONS_COMMON);
   const router = useRouter();
   const { locales, locale: activeLocale, pathname, query, asPath } = router;
 

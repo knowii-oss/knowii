@@ -23,7 +23,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { FaAt, FaLock } from 'react-icons/fa';
 import { useAuthRedirectUrl } from '@knowii/client';
-import { Database, redirectPath } from '@knowii/common';
+import { Database, I18N_TRANSLATIONS_AUTH, redirectPath } from '@knowii/common';
 import { Loader } from '../common/loader';
 import { AuthFormWrapper } from './auth-form-wrapper';
 import { SigninModeSwitch, SigninMode } from './signin-mode-switch';
@@ -33,7 +33,7 @@ import { SocialSigninButton } from './social-signin-button';
 export interface SigninFormProps {}
 
 export function SigninForm(_props: SigninFormProps) {
-  const { t } = useTranslation('auth');
+  const { t } = useTranslation(I18N_TRANSLATIONS_AUTH);
   const [mode, setMode] = useState<SigninMode>(SigninMode.MagicLink);
   const router = useRouter();
   const { query } = router;

@@ -2,12 +2,13 @@ import { Box, Container, Flex, Heading, ListItem, Stack, UnorderedList, useColor
 import { useTranslation } from 'next-i18next';
 import { FaCloud } from 'react-icons/fa';
 import { SectionHeadline } from './section-headline';
+import { I18N_TRANSLATIONS_HOME } from '@knowii/common';
 
 // eslint-disable-next-line
 interface FeaturesProps {}
 
 export function Features(_props: FeaturesProps) {
-  const { t } = useTranslation('home');
+  const { t } = useTranslation(I18N_TRANSLATIONS_HOME);
   const itemBorder = useColorModeValue('primary.100', 'gray.700');
 
   const featureItems = [

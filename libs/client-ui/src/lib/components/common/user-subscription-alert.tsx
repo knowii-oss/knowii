@@ -2,12 +2,13 @@ import { Alert, Box, Button, Heading, Stack, Text, useColorModeValue, VStack } f
 import { useTranslation } from 'next-i18next';
 import { FaStar } from 'react-icons/fa';
 import { useUserName, useSubscriptionActions, useUserSubscriptions } from '@knowii/client';
+import { I18N_TRANSLATIONS_COMMON } from '@knowii/common';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface UserSubscriptionAlertProps {}
 
 export function UserSubscriptionAlert(_props: UserSubscriptionAlertProps) {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation(I18N_TRANSLATIONS_COMMON);
   const highlightColor = useColorModeValue('primary.500', 'primary.400');
   const userName = useUserName();
   const { manageSubscription, loading } = useSubscriptionActions();

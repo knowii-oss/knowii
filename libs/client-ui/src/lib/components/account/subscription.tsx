@@ -5,14 +5,14 @@ import { useMemo } from 'react';
 import { useSubscriptionActions, useUserSubscriptions } from '@knowii/client';
 import { Loader } from '../common/loader';
 import { AccountSection } from './account-section';
-import { formatPrice } from '@knowii/common';
+import { formatPrice, I18N_TRANSLATIONS_ACCOUNT, I18N_TRANSLATIONS_COMMON } from '@knowii/common';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface SubscriptionProps {}
 
 export function Subscription(_props: SubscriptionProps) {
   const router = useRouter();
-  const { t } = useTranslation(['account', 'common']);
+  const { t } = useTranslation([I18N_TRANSLATIONS_COMMON, I18N_TRANSLATIONS_ACCOUNT]);
   const { locale } = useRouter();
   const { currentlySubscribedPlan, loading: loadingSubscriptions } = useUserSubscriptions();
   const { manageSubscription, loading } = useSubscriptionActions();

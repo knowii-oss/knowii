@@ -19,13 +19,14 @@ import { useForm } from 'react-hook-form';
 import { FaAt } from 'react-icons/fa';
 import { useAuthRedirectUrl } from '@knowii/client';
 import { AuthFormWrapper } from './auth-form-wrapper';
+import { I18N_TRANSLATIONS_AUTH } from '@knowii/common';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ForgotPasswordFormProps {}
 
 export function ForgotPasswordForm(_props: ForgotPasswordFormProps) {
   const supabaseClient = useSupabaseClient();
-  const { t } = useTranslation('auth');
+  const { t } = useTranslation(I18N_TRANSLATIONS_AUTH);
   const redirectTo = useAuthRedirectUrl(`/auth/callback?redirectAfterSignin=${encodeURIComponent('/auth/reset-password')}`);
   const { register, handleSubmit, formState, setError, clearErrors } = useForm<{ email: string; serverError?: void }>();
   const { isSubmitting, isSubmitted, isSubmitSuccessful } = formState;

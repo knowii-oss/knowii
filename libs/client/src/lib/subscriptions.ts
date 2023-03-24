@@ -4,12 +4,12 @@ import axios from 'axios';
 import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
 import { useCallback, useMemo, useState } from 'react';
-import { Database, SubscriptionPlan, SubscriptionPlanId } from '@knowii/common';
+import { Database, I18N_TRANSLATIONS_COMMON, SubscriptionPlan, SubscriptionPlanId } from '@knowii/common';
 import { getStripe } from './stripe-client';
 
 export function useSubscriptionPlans() {
   const supabase = useSupabaseClient<Database>();
-  const { t } = useTranslation('common');
+  const { t } = useTranslation(I18N_TRANSLATIONS_COMMON);
 
   const { data: plans, isFetched: loading } = useQuery(
     ['subscription-plans'],

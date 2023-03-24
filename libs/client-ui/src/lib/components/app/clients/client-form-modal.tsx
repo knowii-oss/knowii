@@ -18,7 +18,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'next-i18next';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Database } from '@knowii/common';
+import { Database, I18N_TRANSLATIONS_APP } from '@knowii/common';
 
 export interface ClientFormModalProps {
   client: null | any; // FIXME should not use any
@@ -34,7 +34,7 @@ export function ClientFormModal({ client, isOpen, onClose }: ClientFormModalProp
   const supabaseClient = useSupabaseClient<Database>();
   const queryClient = useQueryClient();
   const headerBg = useColorModeValue('gray.50', 'gray.600');
-  const { t } = useTranslation('app');
+  const { t } = useTranslation(I18N_TRANSLATIONS_APP);
   const toast = useToast();
   const {
     register,

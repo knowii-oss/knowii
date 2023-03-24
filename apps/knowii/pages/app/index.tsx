@@ -8,9 +8,11 @@ import { Layout } from '../../components/layout/layout';
 import { ClientsList, Loader, PageHeader } from '@knowii/client-ui';
 import { useTranslation } from 'next-i18next';
 import { useUser } from '@supabase/auth-helpers-react';
+import { I18N_TRANSLATIONS_APP, I18N_TRANSLATIONS_COMMON } from '@knowii/common';
 
 export const getStaticProps: GetStaticProps = async (ctx) => {
-  const translations = await serverSideTranslations(ctx.locale ? ctx.locale : 'en', ['common', 'app'], i18nConfig);
+  const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
+  const translations = await serverSideTranslations(locale, [I18N_TRANSLATIONS_COMMON, I18N_TRANSLATIONS_APP], i18nConfig);
   return {
     props: {
       ...translations,
@@ -23,7 +25,7 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
  * @constructor
  */
 export function DashboardPage() {
-  const { t } = useTranslation('app');
+  const { t } = useTranslation(I18N_TRANSLATIONS_APP);
   const user = useUser();
 
   return (

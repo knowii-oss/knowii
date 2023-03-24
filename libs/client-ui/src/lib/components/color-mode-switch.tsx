@@ -2,6 +2,7 @@ import { IconButton, useColorMode } from '@chakra-ui/react';
 import { useTranslation } from 'next-i18next';
 import { FaMoon, FaSun } from 'react-icons/fa';
 import { useTheme } from 'next-themes';
+import { I18N_TRANSLATIONS_COMMON } from '@knowii/common';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ColorModeSwitchProps {}
@@ -11,7 +12,7 @@ export interface ColorModeSwitchProps {}
  * @constructor
  */
 export function ColorModeSwitch(_props: ColorModeSwitchProps) {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation(I18N_TRANSLATIONS_COMMON);
   // ChakraUI color mode
   const { colorMode, toggleColorMode } = useColorMode();
 

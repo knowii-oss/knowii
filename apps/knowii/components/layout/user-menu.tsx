@@ -6,12 +6,13 @@ import { useRouter } from 'next/router';
 import { useCallback } from 'react';
 import { FaSignOutAlt, FaUser } from 'react-icons/fa';
 import { useUserName } from '@knowii/client';
+import { I18N_TRANSLATIONS_COMMON } from '@knowii/common';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface UserMenuProps {}
 
 export function UserMenu(_props: UserMenuProps) {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation(I18N_TRANSLATIONS_COMMON);
   const supabaseClient = useSupabaseClient();
   const router = useRouter();
   const userName = useUserName();

@@ -3,7 +3,7 @@ import { GetStaticProps } from 'next';
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { getAllMdxEntries, MdxEntry } from '@knowii/server';
-import { WebsiteDataType } from '@knowii/common';
+import { I18N_TRANSLATIONS_BLOG, I18N_TRANSLATIONS_COMMON, WebsiteDataType } from '@knowii/common';
 import Layout from '../../components/layout/layout';
 import { BlogPost, PageHeader } from '@knowii/client-ui';
 import { i18nConfig } from '../../../../next-i18next.config.mjs';
@@ -24,7 +24,8 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
       return b.frontMatter.publishedAt > a.frontMatter.publishedAt ? 1 : -1;
     });
 
-  const translations = await serverSideTranslations(ctx.locale ? ctx.locale : 'en', ['common', 'blog'], i18nConfig);
+  const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
+  const translations = await serverSideTranslations(locale, [I18N_TRANSLATIONS_COMMON, I18N_TRANSLATIONS_BLOG], i18nConfig);
 
   return {
     props: {
@@ -39,7 +40,7 @@ interface BlogPageProps {
 }
 
 export function BlogPage({ entries }: BlogPageProps) {
-  const { t } = useTranslation('blog');
+  const { t } = useTranslation(I18N_TRANSLATIONS_BLOG);
 
   return (
     <Layout

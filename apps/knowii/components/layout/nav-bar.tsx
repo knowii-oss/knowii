@@ -6,13 +6,14 @@ import { useEffect } from 'react';
 import { FaBars } from 'react-icons/fa';
 import { ColorModeSwitch, LanguageSwitch, Logo, Menu, MobileDrawerMenu, useMobileBreakpoint, useScrollTop } from '@knowii/client-ui';
 import { UserMenu } from './user-menu';
+import { I18N_TRANSLATIONS_COMMON } from '@knowii/common';
 
 interface NavBarProps {
   hideMenu?: boolean;
 }
 
 export function NavBar({ hideMenu }: NavBarProps) {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation(I18N_TRANSLATIONS_COMMON);
   const user = useUser();
   const mobileDrawerDisclosure = useDisclosure();
   const isMobile = useMobileBreakpoint();

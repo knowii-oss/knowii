@@ -18,14 +18,14 @@ import { useRouter } from 'next/router';
 import { FormEvent, useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { FaEye, FaEyeSlash, FaLock } from 'react-icons/fa';
-import { redirectPath } from '@knowii/common';
+import { I18N_TRANSLATIONS_AUTH, redirectPath } from '@knowii/common';
 import { AuthFormWrapper } from './auth-form-wrapper';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ResetPasswordFormProps {}
 
 export function ResetPasswordForm(_props: ResetPasswordFormProps) {
-  const { t } = useTranslation('auth');
+  const { t } = useTranslation(I18N_TRANSLATIONS_AUTH);
   const router = useRouter();
   const supabaseClient = useSupabaseClient();
   const toast = useToast();

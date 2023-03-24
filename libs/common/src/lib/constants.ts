@@ -9,6 +9,16 @@ export const IS_TEST = process.env.NODE_ENV === 'test';
 export const BASE_APP_FOLDER = 'apps/knowii';
 
 /**
+ * i18n
+ */
+export const I18N_TRANSLATIONS_ACCOUNT = 'account';
+export const I18N_TRANSLATIONS_APP = 'app';
+export const I18N_TRANSLATIONS_AUTH = 'auth';
+export const I18N_TRANSLATIONS_BLOG = 'blog';
+export const I18N_TRANSLATIONS_COMMON = 'common';
+export const I18N_TRANSLATIONS_HOME = 'home';
+
+/**
  * Meta
  */
 export const BUILD_TIME = new Date().toISOString();

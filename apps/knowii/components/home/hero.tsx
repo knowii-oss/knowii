@@ -2,12 +2,13 @@ import { Button } from '@chakra-ui/react';
 import { useUser } from '@supabase/auth-helpers-react';
 import { useTranslation } from 'next-i18next';
 import Link from 'next/link';
+import { I18N_TRANSLATIONS_HOME } from '@knowii/common';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface HeroProps {}
 
 export function Hero(_props: HeroProps) {
-  const { t } = useTranslation('home');
+  const { t } = useTranslation(I18N_TRANSLATIONS_HOME);
 
   const user = useUser();
   return (
