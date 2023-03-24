@@ -27,6 +27,10 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
 
   const mdxProps = await getMdx({ type: WebsiteDataType.BLOG, slug, locale });
 
+  if (!mdxProps) {
+    return { redirect: { destination: '/blog', permanent: false } };
+  }
+
   // Get cover image size
   const image = mdxProps?.frontMatter.image;
   if (image) {
@@ -41,15 +45,13 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
 
   const translations = await serverSideTranslations(locale, [I18N_TRANSLATIONS_COMMON, I18N_TRANSLATIONS_BLOG], i18nConfig);
 
-  return !mdxProps
-    ? { redirect: { destination: '/blog', permanent: false } }
-    : {
-        props: {
-          ...translations,
-          ...mdxProps,
-        },
-        revalidate: 10,
-      };
+  return {
+    props: {
+      ...translations,
+      ...mdxProps,
+    },
+    revalidate: 10,
+  };
 };
 
 export const getStaticPaths: GetStaticPaths = async (ctx) => {
@@ -68,7 +70,7 @@ export const getStaticPaths: GetStaticPaths = async (ctx) => {
 };
 
 interface BlogPostPageProps {
-  source: MDXRemoteSerializeResult;
+  mdxSource: MDXRemoteSerializeResult;
   frontMatter: FrontMatter;
 }
 
@@ -77,7 +79,7 @@ interface BlogPostPageProps {
  * @param input
  * @constructor
  */
-export function BlogPostPage({ source, frontMatter }: BlogPostPageProps) {
+export function BlogPostPage({ mdxSource, frontMatter }: BlogPostPageProps) {
   const { t } = useTranslation(I18N_TRANSLATIONS_BLOG);
   const pageTitle = frontMatter.title ? `${frontMatter.title} - ${t('blog')}` : t('blog'); // FIXME change title
   const metaImage = useMemo(() => frontMatter.imageDetails?.src ?? null, [frontMatter]);
@@ -155,7 +157,7 @@ export function BlogPostPage({ source, frontMatter }: BlogPostPageProps) {
         </PageHeader>
         <Box px={4} py={12}>
           <Container maxW="3xl" w="full">
-            {source && <MDXRemote components={mdxComponents} {...source} />}
+            {mdxSource && <MDXRemote components={mdxComponents} {...mdxSource} />}
           </Container>
         </Box>
       </Layout>

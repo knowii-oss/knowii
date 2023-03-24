@@ -2,7 +2,9 @@ import { Box, Divider, Heading, Link, ListItem, OrderedList, Text, UnorderedList
 import Image from 'next/image';
 import NextLink from 'next/link';
 import * as prism from 'prismjs';
+import Prism from 'prismjs';
 import 'prismjs/components/prism-typescript';
+import 'prismjs/components/prism-bash';
 import React, { PropsWithChildren, useMemo } from 'react';
 import {
   BlogPostCenteredContent,
@@ -53,7 +55,7 @@ const hr = (props: any) => <Divider {...props} my={8} />;
 */
 function CustomCode({ children, className }: PropsWithChildren<any>) {
   const language = className?.replace('language-', '') ?? 'typescript';
-  const highlighted = useMemo(() => prism.highlight(children as string, prism.languages[language], language), [children, language]);
+  const highlighted = useMemo(() => Prism.highlight(children as string, prism.languages[language], language), [children, language]);
   return <Box as="code" bg="gray.800" rounded="md" p={1} color="white" dangerouslySetInnerHTML={{ __html: highlighted }}></Box>;
 }
 const pre = ({ children }: PropsWithChildren<any>) => (

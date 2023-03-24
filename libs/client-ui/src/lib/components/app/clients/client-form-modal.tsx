@@ -19,9 +19,10 @@ import { useTranslation } from 'next-i18next';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Database, I18N_TRANSLATIONS_APP } from '@knowii/common';
+import { Client } from './clients-list';
 
 export interface ClientFormModalProps {
-  client: null | any; // FIXME should not use any
+  client: null | Client;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -57,14 +58,18 @@ export function ClientFormModal({ client, isOpen, onClose }: ClientFormModalProp
   }, [client]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!isOpen) reset();
+    if (!isOpen) {
+      reset();
+    }
   }, [isOpen, reset]);
 
   const upsertMutation = useMutation(
     async (client: Database['public']['Tables']['clients']['Insert']) => {
       const { error } = await supabaseClient.from('clients').upsert(client);
 
-      if (error) throw new Error('Could not upsert client');
+      if (error) {
+        throw new Error('Could not upsert client');
+      }
     },
     {
       onError: () => {
@@ -83,7 +88,7 @@ export function ClientFormModal({ client, isOpen, onClose }: ClientFormModalProp
           description: t('clients.form.successMessage'),
         });
 
-        // refetch clients
+        // Refetch clients
         queryClient.invalidateQueries(['clients']);
 
         onClose();
@@ -94,8 +99,8 @@ export function ClientFormModal({ client, isOpen, onClose }: ClientFormModalProp
   const onSubmit = handleSubmit(async (values) => {
     await upsertMutation.mutateAsync({
       ...values,
-      id: (client as any)?.id || undefined,
-      user_id: (client as any)?.user_id || undefined, // FIXME Verify that this works
+      id: (client?.id || undefined) as any, // FIXME Verify that this works
+      user_id: (client?.user_id || undefined) as any, // FIXME Verify that this works
     });
   });
 

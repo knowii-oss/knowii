@@ -32,7 +32,7 @@ import { ConfirmModal } from '../confirm-modal';
 import { ClientFormModal } from './client-form-modal';
 import { NoSubscriptionAlert } from './no-subscription-alert';
 
-type Client = Database['public']['Tables']['clients']['Row'];
+export type Client = Database['public']['Tables']['clients']['Row'];
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ClientsListProps {}
