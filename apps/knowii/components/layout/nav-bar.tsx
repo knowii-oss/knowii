@@ -42,7 +42,7 @@ export function NavBar({ hideMenu }: NavBarProps) {
           <HStack spacing={8} justify="space-between">
             <HStack spacing={6}>
               <Logo />
-              {!hideMenu && <Menu />}
+              {!hideMenu && <Menu mobileMode={false} />}
             </HStack>
             <HStack spacing={4}>
               <HStack>

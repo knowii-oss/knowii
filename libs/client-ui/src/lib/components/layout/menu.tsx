@@ -6,13 +6,13 @@ import { useMobileBreakpoint } from './layout';
 import { I18N_TRANSLATIONS_COMMON } from '@knowii/common';
 
 export interface MenuProps {
-  mobileMode?: boolean;
+  mobileMode: boolean;
 }
 
 export function Menu({ mobileMode }: MenuProps) {
   const { t } = useTranslation(I18N_TRANSLATIONS_COMMON);
   const user = useUser();
-  const menuItemColor = useColorModeValue('gray.600', 'gray.200');
+  const menuItemColor = useColorModeValue('blue.500', 'white');
   const isMobile = useMobileBreakpoint();
   const isHidden = isMobile !== mobileMode;
 
@@ -41,12 +41,13 @@ export function Menu({ mobileMode }: MenuProps) {
           key={i}
           href={item.link}
           fontSize={mobileMode ? 'lg' : 'base'}
+          aria-label={''} // FIXME set aria label on all elements
           display="block"
-          variant="link"
+          variant="ghost"
           fontWeight="normal"
           color={menuItemColor}
         >
-          {item.label}
+          <div className="px-4 pt-2 pb-0">{item.label}</div>
         </Button>
       ))}
     </Stack>

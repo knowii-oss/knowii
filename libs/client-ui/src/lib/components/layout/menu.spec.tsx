@@ -7,7 +7,7 @@ jest.mock('./layout', () => ({
 
 describe('Menu', () => {
   it('should render successfully', () => {
-    const { baseElement } = render(<Menu />);
+    const { baseElement } = render(<Menu mobileMode={false} />);
     expect(baseElement).toBeTruthy();
   });
 });

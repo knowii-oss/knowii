@@ -10,4 +10,6 @@ export default Story;
 const Template: ComponentStory<typeof Menu> = (args) => <Menu {...args} />;
 
 export const Primary = Template.bind({});
-Primary.args = {};
+Primary.args = {
+  mobileMode: false,
+};
