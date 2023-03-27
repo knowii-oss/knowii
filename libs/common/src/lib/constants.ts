@@ -45,7 +45,16 @@ export const IS_SERVER = typeof window === 'undefined';
 export const IS_PROD = process.env.NODE_ENV === 'production';
 export const IS_TEST = process.env.NODE_ENV === 'test';
 
+/**
+ * Paths
+ */
 export const BASE_APP_FOLDER = 'apps/knowii';
+
+/**
+ * Themes
+ */
+export const THEME_DARK = 'dark';
+export const THEME_LIGHT = 'light';
 
 /**
  * i18n

@@ -1,9 +1,10 @@
 import { extendTheme, ThemeOverride, UseToastOptions, withDefaultColorScheme } from '@chakra-ui/react';
 import { theme } from './theme';
+import { THEME_LIGHT } from '@knowii/common';
 
 export const customTheme = extendTheme(
   {
-    initialColorMode: 'light',
+    initialColorMode: THEME_LIGHT,
     useSystemColorMode: true,
     fonts: {
       ...theme.fonts,
@@ -24,7 +25,7 @@ export const customTheme = extendTheme(
       },
     },
   } as ThemeOverride,
-  withDefaultColorScheme({ colorScheme: 'primary', components: ['Button'] })
+  withDefaultColorScheme({ colorScheme: 'primary', components: ['Button'] }),
 );
 
 export const defaultToastOptions = {
