@@ -20,7 +20,7 @@ export function MobileDrawerMenu(props: MobileDrawerMenuProps) {
 
         <DrawerBody px={8} py={12}>
           <VStack align="start" spacing={6}>
-            <Menu mobileMode />
+            <Menu mobileMode={true} />
           </VStack>
         </DrawerBody>
       </DrawerContent>
