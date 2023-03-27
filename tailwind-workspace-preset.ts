@@ -7,7 +7,7 @@ export default {
   content: [],
   // the NODE_ENV thing is for https://github.com/Acidic9/prettier-plugin-tailwind/issues/29
   mode: process.env.NODE_ENV ? 'jit' : undefined,
-  darkMode: 'class', // Alternative: 'media', // Use media queries for dark mode
+  darkMode: ['class', '[data-theme="dark"]'],
   theme: {
     extend: {
       fontFamily: {
