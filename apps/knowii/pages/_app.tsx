@@ -7,7 +7,7 @@ import '../styles/global.scss';
 
 import 'prismjs/themes/prism-tomorrow.min.css';
 import 'prismjs/plugins/line-numbers/prism-line-numbers.css';
-import 'prismjs/plugins/autoloader/prism-autoloader';
+
 import { ThemeProvider } from 'next-themes';
 import React, { useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
