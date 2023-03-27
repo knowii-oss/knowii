@@ -1,5 +1,5 @@
 import { AppProps } from 'next/app';
-import { ChakraBaseProvider, ChakraProvider, cookieStorageManagerSSR, createLocalStorageManager } from '@chakra-ui/react';
+import { ChakraBaseProvider, cookieStorageManagerSSR, localStorageManager } from '@chakra-ui/react';
 
 import '../styles/tailwind.scss';
 import '../styles/tailwind-utilities.scss';
@@ -31,11 +31,12 @@ const siteDescription = require('../../../libs/common/src/lib/metadata.json').de
 const queryClient = new QueryClient();
 
 export const getServerSideProps: GetServerSideProps = async ({ req }) => {
-  return {
+  const retVal: { props: Partial<CustomPageProps> } = {
     props: {
       cookies: req.cookies,
     },
   };
+  return retVal;
 };
 
 interface CustomPageProps {
@@ -55,7 +56,7 @@ const App = ({ Component, pageProps }: AppProps<CustomPageProps>) => {
   const router = useRouter();
   const [supabaseClient] = useState(() => createBrowserSupabaseClient());
   const { cookies } = pageProps;
-  const colorModeManager = typeof cookies === 'string' ? cookieStorageManagerSSR(cookies) : createLocalStorageManager('color-mode');
+  const colorModeManager = typeof cookies === 'string' ? cookieStorageManagerSSR(cookies) : localStorageManager;
 
   // redirect to signin page if user is signed out while being on a protected page
   useEffect(() => {
@@ -103,7 +104,13 @@ const App = ({ Component, pageProps }: AppProps<CustomPageProps>) => {
         // in a different time zone.
         timeZone="Europe/Brussels"
       >
-        <ChakraProvider>
+        <ChakraBaseProvider
+          theme={customTheme}
+          colorModeManager={colorModeManager}
+          toastOptions={{
+            defaultOptions: defaultToastOptions,
+          }}
+        >
           <Head>
             {/* Why here? https://nextjs.org/docs/messages/no-document-viewport-meta */}
             <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1" />
@@ -115,23 +122,15 @@ const App = ({ Component, pageProps }: AppProps<CustomPageProps>) => {
             <ProgressBar />
 
             <QueryClientProvider client={queryClient}>
-              <ChakraBaseProvider
-                theme={customTheme}
-                colorModeManager={colorModeManager}
-                toastOptions={{
-                  defaultOptions: defaultToastOptions,
-                }}
-              >
-                <SessionContextProvider supabaseClient={supabaseClient} initialSession={pageProps.initialSession}>
-                  {/* Use the ThemeProvider of next-themes, combined with Tailwind: https://github.com/pacocoursey/next-themes#with-tailwind */}
-                  <ThemeProvider attribute="class">
-                    <Component {...pageProps} />
-                  </ThemeProvider>
-                </SessionContextProvider>
-              </ChakraBaseProvider>
+              <SessionContextProvider supabaseClient={supabaseClient} initialSession={pageProps.initialSession}>
+                {/* Use the ThemeProvider of next-themes, combined with Tailwind: https://github.com/pacocoursey/next-themes#with-tailwind */}
+                <ThemeProvider attribute="class">
+                  <Component {...pageProps} />
+                </ThemeProvider>
+              </SessionContextProvider>
             </QueryClientProvider>
           </main>
-        </ChakraProvider>
+        </ChakraBaseProvider>
       </NextIntlProvider>
     </>
   );

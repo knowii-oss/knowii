@@ -1,11 +1,12 @@
 import { extendTheme, ThemeOverride, UseToastOptions, withDefaultColorScheme } from '@chakra-ui/react';
 import { theme } from './theme';
 import { THEME_LIGHT } from '@knowii/common';
+//import { THEME_LIGHT } from '@knowii/common';
 
 export const customTheme = extendTheme(
   {
     initialColorMode: THEME_LIGHT,
-    useSystemColorMode: true,
+    useSystemColorMode: false, // Force the default theme
     fonts: {
       ...theme.fonts,
     },
