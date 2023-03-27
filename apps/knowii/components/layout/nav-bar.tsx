@@ -18,7 +18,7 @@ export function NavBar({ hideMenu }: NavBarProps) {
   const mobileDrawerDisclosure = useDisclosure();
   const isMobile = useMobileBreakpoint();
   const isTop = useScrollTop();
-  const bgColor = useColorModeValue('white', 'gray.900');
+  const bgColor = useColorModeValue('primary.100', 'blue.900');
 
   useEffect(() => {
     if (!isMobile && mobileDrawerDisclosure.isOpen) mobileDrawerDisclosure.onClose();
