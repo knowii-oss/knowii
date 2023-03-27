@@ -2,7 +2,7 @@ import { IconButton, useColorMode } from '@chakra-ui/react';
 import { useTranslation } from 'next-i18next';
 import { FaMoon, FaSun } from 'react-icons/fa';
 import { useTheme } from 'next-themes';
-import { I18N_TRANSLATIONS_COMMON } from '@knowii/common';
+import { I18N_TRANSLATIONS_COMMON, THEME_DARK, THEME_LIGHT } from '@knowii/common';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ColorModeSwitchProps {}
@@ -18,7 +18,7 @@ export function ColorModeSwitch(_props: ColorModeSwitchProps) {
 
   const toggleThemeAndColorMode = () => {
     toggleColorMode();
-    setTheme(theme === 'dark' ? 'light' : 'dark');
+    setTheme(theme === THEME_DARK ? THEME_LIGHT : THEME_DARK);
   };
 
   // Tailwind theme
@@ -27,8 +27,8 @@ export function ColorModeSwitch(_props: ColorModeSwitchProps) {
   return (
     <IconButton
       size="sm"
-      aria-label={colorMode === 'light' ? t('colorMode.dark') : t('colorMode.light')}
-      icon={colorMode === 'light' ? <FaMoon className="hover:text-gray-700" /> : <FaSun className="hover:text-yellow-400" />}
+      aria-label={colorMode === THEME_LIGHT ? t('colorMode.dark') : t('colorMode.light')}
+      icon={colorMode === THEME_LIGHT ? <FaMoon className="hover:text-gray-700" /> : <FaSun className="hover:text-yellow-400" />}
       onClick={toggleThemeAndColorMode}
       variant="ghost"
     ></IconButton>

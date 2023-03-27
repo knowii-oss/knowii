@@ -107,6 +107,7 @@ importers:
       rxjs: 7.8.0
       sass: 1.55.0
       storybook-addon-next-router: 4.0.2
+      storybook-tailwind-dark-mode: 1.0.15
       stripe: 11.11.0
       supabase: 1.38.3
       tailwindcss: 3.2.6
@@ -225,6 +226,7 @@ importers:
       rimraf: 4.1.2
       sass: 1.55.0
       storybook-addon-next-router: 4.0.2_3vryta7zmbcsw4rrqf4axjqggm
+      storybook-tailwind-dark-mode: 1.0.15_biqbaboplfbrettd7655fr4n2y
       supabase: 1.38.3
       tailwindcss: 3.2.6_aesdjsunmf4wiehhujt67my7tu
       ts-jest: 28.0.5_dpoqgr3hdimsbgbu53xoogvh4u
@@ -18929,6 +18931,26 @@ packages:
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
       tslib: 2.4.0
+    dev: true
+
+  /storybook-tailwind-dark-mode/1.0.15_biqbaboplfbrettd7655fr4n2y:
+    resolution: { integrity: sha512-rIN8vNqzKYN1wyZLfd1Wm4OwbNsaOJfnyc8gAkXTEMbmwaOF8vzOQMznuVdera4GdRtvCFkhhsf/IcYOkrrg1g== }
+    peerDependencies:
+      '@storybook/addons': ^6.2.9
+      '@storybook/api': ^6.2.9
+      '@storybook/components': ^6.2.9
+      '@storybook/core-events': ^6.2.9
+      '@storybook/theming': ^6.2.9
+      react: ^16.8.0 || ^17.0.0
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+    peerDependenciesMeta:
+      react:
+        optional: true
+      react-dom:
+        optional: true
+    dependencies:
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
     dev: true
 
   /stream-browserify/2.0.2:
