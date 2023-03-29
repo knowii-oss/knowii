@@ -1,15 +1,13 @@
-'use strict';
+import type { Config } from 'tailwindcss';
 
-/** @type {import('../../node_modules/tailwindcss').Config} */
+import { join } from 'path';
+import { createGlobPatternsForDependencies } from '@nrwl/react/tailwind';
 
-const { join } = require('path');
-const { createGlobPatternsForDependencies } = require('@nrwl/react/tailwind');
-
-module.exports = {
+export default {
   content: [
     join(__dirname, './**/*.{js,ts,jsx,tsx,css,html,mdx,scss}'),
     // The expression below will also include the libraries that we depend on implicitly (cfr project.json file of NX)
     ...createGlobPatternsForDependencies(__dirname),
   ],
   presets: [require('../../tailwind-workspace-preset')],
-};
+} satisfies Config;

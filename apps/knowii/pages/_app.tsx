@@ -1,4 +1,5 @@
 import { AppProps } from 'next/app';
+import { ChakraProvider } from '@chakra-ui/react';
 
 import '../styles/tailwind.scss';
 import '../styles/tailwind-utilities.scss';
@@ -69,33 +70,35 @@ const App = ({ Component, pageProps }: AppProps<{ cookies?: NextApiRequestCookie
 
   return (
     <>
-      <Head>
-        {/* Why here? https://nextjs.org/docs/messages/no-document-viewport-meta */}
-        <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1" />
-        {/* Why here? https://nextjs.org/docs/messages/no-document-title */}
-        <title>{siteTitle}</title>
-        <meta name="description" content={siteDescription} />
-      </Head>
-      <main className="app">
-        <ProgressBar />
+      <ChakraProvider>
+        <Head>
+          {/* Why here? https://nextjs.org/docs/messages/no-document-viewport-meta */}
+          <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1" />
+          {/* Why here? https://nextjs.org/docs/messages/no-document-title */}
+          <title>{siteTitle}</title>
+          <meta name="description" content={siteDescription} />
+        </Head>
+        <main className="app">
+          <ProgressBar />
 
-        <QueryClientProvider client={queryClient}>
-          <ChakraBaseProvider
-            theme={customTheme}
-            colorModeManager={colorModeManager}
-            toastOptions={{
-              defaultOptions: defaultToastOptions,
-            }}
-          >
-            <SessionContextProvider supabaseClient={supabaseClient} initialSession={pageProps.initialSession}>
-              {/* Use the ThemeProvider of next-themes, combined with Tailwind: https://github.com/pacocoursey/next-themes#with-tailwind */}
-              <ThemeProvider attribute="class">
-                <Component {...pageProps} />
-              </ThemeProvider>
-            </SessionContextProvider>
-          </ChakraBaseProvider>
-        </QueryClientProvider>
-      </main>
+          <QueryClientProvider client={queryClient}>
+            <ChakraBaseProvider
+              theme={customTheme}
+              colorModeManager={colorModeManager}
+              toastOptions={{
+                defaultOptions: defaultToastOptions,
+              }}
+            >
+              <SessionContextProvider supabaseClient={supabaseClient} initialSession={pageProps.initialSession}>
+                {/* Use the ThemeProvider of next-themes, combined with Tailwind: https://github.com/pacocoursey/next-themes#with-tailwind */}
+                <ThemeProvider attribute="class">
+                  <Component {...pageProps} />
+                </ThemeProvider>
+              </SessionContextProvider>
+            </ChakraBaseProvider>
+          </QueryClientProvider>
+        </main>
+      </ChakraProvider>
     </>
   );
 };

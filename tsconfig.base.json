@@ -7,7 +7,6 @@
     "allowUnusedLabels": false,
     "alwaysStrict": true,
     "baseUrl": ".",
-    "charset": "utf8",
     "declaration": false,
     "diagnostics": false,
     "emitBOM": false,

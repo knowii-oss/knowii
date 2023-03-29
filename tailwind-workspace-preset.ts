@@ -1,12 +1,10 @@
-'use strict';
+import type { Config } from 'tailwindcss';
 
-/** @type {import('../../node_modules/tailwindcss').Config} */
+import { spacing } from 'tailwindcss/defaultTheme';
+import { theme } from './apps/knowii/theme';
 
-const { spacing } = require('tailwindcss/defaultTheme');
-
-const { theme } = require('./apps/knowii/theme');
-
-module.exports = {
+export default {
+  content: [],
   // the NODE_ENV thing is for https://github.com/Acidic9/prettier-plugin-tailwind/issues/29
   mode: process.env.NODE_ENV ? 'jit' : undefined,
   darkMode: 'class', // Alternative: 'media', // Use media queries for dark mode
@@ -43,7 +41,7 @@ module.exports = {
         ...theme.colors,
       },
     },
-    typography: (theme) => ({
+    typography: (theme: (color: string) => unknown) => ({
       DEFAULT: {
         css: {
           color: theme('colors.white'),
@@ -108,4 +106,4 @@ module.exports = {
     extend: {},
   },
   plugins: [require('@tailwindcss/typography')],
-};
+} satisfies Config;
