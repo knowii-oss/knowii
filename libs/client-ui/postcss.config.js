@@ -6,7 +6,7 @@ module.exports = {
     // Reference: https://tailwindcss.com/docs/using-with-preprocessors
     'tailwindcss/nesting': {},
     tailwindcss: {
-      config: join(__dirname, 'tailwind.config.js'),
+      config: join(__dirname, 'tailwind.config.ts'),
     },
     'postcss-flexbugs-fixes': {},
     // Reference: https://github.com/csstools/postcss-preset-env
