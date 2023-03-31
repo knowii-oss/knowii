@@ -6,13 +6,15 @@ import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
 import Head from 'next/head';
 import Image from 'next/image';
 import { useMemo } from 'react';
-import { BlogPostMeta, PageHeader } from '@knowii/client-ui';
+import { BlogPostMeta, Loader, PageHeader } from '@knowii/client-ui';
 import { mdxComponents } from '@knowii/client';
 import { Layout } from '../../components/layout/layout';
 import { getImageSize, getMdx, getMdxFilePaths } from '@knowii/server';
 import { FrontMatter, I18N_TRANSLATIONS_BLOG, I18N_TRANSLATIONS_COMMON, SITE_AUTHOR_MICRODATA, WebsiteDataType } from '@knowii/common';
 import { i18nConfig } from '../../../../next-i18next.config.mjs';
 import Script from 'next/script';
+import ErrorPage from 'next/error';
+import { useRouter } from 'next/router';
 
 // eslint-disable-next-line  @typescript-eslint/no-var-requires
 const siteAuthor = require('../../../../libs/common/src/lib/metadata.json').author;
@@ -80,6 +82,14 @@ interface BlogPostPageProps {
  * @constructor
  */
 export function BlogPostPage({ mdxSource, frontMatter }: BlogPostPageProps) {
+  const router = useRouter();
+
+  if (router.isFallback) {
+    return <Loader />;
+  } else if (!frontMatter || !mdxSource) {
+    return <ErrorPage statusCode={404} />;
+  }
+
   const { t } = useTranslation(I18N_TRANSLATIONS_BLOG);
   const pageTitle = frontMatter.title ? `${frontMatter.title} - ${t('blog')}` : t('blog'); // FIXME change title
   const metaImage = useMemo(() => frontMatter.imageDetails?.src ?? null, [frontMatter]);
