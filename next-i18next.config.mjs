@@ -23,6 +23,6 @@ export const i18nConfig = {
   },
   // To avoid issues when deploying to Vercel
   // Reference: https://github.com/i18next/next-i18next/blob/master/examples/simple/next-i18next.config.js
-  localePath: typeof window === 'undefined' ? root('apps/knowii/public/locales') : '/locales',
+  localePath: typeof window === 'undefined' ? root('apps/knowii/public/locales') : './public/locales',
   reloadOnPrerender: process.env.NODE_ENV === 'development',
 };
