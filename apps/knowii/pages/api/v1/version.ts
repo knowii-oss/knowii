@@ -1,6 +1,8 @@
-import { version } from '../../../../../package.json';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { NextRequestHandler } from '@knowii/server';
+
+// eslint-disable-next-line  @typescript-eslint/no-var-requires
+const version = require('../../../../../package.json').version;
 
 export interface VersionResponse {
   version: string;
