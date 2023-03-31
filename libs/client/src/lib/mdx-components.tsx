@@ -14,6 +14,8 @@ import {
   BlogPostWarning,
   BlogPostTip,
   Step,
+  Separator,
+  SocialLink,
 } from '@knowii/client-ui';
 
 // FIXME replace once this is solved: https://github.com/PaulieScanlon/mdx-embed/issues/247
@@ -131,5 +133,7 @@ export const mdxComponents = {
   BlogPostSignature,
   BlogPostTip,
   BlogPostWarning,
+  Separator,
+  SocialLink,
   Step,
 };

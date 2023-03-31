@@ -6,4 +6,6 @@ export * from './blog-post-quote';
 export * from './blog-post-signature';
 export * from './blog-post-tip';
 export * from './blog-post-warning';
+export * from './separator';
 export * from './step';
+export * from './social-link';
