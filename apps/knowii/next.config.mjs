@@ -3,6 +3,11 @@
 
 import { withNx } from '@nrwl/next/plugins/with-nx.js';
 import { i18nConfig } from '../../next-i18next.config.mjs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 console.log(`> Building in "${process.env.NODE_ENV}" mode (NODE_ENV)`);
 
@@ -45,6 +50,12 @@ const nextConfig = {
      * @see https://nextjs.org/docs/api-reference/next.config.js/ignoring-typescript-errors
      */
     ignoreBuildErrors: true,
+  },
+  output: 'standalone', // Enable Output File Tracing:  https://nextjs.org/docs/advanced-features/output-file-tracing
+  experimental: {
+    // This includes files from the monorepo base two directories up
+    // Required for output file tracing
+    outputFileTracingRoot: path.join(__dirname, '../../'),
   },
 };
 
