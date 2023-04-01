@@ -12,11 +12,10 @@ import {
   useColorModeValue,
   VStack,
 } from '@chakra-ui/react';
-import { useTranslation } from 'next-i18next';
 import Link from 'next/link';
 import { FaEnvelope, FaTwitter } from 'react-icons/fa';
+import { useTranslations } from 'next-intl';
 import { Logo } from '@knowii/client-ui';
-import { I18N_TRANSLATIONS_COMMON } from '@knowii/common';
 
 // eslint-disable-next-line  @typescript-eslint/no-var-requires
 const author = require('../../../../libs/common/src/lib/metadata.json').author;
@@ -29,7 +28,7 @@ const social = require('../../../../libs/common/src/lib/metadata.json').social;
 interface FooterProps {}
 
 export function Footer(_props: FooterProps) {
-  const { t } = useTranslation(I18N_TRANSLATIONS_COMMON);
+  const t = useTranslations('footer');
 
   return (
     <Box as="footer" bg={useColorModeValue('gray.50', 'gray.700')} px={4} py={16}>
@@ -46,18 +45,18 @@ export function Footer(_props: FooterProps) {
               </IconButton>
             </HStack>
             <Text color="gray.400">
-              © {author}. {t('footer.allRightsReserved')}
+              © {author}. {t('allRightsReserved')}
             </Text>
           </VStack>
 
           <Box>
             <Heading fontSize="base" mb={3}>
-              {t('footer.links')}
+              {t('links')}
             </Heading>
             <List spacing={1} opacity={0.75}>
               <ListItem>
                 <StyledLink as={Link} href={social.blogSebastien}>
-                  {t('footer.linkSebastien')}
+                  {t('linkSebastien')}
                 </StyledLink>
               </ListItem>
             </List>
@@ -65,17 +64,17 @@ export function Footer(_props: FooterProps) {
 
           <Box>
             <Heading fontSize="base" mb={3}>
-              {t('footer.legal')}
+              {t('legal')}
             </Heading>
             <List spacing={1} opacity={0.75}>
               <ListItem>
                 <StyledLink as={Link} href="/#">
-                  {t('footer.privacy')}
+                  {t('privacy')}
                 </StyledLink>
               </ListItem>
               <ListItem>
                 <StyledLink as={Link} href="/#">
-                  {t('footer.terms')}
+                  {t('terms')}
                 </StyledLink>
               </ListItem>
             </List>

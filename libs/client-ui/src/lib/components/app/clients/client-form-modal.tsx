@@ -15,11 +15,11 @@ import {
 } from '@chakra-ui/react';
 import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useTranslation } from 'next-i18next';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Database, I18N_TRANSLATIONS_APP } from '@knowii/common';
+import { Database } from '@knowii/common';
 import { Client } from './clients-list';
+import { useTranslations } from 'next-intl';
 
 export interface ClientFormModalProps {
   client: null | Client;
@@ -35,7 +35,7 @@ export function ClientFormModal({ client, isOpen, onClose }: ClientFormModalProp
   const supabaseClient = useSupabaseClient<Database>();
   const queryClient = useQueryClient();
   const headerBg = useColorModeValue('gray.50', 'gray.600');
-  const { t } = useTranslation(I18N_TRANSLATIONS_APP);
+  const t = useTranslations('clientFormModal');
   const toast = useToast();
   const {
     register,
@@ -76,7 +76,7 @@ export function ClientFormModal({ client, isOpen, onClose }: ClientFormModalProp
         toast({
           status: 'error',
           position: 'top',
-          description: t('clients.form.errorMessage'),
+          description: t('form.errorMessage'),
         });
 
         throw new Error('Could not upsert client');
@@ -85,7 +85,7 @@ export function ClientFormModal({ client, isOpen, onClose }: ClientFormModalProp
         toast({
           status: 'success',
           position: 'top',
-          description: t('clients.form.successMessage'),
+          description: t('form.successMessage'),
         });
 
         // Refetch clients
@@ -109,7 +109,7 @@ export function ClientFormModal({ client, isOpen, onClose }: ClientFormModalProp
       <ModalOverlay />
       <ModalContent>
         <ModalHeader bg={headerBg} roundedTop="lg" px={8}>
-          {client ? t('clients.form.edit.title') : t('clients.form.add.title')}
+          {client ? t('form.edit.title') : t('form.add.title')}
         </ModalHeader>
         <ModalCloseButton top={4} right={6} />
         <ModalBody p={8}>
@@ -117,24 +117,24 @@ export function ClientFormModal({ client, isOpen, onClose }: ClientFormModalProp
             <VStack align="stretch" spacing={6}>
               {/* Name field */}
               <FormControl isRequired>
-                <FormLabel>{t('clients.form.controls.name')}</FormLabel>
+                <FormLabel>{t('form.controls.name')}</FormLabel>
                 <Input type="text" {...register('name', { required: true })} />
               </FormControl>
 
               {/* Email field */}
               <FormControl isRequired>
-                <FormLabel>{t('clients.form.controls.email')}</FormLabel>
+                <FormLabel>{t('form.controls.email')}</FormLabel>
                 <Input type="text" {...register('email', { required: true })} />
               </FormControl>
 
               {/* Phone field */}
               <FormControl isRequired>
-                <FormLabel>{t('clients.form.controls.phone')}</FormLabel>
+                <FormLabel>{t('form.controls.phone')}</FormLabel>
                 <Input type="text" {...register('phone', { required: true })} />
               </FormControl>
 
               <Button type="submit" colorScheme="primary" isLoading={isSubmitting}>
-                {t('clients.form.submitButton')}
+                {t('form.submitButton')}
               </Button>
             </VStack>
           </form>

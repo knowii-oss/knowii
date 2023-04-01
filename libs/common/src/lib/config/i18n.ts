@@ -1,4 +1,4 @@
-//import { i18nConfig } from '../../../../../next-i18next.config.mjs';
+//import { i18nConfig } from '../../../../../i18n.config.mjs';
 
 export const localeNames = {
   fr: 'Français',

@@ -12,21 +12,22 @@ import {
   Stack,
 } from '@chakra-ui/react';
 import { useSupabaseClient } from '@supabase/auth-helpers-react';
-import { useTranslation } from 'next-i18next';
 import NextLink from 'next/link';
 import { FormEvent } from 'react';
 import { useForm } from 'react-hook-form';
 import { FaAt } from 'react-icons/fa';
 import { useAuthRedirectUrl } from '@knowii/client';
 import { AuthFormWrapper } from './auth-form-wrapper';
-import { I18N_TRANSLATIONS_AUTH } from '@knowii/common';
+import { useTranslations } from 'next-intl';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ForgotPasswordFormProps {}
 
 export function ForgotPasswordForm(_props: ForgotPasswordFormProps) {
   const supabaseClient = useSupabaseClient();
-  const { t } = useTranslation(I18N_TRANSLATIONS_AUTH);
+
+  const t = useTranslations('forgotPasswordForm');
+
   const redirectTo = useAuthRedirectUrl(`/auth/callback?redirectAfterSignin=${encodeURIComponent('/auth/reset-password')}`);
   const { register, handleSubmit, formState, setError, clearErrors } = useForm<{ email: string; serverError?: void }>();
   const { isSubmitting, isSubmitted, isSubmitSuccessful } = formState;
@@ -43,19 +44,19 @@ export function ForgotPasswordForm(_props: ForgotPasswordFormProps) {
   };
 
   return (
-    <AuthFormWrapper title={t('forgotPassword.pageTitle')}>
+    <AuthFormWrapper title={t('title')}>
       <form onSubmit={onSubmit}>
         <Stack spacing={5}>
           {isSubmitted &&
             (isSubmitSuccessful ? (
               <Alert status="success" rounded="lg">
                 <AlertIcon />
-                <AlertTitle>{t('forgotPassword.linkSent')}</AlertTitle>
+                <AlertTitle>{t('linkSent')}</AlertTitle>
               </Alert>
             ) : (
               <Alert status="error" rounded="lg">
                 <AlertIcon />
-                <AlertTitle>{t('forgotPassword.errorMessage')}</AlertTitle>
+                <AlertTitle>{t('errorMessage')}</AlertTitle>
               </Alert>
             ))}
 
@@ -81,7 +82,7 @@ export function ForgotPasswordForm(_props: ForgotPasswordFormProps) {
 
               {/* Submit button */}
               <Button colorScheme="primary" type="submit" isLoading={isSubmitting}>
-                {t('forgotPassword.sendLink')}
+                {t('sendLink')}
               </Button>
             </>
           )}

@@ -1,16 +1,15 @@
 import { AspectRatio, Box, Button, Heading, Link, SimpleGrid, Text, useColorModeValue, VStack } from '@chakra-ui/react';
-import { useTranslation } from 'next-i18next';
 import Image from 'next/image';
 import NextLink from 'next/link';
 import { useMemo } from 'react';
-import { FrontMatter, I18N_TRANSLATIONS_BLOG, RequiredPick } from '@knowii/common';
 import { format, parseISO } from 'date-fns';
+import { useTranslations } from 'next-intl';
+import { FrontMatter, RequiredPick } from '@knowii/common';
 
 type BlogPostProps = RequiredPick<FrontMatter, 'slug' | 'title' | 'publishedOn' | 'summary' | 'image'>;
 
-// FIXME rename to blog post overview
-export function BlogPost({ slug, title, publishedOn, summary, image }: BlogPostProps) {
-  const { t } = useTranslation(I18N_TRANSLATIONS_BLOG);
+export function BlogPostOverview({ slug, title, publishedOn, summary, image }: BlogPostProps) {
+  const t = useTranslations('blogPostOverview');
 
   const link = useMemo(() => `/blog/${slug}`, [slug]);
 
@@ -64,4 +63,4 @@ export function BlogPost({ slug, title, publishedOn, summary, image }: BlogPostP
   );
 }
 
-export default BlogPost;
+export default BlogPostOverview;

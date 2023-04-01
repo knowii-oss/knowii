@@ -1,19 +1,19 @@
 import { Button, Text, useColorModeValue, VStack } from '@chakra-ui/react';
-import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
 import { useMemo } from 'react';
 import { useSubscriptionActions, useUserSubscriptions } from '@knowii/client';
 import { Loader } from '../common/loader';
 import { AccountSection } from './account-section';
-import { formatPrice, I18N_TRANSLATIONS_ACCOUNT, I18N_TRANSLATIONS_COMMON } from '@knowii/common';
+import { formatPrice } from '@knowii/common';
+import { useTranslations } from 'next-intl';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface SubscriptionProps {}
 
 export function Subscription(_props: SubscriptionProps) {
   const router = useRouter();
-  const { t } = useTranslation([I18N_TRANSLATIONS_COMMON, I18N_TRANSLATIONS_ACCOUNT]);
   const { locale } = useRouter();
+  const t = useTranslations();
   const { currentlySubscribedPlan, loading: loadingSubscriptions } = useUserSubscriptions();
   const { manageSubscription, loading } = useSubscriptionActions();
   const highlightColor = useColorModeValue('primary.500', 'primary.400');
@@ -32,6 +32,14 @@ export function Subscription(_props: SubscriptionProps) {
     [price, locale],
   );
 
+  // FIXME ugly workaround to be able to set the key dynamically
+  // FIXME Make sure this works
+  // eslint-disable-next-line
+  let priceIntervalTranslationKey: any = '';
+  if (price) {
+    priceIntervalTranslationKey = `subscriptionTable.intervals.${price.interval}`;
+  }
+
   return (
     <AccountSection title={t('subscription.title')}>
       {loadingSubscriptions ? (
@@ -44,20 +52,19 @@ export function Subscription(_props: SubscriptionProps) {
             {price && (
               <Text as="small" fontSize="sm" opacity={0.75}>
                 {' '}
-                / {price.interval_count && price.interval_count > 1 ? price.interval_count : ''}{' '}
-                {t(`pricing.intervals.${price.interval}`, { ns: 'common' })}
+                / {price.interval_count && price.interval_count > 1 ? price.interval_count : ''} {t(priceIntervalTranslationKey)}
               </Text>
             )}
           </Text>
           <Button variant="outline" colorScheme="primary" isLoading={loading} onClick={manageSubscription}>
-            {t('manageSubscription')}
+            {t('subscription.manageSubscription')}
           </Button>
         </VStack>
       ) : (
         <VStack align="start">
           <Text>{t('subscription.notSubscribed')}</Text>
           <Button variant="outline" colorScheme="primary" isLoading={loading} onClick={() => router.push('/#pricing')}>
-            {t('upgradeAccount')}
+            {t('subscription.upgradeAccount')}
           </Button>
         </VStack>
       )}

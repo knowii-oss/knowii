@@ -1,8 +1,8 @@
 import { IconButton, useColorMode } from '@chakra-ui/react';
-import { useTranslation } from 'next-i18next';
 import { FaMoon, FaSun } from 'react-icons/fa';
 import { useTheme } from 'next-themes';
-import { I18N_TRANSLATIONS_COMMON, THEME_DARK, THEME_LIGHT } from '@knowii/common';
+import { useTranslations } from 'next-intl';
+import { THEME_DARK, THEME_LIGHT } from '@knowii/common';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ColorModeSwitchProps {}
@@ -12,7 +12,8 @@ export interface ColorModeSwitchProps {}
  * @constructor
  */
 export function ColorModeSwitch(_props: ColorModeSwitchProps) {
-  const { t } = useTranslation(I18N_TRANSLATIONS_COMMON);
+  const t = useTranslations('colorModeSwitch');
+
   // ChakraUI color mode
   const { colorMode, toggleColorMode } = useColorMode();
 
@@ -27,7 +28,7 @@ export function ColorModeSwitch(_props: ColorModeSwitchProps) {
   return (
     <IconButton
       size="sm"
-      aria-label={colorMode === THEME_LIGHT ? t('colorMode.dark') : t('colorMode.light')}
+      aria-label={colorMode === THEME_LIGHT ? t('dark') : t('light')}
       icon={colorMode === THEME_LIGHT ? <FaMoon className="hover:text-gray-700" /> : <FaSun className="hover:text-yellow-400" />}
       onClick={toggleThemeAndColorMode}
       variant="ghost"

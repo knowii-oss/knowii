@@ -1,31 +1,27 @@
 import { Box, Container, Flex, Heading, ListItem, Stack, UnorderedList, useColorModeValue, VStack } from '@chakra-ui/react';
-import { useTranslation } from 'next-i18next';
 import { FaCloud } from 'react-icons/fa';
+import { useTranslations } from 'next-intl';
 import { SectionHeadline } from './section-headline';
-import { I18N_TRANSLATIONS_HOME } from '@knowii/common';
 
 // eslint-disable-next-line
 interface FeaturesProps {}
 
 export function Features(_props: FeaturesProps) {
-  const { t } = useTranslation(I18N_TRANSLATIONS_HOME);
+  const t = useTranslations('features');
+
   const itemBorder = useColorModeValue('primary.100', 'gray.700');
 
   const featureItems = [
     {
-      title: t('features.contentCuration.title'),
+      title: t('contentCuration.title'),
       icon: <FaCloud />,
-      highlights: [
-        t('features.contentCuration.highlights.1'),
-        t('features.contentCuration.highlights.2'),
-        t('features.contentCuration.highlights.3'),
-      ],
+      highlights: [t('contentCuration.highlights.1'), t('contentCuration.highlights.2'), t('contentCuration.highlights.3')],
     },
   ];
 
   return (
     <Box as="section" id="features" px={8} py={16}>
-      <SectionHeadline title={t('features.title')} description={t('features.description')} />
+      <SectionHeadline title={t('title')} description={t('description')} />
       <Container maxW="3xl">
         <VStack spacing={4}>
           {featureItems.map((item, i) => (

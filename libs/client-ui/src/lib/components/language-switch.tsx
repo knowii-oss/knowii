@@ -1,15 +1,16 @@
 import { IconButton, Menu, MenuButton, MenuItemOption, MenuList, MenuOptionGroup } from '@chakra-ui/react';
-import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
 import { useCallback } from 'react';
 import { FaGlobeAmericas } from 'react-icons/fa';
-import { I18N_TRANSLATIONS_COMMON, LocaleCode, localeNames } from '@knowii/common';
+import { LocaleCode, localeNames } from '@knowii/common';
+import { useTranslations } from 'next-intl';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface LanguageSwitchProps {}
 
 export function LanguageSwitch(_props: LanguageSwitchProps) {
-  const { t } = useTranslation(I18N_TRANSLATIONS_COMMON);
+  const t = useTranslations('languageSwitch');
+
   const router = useRouter();
   const { locales, locale: activeLocale, pathname, query, asPath } = router;
 

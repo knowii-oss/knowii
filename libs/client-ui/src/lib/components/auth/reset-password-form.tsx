@@ -13,19 +13,20 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import { useSupabaseClient } from '@supabase/auth-helpers-react';
-import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
 import { FormEvent, useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { FaEye, FaEyeSlash, FaLock } from 'react-icons/fa';
-import { I18N_TRANSLATIONS_AUTH, redirectPath } from '@knowii/common';
+import { redirectPath } from '@knowii/common';
 import { AuthFormWrapper } from './auth-form-wrapper';
+import { useTranslations } from 'next-intl';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ResetPasswordFormProps {}
 
 export function ResetPasswordForm(_props: ResetPasswordFormProps) {
-  const { t } = useTranslation(I18N_TRANSLATIONS_AUTH);
+  const t = useTranslations('resetPasswordForm');
+
   const router = useRouter();
   const supabaseClient = useSupabaseClient();
   const toast = useToast();
@@ -49,7 +50,7 @@ export function ResetPasswordForm(_props: ResetPasswordFormProps) {
       await router.push(redirectPath);
       toast({
         status: 'success',
-        title: t('resetPassword.successMessage'),
+        title: t('successMessage'),
       });
     })(e);
   };
@@ -57,13 +58,13 @@ export function ResetPasswordForm(_props: ResetPasswordFormProps) {
   const togglePassword = useCallback(() => setPasswordVisible(!isPasswordVisible), [isPasswordVisible]);
 
   return (
-    <AuthFormWrapper title={t('resetPassword.pageTitle')}>
+    <AuthFormWrapper title={t('title')}>
       <form onSubmit={onSubmit}>
         <Stack spacing={5}>
           {isSubmitted && !isSubmitSuccessful && (
             <Alert status="error" rounded="lg">
               <AlertIcon />
-              <AlertTitle>{t('resetPassword.errorMessage')}</AlertTitle>
+              <AlertTitle>{t('errorMessage')}</AlertTitle>
             </Alert>
           )}
 
@@ -88,7 +89,7 @@ export function ResetPasswordForm(_props: ResetPasswordFormProps) {
 
           {/* Submit button */}
           <Button colorScheme="primary" type="submit" isLoading={isSubmitting}>
-            {t('resetPassword.submitButton')}
+            {t('submitButton')}
           </Button>
         </Stack>
       </form>

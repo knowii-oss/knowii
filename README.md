@@ -69,5 +69,6 @@ Create reusable components in the 'client-ui' library. Test those using Storyboo
 
 To add a locale:
 
-- Create the files under apps/knowii/public/locales/<lang>
-- Edit i18next.d.ts
+- Create the file under apps/knowii/messages
+
+To enable a new NX library to benefit from i18n strong typing, copy the index.d.ts at the root of client-ui over to the new library

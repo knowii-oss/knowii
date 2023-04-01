@@ -21,16 +21,16 @@ import {
 } from '@chakra-ui/react';
 import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useTranslation } from 'next-i18next';
 import Link from 'next/link';
 import { useCallback, useState } from 'react';
 import { FaEdit, FaTrash, FaUserPlus } from 'react-icons/fa';
 import { useUserPermissions } from '@knowii/client';
-import { Database, I18N_TRANSLATIONS_APP } from '@knowii/common';
+import { Database } from '@knowii/common';
 import { Loader } from '../../common/loader';
 import { ConfirmModal } from '../confirm-modal';
 import { ClientFormModal } from './client-form-modal';
 import { NoSubscriptionAlert } from './no-subscription-alert';
+import { useTranslations } from 'next-intl';
 
 export type Client = Database['public']['Tables']['clients']['Row'];
 
@@ -44,7 +44,7 @@ export interface ClientsListProps {}
 export function ClientsList(_props: ClientsListProps) {
   const supabaseClient = useSupabaseClient<Database>();
   const queryClient = useQueryClient();
-  const { t } = useTranslation(I18N_TRANSLATIONS_APP);
+  const t = useTranslations('clientsList');
   const toast = useToast();
   const { isUserSubscribed, loading: loadingPermissions } = useUserPermissions();
   const formModal = useDisclosure();
@@ -106,9 +106,9 @@ export function ClientsList(_props: ClientsListProps) {
     <>
       {!isUserSubscribed && !!clients?.length && <NoSubscriptionAlert />}
       <HStack mb={4} justify="space-between">
-        <Heading fontSize="2xl">{t('clients.title')}</Heading>
+        <Heading fontSize="2xl">{t('title')}</Heading>
 
-        <Tooltip label={!isUserSubscribed && clients?.length ? t('clients.upgradeToCreateMore') : undefined}>
+        <Tooltip label={!isUserSubscribed && clients?.length ? t('upgradeToCreateMore') : undefined}>
           <Button
             size="sm"
             colorScheme="primary"
@@ -116,7 +116,7 @@ export function ClientsList(_props: ClientsListProps) {
             leftIcon={<FaUserPlus />}
             onClick={() => openClientForm(null)}
           >
-            {t('clients.createButton')}
+            {t('createButton')}
           </Button>
         </Tooltip>
       </HStack>
@@ -132,9 +132,9 @@ export function ClientsList(_props: ClientsListProps) {
           <Table>
             <Thead borderBottom="1px solid" borderColor={tableBorderColor}>
               <Tr>
-                <Th>{t('clients.list.columns.name')}</Th>
-                <Th>{t('clients.list.columns.email')}</Th>
-                <Th>{t('clients.list.columns.phone')}</Th>
+                <Th>{t('list.columns.name')}</Th>
+                <Th>{t('list.columns.email')}</Th>
+                <Th>{t('list.columns.phone')}</Th>
                 <Th></Th>
               </Tr>
             </Thead>
@@ -154,7 +154,7 @@ export function ClientsList(_props: ClientsListProps) {
                           colorScheme="primary"
                           variant="ghost"
                           icon={<FaEdit />}
-                          aria-label={t('clients.list.edit')}
+                          aria-label={t('list.edit')}
                           onClick={() => openClientForm(client)}
                         />
                         <IconButton
@@ -162,7 +162,7 @@ export function ClientsList(_props: ClientsListProps) {
                           colorScheme="red"
                           variant="ghost"
                           icon={<FaTrash />}
-                          aria-label={t('clients.list.delete')}
+                          aria-label={t('list.delete')}
                           disabled={selectedClient?.id === client.id && deleteClientMutation.isLoading}
                           onClick={() => openDeleteConfirm(client)}
                         />
@@ -174,8 +174,8 @@ export function ClientsList(_props: ClientsListProps) {
                 <Tr>
                   <Td colSpan={99}>
                     <VStack textAlign="center" p={6}>
-                      <Heading fontSize="lg">{t('clients.list.noResults')}</Heading>
-                      <Text opacity={0.5}>{t('clients.list.empty')}</Text>
+                      <Heading fontSize="lg">{t('list.noResults')}</Heading>
+                      <Text opacity={0.5}>{t('list.empty')}</Text>
                     </VStack>
                   </Td>
                 </Tr>

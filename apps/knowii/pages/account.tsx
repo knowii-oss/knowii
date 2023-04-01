@@ -1,22 +1,20 @@
 import { Box, Flex, Heading, useColorModeValue, useToast, VStack } from '@chakra-ui/react';
 import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import { GetServerSideProps } from 'next';
-import { useTranslation } from 'next-i18next';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useCallback } from 'react';
 import { FaUser } from 'react-icons/fa';
+import { useTranslations } from 'next-intl';
 import { EditableText, Password, Subscription } from '@knowii/client-ui';
 import Layout from '../components/layout/layout';
 import { useUserName } from '@knowii/client';
-import { i18nConfig } from '../../../next-i18next.config.mjs';
-import { I18N_TRANSLATIONS_ACCOUNT, I18N_TRANSLATIONS_COMMON } from '@knowii/common';
+import { i18nConfig } from '../../../i18n.config.mjs';
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
-  const translations = await serverSideTranslations(locale, [I18N_TRANSLATIONS_COMMON, I18N_TRANSLATIONS_ACCOUNT], i18nConfig);
+  const messages = (await import(`../messages/${locale}.json`)).default;
 
   return {
-    props: { ...translations },
+    props: { messages },
   };
 };
 
@@ -24,7 +22,8 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 interface AccountPageProps {}
 
 export function AccountPage(_props: AccountPageProps) {
-  const { t } = useTranslation(I18N_TRANSLATIONS_ACCOUNT);
+  const t = useTranslations('accountPage');
+
   const supabaseClient = useSupabaseClient();
   const userName = useUserName();
   const toast = useToast();

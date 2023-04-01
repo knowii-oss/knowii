@@ -1,20 +1,22 @@
 import { Box, Button, Heading, ListItem, Text, UnorderedList, useColorModeValue, VStack } from '@chakra-ui/react';
-import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
 import { useMemo } from 'react';
-import { defaultCurrency, formatPrice, I18N_TRANSLATIONS_COMMON, localeCurrencies, SubscriptionPlan } from '@knowii/common';
+import { useTranslations } from 'next-intl';
+import { defaultCurrency, formatPrice, localeCurrencies, SubscriptionPlan } from '@knowii/common';
 import { useSubscriptionActions } from '@knowii/client';
 
 export interface SubscriptionItemProps {
   plan: SubscriptionPlan;
-  billingInterval: 'month' | 'year';
+  billingInterval: string;
   isHighlighted: boolean;
   hideSubscribeButton: boolean;
 }
 
 export function SubscriptionItem({ plan, billingInterval, isHighlighted, hideSubscribeButton }: SubscriptionItemProps) {
   const router = useRouter();
-  const { t } = useTranslation(I18N_TRANSLATIONS_COMMON);
+
+  const t = useTranslations('subscriptionItem');
+
   const { subscribe, loading } = useSubscriptionActions();
   const bgColor = useColorModeValue('primary.50', 'gray.900');
   const highlightColor = useColorModeValue('primary.500', 'primary.400');
@@ -61,12 +63,13 @@ export function SubscriptionItem({ plan, billingInterval, isHighlighted, hideSub
             <Heading as="h4" fontSize="3xl" color={highlightColor}>
               {formattedPrice}{' '}
               <Text as="small" color="inherit" opacity={0.75} fontSize="lg" fontWeight="normal">
-                / {price.interval_count && price.interval_count > 1 ? price.interval_count : ''} {t(`pricing.intervals.${price.interval}`)}
+                {/* Make sure this works. It was using a parameterized translation key before! */}/{' '}
+                {price.interval_count && price.interval_count > 1 ? price.interval_count : ''} {billingInterval}
               </Text>
             </Heading>
             {!hideSubscribeButton && (
               <Button colorScheme="primary" w="full" size="lg" onClick={() => subscribe(price.id)} isLoading={loading}>
-                {t('pricing.subscribeButton')}
+                {t('subscribeButton')}
               </Button>
             )}
           </VStack>

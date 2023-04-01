@@ -1,0 +1,278 @@
+{
+  "footer": {
+    "legal": "Legal",
+    "privacy": "Politique de confidentialité",
+    "terms": "Conditions générales",
+    "links": "Liens",
+    "linkSebastien": "Site de Sébastien Dubois",
+    "allRightsReserved": "Tous droits réservés."
+  },
+  "navBar": {
+    "title": "Menu",
+    "signIn": "Connexion"
+  },
+  "languageSwitch": {
+    "language": "Langue"
+  },
+  "userMenu": {
+    "account": "Compte",
+    "signOut": "Déconnexion",
+    "message": "Bonjour {user}!"
+  },
+  "colorModeSwitch": {
+    "dark": "Dark",
+    "light": "Light"
+  },
+  "menu": {
+    "features": "Fonctionnalités",
+    "pricing": "Tarifs",
+    "faq": "FAQ",
+    "blog": "Blog",
+    "dashboard": "Tableau de bord"
+  },
+  "hero": {
+    "title": "Bienvenue \uD83D\uDC4B",
+    "description": "Un endroit de choix pour les connaissances, les idées et l'inspiration de votre communauté.",
+    "signupButton": "Créer un compte",
+    "dashboardButton": "Tableau de bord"
+  },
+  "features": {
+    "title": "Fonctionnalités",
+    "description": "Tout ce dont vous avez besoin pour supporter votre communauté.",
+    "contentCuration": {
+      "title": "Gestion de contenu communautaire",
+      "highlights": {
+        "1": "Capturez le contenu intéressant pour votre communauté",
+        "2": "Organisez, structurez et étiquetez le contenu de votre communauté pour créer un graphe de connaissances de qualité",
+        "3": "Partagez ou rentabilisez le contenu de votre communauté"
+      }
+    }
+  },
+  "pricing": {
+    "title": "Tarifs",
+    "description": "Nous offrons un plan pour chaque besoin. Vous pouvez commencer avec le plan gratuit et évoluer selon vos besoins."
+  },
+  "subscriptionTable": {
+    "intervals": {
+      "yearly": "Annuel",
+      "monthly": "Mensuel",
+      "month": "mois",
+      "year": "année"
+    }
+  },
+  "subscriptionPlans": {
+    "basic": {
+      "name": "Basique",
+      "description": "Créez un espace ouvert pour votre communauté",
+      "features": {
+        "0": "Feature A",
+        "1": "Feature B",
+        "2": "Feature C"
+      }
+    },
+    "pro": {
+      "name": "Pro",
+      "description": "Extends support for your business",
+      "features": {
+        "0": "Feature A",
+        "1": "Feature B",
+        "2": "Feature C"
+      }
+    },
+    "ultimate": {
+      "name": "Ultimate",
+      "description": "The ultimate bundle for your business",
+      "features": {
+        "0": "Feature A",
+        "1": "Feature B",
+        "2": "Feature C"
+      }
+    }
+  },
+  "subscriptionItem": {
+    "subscribeButton": "Subscribe"
+  },
+  "userSubscriptionAlert": {
+    "title": "Votre abonnement",
+    "manage": "Gérer l'abonnement",
+    "text": "Bonjour { userName }! Vous êtes actuellement abonné au plan suivant: { planName }. Pour gérer votre abonnement, cliquez sur le bouton ci-dessous."
+  },
+  "pageNotFoundPage": {
+    "title": "Oups...",
+    "message": "Vous avez l'air perdu(e)...",
+    "goBackHomeLink": "\uD83D\uDC49 Retourner à la page d'accueil"
+  },
+  "accountPage": {
+    "account": "Compte",
+    "updateUserName": {
+      "errorMessage": "Votre nom d'utilisateur n'a pas pu être mis à jour. Veuillez réessayer.",
+      "successMessage": "Votre nom d'utilisateur a été mis à jour."
+    }
+  },
+  "subscription": {
+    "title": "Subscription",
+    "currentlySubscribed": "Vous êtes actuellement souscrit au plan suivant:",
+    "manageSubscription": "Gérer l'abonnement",
+    "notSubscribed": "Vous n'avez pas d'abonnement actif.",
+    "upgradeAccount": "Mettre l'abonnement à niveau"
+  },
+  "password": {
+    "password": "Password",
+    "changeMyPassword": "Change my password"
+  },
+  "dashboardPage": {
+    "pageTitle": "Tableau de bord",
+    "pageDescription": "Page privée que seuls les utilisateurs connectés peuvent voir."
+  },
+  "blogPage": {
+    "title": "Blog",
+    "description": "Lisez les derniers billets de notre équipe!"
+  },
+  "blogPostOverview": {
+    "readMore": "Lire la suite"
+  },
+  "blogPostPage": {
+    "blog": "Blog"
+  },
+  "blogPostMeta": {
+    "publishedOn": "Publié le",
+    "writtenBy": "Ecrit par"
+  },
+  "authPage": {
+    "forgotPassword": {
+      "pageTitle": "Mot de passe oublié?"
+    },
+    "resetPassword": {
+      "pageTitle": "Réinitialiser votre mot de passe"
+    },
+    "signIn": {
+      "pageTitle": "Welcome"
+    },
+    "signUp": {
+      "pageTitle": "Créer un compte"
+    }
+  },
+  "signupForm": {
+    "title": "Créer un compte",
+    "description": "Enter your information to create a new account.",
+    "accountAlreadyExists": "Already have an account?",
+    "signIn": "Se connecter",
+    "successMessage": "Your account has been created. Please check your email to confirm your account.",
+    "errorMessage": "An error occurred while trying to create your account. Please try again.",
+    "submitButton": "Create account",
+    "fields": {
+      "name": "Votre nom:",
+      "email": "Votre email:",
+      "password": "Votre mot de passe:"
+    }
+  },
+  "signinForm": {
+    "title": "Connexion",
+    "description": "Content de vous revoir. Entrez vos informations pour vous connecter.",
+    "noAccount": "Vous n'avez pas encore de compte?",
+    "signupButton": "Créer un compte",
+    "linkSent": "Le lien magique a été envoyé. Veuillez vérifier votre email pour continuer.",
+    "errorMessage": "Il semble y avoir eu un problème. Veuillez vérifier vos identifiants et réessayer",
+    "fields": {
+      "email": "Votre email:",
+      "password": "Votre mot de passe:"
+    },
+    "forgotPassword": "Mot de passe oublié?",
+    "continueWith": "Ou continuer avec",
+    "submitButton": "Se connecter",
+    "sendLinkButton": "Envoyer un lien magique"
+  },
+  "socialSigninButton": {
+    "providers": {
+      "google": "Google",
+      "workos": "WorkOS",
+      "twitch": "Twitch",
+      "spotify": "Spotify",
+      "slack": "Slack",
+      "notion": "Notion",
+      "keycloak": "Keycloak",
+      "gitlab": "Gitlab",
+      "discord": "Discord",
+      "linkedin": "LinkedIn",
+      "bitbucket": "Bitbucket",
+      "azure": "Azure",
+      "github": "Github",
+      "twitter": "Twitter",
+      "facebook": "Facebook",
+      "apple": "Apple"
+    }
+  },
+  "signinModeSwitch": {
+    "magicLink": "Lien magique",
+    "password": "Mot de passe"
+  },
+  "resetPasswordForm": {
+    "title": "Réinitialiser votre mot de passe",
+    "successMessage": "Votre mot de passe a été mis à jour avec succès.",
+    "errorMessage": "Une erreur est survenue lors de la réinitialisation de votre mot de passe. Veuillez réessayer.",
+    "submitButton": "Enregistrer le nouveau mot de passe",
+    "fields": {
+      "newPassword": "Nouveau mot de passe:"
+    }
+  },
+  "forgotPasswordForm": {
+    "title": "Mot de passe oublié?",
+    "linkSent": "Lien envoyé. Veuillez vérifier votre email.",
+    "errorMessage": "Nous n'avons pas pu vous envoyer un lien pour réinitialiser votre mot de passe. Veuillez vous assurer d'avoir entré l'adresse email correcte et réessayer.",
+    "fields": {
+      "email": "Votre email:"
+    },
+    "sendLink": "Envoyer le lien de réinitialisation",
+    "backToSignIn": "Retour à l'écran de connexion"
+  },
+  "clientsList": {
+    "deleteClient": {
+      "errorMessage": "Une erreur est survenue pendant la suppression du client. Veuillez réessayer.",
+      "successMessage": "Le client a été supprimé."
+    },
+    "title": "Clients",
+    "upgradeToCreateMore": "You have to upgrade your plan to create more clients.",
+    "createButton": "Add client",
+    "list": {
+      "columns": {
+        "name": "Name",
+        "email": "Email",
+        "phone": "Phone"
+      },
+      "empty": "You have not created any clients yet. Click the button at the top right to add one.",
+      "noResults": "No clients found",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "deleteClientModal": {
+      "title": "Delete client",
+      "description": "Do you really want to delete this client? This action cannot be undone."
+    }
+  },
+  "confirmModal": {
+    "cancel": "Cancel",
+    "confirm": "Confirm"
+  },
+  "clientFormModal": {
+    "form": {
+      "controls": {
+        "name": "Nom",
+        "email": "Email",
+        "phone": "Téléphone"
+      },
+      "add": {
+        "title": "Ajouter client"
+      },
+      "edit": {
+        "title": "Editer client"
+      },
+      "submitButton": "Sauvegarder client",
+      "errorMessage": "Une erreur est survenue pendant la sauvegarde du client. Veuillez réessayer.",
+      "successMessage": "Le client a été sauvegardé avec succès!"
+    }
+  },
+  "noSubscriptionAlert": {
+    "upgradeButton": "Upgrade subscription",
+    "message": "You don't have any active subscription. On the free plan, you can only have 1 client. Upgrade to a paid plan to add more clients."
+  }
+}

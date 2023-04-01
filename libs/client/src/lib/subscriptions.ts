@@ -1,15 +1,15 @@
 import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
 import { useCallback, useMemo, useState } from 'react';
-import { Database, I18N_TRANSLATIONS_COMMON, SubscriptionPlan, SubscriptionPlanId } from '@knowii/common';
+import { Database, SubscriptionPlan, SubscriptionPlanId } from '@knowii/common';
 import { getStripe } from './stripe-client';
+import { useTranslations } from 'next-intl';
 
 export function useSubscriptionPlans() {
   const supabase = useSupabaseClient<Database>();
-  const { t } = useTranslation(I18N_TRANSLATIONS_COMMON);
+  const t = useTranslations('subscriptionPlans');
 
   const { data: plans, isFetched: loading } = useQuery(
     ['subscription-plans'],
@@ -58,27 +58,19 @@ export function useSubscriptionPlans() {
       }
     > = {
       [SubscriptionPlanId.Basic]: {
-        name: t('subscriptionPlans.basic.name'),
-        description: t('subscriptionPlans.basic.description'),
-        features: [
-          t('subscriptionPlans.basic.features.0'),
-          t('subscriptionPlans.basic.features.1'),
-          t('subscriptionPlans.basic.features.2'),
-        ],
+        name: t('basic.name'),
+        description: t('basic.description'),
+        features: [t('basic.features.0'), t('basic.features.1'), t('basic.features.2')],
       },
       [SubscriptionPlanId.Pro]: {
-        name: t('subscriptionPlans.pro.name'),
-        description: t('subscriptionPlans.pro.description'),
-        features: [t('subscriptionPlans.pro.features.0'), t('subscriptionPlans.pro.features.1'), t('subscriptionPlans.pro.features.2')],
+        name: t('pro.name'),
+        description: t('pro.description'),
+        features: [t('pro.features.0'), t('pro.features.1'), t('pro.features.2')],
       },
       [SubscriptionPlanId.Ultimate]: {
-        name: t('subscriptionPlans.ultimate.name'),
-        description: t('subscriptionPlans.ultimate.description'),
-        features: [
-          t('subscriptionPlans.ultimate.features.0'),
-          t('subscriptionPlans.ultimate.features.1'),
-          t('subscriptionPlans.ultimate.features.2'),
-        ],
+        name: t('ultimate.name'),
+        description: t('ultimate.description'),
+        features: [t('ultimate.features.0'), t('ultimate.features.1'), t('ultimate.features.2')],
       },
     };
 
