@@ -130,14 +130,15 @@ enum SubscriptionStatus {
 }
 
 model Communities {
-  id                   String               @id @db.Uuid @default(uuid())
-  name                 String               @unique
-  description          String               @default("") @map("description")
-  created_at           DateTime             @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
-  updated_at           DateTime             @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt
-  admins               Clients[]            @relation("community_admins")
-  members              Clients[]            @relation("community_members")
-  owners               Clients[]            @relation("community_owners")
+  id                   String                     @id @db.Uuid @default(uuid())
+  name                 String                     @unique
+  description          String                     @default("") @map("description")
+  created_at           DateTime                   @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
+  updated_at           DateTime                   @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt
+  admins               Clients[]                  @relation("community_admins")
+  members              Clients[]                  @relation("community_members")
+  owners               Clients[]                  @relation("community_owners")
+  visibility           KnowiiCommunityVisibility  @default(PUBLIC)
 
   @@index([name], map: "idx_community_name")
   @@map("communities")
@@ -149,6 +150,14 @@ enum KnowiiUserRole {
   ADMIN
 
   @@map("user_role")
+  @@schema("public")
+}
+
+enum KnowiiCommunityVisibility {
+  PUBLIC
+  PRIVATE
+
+  @@map("community_visibility")
   @@schema("public")
 }
 
