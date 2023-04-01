@@ -1,0 +1,278 @@
+{
+  "footer": {
+    "legal": "Legal",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "links": "Links",
+    "linkSebastien": "Sébastien Dubois' Website",
+    "allRightsReserved": "All rights reserved."
+  },
+  "navBar": {
+    "title": "Menu",
+    "signIn": "Sign in"
+  },
+  "languageSwitch": {
+    "language": "Language"
+  },
+  "userMenu": {
+    "account": "Account",
+    "signOut": "Sign out",
+    "message": "Hello {user}!"
+  },
+  "colorModeSwitch": {
+    "dark": "Dark",
+    "light": "Light"
+  },
+  "menu": {
+    "features": "Features",
+    "pricing": "Pricing",
+    "faq": "FAQ",
+    "blog": "Blog",
+    "dashboard": "Dashboard"
+  },
+  "hero": {
+    "title": "Welcome \uD83D\uDC4B",
+    "description": "A place for your community's Knowledge, Ideas and Inspiration.",
+    "signupButton": "Create an account",
+    "dashboardButton": "Dashboard"
+  },
+  "features": {
+    "title": "Features",
+    "description": "Everything you need to support your communities.",
+    "contentCuration": {
+      "title": "Community Content Curation",
+      "highlights": {
+        "1": "Curate content relevant for your community",
+        "2": "Organize, tag and link curated content to create valuable Knowledge Graphs",
+        "3": "Share and/or monetize your curated content"
+      }
+    }
+  },
+  "pricing": {
+    "title": "Pricing",
+    "description": "We offer a plan for every need. You can start with the free plan and upgrade whenever you need more features."
+  },
+  "subscriptionTable": {
+    "intervals": {
+      "yearly": "Yearly",
+      "monthly": "Monthly",
+      "month": "month",
+      "year": "year"
+    }
+  },
+  "subscriptionPlans": {
+    "basic": {
+      "name": "Basic",
+      "description": "Get started with your business",
+      "features": {
+        "0": "Feature A",
+        "1": "Feature B",
+        "2": "Feature C"
+      }
+    },
+    "pro": {
+      "name": "Pro",
+      "description": "Extends support for your business",
+      "features": {
+        "0": "Feature A",
+        "1": "Feature B",
+        "2": "Feature C"
+      }
+    },
+    "ultimate": {
+      "name": "Ultimate",
+      "description": "The ultimate bundle for your business",
+      "features": {
+        "0": "Feature A",
+        "1": "Feature B",
+        "2": "Feature C"
+      }
+    }
+  },
+  "subscriptionItem": {
+    "subscribeButton": "Subscribe"
+  },
+  "userSubscriptionAlert": {
+    "title": "Your subscription",
+    "manage": "Manage subscription",
+    "text": "Hey { userName }! You are currently subscribed to the { planName } plan. To manage your subscription or upgrade your plan, click the button below."
+  },
+  "pageNotFoundPage": {
+    "title": "Doh...",
+    "message": "You seem to be lost...",
+    "goBackHomeLink": "\uD83D\uDC49 Go back home"
+  },
+  "accountPage": {
+    "account": "Account",
+    "updateUserName": {
+      "errorMessage": "Your name could not be updated. Please try again.",
+      "successMessage": "Your name has been updated."
+    }
+  },
+  "subscription": {
+    "title": "Subscription",
+    "currentlySubscribed": "You are currently subscribed to the following plan:",
+    "manageSubscription": "Manage subscription",
+    "notSubscribed": "You are not currently subscribed to a plan.",
+    "upgradeAccount": "Upgrade account"
+  },
+  "password": {
+    "password": "Password",
+    "changeMyPassword": "Change my password"
+  },
+  "dashboardPage": {
+    "pageTitle": "Dashboard",
+    "pageDescription": "This is a private page that only logged in users can see. Here you can see an example client management."
+  },
+  "blogPage": {
+    "title": "Blog",
+    "description": "Read the latest stories from our team!"
+  },
+  "blogPostOverview": {
+    "readMore": "Read more"
+  },
+  "blogPostPage": {
+    "blog": "Blog"
+  },
+  "blogPostMeta": {
+    "publishedOn": "Published on",
+    "writtenBy": "Written by"
+  },
+  "authPage": {
+    "forgotPassword": {
+      "pageTitle": "Forgot your password?"
+    },
+    "resetPassword": {
+      "pageTitle": "Reset your password"
+    },
+    "signIn": {
+      "pageTitle": "Welcome back"
+    },
+    "signUp": {
+      "pageTitle": "Create an account"
+    }
+  },
+  "signupForm": {
+    "title": "Create an account",
+    "description": "Enter your information to create a new account.",
+    "accountAlreadyExists": "Already have an account?",
+    "signIn": "Sign in",
+    "successMessage": "Your account has been created. Please check your email to confirm your account.",
+    "errorMessage": "An error occurred while trying to create your account. Please try again.",
+    "submitButton": "Create account",
+    "fields": {
+      "name": "Your name:",
+      "email": "Your email:",
+      "password": "Your password:"
+    }
+  },
+  "signinForm": {
+    "title": "Sign in",
+    "description": "Welcome back to Knowii. Enter your credentials to sign in.",
+    "noAccount": "Don't have an account yet?",
+    "signupButton": "Create an account",
+    "linkSent": "The magic link was sent. Please check your inbox to continue.",
+    "errorMessage": "Seems like something went wrong. Please check your credentials and try again.",
+    "fields": {
+      "email": "Your email:",
+      "password": "Your password:"
+    },
+    "forgotPassword": "Forgot your password?",
+    "continueWith": "Or continue with",
+    "submitButton": "Sign in",
+    "sendLinkButton": "Send magic link"
+  },
+  "socialSigninButton": {
+    "providers": {
+      "google": "Google",
+      "workos": "WorkOS",
+      "twitch": "Twitch",
+      "spotify": "Spotify",
+      "slack": "Slack",
+      "notion": "Notion",
+      "keycloak": "Keycloak",
+      "gitlab": "Gitlab",
+      "discord": "Discord",
+      "linkedin": "LinkedIn",
+      "bitbucket": "Bitbucket",
+      "azure": "Azure",
+      "github": "Github",
+      "twitter": "Twitter",
+      "facebook": "Facebook",
+      "apple": "Apple"
+    }
+  },
+  "signinModeSwitch": {
+    "magicLink": "Magic link",
+    "password": "Password"
+  },
+  "resetPasswordForm": {
+    "title": "Reset your password",
+    "successMessage": "Your password was updated successfully.",
+    "errorMessage": "An error occurred while trying to reset your password. Please try again.",
+    "submitButton": "Save new password",
+    "fields": {
+      "newPassword": "Your new password:"
+    }
+  },
+  "forgotPasswordForm": {
+    "title": "Forgot your password?",
+    "linkSent": "Link sent. Please check your inbox.",
+    "errorMessage": "We could not send you a link to reset your password. Please make sure, you entered the correct email and try again.",
+    "fields": {
+      "email": "Your email:"
+    },
+    "sendLink": "Send reset link",
+    "backToSignIn": "Back to signin"
+  },
+  "clientsList": {
+    "deleteClient": {
+      "errorMessage": "There was an error trying to delete the client. Please try again.",
+      "successMessage": "The client was deleted successfully."
+    },
+    "title": "Clients",
+    "upgradeToCreateMore": "You have to upgrade your plan to create more clients.",
+    "createButton": "Add client",
+    "list": {
+      "columns": {
+        "name": "Name",
+        "email": "Email",
+        "phone": "Phone"
+      },
+      "empty": "You have not created any clients yet. Click the button at the top right to add one.",
+      "noResults": "No clients found",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "deleteClientModal": {
+      "title": "Delete client",
+      "description": "Do you really want to delete this client? This action cannot be undone."
+    }
+  },
+  "confirmModal": {
+    "cancel": "Cancel",
+    "confirm": "Confirm"
+  },
+  "clientFormModal": {
+    "form": {
+      "controls": {
+        "name": "Name",
+        "email": "Email",
+        "phone": "Phone"
+      },
+      "add": {
+        "title": "Add client"
+      },
+      "edit": {
+        "title": "Edit client"
+      },
+      "submitButton": "Save client",
+      "errorMessage": "An error occurred while trying to save the client. Please try again.",
+      "successMessage": "The client was saved successfully!"
+    }
+  },
+  "noSubscriptionAlert": {
+    "upgradeButton": "Upgrade subscription",
+    "message": "You don't have any active subscription. On the free plan, you can only have 1 client. Upgrade to a paid plan to add more clients."
+  }
+}

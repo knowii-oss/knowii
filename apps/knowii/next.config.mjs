@@ -2,7 +2,7 @@
 /** @type {import('next').NextConfig} */
 
 import { withNx } from '@nrwl/next/plugins/with-nx.js';
-import { i18nConfig } from '../../next-i18next.config.mjs';
+import { i18nConfig } from '../../i18n.config.mjs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 

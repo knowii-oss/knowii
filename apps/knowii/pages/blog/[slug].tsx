@@ -1,20 +1,19 @@
 import { Box, Container, VStack } from '@chakra-ui/react';
 import { GetStaticPaths, GetStaticProps } from 'next';
-import { useTranslation } from 'next-i18next';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
 import Head from 'next/head';
 import Image from 'next/image';
 import { useMemo } from 'react';
+import Script from 'next/script';
+import ErrorPage from 'next/error';
+import { useRouter } from 'next/router';
 import { BlogPostMeta, Loader, PageHeader } from '@knowii/client-ui';
 import { mdxComponents } from '@knowii/client';
 import { Layout } from '../../components/layout/layout';
 import { getImageSize, getMdx, getMdxFilePaths } from '@knowii/server';
-import { FrontMatter, I18N_TRANSLATIONS_BLOG, I18N_TRANSLATIONS_COMMON, SITE_AUTHOR_MICRODATA, WebsiteDataType } from '@knowii/common';
-import { i18nConfig } from '../../../../next-i18next.config.mjs';
-import Script from 'next/script';
-import ErrorPage from 'next/error';
-import { useRouter } from 'next/router';
+import { FrontMatter, SITE_AUTHOR_MICRODATA, WebsiteDataType } from '@knowii/common';
+import { i18nConfig } from '../../../../i18n.config.mjs';
+import { useTranslations } from 'next-intl';
 
 // eslint-disable-next-line  @typescript-eslint/no-var-requires
 const siteAuthor = require('../../../../libs/common/src/lib/metadata.json').author;
@@ -45,11 +44,11 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
     };
   }
 
-  const translations = await serverSideTranslations(locale, [I18N_TRANSLATIONS_COMMON, I18N_TRANSLATIONS_BLOG], i18nConfig);
+  const messages = (await import(`../../messages/${locale}.json`)).default;
 
   return {
     props: {
-      ...translations,
+      messages,
       ...mdxProps,
     },
     revalidate: 10,
@@ -90,7 +89,8 @@ export function BlogPostPage({ mdxSource, frontMatter }: BlogPostPageProps) {
     return <ErrorPage statusCode={404} />;
   }
 
-  const { t } = useTranslation(I18N_TRANSLATIONS_BLOG);
+  const t = useTranslations('blogPostPage');
+
   const pageTitle = frontMatter.title ? `${frontMatter.title} - ${t('blog')}` : t('blog'); // FIXME change title
   const metaImage = useMemo(() => frontMatter.imageDetails?.src ?? null, [frontMatter]);
 

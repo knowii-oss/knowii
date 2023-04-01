@@ -13,21 +13,21 @@ import {
   Stack,
 } from '@chakra-ui/react';
 import { useSupabaseClient } from '@supabase/auth-helpers-react';
-import { useTranslation } from 'next-i18next';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 import { FormEvent, useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { FaAt, FaEye, FaEyeSlash, FaLock, FaUserAlt } from 'react-icons/fa';
-import { I18N_TRANSLATIONS_AUTH, redirectPath } from '@knowii/common';
+import { redirectPath } from '@knowii/common';
 import { useAuthRedirectUrl } from '@knowii/client';
 import { AuthFormWrapper } from './auth-form-wrapper';
+import { useTranslations } from 'next-intl';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface SignupFormProps {}
 
 export function SignupForm(_props: SignupFormProps) {
-  const { t } = useTranslation(I18N_TRANSLATIONS_AUTH);
+  const t = useTranslations('signupForm');
   const supabaseClient = useSupabaseClient();
   const router = useRouter();
   const redirectTo = useAuthRedirectUrl();
@@ -74,12 +74,12 @@ export function SignupForm(_props: SignupFormProps) {
 
   return (
     <AuthFormWrapper
-      title={t('signup.pageTitle')}
+      title={t('title')}
       description={
         <>
-          {`${t('signup.description')} ${t('signup.accountAlreadyExists')} `}
+          {`${t('description')} ${t('accountAlreadyExists')} `}
           <Link as={NextLink} href="/auth/signin" color="primary.500" display="inline-block">
-            {t('signup.signIn')} &rarr;
+            {t('signIn')} &rarr;
           </Link>
         </>
       }
@@ -90,12 +90,12 @@ export function SignupForm(_props: SignupFormProps) {
             (isSubmitSuccessful ? (
               <Alert status="success" rounded="lg">
                 <AlertIcon />
-                <AlertTitle>{t('signup.successMessage')}</AlertTitle>
+                <AlertTitle>{t('successMessage')}</AlertTitle>
               </Alert>
             ) : (
               <Alert status="error" rounded="lg">
                 <AlertIcon />
-                <AlertTitle>{t('signup.errorMessage')}</AlertTitle>
+                <AlertTitle>{t('errorMessage')}</AlertTitle>
               </Alert>
             ))}
 
@@ -126,7 +126,7 @@ export function SignupForm(_props: SignupFormProps) {
 
               {/* Password field */}
               <FormControl>
-                <FormLabel>{t('fields.newPassword')}</FormLabel>
+                <FormLabel>{t('fields.password')}</FormLabel>
                 <InputGroup>
                   <InputLeftElement color="gray.300">
                     <FaLock />
@@ -145,7 +145,7 @@ export function SignupForm(_props: SignupFormProps) {
 
               {/* Submit button */}
               <Button colorScheme="primary" type="submit" isLoading={isSubmitting}>
-                {t('signup.submitButton')}
+                {t('submitButton')}
               </Button>
             </>
           )}

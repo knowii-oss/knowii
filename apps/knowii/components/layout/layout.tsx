@@ -1,9 +1,10 @@
 import Head from 'next/head';
 import React, { PropsWithChildren } from 'react';
-import NavBar from './nav-bar';
+//import NavBar from './nav-bar';
 import Footer from './footer';
 import { propertiesOf } from '@knowii/common';
 import { useRouter } from 'next/router';
+import { NavBar } from './nav-bar';
 
 // eslint-disable-next-line  @typescript-eslint/no-var-requires
 const site = require('../../../../libs/common/src/lib/metadata.json').siteName;

@@ -1,14 +1,14 @@
 import { Alert, Box, Button, Heading, Stack, Text, useColorModeValue, VStack } from '@chakra-ui/react';
-import { useTranslation } from 'next-i18next';
 import { FaStar } from 'react-icons/fa';
+import { useTranslations } from 'next-intl';
 import { useUserName, useSubscriptionActions, useUserSubscriptions } from '@knowii/client';
-import { I18N_TRANSLATIONS_COMMON } from '@knowii/common';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface UserSubscriptionAlertProps {}
 
 export function UserSubscriptionAlert(_props: UserSubscriptionAlertProps) {
-  const { t } = useTranslation(I18N_TRANSLATIONS_COMMON);
+  const t = useTranslations('userSubscriptionAlert');
+
   const highlightColor = useColorModeValue('primary.500', 'primary.400');
   const userName = useUserName();
   const { manageSubscription, loading } = useSubscriptionActions();
@@ -22,11 +22,11 @@ export function UserSubscriptionAlert(_props: UserSubscriptionAlertProps) {
         </Box>
         <VStack align="start" spacing={3}>
           <Heading as="h3" fontSize="xl">
-            {t('subscriptionAlert.title')}
+            {t('title')}
           </Heading>
-          <Text fontSize="lg">{t('subscriptionAlert.text', { userName, planName: currentlySubscribedPlan?.name })}</Text>
+          <Text fontSize="lg">{t('text', { userName, planName: currentlySubscribedPlan?.name })}</Text>
           <Button colorScheme="primary" onClick={() => manageSubscription()} isLoading={loading}>
-            {t('subscriptionAlert.manage')} &rarr;
+            {t('manage')} &rarr;
           </Button>
         </VStack>
       </Stack>

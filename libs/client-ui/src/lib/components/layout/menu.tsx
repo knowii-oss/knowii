@@ -1,16 +1,15 @@
 import { Button, Stack, useColorModeValue } from '@chakra-ui/react';
 import { useUser } from '@supabase/auth-helpers-react';
-import { useTranslation } from 'next-i18next';
 import Link from 'next/link';
 import { useMobileBreakpoint } from './layout';
-import { I18N_TRANSLATIONS_COMMON } from '@knowii/common';
+import { useTranslations } from 'next-intl';
 
 export interface MenuProps {
   mobileMode: boolean;
 }
 
 export function Menu({ mobileMode }: MenuProps) {
-  const { t } = useTranslation(I18N_TRANSLATIONS_COMMON);
+  const t = useTranslations('menu');
   const user = useUser();
   const menuItemColor = useColorModeValue('blue.500', 'white');
   const isMobile = useMobileBreakpoint();
@@ -18,20 +17,20 @@ export function Menu({ mobileMode }: MenuProps) {
 
   const menuItems = [
     {
-      label: t('menu.features'),
+      label: t('features'),
       link: '/#features',
     },
     {
-      label: t('menu.pricing'),
+      label: t('pricing'),
       link: '/#pricing',
     },
     {
-      label: t('menu.blog'),
+      label: t('blog'),
       link: '/blog',
     },
   ]
     // add dashboard link only if user is logged in
-    .concat(user ? [{ label: t('menu.dashboard'), link: '/app' }] : []);
+    .concat(user ? [{ label: t('dashboard'), link: '/app' }] : []);
 
   return (
     <Stack hidden={isHidden} direction={mobileMode ? 'column' : 'row'} spacing={4} align={mobileMode ? 'start' : 'center'}>

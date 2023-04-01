@@ -4,7 +4,7 @@ import { ColorModeScript } from '@chakra-ui/react';
 import { customTheme } from '../chakra-ui.config';
 import { IS_BROWSER, SITE_AUTHOR_MICRODATA } from '@knowii/common';
 import Script from 'next/script';
-import { i18nConfig } from '../../../next-i18next.config.mjs';
+import { i18nConfig } from '../../../i18n.config.mjs';
 
 // eslint-disable-next-line  @typescript-eslint/no-var-requires
 const siteDescription = require('../../../libs/common/src/lib/metadata.json').description;

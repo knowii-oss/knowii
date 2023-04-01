@@ -1,12 +1,11 @@
 import { Box, Container, VStack } from '@chakra-ui/react';
 import { GetStaticProps } from 'next';
-import { useTranslation } from 'next-i18next';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { useTranslations } from 'next-intl';
 import { getAllMdxEntries, MdxEntry } from '@knowii/server';
-import { I18N_TRANSLATIONS_BLOG, I18N_TRANSLATIONS_COMMON, WebsiteDataType } from '@knowii/common';
+import { WebsiteDataType } from '@knowii/common';
 import Layout from '../../components/layout/layout';
-import { BlogPost, PageHeader } from '@knowii/client-ui';
-import { i18nConfig } from '../../../../next-i18next.config.mjs';
+import { BlogPostOverview, PageHeader } from '@knowii/client-ui';
+import { i18nConfig } from '../../../../i18n.config.mjs';
 
 export const getStaticProps: GetStaticProps = async (ctx) => {
   const entries = (
@@ -25,11 +24,11 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
     });
 
   const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
-  const translations = await serverSideTranslations(locale, [I18N_TRANSLATIONS_COMMON, I18N_TRANSLATIONS_BLOG], i18nConfig);
+  const messages = (await import(`../../messages/${locale}.json`)).default;
 
   return {
     props: {
-      ...translations,
+      messages,
       entries,
     },
   };
@@ -40,7 +39,7 @@ interface BlogPageProps {
 }
 
 export function BlogPage({ entries }: BlogPageProps) {
-  const { t } = useTranslation(I18N_TRANSLATIONS_BLOG);
+  const t = useTranslations('blogPage');
 
   return (
     <Layout
@@ -53,7 +52,7 @@ export function BlogPage({ entries }: BlogPageProps) {
         <Container maxW="5xl">
           <VStack spacing={4} align="stretch">
             {entries?.map(({ slug, frontMatter: { title, summary, image, publishedOn } }) => (
-              <BlogPost key={slug} slug={slug} title={title} summary={summary} image={image} publishedOn={publishedOn} />
+              <BlogPostOverview key={slug} slug={slug} title={title} summary={summary} image={image} publishedOn={publishedOn} />
             ))}
           </VStack>
         </Container>

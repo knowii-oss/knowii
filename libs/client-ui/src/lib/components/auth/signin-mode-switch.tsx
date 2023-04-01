@@ -1,7 +1,6 @@
 import { Box, Flex, useColorModeValue } from '@chakra-ui/react';
-import { useTranslation } from 'next-i18next';
 import { useMemo } from 'react';
-import { I18N_TRANSLATIONS_AUTH } from '@knowii/common';
+import { useTranslations } from 'next-intl';
 
 export enum SigninMode {
   Password = 'password',
@@ -14,17 +13,17 @@ export interface SigninModeSwitchProps {
 }
 
 export function SigninModeSwitch({ activeMode, onChange }: SigninModeSwitchProps) {
-  const { t } = useTranslation(I18N_TRANSLATIONS_AUTH);
+  const t = useTranslations('signinModeSwitch');
 
   const modes = useMemo<Array<{ key: SigninMode; title: string }>>(
     () => [
       {
         key: SigninMode.MagicLink,
-        title: t('signin.mode.magicLink'),
+        title: t('magicLink'),
       },
       {
         key: SigninMode.Password,
-        title: t('signin.mode.password'),
+        title: t('password'),
       },
     ],
     [t],

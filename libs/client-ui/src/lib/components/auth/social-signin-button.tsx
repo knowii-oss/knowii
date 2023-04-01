@@ -3,7 +3,6 @@ import { ReactJSXElement } from '@emotion/react/types/jsx-namespace';
 import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import { Provider } from '@supabase/supabase-js';
 import { darken } from 'color2k';
-import { useTranslation } from 'next-i18next';
 import { useCallback, useMemo } from 'react';
 import {
   FaApple,
@@ -21,8 +20,9 @@ import {
   FaTwitter,
 } from 'react-icons/fa';
 import { SiNotion } from 'react-icons/si';
-import { I18N_TRANSLATIONS_AUTH, redirectPath } from '@knowii/common';
+import { redirectPath } from '@knowii/common';
 import { useAuthRedirectUrl } from '@knowii/client';
+import { useTranslations } from 'next-intl';
 
 export interface SocialSignInButtonProps {
   provider: Provider;
@@ -31,7 +31,7 @@ export interface SocialSignInButtonProps {
 
 export function SocialSigninButton({ provider, redirectAfterSignin }: SocialSignInButtonProps) {
   const supabaseClient = useSupabaseClient();
-  const { t } = useTranslation(I18N_TRANSLATIONS_AUTH);
+  const t = useTranslations('socialSigninButton');
   // TODO extract string to auth constants
   const redirectTo = useAuthRedirectUrl(`/auth/callback?redirectAfterSignin=${encodeURIComponent(redirectAfterSignin ?? redirectPath)}`);
 

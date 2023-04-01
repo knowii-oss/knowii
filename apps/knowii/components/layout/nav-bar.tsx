@@ -1,19 +1,19 @@
 import { Box, Button, Container, HStack, IconButton, useColorModeValue, useDisclosure } from '@chakra-ui/react';
 import { useUser } from '@supabase/auth-helpers-react';
-import { useTranslation } from 'next-i18next';
 import Link from 'next/link';
 import React, { useEffect } from 'react';
 import { FaBars } from 'react-icons/fa';
 import { ColorModeSwitch, LanguageSwitch, Logo, Menu, MobileDrawerMenu, useMobileBreakpoint, useScrollTop } from '@knowii/client-ui';
 import { UserMenu } from './user-menu';
-import { I18N_TRANSLATIONS_COMMON } from '@knowii/common';
+import { useTranslations } from 'next-intl';
 
 interface NavBarProps {
   hideMenu?: boolean;
 }
 
 export function NavBar({ hideMenu }: NavBarProps) {
-  const { t } = useTranslation(I18N_TRANSLATIONS_COMMON);
+  const t = useTranslations('navBar');
+
   const user = useUser();
   const mobileDrawerDisclosure = useDisclosure();
   const isMobile = useMobileBreakpoint();
@@ -57,7 +57,7 @@ export function NavBar({ hideMenu }: NavBarProps) {
                 </Button>
               )}
               {!hideMenu && isMobile && (
-                <IconButton aria-label={t('menu.title')} variant="outline" onClick={mobileDrawerDisclosure.onToggle}>
+                <IconButton aria-label={t('title')} variant="outline" onClick={mobileDrawerDisclosure.onToggle}>
                   <FaBars />
                 </IconButton>
               )}

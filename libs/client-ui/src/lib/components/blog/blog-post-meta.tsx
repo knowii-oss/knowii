@@ -1,14 +1,14 @@
 import { Avatar, Box, HStack, Icon, Text, VStack } from '@chakra-ui/react';
-import { useTranslation } from 'next-i18next';
 import { FaCalendarAlt } from 'react-icons/fa';
-import { FrontMatter, I18N_TRANSLATIONS_BLOG, RequiredPick } from '@knowii/common';
+import { FrontMatter, RequiredPick } from '@knowii/common';
 import Link from 'next/link';
-import { parseISO, format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
+import { useTranslations } from 'next-intl';
 
 type BlogPostMetaProps = RequiredPick<FrontMatter, 'author' | 'authorImage' | 'authorLink' | 'publishedOn' | 'readingTime'>;
 
 export function BlogPostMeta({ author, authorImage, authorLink, publishedOn, readingTime }: BlogPostMetaProps) {
-  const { t } = useTranslation(I18N_TRANSLATIONS_BLOG);
+  const t = useTranslations('blogPostMeta');
 
   return (
     <Box>

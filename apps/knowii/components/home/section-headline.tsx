@@ -5,6 +5,7 @@ interface SectionHeadlineProps {
   description?: string;
 }
 
+// FIXME add doc and stories
 export function SectionHeadline({ title, description }: SectionHeadlineProps) {
   return (
     <Container maxW="5xl" textAlign={{ base: 'left', md: 'center' }} mb={16}>

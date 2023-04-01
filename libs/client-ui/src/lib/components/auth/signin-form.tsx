@@ -16,14 +16,14 @@ import {
   Stack,
 } from '@chakra-ui/react';
 import { useSupabaseClient } from '@supabase/auth-helpers-react';
-import { useTranslation } from 'next-i18next';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 import { FormEvent, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { FaAt, FaLock } from 'react-icons/fa';
+import { useTranslations } from 'next-intl';
 import { useAuthRedirectUrl } from '@knowii/client';
-import { Database, I18N_TRANSLATIONS_AUTH, redirectPath } from '@knowii/common';
+import { Database, redirectPath } from '@knowii/common';
 import { Loader } from '../common/loader';
 import { AuthFormWrapper } from './auth-form-wrapper';
 import { SigninModeSwitch, SigninMode } from './signin-mode-switch';
@@ -33,7 +33,8 @@ import { SocialSigninButton } from './social-signin-button';
 export interface SigninFormProps {}
 
 export function SigninForm(_props: SigninFormProps) {
-  const { t } = useTranslation(I18N_TRANSLATIONS_AUTH);
+  const t = useTranslations('signinForm');
+
   const [mode, setMode] = useState<SigninMode>(SigninMode.MagicLink);
   const router = useRouter();
   const { query } = router;
@@ -89,12 +90,12 @@ export function SigninForm(_props: SigninFormProps) {
 
   return (
     <AuthFormWrapper
-      title={t('signin.pageTitle')}
+      title={t('title')}
       description={
         <>
-          {`${t('signin.description')} ${t('signin.noAccount')} `}
+          {`${t('description')} ${t('noAccount')} `}
           <Link as={NextLink} href="/auth/signup" display="inline-block" color="primary.500">
-            {t('signin.signupButton')} &rarr;
+            {t('signupButton')} &rarr;
           </Link>
         </>
       }
@@ -112,13 +113,13 @@ export function SigninForm(_props: SigninFormProps) {
               ) : (
                 <Alert status="success" rounded="lg">
                   <AlertIcon />
-                  <AlertTitle>{t('signin.linkSent')}</AlertTitle>
+                  <AlertTitle>{t('linkSent')}</AlertTitle>
                 </Alert>
               )
             ) : (
               <Alert status="error" rounded="lg">
                 <AlertIcon />
-                <AlertTitle>{t('signin.errorMessage')}</AlertTitle>
+                <AlertTitle>{t('errorMessage')}</AlertTitle>
               </Alert>
             ))}
 
@@ -154,7 +155,7 @@ export function SigninForm(_props: SigninFormProps) {
                   </InputGroup>
                   <FormHelperText>
                     <Link as={NextLink} href="/auth/forgot-password" color="primary.500">
-                      {t('signin.forgotPassword')}
+                      {t('forgotPassword')}
                     </Link>
                   </FormHelperText>
                 </FormControl>
@@ -162,7 +163,7 @@ export function SigninForm(_props: SigninFormProps) {
 
               {/* Submit button */}
               <Button w="full" colorScheme="primary" type="submit" isLoading={isSubmitting}>
-                {mode === 'password' ? t('signin.submitButton') : t('signin.sendLinkButton')}
+                {mode === 'password' ? t('submitButton') : t('sendLinkButton')}
               </Button>
             </>
           )}
@@ -171,7 +172,7 @@ export function SigninForm(_props: SigninFormProps) {
 
       <Divider my={8} />
       <Heading as="h4" fontSize="lg" mb={3}>
-        {t('signin.continueWith')}
+        {t('continueWith')}
       </Heading>
 
       <SimpleGrid columns={2} gap={2}>

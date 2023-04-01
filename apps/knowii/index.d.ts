@@ -4,3 +4,8 @@ declare module '*.svg' {
   export const ReactComponent: any;
   export default content;
 }
+
+// Internationalization (i18n) strong typing
+// Declaring this interface provides type safety for message keys
+type Messages = typeof import('./messages/en.json');
+declare interface IntlMessages extends Messages {}

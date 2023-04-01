@@ -7,10 +7,8 @@ module.exports = {
   // - https://storybook.js.org/docs/react/builders/webpack#extending-storybooks-webpack-config
   // - https://nx.dev/packages/storybook/documents/custom-builder-configs
   webpackFinal: async (config, { configType }) => {
-    // Workaround for https://github.com/i18next/next-i18next/issues/935
     config.resolve.alias = {
       ...config.resolve.alias,
-      'next-i18next': 'react-i18next',
     };
     return config;
   },

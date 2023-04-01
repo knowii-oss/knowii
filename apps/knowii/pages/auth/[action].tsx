@@ -1,13 +1,12 @@
 import { Box, Container, Flex, HStack, Text, useColorModeValue, VStack } from '@chakra-ui/react';
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
 import { GetServerSideProps } from 'next';
-import { useTranslation } from 'next-i18next';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import Head from 'next/head';
 import { useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { ColorModeSwitch, ForgotPasswordForm, LanguageSwitch, Logo, ResetPasswordForm, SigninForm, SignupForm } from '@knowii/client-ui';
-import { Database, I18N_TRANSLATIONS_AUTH, I18N_TRANSLATIONS_COMMON, redirectPath } from '@knowii/common';
-import { i18nConfig } from '../../../../next-i18next.config.mjs';
+import { Database, redirectPath } from '@knowii/common';
+import { i18nConfig } from '../../../../i18n.config.mjs';
 
 const authActions = ['signup', 'signin', 'forgot-password', 'reset-password'];
 
@@ -48,26 +47,25 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   }
 
   const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
-  const translations = await serverSideTranslations(locale, [I18N_TRANSLATIONS_COMMON, I18N_TRANSLATIONS_AUTH], i18nConfig);
+  const messages = (await import(`../../messages/${locale}.json`)).default;
 
   return {
     props: {
-      // eslint-disable-next-line
-      ...translations,
+      messages,
       action,
     },
   };
 };
 
 export default function AuthPage({ action }: { action: string }) {
-  const { t } = useTranslation([I18N_TRANSLATIONS_COMMON, I18N_TRANSLATIONS_AUTH]);
+  const t = useTranslations();
 
   const actionTitles: Record<string, string> = useMemo(
     () => ({
-      signup: t('signup.pageTitle'),
-      signin: t('signin.pageTitle'),
-      forgotPassword: t('forgotPassword.pageTitle'),
-      resetPassword: t('resetPassword.pageTitle'),
+      signup: t('authPage.signUp.pageTitle'),
+      signin: t('authPage.signIn.pageTitle'),
+      forgotPassword: t('authPage.forgotPassword.pageTitle'),
+      resetPassword: t('authPage.resetPassword.pageTitle'),
     }),
     [t],
   );

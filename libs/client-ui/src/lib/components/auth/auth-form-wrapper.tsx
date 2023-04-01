@@ -7,8 +7,6 @@ interface AuthFormWrapperProps {
 }
 
 export function AuthFormWrapper({ title, description, children }: PropsWithChildren<AuthFormWrapperProps>) {
-  //const { t } = useTranslation(I18N_TRANSLATIONS_AUTH);
-
   return (
     <VStack spacing={6} align="stretch">
       <Stack spacing={2}>
