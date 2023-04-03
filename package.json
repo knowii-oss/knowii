@@ -62,7 +62,7 @@
     "update": "pnpm run migrate"
   },
   "dependencies": {
-    "@chakra-ui/react": "2.5.4",
+    "@chakra-ui/react": "2.5.5",
     "@emotion/react": "11.10.5",
     "@emotion/styled": "11.10.5",
     "@mdx-js/react": "2.3.0",
