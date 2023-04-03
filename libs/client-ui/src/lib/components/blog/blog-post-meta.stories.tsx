@@ -1,5 +1,5 @@
 import type { ComponentMeta, ComponentStory } from '@storybook/react';
-import { BlogPostMeta } from '@knowii/client-ui';
+import { BlogPostMeta } from './blog-post-meta';
 
 const Story: ComponentMeta<typeof BlogPostMeta> = {
   component: BlogPostMeta,

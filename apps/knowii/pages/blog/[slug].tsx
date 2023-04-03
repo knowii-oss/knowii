@@ -44,7 +44,7 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
     };
   }
 
-  const messages = (await import(`../../messages/${locale}.json`)).default;
+  const messages = (await import(`../../../../libs/common/src/lib/messages/${locale}.json`)).default;
 
   return {
     props: {
