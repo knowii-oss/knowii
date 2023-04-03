@@ -16,6 +16,12 @@ Documentation: https://www.notion.so/Knowii-05e0911d5fcb413388fc07b59eae7354
   - For DATABASE_URL and DIRECT_URL: http://localhost:12345
   - For SHADOW_DATABASE_URL: https://app.supabase.com/project/cipnhztmttjipgawzbqt
 
+Useful IDE extensions:
+
+- MJML: tooling to preview the mjml templates and generate the HTML files from those
+- Prettier: Formatting
+- ESLint: Linting
+
 ## App
 
 - Start the database: `pnpm run db:start`
@@ -72,3 +78,9 @@ To add a locale:
 - Create the file under apps/knowii/messages
 
 To enable a new NX library to benefit from i18n strong typing, copy the index.d.ts at the root of client-ui over to the new library.
+
+## Color theme
+
+- Edit apps/knowii/theme.js
+
+Use tools such as https://www.tailwindshades.com/ to generate the different shades
