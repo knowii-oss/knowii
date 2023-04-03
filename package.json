@@ -117,7 +117,7 @@
     "@nrwl/react": "15.9.1",
     "@nrwl/storybook": "15.9.1",
     "@nrwl/webpack": "15.9.1",
-    "@nrwl/workspace": "15.9.1",
+    "@nrwl/workspace": "15.9.2",
     "@storybook/addon-essentials": "^6.5.15",
     "@storybook/builder-webpack5": "^6.5.15",
     "@storybook/core-server": "^6.5.15",
