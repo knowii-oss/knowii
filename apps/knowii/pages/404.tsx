@@ -7,7 +7,7 @@ import { i18nConfig } from '../../../i18n.config.mjs';
 
 export const getStaticProps: GetStaticProps = async (ctx) => {
   const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
-  const messages = (await import(`../messages/${locale}.json`)).default;
+  const messages = (await import(`../../../libs/common/src/lib/messages/${locale}.json`)).default;
 
   return {
     props: { messages },

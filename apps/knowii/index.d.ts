@@ -7,5 +7,5 @@ declare module '*.svg' {
 
 // Internationalization (i18n) strong typing
 // Declaring this interface provides type safety for message keys
-type Messages = typeof import('./messages/en.json');
+type Messages = typeof import('../../libs/common/src/lib/messages/en.json');
 declare interface IntlMessages extends Messages {}
