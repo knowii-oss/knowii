@@ -153,8 +153,8 @@ importers:
         specifier: 15.9.1
         version: 15.9.1(@swc/core@1.2.173)(eslint@8.34.0)(nx@15.9.1)(typescript@4.9.5)
       '@nrwl/nx-cloud':
-        specifier: 15.3.4
-        version: 15.3.4
+        specifier: 15.3.5
+        version: 15.3.5
       '@nrwl/react':
         specifier: 15.9.1
         version: 15.9.1(@swc/core@1.2.173)(eslint@8.34.0)(nx@15.9.1)(typescript@4.9.5)(webpack@5.77.0)
@@ -5398,8 +5398,8 @@ packages:
       - webpack
     dev: false
 
-  /@nrwl/nx-cloud@15.3.4:
-    resolution: {integrity: sha512-dBMyUK8coOxr9CeCnmhNh+e1kjvDhPuBvyoK6iIKPCI+H1brDIUAuRiKWrrOQpxruJYClFtEYXgV6wWpApeeaw==}
+  /@nrwl/nx-cloud@15.3.5:
+    resolution: {integrity: sha512-JMKLY0HhdzQ/6jEvfL/EecPPdsdBIM0SyFrWAjikSJAh5MqhpFJWnr6FfTc5P57PJZ+IUNLkJ21VMuoTrA4+4w==}
     hasBin: true
     dependencies:
       axios: 0.21.4
