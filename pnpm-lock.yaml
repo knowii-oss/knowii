@@ -216,8 +216,8 @@ importers:
         specifier: 5.52.0
         version: 5.52.0(eslint@8.34.0)(typescript@4.9.5)
       autoprefixer:
-        specifier: 10.4.13
-        version: 10.4.13(postcss@8.4.21)
+        specifier: 10.4.14
+        version: 10.4.14(postcss@8.4.21)
       babel-jest:
         specifier: 29.4.3
         version: 29.4.3(@babel/core@7.12.17)
@@ -5549,7 +5549,7 @@ packages:
       '@nrwl/devkit': 15.9.1(nx@15.9.1)
       '@nrwl/js': 15.9.1(@swc/core@1.2.173)(nx@15.9.1)(typescript@4.9.5)
       '@nrwl/workspace': 15.9.1(@swc/core@1.2.173)
-      autoprefixer: 10.4.13(postcss@8.4.21)
+      autoprefixer: 10.4.14(postcss@8.4.21)
       babel-loader: 9.1.2(@babel/core@7.12.17)(webpack@5.77.0)
       chalk: 4.1.2
       chokidar: 3.5.3
@@ -9123,8 +9123,8 @@ packages:
     engines: {node: '>= 4.5.0'}
     hasBin: true
 
-  /autoprefixer@10.4.13(postcss@8.4.21):
-    resolution: {integrity: sha512-49vKpMqcZYsJjwotvt4+h/BCjJVnhGwcLpDt5xkcaOG3eLrG/HUYLagrihYsQ+qrIBgIzX1Rw7a6L8I/ZA1Atg==}
+  /autoprefixer@10.4.14(postcss@8.4.21):
+    resolution: {integrity: sha512-FQzyfOsTlwVzjHxKEqRIAdJx9niO6VCBCoEwax/VLSoQF29ggECcPuBqUMZ+u8jCZOPSy8b8/8KnuFbp0SaFZQ==}
     engines: {node: ^10 || ^12 || >=14}
     hasBin: true
     peerDependencies:
@@ -18111,7 +18111,7 @@ packages:
       '@csstools/postcss-text-decoration-shorthand': 2.2.2(postcss@8.4.21)
       '@csstools/postcss-trigonometric-functions': 2.1.0(postcss@8.4.21)
       '@csstools/postcss-unset-value': 2.0.1(postcss@8.4.21)
-      autoprefixer: 10.4.13(postcss@8.4.21)
+      autoprefixer: 10.4.14(postcss@8.4.21)
       browserslist: 4.21.5
       css-blank-pseudo: 5.0.2(postcss@8.4.21)
       css-has-pseudo: 5.0.2(postcss@8.4.21)
