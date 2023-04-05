@@ -63,8 +63,8 @@
   },
   "dependencies": {
     "@chakra-ui/react": "2.5.5",
-    "@emotion/react": "11.10.5",
-    "@emotion/styled": "11.10.5",
+    "@emotion/react": "11.10.6",
+    "@emotion/styled": "11.10.6",
     "@mdx-js/react": "2.3.0",
     "@next/font": "13.1.6",
     "@nrwl/next": "15.9.1",
