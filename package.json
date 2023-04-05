@@ -99,7 +99,7 @@
     "rehype-img-size": "1.0.1",
     "rehype-slug": "5.1.0",
     "rxjs": "7.8.0",
-    "stripe": "11.11.0",
+    "stripe": "11.17.0",
     "tslib": "^2.3.0",
     "zod": "3.20.6"
   },
