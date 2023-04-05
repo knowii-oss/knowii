@@ -29,8 +29,8 @@ importers:
         specifier: 4.12.0
         version: 4.12.0(prisma@4.12.0)
       '@stripe/stripe-js':
-        specifier: 1.46.0
-        version: 1.46.0
+        specifier: 1.52.0
+        version: 1.52.0
       '@supabase/auth-helpers-nextjs':
         specifier: 0.5.4
         version: 0.5.4(@supabase/supabase-js@2.13.1)
@@ -7319,8 +7319,8 @@ packages:
       resolve-from: 5.0.0
     dev: true
 
-  /@stripe/stripe-js@1.46.0:
-    resolution: {integrity: sha512-dkm0zCEoRLu5rTnsIgwDf/QG2DKcalOT2dk1IVgMySOHWTChLyOvQwMYhEduGgLvyYWTwNhAUV4WOLPQvjwLwA==}
+  /@stripe/stripe-js@1.52.0:
+    resolution: {integrity: sha512-Ja2VlaTf3kM5tN4Y0sC8T3ibZAnfGUU/QzMAlk/G+Adz2fF1ycTabtSkdSuVP4/adXox8NkPPV4Xndx/EP4fMg==}
     dev: false
 
   /@supabase/auth-helpers-nextjs@0.5.4(@supabase/supabase-js@2.13.1):
