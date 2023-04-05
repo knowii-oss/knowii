@@ -324,8 +324,8 @@ importers:
         specifier: 1.0.15
         version: 1.0.15(@storybook/addons@6.5.16)(@storybook/api@6.5.16)(@storybook/components@6.5.16)(@storybook/core-events@6.5.16)(@storybook/theming@6.5.16)(react-dom@18.2.0)(react@18.2.0)
       supabase:
-        specifier: 1.38.3
-        version: 1.38.3
+        specifier: 1.38.7
+        version: 1.38.7
       tailwindcss:
         specifier: 3.3.1
         version: 3.3.1(postcss@8.4.21)(ts-node@10.9.1)
@@ -20243,8 +20243,8 @@ packages:
       pirates: 4.0.5
       ts-interface-checker: 0.1.13
 
-  /supabase@1.38.3:
-    resolution: {integrity: sha512-mwZzt+Ko0J7+IzP0dbmnGwzmXqKZg67L+WQOWBGzXWBSSUXxzWTSGdFn9WBu/HeXsoTlwcDaEPoft+S6oPYVyA==}
+  /supabase@1.38.7:
+    resolution: {integrity: sha512-89FAgPEksSvjyzb84xe2VtPCufNBhfk1eT6XOPuj7HZTUJhWWymtp/kyEBNrK8BdyqpkHsHnqTd5IaywrNXRaw==}
     hasBin: true
     requiresBuild: true
     dependencies:
