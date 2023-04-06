@@ -168,7 +168,8 @@ model Resources {
   id                       String                     @id @db.Uuid @default(uuid())
   name                     String
   description              String                     @default("")
-  link                     String                     @default("")
+  content                  String                     @default("")
+  source                   String                     @default("")
   slug                     String
   up_votes                    Int                     @default(0)
   down_votes                  Int                     @default(0)
