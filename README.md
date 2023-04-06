@@ -15,6 +15,8 @@ Documentation: https://www.notion.so/Knowii-05e0911d5fcb413388fc07b59eae7354
 - Create apps/knowii/.env.local based on .env.example
   - For DATABASE_URL and DIRECT_URL: http://localhost:12345
   - For SHADOW_DATABASE_URL: https://app.supabase.com/project/cipnhztmttjipgawzbqt
+- Install the Stripe CLI: https://stripe.com/docs/stripe-cli
+- If needed, run `stripe listen --forward-to localhost:3000/api/stripe-webhook` to redirect Stripe events to your local instance (useful to fill in the local database with Stripe plans)
 
 Useful IDE extensions:
 
