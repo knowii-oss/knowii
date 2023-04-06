@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# References: https://vercel.com/docs/concepts/projects/environment-variables/system-environment-variables
 echo "VERCEL_ENV: $VERCEL_ENV"
 echo "VERCEL_GIT_COMMIT_REF: $VERCEL_GIT_COMMIT_REF"
 
