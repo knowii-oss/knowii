@@ -3,13 +3,14 @@ import { useRouter } from 'next/router';
 import { useMemo } from 'react';
 import { useSubscriptionActions, useUserSubscriptions } from '@knowii/client';
 import { Loader } from '../common/loader';
-import { AccountSection } from './account-section';
+import { Section } from '../layout/section';
 import { formatPrice } from '@knowii/common';
 import { useTranslations } from 'next-intl';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface SubscriptionProps {}
 
+// FIXME rework, move to communities and integrate on that screen
 export function Subscription(_props: SubscriptionProps) {
   const router = useRouter();
   const { locale } = useRouter();
@@ -41,7 +42,7 @@ export function Subscription(_props: SubscriptionProps) {
   }
 
   return (
-    <AccountSection title={t('subscription.title')}>
+    <Section title={t('subscription.title')}>
       {loadingSubscriptions ? (
         <Loader />
       ) : currentlySubscribedPlan ? (
@@ -68,7 +69,7 @@ export function Subscription(_props: SubscriptionProps) {
           </Button>
         </VStack>
       )}
-    </AccountSection>
+    </Section>
   );
 }
 export default Subscription;

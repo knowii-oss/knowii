@@ -1,7 +1,7 @@
 generator client {
   provider        = "prisma-client-js"
   /// Reference: https://www.prisma.io/docs/guides/database/multi-schema
-  previewFeatures = ["multiSchema"]
+  previewFeatures = ["multiSchema", "postgresqlExtensions"]
 }
 
 /// Reference: https://www.prisma.io/docs/guides/database/multi-schema
@@ -10,26 +10,7 @@ datasource db {
   url               = env("DATABASE_URL")
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
   schemas           = ["public"]
-}
-
-model Clients {
-  id                   String               @id @db.Uuid @default(uuid())
-  name                 String               @default("")
-  given_name           String               @default("")
-  family_name          String               @default("")
-  email                String               @default("")
-  user_role            KnowiiUserRole       @default(USER)
-  image_url            String               @default("")
-  phone                String               @default("")
-  user_id              String               @db.Uuid
-  created_at           DateTime             @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
-  updated_at           DateTime             @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt
-  admin_of             Communities[]        @relation("community_admins")
-  member_of            Communities[]        @relation("community_members")
-  owner_of             Communities[]        @relation("community_owners")
-
-  @@schema("public")
-  @@map("clients")
+  extensions        = [uuid_ossp(map: "uuid-ossp", schema: "extensions")]
 }
 
 model Customers {
@@ -41,7 +22,7 @@ model Customers {
 }
 
 model Prices {
-  id                   String               @id @db.Uuid @default(uuid())
+  id                   String               @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
   product_id           String?              @db.Uuid
   active               Boolean?
   description          String?
@@ -60,7 +41,7 @@ model Prices {
 }
 
 model Products {
-  id                   String               @id @db.Uuid @default(uuid())
+  id                   String               @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
   active               Boolean?
   name                 String?
   description          String?
@@ -74,8 +55,11 @@ model Products {
 }
 
 model Subscriptions {
-  id                   String               @id @db.Uuid @default(uuid())
-  user_id              String               @db.Uuid
+  id                   String               @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+  /// Internal user id
+  user_id              String               @db.Uuid @unique
+  /// Supabase user id
+  user_id_external     String?              @db.Uuid @unique
   status               SubscriptionStatus?
   metadata             Json?
   product_id           String?              @db.Uuid
@@ -129,28 +113,85 @@ enum SubscriptionStatus {
   @@map("subscription_status")
 }
 
+model Users {
+  /// Internal user id (referenced in other tables)
+  id                   String               @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+  /// Same id as the id in auth.users (ie Supabase user id)
+  /// Can be null because users can delete their account but we keep the entry anyway
+  user_id_external     String?              @db.Uuid @unique
+  /// Name defaults to user email
+  username             String               @unique
+  email                String               @unique
+  user_role            KnowiiUserRole       @default(USER)
+  created_at           DateTime             @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
+  updated_at           DateTime             @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt
+  admin_of             Communities[]        @relation("community_admins")
+  member_of            Communities[]        @relation("community_members")
+  owner_of             Communities[]        @relation("community_owners")
+  user_profile         UserProfiles?        @relation("user_profile_user")
+  user_profile_external UserProfiles?       @relation("user_profile_external_user")
+
+  @@index([username], map: "idx_user_username")
+  @@index([email], map: "idx_user_email")
+  @@schema("public")
+  @@map("users")
+}
+
+model UserProfiles {
+    id                   String               @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+    /// Internal user id
+    user_id              String               @db.Uuid @unique
+    /// Supabase user id
+    user_id_external     String?              @db.Uuid @unique
+    given_name           String               @default("")
+    family_name          String               @default("")
+    image_url            String               @default("")
+    phone                String               @default("")
+    website              String               @default("")
+    twitter              String               @default("")
+    facebook             String               @default("")
+    instagram            String               @default("")
+    tiktok               String               @default("")
+    github               String               @default("")
+    bio                  String               @default("")
+    location             String               @default("")
+    organization_name    String               @default("")
+    organization_link    String               @default("")
+    /// WARNING: When adding/updating/removing fields here, make sure to update the triggers in supabase-db-seed.sql
+    created_at           DateTime             @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
+    updated_at           DateTime             @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt
+    user                 Users?               @relation("user_profile_user", fields: [user_id], references: [id])
+    user_external        Users?               @relation("user_profile_external_user", fields: [user_id_external], references: [user_id_external])
+
+    @@index([given_name], map: "idx_user_profile_given_name")
+    @@index([family_name], map: "idx_user_profile_family_name")
+    @@schema("public")
+    @@map("user_profiles")
+}
+
 model Communities {
-  id                   String                     @id @db.Uuid @default(uuid())
+  id                   String                     @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
   name                 String                     @unique
+  slug                 String                     @unique
   description          String                     @default("")
   visibility           KnowiiCommunityVisibility  @default(PUBLIC)
   created_at           DateTime                   @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
   updated_at           DateTime                   @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt
-  admins               Clients[]                  @relation("community_admins")
-  members              Clients[]                  @relation("community_members")
-  owners               Clients[]                  @relation("community_owners")
+  admins               Users[]                    @relation("community_admins")
+  members              Users[]                    @relation("community_members")
+  owners               Users[]                    @relation("community_owners")
   resource_collections ResourceCollections[]      @relation("community_resource_collections")
   resources            Resources[]                @relation("community_resources")
   tags                 Tags[]                     @relation("community_tags")
 
   @@index([name], map: "idx_community_name")
-  @@map("communities")
   @@schema("public")
+  @@map("communities")
 }
 
 model ResourceCollections {
-  id                   String                     @id @db.Uuid @default(uuid())
-  name                 String
+  id                   String                     @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+  name                 String                     @default("")
   slug                 String                     @unique
   description          String                     @default("")
   community_id         String                     @db.Uuid
@@ -160,18 +201,17 @@ model ResourceCollections {
   resources            Resources[]                @relation("resource_collection_resources")
 
   @@index([name], map: "idx_resource_collection_name")
-  @@map("resource_collections")
   @@schema("public")
+  @@map("resource_collections")
 }
 
-/// The slug should be unique WITHIN a specific community
 model Resources {
-  id                       String                     @id @db.Uuid @default(uuid())
-  name                     String
+  id                       String                     @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+  name                     String                     @default("")
   description              String                     @default("")
   content                  String                     @default("")
   source                   String                     @default("")
-  slug                     String
+  slug                     String                     @unique
   up_votes                    Int                     @default(0)
   down_votes                  Int                     @default(0)
   community_id             String                     @db.Uuid
@@ -183,12 +223,12 @@ model Resources {
   tags                     Tags[]                     @relation("resource_tags")
 
   @@index([slug], map: "idx_resource_slug")
-  @@map("resources")
   @@schema("public")
+  @@map("resources")
 }
 
 model Tags {
-  id                       String                     @id @db.Uuid @default(uuid())
+  id                       String                     @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
   name                     String                     @unique
   community_id             String                     @db.Uuid
   community                Communities?               @relation("community_tags", fields: [community_id], references: [id])
@@ -197,8 +237,8 @@ model Tags {
   resources                Resources[]                @relation("resource_tags")
 
   @@index([name], map: "idx_tag_name")
-  @@map("tags")
   @@schema("public")
+  @@map("tags")
 }
 
 enum KnowiiUserRole {

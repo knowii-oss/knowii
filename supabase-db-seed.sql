@@ -35,49 +35,84 @@ $$ language plpgsql;
 -- --------------------------------------------------------
 -- Enable row level security
 -- --------------------------------------------------------
-alter table clients enable row level security;
-alter table customers enable row level security;
-alter table communities enable row level security;
-alter table prices enable row level security;
-alter table products enable row level security;
-alter table subscriptions enable row level security;
+alter table public.users enable row level security;
+alter table public.user_profiles enable row level security;
+alter table public.customers enable row level security;
+alter table public.prices enable row level security;
+alter table public.products enable row level security;
+alter table public.subscriptions enable row level security;
+
+alter table public.communities enable row level security;
+alter table public.resource_collections enable row level security;
+alter table public.resources enable row level security;
+alter table public.tags enable row level security;
+
+alter table public._community_admins enable row level security;
+alter table public._community_members enable row level security;
+alter table public._community_owners enable row level security;
+alter table public._resource_tags enable row level security;
+alter table public._prisma_migrations enable row level security;
 
 -- --------------------------------------------------------
--- Make sure the user_id field is linked with the user
--- WARNING: Disabled because breaks with Prisma
--- WORKAROUND: Added triggers to automatically fill the 'clients' table
--- --------------------------------------------------------
---alter table clients add constraint clients_user_id_fk foreign key (user_id) references auth.users(id);
---alter table customers add constraint customers_user_id_fk foreign key (user_id) references auth.users(id);
---alter table subscriptions add constraint subscriptions_user_id_fk foreign key (user_id) references auth.users(id);
-
--- --------------------------------------------------------
--- Create functions to automatically fill-in the Clients table on the public schema when users are added/changed/deleted in the auth.users table
+-- Create functions to automatically fill-in the users and user_profiles tables on the public schema when users are added/changed/deleted in the auth.users table
 -- --------------------------------------------------------
 
--- inserts a row into public."Users"
+-- inserts a row into public."users" when a new row is added to auth."users"
 create or replace function public.handle_new_user()
   returns trigger as $$
 begin
-  insert into public.clients (id, email)
-  values (new.id, new.email);
+  -- FIXME when a new user is created on auth."users", maybe there is already a row in public."users" with the same email
+  -- In that case we need to update the existing row and not try to create a new one
+  -- See https://github.com/DeveloPassion/knowii/issues/299
+  -- Create the user in public.users
+  insert into public.users (user_id_external, username, email)
+    values (new.id, new.email, new.email);
+
   return new;
 end;
 $$ language plpgsql security definer;
 
--- trigger the function every time a user is created
+-- trigger the function every time a user (supabase) is created
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
 
+-- inserts a row into public."user_profiles"
+create or replace function public.create_new_user_profile()
+  returns trigger as $$
+  declare
+    given_name text;
+    family_name text;
+  begin
+  -- Fetch user metadata
+  select raw_user_meta_data -> 'given_name' as given_name, raw_user_meta_data -> 'family_name' as family_name
+  into given_name, family_name
+  from auth.users
+  where id = new.user_id_external::uuid;
+
+  -- Create the user profile in public.user_profiles
+  insert into public.user_profiles (user_id, user_id_external, given_name, family_name)
+  values (new.id, new.user_id_external, given_name, family_name);
+
+  return new;
+end;
+$$ language plpgsql security definer;
+
+-- trigger the function every time a user is created
+drop trigger if exists on_public_user_created on public.users;
+create trigger on_public_user_created
+  after insert on public.users
+  for each row execute procedure public.create_new_user_profile();
+
 -- update a row in public."Users" when the email is updated
 create or replace function public.handle_updated_user()
   returns trigger as $$
 begin
-  update public.clients
+  update public.users
   set email = new.email
-  where id = new.id::text;
+  where user_id_external = new.id::uuid;
+
   return new;
 end;
 $$ language plpgsql security definer;
@@ -92,7 +127,32 @@ create trigger on_auth_user_updated
 create or replace function public.handle_deleted_user()
   returns trigger as $$
 begin
-  delete from public.clients where id = old.id::text;
+  -- We don't delete users, but clean their account and profile
+  --delete from public.users where id = old.id::text;
+  update public.users
+  -- we remove the external user id (supabase) but keep the email to enable future account recovery if needed
+  set user_id_external = null
+  where user_id_external = new.id::uuid;
+
+  update public.user_profiles
+  -- we clear all fields we can clear
+  set user_id_external = null, -- first of all the external user id
+      image_url = '',
+      phone = '',
+      given_name = '',
+      family_name = '',
+      website = '',
+      twitter = '',
+      facebook = '',
+      instagram = '',
+      tiktok = '',
+      github = '',
+      bio = '',
+      location = '',
+      organization_name = '',
+      organization_link = ''
+  where user_id_external = new.id::uuid;
+
   return old;
 end;
 $$ language plpgsql security definer;
@@ -111,10 +171,16 @@ create policy "Allow public read-only access" on products for select using (true
 drop policy if exists "Allow public read-only access" on prices;
 create policy "Allow public read-only access" on prices for select using (true);
 drop policy if exists "User can read own subscription" on subscriptions;
-create policy "User can read own subscription" on subscriptions for select using (auth.uid() = user_id);
+create policy "User can read own subscription" on subscriptions for select using (auth.uid() = user_id_external);
 
-drop policy if exists "Users can only access their own clients" on clients;
-create policy "Users can only access their own clients" on clients for all using (auth.uid() = user_id);
+drop policy if exists "Users can only access their own account" on users;
+create policy "Users can only access their own account" on users for all using (auth.uid() = user_id_external);
+
+drop policy if exists "User profiles are public" on user_profiles;
+create policy "User profiles are public" on user_profiles for select using (true);
+
+drop policy if exists "Users can edit their own user profile" on user_profiles;
+create policy "Users can edit their own user profile" on user_profiles for update using (auth.uid() = user_id_external);
 
 -- --------------------------------------------------------
 -- Make sure that the default security rules of Supabase are in place

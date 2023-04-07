@@ -20,7 +20,7 @@ import {
   FaTwitter,
 } from 'react-icons/fa';
 import { SiNotion } from 'react-icons/si';
-import { redirectPath } from '@knowii/common';
+import { CALLBACK_URL, redirectPath } from '@knowii/common';
 import { useAuthRedirectUrl } from '@knowii/client';
 import { useTranslations } from 'next-intl';
 
@@ -33,7 +33,7 @@ export function SocialSigninButton({ provider, redirectAfterSignin }: SocialSign
   const supabaseClient = useSupabaseClient();
   const t = useTranslations('socialSigninButton');
   // TODO extract string to auth constants
-  const redirectTo = useAuthRedirectUrl(`/auth/callback?redirectAfterSignin=${encodeURIComponent(redirectAfterSignin ?? redirectPath)}`);
+  const redirectTo = useAuthRedirectUrl(`${CALLBACK_URL}?redirectAfterSignin=${encodeURIComponent(redirectAfterSignin ?? redirectPath)}`);
 
   const providers = useMemo<
     Partial<

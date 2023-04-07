@@ -9,7 +9,6 @@ import { redirectPath } from '@knowii/common';
   This is the page that is shown when the user is redirected from the authentication provider.
   Its necessary because the cookie setting request is sent frontend side and we have to wait before we redirect to the authenticated page.
 */
-
 export default function AuthCallbackPage() {
   const router = useRouter();
   const user = useUser();

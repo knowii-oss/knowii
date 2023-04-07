@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 import { useCallback, useMemo, useState } from 'react';
-import { Database, SubscriptionPlan, SubscriptionPlanId } from '@knowii/common';
+import { Database, SIGN_IN_URL, SubscriptionPlan, SubscriptionPlanId } from '@knowii/common';
 import { getStripe } from './stripe-client';
 import { useTranslations } from 'next-intl';
 
@@ -142,7 +142,7 @@ export function useSubscriptionActions() {
       setLoading(true);
 
       if (!user) {
-        router.push(`/auth/signin?redirectAfterSignin=${encodeURIComponent('/#pricing')}`);
+        router.push(`${SIGN_IN_URL}?redirectAfterSignin=${encodeURIComponent('/#pricing')}`);
         return;
       }
 

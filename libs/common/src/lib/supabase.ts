@@ -102,45 +102,18 @@ export interface Database {
           started_at?: string;
         };
       };
-      clients: {
+      _resource_tags: {
         Row: {
-          created_at: string;
-          email: string;
-          family_name: string;
-          given_name: string;
-          id: string;
-          image_url: string;
-          name: string;
-          phone: string;
-          updated_at: string;
-          user_id: string;
-          user_role: Database['public']['Enums']['user_role'];
+          A: string;
+          B: string;
         };
         Insert: {
-          created_at?: string;
-          email?: string;
-          family_name?: string;
-          given_name?: string;
-          id: string;
-          image_url?: string;
-          name?: string;
-          phone?: string;
-          updated_at?: string;
-          user_id: string;
-          user_role?: Database['public']['Enums']['user_role'];
+          A: string;
+          B: string;
         };
         Update: {
-          created_at?: string;
-          email?: string;
-          family_name?: string;
-          given_name?: string;
-          id?: string;
-          image_url?: string;
-          name?: string;
-          phone?: string;
-          updated_at?: string;
-          user_id?: string;
-          user_role?: Database['public']['Enums']['user_role'];
+          A?: string;
+          B?: string;
         };
       };
       communities: {
@@ -150,13 +123,15 @@ export interface Database {
           id: string;
           name: string;
           updated_at: string;
+          visibility: Database['public']['Enums']['community_visibility'];
         };
         Insert: {
           created_at?: string;
           description?: string;
-          id: string;
+          id?: string;
           name: string;
           updated_at?: string;
+          visibility?: Database['public']['Enums']['community_visibility'];
         };
         Update: {
           created_at?: string;
@@ -164,6 +139,7 @@ export interface Database {
           id?: string;
           name?: string;
           updated_at?: string;
+          visibility?: Database['public']['Enums']['community_visibility'];
         };
       };
       customers: {
@@ -198,7 +174,7 @@ export interface Database {
           active?: boolean | null;
           currency?: string | null;
           description?: string | null;
-          id: string;
+          id?: string;
           interval?: Database['public']['Enums']['pricing_plan_interval'] | null;
           interval_count?: number | null;
           metadata?: Json | null;
@@ -233,7 +209,7 @@ export interface Database {
         Insert: {
           active?: boolean | null;
           description?: string | null;
-          id: string;
+          id?: string;
           image?: string | null;
           metadata?: Json | null;
           name?: string | null;
@@ -245,6 +221,79 @@ export interface Database {
           image?: string | null;
           metadata?: Json | null;
           name?: string | null;
+        };
+      };
+      resource_collections: {
+        Row: {
+          community_id: string;
+          created_at: string;
+          description: string;
+          id: string;
+          name: string;
+          slug: string;
+          updated_at: string;
+        };
+        Insert: {
+          community_id: string;
+          created_at?: string;
+          description?: string;
+          id?: string;
+          name?: string;
+          slug: string;
+          updated_at?: string;
+        };
+        Update: {
+          community_id?: string;
+          created_at?: string;
+          description?: string;
+          id?: string;
+          name?: string;
+          slug?: string;
+          updated_at?: string;
+        };
+      };
+      resources: {
+        Row: {
+          community_id: string;
+          content: string;
+          created_at: string;
+          description: string;
+          down_votes: number;
+          id: string;
+          name: string;
+          resource_collection_id: string;
+          slug: string;
+          source: string;
+          up_votes: number;
+          updated_at: string;
+        };
+        Insert: {
+          community_id: string;
+          content?: string;
+          created_at?: string;
+          description?: string;
+          down_votes?: number;
+          id?: string;
+          name?: string;
+          resource_collection_id: string;
+          slug?: string;
+          source?: string;
+          up_votes?: number;
+          updated_at?: string;
+        };
+        Update: {
+          community_id?: string;
+          content?: string;
+          created_at?: string;
+          description?: string;
+          down_votes?: number;
+          id?: string;
+          name?: string;
+          resource_collection_id?: string;
+          slug?: string;
+          source?: string;
+          up_votes?: number;
+          updated_at?: string;
         };
       };
       subscriptions: {
@@ -265,6 +314,7 @@ export interface Database {
           trial_end: string | null;
           trial_start: string | null;
           user_id: string;
+          user_id_external: string | null;
         };
         Insert: {
           cancel_at?: string | null;
@@ -274,7 +324,7 @@ export interface Database {
           current_period_end?: string;
           current_period_start?: string;
           ended_at?: string | null;
-          id: string;
+          id?: string;
           metadata?: Json | null;
           price_id?: string | null;
           product_id?: string | null;
@@ -283,6 +333,7 @@ export interface Database {
           trial_end?: string | null;
           trial_start?: string | null;
           user_id: string;
+          user_id_external?: string | null;
         };
         Update: {
           cancel_at?: string | null;
@@ -301,6 +352,124 @@ export interface Database {
           trial_end?: string | null;
           trial_start?: string | null;
           user_id?: string;
+          user_id_external?: string | null;
+        };
+      };
+      tags: {
+        Row: {
+          community_id: string;
+          created_at: string;
+          id: string;
+          name: string;
+          updated_at: string;
+        };
+        Insert: {
+          community_id: string;
+          created_at?: string;
+          id?: string;
+          name: string;
+          updated_at?: string;
+        };
+        Update: {
+          community_id?: string;
+          created_at?: string;
+          id?: string;
+          name?: string;
+          updated_at?: string;
+        };
+      };
+      user_profiles: {
+        Row: {
+          bio: string;
+          created_at: string;
+          facebook: string;
+          family_name: string;
+          github: string;
+          given_name: string;
+          id: string;
+          image_url: string;
+          instagram: string;
+          location: string;
+          organization_link: string;
+          organization_name: string;
+          phone: string;
+          tiktok: string;
+          twitter: string;
+          updated_at: string;
+          user_id: string;
+          user_id_external: string | null;
+          website: string;
+        };
+        Insert: {
+          bio?: string;
+          created_at?: string;
+          facebook?: string;
+          family_name?: string;
+          github?: string;
+          given_name?: string;
+          id?: string;
+          image_url?: string;
+          instagram?: string;
+          location?: string;
+          organization_link?: string;
+          organization_name?: string;
+          phone?: string;
+          tiktok?: string;
+          twitter?: string;
+          updated_at?: string;
+          user_id: string;
+          user_id_external?: string | null;
+          website?: string;
+        };
+        Update: {
+          bio?: string;
+          created_at?: string;
+          facebook?: string;
+          family_name?: string;
+          github?: string;
+          given_name?: string;
+          id?: string;
+          image_url?: string;
+          instagram?: string;
+          location?: string;
+          organization_link?: string;
+          organization_name?: string;
+          phone?: string;
+          tiktok?: string;
+          twitter?: string;
+          updated_at?: string;
+          user_id?: string;
+          user_id_external?: string | null;
+          website?: string;
+        };
+      };
+      users: {
+        Row: {
+          created_at: string;
+          email: string;
+          id: string;
+          updated_at: string;
+          user_id_external: string | null;
+          user_role: Database['public']['Enums']['user_role'];
+          username: string;
+        };
+        Insert: {
+          created_at?: string;
+          email: string;
+          id?: string;
+          updated_at?: string;
+          user_id_external?: string | null;
+          user_role?: Database['public']['Enums']['user_role'];
+          username: string;
+        };
+        Update: {
+          created_at?: string;
+          email?: string;
+          id?: string;
+          updated_at?: string;
+          user_id_external?: string | null;
+          user_role?: Database['public']['Enums']['user_role'];
+          username?: string;
         };
       };
     };
@@ -326,6 +495,7 @@ export interface Database {
       };
     };
     Enums: {
+      community_visibility: 'PUBLIC' | 'PRIVATE';
       pricing_plan_interval: 'day' | 'week' | 'month' | 'year';
       pricing_type: 'one_time' | 'recurring';
       subscription_status: 'trialing' | 'active' | 'canceled' | 'incomplete' | 'incomplete_expired' | 'past_due' | 'paused' | 'unpaid';

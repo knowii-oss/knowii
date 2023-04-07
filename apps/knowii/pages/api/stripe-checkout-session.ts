@@ -10,11 +10,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const supabase = createServerSupabaseClient({ req, res });
+  const supabaseClient = createServerSupabaseClient({ req, res });
 
   const {
     data: { session },
-  } = await supabase.auth.getSession();
+  } = await supabaseClient.auth.getSession();
 
   if (!session) {
     return res.status(401).json({
@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const {
       data: { user },
-    } = await supabase.auth.getUser();
+    } = await supabaseClient.auth.getUser();
 
     const customer = await getOrCreateStripeCustomer({
       userId: user?.id || '',

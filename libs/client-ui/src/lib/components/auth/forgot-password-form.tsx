@@ -19,6 +19,7 @@ import { FaAt } from 'react-icons/fa';
 import { useAuthRedirectUrl } from '@knowii/client';
 import { AuthFormWrapper } from './auth-form-wrapper';
 import { useTranslations } from 'next-intl';
+import { CALLBACK_URL, RESET_PASSWORD_URL, SIGN_IN_URL } from '@knowii/common';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ForgotPasswordFormProps {}
@@ -28,7 +29,7 @@ export function ForgotPasswordForm(_props: ForgotPasswordFormProps) {
 
   const t = useTranslations('forgotPasswordForm');
 
-  const redirectTo = useAuthRedirectUrl(`/auth/callback?redirectAfterSignin=${encodeURIComponent('/auth/reset-password')}`);
+  const redirectTo = useAuthRedirectUrl(`${CALLBACK_URL}?redirectAfterSignin=${encodeURIComponent(RESET_PASSWORD_URL)}`);
   const { register, handleSubmit, formState, setError, clearErrors } = useForm<{ email: string; serverError?: void }>();
   const { isSubmitting, isSubmitted, isSubmitSuccessful } = formState;
 
@@ -87,7 +88,7 @@ export function ForgotPasswordForm(_props: ForgotPasswordFormProps) {
             </>
           )}
 
-          <Link as={NextLink} href="/auth/signin" color="primary.500">
+          <Link as={NextLink} href={SIGN_IN_URL} color="primary.500">
             &larr; {t('backToSignIn')}
           </Link>
         </Stack>
