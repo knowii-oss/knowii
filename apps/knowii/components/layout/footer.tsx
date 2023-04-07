@@ -68,12 +68,12 @@ export function Footer(_props: FooterProps) {
             </Heading>
             <List spacing={1} opacity={0.75}>
               <ListItem>
-                <StyledLink as={Link} href="/#">
+                <StyledLink as={Link} href="/privacy">
                   {t('privacy')}
                 </StyledLink>
               </ListItem>
               <ListItem>
-                <StyledLink as={Link} href="/#">
+                <StyledLink as={Link} href="/terms">
                   {t('terms')}
                 </StyledLink>
               </ListItem>
