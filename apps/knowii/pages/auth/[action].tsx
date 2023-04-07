@@ -5,21 +5,20 @@ import Head from 'next/head';
 import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { ColorModeSwitch, ForgotPasswordForm, LanguageSwitch, Logo, ResetPasswordForm, SigninForm, SignupForm } from '@knowii/client-ui';
-import { Database, redirectPath } from '@knowii/common';
+import { Database, isValidAuthAction, redirectPath, SIGN_IN_URL } from '@knowii/common';
 import { i18nConfig } from '../../../../i18n.config.mjs';
-
-const authActions = ['signup', 'signin', 'forgot-password', 'reset-password'];
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const action = ctx.params?.action as string;
 
-  if (!action || !authActions.includes(action))
+  if (!action || !isValidAuthAction(action)) {
     return {
       redirect: {
-        destination: '/auth/signin',
+        destination: SIGN_IN_URL,
         permanent: false,
       },
     };
+  }
 
   const supabaseClient = createServerSupabaseClient<Database>(ctx);
   const { data: session } = await supabaseClient.auth.getSession();
@@ -30,7 +29,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   if (!isUserLoggedIn && action === 'reset-password') {
     return {
       redirect: {
-        destination: '/auth/signin',
+        destination: SIGN_IN_URL,
         permanent: false,
       },
     };

@@ -18,7 +18,7 @@ import { useRouter } from 'next/router';
 import { FormEvent, useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { FaAt, FaEye, FaEyeSlash, FaLock, FaUserAlt } from 'react-icons/fa';
-import { redirectPath } from '@knowii/common';
+import { redirectPath, SIGN_IN_URL } from '@knowii/common';
 import { useAuthRedirectUrl } from '@knowii/client';
 import { AuthFormWrapper } from './auth-form-wrapper';
 import { useTranslations } from 'next-intl';
@@ -78,7 +78,7 @@ export function SignupForm(_props: SignupFormProps) {
       description={
         <>
           {`${t('description')} ${t('accountAlreadyExists')} `}
-          <Link as={NextLink} href="/auth/signin" color="primary.500" display="inline-block">
+          <Link as={NextLink} href={SIGN_IN_URL} color="primary.500" display="inline-block">
             {t('signIn')} &rarr;
           </Link>
         </>
