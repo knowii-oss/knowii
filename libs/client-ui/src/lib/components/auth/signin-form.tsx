@@ -23,7 +23,7 @@ import { useForm } from 'react-hook-form';
 import { FaAt, FaLock } from 'react-icons/fa';
 import { useTranslations } from 'next-intl';
 import { useAuthRedirectUrl } from '@knowii/client';
-import { Database, redirectPath } from '@knowii/common';
+import { CALLBACK_URL, Database, FORGOT_PASSWORD_URL, redirectPath, SIGN_UP_URL } from '@knowii/common';
 import { Loader } from '../common/loader';
 import { AuthFormWrapper } from './auth-form-wrapper';
 import { SigninModeSwitch, SigninMode } from './signin-mode-switch';
@@ -44,7 +44,7 @@ export function SigninForm(_props: SigninFormProps) {
   const redirectAfterSignin = query.redirectAfterSignin ? decodeURIComponent(query.redirectAfterSignin as string) : redirectPath;
 
   const redirectTo = useAuthRedirectUrl(
-    mode === SigninMode.MagicLink ? `/auth/callback?redirectAfterSignin=${encodeURIComponent(redirectAfterSignin)}` : redirectAfterSignin,
+    mode === SigninMode.MagicLink ? `${CALLBACK_URL}?redirectAfterSignin=${encodeURIComponent(redirectAfterSignin)}` : redirectAfterSignin,
   );
 
   const { register, handleSubmit, setError, clearErrors, formState, reset } = useForm<{
@@ -94,7 +94,7 @@ export function SigninForm(_props: SigninFormProps) {
       description={
         <>
           {`${t('description')} ${t('noAccount')} `}
-          <Link as={NextLink} href="/auth/signup" display="inline-block" color="primary.500">
+          <Link as={NextLink} href={SIGN_UP_URL} display="inline-block" color="primary.500">
             {t('signupButton')} &rarr;
           </Link>
         </>
@@ -154,7 +154,7 @@ export function SigninForm(_props: SigninFormProps) {
                     <Input type="password" autoComplete="password" {...register('password', { required: true })} />
                   </InputGroup>
                   <FormHelperText>
-                    <Link as={NextLink} href="/auth/forgot-password" color="primary.500">
+                    <Link as={NextLink} href={FORGOT_PASSWORD_URL} color="primary.500">
                       {t('forgotPassword')}
                     </Link>
                   </FormHelperText>

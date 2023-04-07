@@ -6,6 +6,7 @@ import { FaBars } from 'react-icons/fa';
 import { ColorModeSwitch, LanguageSwitch, Logo, Menu, MobileDrawerMenu, useMobileBreakpoint, useScrollTop } from '@knowii/client-ui';
 import { UserMenu } from './user-menu';
 import { useTranslations } from 'next-intl';
+import { SIGN_IN_URL } from '@knowii/common';
 
 interface NavBarProps {
   hideMenu?: boolean;
@@ -52,7 +53,7 @@ export function NavBar({ hideMenu }: NavBarProps) {
               {user ? (
                 <UserMenu />
               ) : (
-                <Button as={Link} href="/auth/signin" size="sm" colorScheme="primary" variant="outline">
+                <Button as={Link} href={SIGN_IN_URL} size="sm" colorScheme="primary" variant="outline">
                   {t('signIn')}
                 </Button>
               )}

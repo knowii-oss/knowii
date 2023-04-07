@@ -4,7 +4,7 @@ import { GetServerSideProps } from 'next';
 import { useCallback } from 'react';
 import { FaUser } from 'react-icons/fa';
 import { useTranslations } from 'next-intl';
-import { EditableText, Password, Subscription } from '@knowii/client-ui';
+import { EditableText, Password } from '@knowii/client-ui';
 import Layout from '../components/layout/layout';
 import { useUserName } from '@knowii/client';
 import { i18nConfig } from '../../../i18n.config.mjs';
@@ -59,7 +59,6 @@ export function AccountPage(_props: AccountPageProps) {
 
       <Box maxW="3xl" mx="auto" p={8}>
         <VStack align="stretch" gap={4}>
-          <Subscription />
           <Password />
         </VStack>
       </Box>
