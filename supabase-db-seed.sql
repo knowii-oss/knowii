@@ -35,12 +35,16 @@ $$ language plpgsql;
 -- --------------------------------------------------------
 -- Enable row level security
 -- --------------------------------------------------------
-alter table clients enable row level security;
-alter table customers enable row level security;
-alter table communities enable row level security;
-alter table prices enable row level security;
-alter table products enable row level security;
-alter table subscriptions enable row level security;
+alter table public.users enable row level security;
+alter table public.customers enable row level security;
+alter table public.prices enable row level security;
+alter table public.products enable row level security;
+alter table public.subscriptions enable row level security;
+
+alter table public.communities enable row level security;
+alter table public.resource_collections enable row level security;
+alter table public.resources enable row level security;
+alter table public.tags enable row level security;
 
 -- --------------------------------------------------------
 -- Make sure the user_id field is linked with the user
@@ -59,7 +63,7 @@ alter table subscriptions enable row level security;
 create or replace function public.handle_new_user()
   returns trigger as $$
 begin
-  insert into public.clients (id, email)
+  insert into public.users (id, email)
   values (new.id, new.email);
   return new;
 end;
@@ -75,7 +79,7 @@ create trigger on_auth_user_created
 create or replace function public.handle_updated_user()
   returns trigger as $$
 begin
-  update public.clients
+  update public.users
   set email = new.email
   where id = new.id::text;
   return new;
@@ -92,7 +96,7 @@ create trigger on_auth_user_updated
 create or replace function public.handle_deleted_user()
   returns trigger as $$
 begin
-  delete from public.clients where id = old.id::text;
+  delete from public.users where id = old.id::text;
   return old;
 end;
 $$ language plpgsql security definer;
@@ -113,8 +117,8 @@ create policy "Allow public read-only access" on prices for select using (true);
 drop policy if exists "User can read own subscription" on subscriptions;
 create policy "User can read own subscription" on subscriptions for select using (auth.uid() = user_id);
 
-drop policy if exists "Users can only access their own clients" on clients;
-create policy "Users can only access their own clients" on clients for all using (auth.uid() = user_id);
+drop policy if exists "Users can only access their own account" on users;
+create policy "Users can only access their own account" on users for all using (auth.uid() = user_id);
 
 -- --------------------------------------------------------
 -- Make sure that the default security rules of Supabase are in place

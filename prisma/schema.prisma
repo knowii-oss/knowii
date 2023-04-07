@@ -12,26 +12,6 @@ datasource db {
   schemas           = ["public"]
 }
 
-model Clients {
-  id                   String               @id @db.Uuid @default(uuid())
-  name                 String               @default("")
-  given_name           String               @default("")
-  family_name          String               @default("")
-  email                String               @default("")
-  user_role            KnowiiUserRole       @default(USER)
-  image_url            String               @default("")
-  phone                String               @default("")
-  user_id              String               @db.Uuid
-  created_at           DateTime             @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
-  updated_at           DateTime             @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt
-  admin_of             Communities[]        @relation("community_admins")
-  member_of            Communities[]        @relation("community_members")
-  owner_of             Communities[]        @relation("community_owners")
-
-  @@schema("public")
-  @@map("clients")
-}
-
 model Customers {
   user_id              String               @id @db.Uuid
   stripe_customer_id   String
@@ -129,6 +109,26 @@ enum SubscriptionStatus {
   @@map("subscription_status")
 }
 
+model Users {
+  id                   String               @id @db.Uuid @default(uuid())
+  user_id              String               @db.Uuid
+  name                 String               @default("")
+  given_name           String               @default("")
+  family_name          String               @default("")
+  email                String               @default("")
+  user_role            KnowiiUserRole       @default(USER)
+  image_url            String               @default("")
+  phone                String               @default("")
+  created_at           DateTime             @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
+  updated_at           DateTime             @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt
+  admin_of             Communities[]        @relation("community_admins")
+  member_of            Communities[]        @relation("community_members")
+  owner_of             Communities[]        @relation("community_owners")
+
+  @@schema("public")
+  @@map("users")
+}
+
 model Communities {
   id                   String                     @id @db.Uuid @default(uuid())
   name                 String                     @unique
@@ -136,9 +136,9 @@ model Communities {
   visibility           KnowiiCommunityVisibility  @default(PUBLIC)
   created_at           DateTime                   @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
   updated_at           DateTime                   @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt
-  admins               Clients[]                  @relation("community_admins")
-  members              Clients[]                  @relation("community_members")
-  owners               Clients[]                  @relation("community_owners")
+  admins               Users[]                  @relation("community_admins")
+  members              Users[]                  @relation("community_members")
+  owners               Users[]                  @relation("community_owners")
   resource_collections ResourceCollections[]      @relation("community_resource_collections")
   resources            Resources[]                @relation("community_resources")
   tags                 Tags[]                     @relation("community_tags")
