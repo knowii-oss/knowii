@@ -229,5 +229,14 @@
   "confirmModal": {
     "cancel": "Cancel",
     "confirm": "Confirm"
+  },
+  "termsOfServicePage": {
+    "title": "Terms of service"
+  },
+  "privacyPolicyPage": {
+    "title": "Privacy policy"
+  },
+  "contactPage": {
+    "title": "Contact us"
   }
 }
