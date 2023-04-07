@@ -1,7 +1,7 @@
 generator client {
   provider        = "prisma-client-js"
   /// Reference: https://www.prisma.io/docs/guides/database/multi-schema
-  previewFeatures = ["multiSchema"]
+  previewFeatures = ["multiSchema", "postgresqlExtensions"]
 }
 
 /// Reference: https://www.prisma.io/docs/guides/database/multi-schema
@@ -10,6 +10,7 @@ datasource db {
   url               = env("DATABASE_URL")
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
   schemas           = ["public"]
+  extensions        = [uuid_ossp(map: "uuid-ossp", schema: "extensions")]
 }
 
 model Customers {
