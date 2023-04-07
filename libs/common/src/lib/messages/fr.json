@@ -161,9 +161,10 @@
     "errorMessage": "An error occurred while trying to create your account. Please try again.",
     "submitButton": "Create account",
     "fields": {
-      "name": "Votre nom:",
-      "email": "Votre email:",
-      "password": "Votre mot de passe:"
+      "givenName": "Prénom:",
+      "familyName": "Nom de famille:",
+      "email": "Email:",
+      "password": "Mot de passe:"
     }
   },
   "signinForm": {

@@ -34,7 +34,8 @@ export function SignupForm(_props: SignupFormProps) {
   const { register, handleSubmit, formState, setError, clearErrors } = useForm<{
     email: string;
     password: string;
-    name: string;
+    givenName: string;
+    familyName: string;
     serverError?: void;
   }>();
   const { isSubmitting, isSubmitted, isSubmitSuccessful } = formState;
@@ -42,7 +43,7 @@ export function SignupForm(_props: SignupFormProps) {
 
   const onSubmit = (e: FormEvent) => {
     clearErrors('serverError');
-    handleSubmit(async ({ email, password, name }) => {
+    handleSubmit(async ({ email, password, givenName, familyName }) => {
       const {
         data: { session, user: newUser },
         error,
@@ -50,7 +51,13 @@ export function SignupForm(_props: SignupFormProps) {
         email,
         password,
         options: {
-          data: { full_name: name },
+          data: {
+            // WARNING: Those kay names are very sensitive
+            // They are used by the triggers defined in supabase-db-seed.sql
+            given_name: givenName,
+            family_name: familyName,
+            full_name: `${givenName} ${familyName}`,
+          },
           emailRedirectTo: redirectTo,
         },
       });
@@ -61,6 +68,7 @@ export function SignupForm(_props: SignupFormProps) {
       }
 
       // if email confirmations are enabled, the user will have to confirm their email before they can sign in
+      // Reference: https://supabase.com/docs/reference/dart/auth-signup
       if (!session) {
         return;
       }
@@ -101,14 +109,33 @@ export function SignupForm(_props: SignupFormProps) {
 
           {(!isSubmitted || !isSubmitSuccessful) && (
             <>
-              {/* Name field */}
+              {/* Given Name field */}
               <FormControl>
-                <FormLabel>{t('fields.name')}</FormLabel>
+                <FormLabel>{t('fields.givenName')}</FormLabel>
                 <InputGroup>
                   <InputLeftElement color="gray.300">
                     <FaUserAlt />
                   </InputLeftElement>
-                  <Input autoComplete="name" {...register('name', { required: true })} />
+                  <Input
+                    // Reference: https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/autocomplete
+                    autoComplete="given-name"
+                    {...register('givenName', { required: true })}
+                  />
+                </InputGroup>
+              </FormControl>
+
+              {/* Family Name field */}
+              <FormControl>
+                <FormLabel>{t('fields.familyName')}</FormLabel>
+                <InputGroup>
+                  <InputLeftElement color="gray.300">
+                    <FaUserAlt />
+                  </InputLeftElement>
+                  <Input
+                    // Reference: https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/autocomplete
+                    autoComplete="family-name"
+                    {...register('familyName', { required: true })}
+                  />
                 </InputGroup>
               </FormControl>
 
@@ -120,7 +147,13 @@ export function SignupForm(_props: SignupFormProps) {
                     <FaAt />
                   </InputLeftElement>
 
-                  <Input required type="email" autoComplete="email" {...register('email', { required: true })} />
+                  <Input
+                    required
+                    type="email"
+                    // Reference: https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/autocomplete
+                    autoComplete="email"
+                    {...register('email', { required: true })}
+                  />
                 </InputGroup>
               </FormControl>
 
@@ -134,6 +167,7 @@ export function SignupForm(_props: SignupFormProps) {
                   <Input
                     required
                     type={isPasswordVisible ? 'text' : 'password'}
+                    // Reference: https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/autocomplete
                     autoComplete="new-password"
                     {...register('password', { required: true })}
                   />
