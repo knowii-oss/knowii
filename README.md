@@ -86,3 +86,10 @@ To enable a new NX library to benefit from i18n strong typing, copy the index.d.
 - Edit apps/knowii/theme.js
 
 Use tools such as https://www.tailwindshades.com/ to generate the different shades
+
+## Checking PostgreSQL logs
+
+When working locally, Supabase starts a number of Docker containers. To check the logs:
+
+- Run `db:logs:list` to see the list of log files and identify the most recent one
+- Run `db:logs:cat <file name>` to see its contents
