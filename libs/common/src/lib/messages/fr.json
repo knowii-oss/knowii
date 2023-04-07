@@ -122,7 +122,7 @@
   },
   "dashboardPage": {
     "pageTitle": "Tableau de bord",
-    "pageDescription": "Page privée que seuls les utilisateurs connectés peuvent voir."
+    "pageDescription": "Bienvenue sur votre tableau de bord personnel."
   },
   "blogPage": {
     "title": "Blog",
@@ -225,54 +225,8 @@
     "sendLink": "Envoyer le lien de réinitialisation",
     "backToSignIn": "Retour à l'écran de connexion"
   },
-  "clientsList": {
-    "deleteClient": {
-      "errorMessage": "Une erreur est survenue pendant la suppression du client. Veuillez réessayer.",
-      "successMessage": "Le client a été supprimé."
-    },
-    "title": "Clients",
-    "upgradeToCreateMore": "You have to upgrade your plan to create more clients.",
-    "createButton": "Add client",
-    "list": {
-      "columns": {
-        "name": "Name",
-        "email": "Email",
-        "phone": "Phone"
-      },
-      "empty": "You have not created any clients yet. Click the button at the top right to add one.",
-      "noResults": "No clients found",
-      "edit": "Edit",
-      "delete": "Delete"
-    },
-    "deleteClientModal": {
-      "title": "Delete client",
-      "description": "Do you really want to delete this client? This action cannot be undone."
-    }
-  },
   "confirmModal": {
     "cancel": "Cancel",
     "confirm": "Confirm"
-  },
-  "clientFormModal": {
-    "form": {
-      "controls": {
-        "name": "Nom",
-        "email": "Email",
-        "phone": "Téléphone"
-      },
-      "add": {
-        "title": "Ajouter client"
-      },
-      "edit": {
-        "title": "Editer client"
-      },
-      "submitButton": "Sauvegarder client",
-      "errorMessage": "Une erreur est survenue pendant la sauvegarde du client. Veuillez réessayer.",
-      "successMessage": "Le client a été sauvegardé avec succès!"
-    }
-  },
-  "noSubscriptionAlert": {
-    "upgradeButton": "Upgrade subscription",
-    "message": "You don't have any active subscription. On the free plan, you can only have 1 client. Upgrade to a paid plan to add more clients."
   }
 }

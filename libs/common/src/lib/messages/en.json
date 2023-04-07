@@ -122,7 +122,7 @@
   },
   "dashboardPage": {
     "pageTitle": "Dashboard",
-    "pageDescription": "This is a private page that only logged in users can see. Here you can see an example client management."
+    "pageDescription": "Welcome to your personal dashboard."
   },
   "blogPage": {
     "title": "Blog",
@@ -225,54 +225,8 @@
     "sendLink": "Send reset link",
     "backToSignIn": "Back to signin"
   },
-  "clientsList": {
-    "deleteClient": {
-      "errorMessage": "There was an error trying to delete the client. Please try again.",
-      "successMessage": "The client was deleted successfully."
-    },
-    "title": "Clients",
-    "upgradeToCreateMore": "You have to upgrade your plan to create more clients.",
-    "createButton": "Add client",
-    "list": {
-      "columns": {
-        "name": "Name",
-        "email": "Email",
-        "phone": "Phone"
-      },
-      "empty": "You have not created any clients yet. Click the button at the top right to add one.",
-      "noResults": "No clients found",
-      "edit": "Edit",
-      "delete": "Delete"
-    },
-    "deleteClientModal": {
-      "title": "Delete client",
-      "description": "Do you really want to delete this client? This action cannot be undone."
-    }
-  },
   "confirmModal": {
     "cancel": "Cancel",
     "confirm": "Confirm"
-  },
-  "clientFormModal": {
-    "form": {
-      "controls": {
-        "name": "Name",
-        "email": "Email",
-        "phone": "Phone"
-      },
-      "add": {
-        "title": "Add client"
-      },
-      "edit": {
-        "title": "Edit client"
-      },
-      "submitButton": "Save client",
-      "errorMessage": "An error occurred while trying to save the client. Please try again.",
-      "successMessage": "The client was saved successfully!"
-    }
-  },
-  "noSubscriptionAlert": {
-    "upgradeButton": "Upgrade subscription",
-    "message": "You don't have any active subscription. On the free plan, you can only have 1 client. Upgrade to a paid plan to add more clients."
   }
 }

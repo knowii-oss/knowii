@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 
 //import styles from './index.module.scss';
 import { Layout } from '../../components/layout/layout';
-import { ClientsList, Loader, PageHeader } from '@knowii/client-ui';
+import { Loader, PageHeader } from '@knowii/client-ui';
 import { i18nConfig } from '../../../../i18n.config.mjs';
 
 export const getStaticProps: GetStaticProps = async (ctx) => {
@@ -29,7 +29,7 @@ export function DashboardPage() {
     <Layout customMeta={{ title: t('pageTitle') }}>
       <PageHeader title={t('pageTitle')} description={t('pageDescription')} align="start" />
       <Box px={4} py={12}>
-        <Container maxW="5xl">{!user ? <Loader /> : <ClientsList />}</Container>
+        <Container maxW="5xl">{!user ? <Loader /> : <div>Coming soon</div>}</Container>
       </Box>
     </Layout>
   );
