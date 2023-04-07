@@ -23,6 +23,7 @@
     "db:init": "pnpm run db:migration:deploy && pnpm run db:seed",
     "db:logs:list": "docker exec -it supabase_db_knowii ls -la /var/log/postgresql",
     "db:logs:cat": "docker exec -it supabase_db_knowii cat",
+    "db:logs:show": "docker exec -it supabase_db_knowii cat /var/log/postgresql/server_2000_UTC.csv",
     "db:migration:deploy": "dotenv -e apps/knowii/.env.local -- pnpm exec prisma migrate deploy --preview-feature",
     "db:migration:deploy:prod": "dotenv -e apps/knowii/.env.prod -- pnpm exec prisma migrate deploy --preview-feature",
     "db:migration:prepare": "dotenv -e apps/knowii/.env.local -- pnpm exec prisma migrate dev --preview-feature",
