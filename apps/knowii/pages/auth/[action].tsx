@@ -5,13 +5,13 @@ import Head from 'next/head';
 import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { ColorModeSwitch, ForgotPasswordForm, LanguageSwitch, Logo, ResetPasswordForm, SigninForm, SignupForm } from '@knowii/client-ui';
-import { Database, isValidAuthAction, redirectPath, SIGN_IN_URL } from '@knowii/common';
+import { AuthAction, Database, isValidAuthAction, redirectPath, SIGN_IN_URL } from '@knowii/common';
 import { i18nConfig } from '../../../../i18n.config.mjs';
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const action = ctx.params?.action as string;
 
-  if (!action || !isValidAuthAction(action)) {
+  if (!action || !isValidAuthAction(action) || action === 'callback') {
     return {
       redirect: {
         destination: SIGN_IN_URL,
@@ -59,16 +59,17 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 export default function AuthPage({ action }: { action: string }) {
   const t = useTranslations();
 
-  const actionTitles: Record<string, string> = useMemo(
+  const actionTitles: Record<AuthAction, string> = useMemo(
     () => ({
       signup: t('authPage.signUp.pageTitle'),
       signin: t('authPage.signIn.pageTitle'),
-      forgotPassword: t('authPage.forgotPassword.pageTitle'),
-      resetPassword: t('authPage.resetPassword.pageTitle'),
+      'forgot-password': t('authPage.forgotPassword.pageTitle'),
+      'reset-password': t('authPage.resetPassword.pageTitle'),
+      callback: '',
     }),
     [t],
   );
-  const title = useMemo(() => actionTitles[action as string], [action, actionTitles]);
+  const title = useMemo(() => actionTitles[action as AuthAction], [action, actionTitles]);
 
   return (
     <>
