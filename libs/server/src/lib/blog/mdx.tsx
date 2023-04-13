@@ -6,19 +6,22 @@ import path from 'path';
 import rehypeSlug from 'rehype-slug';
 import rehypeImgSize from 'rehype-img-size';
 import fs from 'fs';
-import { BASE_APP_FOLDER, FrontMatter, hasErrorMessage, WebsiteDataType } from '@knowii/common';
+import { FrontMatter, hasErrorMessage, WebsiteDataType } from '@knowii/common';
 import readingTime from 'reading-time';
 
 const root = process.cwd();
-const CONTENT_FOLDER_PATH = `${BASE_APP_FOLDER}/content`;
-const IMAGES_FOLDER_PATH = `${BASE_APP_FOLDER}/public`;
+const APP_FOLDER = path.resolve(root, 'apps/knowii');
+const CONTENT_FOLDER_PATH = path.resolve(APP_FOLDER, 'content');
+const IMAGES_FOLDER_PATH = path.resolve(APP_FOLDER, 'public');
 
 export function getFilesList({ type, locale }: { type: WebsiteDataType.BLOG; locale: string }): string[] {
   let retVal: string[] = [];
 
-  const folderPath = path.join(root, CONTENT_FOLDER_PATH, type, locale);
+  const folderPath = path.resolve(CONTENT_FOLDER_PATH, type, locale);
   try {
+    console.log('Loading files list from: ', folderPath);
     retVal = fs.readdirSync(folderPath);
+    console.log('Files list: ', JSON.stringify(retVal));
   } catch {}
 
   return retVal;
@@ -41,7 +44,7 @@ export async function getFileBySlug({
 }): Promise<string | null> {
   let source = null;
 
-  const filePath = path.join(root, CONTENT_FOLDER_PATH, type, locale, `${slug}.mdx`);
+  const filePath = path.join(CONTENT_FOLDER_PATH, type, locale, `${slug}.mdx`);
 
   try {
     console.log('Trying to load file: ', filePath);
@@ -49,6 +52,8 @@ export async function getFileBySlug({
   } catch (err: unknown) {
     if (hasErrorMessage(err)) {
       console.warn('Error while loading the file: ', err.message);
+    } else {
+      console.warn('Error while loading the file: ', err);
     }
   }
 
@@ -66,7 +71,7 @@ export interface MdxEntry {
  * @param imagePath
  */
 export function getImageSize({ imagePath }: { imagePath: string }) {
-  const filePath = path.join(root, IMAGES_FOLDER_PATH, imagePath);
+  const filePath = path.join(IMAGES_FOLDER_PATH, imagePath);
 
   return sizeOf(filePath);
 }
