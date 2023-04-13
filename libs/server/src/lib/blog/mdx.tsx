@@ -153,13 +153,11 @@ export async function getMdxFilePaths({ type, locales }: { type: WebsiteDataType
 export async function getAllMdxEntries({
   type,
   locales,
-  defaultLocale,
-  currentLocale,
+  locale,
 }: {
   type: WebsiteDataType;
   locales: string[];
-  defaultLocale: string;
-  currentLocale?: string;
+  locale: string;
 }): Promise<MdxEntry[]> {
   const paths = await getMdxFilePaths({
     type,
@@ -169,7 +167,7 @@ export async function getAllMdxEntries({
   const entries = (
     await Promise.all(
       paths.map(async ({ params: { slug } }) => {
-        return await getMdx({ type, slug, locale: currentLocale ? currentLocale : defaultLocale });
+        return await getMdx({ type, slug, locale });
       }),
     )
   ).filter((entry) => entry !== null);

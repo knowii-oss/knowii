@@ -52,12 +52,11 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
 
   const messages = (await import(`../../../../libs/common/src/lib/messages/${locale}.json`)).default;
 
-  const retVal: { props: Partial<CustomPageProps> & BlogPostPageProps; revalidate: number } = {
+  const retVal: { props: Partial<CustomPageProps> & BlogPostPageProps } = {
     props: {
       messages,
       ...mdx,
     },
-    revalidate: 10,
   };
 
   return retVal;
