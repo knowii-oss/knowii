@@ -41,7 +41,7 @@ const nextConfig = {
    * Enable strict mode
    */
   reactStrictMode: true,
-  trailingSlash: true,
+  trailingSlash: false,
   swcMinify: true,
   typescript: {
     /**
