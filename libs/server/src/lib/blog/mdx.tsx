@@ -10,14 +10,14 @@ import { FrontMatter, hasErrorMessage, WebsiteDataType } from '@knowii/common';
 import readingTime from 'reading-time';
 
 const root = process.cwd();
-const APP_FOLDER = path.resolve(root, 'apps/knowii');
-const CONTENT_FOLDER_PATH = path.resolve(APP_FOLDER, 'content');
-const IMAGES_FOLDER_PATH = path.resolve(APP_FOLDER, 'public');
+const APP_FOLDER = path.join(root, 'apps/knowii');
+const CONTENT_FOLDER_PATH = path.join(APP_FOLDER, 'content');
+const IMAGES_FOLDER_PATH = path.join(APP_FOLDER, 'public');
 
 export function getFilesList({ type, locale }: { type: WebsiteDataType.BLOG; locale: string }): string[] {
   let retVal: string[] = [];
 
-  const folderPath = path.resolve(CONTENT_FOLDER_PATH, type, locale);
+  const folderPath = path.join(CONTENT_FOLDER_PATH, type, locale);
   try {
     console.log('Loading files list from: ', folderPath);
     retVal = fs.readdirSync(folderPath);
