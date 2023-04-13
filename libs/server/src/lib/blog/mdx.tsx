@@ -44,6 +44,7 @@ export async function getFileBySlug({
   const filePath = path.join(root, CONTENT_FOLDER_PATH, type, locale, `${slug}.mdx`);
 
   try {
+    console.log('Trying to load file: ', filePath);
     source = await fs.readFileSync(filePath, 'utf8');
   } catch {}
 
@@ -74,6 +75,7 @@ export async function getMdx({ type, slug, locale }: { type: WebsiteDataType; sl
   });
 
   if (!fileContent) {
+    console.log('Could not find MDX file content');
     return null;
   }
 
