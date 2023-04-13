@@ -3,7 +3,7 @@
   "framework": "nextjs",
   "cleanUrls": true,
   "trailingSlash": false,
-  "ignoreCommand": "npx nx-ignore knowii && bash vercel-ignore-build-step.sh",
+  "ignoreCommand": "npx nx-ignore knowii || bash vercel-ignore-build-step.sh",
   "outputDirectory": "dist/apps/knowii/.next",
   "public": false,
   "redirects": [],
