@@ -6,7 +6,7 @@ import path from 'path';
 import rehypeSlug from 'rehype-slug';
 import rehypeImgSize from 'rehype-img-size';
 import fs from 'fs';
-import { BASE_APP_FOLDER, FrontMatter, WebsiteDataType } from '@knowii/common';
+import { BASE_APP_FOLDER, FrontMatter, hasErrorMessage, WebsiteDataType } from '@knowii/common';
 import readingTime from 'reading-time';
 
 const root = process.cwd();
@@ -46,7 +46,11 @@ export async function getFileBySlug({
   try {
     console.log('Trying to load file: ', filePath);
     source = await fs.readFileSync(filePath, 'utf8');
-  } catch {}
+  } catch (err: unknown) {
+    if (hasErrorMessage(err)) {
+      console.warn('Error while loading the file: ', err.message);
+    }
+  }
 
   return source;
 }
