@@ -40,7 +40,7 @@ export const getServerSideProps: GetServerSideProps = async ({ req }) => {
   return retVal;
 };
 
-interface CustomPageProps {
+export interface CustomPageProps {
   cookies?: NextApiRequestCookies;
   initialSession?: Session | null;
   messages: Messages;
