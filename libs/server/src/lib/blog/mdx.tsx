@@ -6,12 +6,11 @@ import path from 'path';
 import rehypeSlug from 'rehype-slug';
 import rehypeImgSize from 'rehype-img-size';
 import fs from 'fs';
-import { FrontMatter, hasErrorMessage, WebsiteDataType } from '@knowii/common';
+import { APP_FOLDER, FrontMatter, hasErrorMessage, WebsiteDataType } from '@knowii/common';
 import readingTime from 'reading-time';
 
-const APP_FOLDER = path.resolve(process.cwd(), 'apps/knowii');
 const PUBLIC_FOLDER_PATH = path.join(APP_FOLDER, 'public');
-const CONTENT_FOLDER_PATH = path.join(PUBLIC_FOLDER_PATH, 'content');
+const CONTENT_FOLDER_PATH = path.join(APP_FOLDER, 'content');
 
 export function getFilesList({ type, locale }: { type: WebsiteDataType.BLOG; locale: string }): string[] {
   let retVal: string[] = [];
