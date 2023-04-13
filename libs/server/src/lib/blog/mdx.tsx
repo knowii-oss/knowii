@@ -9,10 +9,9 @@ import fs from 'fs';
 import { FrontMatter, hasErrorMessage, WebsiteDataType } from '@knowii/common';
 import readingTime from 'reading-time';
 
-const root = process.cwd();
-const APP_FOLDER = path.join(root, 'apps/knowii');
-const CONTENT_FOLDER_PATH = path.join(APP_FOLDER, 'content');
-const IMAGES_FOLDER_PATH = path.join(APP_FOLDER, 'public');
+const APP_FOLDER = path.resolve(process.cwd(), 'apps/knowii');
+const PUBLIC_FOLDER_PATH = path.join(APP_FOLDER, 'public');
+const CONTENT_FOLDER_PATH = path.join(PUBLIC_FOLDER_PATH, 'content');
 
 export function getFilesList({ type, locale }: { type: WebsiteDataType.BLOG; locale: string }): string[] {
   let retVal: string[] = [];
@@ -71,7 +70,7 @@ export interface MdxEntry {
  * @param imagePath
  */
 export function getImageSize({ imagePath }: { imagePath: string }) {
-  const filePath = path.join(IMAGES_FOLDER_PATH, imagePath);
+  const filePath = path.join(PUBLIC_FOLDER_PATH, imagePath);
 
   return sizeOf(filePath);
 }
