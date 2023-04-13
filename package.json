@@ -15,7 +15,6 @@
   "scripts": {
     "build": "pnpm run build:knowii",
     "build:knowii": "cross-env NODE_ENV=production pnpm exec nx run knowii:build",
-    "postbuild:knowii": "cp -R ./apps/knowii/content ./dist/apps/knowii/content",
     "clean": "pnpm exec rimraf ./dist",
     "clean:install": "pnpm exec rimraf pnpm-lock.yaml && pnpm exec rimraf ./node_modules && pnpm exec rimraf dist && pnpm install",
     "db:admin": "docker run --rm -p 5050:5050 thajeztah/pgadmin4",
