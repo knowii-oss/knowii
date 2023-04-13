@@ -6,13 +6,15 @@ import { WebsiteDataType } from '@knowii/common';
 import Layout from '../../components/layout/layout';
 import { BlogPostOverview, PageHeader } from '@knowii/client-ui';
 import { i18nConfig } from '../../../../i18n.config.mjs';
+import { CustomPageProps } from '../_app';
 
 export const getStaticProps: GetStaticProps = async (ctx) => {
+  const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
+
   const entries = (
     await getAllMdxEntries({
       type: WebsiteDataType.BLOG,
-      currentLocale: ctx.locale,
-      defaultLocale: i18nConfig.i18n.defaultLocale,
+      locale,
       locales: i18nConfig.i18n.locales,
     })
   )
@@ -23,15 +25,17 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
       return b.frontMatter.publishedOn > a.frontMatter.publishedOn ? 1 : -1;
     });
 
-  const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
   const messages = (await import(`../../../../libs/common/src/lib/messages/${locale}.json`)).default;
 
-  return {
+  const retVal: {
+    props: Partial<CustomPageProps> & BlogPageProps;
+  } = {
     props: {
       messages,
       entries,
     },
   };
+  return retVal;
 };
 
 interface BlogPageProps {
