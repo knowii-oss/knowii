@@ -14,6 +14,7 @@ import { getImageSize, getMdx, getMdxFilePaths } from '@knowii/server';
 import { FrontMatter, SITE_AUTHOR_MICRODATA, WebsiteDataType } from '@knowii/common';
 import { i18nConfig } from '../../../../i18n.config.mjs';
 import { useTranslations } from 'next-intl';
+import { CustomPageProps } from '../_app';
 
 // eslint-disable-next-line  @typescript-eslint/no-var-requires
 const siteAuthor = require('../../../../libs/common/src/lib/metadata.json').author;
@@ -26,18 +27,23 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
   const slug = ctx.params?.['slug'] as string;
   const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
 
-  const mdxProps = await getMdx({ type: WebsiteDataType.BLOG, slug, locale });
+  console.log('Slug: ', slug);
+  console.log('Locale: ', locale);
 
-  if (!mdxProps) {
+  console.log('Loading MDX');
+  const mdx = await getMdx({ type: WebsiteDataType.BLOG, slug, locale });
+
+  if (!mdx) {
+    console.log('No MDX. Redirecting to blog home');
     return { redirect: { destination: '/blog', permanent: false } };
   }
 
   // Get cover image size
-  const image = mdxProps?.frontMatter.image;
+  const image = mdx?.frontMatter.image;
   if (image) {
     const imageSize = getImageSize({ imagePath: image });
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    mdxProps!.frontMatter.imageDetails = {
+    mdx!.frontMatter.imageDetails = {
       width: imageSize?.width ?? 1,
       height: imageSize?.height ?? 1,
       src: image,
@@ -46,13 +52,15 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
 
   const messages = (await import(`../../../../libs/common/src/lib/messages/${locale}.json`)).default;
 
-  return {
+  const retVal: { props: Partial<CustomPageProps> & BlogPostPageProps; revalidate: number } = {
     props: {
       messages,
-      ...mdxProps,
+      ...mdx,
     },
     revalidate: 10,
   };
+
+  return retVal;
 };
 
 export const getStaticPaths: GetStaticPaths = async (ctx) => {
@@ -70,7 +78,7 @@ export const getStaticPaths: GetStaticPaths = async (ctx) => {
   };
 };
 
-interface BlogPostPageProps {
+interface BlogPostPageProps extends Partial<CustomPageProps> {
   mdxSource: MDXRemoteSerializeResult;
   frontMatter: FrontMatter;
 }
