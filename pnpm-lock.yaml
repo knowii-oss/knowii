@@ -36,9 +36,6 @@ importers:
       '@supabase/auth-helpers-react':
         specifier: 0.3.1
         version: 0.3.1(@supabase/supabase-js@2.20.0)
-      '@supabase/functions-js':
-        specifier: 2.1.1
-        version: 2.1.1
       '@supabase/supabase-js':
         specifier: 2.20.0
         version: 2.20.0
