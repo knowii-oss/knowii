@@ -93,3 +93,11 @@ When working locally, Supabase starts a number of Docker containers. To check th
 
 - Run `db:logs:list` to see the list of log files and identify the most recent one
 - Run `db:logs:cat <file name>` to see its contents
+
+## Adding auth providers
+
+### GitHub
+
+- Go to https://github.com/settings/applications/new to create a new OAuth app
+- Homepage URL: Supabase auth URL, which can be found in https://app.supabase.com/project/<project id>/auth/providers
+- Authorization callback URL: same url with /auth/v1/callback
