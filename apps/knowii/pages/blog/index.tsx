@@ -14,7 +14,6 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
   const entries = (
     await getAllMdxEntries({
       type: WebsiteDataType.BLOG,
-      locale,
       locales: i18nConfig.i18n.locales,
     })
   )
@@ -28,13 +27,14 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
   const messages = (await import(`../../../../libs/common/src/lib/messages/${locale}.json`)).default;
 
   const retVal: {
-    props: Partial<CustomPageProps> & BlogPageProps;
+    props: Partial<CustomPageProps & BlogPageProps>;
   } = {
     props: {
       messages,
       entries,
     },
   };
+
   return retVal;
 };
 
