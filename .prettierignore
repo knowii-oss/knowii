@@ -9,3 +9,4 @@ backups/
 .env.*
 *.sh
 pnpm-lock.yaml
+tmp/
