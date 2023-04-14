@@ -133,7 +133,7 @@
     "@swc/core": "^1.2.173",
     "@swc/jest": "0.2.24",
     "@testing-library/react": "14.0.0",
-    "@types/jest": "29.4.4",
+    "@types/jest": "29.5.0",
     "@types/node": "18.13.0",
     "@types/prismjs": "1.26.0",
     "@types/react": "18.0.34",
