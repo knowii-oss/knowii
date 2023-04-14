@@ -8,3 +8,4 @@ backups/
 .devcontainer/
 .env.*
 *.sh
+pnpm-lock.yaml
