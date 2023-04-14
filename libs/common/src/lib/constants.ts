@@ -1,5 +1,3 @@
-import path from 'path';
-
 // eslint-disable-next-line  @typescript-eslint/no-var-requires
 const siteAuthor = require('./metadata.json').author;
 // eslint-disable-next-line  @typescript-eslint/no-var-requires
@@ -38,11 +36,6 @@ const siteAuthorSubstack = require('./metadata.json').social.substackSebastien;
 const siteAuthorRole = require('./metadata.json').roles.sebastien;
 // eslint-disable-next-line  @typescript-eslint/no-var-requires
 const siteAuthorAvatar = require('./metadata.json').avatars.sebastien;
-
-/**
- * App
- */
-export const APP_FOLDER = path.resolve(process.cwd(), 'apps/knowii');
 
 /**
  * Utils
