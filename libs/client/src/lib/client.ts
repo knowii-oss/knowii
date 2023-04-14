@@ -7,4 +7,5 @@ export * from './mdx-components';
 export * from './permissions';
 export * from './stripe-client';
 export * from './subscriptions';
+export * from './supabase';
 export * from './utils';

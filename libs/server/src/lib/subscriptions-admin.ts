@@ -1,6 +1,6 @@
 import Stripe from 'stripe';
 import { stripe } from './stripe-admin';
-import { supabaseAdmin } from './supabase-admin';
+import { supabaseAdmin } from './supabase/supabase-admin';
 
 export async function getOrCreateStripeCustomer({ email, userId }: { email: string; userId: string }): Promise<string> {
   const { data, error } = await supabaseAdmin.from('customers').select('stripe_customer_id').eq('user_id', userId).single();
