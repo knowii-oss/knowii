@@ -58,7 +58,9 @@ export function SigninForm(_props: SigninFormProps) {
     const {
       data: { subscription },
     } = supabaseClient.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_IN') router.replace(redirectAfterSignin);
+      if (event === 'SIGNED_IN') {
+        router.replace(redirectAfterSignin);
+      }
     });
 
     return () => subscription.unsubscribe();
