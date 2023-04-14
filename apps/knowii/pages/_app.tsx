@@ -1,5 +1,4 @@
 import { AppProps } from 'next/app';
-import { ChakraBaseProvider, cookieStorageManagerSSR, localStorageManager } from '@chakra-ui/react';
 
 import '../styles/tailwind.scss';
 import '../styles/tailwind-utilities.scss';
@@ -15,14 +14,16 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useRouterScroll } from '@knowii/client';
 import { GetServerSideProps } from 'next';
 import { NextApiRequestCookies } from 'next/dist/server/api-utils';
-import { createBrowserSupabaseClient, Session } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/router';
 import ProgressBar from '../components/layout/progress-bar';
-import { customTheme, defaultToastOptions } from '../chakra-ui.config';
-import { SessionContextProvider } from '@supabase/auth-helpers-react';
 import Head from 'next/head';
 import { NextIntlProvider } from 'next-intl';
 import { SIGN_IN_URL } from '@knowii/common';
+import { MaybeSupabaseSession } from '../components/supabase-provider';
+import { createBrowserClient } from '../../../libs/client/src/lib/supabase/supabase-browser';
+import { ChakraBaseProvider, cookieStorageManagerSSR, localStorageManager } from '@chakra-ui/react';
+import { customTheme, defaultToastOptions } from '../chakra-ui.config';
+import { SessionContextProvider } from '@supabase/auth-helpers-react';
 
 // eslint-disable-next-line  @typescript-eslint/no-var-requires
 const siteTitle = require('../../../libs/common/src/lib/metadata.json').title;
@@ -42,7 +43,7 @@ export const getServerSideProps: GetServerSideProps = async ({ req }) => {
 
 export interface CustomPageProps {
   cookies?: NextApiRequestCookies;
-  initialSession?: Session | null;
+  initialSession: MaybeSupabaseSession;
   messages: Messages;
   now: number;
 }
@@ -55,8 +56,11 @@ export interface CustomPageProps {
  */
 const App = ({ Component, pageProps }: AppProps<CustomPageProps>) => {
   const router = useRouter();
-  const [supabaseClient] = useState(() => createBrowserSupabaseClient());
+
   const { cookies } = pageProps;
+
+  const [supabaseClient] = useState(() => createBrowserClient());
+
   const colorModeManager = typeof cookies === 'string' ? cookieStorageManagerSSR(cookies) : localStorageManager;
 
   // redirect to signin page if user is signed out while being on a protected page
