@@ -27,6 +27,7 @@ const nextConfig = {
    * https://github.com/vercel/next.js/blob/canary/packages/next/next-server/server/config.ts#L12-L63
    * https://nextjs.org/docs/api-reference/next.config.js/introduction
    */
+  // FIXME remove this once migrated to Next.js 13 (app folder)
   i18n: i18nConfig.i18n,
   nx: {
     // Set this to true if you would like to to use SVGR
@@ -52,11 +53,12 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   // output: 'standalone', // Enable Output File Tracing:  https://nextjs.org/docs/advanced-features/output-file-tracing
-  // experimental: {
-  //   // This includes files from the monorepo base two directories up
-  //   // Required for output file tracing
-  //   outputFileTracingRoot: path.join(__dirname, '../../'),
-  // },
+  experimental: {
+    appDir: true,
+    //   // This includes files from the monorepo base two directories up
+    //   // Required for output file tracing
+    //   outputFileTracingRoot: path.join(__dirname, '../../'),
+  },
 };
 
 export default withNx(nextConfig);
