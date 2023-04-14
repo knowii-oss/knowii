@@ -31,10 +31,17 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
   console.log('Locale: ', locale);
 
   console.log('Loading MDX');
-  const mdx = await getMdx({ type: WebsiteDataType.BLOG, slug, locale });
+  let mdx = await getMdx({ type: WebsiteDataType.BLOG, slug, locale });
+
+  if (!mdx && locale !== i18nConfig.i18n.defaultLocale) {
+    console.log(
+      `Could not find the post [${slug}] with locale [${locale}]. Loading it with the default locale: [${i18nConfig.i18n.defaultLocale}]`,
+    );
+    mdx = await getMdx({ type: WebsiteDataType.BLOG, slug, locale: i18nConfig.i18n.defaultLocale });
+  }
 
   if (!mdx) {
-    console.log('No MDX. Redirecting to blog home');
+    console.log(`Could not find the post [${slug}]. Redirecting to blog home`);
     return { redirect: { destination: '/blog', permanent: false } };
   }
 
