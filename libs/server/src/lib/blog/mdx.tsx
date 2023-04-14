@@ -19,9 +19,7 @@ export function getFilesList({ type, locale }: { type: WebsiteDataType.BLOG; loc
 
   const folderPath = path.join(CONTENT_FOLDER_PATH, type, locale);
   try {
-    console.log('Loading files list from: ', folderPath);
     retVal = fs.readdirSync(folderPath);
-    console.log('Files list: ', JSON.stringify(retVal));
   } catch {}
 
   return retVal;
@@ -127,10 +125,14 @@ export async function getMdx({ type, slug, locale }: { type: WebsiteDataType; sl
   return retVal;
 }
 
+interface MdxFileDetails {
+  slug: string;
+  locale: string;
+}
+
 export async function getMdxFilePaths({ type, locales }: { type: WebsiteDataType; locales: string[] }) {
   const paths: Array<{
-    params: any;
-    locale?: string;
+    params: MdxFileDetails | any; // any is there to make sure that it works when the result of this function is used as the output of getStaticPaths
   }> = [];
   await Promise.all(
     locales.map(async (locale) => {
@@ -142,24 +144,23 @@ export async function getMdxFilePaths({ type, locales }: { type: WebsiteDataType
             return;
           }
 
-          paths.push({ params: { slug: file.replace('.mdx', ''), locale } });
+          paths.push({
+            params: {
+              slug: file.replace('.mdx', ''),
+              locale,
+            },
+          });
         });
       } catch {}
     }),
   );
 
+  console.log('Found posts: ', paths);
+
   return paths;
 }
 
-export async function getAllMdxEntries({
-  type,
-  locales,
-  locale,
-}: {
-  type: WebsiteDataType;
-  locales: string[];
-  locale: string;
-}): Promise<MdxEntry[]> {
+export async function getAllMdxEntries({ type, locales }: { type: WebsiteDataType; locales: string[] }): Promise<MdxEntry[]> {
   const paths = await getMdxFilePaths({
     type,
     locales,
@@ -167,11 +168,11 @@ export async function getAllMdxEntries({
 
   const entries = (
     await Promise.all(
-      paths.map(async ({ params: { slug } }) => {
+      paths.map(async ({ params: { slug, locale } }) => {
         return await getMdx({ type, slug, locale });
       }),
     )
   ).filter((entry) => entry !== null);
 
-  return entries as MdxEntry[];
+  return entries as MdxEntry[]; // FIXME remove the as
 }

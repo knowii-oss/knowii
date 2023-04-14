@@ -27,10 +27,7 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
   const slug = ctx.params?.['slug'] as string;
   const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
 
-  console.log('Slug: ', slug);
-  console.log('Locale: ', locale);
-
-  console.log('Loading MDX');
+  console.log(`Loading MDX for slug [${slug}] with locale [${locale}]`);
   let mdx = await getMdx({ type: WebsiteDataType.BLOG, slug, locale });
 
   if (!mdx && locale !== i18nConfig.i18n.defaultLocale) {
