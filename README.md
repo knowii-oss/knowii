@@ -6,12 +6,11 @@ Documentation: https://www.notion.so/Knowii-05e0911d5fcb413388fc07b59eae7354
 
 - Install node 16.17.1+
 - Install npm 8.15.0+
-- Install pnpm: `npm install --global pnpm`
 - Install Docker
 - Install psql (to be able to execute SQL scripts against the database, including the db seed script)
-- Login to Supabase: `pnpx supabase login`
-- Run `pnpm install`
-- Prepare and run the local Supabase instance: `pnpm run db:reset`
+- Login to Supabase: `npx supabase login`
+- Run `npm install`
+- Prepare and run the local Supabase instance: `npm run db:reset`
 - Create apps/knowii/.env.local based on .env.example
   - For DATABASE_URL and DIRECT_URL: http://localhost:12345
   - For SHADOW_DATABASE_URL: https://app.supabase.com/project/cipnhztmttjipgawzbqt
@@ -26,9 +25,9 @@ Useful IDE extensions:
 
 ## App
 
-- Start the database: `pnpm run db:start`
-- Run: `pnpm run start`
-- Stop the database: `pnpm run db:stop`
+- Start the database: `npm run db:start`
+- Run: `npm run start`
+- Stop the database: `npm run db:stop`
 
 ## Environments
 
@@ -39,7 +38,7 @@ For development, database credentials are stored in:
 To deploy DB migrations to production:
 
 - Create a file called `.env.prod` under "apps/knowii"
-- Run `pnpm run db:migration:deploy:prod`
+- Run `npm run db:migration:deploy:prod`
 
 The script invokes Prisma but forces a load of the production env file instead of the default one, based on the approach described here: https://github.com/prisma/prisma/discussions/2392
 
@@ -47,13 +46,13 @@ The script invokes Prisma but forces a load of the production env file instead o
 
 There are a number of scripts to handle/ease DB migrations:
 
-- To prepare a migration, run `pnpm run db:migration:prepare`
-- To deploy a migration locally, run `pnpm run db:migration:deploy`
-- To deploy a migration to production, run `pnpm run db:migration:deploy:prod`
-- To check the migration status locally, run `pnpm run db:migration:status`
-- To check the migration status in production, run `pnpm run db:migration:status:prod`
-- To validate the DB schema locally, run `pnpm run db:schema:validate`
-- To validate the DB schema in prod, run `pnpm run db:schema:validate:prod`
+- To prepare a migration, run `npm run db:migration:prepare`
+- To deploy a migration locally, run `npm run db:migration:deploy`
+- To deploy a migration to production, run `npm run db:migration:deploy:prod`
+- To check the migration status locally, run `npm run db:migration:status`
+- To check the migration status in production, run `npm run db:migration:status:prod`
+- To validate the DB schema locally, run `npm run db:schema:validate`
+- To validate the DB schema in prod, run `npm run db:schema:validate:prod`
 
 Note that the `:prod` commands should be used primarily from the CI/CD environment, not from your development machine
 
@@ -71,7 +70,7 @@ When new environment variables are necessary, they should:
 
 ## Developing components
 
-Create reusable components in the 'client-ui' library. Test those using Storybook: `pnpm run storybook:client-ui`
+Create reusable components in the 'client-ui' library. Test those using Storybook: `npm run storybook:client-ui`
 
 ## Adding a locale
 

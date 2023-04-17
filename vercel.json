@@ -1,5 +1,5 @@
 {
-  "buildCommand": "pnpm run build:knowii",
+  "buildCommand": "npm run build:knowii",
   "framework": "nextjs",
   "cleanUrls": true,
   "trailingSlash": false,
