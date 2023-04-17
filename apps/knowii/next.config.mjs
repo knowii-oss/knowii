@@ -3,11 +3,11 @@
 
 import { withNx } from '@nrwl/next/plugins/with-nx.js';
 import { i18nConfig } from '../../i18n.config.mjs';
-//import path from 'path';
-//import { fileURLToPath } from 'url';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-//const __filename = fileURLToPath(import.meta.url);
-//const __dirname = path.dirname(__filename);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 console.log(`> Building in "${process.env.NODE_ENV}" mode (NODE_ENV)`);
 
@@ -55,9 +55,22 @@ const nextConfig = {
   // output: 'standalone', // Enable Output File Tracing:  https://nextjs.org/docs/advanced-features/output-file-tracing
   experimental: {
     appDir: true,
-    //   // This includes files from the monorepo base two directories up
-    //   // Required for output file tracing
-    //   outputFileTracingRoot: path.join(__dirname, '../../'),
+    // This includes files from the monorepo base two directories up
+    // Required for output file tracing
+    outputFileTracingRoot: path.join(__dirname, '../../'),
+
+    // Added excludes to limit the size of serverless functions in production
+    // Without this we hit the 50MB limit and those are not required in production
+    // To debug function size, run: `NEXT_DEBUG_FUNCTION_SIZE=1 vercel build`
+    // Reference: https://github.com/orgs/vercel/discussions/103
+    outputFileTracingExcludes: {
+      '*': [
+        // prettier-ignore
+        'node_modules/@swc/core-linux-x64-gnu',
+        'node_modules/@swc/core-linux-x64-musl',
+        'node_modules/@esbuild/linux-x64',
+      ],
+    },
   },
 };
 
