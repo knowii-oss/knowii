@@ -54,7 +54,7 @@ const nextConfig = {
   },
   // output: 'standalone', // Enable Output File Tracing:  https://nextjs.org/docs/advanced-features/output-file-tracing
   experimental: {
-    appDir: true,
+    appDir: false,
     // This includes files from the monorepo base two directories up
     // Required for output file tracing
     outputFileTracingRoot: path.join(__dirname, '../../'),
