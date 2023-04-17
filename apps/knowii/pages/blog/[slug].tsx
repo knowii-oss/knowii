@@ -3,7 +3,6 @@ import { GetStaticPaths, GetStaticProps } from 'next';
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
 import Head from 'next/head';
 import Image from 'next/image';
-import { useMemo } from 'react';
 import Script from 'next/script';
 import ErrorPage from 'next/error';
 import { useRouter } from 'next/router';
@@ -39,7 +38,9 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
 
   if (!mdx) {
     console.log(`Could not find the post [${slug}]. Redirecting to blog home`);
-    return { redirect: { destination: '/blog', permanent: false } };
+    return {
+      notFound: true,
+    };
   }
 
   // Get cover image size
@@ -66,13 +67,10 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
   return retVal;
 };
 
-export const getStaticPaths: GetStaticPaths = async (ctx) => {
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const locales = ctx.locales!;
-
+export const getStaticPaths: GetStaticPaths = async (_ctx) => {
   const paths = await getMdxFilePaths({
     type: WebsiteDataType.BLOG,
-    locales,
+    locales: i18nConfig.i18n.locales,
   });
 
   return {
@@ -100,10 +98,11 @@ export function BlogPostPage({ mdxSource, frontMatter }: BlogPostPageProps) {
     return <ErrorPage statusCode={404} />;
   }
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const t = useTranslations('blogPostPage');
 
   const pageTitle = frontMatter.title ? `${frontMatter.title} - ${t('blog')}` : t('blog'); // FIXME change title
-  const metaImage = useMemo(() => frontMatter.imageDetails?.src ?? null, [frontMatter]);
+  const metaImage = frontMatter.imageDetails?.src ?? null;
 
   const author = frontMatter.author ?? siteAuthor;
   const authorImage = frontMatter.authorImage ?? siteAuthorAvatar;
