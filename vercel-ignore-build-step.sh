@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# To test this script locally, run a command such as: `VERCEL_ENV=preview VERCEL_GIT_COMMIT_REF= ./vercel-ignore-build-step.sh && echo $?`
 # References: https://vercel.com/docs/concepts/projects/environment-variables/system-environment-variables
 echo "VERCEL_ENV: $VERCEL_ENV"
 echo "VERCEL_GIT_COMMIT_REF: $VERCEL_GIT_COMMIT_REF"
