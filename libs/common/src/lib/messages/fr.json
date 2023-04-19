@@ -102,6 +102,11 @@
     "message": "Vous avez l'air perdu(e)...",
     "goBackHomeLink": "\uD83D\uDC49 Retourner à la page d'accueil"
   },
+  "internalServerErrorPage": {
+    "title": "Oups...",
+    "message": "Nous avons un problème à résoudre...",
+    "goBackHomeLink": "\uD83D\uDC49 Retourner à la page d'accueil"
+  },
   "accountPage": {
     "account": "Compte",
     "updateUserName": {
