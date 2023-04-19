@@ -53,6 +53,8 @@
     "serve": "npm run start:knowii",
     "start": "npm run start:knowii",
     "start:knowii": "NODE_OPTIONS=--max-old-space-size=4048 npx nx run knowii:serve",
+    "start:prod": "npm run start:knowii:prod",
+    "start:knowii:prod": "cd dist/apps/knowii; NODE_OPTIONS=--max-old-space-size=4048; dotenv -e ../../../apps/knowii/.env.local npx next start",
     "storybook:client-ui": "npx cross-env TAILWIND_MODE=watch npx nx storybook client-ui",
     "tailwind": "tailwind --config ./apps/knowii/tailwind.config.ts",
     "test": "npm run test:all",

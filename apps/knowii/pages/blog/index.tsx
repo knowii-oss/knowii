@@ -2,19 +2,19 @@ import { Box, Container, VStack } from '@chakra-ui/react';
 import { GetStaticProps } from 'next';
 import { useTranslations } from 'next-intl';
 import { getAllMdxEntries, MdxEntry } from '@knowii/server';
-import { WebsiteDataType } from '@knowii/common';
+import { WebsiteDataType, LocaleCode } from '@knowii/common';
 import Layout from '../../components/layout/layout';
 import { BlogPostOverview, PageHeader } from '@knowii/client-ui';
 import { i18nConfig } from '../../../../i18n.config.mjs';
 import { CustomPageProps } from '../_app';
 
-export const getStaticProps: GetStaticProps = async (ctx) => {
+export const getStaticProps: GetStaticProps<Partial<CustomPageProps>> = async (ctx) => {
   const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
 
   const entries = (
     await getAllMdxEntries({
       type: WebsiteDataType.BLOG,
-      locales: i18nConfig.i18n.locales,
+      locales: i18nConfig.i18n.locales as LocaleCode[],
     })
   )
     /* Only show posts that have been set to published */
@@ -32,6 +32,10 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
     props: {
       messages,
       entries,
+      // Note that when `now` is passed to the app, you need to make sure the
+      // value is updated from time to time, so relative times are updated. See
+      // https://next-intl-docs.vercel.app/docs/usage/configuration#global-now-value
+      now: new Date().getTime(),
     },
   };
 

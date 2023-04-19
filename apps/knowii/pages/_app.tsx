@@ -20,7 +20,7 @@ import Head from 'next/head';
 import { NextIntlProvider } from 'next-intl';
 import { SIGN_IN_URL } from '@knowii/common';
 import { MaybeSupabaseSession } from '../components/supabase-provider';
-import { createBrowserClient } from '../../../libs/client/src/lib/supabase/supabase-browser';
+import { createBrowserClient } from '@knowii/client';
 import { ChakraBaseProvider, cookieStorageManagerSSR, localStorageManager } from '@chakra-ui/react';
 import { customTheme, defaultToastOptions } from '../chakra-ui.config';
 import { SessionContextProvider } from '@supabase/auth-helpers-react';
@@ -32,12 +32,17 @@ const siteDescription = require('../../../libs/common/src/lib/metadata.json').de
 
 const queryClient = new QueryClient();
 
-export const getServerSideProps: GetServerSideProps = async ({ req }) => {
-  const retVal: { props: Partial<CustomPageProps> } = {
+export const getServerSideProps: GetServerSideProps<Partial<CustomPageProps>> = async ({ req }) => {
+  const retVal = {
     props: {
       cookies: req.cookies,
+      // Note that when `now` is passed to the app, you need to make sure the
+      // value is updated from time to time, so relative times are updated. See
+      // https://next-intl-docs.vercel.app/docs/usage/configuration#global-now-value
+      now: new Date().getTime(),
     },
   };
+
   return retVal;
 };
 
