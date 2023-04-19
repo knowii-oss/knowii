@@ -6,7 +6,7 @@ import path from 'path';
 import rehypeSlug from 'rehype-slug';
 import rehypeImgSize from 'rehype-img-size';
 import fs from 'fs';
-import { FrontMatter, hasErrorMessage, WebsiteDataType } from '@knowii/common';
+import { FrontMatter, hasErrorMessage, LocaleCode, WebsiteDataType } from '@knowii/common';
 import readingTime from 'reading-time';
 
 const APP_FOLDER = path.resolve(process.cwd(), 'apps/knowii');
@@ -14,13 +14,15 @@ const APP_FOLDER = path.resolve(process.cwd(), 'apps/knowii');
 const PUBLIC_FOLDER_PATH = path.join(APP_FOLDER, 'public');
 const CONTENT_FOLDER_PATH = path.join(APP_FOLDER, 'content');
 
-export function getFilesList({ type, locale }: { type: WebsiteDataType.BLOG; locale: string }): string[] {
-  let retVal: string[] = [];
+export function getFilesList({ type, locale }: { type: WebsiteDataType; locale: LocaleCode }): string[] {
+  let retVal: string[];
 
   const folderPath = path.join(CONTENT_FOLDER_PATH, type, locale);
   try {
     retVal = fs.readdirSync(folderPath);
-  } catch {}
+  } catch {
+    retVal = [];
+  }
 
   return retVal;
 }
@@ -38,7 +40,7 @@ export async function getFileBySlug({
 }: {
   type: WebsiteDataType;
   slug: string;
-  locale: string;
+  locale: LocaleCode;
 }): Promise<string | null> {
   let source = null;
 
@@ -74,7 +76,15 @@ export function getImageSize({ imagePath }: { imagePath: string }) {
   return sizeOf(filePath);
 }
 
-export async function getMdx({ type, slug, locale }: { type: WebsiteDataType; slug: string; locale: string }): Promise<MdxEntry | null> {
+export async function getMdx({
+  type,
+  slug,
+  locale,
+}: {
+  type: WebsiteDataType;
+  slug: string;
+  locale: LocaleCode;
+}): Promise<MdxEntry | null> {
   const fileContent = await getFileBySlug({
     type,
     slug,
@@ -125,15 +135,14 @@ export async function getMdx({ type, slug, locale }: { type: WebsiteDataType; sl
   return retVal;
 }
 
-interface MdxFileDetails {
+interface MdxFilePath {
   slug: string;
-  locale: string;
+  locale: LocaleCode;
 }
 
-export async function getMdxFilePaths({ type, locales }: { type: WebsiteDataType; locales: string[] }) {
-  const paths: Array<{
-    params: MdxFileDetails | any; // any is there to make sure that it works when the result of this function is used as the output of getStaticPaths
-  }> = [];
+export async function getMdxFilePaths({ type, locales }: { type: WebsiteDataType; locales: LocaleCode[] }): Promise<MdxFilePath[]> {
+  let paths: MdxFilePath[] = [];
+
   await Promise.all(
     locales.map(async (locale) => {
       try {
@@ -145,13 +154,13 @@ export async function getMdxFilePaths({ type, locales }: { type: WebsiteDataType
           }
 
           paths.push({
-            params: {
-              slug: file.replace('.mdx', ''),
-              locale,
-            },
+            slug: file.replace('.mdx', ''),
+            locale,
           });
         });
-      } catch {}
+      } catch {
+        paths = [];
+      }
     }),
   );
 
@@ -160,7 +169,7 @@ export async function getMdxFilePaths({ type, locales }: { type: WebsiteDataType
   return paths;
 }
 
-export async function getAllMdxEntries({ type, locales }: { type: WebsiteDataType; locales: string[] }): Promise<MdxEntry[]> {
+export async function getAllMdxEntries({ type, locales }: { type: WebsiteDataType; locales: LocaleCode[] }): Promise<MdxEntry[]> {
   const paths = await getMdxFilePaths({
     type,
     locales,
@@ -168,8 +177,8 @@ export async function getAllMdxEntries({ type, locales }: { type: WebsiteDataTyp
 
   const entries = (
     await Promise.all(
-      paths.map(async ({ params: { slug, locale } }) => {
-        return await getMdx({ type, slug, locale });
+      paths.map(async (path) => {
+        return await getMdx({ type, slug: path.slug, locale: path.locale });
       }),
     )
   ).filter((entry) => entry !== null);

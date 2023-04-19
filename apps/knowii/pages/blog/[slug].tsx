@@ -10,10 +10,11 @@ import { BlogPostMeta, Loader, PageHeader } from '@knowii/client-ui';
 import { mdxComponents } from '@knowii/client';
 import { Layout } from '../../components/layout/layout';
 import { getImageSize, getMdx, getMdxFilePaths } from '@knowii/server';
-import { FrontMatter, SITE_AUTHOR_MICRODATA, WebsiteDataType } from '@knowii/common';
+import { FrontMatter, LocaleCode, SITE_AUTHOR_MICRODATA, WebsiteDataType } from '@knowii/common';
 import { i18nConfig } from '../../../../i18n.config.mjs';
 import { useTranslations } from 'next-intl';
 import { CustomPageProps } from '../_app';
+import { ParsedUrlQuery } from 'querystring';
 
 // eslint-disable-next-line  @typescript-eslint/no-var-requires
 const siteAuthor = require('../../../../libs/common/src/lib/metadata.json').author;
@@ -22,9 +23,56 @@ const siteAuthorAvatar = require('../../../../libs/common/src/lib/metadata.json'
 // eslint-disable-next-line  @typescript-eslint/no-var-requires
 const siteAuthorLink = require('../../../../libs/common/src/lib/metadata.json').social.twitterSebastien;
 
-export const getStaticProps: GetStaticProps = async (ctx) => {
+interface MdxFilePathParams extends ParsedUrlQuery {
+  slug: string;
+  locale?: LocaleCode; // FIXME make mandatory?
+}
+
+interface Params {
+  params: MdxFilePathParams;
+}
+
+export const getStaticPaths: GetStaticPaths<MdxFilePathParams> = async (_ctx) => {
+  const mdxFilePaths = await getMdxFilePaths({
+    type: WebsiteDataType.BLOG,
+    locales: i18nConfig.i18n.locales as LocaleCode[],
+  });
+
+  const paths: Params[] = [];
+
+  //[{params: { keys}}]
+
+  // welcome en
+  // lol fr
+  // common en fr
+
+  // loop over all paths
+  // create map: slug -> locales
+
+  // loop over map keys
+  // loop over locales
+  // if values[slug] don't include locale
+  // add it anyway
+
+  mdxFilePaths.forEach((filePath) => {
+    paths.push({
+      params: {
+        slug: filePath.slug,
+      },
+    });
+  });
+
+  console.log('getStaticPaths: ', paths);
+
+  return {
+    paths,
+    fallback: false,
+  };
+};
+
+export const getStaticProps: GetStaticProps<BlogPostPageProps, MdxFilePathParams> = async (ctx) => {
   const slug = ctx.params?.['slug'] as string;
-  const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
+  const locale: LocaleCode = ctx.locale ? (ctx.locale as LocaleCode) : (i18nConfig.i18n.defaultLocale as LocaleCode);
 
   console.log(`Loading MDX for slug [${slug}] with locale [${locale}]`);
   let mdx = await getMdx({ type: WebsiteDataType.BLOG, slug, locale });
@@ -33,7 +81,7 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
     console.log(
       `Could not find the post [${slug}] with locale [${locale}]. Loading it with the default locale: [${i18nConfig.i18n.defaultLocale}]`,
     );
-    mdx = await getMdx({ type: WebsiteDataType.BLOG, slug, locale: i18nConfig.i18n.defaultLocale });
+    mdx = await getMdx({ type: WebsiteDataType.BLOG, slug, locale: i18nConfig.i18n.defaultLocale as LocaleCode });
   }
 
   if (!mdx) {
@@ -57,26 +105,18 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
 
   const messages = (await import(`../../../../libs/common/src/lib/messages/${locale}.json`)).default;
 
-  const retVal: { props: Partial<CustomPageProps> & BlogPostPageProps } = {
+  const retVal = {
     props: {
       messages,
       ...mdx,
+      // Note that when `now` is passed to the app, you need to make sure the
+      // value is updated from time to time, so relative times are updated. See
+      // https://next-intl-docs.vercel.app/docs/usage/configuration#global-now-value
+      now: new Date().getTime(),
     },
   };
 
   return retVal;
-};
-
-export const getStaticPaths: GetStaticPaths = async (_ctx) => {
-  const paths = await getMdxFilePaths({
-    type: WebsiteDataType.BLOG,
-    locales: i18nConfig.i18n.locales,
-  });
-
-  return {
-    paths,
-    fallback: true,
-  };
 };
 
 interface BlogPostPageProps extends Partial<CustomPageProps> {

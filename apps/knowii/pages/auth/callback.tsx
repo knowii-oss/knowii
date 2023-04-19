@@ -4,6 +4,19 @@ import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { Loader } from '@knowii/client-ui';
 import { redirectPath } from '@knowii/common';
+import { GetStaticProps } from 'next';
+import { CustomPageProps } from '../_app';
+
+export const getStaticProps: GetStaticProps<Partial<CustomPageProps>> = async (_ctx) => {
+  return {
+    props: {
+      // Note that when `now` is passed to the app, you need to make sure the
+      // value is updated from time to time, so relative times are updated. See
+      // https://next-intl-docs.vercel.app/docs/usage/configuration#global-now-value
+      now: new Date().getTime(),
+    },
+  };
+};
 
 /*
   This is the page that is shown when the user is redirected from the authentication provider.
