@@ -1,6 +1,5 @@
 import Head from 'next/head';
 import React, { PropsWithChildren } from 'react';
-//import NavBar from './nav-bar';
 import Footer from './footer';
 import { propertiesOf } from '@knowii/common';
 import { useRouter } from 'next/router';
@@ -48,8 +47,6 @@ interface LayoutProps
 
 export function Layout({ children, customMeta }: LayoutProps) {
   const router = useRouter();
-
-  console.log(router.asPath);
 
   /**
    * Default metadata
