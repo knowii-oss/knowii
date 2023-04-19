@@ -102,6 +102,11 @@
     "message": "You seem to be lost...",
     "goBackHomeLink": "\uD83D\uDC49 Go back home"
   },
+  "internalServerErrorPage": {
+    "title": "Doh...",
+    "message": "We seem to have a problem to solve...",
+    "goBackHomeLink": "\uD83D\uDC49 Go back home"
+  },
   "accountPage": {
     "account": "Account",
     "updateUserName": {
