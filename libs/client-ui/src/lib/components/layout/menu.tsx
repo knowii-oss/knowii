@@ -16,13 +16,18 @@ export function Menu({ mobileMode }: MenuProps) {
   const isHidden = isMobile !== mobileMode;
 
   const menuItems = [
+    //
+    // {
+    //   label: t('features'),
+    //   link: '/#features',
+    // },
+    // {
+    //   label: t('pricing'),
+    //   link: '/#pricing',
+    // },
     {
-      label: t('features'),
-      link: '/#features',
-    },
-    {
-      label: t('pricing'),
-      link: '/#pricing',
+      label: t('communities'),
+      link: '/communities',
     },
     {
       label: t('blog'),
@@ -46,7 +51,7 @@ export function Menu({ mobileMode }: MenuProps) {
           fontWeight="normal"
           color={menuItemColor}
         >
-          <div className="px-4 pt-2 pb-0">{item.label}</div>
+          <div className="px-4 pt-4 pb-0">{item.label}</div>
         </Button>
       ))}
     </Stack>

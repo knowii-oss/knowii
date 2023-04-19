@@ -28,6 +28,7 @@
     "pricing": "Tarifs",
     "faq": "FAQ",
     "blog": "Blog",
+    "communities": "Communautés",
     "dashboard": "Tableau de bord"
   },
   "hero": {
@@ -243,5 +244,10 @@
   },
   "contactPage": {
     "title": "Nous contacter"
+  },
+  "communitiesPage": {
+    "title": "Communautés",
+    "description": "Explorez nos communautés",
+    "comingSoon": "En construction..."
   }
 }
