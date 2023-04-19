@@ -1,12 +1,8 @@
-//import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
-
 //import styles from './index.module.scss';
 import { Hero } from '../components/home/hero';
-import { Features } from '../components/home/features';
 import { Layout } from '../components/layout/layout';
 import { i18nConfig } from '../../../i18n.config.mjs';
 import { GetStaticProps } from 'next';
-import { Pricing } from '../components/home/pricing';
 import { CustomPageProps } from './_app';
 
 export const getStaticProps: GetStaticProps<Partial<CustomPageProps>> = async (ctx) => {
@@ -31,8 +27,8 @@ const Home = (_props: HomeProps) => {
   return (
     <Layout>
       <Hero />
-      <Features />
-      <Pricing />
+      {/*<Features />*/}
+      {/*<Pricing />*/}
     </Layout>
   );
 };

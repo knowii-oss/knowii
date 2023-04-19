@@ -28,6 +28,7 @@
     "pricing": "Pricing",
     "faq": "FAQ",
     "blog": "Blog",
+    "communities": "Communities",
     "dashboard": "Dashboard"
   },
   "hero": {
@@ -243,5 +244,10 @@
   },
   "contactPage": {
     "title": "Contact us"
+  },
+  "communitiesPage": {
+    "title": "Communities",
+    "description": "Explore our communities",
+    "comingSoon": "Coming soon..."
   }
 }
