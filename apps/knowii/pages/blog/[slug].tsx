@@ -25,11 +25,11 @@ const siteAuthorLink = require('../../../../libs/common/src/lib/metadata.json').
 
 interface MdxFilePathParams extends ParsedUrlQuery {
   slug: string;
-  locale?: LocaleCode; // FIXME make mandatory?
 }
 
 interface Params {
   params: MdxFilePathParams;
+  locale: LocaleCode;
 }
 
 export const getStaticPaths: GetStaticPaths<MdxFilePathParams> = async (_ctx) => {
@@ -40,25 +40,32 @@ export const getStaticPaths: GetStaticPaths<MdxFilePathParams> = async (_ctx) =>
 
   const paths: Params[] = [];
 
-  //[{params: { keys}}]
-
-  // welcome en
-  // lol fr
-  // common en fr
-
-  // loop over all paths
-  // create map: slug -> locales
-
-  // loop over map keys
-  // loop over locales
-  // if values[slug] don't include locale
-  // add it anyway
-
+  const postsMap: Map<string, LocaleCode[]> = new Map<string, LocaleCode[]>();
   mdxFilePaths.forEach((filePath) => {
-    paths.push({
-      params: {
-        slug: filePath.slug,
-      },
+    // Add if the slug is not there yet
+    if (!postsMap.has(filePath.slug)) {
+      // FIXME For now we just add all posts with all languages, simulating the availability
+      // This is because we want all posts to be listed in all languages, we don't want to only show french posts for people using the French
+      postsMap.set(filePath.slug, i18nConfig.i18n.locales as LocaleCode[]);
+      //postsMap.set(filePath.slug, [filePath.locale]);
+      return;
+    }
+
+    // The slug is already there, adding the locale
+    // const currentLocalesForPost = postsMap.get(filePath.slug)!;
+    // if (!currentLocalesForPost.includes(filePath.locale)) {
+    //   currentLocalesForPost.push(filePath.locale);
+    // }
+  });
+
+  postsMap.forEach((localesForPost, slug) => {
+    localesForPost.forEach((localeForPost) => {
+      paths.push({
+        params: {
+          slug,
+        },
+        locale: localeForPost,
+      });
     });
   });
 
