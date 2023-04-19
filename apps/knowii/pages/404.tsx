@@ -4,13 +4,20 @@ import { GetStaticProps } from 'next';
 import { useTranslations } from 'next-intl';
 import { Layout } from '../components/layout/layout';
 import { i18nConfig } from '../../../i18n.config.mjs';
+import { CustomPageProps } from './_app';
 
-export const getStaticProps: GetStaticProps = async (ctx) => {
+export const getStaticProps: GetStaticProps<Partial<CustomPageProps>> = async (ctx) => {
   const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
   const messages = (await import(`../../../libs/common/src/lib/messages/${locale}.json`)).default;
 
   return {
-    props: { messages },
+    props: {
+      messages,
+      // Note that when `now` is passed to the app, you need to make sure the
+      // value is updated from time to time, so relative times are updated. See
+      // https://next-intl-docs.vercel.app/docs/usage/configuration#global-now-value
+      now: new Date().getTime(),
+    },
   };
 };
 
