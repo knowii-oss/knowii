@@ -7,7 +7,7 @@ import Script from 'next/script';
 import ErrorPage from 'next/error';
 import { useRouter } from 'next/router';
 import { BlogPostMeta, Loader, PageHeader } from '@knowii/client-ui';
-import { mdxComponents } from '@knowii/client';
+import { mdxComponents } from '@knowii/client-ui';
 import { Layout } from '../../components/layout/layout';
 import { getImageSize, getMdx, getMdxFilePaths } from '@knowii/server';
 import { FrontMatter, LocaleCode, SITE_AUTHOR_MICRODATA, WebsiteDataType } from '@knowii/common';

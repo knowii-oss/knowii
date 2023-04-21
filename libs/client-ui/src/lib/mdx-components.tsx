@@ -5,18 +5,18 @@ import * as prism from 'prismjs';
 import Prism from 'prismjs';
 import 'prismjs/components/prism-typescript';
 import 'prismjs/components/prism-bash';
-import React, { PropsWithChildren, useMemo } from 'react';
+import { PropsWithChildren, useMemo } from 'react';
 import {
   BlogPostCenteredContent,
   BlogPostNote,
   BlogPostQuote,
   BlogPostSignature,
-  BlogPostWarning,
   BlogPostTip,
-  Step,
+  BlogPostWarning,
   Separator,
   SocialLink,
-} from '@knowii/client-ui';
+  Step,
+} from './components';
 
 // FIXME replace once this is solved: https://github.com/PaulieScanlon/mdx-embed/issues/247
 /// <reference types="../../../../mdx-embed" />
