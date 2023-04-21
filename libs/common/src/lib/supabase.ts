@@ -122,6 +122,7 @@ export interface Database {
           description: string;
           id: string;
           name: string;
+          slug: string;
           updated_at: string;
           visibility: Database['public']['Enums']['community_visibility'];
         };
@@ -130,6 +131,7 @@ export interface Database {
           description?: string;
           id?: string;
           name: string;
+          slug: string;
           updated_at?: string;
           visibility?: Database['public']['Enums']['community_visibility'];
         };
@@ -138,6 +140,7 @@ export interface Database {
           description?: string;
           id?: string;
           name?: string;
+          slug?: string;
           updated_at?: string;
           visibility?: Database['public']['Enums']['community_visibility'];
         };
@@ -276,7 +279,7 @@ export interface Database {
           id?: string;
           name?: string;
           resource_collection_id: string;
-          slug?: string;
+          slug: string;
           source?: string;
           up_votes?: number;
           updated_at?: string;
@@ -509,7 +512,10 @@ export interface Database {
     Tables: {
       buckets: {
         Row: {
+          allowed_mime_types: string[] | null;
+          avif_autodetection: boolean | null;
           created_at: string | null;
+          file_size_limit: number | null;
           id: string;
           name: string;
           owner: string | null;
@@ -517,7 +523,10 @@ export interface Database {
           updated_at: string | null;
         };
         Insert: {
+          allowed_mime_types?: string[] | null;
+          avif_autodetection?: boolean | null;
           created_at?: string | null;
+          file_size_limit?: number | null;
           id: string;
           name: string;
           owner?: string | null;
@@ -525,7 +534,10 @@ export interface Database {
           updated_at?: string | null;
         };
         Update: {
+          allowed_mime_types?: string[] | null;
+          avif_autodetection?: boolean | null;
           created_at?: string | null;
+          file_size_limit?: number | null;
           id?: string;
           name?: string;
           owner?: string | null;
@@ -564,6 +576,7 @@ export interface Database {
           owner: string | null;
           path_tokens: string[] | null;
           updated_at: string | null;
+          version: string | null;
         };
         Insert: {
           bucket_id?: string | null;
@@ -575,6 +588,7 @@ export interface Database {
           owner?: string | null;
           path_tokens?: string[] | null;
           updated_at?: string | null;
+          version?: string | null;
         };
         Update: {
           bucket_id?: string | null;
@@ -586,6 +600,7 @@ export interface Database {
           owner?: string | null;
           path_tokens?: string[] | null;
           updated_at?: string | null;
+          version?: string | null;
         };
       };
     };
@@ -593,6 +608,15 @@ export interface Database {
       [_ in never]: never;
     };
     Functions: {
+      can_insert_object: {
+        Args: {
+          bucketid: string;
+          name: string;
+          owner: string;
+          metadata: Json;
+        };
+        Returns: undefined;
+      };
       extension: {
         Args: {
           name: string;
