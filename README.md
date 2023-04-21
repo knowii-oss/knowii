@@ -95,8 +95,22 @@ When working locally, Supabase starts a number of Docker containers. To check th
 
 ## Adding auth providers
 
+### When adding a new provider
+
+Make sure to configure it on Supabase, but also for local development (with dev credentials). In particular, update:
+
+- The `supabase-set-auth-providers.sh` file so that it generates the correct configuration
+- The .env.example file to include the new required environment variables
+- The technical documentation wiki
+
+Once done, make sure to restart the local Supabase instance
+
 ### GitHub
 
 - Go to https://github.com/settings/applications/new to create a new OAuth app
 - Homepage URL: Supabase auth URL, which can be found in https://app.supabase.com/project/<project id>/auth/providers
 - Authorization callback URL: same url with /auth/v1/callback
+
+### Google
+
+- Go to https://console.cloud.google.com/apis/credentials

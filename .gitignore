@@ -60,4 +60,6 @@ compiled-lang
 # Next.js
 .next
 
+# Supabase config
+# Contains sensitive information during dev
 supabase/config.toml
