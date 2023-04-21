@@ -1,5 +1,11 @@
 # TODO
 
+## Auth providers setup
+
+- Configure constants to list enabled auth providers
+- Make sure the redirect_uri and url are correct
+-
+
 ## Migration to Next.js 13 app folder
 
 - Migrate to use new Supabase approach for next.js 13: https://supabase.com/blog/fetching-and-caching-supabase-data-in-next-js-server-components
