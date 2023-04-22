@@ -19,3 +19,8 @@ export * from './subscriptions';
 // if (!SUPABASE_ANON_KEY) {
 //   throwEnvError('NEXT_PUBLIC_SUPABASE_ANON_KEY');
 // }
+// export const CONFIGURED_AUTH_PROVIDERS = process.env.CONFIGURED_AUTH_PROVIDERS as string;
+// if (!CONFIGURED_AUTH_PROVIDERS) {
+//   throwEnvError('CONFIGURED_AUTH_PROVIDERS');
+// }
+// TODO add other env vars to check
