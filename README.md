@@ -10,6 +10,7 @@ Documentation: https://www.notion.so/Knowii-05e0911d5fcb413388fc07b59eae7354
 - Install psql (to be able to execute SQL scripts against the database, including the db seed script)
 - Login to Supabase: `npx supabase login`
 - Run `npm install`
+- Run `npm run db:setup`
 - Prepare and run the local Supabase instance: `npm run db:reset`
 - Create apps/knowii/.env.local based on .env.example
   - For DATABASE_URL and DIRECT_URL: http://localhost:12345
