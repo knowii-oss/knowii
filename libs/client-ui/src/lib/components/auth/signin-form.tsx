@@ -28,11 +28,13 @@ import { Loader } from '../common/loader';
 import { AuthFormWrapper } from './auth-form-wrapper';
 import { SigninModeSwitch, SigninMode } from './signin-mode-switch';
 import { SocialSigninButton } from './social-signin-button';
+import { Provider } from '@supabase/supabase-js';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface SigninFormProps {}
+export interface SigninFormProps {
+  enabledAuthProviders: Provider[];
+}
 
-export function SigninForm(_props: SigninFormProps) {
+export function SigninForm(props: SigninFormProps) {
   const t = useTranslations('signinForm');
 
   const [mode, setMode] = useState<SigninMode>(SigninMode.MagicLink);
@@ -178,8 +180,61 @@ export function SigninForm(_props: SigninFormProps) {
       </Heading>
 
       <SimpleGrid columns={2} gap={2}>
-        <SocialSigninButton provider="google" redirectAfterSignin={redirectAfterSignin} />
-        <SocialSigninButton provider="github" redirectAfterSignin={redirectAfterSignin} />
+        {props.enabledAuthProviders.includes('google') ? (
+          <SocialSigninButton provider="google" redirectAfterSignin={redirectAfterSignin} />
+        ) : null}
+
+        {props.enabledAuthProviders.includes('apple') ? (
+          <SocialSigninButton provider="apple" redirectAfterSignin={redirectAfterSignin} />
+        ) : null}
+
+        {props.enabledAuthProviders.includes('twitter') ? (
+          <SocialSigninButton provider="twitter" redirectAfterSignin={redirectAfterSignin} />
+        ) : null}
+
+        {props.enabledAuthProviders.includes('facebook') ? (
+          <SocialSigninButton provider="facebook" redirectAfterSignin={redirectAfterSignin} />
+        ) : null}
+
+        {props.enabledAuthProviders.includes('linkedin') ? (
+          <SocialSigninButton provider="linkedin" redirectAfterSignin={redirectAfterSignin} />
+        ) : null}
+
+        {props.enabledAuthProviders.includes('discord') ? (
+          <SocialSigninButton provider="discord" redirectAfterSignin={redirectAfterSignin} />
+        ) : null}
+
+        {props.enabledAuthProviders.includes('slack') ? (
+          <SocialSigninButton provider="slack" redirectAfterSignin={redirectAfterSignin} />
+        ) : null}
+
+        {props.enabledAuthProviders.includes('github') ? (
+          <SocialSigninButton provider="github" redirectAfterSignin={redirectAfterSignin} />
+        ) : null}
+
+        {props.enabledAuthProviders.includes('azure') ? (
+          <SocialSigninButton provider="azure" redirectAfterSignin={redirectAfterSignin} />
+        ) : null}
+
+        {props.enabledAuthProviders.includes('bitbucket') ? (
+          <SocialSigninButton provider="bitbucket" redirectAfterSignin={redirectAfterSignin} />
+        ) : null}
+
+        {props.enabledAuthProviders.includes('gitlab') ? (
+          <SocialSigninButton provider="gitlab" redirectAfterSignin={redirectAfterSignin} />
+        ) : null}
+
+        {props.enabledAuthProviders.includes('notion') ? (
+          <SocialSigninButton provider="notion" redirectAfterSignin={redirectAfterSignin} />
+        ) : null}
+
+        {props.enabledAuthProviders.includes('spotify') ? (
+          <SocialSigninButton provider="spotify" redirectAfterSignin={redirectAfterSignin} />
+        ) : null}
+
+        {props.enabledAuthProviders.includes('twitch') ? (
+          <SocialSigninButton provider="twitch" redirectAfterSignin={redirectAfterSignin} />
+        ) : null}
       </SimpleGrid>
     </AuthFormWrapper>
   );
