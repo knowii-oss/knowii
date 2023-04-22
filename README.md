@@ -95,12 +95,14 @@ When working locally, Supabase starts a number of Docker containers. To check th
 
 ## Adding auth providers
 
-### When adding a new provider
+### When adding/removing a new provider
 
 Make sure to configure it on Supabase, but also for local development (with dev credentials). In particular, update:
 
-- The `supabase-set-auth-providers.sh` file so that it generates the correct configuration
+- The `supabase-set-auth-providers.sh` file so that it generates the correct configuration for local dev
 - The .env.example file to include the new required environment variables
+- The CONFIGURED_AUTH_PROVIDERS environment variable to list the newly added providers (WARNING: don't forget to also update it on Vercel)
+- The signin-form.tsx component
 - The technical documentation wiki
 
 Once done, make sure to restart the local Supabase instance

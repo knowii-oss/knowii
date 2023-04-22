@@ -8,8 +8,15 @@ import { ColorModeSwitch, ForgotPasswordForm, LanguageSwitch, Logo, ResetPasswor
 import { AuthAction, Database, isValidAuthAction, redirectPath, SIGN_IN_URL } from '@knowii/common';
 import { i18nConfig } from '../../../../i18n.config.mjs';
 import { CustomPageProps } from '../_app';
+import { Provider } from '@supabase/supabase-js';
 
-export const getServerSideProps: GetServerSideProps<Partial<CustomPageProps>> = async (ctx) => {
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface AuthPageProps {
+  action: string;
+  enabledAuthProviders: Provider[];
+}
+
+export const getServerSideProps: GetServerSideProps<Partial<CustomPageProps> & AuthPageProps> = async (ctx) => {
   const action = ctx.params?.action as string;
 
   if (!action || !isValidAuthAction(action) || action === 'callback') {
@@ -49,10 +56,15 @@ export const getServerSideProps: GetServerSideProps<Partial<CustomPageProps>> = 
   const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
   const messages = (await import(`../../../../libs/common/src/lib/messages/${locale}.json`)).default;
 
+  const enabledAuthProviders: Provider[] = `${process.env.CONFIGURED_AUTH_PROVIDERS ? process.env.CONFIGURED_AUTH_PROVIDERS : ''}`.split(
+    ',',
+  ) as Provider[];
+
   return {
     props: {
       messages,
       action,
+      enabledAuthProviders,
       // Note that when `now` is passed to the app, you need to make sure the
       // value is updated from time to time, so relative times are updated. See
       // https://next-intl-docs.vercel.app/docs/usage/configuration#global-now-value
@@ -61,7 +73,7 @@ export const getServerSideProps: GetServerSideProps<Partial<CustomPageProps>> = 
   };
 };
 
-export default function AuthPage({ action }: { action: string }) {
+export default function AuthPage(props: AuthPageProps) {
   const t = useTranslations();
 
   const actionTitles: Record<AuthAction, string> = useMemo(
@@ -74,7 +86,7 @@ export default function AuthPage({ action }: { action: string }) {
     }),
     [t],
   );
-  const title = useMemo(() => actionTitles[action as AuthAction], [action, actionTitles]);
+  const title = useMemo(() => actionTitles[props.action as AuthAction], [props.action, actionTitles]);
 
   return (
     <>
@@ -95,10 +107,10 @@ export default function AuthPage({ action }: { action: string }) {
           <Container maxW="lg">
             <VStack align="stretch" spacing={12}>
               <Logo />
-              {action === 'signup' && <SignupForm />}
-              {action === 'signin' && <SigninForm />}
-              {action === 'forgot-password' && <ForgotPasswordForm />}
-              {action === 'reset-password' && <ResetPasswordForm />}
+              {props.action === 'signup' && <SignupForm />}
+              {props.action === 'signin' && <SigninForm enabledAuthProviders={props.enabledAuthProviders} />}
+              {props.action === 'forgot-password' && <ForgotPasswordForm />}
+              {props.action === 'reset-password' && <ResetPasswordForm />}
 
               <HStack justify="space-between">
                 <HStack>

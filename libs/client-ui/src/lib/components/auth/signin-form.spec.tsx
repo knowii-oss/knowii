@@ -40,7 +40,7 @@ jest.mock('@supabase/auth-helpers-react', () => ({
 
 describe('SigninForm', () => {
   it('should render successfully', () => {
-    const { baseElement } = render(<SigninForm />);
+    const { baseElement } = render(<SigninForm enabledAuthProviders={['google', 'github', 'twitter']} />);
     expect(baseElement).toBeTruthy();
   });
 });

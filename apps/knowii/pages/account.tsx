@@ -8,8 +8,9 @@ import { EditableText, Password } from '@knowii/client-ui';
 import Layout from '../components/layout/layout';
 import { useUserName } from '@knowii/client';
 import { i18nConfig } from '../../../i18n.config.mjs';
+import { CustomPageProps } from './_app';
 
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
+export const getServerSideProps: GetServerSideProps<Partial<CustomPageProps>> = async (ctx) => {
   const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
   const messages = (await import(`../../../libs/common/src/lib/messages/${locale}.json`)).default;
 
