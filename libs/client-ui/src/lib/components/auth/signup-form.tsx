@@ -59,6 +59,8 @@ export function SignupForm(_props: SignupFormProps) {
             email,
             // 'user_name' matches the field name used by GitHub
             user_name: username,
+            // TODO implement support for avatar url
+            avatar_url: '',
           },
           emailRedirectTo: redirectTo,
         },
