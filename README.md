@@ -10,11 +10,12 @@ Documentation: https://www.notion.so/Knowii-05e0911d5fcb413388fc07b59eae7354
 - Install psql (to be able to execute SQL scripts against the database, including the db seed script)
 - Login to Supabase: `npx supabase login`
 - Run `npm install`
-- Run `npm run db:setup`
-- Prepare and run the local Supabase instance: `npm run db:reset`
+- Create a file called `gcloud.json` under apps/knowii with the Google Cloud service account key (used for local logging with Supabase)
 - Create apps/knowii/.env.local based on .env.example
-  - For DATABASE_URL and DIRECT_URL: http://localhost:12345
-  - For SHADOW_DATABASE_URL: https://app.supabase.com/project/cipnhztmttjipgawzbqt
+- For DATABASE_URL and DIRECT_URL: http://localhost:12345
+- For SHADOW_DATABASE_URL: https://app.supabase.com/project/cipnhztmttjipgawzbqt
+- ...
+- Prepare and run the local Supabase instance: `npm run db:setup`
 - Install the Stripe CLI: https://stripe.com/docs/stripe-cli
 - If needed, run `stripe listen --forward-to localhost:3000/api/stripe-webhook` to redirect Stripe events to your local instance (useful to fill in the local database with Stripe plans)
 
@@ -104,6 +105,7 @@ Make sure to configure it on Supabase, but also for local development (with dev 
 - The .env.example file to include the new required environment variables
 - The CONFIGURED_AUTH_PROVIDERS environment variable to list the newly added providers (WARNING: don't forget to also update it on Vercel)
 - The signin-form.tsx component
+- The supabase-db-seed.sql script, in particular the triggers that create/update users and user profiles
 - The technical documentation wiki
 
 Once done, make sure to restart the local Supabase instance
