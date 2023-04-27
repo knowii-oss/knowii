@@ -144,7 +144,7 @@ model UserProfiles {
     /// Supabase user id
     user_id_external     String?              @db.Uuid @unique
     name                 String               @default("")
-    image_url            String               @default("")
+    avatar_url           String               @default("")
     phone                String               @default("")
     website              String               @default("")
     twitter              String               @default("")

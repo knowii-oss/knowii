@@ -10,14 +10,16 @@ Documentation: https://www.notion.so/Knowii-05e0911d5fcb413388fc07b59eae7354
 - Install psql (to be able to execute SQL scripts against the database, including the db seed script)
 - Login to Supabase: `npx supabase login`
 - Run `npm install`
-- Create a file called `gcloud.json` under apps/knowii with the Google Cloud service account key (used for local logging with Supabase)
+- Create a file called `gcloud.json` under apps/knowii with the Google Cloud service account key (used for local logging
+  with Supabase)
 - Create apps/knowii/.env.local based on .env.example
 - For DATABASE_URL and DIRECT_URL: http://localhost:12345
 - For SHADOW_DATABASE_URL: https://app.supabase.com/project/cipnhztmttjipgawzbqt
 - ...
 - Prepare and run the local Supabase instance: `npm run db:setup`
 - Install the Stripe CLI: https://stripe.com/docs/stripe-cli
-- If needed, run `stripe listen --forward-to localhost:3000/api/stripe-webhook` to redirect Stripe events to your local instance (useful to fill in the local database with Stripe plans)
+- If needed, run `stripe listen --forward-to localhost:3000/api/stripe-webhook` to redirect Stripe events to your local
+  instance (useful to fill in the local database with Stripe plans)
 
 Useful IDE extensions:
 
@@ -42,7 +44,8 @@ To deploy DB migrations to production:
 - Create a file called `.env.prod` under "apps/knowii"
 - Run `npm run db:migration:deploy:prod`
 
-The script invokes Prisma but forces a load of the production env file instead of the default one, based on the approach described here: https://github.com/prisma/prisma/discussions/2392
+The script invokes Prisma but forces a load of the production env file instead of the default one, based on the approach
+described here: https://github.com/prisma/prisma/discussions/2392
 
 ## DB schema and migrations
 
@@ -60,7 +63,9 @@ Note that the `:prod` commands should be used primarily from the CI/CD environme
 
 ## Git pre-commit hooks
 
-When you try to create a commit, hooks are executed to perform verifications and ensure code quality/formatting. Those are configured by Husky. Check out the `.husky/pre-commit` file, as well as the lint-staged configuration: `.lintstaged.js`
+When you try to create a commit, hooks are executed to perform verifications and ensure code quality/formatting. Those
+are configured by Husky. Check out the `.husky/pre-commit` file, as well as the lint-staged
+configuration: `.lintstaged.js`
 
 ## Environment variables
 
@@ -80,7 +85,8 @@ To add a locale:
 
 - Create the file under apps/knowii/messages
 
-To enable a new NX library to benefit from i18n strong typing, copy the index.d.ts at the root of client-ui over to the new library.
+To enable a new NX library to benefit from i18n strong typing, copy the index.d.ts at the root of client-ui over to the
+new library.
 
 ## Color theme
 
@@ -103,12 +109,32 @@ Make sure to configure it on Supabase, but also for local development (with dev 
 
 - The `supabase-set-auth-providers.sh` file so that it generates the correct configuration for local dev
 - The .env.example file to include the new required environment variables
-- The CONFIGURED_AUTH_PROVIDERS environment variable to list the newly added providers (WARNING: don't forget to also update it on Vercel)
+- The CONFIGURED_AUTH_PROVIDERS environment variable to list the newly added providers (WARNING: don't forget to also
+  update it on Vercel)
 - The signin-form.tsx component
 - The supabase-db-seed.sql script, in particular the triggers that create/update users and user profiles
 - The technical documentation wiki
 
-Once done, make sure to restart the local Supabase instance
+Once done, make sure to recreate/restart the local Supabase instance.
+
+Example with GitHub:
+
+```
+{
+  "iss": "https://api.github.com",
+  "sub": "89887",
+  "name": "Sebastien Dubois",
+  "email":"lechtitseb@gmail.com",
+  "full_name":"Sebastien Dubois",
+  "user_name":"dsebastien",
+  "avatar_url":"https://avatars.githubusercontent.com/u/89887?v=4",
+  "provider_id":"89887",
+  "email_verified":true,
+  "preferred_username":"dsebastien"
+}
+```
+
+GitHub provides "name" and "user_name" fields. Knowii as well (email signup), but Google only provides "name", not "user_name"! Thus each provider potentially needs to be handled differently!
 
 ### GitHub
 

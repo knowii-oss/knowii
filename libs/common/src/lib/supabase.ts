@@ -383,16 +383,15 @@ export interface Database {
       };
       user_profiles: {
         Row: {
+          avatar_url: string;
           bio: string;
           created_at: string;
           facebook: string;
-          family_name: string;
           github: string;
-          given_name: string;
           id: string;
-          image_url: string;
           instagram: string;
           location: string;
+          name: string;
           organization_link: string;
           organization_name: string;
           phone: string;
@@ -404,16 +403,15 @@ export interface Database {
           website: string;
         };
         Insert: {
+          avatar_url?: string;
           bio?: string;
           created_at?: string;
           facebook?: string;
-          family_name?: string;
           github?: string;
-          given_name?: string;
           id?: string;
-          image_url?: string;
           instagram?: string;
           location?: string;
+          name?: string;
           organization_link?: string;
           organization_name?: string;
           phone?: string;
@@ -425,16 +423,15 @@ export interface Database {
           website?: string;
         };
         Update: {
+          avatar_url?: string;
           bio?: string;
           created_at?: string;
           facebook?: string;
-          family_name?: string;
           github?: string;
-          given_name?: string;
           id?: string;
-          image_url?: string;
           instagram?: string;
           location?: string;
+          name?: string;
           organization_link?: string;
           organization_name?: string;
           phone?: string;
@@ -494,6 +491,25 @@ export interface Database {
       };
       auth_uid: {
         Args: Record<PropertyKey, never>;
+        Returns: string;
+      };
+      generate_username: {
+        Args: {
+          full_name: string;
+        };
+        Returns: string;
+      };
+      random_between: {
+        Args: {
+          low: number;
+          high: number;
+        };
+        Returns: number;
+      };
+      replace_diacritics: {
+        Args: {
+          full_name: string;
+        };
         Returns: string;
       };
     };
