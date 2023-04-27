@@ -34,8 +34,8 @@ export function SignupForm(_props: SignupFormProps) {
   const { register, handleSubmit, formState, setError, clearErrors } = useForm<{
     email: string;
     password: string;
-    givenName: string;
-    familyName: string;
+    name: string;
+    username: string;
     serverError?: void;
   }>();
   const { isSubmitting, isSubmitted, isSubmitSuccessful } = formState;
@@ -43,7 +43,7 @@ export function SignupForm(_props: SignupFormProps) {
 
   const onSubmit = (e: FormEvent) => {
     clearErrors('serverError');
-    handleSubmit(async ({ email, password, givenName, familyName }) => {
+    handleSubmit(async ({ email, username, password, name }) => {
       const {
         data: { session, user: newUser },
         error,
@@ -52,11 +52,13 @@ export function SignupForm(_props: SignupFormProps) {
         password,
         options: {
           data: {
-            // WARNING: Those kay names are very sensitive
+            // WARNING: Those kay names are VERY sensitive
             // They are used by the triggers defined in supabase-db-seed.sql
-            given_name: givenName,
-            family_name: familyName,
-            full_name: `${givenName} ${familyName}`,
+            // 'name' matches the field name used by GitHub
+            name,
+            email,
+            // 'user_name' matches the field name used by GitHub
+            user_name: username,
           },
           emailRedirectTo: redirectTo,
         },
@@ -109,32 +111,17 @@ export function SignupForm(_props: SignupFormProps) {
 
           {(!isSubmitted || !isSubmitSuccessful) && (
             <>
-              {/* Given Name field */}
+              {/* Name field */}
               <FormControl>
-                <FormLabel>{t('fields.givenName')}</FormLabel>
+                <FormLabel>{t('fields.name')}</FormLabel>
                 <InputGroup>
                   <InputLeftElement color="gray.300">
                     <FaUserAlt />
                   </InputLeftElement>
                   <Input
                     // Reference: https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/autocomplete
-                    autoComplete="given-name"
-                    {...register('givenName', { required: true })}
-                  />
-                </InputGroup>
-              </FormControl>
-
-              {/* Family Name field */}
-              <FormControl>
-                <FormLabel>{t('fields.familyName')}</FormLabel>
-                <InputGroup>
-                  <InputLeftElement color="gray.300">
-                    <FaUserAlt />
-                  </InputLeftElement>
-                  <Input
-                    // Reference: https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/autocomplete
-                    autoComplete="family-name"
-                    {...register('familyName', { required: true })}
+                    autoComplete="name"
+                    {...register('name', { required: true })}
                   />
                 </InputGroup>
               </FormControl>
@@ -153,6 +140,22 @@ export function SignupForm(_props: SignupFormProps) {
                     // Reference: https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/autocomplete
                     autoComplete="email"
                     {...register('email', { required: true })}
+                  />
+                </InputGroup>
+              </FormControl>
+
+              {/* Username field */}
+              {/* FIXME add username availability check */}
+              <FormControl>
+                <FormLabel>{t('fields.username')}</FormLabel>
+                <InputGroup>
+                  <InputLeftElement color="gray.300">
+                    <FaUserAlt />
+                  </InputLeftElement>
+                  <Input
+                    // Reference: https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/autocomplete
+                    autoComplete="username"
+                    {...register('username', { required: true })}
                   />
                 </InputGroup>
               </FormControl>

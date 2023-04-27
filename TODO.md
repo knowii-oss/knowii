@@ -2,9 +2,13 @@
 
 ## Auth providers setup
 
+- Add username field to sign up form
+- Test scenario where user was created by social login and then tries to register with same email
 - Configure constants to list enabled auth providers
 - Make sure the redirect_uri and url are correct
--
+- Edit app consent screen details for Google (URL, privacy policy, terms of service, etc): https://console.cloud.google.com/apis/credentials/consent/edit?authuser=1&project=starry-axis-302621
+  - Also PUBLISH the app
+- Edit app consent screen details for GitHub
 
 ## Migration to Next.js 13 app folder
 
