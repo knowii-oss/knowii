@@ -143,8 +143,7 @@ model UserProfiles {
     user_id              String               @db.Uuid @unique
     /// Supabase user id
     user_id_external     String?              @db.Uuid @unique
-    given_name           String               @default("")
-    family_name          String               @default("")
+    name                 String               @default("")
     image_url            String               @default("")
     phone                String               @default("")
     website              String               @default("")
@@ -163,8 +162,7 @@ model UserProfiles {
     user                 Users?               @relation("user_profile_user", fields: [user_id], references: [id])
     user_external        Users?               @relation("user_profile_external_user", fields: [user_id_external], references: [user_id_external])
 
-    @@index([given_name], map: "idx_user_profile_given_name")
-    @@index([family_name], map: "idx_user_profile_family_name")
+    @@index([name], map: "idx_user_profile_name")
     @@schema("public")
     @@map("user_profiles")
 }
