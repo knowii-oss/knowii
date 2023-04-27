@@ -63,3 +63,6 @@ compiled-lang
 # Supabase config
 # Contains sensitive information during dev
 supabase/config.toml
+
+# Google Cloud service account key (used for local Supabase logging)
+apps/knowii/gcloud.json
