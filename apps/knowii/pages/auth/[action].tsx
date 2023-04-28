@@ -2,9 +2,18 @@ import { Box, Container, Flex, HStack, Text, useColorModeValue, VStack } from '@
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
 import { GetServerSideProps } from 'next';
 import Head from 'next/head';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { ColorModeSwitch, ForgotPasswordForm, LanguageSwitch, Logo, ResetPasswordForm, SigninForm, SignupForm } from '@knowii/client-ui';
+import {
+  ColorModeSwitch,
+  ForgotPasswordForm,
+  LanguageSwitch,
+  Logo,
+  ResetPasswordForm,
+  SigninForm,
+  SignupForm,
+  useDebounce,
+} from '@knowii/client-ui';
 import { AuthAction, Database, isValidAuthAction, redirectPath, SIGN_IN_URL } from '@knowii/common';
 import { i18nConfig } from '../../../../i18n.config.mjs';
 import { CustomPageProps } from '../_app';
@@ -88,6 +97,78 @@ export default function AuthPage(props: AuthPageProps) {
   );
   const title = useMemo(() => actionTitles[props.action as AuthAction], [props.action, actionTitles]);
 
+  const [isUsernameAvailable, setIsUsernameAvailable] = useState(false);
+  const [checkingUsernameAvailability, setCheckingUsernameAvailability] = useState(false);
+  const [username, setUsername] = useState('');
+  const usernameToCheck = useDebounce(username, 500);
+
+  const lastAbortController = useRef<AbortController | null>();
+
+  const verifyUsernameAvailability = async (abortController: AbortController) => {
+    setCheckingUsernameAvailability(true);
+
+    setIsUsernameAvailable(await checkIfUsernameIsAvailable(username, abortController.signal));
+
+    if (lastAbortController.current) {
+      lastAbortController.current = null;
+    }
+
+    setCheckingUsernameAvailability(false);
+  };
+
+  useEffect(() => {
+    if (usernameToCheck) {
+      // When a new request is going to be issued,
+      // the first thing to do is cancel the previous one
+      if (lastAbortController.current) {
+        lastAbortController.current.abort();
+      }
+
+      // Create new AbortController for the new request and store it in the ref
+      const currentAbortController = new AbortController();
+      lastAbortController.current = currentAbortController;
+
+      verifyUsernameAvailability(currentAbortController);
+    }
+  }, [usernameToCheck]);
+
+  const checkIfUsernameIsAvailable = async (username: string, signal?: AbortSignal): Promise<boolean> => {
+    if ('' === username.trim()) {
+      return false;
+    }
+
+    console.log('Checking username availability');
+
+    try {
+      const response = await fetch('/api/v1/is-username-available', {
+        signal,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          usernameToCheck: username,
+        }),
+      });
+
+      //console.log('Response: ', response);
+
+      if (response.ok) {
+        const responseBody = await response.json();
+
+        if (responseBody.isUsernameAvailable) {
+          console.log('Username is available');
+          return true;
+        } else {
+          return false;
+        }
+      }
+    } catch (error) {
+      // FIXME handle error cases
+      console.error(error);
+    }
+
+    return false;
+  };
+
   return (
     <>
       <Head>
@@ -107,7 +188,13 @@ export default function AuthPage(props: AuthPageProps) {
           <Container maxW="lg">
             <VStack align="stretch" spacing={12}>
               <Logo />
-              {props.action === 'signup' && <SignupForm />}
+              {props.action === 'signup' && (
+                <SignupForm
+                  checkingUsernameAvailability={checkingUsernameAvailability}
+                  isUsernameAvailable={isUsernameAvailable}
+                  checkUsernameAvailability={setUsername}
+                />
+              )}
               {props.action === 'signin' && <SigninForm enabledAuthProviders={props.enabledAuthProviders} />}
               {props.action === 'forgot-password' && <ForgotPasswordForm />}
               {props.action === 'reset-password' && <ResetPasswordForm />}

@@ -15,18 +15,22 @@ import {
 import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
-import { FormEvent, useCallback, useState } from 'react';
+import { ClipboardEvent, FormEvent, KeyboardEvent, useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { FaAt, FaEye, FaEyeSlash, FaLock, FaUserAlt } from 'react-icons/fa';
-import { redirectPath, SIGN_IN_URL } from '@knowii/common';
+import { FaAt, FaCheckCircle, FaClock, FaEye, FaEyeSlash, FaLock, FaTimesCircle, FaUserAlt } from 'react-icons/fa';
+import { allowedUsernameCharactersRegex, redirectPath, SIGN_IN_URL } from '@knowii/common';
 import { useAuthRedirectUrl } from '@knowii/client';
 import { AuthFormWrapper } from './auth-form-wrapper';
 import { useTranslations } from 'next-intl';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface SignupFormProps {}
+export interface SignupFormProps {
+  checkingUsernameAvailability: boolean;
+  isUsernameAvailable: boolean;
+  checkUsernameAvailability: (username: string) => void;
+}
 
-export function SignupForm(_props: SignupFormProps) {
+export function SignupForm(props: SignupFormProps) {
   const t = useTranslations('signupForm');
   const supabaseClient = useSupabaseClient();
   const router = useRouter();
@@ -40,7 +44,9 @@ export function SignupForm(_props: SignupFormProps) {
   }>();
   const { isSubmitting, isSubmitted, isSubmitSuccessful } = formState;
   const [isPasswordVisible, setPasswordVisible] = useState(false);
+  const [usernameFieldTouched, setUsernameFieldTouched] = useState(false);
 
+  // FIXME extract this to the [action].tsx page. This component should be dumb
   const onSubmit = (e: FormEvent) => {
     clearErrors('serverError');
     handleSubmit(async ({ email, username, password, name }) => {
@@ -83,6 +89,18 @@ export function SignupForm(_props: SignupFormProps) {
   };
 
   const togglePassword = useCallback(() => setPasswordVisible(!isPasswordVisible), [isPasswordVisible]);
+
+  const filterInvalidUsernameCharacters = (e: KeyboardEvent) => {
+    if (allowedUsernameCharactersRegex.test(e.key)) {
+      e.preventDefault();
+    }
+  };
+
+  const filterInvalidUsernameCharactersFromPaste = (e: ClipboardEvent<HTMLInputElement>) => {
+    if (e.clipboardData && allowedUsernameCharactersRegex.test(e.clipboardData.getData('Text'))) {
+      e.preventDefault();
+    }
+  };
 
   return (
     <AuthFormWrapper
@@ -147,7 +165,6 @@ export function SignupForm(_props: SignupFormProps) {
               </FormControl>
 
               {/* Username field */}
-              {/* FIXME add username availability check */}
               <FormControl>
                 <FormLabel>{t('fields.username')}</FormLabel>
                 <InputGroup>
@@ -155,10 +172,27 @@ export function SignupForm(_props: SignupFormProps) {
                     <FaUserAlt />
                   </InputLeftElement>
                   <Input
-                    // Reference: https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/autocomplete
-                    autoComplete="username"
                     {...register('username', { required: true })}
+                    onChange={(event) => props.checkUsernameAvailability(event.target.value)}
+                    onBlur={() => setUsernameFieldTouched(true)}
+                    onKeyUp={() => setUsernameFieldTouched(true)}
+                    onKeyDown={(e) => filterInvalidUsernameCharacters(e)}
+                    onPaste={(e) => filterInvalidUsernameCharactersFromPaste(e)}
                   />
+                  <InputRightElement>
+                    {
+                      /* Only check the username availability when the field has been touched */
+                      !usernameFieldTouched ? (
+                        ''
+                      ) : props.checkingUsernameAvailability ? (
+                        <FaClock className="text-gray-500" />
+                      ) : props.isUsernameAvailable ? (
+                        <FaCheckCircle className="text-green-500" />
+                      ) : (
+                        <FaTimesCircle className="text-red-500" />
+                      )
+                    }
+                  </InputRightElement>
                 </InputGroup>
               </FormControl>
 
@@ -183,7 +217,7 @@ export function SignupForm(_props: SignupFormProps) {
               </FormControl>
 
               {/* Submit button */}
-              <Button colorScheme="primary" type="submit" isLoading={isSubmitting}>
+              <Button colorScheme="primary" type="submit" isLoading={isSubmitting} isDisabled={!props.isUsernameAvailable}>
                 {t('submitButton')}
               </Button>
             </>
