@@ -115,8 +115,45 @@ begin
 end;
 $$;
 
+-- clean the given username (remove unwanted characters)
+create or replace function public.clean_username(username text)
+  returns text
+  language plpgsql
+  strict
+as
+$$
+declare
+  clean_username text;
+begin
+  -- trim
+  clean_username = trim(username); -- limit the initial length
+
+  -- replace diacritics
+  username = public.replace_diacritics(clean_username);
+
+  -- remove trailing whitespace and '-' (begin and end of the string)
+  clean_username = regexp_replace(clean_username, '\s+$', '');
+  clean_username = regexp_replace(clean_username, '^\s+', '');
+  clean_username = regexp_replace(clean_username, '^-+', '');
+  clean_username = regexp_replace(clean_username, '-+$', '');
+
+  -- remove characters that aren't ascii, space or '-'
+  clean_username = regexp_replace(clean_username, '[^a-zA-Z0-9 -_]+', '', 'g');
+
+  -- replace '-' and spaces
+  clean_username = regexp_replace(clean_username, '-', '_', 'g');
+  clean_username = regexp_replace(clean_username, ' ', '_', 'g');
+
+  -- all lowercase
+  clean_username = lower(clean_username);
+
+  return clean_username;
+end;
+$$;
+
 create or replace function public.generate_username(full_name text)
   returns text
+  security definer -- Required so that we can call this without a user session in the API
   language plpgsql
   strict
 as
@@ -153,24 +190,8 @@ begin
     username := colors[ceil(random() * array_length(colors, 1))];
   end if;
 
-  -- replace diacritics
-  username = public.replace_diacritics(username);
-
-  -- remove trailing whitespace and '-' (begin and end of the string)
-  username = regexp_replace(username, '\s+$', '');
-  username = regexp_replace(username, '^\s+', '');
-  username = regexp_replace(username, '^-+', '');
-  username = regexp_replace(username, '-+$', '');
-
-  -- remove characters that aren't ascii, space or '-'
-  username = regexp_replace(username, '[^a-zA-Z -]+', '', 'g');
-
-  -- replace '-' and spaces
-  username = regexp_replace(username, '-', '_', 'g');
-  username = regexp_replace(username, ' ', '_', 'g');
-
-  -- all lowercase
-  username = lower(username);
+  -- clean the username
+  username = public.clean_username(username);
 
   -- generate random words
   while length(username) < max_length
@@ -217,6 +238,37 @@ $$;
 -- Create functions to automatically fill-in the users and user_profiles tables on the public schema when users are added/changed/deleted in the auth.users table
 -- --------------------------------------------------------
 
+-- Check if a username is available. Returns true if it is
+create or replace function public.is_username_available(username_to_check text)
+  returns boolean
+  security definer -- Required so that we can call this without a user session in the API
+  language plpgsql
+  strict
+as
+$$
+declare
+  is_available boolean;
+  clean_username text;
+begin
+  clean_username = public.clean_username(username_to_check);
+
+  RAISE WARNING 'Checking availability of the following username: %', clean_username;
+
+  select count(id) = 0 as is_available
+  into is_available
+  from public.users
+  where username = clean_username;
+
+  if is_available = true then
+    RAISE WARNING 'That username is available';
+  else
+    RAISE WARNING 'That username is NOT available';
+  end if;
+
+  return is_available;
+end;
+$$;
+
 -- inserts a row into public."users" when a new row is added to auth."users"
 create or replace function public.handle_new_user()
   returns trigger as
@@ -225,7 +277,7 @@ declare
   provider_name text;
   user_name     text;
   name          text;
-  matches        int;
+  username_is_available boolean;
 begin
   raise warning 'Creating a new user';
   raise notice 'Identifying how the user was created';
@@ -272,18 +324,15 @@ begin
   loop
     raise notice 'Ensuring that the username is available';
 
-    select count(id)
-    into matches
-    from public.users
-    where username = user_name;
+    username_is_available = public.is_username_available(user_name);
 
-    if matches > 0 then
+    if username_is_available = false then
       raise warning 'The chosen username is not available. Generating a random one';
       -- generate a random username
       user_name = public.generate_username(user_name);
     end if;
 
-    exit when matches = 0;
+    exit when username_is_available = true;
   end loop;
 
   raise warning 'Username for the new user: %', user_name;
