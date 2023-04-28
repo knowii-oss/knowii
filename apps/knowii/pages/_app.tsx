@@ -24,6 +24,7 @@ import { createBrowserClient } from '@knowii/client';
 import { ChakraBaseProvider, cookieStorageManagerSSR, localStorageManager } from '@chakra-ui/react';
 import { customTheme, defaultToastOptions } from '../chakra-ui.config';
 import { SessionContextProvider } from '@supabase/auth-helpers-react';
+import { trpc } from '../utils/trpc';
 
 // eslint-disable-next-line  @typescript-eslint/no-var-requires
 const siteTitle = require('../../../libs/common/src/lib/metadata.json').title;
@@ -145,4 +146,4 @@ const App = ({ Component, pageProps }: AppProps<CustomPageProps>) => {
   );
 };
 
-export default App;
+export default trpc.withTRPC(App);

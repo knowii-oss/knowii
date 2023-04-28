@@ -271,7 +271,10 @@ $$;
 
 -- inserts a row into public."users" when a new row is added to auth."users"
 create or replace function public.handle_new_user()
-  returns trigger as
+  returns trigger
+  security definer
+  language plpgsql
+  as
 $$
 declare
   provider_name text;
@@ -342,7 +345,7 @@ begin
 
   return new;
 end;
-$$ language plpgsql security definer;
+$$;
 
 -- trigger the function every time a user (supabase) is created
 drop trigger if exists on_auth_user_created on auth.users;
@@ -354,7 +357,10 @@ execute procedure public.handle_new_user();
 
 -- inserts a row into public.user_profiles
 create or replace function public.create_new_user_profile()
-  returns trigger as
+  returns trigger
+  security definer
+  language plpgsql
+  as
 $$
 declare
   name       text;
@@ -372,7 +378,7 @@ begin
 
   return new;
 end;
-$$ language plpgsql security definer;
+$$;
 
 -- trigger the function every time a user is created
 drop trigger if exists on_public_user_created on public.users;
@@ -382,7 +388,10 @@ create trigger on_public_user_created
 
 -- update a row in public.Users when the email is updated
 create or replace function public.handle_updated_user()
-  returns trigger as
+  returns trigger
+  security definer
+  language plpgsql
+  as
 $$
 begin
   update public.users
@@ -396,7 +405,7 @@ begin
 
   return new;
 end;
-$$ language plpgsql security definer;
+$$;
 
 -- trigger the function every time a user is updated
 drop trigger if exists on_auth_user_updated on auth.users;
@@ -408,7 +417,10 @@ execute procedure public.handle_updated_user();
 
 -- delete a row from public.Users when the user is deleted
 create or replace function public.handle_deleted_user()
-  returns trigger as
+  returns trigger
+  security definer
+  language plpgsql
+  as
 $$
 begin
   -- We don't delete users, but clean their account and profile
@@ -438,7 +450,7 @@ begin
 
   return old;
 end;
-$$ language plpgsql security definer;
+$$;
 
 -- trigger the function every time a user is deleted
 drop trigger if exists on_auth_user_deleted on auth.users;

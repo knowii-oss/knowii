@@ -159,17 +159,6 @@ export interface Database {
           user_id?: string;
         };
       };
-      is_available: {
-        Row: {
-          '?column?': boolean | null;
-        };
-        Insert: {
-          '?column?'?: boolean | null;
-        };
-        Update: {
-          '?column?'?: boolean | null;
-        };
-      };
       prices: {
         Row: {
           active: boolean | null;
