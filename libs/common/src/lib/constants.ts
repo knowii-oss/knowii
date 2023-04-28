@@ -81,6 +81,14 @@ export function isValidAuthAction(action: string): action is AuthAction {
 }
 
 /**
+ * Errors
+ */
+export const allowedUsernameCharactersRegex = /[^a-zA-Z0-9_-]+/;
+export const errorInvalidUsername = 'invalid_username_provided';
+export const errorNoUsernameProvided = 'no_username_provided';
+export const errorInternalServerError = 'internal_server_error';
+
+/**
  * Meta
  */
 export const BUILD_TIME = new Date().toISOString();

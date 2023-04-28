@@ -1,17 +1,8 @@
 # TODO
 
-## Sign up
-
-- When filled in name, auto-suggest username (call db function)
-- Display whether the username is unique or not (checkmark)
-- If username not available, don't let users submit the form
-
 ## Auth providers setup
 
-- Add username field to sign up form
-- Test scenario where user was created by social login and then tries to register with same email
-- Configure constants to list enabled auth providers
-- Make sure the redirect_uri and url are correct
+- Make sure the redirect_uri and url are correct for production
 - Edit app consent screen details for Google (URL, privacy policy, terms of service, etc): https://console.cloud.google.com/apis/credentials/consent/edit?authuser=1&project=starry-axis-302621
   - Also PUBLISH the app
 - Edit app consent screen details for GitHub
@@ -22,7 +13,7 @@
 - Remove encoding devDependency once this is fixed: https://github.com/supabase/supabase-js/issues/612
 - Wrap Chakra components with "use client" to be able to use those in server components: https://stackoverflow.com/questions/75591291/how-to-use-server-components-in-nextjs-13-with-chakra-ui
 - Follow: https://github.com/supabase/auth-helpers/tree/main/examples/nextjs-server-components
-  -ColorModeScript should probably move to chakra-providers
+  - ColorModeScript should probably move to chakra-providers
 
 ## Temporary word lists
 

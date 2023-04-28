@@ -159,6 +159,17 @@ export interface Database {
           user_id?: string;
         };
       };
+      is_available: {
+        Row: {
+          '?column?': boolean | null;
+        };
+        Insert: {
+          '?column?'?: boolean | null;
+        };
+        Update: {
+          '?column?'?: boolean | null;
+        };
+      };
       prices: {
         Row: {
           active: boolean | null;
@@ -493,11 +504,23 @@ export interface Database {
         Args: Record<PropertyKey, never>;
         Returns: string;
       };
+      clean_username: {
+        Args: {
+          username: string;
+        };
+        Returns: string;
+      };
       generate_username: {
         Args: {
           full_name: string;
         };
         Returns: string;
+      };
+      is_username_available: {
+        Args: {
+          username_to_check: string;
+        };
+        Returns: boolean;
       };
       random_between: {
         Args: {
