@@ -38,7 +38,9 @@ jest.mock('@supabase/auth-helpers-react', () => ({
 
 describe('SignupForm', () => {
   it('should render successfully', () => {
-    const { baseElement } = render(<SignupForm />);
+    const { baseElement } = render(
+      <SignupForm checkingUsernameAvailability={false} isUsernameAvailable={true} checkUsernameAvailability={() => {}} />,
+    );
     expect(baseElement).toBeTruthy();
   });
 });
