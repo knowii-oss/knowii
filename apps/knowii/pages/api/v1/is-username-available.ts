@@ -40,7 +40,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const checkResult = await supabaseClient.rpc('is_username_available', { username_to_check: usernameToCheck });
 
     if (checkResult.error) {
-      console.warn(`Error while checking for username availability: ${checkResult.error}. DB access status code: ${checkResult.status}`);
+      console.warn(
+        `Error while checking for username availability: ${JSON.stringify(checkResult.error)}. DB access status code: ${
+          checkResult.status
+        }`,
+      );
       return res.status(500).json({
         error: errorInternalServerError,
         description: 'We have encountered an unexpected issue',
