@@ -1,7 +1,7 @@
 //@ts-check
 /** @type {import('next').NextConfig} */
 
-import { withNx } from '@nrwl/next/plugins/with-nx.js';
+import { withNx } from '@nx/next/plugins/with-nx.js';
 import { i18nConfig } from '../../i18n.config.mjs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -18,7 +18,7 @@ console.log(`> Building in "${process.env.NODE_ENV}" mode (NODE_ENV)`);
 !process.env.SKIP_ENV_VALIDATION && (await import('./env.mjs'));
 
 /**
- * @type {import('@nrwl/next/plugins/with-nx').WithNxOptions}
+ * @type {import('@nx/next/plugins/with-nx').WithNxOptions}
  **/
 const nextConfig = {
   /**

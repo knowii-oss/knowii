@@ -1,7 +1,7 @@
 import type { Config } from 'tailwindcss';
 
 import { join } from 'path';
-import { createGlobPatternsForDependencies } from '@nrwl/react/tailwind';
+import { createGlobPatternsForDependencies } from '@nx/react/tailwind';
 
 export default {
   content: [
