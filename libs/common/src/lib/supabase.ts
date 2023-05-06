@@ -493,6 +493,12 @@ export interface Database {
         Args: Record<PropertyKey, never>;
         Returns: string;
       };
+      clean_community_name: {
+        Args: {
+          community_name: string;
+        };
+        Returns: string;
+      };
       clean_username: {
         Args: {
           username: string;
@@ -504,6 +510,12 @@ export interface Database {
           full_name: string;
         };
         Returns: string;
+      };
+      is_community_name_available: {
+        Args: {
+          name_to_check: string;
+        };
+        Returns: boolean;
       };
       is_username_available: {
         Args: {

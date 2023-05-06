@@ -206,6 +206,7 @@ export function SignupForm(props: SignupFormProps) {
                       },
                       maxLength: {
                         value: maxLengthUsername,
+                        // WARNING: The message parameter name MUST correspond in the translation file
                         message: t('validationError.username.tooLong', { length: maxLengthUsername }),
                       },
                       pattern: {
