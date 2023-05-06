@@ -160,12 +160,12 @@
   },
   "signupForm": {
     "title": "Créer un compte",
-    "description": "Enter your information to create a new account.",
-    "accountAlreadyExists": "Already have an account?",
+    "description": "Remplissez ce formulaire pour créer un nouveau compte.",
+    "accountAlreadyExists": "Vous avez déjà un compte?",
     "signIn": "Se connecter",
-    "successMessage": "Your account has been created. Please check your email to confirm your account.",
-    "errorMessage": "An error occurred while trying to create your account. Please try again.",
-    "submitButton": "Create account",
+    "successMessage": "Votre compte a été créé. Vous devriez avoir reçu un email avec un lien vous permettant de l'activer.",
+    "errorMessage": "Une erreur s'est produite pendant la création du compte. Veuillez réessayer.",
+    "submitButton": "Créer un compte",
     "fields": {
       "name": "Nom:",
       "email": "Email:",
@@ -182,7 +182,7 @@
       "username": {
         "required": "Le nom d'utilisateur est requis",
         "tooShort": "Le nom d'utilisateur doit être plus long",
-        "tooLong": "Le nom d'utilisateur ne peux pas dépasser {length} caractères",
+        "tooLong": "Le nom d'utilisateur ne peut pas dépasser {length} caractères",
         "forbiddenCharacters": "Le nom d'utilisateur ne peut pas contenir de caractères spéciaux"
       },
       "password": {
@@ -266,5 +266,23 @@
     "title": "Communautés",
     "description": "Explorez nos communautés",
     "comingSoon": "En construction..."
+  },
+  "createNewCommunityPage": {
+    "title": "Créer une nouvelle communauté",
+    "description": "Un nouvel espace pour les connaissance, l'inspiration et les idées de votre communauté",
+    "submitButton": "Créer!",
+    "successMessage": "Votre communauté a été créée avec succès 🎉",
+    "errorMessage": "Nous n'avons pas réussi à créer votre communauté \uD83D\uDE2D",
+    "fields": {
+      "name": "Nom:"
+    },
+    "validationError": {
+      "name": {
+        "required": "Le nom est requis",
+        "tooShort": "Le nom doit être plus long",
+        "tooLong": "Le nom ne peut pas dépasser {length} caractères",
+        "forbiddenCharacters": "Le nom ne peut pas contenir de caractères spéciaux"
+      }
+    }
   }
 }

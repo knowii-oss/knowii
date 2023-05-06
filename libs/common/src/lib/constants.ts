@@ -89,9 +89,10 @@ export const allowedUsernameCharactersRegex = /[a-zA-Z0-9_-]+/;
 export const minLengthUsername = 3;
 export const maxLengthUsername = 36;
 
-export const forbiddenCommunityNameCharactersRegex = /[^a-zA-Z0-9-]+/;
+export const forbiddenCommunityNameCharactersRegex = /[^a-zA-Z0-9 -]+/;
 // Used with react hook form forms
-export const allowedCommunityNameCharactersRegex = /[a-zA-Z0-9-]+/;
+export const allowedCommunityNameCharactersRegex = /[a-zA-Z0-9 -]+/;
+
 export const minLengthCommunityName = 3;
 export const maxLengthCommunityName = 64;
 
@@ -115,6 +116,36 @@ export const errorInvalidUsername: ReusableError = {
 export const errorNoUsernameProvided: ReusableError = {
   code: 'no_username_provided',
   description: 'You must provide a username',
+};
+
+export const errorUsernameTooLong: ReusableError = {
+  code: 'username_too_long',
+  description: 'The provided username is too long',
+};
+
+export const errorUsernameTooShort: ReusableError = {
+  code: 'username_too_short',
+  description: 'The provided username is too short',
+};
+
+export const errorNoCommunityNameProvided: ReusableError = {
+  code: 'no_community_name_provided',
+  description: 'You must provide a community name',
+};
+
+export const errorInvalidCommunityName: ReusableError = {
+  code: 'invalid_community_name_provided',
+  description: 'The provided community name contains forbidden characters',
+};
+
+export const errorCommunityNameTooLong: ReusableError = {
+  code: 'community_name_too_long',
+  description: 'The provided community name is too long',
+};
+
+export const errorCommunityNameTooShort: ReusableError = {
+  code: 'community_name_too_short',
+  description: 'The provided community name is too short',
 };
 
 export const errorInternalServerError: ReusableError = {

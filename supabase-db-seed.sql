@@ -480,12 +480,79 @@ drop policy if exists "Users can edit their own user profile" on user_profiles;
 create policy "Users can edit their own user profile" on user_profiles for update using (auth.uid() = user_id_external);
 
 -- --------------------------------------------------------
+-- Create functions to check availability of community elements
+-- --------------------------------------------------------
+
+-- clean the given community name (remove unwanted characters)
+create or replace function public.clean_community_name(community_name text)
+  returns text
+  language plpgsql
+  strict
+as
+$$
+declare
+  clean_community_name text;
+begin
+  -- trim
+  clean_community_name = trim(community_name); -- limit the initial length
+
+  -- remove characters that aren't ascii, space or '-'
+  clean_community_name = regexp_replace(clean_community_name, '[^a-zA-Z0-9 -]+', '', 'g');
+
+  -- replace diacritics
+  clean_community_name = public.replace_diacritics(clean_community_name);
+
+  -- remove trailing whitespace and '-' (begin and end of the string)
+  clean_community_name = regexp_replace(clean_community_name, '\s+$', '');
+  clean_community_name = regexp_replace(clean_community_name, '^\s+', '');
+  clean_community_name = regexp_replace(clean_community_name, '^-+', '');
+  clean_community_name = regexp_replace(clean_community_name, '-+$', '');
+
+  -- all lowercase
+  -- clean_community_name = lower(clean_community_name);
+
+return clean_community_name;
+end;
+$$;
+
+-- Check if a community name is available. Returns true if it is
+create or replace function public.is_community_name_available(name_to_check text)
+  returns boolean
+  language plpgsql
+  strict
+as
+$$
+declare
+  is_available boolean;
+  clean_name text;
+begin
+  clean_name = public.clean_community_name(name_to_check);
+
+  RAISE WARNING 'Checking availability of the following community name: %', clean_name;
+
+select count(id) = 0 as is_available
+into is_available
+from public.communities
+where name = clean_name;
+
+if is_available = true then
+    RAISE WARNING 'That community name is available';
+else
+    RAISE WARNING 'That community name is NOT available';
+end if;
+
+return is_available;
+end;
+$$;
+
+-- --------------------------------------------------------
 -- Make sure that the default security rules of Supabase are in place
 -- Needed as those might be broken by Prisma when running 'prisma migrate dev' multiple times
 -- Reference: https://supabase.com/docs/guides/integrations/prisma#troubleshooting
 -- --------------------------------------------------------
 grant usage on schema public to postgres, anon, authenticated, service_role;
 
+-- FIXME do we really want this?
 grant all privileges on all tables in schema public to postgres, anon, authenticated, service_role;
 grant all privileges on all functions in schema public to postgres, anon, authenticated, service_role;
 grant all privileges on all sequences in schema public to postgres, anon, authenticated, service_role;
