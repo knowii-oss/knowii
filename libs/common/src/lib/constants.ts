@@ -82,6 +82,7 @@ export function isValidAuthAction(action: string): action is AuthAction {
 
 /**
  * Regexes
+ * WARNING: Some of those must match the regexes used by PL/SQL functions defined in supabase-db-seed.sql
  */
 export const forbiddenUsernameCharactersRegex = /[^a-zA-Z0-9_-]+/;
 // Used with react hook form forms
