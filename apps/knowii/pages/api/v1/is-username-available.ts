@@ -10,6 +10,7 @@ import {
   errorUsernameTooLong,
   minLengthUsername,
   errorUsernameTooShort,
+  IsUsernameAvailableResponse,
 } from '@knowii/common';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -74,8 +75,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.log('The name is available');
     }
 
-    // FIXME use zod schema
-    const responseBody = {
+    const responseBody: IsUsernameAvailableResponse = {
       isUsernameAvailable,
     };
 
