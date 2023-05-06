@@ -1,7 +1,7 @@
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
 import { NextApiRequest, NextApiResponse } from 'next';
 import {
-  allowedUsernameCharactersRegex,
+  forbiddenUsernameCharactersRegex,
   errorInternalServerError,
   errorInvalidUsername,
   errorNoUsernameProvided,
@@ -25,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       error: errorNoUsernameProvided.code,
       errorDescription: errorNoUsernameProvided.description,
     });
-  } else if (allowedUsernameCharactersRegex.test(usernameToCheck)) {
+  } else if (forbiddenUsernameCharactersRegex.test(usernameToCheck)) {
     console.warn(errorInvalidUsername.description);
     return res.status(400).json({
       error: errorInvalidUsername.code,

@@ -171,6 +171,23 @@
       "email": "Email:",
       "username": "Username:",
       "password": "Password:"
+    },
+    "validationError": {
+      "name": {
+        "required": "The name is required"
+      },
+      "email": {
+        "required": "The email is required"
+      },
+      "username": {
+        "required": "The username is required",
+        "tooShort": "The username must be longer",
+        "tooLong": "The username can be at most {length} characters long",
+        "forbiddenCharacters": "Special characters are forbidden for usernames"
+      },
+      "password": {
+        "required": "The password is required"
+      }
     }
   },
   "signinForm": {

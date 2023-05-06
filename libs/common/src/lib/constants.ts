@@ -83,10 +83,17 @@ export function isValidAuthAction(action: string): action is AuthAction {
 /**
  * Regexes
  */
-export const allowedUsernameCharactersRegex = /[^a-zA-Z0-9_-]+/;
-export const allowedCommunityNameCharactersRegex = /[^a-zA-Z0-9-]+/;
+export const forbiddenUsernameCharactersRegex = /[^a-zA-Z0-9_-]+/;
+// Used with react hook form forms
+export const allowedUsernameCharactersRegex = /[a-zA-Z0-9_-]+/;
 export const minLengthUsername = 3;
 export const maxLengthUsername = 36;
+
+export const forbiddenCommunityNameCharactersRegex = /[^a-zA-Z0-9-]+/;
+// Used with react hook form forms
+export const allowedCommunityNameCharactersRegex = /[a-zA-Z0-9-]+/;
+export const minLengthCommunityName = 3;
+export const maxLengthCommunityName = 64;
 
 /**
  * Errors
