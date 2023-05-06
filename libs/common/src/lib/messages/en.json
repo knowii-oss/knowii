@@ -183,7 +183,7 @@
         "required": "The username is required",
         "tooShort": "The username must be longer",
         "tooLong": "The username can be at most {length} characters long",
-        "forbiddenCharacters": "Special characters are forbidden for usernames"
+        "forbiddenCharacters": "The username cannot contain special characters"
       },
       "password": {
         "required": "The password is required"
@@ -266,5 +266,23 @@
     "title": "Communities",
     "description": "Explore our communities",
     "comingSoon": "Coming soon..."
+  },
+  "createNewCommunityPage": {
+    "title": "Create a new Community",
+    "description": "A new home for your Community's Knowledge, Inspiration & Ideas",
+    "submitButton": "Create!",
+    "successMessage": "Your community has been created successfully 🎉",
+    "errorMessage": "We have failed to create your new community \uD83D\uDE2D",
+    "fields": {
+      "name": "Name:"
+    },
+    "validationError": {
+      "name": {
+        "required": "The name is required",
+        "tooShort": "The name must be longer",
+        "tooLong": "The name can be at most {length} characters long",
+        "forbiddenCharacters": "The name cannot contain special characters"
+      }
+    }
   }
 }
