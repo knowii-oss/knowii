@@ -1,6 +1,6 @@
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
 import { NextApiRequest, NextApiResponse } from 'next';
-import { accountPath, getBaseURL, hasErrorMessage } from '@knowii/common';
+import { accountPath, errorClientNotAuthenticated, getBaseURL, hasErrorMessage } from '@knowii/common';
 import { getOrCreateStripeCustomer, stripe } from '@knowii/server';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -18,8 +18,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!session) {
     return res.status(401).json({
-      error: 'not_authenticated',
-      description: 'The user does not have an active session or is not authenticated',
+      error: errorClientNotAuthenticated.code,
+      errorDescription: errorClientNotAuthenticated.description,
     });
   }
 

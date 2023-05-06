@@ -18,7 +18,7 @@ import { useRouter } from 'next/router';
 import { ClipboardEvent, FormEvent, KeyboardEvent, useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { FaAt, FaCheckCircle, FaClock, FaEye, FaEyeSlash, FaLock, FaTimesCircle, FaUserAlt } from 'react-icons/fa';
-import { allowedUsernameCharactersRegex, redirectPath, SIGN_IN_URL } from '@knowii/common';
+import { allowedUsernameCharactersRegex, maxLengthUsername, minLengthUsername, redirectPath, SIGN_IN_URL } from '@knowii/common';
 import { useAuthRedirectUrl } from '@knowii/client';
 import { AuthFormWrapper } from './auth-form-wrapper';
 import { useTranslations } from 'next-intl';
@@ -30,23 +30,32 @@ export interface SignupFormProps {
   checkUsernameAvailability: (username: string) => void;
 }
 
+interface SignupFormData {
+  email: string;
+  password: string;
+  name: string;
+  username: string;
+  serverError?: void;
+}
+
 export function SignupForm(props: SignupFormProps) {
   const t = useTranslations('signupForm');
   const supabaseClient = useSupabaseClient();
   const router = useRouter();
   const redirectTo = useAuthRedirectUrl();
-  const { register, handleSubmit, formState, setError, clearErrors } = useForm<{
-    email: string;
-    password: string;
-    name: string;
-    username: string;
-    serverError?: void;
-  }>();
-  const { isSubmitting, isSubmitted, isSubmitSuccessful } = formState;
-  const [isPasswordVisible, setPasswordVisible] = useState(false);
-  const [usernameFieldTouched, setUsernameFieldTouched] = useState(false);
+  const { register, handleSubmit, formState, setError, clearErrors } = useForm<SignupFormData>({
+    defaultValues: {
+      email: '',
+      name: '',
+      password: '',
+      username: '',
+    },
+  });
 
-  // FIXME extract this to the [action].tsx page. This component should be dumb
+  // WARNING it is mandatory to extract these values like this. Otherwise they are not updated
+  const { isSubmitting, isSubmitted, isSubmitSuccessful, isValid } = formState;
+  const [isPasswordVisible, setPasswordVisible] = useState(false);
+
   const onSubmit = (e: FormEvent) => {
     clearErrors('serverError');
     handleSubmit(async ({ email, username, password, name }) => {
@@ -60,10 +69,10 @@ export function SignupForm(props: SignupFormProps) {
           data: {
             // WARNING: Those kay names are VERY sensitive
             // They are used by the triggers defined in supabase-db-seed.sql
-            // 'name' matches the field name used by GitHub
+            // 'name' matches the field name used by GitHub (OAuth)
             name,
             email,
-            // 'user_name' matches the field name used by GitHub
+            // 'user_name' matches the field name used by GitHub (OAuth)
             user_name: username,
             // TODO implement support for avatar url
             avatar_url: '',
@@ -172,17 +181,30 @@ export function SignupForm(props: SignupFormProps) {
                     <FaUserAlt />
                   </InputLeftElement>
                   <Input
-                    {...register('username', { required: true })}
+                    required
+                    {...register('username', {
+                      required: 'The username is mandatory',
+                      minLength: {
+                        value: minLengthUsername,
+                        message: `The username must at least be ${maxLengthUsername} characters long`,
+                      },
+                      maxLength: {
+                        value: maxLengthUsername,
+                        message: `The username cannot be longer than ${maxLengthUsername} characters`,
+                      },
+                      pattern: {
+                        value: allowedUsernameCharactersRegex,
+                        message: "The username can only contain the following characters: letters from a to z, numbers, '_' and '-'",
+                      },
+                    })}
                     onChange={(event) => props.checkUsernameAvailability(event.target.value)}
-                    onBlur={() => setUsernameFieldTouched(true)}
-                    onKeyUp={() => setUsernameFieldTouched(true)}
                     onKeyDown={(e) => filterInvalidUsernameCharacters(e)}
                     onPaste={(e) => filterInvalidUsernameCharactersFromPaste(e)}
                   />
                   <InputRightElement>
                     {
                       /* Only check the username availability when the field has been touched */
-                      !usernameFieldTouched ? (
+                      !formState.touchedFields.username ? (
                         ''
                       ) : props.checkingUsernameAvailability ? (
                         <FaClock className="text-gray-500" />
@@ -217,7 +239,7 @@ export function SignupForm(props: SignupFormProps) {
               </FormControl>
 
               {/* Submit button */}
-              <Button colorScheme="primary" type="submit" isLoading={isSubmitting} isDisabled={!props.isUsernameAvailable}>
+              <Button colorScheme="primary" type="submit" isLoading={isSubmitting} isDisabled={!props.isUsernameAvailable || !isValid}>
                 {t('submitButton')}
               </Button>
             </>
