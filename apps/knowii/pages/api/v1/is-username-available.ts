@@ -20,16 +20,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { usernameToCheck = '' } = req.body;
 
   if (!usernameToCheck || '' === usernameToCheck.trim()) {
-    console.warn('No username provided');
+    console.warn(errorNoUsernameProvided.description);
     return res.status(400).json({
-      error: errorNoUsernameProvided,
-      description: 'You must provide a username to check',
+      error: errorNoUsernameProvided.code,
+      errorDescription: errorNoUsernameProvided.description,
     });
   } else if (allowedUsernameCharactersRegex.test(usernameToCheck)) {
-    console.warn('The provided username contains forbidden characters');
+    console.warn(errorInvalidUsername.description);
     return res.status(400).json({
-      error: errorInvalidUsername,
-      description: 'The provided username contains forbidden characters',
+      error: errorInvalidUsername.code,
+      errorDescription: errorInvalidUsername.description,
     });
   }
 
@@ -46,8 +46,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }`,
       );
       return res.status(500).json({
-        error: errorInternalServerError,
-        description: 'We have encountered an unexpected issue',
+        error: errorInternalServerError.code,
+        errorDescription: errorInternalServerError.description,
       });
     }
 
@@ -55,9 +55,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const isUsernameAvailable = checkResult.data;
 
     if (isUsernameAvailable) {
-      console.log('The username is available');
+      console.log('The name is available');
     }
 
+    // FIXME use zod schema
     const responseBody = {
       isUsernameAvailable,
     };
