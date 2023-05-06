@@ -128,6 +128,9 @@ begin
   -- trim
   clean_username = trim(username); -- limit the initial length
 
+  -- remove characters that aren't ascii, space or '-'
+  clean_username = regexp_replace(clean_username, '[^a-zA-Z0-9 -_]+', '', 'g');
+
   -- replace diacritics
   username = public.replace_diacritics(clean_username);
 
@@ -136,9 +139,6 @@ begin
   clean_username = regexp_replace(clean_username, '^\s+', '');
   clean_username = regexp_replace(clean_username, '^-+', '');
   clean_username = regexp_replace(clean_username, '-+$', '');
-
-  -- remove characters that aren't ascii, space or '-'
-  clean_username = regexp_replace(clean_username, '[^a-zA-Z0-9 -_]+', '', 'g');
 
   -- replace '-' and spaces
   clean_username = regexp_replace(clean_username, '-', '_', 'g');

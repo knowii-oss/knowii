@@ -81,12 +81,44 @@ export function isValidAuthAction(action: string): action is AuthAction {
 }
 
 /**
- * Errors
+ * Regexes
  */
 export const allowedUsernameCharactersRegex = /[^a-zA-Z0-9_-]+/;
-export const errorInvalidUsername = 'invalid_username_provided';
-export const errorNoUsernameProvided = 'no_username_provided';
-export const errorInternalServerError = 'internal_server_error';
+export const allowedCommunityNameCharactersRegex = /[^a-zA-Z0-9-]+/;
+export const minLengthUsername = 3;
+export const maxLengthUsername = 36;
+
+/**
+ * Errors
+ */
+
+/**
+ * An error with basic information
+ */
+interface ReusableError {
+  code: string;
+  description: string;
+}
+
+export const errorInvalidUsername: ReusableError = {
+  code: 'invalid_username_provided',
+  description: 'The provided username contains forbidden characters',
+};
+
+export const errorNoUsernameProvided: ReusableError = {
+  code: 'no_username_provided',
+  description: 'You must provide a username',
+};
+
+export const errorInternalServerError: ReusableError = {
+  code: 'internal_server_error',
+  description: 'We have encountered an unexpected issue',
+};
+
+export const errorClientNotAuthenticated: ReusableError = {
+  code: 'client_not_authenticated',
+  description: 'The client does not have an active session or is not authenticated',
+};
 
 /**
  * Meta

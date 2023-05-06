@@ -14,7 +14,15 @@ import {
   SignupForm,
   useDebounce,
 } from '@knowii/client-ui';
-import { AuthAction, Database, isValidAuthAction, redirectPath, SIGN_IN_URL } from '@knowii/common';
+import {
+  allowedUsernameCharactersRegex,
+  AuthAction,
+  Database,
+  isValidAuthAction,
+  minLengthUsername,
+  redirectPath,
+  SIGN_IN_URL,
+} from '@knowii/common';
 import { i18nConfig } from '../../../../i18n.config.mjs';
 import { CustomPageProps } from '../_app';
 import { Provider } from '@supabase/supabase-js';
@@ -117,23 +125,25 @@ export default function AuthPage(props: AuthPageProps) {
   };
 
   useEffect(() => {
-    if (usernameToCheck) {
-      // When a new request is going to be issued,
-      // the first thing to do is cancel the previous one
-      if (lastAbortController.current) {
-        lastAbortController.current.abort();
-      }
-
-      // Create new AbortController for the new request and store it in the ref
-      const currentAbortController = new AbortController();
-      lastAbortController.current = currentAbortController;
-
-      verifyUsernameAvailability(currentAbortController);
+    // When a new request is going to be issued,
+    // the first thing to do is cancel the previous one
+    if (lastAbortController.current) {
+      lastAbortController.current.abort();
     }
+
+    // Create new AbortController for the new request and store it in the ref
+    const currentAbortController = new AbortController();
+    lastAbortController.current = currentAbortController;
+
+    verifyUsernameAvailability(currentAbortController);
   }, [usernameToCheck]);
 
   const checkIfUsernameIsAvailable = async (username: string, signal?: AbortSignal): Promise<boolean> => {
-    if ('' === username.trim()) {
+    if (username.trim().length < minLengthUsername) {
+      return false;
+    }
+
+    if (allowedUsernameCharactersRegex.test(username)) {
       return false;
     }
 
@@ -145,6 +155,7 @@ export default function AuthPage(props: AuthPageProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          // WARNING: The name must match the API parameter name
           usernameToCheck: username,
         }),
       });
