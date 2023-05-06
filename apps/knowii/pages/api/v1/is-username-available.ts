@@ -6,6 +6,10 @@ import {
   errorInvalidUsername,
   errorNoUsernameProvided,
   hasErrorMessage,
+  maxLengthUsername,
+  errorUsernameTooLong,
+  minLengthUsername,
+  errorUsernameTooShort,
 } from '@knowii/common';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -30,6 +34,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({
       error: errorInvalidUsername.code,
       errorDescription: errorInvalidUsername.description,
+    });
+  } else if (usernameToCheck.trim().length > maxLengthUsername) {
+    console.warn(errorUsernameTooLong.description);
+    return res.status(400).json({
+      error: errorUsernameTooLong.code,
+      errorDescription: errorUsernameTooLong.description,
+    });
+  } else if (usernameToCheck.trim().length < minLengthUsername) {
+    console.warn(errorUsernameTooShort.description);
+    return res.status(400).json({
+      error: errorUsernameTooShort.code,
+      errorDescription: errorUsernameTooShort.description,
     });
   }
 
