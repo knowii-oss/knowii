@@ -171,6 +171,23 @@
       "email": "Email:",
       "username": "Nom d'utilisateur:",
       "password": "Mot de passe:"
+    },
+    "validationError": {
+      "name": {
+        "required": "Le nom est requis"
+      },
+      "email": {
+        "required": "L'adresse email est requise"
+      },
+      "username": {
+        "required": "Le nom d'utilisateur est requis",
+        "tooShort": "Le nom d'utilisateur doit être plus long",
+        "tooLong": "Le nom d'utilisateur ne peux pas dépasser {length} caractères",
+        "forbiddenCharacters": "Le nom d'utilisateur ne peut pas contenir de caractères spéciaux"
+      },
+      "password": {
+        "required": "Le mot de passe est requis"
+      }
     }
   },
   "signinForm": {

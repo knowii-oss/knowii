@@ -15,7 +15,7 @@ import {
   useDebounce,
 } from '@knowii/client-ui';
 import {
-  allowedUsernameCharactersRegex,
+  forbiddenUsernameCharactersRegex,
   AuthAction,
   Database,
   isValidAuthAction,
@@ -143,7 +143,7 @@ export default function AuthPage(props: AuthPageProps) {
       return false;
     }
 
-    if (allowedUsernameCharactersRegex.test(username)) {
+    if (forbiddenUsernameCharactersRegex.test(username)) {
       return false;
     }
 
