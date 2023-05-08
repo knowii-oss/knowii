@@ -151,7 +151,7 @@
     "dotenv": "16.0.3",
     "dotenv-cli": "7.2.1",
     "encoding": "0.1.13",
-    "eslint": "~8.34.0",
+    "eslint": "~8.39.0",
     "eslint-config-next": "13.1.1",
     "eslint-config-prettier": "8.8.0",
     "eslint-plugin-cypress": "^2.10.3",
