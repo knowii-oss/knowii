@@ -117,9 +117,9 @@
     "@nx/next": "16.0.3"
   },
   "devDependencies": {
-    "@babel/core": "7.12.17",
+    "@babel/core": "7.21.8",
     "@babel/preset-react": "^7.14.5",
-    "@babel/preset-typescript": "7.12.17",
+    "@babel/preset-typescript": "7.21.5",
     "@faker-js/faker": "7.6.0",
     "@nx/js": "16.0.3",
     "@nx/storybook": "16.0.3",
