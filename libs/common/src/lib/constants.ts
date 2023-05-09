@@ -52,6 +52,11 @@ export const THEME_DARK = 'dark';
 export const THEME_LIGHT = 'light';
 
 /**
+ * Home
+ */
+export const HOME_URL = '/';
+
+/**
  * Auth
  */
 export const AUTH_BASE_PATH = '/auth';

@@ -21,5 +21,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/app/:path*', '/account'],
+  matcher: ['/app/:path*', '/account', '/communities/create'],
 };
