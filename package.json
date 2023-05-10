@@ -18,7 +18,7 @@
     "clean": "npx rimraf ./dist",
     "clean:install": "npx rimraf package-lock.json && npx rimraf ./node_modules && npx rimraf dist && npm install",
     "db:admin": "docker run --rm -p 5050:5050 thajeztah/pgadmin4",
-    "db:clean": "dotenv -e apps/knowii/.env.local -- npx rimraf ./supabase && npx supabase init && npx dotenv -e apps/knowii/.env.local -- ./tools/supabase-set-local-ports.sh && npx dotenv -e apps/knowii/.env.local -- ./tools/supabase-set-auth-providers.sh && npx dotenv -e apps/knowii/.env.local -- ./tools/supabase-enable-logging.sh",
+    "db:clean": "npx rimraf ./supabase && npx supabase init && npx dotenv -e apps/knowii/.env.local -- ./tools/supabase-set-local-ports.sh && npx dotenv -e apps/knowii/.env.local -- ./tools/supabase-set-auth-providers.sh && npx dotenv -e apps/knowii/.env.local -- ./tools/supabase-enable-logging.sh",
     "db:client:generate": "npx prisma generate && npm run format",
     "db:init": "npm run db:migration:deploy && npm run db:seed",
     "db:logs:list": "docker exec -it supabase_db_knowii ls -la /var/log/postgresql",
