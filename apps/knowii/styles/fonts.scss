@@ -22,13 +22,10 @@
   font-style: normal;
   font-weight: 400;
 
-  src: local('Avenir Next'), local('AvenirNext'),
-    url('/fonts/AvenirNext-Regular.woff2') format('woff2'),
+  src: local('Avenir Next'), local('AvenirNext'), url('/fonts/AvenirNext-Regular.woff2') format('woff2'),
     /* Modern Browsers */ url('/fonts/AvenirNext-Regular.woff') format('woff'),
-    /* Pretty Modern Browsers */ url('/fonts/AvenirNext-Regular.ttf')
-      format('truetype'),
-    /* Safari, Android, iOS */ url('/fonts/AvenirNext-Regular.svg#svgFontName')
-      format('svg'); /* Legacy iOS */
+    /* Pretty Modern Browsers */ url('/fonts/AvenirNext-Regular.ttf') format('truetype'),
+    /* Safari, Android, iOS */ url('/fonts/AvenirNext-Regular.svg#svgFontName') format('svg'); /* Legacy iOS */
 }
 
 @font-face {
@@ -37,13 +34,10 @@
   font-style: normal;
   font-weight: 700;
 
-  src: local('Avenir Next'), local('AvenirNext'),
-    url('/fonts/AvenirNext-Bold.woff2') format('woff2'),
+  src: local('Avenir Next'), local('AvenirNext'), url('/fonts/AvenirNext-Bold.woff2') format('woff2'),
     /* Modern Browsers */ url('/fonts/AvenirNext-Bold.woff') format('woff'),
-    /* Pretty Modern Browsers */ url('/fonts/AvenirNext-Bold.ttf')
-      format('truetype'),
-    /* Safari, Android, iOS */ url('/fonts/AvenirNext-Bold.svg#svgFontName')
-      format('svg'); /* Legacy iOS */
+    /* Pretty Modern Browsers */ url('/fonts/AvenirNext-Bold.ttf') format('truetype'),
+    /* Safari, Android, iOS */ url('/fonts/AvenirNext-Bold.svg#svgFontName') format('svg'); /* Legacy iOS */
 }
 
 @font-face {
@@ -52,14 +46,10 @@
   font-style: italic;
   font-weight: 700;
 
-  src: local('Avenir Next'), local('AvenirNext'),
-    url('/fonts/AvenirNext-BoldItalic.woff2') format('woff2'),
-    /* Modern Browsers */ url('/fonts/AvenirNext-BoldItalic.woff')
-      format('woff'),
-    /* Pretty Modern Browsers */ url('/fonts/AvenirNext-BoldItalic.ttf')
-      format('truetype'),
-    /* Safari, Android, iOS */
-      url('/fonts/AvenirNext-BoldItalic.svg#svgFontName') format('svg'); /* Legacy iOS */
+  src: local('Avenir Next'), local('AvenirNext'), url('/fonts/AvenirNext-BoldItalic.woff2') format('woff2'),
+    /* Modern Browsers */ url('/fonts/AvenirNext-BoldItalic.woff') format('woff'),
+    /* Pretty Modern Browsers */ url('/fonts/AvenirNext-BoldItalic.ttf') format('truetype'),
+    /* Safari, Android, iOS */ url('/fonts/AvenirNext-BoldItalic.svg#svgFontName') format('svg'); /* Legacy iOS */
 }
 
 @font-face {
@@ -68,13 +58,10 @@
   font-style: normal;
   font-weight: 600;
 
-  src: local('Avenir Next'), local('AvenirNext'),
-    url('/fonts/AvenirNext-DemiBold.woff2') format('woff2'),
+  src: local('Avenir Next'), local('AvenirNext'), url('/fonts/AvenirNext-DemiBold.woff2') format('woff2'),
     /* Modern Browsers */ url('/fonts/AvenirNext-DemiBold.woff') format('woff'),
-    /* Pretty Modern Browsers */ url('/fonts/AvenirNext-DemiBold.ttf')
-      format('truetype'),
-    /* Safari, Android, iOS */ url('/fonts/AvenirNext-DemiBold.svg#svgFontName')
-      format('svg'); /* Legacy iOS */
+    /* Pretty Modern Browsers */ url('/fonts/AvenirNext-DemiBold.ttf') format('truetype'),
+    /* Safari, Android, iOS */ url('/fonts/AvenirNext-DemiBold.svg#svgFontName') format('svg'); /* Legacy iOS */
 }
 
 @font-face {
@@ -83,14 +70,10 @@
   font-style: italic;
   font-weight: 600;
 
-  src: local('Avenir Next'), local('AvenirNext'),
-    url('/fonts/AvenirNext-DemiBoldItalic.woff2') format('woff2'),
-    /* Modern Browsers */ url('/fonts/AvenirNext-DemiBoldItalic.woff')
-      format('woff'),
-    /* Pretty Modern Browsers */ url('/fonts/AvenirNext-DemiBoldItalic.ttf')
-      format('truetype'),
-    /* Safari, Android, iOS */
-      url('/fonts/AvenirNext-DemiBoldItalic.svg#svgFontName') format('svg'); /* Legacy iOS */
+  src: local('Avenir Next'), local('AvenirNext'), url('/fonts/AvenirNext-DemiBoldItalic.woff2') format('woff2'),
+    /* Modern Browsers */ url('/fonts/AvenirNext-DemiBoldItalic.woff') format('woff'),
+    /* Pretty Modern Browsers */ url('/fonts/AvenirNext-DemiBoldItalic.ttf') format('truetype'),
+    /* Safari, Android, iOS */ url('/fonts/AvenirNext-DemiBoldItalic.svg#svgFontName') format('svg'); /* Legacy iOS */
 }
 
 @font-face {
@@ -99,13 +82,10 @@
   font-style: normal;
   font-weight: 500;
 
-  src: local('Avenir Next'), local('AvenirNext'),
-    url('/fonts/AvenirNext-Medium.woff2') format('woff2'),
+  src: local('Avenir Next'), local('AvenirNext'), url('/fonts/AvenirNext-Medium.woff2') format('woff2'),
     /* Modern Browsers */ url('/fonts/AvenirNext-Medium.woff') format('woff'),
-    /* Pretty Modern Browsers */ url('/fonts/AvenirNext-Medium.ttf')
-      format('truetype'),
-    /* Safari, Android, iOS */ url('/fonts/AvenirNext-Medium.svg#svgFontName')
-      format('svg'); /* Legacy iOS */
+    /* Pretty Modern Browsers */ url('/fonts/AvenirNext-Medium.ttf') format('truetype'),
+    /* Safari, Android, iOS */ url('/fonts/AvenirNext-Medium.svg#svgFontName') format('svg'); /* Legacy iOS */
 }
 
 @font-face {
@@ -114,12 +94,8 @@
   font-style: italic;
   font-weight: 500;
 
-  src: local('Avenir Next'), local('AvenirNext'),
-    url('/fonts/AvenirNext-MediumItalic.woff2') format('woff2'),
-    /* Modern Browsers */ url('/fonts/AvenirNext-MediumItalic.woff')
-      format('woff'),
-    /* Pretty Modern Browsers */ url('/fonts/AvenirNext-MediumItalic.ttf')
-      format('truetype'),
-    /* Safari, Android, iOS */
-      url('/fonts/AvenirNext-MediumItalic.svg#svgFontName') format('svg'); /* Legacy iOS */
+  src: local('Avenir Next'), local('AvenirNext'), url('/fonts/AvenirNext-MediumItalic.woff2') format('woff2'),
+    /* Modern Browsers */ url('/fonts/AvenirNext-MediumItalic.woff') format('woff'),
+    /* Pretty Modern Browsers */ url('/fonts/AvenirNext-MediumItalic.ttf') format('truetype'),
+    /* Safari, Android, iOS */ url('/fonts/AvenirNext-MediumItalic.svg#svgFontName') format('svg'); /* Legacy iOS */
 }
