@@ -195,7 +195,7 @@
     "release-it": "15.10.3",
     "rimraf": "5.0.0",
     "sass": "1.62.1",
-    "storybook": "^7.0.7",
+    "storybook": "^7.0.10",
     "storybook-addon-next-router": "4.0.2",
     "storybook-tailwind-dark-mode": "1.0.22",
     "supabase": "1.57.4",
