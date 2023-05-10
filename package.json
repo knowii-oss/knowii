@@ -127,9 +127,9 @@
     "@nx/next": "16.1.4"
   },
   "devDependencies": {
-    "@babel/core": "7.12.17",
+    "@babel/core": "7.21.8",
     "@babel/preset-react": "^7.14.5",
-    "@babel/preset-typescript": "7.12.17",
+    "@babel/preset-typescript": "7.21.5",
     "@commitlint/cli": "17.6.3",
     "@commitlint/config-conventional": "17.6.3",
     "@faker-js/faker": "7.6.0",
