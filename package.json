@@ -17,6 +17,9 @@
     "build:knowii": "npx cross-env NODE_ENV=production npx nx run knowii:build",
     "clean": "npx rimraf ./dist",
     "clean:install": "npx rimraf package-lock.json && npx rimraf ./node_modules && npx rimraf dist && npm install",
+    "commit": "git-cz",
+    "cm": "npm run commit",
+    "commit:lint": "commitlint --env HUSKY_GIT_PARAMS",
     "db:admin": "docker run --rm -p 5050:5050 thajeztah/pgadmin4",
     "db:clean": "npx rimraf ./supabase && npx supabase init && npx dotenv -e apps/knowii/.env.local -- ./tools/supabase-set-local-ports.sh && npx dotenv -e apps/knowii/.env.local -- ./tools/supabase-set-auth-providers.sh && npx dotenv -e apps/knowii/.env.local -- ./tools/supabase-enable-logging.sh",
     "db:client:generate": "npx prisma generate && npm run format",
@@ -120,6 +123,8 @@
     "@babel/core": "7.12.17",
     "@babel/preset-react": "^7.14.5",
     "@babel/preset-typescript": "7.12.17",
+    "@commitlint/cli": "17.6.3",
+    "@commitlint/config-conventional": "17.6.3",
     "@faker-js/faker": "7.6.0",
     "@nx/js": "16.1.1",
     "@nx/storybook": "16.1.1",
@@ -144,9 +149,11 @@
     "babel-jest": "29.4.3",
     "babel-loader": "8.1.0",
     "browserslist": "4.21.5",
+    "commitizen": "4.3.0",
     "concurrently": "8.0.1",
     "cross-env": "7.0.3",
     "cypress": "12.11.0",
+    "cz-customizable": "7.0.0",
     "date-fns": "2.30.0",
     "dotenv": "16.0.3",
     "dotenv-cli": "7.2.1",
@@ -196,5 +203,11 @@
   },
   "prisma": {
     "seed": "ts-node --transpile-only --project ./tsconfig.app.json prisma/seed.ts"
+  },
+  "config": {
+    "commitizen": {
+      "path": "node_modules/cz-customizable"
+    },
+    "nightlyVersion": "11.0.0"
   }
 }
