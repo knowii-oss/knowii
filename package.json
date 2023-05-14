@@ -121,7 +121,7 @@
     "remark-code-titles": "0.1.2",
     "rxjs": "7.8.1",
     "sharp": "0.32.1",
-    "stripe": "12.4.0",
+    "stripe": "12.5.0",
     "tslib": "2.5.0",
     "zod": "3.21.4",
     "@nx/next": "16.1.4"
