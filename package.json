@@ -136,7 +136,7 @@
     "@nx/js": "16.1.4",
     "@nx/storybook": "16.1.4",
     "@nx/workspace": "16.1.4",
-    "@storybook/addon-essentials": "7.0.10",
+    "@storybook/addon-essentials": "7.0.11",
     "@storybook/addon-mdx-gfm": "7.0.10",
     "@storybook/core-server": "7.0.10",
     "@storybook/react": "7.0.10",
