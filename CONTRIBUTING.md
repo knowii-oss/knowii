@@ -226,6 +226,7 @@ The rest of the commit message is then used for this.
 - Create a file called `gcloud.json` under apps/knowii with the Google Cloud service account key (used for local logging
   with Supabase)
 - Create apps/knowii/.env.local based on .env.example
+- Initialize the local Supabase instance: `npx supabase init`
 - Prepare and run the local Supabase instance: `npm run db:setup`
 - Install the Stripe CLI: https://stripe.com/docs/stripe-cli
 - If needed, run `stripe listen --forward-to localhost:3000/api/stripe-webhook` to redirect Stripe events to your local
