@@ -132,7 +132,7 @@
     "@babel/preset-typescript": "7.12.17",
     "@commitlint/cli": "17.6.3",
     "@commitlint/config-conventional": "17.6.3",
-    "@faker-js/faker": "7.6.0",
+    "@faker-js/faker": "8.0.0",
     "@nx/js": "16.1.4",
     "@nx/storybook": "16.1.4",
     "@nx/workspace": "16.1.4",
