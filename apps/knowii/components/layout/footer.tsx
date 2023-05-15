@@ -13,7 +13,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import Link from 'next/link';
-import { FaEnvelope, FaTwitter } from 'react-icons/fa';
+import { FaEnvelope, FaGithub, FaTwitter } from 'react-icons/fa';
 import { useTranslations } from 'next-intl';
 import { Logo } from '@knowii/client-ui';
 
@@ -23,6 +23,8 @@ const author = require('../../../../libs/common/src/lib/metadata.json').author;
 const contacts = require('../../../../libs/common/src/lib/metadata.json').contacts;
 // eslint-disable-next-line  @typescript-eslint/no-var-requires
 const social = require('../../../../libs/common/src/lib/metadata.json').social;
+// eslint-disable-next-line  @typescript-eslint/no-var-requires
+const sourceCodeUrl = require('../../../../libs/common/src/lib/metadata.json').sourceCodeUrl;
 
 // eslint-disable-next-line
 interface FooterProps {}
@@ -54,6 +56,12 @@ export function Footer(_props: FooterProps) {
               {t('links')}
             </Heading>
             <List spacing={1} opacity={0.75}>
+              <ListItem>
+                <StyledLink as={Link} href={sourceCodeUrl} className="flex flex-row gap-2 items-center">
+                  {t('linkSourceCode')}
+                  <FaGithub />
+                </StyledLink>
+              </ListItem>
               <ListItem>
                 <StyledLink as={Link} href={social.blogSebastien}>
                   {t('linkSebastien')}

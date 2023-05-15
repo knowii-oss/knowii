@@ -7,8 +7,9 @@
   "authorFamilyName": "Dubois",
   "authorAlias": "dSebastien",
   "url": "https://knowii.net",
+  "sourceCodeUrl": "https://github.com/knowii-oss",
   "domain": "knowii.net",
-  "keywords": ["community content curation", "knowledge management", "community knowledge management", "content curation"],
+  "keywords": ["community content curation", "knowledge management", "community knowledge management", "content curation", "knowledge"],
   "avatars": {
     "sebastien": "/images/blog/sebastien-avatar.jpg"
   },
