@@ -7,7 +7,7 @@ module.exports = {
    */
   rules: {
     'header-max-length': [1, 'always', 100],
-    'scope-enum': [2, 'always', ['all', 'a11y', 'code', 'deps', 'docs', 'i18n', 'qa', 'release', 'sec']],
+    'scope-enum': [2, 'always', ['all', 'a11y', 'code', 'deps', 'docs', 'i18n', 'qa', 'release', 'sec', 'ui', 'ux', 'auth']],
     'scope-case': [2, 'always', 'lowerCase'],
   },
 };
