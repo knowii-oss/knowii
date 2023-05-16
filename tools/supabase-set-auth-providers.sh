@@ -42,6 +42,14 @@ check_environment_variable "AUTH_PROVIDER_GITHUB_CLIENT_ID"
 check_environment_variable "AUTH_PROVIDER_GITHUB_SECRET"
 check_environment_variable "AUTH_PROVIDER_GITHUB_REDIRECT_URI"
 
+check_environment_variable "AUTH_PROVIDER_FACEBOOK_CLIENT_ID"
+check_environment_variable "AUTH_PROVIDER_FACEBOOK_SECRET"
+check_environment_variable "AUTH_PROVIDER_FACEBOOK_REDIRECT_URI"
+
+check_environment_variable "AUTH_PROVIDER_TWITTER_CLIENT_ID"
+check_environment_variable "AUTH_PROVIDER_TWITTER_SECRET"
+check_environment_variable "AUTH_PROVIDER_TWITTER_REDIRECT_URI"
+
 echo "Environment variables configured correctly"
 
 # Generate the auth provider config for the given provider
@@ -72,8 +80,12 @@ echo "Generating the auth providers configuration for Google"
 google_auth_provider_config=$(generate_auth_providers_config "google" "$AUTH_PROVIDER_GOOGLE_CLIENT_ID" "$AUTH_PROVIDER_GOOGLE_SECRET" "$AUTH_PROVIDER_GOOGLE_REDIRECT_URI")
 echo "Generating the auth providers configuration for Github"
 github_auth_provider_config=$(generate_auth_providers_config "github" "$AUTH_PROVIDER_GITHUB_CLIENT_ID" "$AUTH_PROVIDER_GITHUB_SECRET" "$AUTH_PROVIDER_GITHUB_REDIRECT_URI")
+echo "Generating the auth providers configuration for Facebook"
+facebook_auth_provider_config=$(generate_auth_providers_config "facebook" "$AUTH_PROVIDER_FACEBOOK_CLIENT_ID" "$AUTH_PROVIDER_FACEBOOK_SECRET" "$AUTH_PROVIDER_FACEBOOK_REDIRECT_URI")
+echo "Generating the auth providers configuration for Twitter"
+twitter_auth_provider_config=$(generate_auth_providers_config "twitter" "$AUTH_PROVIDER_TWITTER_CLIENT_ID" "$AUTH_PROVIDER_TWITTER_SECRET" "$AUTH_PROVIDER_TWITTER_REDIRECT_URI")
 
-auth_providers_config="${google_auth_provider_config}\n\n${github_auth_provider_config}\n"
+auth_providers_config="${google_auth_provider_config}\n\n${github_auth_provider_config}\n\n${facebook_auth_provider_config}\n\n${twitter_auth_provider_config}\n"
 
 # Those are all the lines in the original config.toml file that we need to replace
 lines_to_replace="\[auth\.external\.apple\]\nenabled = false\n\
