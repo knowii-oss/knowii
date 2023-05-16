@@ -173,7 +173,7 @@ export function Layout({ children, customMeta }: LayoutProps) {
       </a>
       <NavBar />
 
-      <main id="main" className="relative pt-20 min-h-screen">
+      <main id="main" className="relative pt-20 min-h-[80vh]">
         {children}
       </main>
 
