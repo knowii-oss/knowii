@@ -30,69 +30,71 @@ export function AuthFormWrapper({
       </Stack>
       <Box>{children}</Box>
 
-      <Divider my={8} />
-      <Heading as="h4" fontSize="lg" mb={3}>
-        {t('continueWith')}
-      </Heading>
-
       {showSocialAuth && enabledAuthProviders && (
-        <SimpleGrid columns={2} gap={2}>
-          {enabledAuthProviders.includes('google') ? (
-            <SocialSigninButton provider="google" redirectAfterSignin={redirectAfterSignin} />
-          ) : null}
+        <>
+          <Divider my={8} />
+          <Heading as="h4" fontSize="lg" mb={3}>
+            {t('continueWith')}
+          </Heading>
 
-          {enabledAuthProviders.includes('apple') ? (
-            <SocialSigninButton provider="apple" redirectAfterSignin={redirectAfterSignin} />
-          ) : null}
+          <SimpleGrid columns={2} gap={2}>
+            {enabledAuthProviders.includes('google') ? (
+              <SocialSigninButton provider="google" redirectAfterSignin={redirectAfterSignin} />
+            ) : null}
 
-          {enabledAuthProviders.includes('twitter') ? (
-            <SocialSigninButton provider="twitter" redirectAfterSignin={redirectAfterSignin} />
-          ) : null}
+            {enabledAuthProviders.includes('apple') ? (
+              <SocialSigninButton provider="apple" redirectAfterSignin={redirectAfterSignin} />
+            ) : null}
 
-          {enabledAuthProviders.includes('facebook') ? (
-            <SocialSigninButton provider="facebook" redirectAfterSignin={redirectAfterSignin} />
-          ) : null}
+            {enabledAuthProviders.includes('twitter') ? (
+              <SocialSigninButton provider="twitter" redirectAfterSignin={redirectAfterSignin} />
+            ) : null}
 
-          {enabledAuthProviders.includes('linkedin') ? (
-            <SocialSigninButton provider="linkedin" redirectAfterSignin={redirectAfterSignin} />
-          ) : null}
+            {enabledAuthProviders.includes('facebook') ? (
+              <SocialSigninButton provider="facebook" redirectAfterSignin={redirectAfterSignin} />
+            ) : null}
 
-          {enabledAuthProviders.includes('discord') ? (
-            <SocialSigninButton provider="discord" redirectAfterSignin={redirectAfterSignin} />
-          ) : null}
+            {enabledAuthProviders.includes('linkedin') ? (
+              <SocialSigninButton provider="linkedin" redirectAfterSignin={redirectAfterSignin} />
+            ) : null}
 
-          {enabledAuthProviders.includes('slack') ? (
-            <SocialSigninButton provider="slack" redirectAfterSignin={redirectAfterSignin} />
-          ) : null}
+            {enabledAuthProviders.includes('discord') ? (
+              <SocialSigninButton provider="discord" redirectAfterSignin={redirectAfterSignin} />
+            ) : null}
 
-          {enabledAuthProviders.includes('github') ? (
-            <SocialSigninButton provider="github" redirectAfterSignin={redirectAfterSignin} />
-          ) : null}
+            {enabledAuthProviders.includes('slack') ? (
+              <SocialSigninButton provider="slack" redirectAfterSignin={redirectAfterSignin} />
+            ) : null}
 
-          {enabledAuthProviders.includes('azure') ? (
-            <SocialSigninButton provider="azure" redirectAfterSignin={redirectAfterSignin} />
-          ) : null}
+            {enabledAuthProviders.includes('github') ? (
+              <SocialSigninButton provider="github" redirectAfterSignin={redirectAfterSignin} />
+            ) : null}
 
-          {enabledAuthProviders.includes('bitbucket') ? (
-            <SocialSigninButton provider="bitbucket" redirectAfterSignin={redirectAfterSignin} />
-          ) : null}
+            {enabledAuthProviders.includes('azure') ? (
+              <SocialSigninButton provider="azure" redirectAfterSignin={redirectAfterSignin} />
+            ) : null}
 
-          {enabledAuthProviders.includes('gitlab') ? (
-            <SocialSigninButton provider="gitlab" redirectAfterSignin={redirectAfterSignin} />
-          ) : null}
+            {enabledAuthProviders.includes('bitbucket') ? (
+              <SocialSigninButton provider="bitbucket" redirectAfterSignin={redirectAfterSignin} />
+            ) : null}
 
-          {enabledAuthProviders.includes('notion') ? (
-            <SocialSigninButton provider="notion" redirectAfterSignin={redirectAfterSignin} />
-          ) : null}
+            {enabledAuthProviders.includes('gitlab') ? (
+              <SocialSigninButton provider="gitlab" redirectAfterSignin={redirectAfterSignin} />
+            ) : null}
 
-          {enabledAuthProviders.includes('spotify') ? (
-            <SocialSigninButton provider="spotify" redirectAfterSignin={redirectAfterSignin} />
-          ) : null}
+            {enabledAuthProviders.includes('notion') ? (
+              <SocialSigninButton provider="notion" redirectAfterSignin={redirectAfterSignin} />
+            ) : null}
 
-          {enabledAuthProviders.includes('twitch') ? (
-            <SocialSigninButton provider="twitch" redirectAfterSignin={redirectAfterSignin} />
-          ) : null}
-        </SimpleGrid>
+            {enabledAuthProviders.includes('spotify') ? (
+              <SocialSigninButton provider="spotify" redirectAfterSignin={redirectAfterSignin} />
+            ) : null}
+
+            {enabledAuthProviders.includes('twitch') ? (
+              <SocialSigninButton provider="twitch" redirectAfterSignin={redirectAfterSignin} />
+            ) : null}
+          </SimpleGrid>
+        </>
       )}
     </VStack>
   );
