@@ -322,7 +322,7 @@ Make sure to configure it on Supabase, but also for local development (with dev 
 - The .env.example file to include the new required environment variables
 - The CONFIGURED_AUTH_PROVIDERS environment variable to list the newly added providers (WARNING: don't forget to also
   update it on Vercel)
-- The signin-form.tsx component
+- The auth-form-wrapper.tsx component
 - The supabase-db-seed.sql script, in particular the triggers that create/update users and user profiles
 - The technical documentation wiki
 
@@ -339,3 +339,18 @@ GitHub provides "name" and "user_name" fields. Knowii as well (email signup), bu
 ### Google
 
 - Go to https://console.cloud.google.com/apis/credentials
+- Same as above
+
+### Facebook
+
+- Go to https://developers.facebook.com/apps/creation/
+- Same as above
+- Request user email
+
+### Twitter
+
+- Go to https://developer.twitter.com/en/portal/projects
+- Same as above
+- Request user email (project > User authentication settings > Edit > "Request email from users")
+
+WARNING: For Twitter, you MUST use the API Key and API Key Secret, and NOT the Client ID and Client Secret! (Reference: https://github.com/orgs/supabase/discussions/2270)
