@@ -20,10 +20,10 @@ import { useForm } from 'react-hook-form';
 import { FaAt, FaLock } from 'react-icons/fa';
 import { useTranslations } from 'next-intl';
 import { useAuthRedirectUrl } from '@knowii/client';
-import { CALLBACK_URL, Database, FORGOT_PASSWORD_URL, redirectPath, SIGN_UP_URL } from '@knowii/common';
+import { CALLBACK_URL, Database, FORGOT_PASSWORD_URL, invalidateNextRouterCache, redirectPath, SIGN_UP_URL } from '@knowii/common';
 import { Loader } from '../common/loader';
 import { AuthFormWrapper } from './auth-form-wrapper';
-import { SigninModeSwitch, SigninMode } from './signin-mode-switch';
+import { SigninMode, SigninModeSwitch } from './signin-mode-switch';
 import { Provider } from '@supabase/supabase-js';
 
 export interface SigninFormProps {
@@ -52,18 +52,6 @@ export function SigninForm(props: SigninFormProps) {
   }>();
   const { isSubmitting, isSubmitted, isSubmitSuccessful } = formState;
 
-  useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabaseClient.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_IN') {
-        router.replace(redirectAfterSignin);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [supabaseClient, redirectAfterSignin]); // eslint-disable-line react-hooks/exhaustive-deps
-
   const onSubmit = (e: FormEvent) => {
     clearErrors('serverError');
     handleSubmit(async ({ email, password }) => {
@@ -82,6 +70,11 @@ export function SigninForm(props: SigninFormProps) {
           type: 'invalidCredentials',
         });
         return;
+      }
+
+      if (mode === SigninMode.Password) {
+        invalidateNextRouterCache();
+        await router.replace(redirectAfterSignin);
       }
     })(e);
   };
