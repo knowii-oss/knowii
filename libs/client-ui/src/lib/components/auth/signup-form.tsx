@@ -30,12 +30,14 @@ import {
 import { useAuthRedirectUrl } from '@knowii/client';
 import { AuthFormWrapper } from './auth-form-wrapper';
 import { useTranslations } from 'next-intl';
+import { Provider } from '@supabase/supabase-js';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface SignupFormProps {
   checkingUsernameAvailability: boolean;
   isUsernameAvailable: boolean;
   checkUsernameAvailability: (username: string) => void;
+  enabledAuthProviders: Provider[];
 }
 
 interface SignupFormData {
@@ -135,6 +137,8 @@ export function SignupForm(props: SignupFormProps) {
           </Link>
         </>
       }
+      showSocialAuth
+      enabledAuthProviders={props.enabledAuthProviders}
     >
       <form onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={5}>
