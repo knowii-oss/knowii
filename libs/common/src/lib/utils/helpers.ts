@@ -18,3 +18,24 @@ export interface ErrorWithMessage {
 export function hasErrorMessage(obj: unknown): obj is ErrorWithMessage {
   return (obj as ErrorWithMessage)?.message !== null && (obj as ErrorWithMessage)?.message !== undefined;
 }
+
+/**
+ * This helper invalidates the router cache so that the next navigation will run the middleware again
+ * See https://github.com/clerkinc/javascript/blob/712c8ea792693a335d9bf39c28e550216cb71bcb/packages/nextjs/src/client/invalidateNextRouterCache.ts for more details
+ */
+export const invalidateNextRouterCache = () => {
+  if (typeof window === 'undefined') return;
+
+  const invalidate = (cache: any) => {
+    Object.keys(cache).forEach((key) => {
+      delete cache[key];
+    });
+  };
+
+  try {
+    invalidate((window as any).next.router.sdc);
+    invalidate((window as any).next.router.sbc);
+  } catch (e) {
+    return;
+  }
+};
