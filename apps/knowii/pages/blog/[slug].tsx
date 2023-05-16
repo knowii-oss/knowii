@@ -1,6 +1,6 @@
 import { Box, Container, VStack } from '@chakra-ui/react';
 import { GetStaticPaths, GetStaticProps } from 'next';
-import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
+import { MDXRemote } from 'next-mdx-remote';
 import Head from 'next/head';
 import Image from 'next/image';
 import Script from 'next/script';
@@ -9,8 +9,8 @@ import { useRouter } from 'next/router';
 import { BlogPostMeta, Loader, PageHeader } from '@knowii/client-ui';
 import { mdxComponents } from '@knowii/client-ui';
 import { Layout } from '../../components/layout/layout';
-import { getImageSize, getMdx, getMdxFilePaths } from '@knowii/server';
-import { FrontMatter, LocaleCode, SITE_AUTHOR_MICRODATA, WebsiteDataType } from '@knowii/common';
+import { getImageSize, getMdx, getMdxFilePaths, MdxEntry } from '@knowii/server';
+import { LocaleCode, SITE_AUTHOR_MICRODATA, WebsiteDataType } from '@knowii/common';
 import { i18nConfig } from '../../../../i18n.config.mjs';
 import { useTranslations } from 'next-intl';
 import { CustomPageProps } from '../_app';
@@ -126,10 +126,7 @@ export const getStaticProps: GetStaticProps<BlogPostPageProps, MdxFilePathParams
   return retVal;
 };
 
-interface BlogPostPageProps extends Partial<CustomPageProps> {
-  mdxSource: MDXRemoteSerializeResult;
-  frontMatter: FrontMatter;
-}
+type BlogPostPageProps = Partial<CustomPageProps> & MdxEntry;
 
 /**
  * Renders a specific blog post
