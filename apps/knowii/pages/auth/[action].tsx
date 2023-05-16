@@ -204,6 +204,7 @@ export default function AuthPage(props: AuthPageProps) {
                   checkingUsernameAvailability={checkingUsernameAvailability}
                   isUsernameAvailable={isUsernameAvailable}
                   checkUsernameAvailability={setUsername}
+                  enabledAuthProviders={props.enabledAuthProviders}
                 />
               )}
               {props.action === 'signin' && <SigninForm enabledAuthProviders={props.enabledAuthProviders} />}

@@ -203,9 +203,11 @@
       "password": "Votre mot de passe:"
     },
     "forgotPassword": "Mot de passe oublié?",
-    "continueWith": "Ou continuer avec",
     "submitButton": "Se connecter",
     "sendLinkButton": "Envoyer un lien magique"
+  },
+  "authFormWrapper": {
+    "continueWith": "Ou continuer avec"
   },
   "socialSigninButton": {
     "providers": {
