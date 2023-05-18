@@ -237,6 +237,7 @@ Useful IDE extensions:
 - MJML: tooling to preview the mjml templates and generate the HTML files from those
 - Prettier: Formatting
 - ESLint: Linting
+- Prisma
 
 ## App
 
