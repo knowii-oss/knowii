@@ -57,6 +57,12 @@ export const THEME_LIGHT = 'light';
 export const HOME_URL = '/';
 
 /**
+ * API
+ */
+export const API_BASE_PATH = '/api/v1';
+export const API_USERNAME_AVAILABILITY_CHECK = `${API_BASE_PATH}/is-username-available`;
+export const API_COMMUNITY_NAME_AVAILABILITY_CHECK = `${API_BASE_PATH}/is-community-name-available`;
+/**
  * Auth
  */
 export const AUTH_BASE_PATH = '/auth';
