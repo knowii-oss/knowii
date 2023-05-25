@@ -27,6 +27,7 @@ import {
   allowedCommunityNameCharactersRegex,
   API_COMMUNITY_NAME_AVAILABILITY_CHECK,
   forbiddenCommunityNameCharactersRegex,
+  IsCommunityNameAvailableRequest,
   maxLengthCommunityName,
   minLengthCommunityName,
 } from '@knowii/common';
@@ -168,14 +169,16 @@ export function CreateNewCommunityPage(_props: CreateNewCommunityPageProps) {
 
     console.log('Checking community name availability');
 
+    const requestBody: IsCommunityNameAvailableRequest = {
+      nameToCheck: name,
+    };
+
     try {
       const response = await fetch(API_COMMUNITY_NAME_AVAILABILITY_CHECK, {
         signal,
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nameToCheck: name,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       //console.log('Response: ', response);

@@ -4,7 +4,6 @@ const isUsernameAvailableRequestSchema = z.object({
   usernameToCheck: z.string(),
 });
 
-// FIXME use this type
 export type IsUsernameAvailableRequest = z.infer<typeof isUsernameAvailableRequestSchema>;
 
 const isUsernameAvailableResponseSchema = z.object({
@@ -19,7 +18,6 @@ const isCommunityNameAvailableRequestSchema = z.object({
   nameToCheck: z.string(),
 });
 
-// FIXME use this type
 export type IsCommunityNameAvailableRequest = z.infer<typeof isCommunityNameAvailableRequestSchema>;
 
 const isCommunityNameAvailableResponseSchema = z.object({
