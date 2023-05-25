@@ -272,7 +272,7 @@
   },
   "createNewCommunityPage": {
     "title": "Créer une nouvelle communauté",
-    "description": "Un nouvel espace pour les connaissance, l'inspiration et les idées de votre communauté",
+    "description": "Un nouvel espace pour les connaissances, l'inspiration et les idées de votre communauté",
     "submitButton": "Créer!",
     "successMessage": "Votre communauté a été créée avec succès 🎉",
     "errorMessage": "Nous n'avons pas réussi à créer votre communauté \uD83D\uDE2D",
