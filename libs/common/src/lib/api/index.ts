@@ -27,3 +27,17 @@ const isCommunityNameAvailableResponseSchema = z.object({
 });
 
 export type IsCommunityNameAvailableResponse = z.infer<typeof isCommunityNameAvailableResponseSchema>;
+
+const isCommunitySlugAvailableRequestSchema = z.object({
+  slugToCheck: z.string(),
+});
+
+export type IsCommunitySlugAvailableRequest = z.infer<typeof isCommunitySlugAvailableRequestSchema>;
+
+const isCommunitySlugAvailableResponseSchema = z.object({
+  error: z.optional(z.string()),
+  errorDescription: z.optional(z.string()),
+  isSlugAvailable: z.optional(z.boolean()),
+});
+
+export type IsCommunitySlugAvailableResponse = z.infer<typeof isCommunitySlugAvailableResponseSchema>;
