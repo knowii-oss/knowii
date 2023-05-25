@@ -12,7 +12,9 @@ import {
   minLengthCommunityName,
   errorCommunityNameTooShort,
   IsCommunityNameAvailableResponse,
+  cleanCommunityName,
 } from '@knowii/common';
+import { PrismaClient } from '@prisma/client';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -34,9 +36,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
 
-  const { nameToCheck = '' } = req.body;
+  let { nameToCheck = '' } = req.body;
 
-  if (!nameToCheck || '' === nameToCheck.trim()) {
+  nameToCheck = cleanCommunityName(nameToCheck);
+
+  if (!nameToCheck || '' === nameToCheck) {
     console.warn(errorNoCommunityNameProvided.description);
     return res.status(400).json({
       error: errorNoCommunityNameProvided.code,
@@ -62,29 +66,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
 
-  console.log('Name to check: ', nameToCheck);
+  console.log('Community name to check: ', nameToCheck);
 
   try {
-    // WARNING: The argument name MUST match the exact argument name of the function declared in supabase-db-seed.sql
-    const checkResult = await supabaseClient.rpc('is_community_name_available', { name_to_check: nameToCheck });
+    const prisma = new PrismaClient();
 
-    if (checkResult.error) {
-      console.warn(
-        `Error while checking for community name availability: ${JSON.stringify(checkResult.error)}. DB access status code: ${
-          checkResult.status
-        }`,
-      );
-      return res.status(500).json({
-        error: errorInternalServerError.code,
-        errorDescription: errorInternalServerError.description,
-      });
-    }
+    const communitiesWithThatName = await prisma.communities.count({
+      where: {
+        name: nameToCheck,
+      },
+    });
 
-    //console.log('Check result: ', checkResult);
-    const isNameAvailable = checkResult.data;
+    const isNameAvailable = communitiesWithThatName === 0;
 
     if (isNameAvailable) {
-      console.log('The name is available');
+      console.log('The community name is available');
+    } else {
+      console.log('The community name is not available');
     }
 
     const responseBody: IsCommunityNameAvailableResponse = {
@@ -94,9 +92,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json(responseBody);
   } catch (err: unknown) {
     if (hasErrorMessage(err)) {
-      res.status(500).json({ error: { statusCode: 500, message: err.message } });
+      console.warn(`Error while checking for community name availability: ${err.message}`);
+      res.status(500).json({
+        error: {
+          statusCode: 500,
+          errorDescription: errorInternalServerError.description,
+        },
+      });
       return;
     }
-    res.status(500).json({ error: { statusCode: 500, message: err } });
+
+    console.warn(`Error while checking for community name availability: ${err}`);
+    res.status(500).json({
+      error: errorInternalServerError.code,
+      errorDescription: errorInternalServerError.description,
+    });
   }
 }
