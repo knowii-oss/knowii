@@ -22,6 +22,7 @@ import {
   minLengthUsername,
   redirectPath,
   SIGN_IN_URL,
+  API_USERNAME_AVAILABILITY_CHECK,
 } from '@knowii/common';
 import { i18nConfig } from '../../../../i18n.config.mjs';
 import { CustomPageProps } from '../_app';
@@ -150,7 +151,7 @@ export default function AuthPage(props: AuthPageProps) {
     console.log('Checking username availability');
 
     try {
-      const response = await fetch('/api/v1/is-username-available', {
+      const response = await fetch(API_USERNAME_AVAILABILITY_CHECK, {
         signal,
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

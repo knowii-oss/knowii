@@ -25,6 +25,7 @@ import { ClipboardEvent, KeyboardEvent, useState, useRef, useEffect } from 'reac
 import { FaCheckCircle, FaClock, FaTimesCircle } from 'react-icons/fa';
 import {
   allowedCommunityNameCharactersRegex,
+  API_COMMUNITY_NAME_AVAILABILITY_CHECK,
   forbiddenCommunityNameCharactersRegex,
   maxLengthCommunityName,
   minLengthCommunityName,
@@ -147,9 +148,7 @@ export function CreateNewCommunityPage(_props: CreateNewCommunityPageProps) {
   useEffect(() => {
     // When a new request is going to be issued,
     // the first thing to do is cancel the previous one
-    if (lastAbortController.current) {
-      lastAbortController.current.abort();
-    }
+    lastAbortController.current?.abort();
 
     // Create new AbortController for the new request and store it in the ref
     const currentAbortController = new AbortController();
@@ -170,7 +169,7 @@ export function CreateNewCommunityPage(_props: CreateNewCommunityPageProps) {
     console.log('Checking community name availability');
 
     try {
-      const response = await fetch('/api/v1/is-community-name-available', {
+      const response = await fetch(API_COMMUNITY_NAME_AVAILABILITY_CHECK, {
         signal,
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
