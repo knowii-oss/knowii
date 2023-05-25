@@ -36,6 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
 
+  // FIXME check shape with Zod and IsCommunityNameAvailableRequest
   let { nameToCheck = '' } = req.body;
 
   nameToCheck = cleanCommunityName(nameToCheck);

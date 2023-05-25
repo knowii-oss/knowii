@@ -21,6 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
+  // FIXME check shape with Zod and IsUsernameAvailableRequest
   let { usernameToCheck = '' } = req.body;
 
   usernameToCheck = cleanUsername(usernameToCheck);

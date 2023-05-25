@@ -23,6 +23,7 @@ import {
   redirectPath,
   SIGN_IN_URL,
   API_USERNAME_AVAILABILITY_CHECK,
+  IsUsernameAvailableRequest,
 } from '@knowii/common';
 import { i18nConfig } from '../../../../i18n.config.mjs';
 import { CustomPageProps } from '../_app';
@@ -150,15 +151,16 @@ export default function AuthPage(props: AuthPageProps) {
 
     console.log('Checking username availability');
 
+    const requestBody: IsUsernameAvailableRequest = {
+      usernameToCheck: username,
+    };
+
     try {
       const response = await fetch(API_USERNAME_AVAILABILITY_CHECK, {
         signal,
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          // WARNING: The name must match the API parameter name
-          usernameToCheck: username,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       //console.log('Response: ', response);
