@@ -60,8 +60,10 @@ export const HOME_URL = '/';
  * API
  */
 export const API_BASE_PATH = '/api/v1';
-export const API_USERNAME_AVAILABILITY_CHECK = `${API_BASE_PATH}/is-username-available`;
-export const API_COMMUNITY_NAME_AVAILABILITY_CHECK = `${API_BASE_PATH}/is-community-name-available`;
+export const API_COMMUNITIES_BASE_PATH = '/communities';
+export const API_USERS_BASE_PATH = '/users';
+export const API_USERNAME_AVAILABILITY_CHECK = `${API_BASE_PATH}/${API_USERS_BASE_PATH}/is-username-available`;
+export const API_COMMUNITY_NAME_AVAILABILITY_CHECK = `${API_BASE_PATH}/${API_COMMUNITIES_BASE_PATH}/is-community-name-available`;
 /**
  * Auth
  */
@@ -95,15 +97,15 @@ export function isValidAuthAction(action: string): action is AuthAction {
  * Regexes
  * WARNING: Some of those must match the regexes used by PL/SQL functions defined in supabase-db-seed.sql
  */
-export const forbiddenUsernameCharactersRegex = /[^a-zA-Z0-9_-]+/;
+export const forbiddenUsernameCharactersRegex = /[^a-zA-Z0-9_-]+/g;
 // Used with react hook form forms
-export const allowedUsernameCharactersRegex = /[a-zA-Z0-9_-]+/;
+export const allowedUsernameCharactersRegex = /[a-zA-Z0-9_-]+/g;
 export const minLengthUsername = 3;
 export const maxLengthUsername = 36;
 
-export const forbiddenCommunityNameCharactersRegex = /[^a-zA-Z0-9 -]+/;
+export const forbiddenCommunityNameCharactersRegex = /[^a-zA-Z0-9 -]+/g;
 // Used with react hook form forms
-export const allowedCommunityNameCharactersRegex = /[a-zA-Z0-9 -]+/;
+export const allowedCommunityNameCharactersRegex = /[a-zA-Z0-9 -]+/g;
 
 export const minLengthCommunityName = 3;
 export const maxLengthCommunityName = 64;

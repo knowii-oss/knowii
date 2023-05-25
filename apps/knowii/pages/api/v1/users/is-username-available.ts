@@ -1,17 +1,18 @@
-import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
 import { NextApiRequest, NextApiResponse } from 'next';
 import {
-  forbiddenUsernameCharactersRegex,
+  cleanUsername,
   errorInternalServerError,
   errorInvalidUsername,
   errorNoUsernameProvided,
-  hasErrorMessage,
-  maxLengthUsername,
   errorUsernameTooLong,
-  minLengthUsername,
   errorUsernameTooShort,
+  forbiddenUsernameCharactersRegex,
+  hasErrorMessage,
   IsUsernameAvailableResponse,
+  maxLengthUsername,
+  minLengthUsername,
 } from '@knowii/common';
+import { PrismaClient } from '@prisma/client';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -20,11 +21,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const supabaseClient = createServerSupabaseClient({ req, res });
+  let { usernameToCheck = '' } = req.body;
 
-  const { usernameToCheck = '' } = req.body;
+  usernameToCheck = cleanUsername(usernameToCheck);
 
-  if (!usernameToCheck || '' === usernameToCheck.trim()) {
+  if (!usernameToCheck || '' === usernameToCheck) {
     console.warn(errorNoUsernameProvided.description);
     return res.status(400).json({
       error: errorNoUsernameProvided.code,
@@ -54,25 +55,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     // WARNING: The argument name MUST match the exact argument name of the function declared in supabase-db-seed.sql
-    const checkResult = await supabaseClient.rpc('is_username_available', { username_to_check: usernameToCheck });
+    const prisma = new PrismaClient();
 
-    if (checkResult.error) {
-      console.warn(
-        `Error while checking for username availability: ${JSON.stringify(checkResult.error)}. DB access status code: ${
-          checkResult.status
-        }`,
-      );
-      return res.status(500).json({
-        error: errorInternalServerError.code,
-        errorDescription: errorInternalServerError.description,
-      });
-    }
+    const usersWithThatUsername = await prisma.users.count({
+      where: {
+        username: usernameToCheck,
+      },
+    });
 
-    //console.log('Check result: ', checkResult);
-    const isUsernameAvailable = checkResult.data;
+    const isUsernameAvailable = usersWithThatUsername === 0;
 
     if (isUsernameAvailable) {
-      console.log('The name is available');
+      console.log('The username is available');
+    } else {
+      console.log('The username is not available');
     }
 
     const responseBody: IsUsernameAvailableResponse = {
@@ -82,9 +78,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json(responseBody);
   } catch (err: unknown) {
     if (hasErrorMessage(err)) {
-      res.status(500).json({ error: { statusCode: 500, message: err.message } });
+      console.warn(`Error while checking for username availability: ${err.message}`);
+      res.status(500).json({
+        error: {
+          statusCode: 500,
+          errorDescription: errorInternalServerError.description,
+        },
+      });
       return;
     }
-    res.status(500).json({ error: { statusCode: 500, message: err } });
+
+    console.warn(`Error while checking for username availability: ${err}`);
+    res.status(500).json({
+      error: errorInternalServerError.code,
+      errorDescription: errorInternalServerError.description,
+    });
   }
 }
