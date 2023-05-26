@@ -130,6 +130,8 @@ export function SigninForm(props: SigninFormProps) {
                   </InputLeftElement>
 
                   <Input
+                    required
+                    isRequired
                     type="email"
                     autoComplete="email"
                     {...register('email', {
@@ -147,7 +149,7 @@ export function SigninForm(props: SigninFormProps) {
                     <InputLeftElement color="gray.300">
                       <FaLock />
                     </InputLeftElement>
-                    <Input type="password" autoComplete="password" {...register('password', { required: true })} />
+                    <Input required isRequired type="password" autoComplete="password" {...register('password', { required: true })} />
                   </InputGroup>
                   <FormHelperText>
                     <Link as={NextLink} href={FORGOT_PASSWORD_URL} color="primary.500">

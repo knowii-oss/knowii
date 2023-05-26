@@ -77,6 +77,7 @@ export function ResetPasswordForm(_props: ResetPasswordFormProps) {
               </InputLeftElement>
               <Input
                 required
+                isRequired
                 type={isPasswordVisible ? 'text' : 'password'}
                 autoComplete="new-password"
                 {...register('password', { required: true })}

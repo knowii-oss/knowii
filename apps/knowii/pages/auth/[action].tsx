@@ -24,6 +24,7 @@ import {
   SIGN_IN_URL,
   API_USERNAME_AVAILABILITY_CHECK,
   IsUsernameAvailableRequest,
+  IsUsernameAvailableResponse,
 } from '@knowii/common';
 import { i18nConfig } from '../../../../i18n.config.mjs';
 import { CustomPageProps } from '../_app';
@@ -129,9 +130,7 @@ export default function AuthPage(props: AuthPageProps) {
   useEffect(() => {
     // When a new request is going to be issued,
     // the first thing to do is cancel the previous one
-    if (lastAbortController.current) {
-      lastAbortController.current.abort();
-    }
+    lastAbortController.current?.abort();
 
     // Create new AbortController for the new request and store it in the ref
     const currentAbortController = new AbortController();
@@ -166,7 +165,7 @@ export default function AuthPage(props: AuthPageProps) {
       //console.log('Response: ', response);
 
       if (response.ok) {
-        const responseBody = await response.json();
+        const responseBody: IsUsernameAvailableResponse = await response.json();
 
         if (responseBody.isUsernameAvailable) {
           console.log('Username is available');
