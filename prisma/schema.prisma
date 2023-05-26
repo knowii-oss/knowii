@@ -4,6 +4,25 @@ generator client {
   previewFeatures = ["multiSchema", "postgresqlExtensions"]
 }
 
+/// Reference: https://github.com/chrishoermann/zod-prisma-types
+generator zod {
+  provider                         = "zod-prisma-types"
+  output                           = "../libs/common/src/lib/generated/prisma"
+  useMultipleFiles                 = true
+  createInputTypes                 = false
+  createModelTypes                 = true
+  addInputTypeValidation           = false
+  addIncludeType                   = false
+  addSelectType                    = false
+  validateWhereUniqueInput         = false
+  createOptionalDefaultValuesTypes = true
+  createRelationValuesTypes        = true
+  createPartialTypes               = true
+  useDefaultValidators             = true
+  coerceDate                       = true
+  writeNullishInModelTypes         = false
+}
+
 /// Reference: https://www.prisma.io/docs/guides/database/multi-schema
 datasource db {
   provider          = "postgresql"
@@ -17,68 +36,68 @@ datasource db {
 // Knowii tables
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 model Customers {
-  user_id              String               @id @db.Uuid
-  stripe_customer_id   String
+  user_id            String @id @db.Uuid /// @zod.string.uuid()
+  stripe_customer_id String
 
   @@schema("public")
   @@map("customers")
 }
 
 model Prices {
-  id                   String               @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
-  product_id           String?              @db.Uuid
-  active               Boolean?
-  description          String?
-  unit_amount          BigInt?
-  currency             String?
-  type                 PricingType?
-  interval             PricingPlanInterval?
-  interval_count       Int?
-  trial_period_days    Int?
-  metadata             Json?
-  products             Products?            @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  subscriptions        Subscriptions[]
+  id                String               @id @db.Uuid @default(dbgenerated("gen_random_uuid()")) /// @zod.string.uuid()
+  product_id        String?              @db.Uuid /// @zod.string.uuid()
+  active            Boolean?
+  description       String?
+  unit_amount       BigInt?
+  currency          String?
+  type              PricingType?
+  interval          PricingPlanInterval?
+  interval_count    Int?
+  trial_period_days Int?
+  metadata          Json?
+  products          Products?            @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  subscriptions     Subscriptions[]
 
   @@schema("public")
   @@map("prices")
 }
 
 model Products {
-  id                   String               @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
-  active               Boolean?
-  name                 String?
-  description          String?
-  image                String?
-  metadata             Json?
-  prices               Prices[]
-  subscriptions        Subscriptions[]
+  id            String          @id @db.Uuid @default(dbgenerated("gen_random_uuid()")) /// @zod.string.uuid()
+  active        Boolean?
+  name          String?
+  description   String?
+  image         String?
+  metadata      Json?
+  prices        Prices[]
+  subscriptions Subscriptions[]
 
   @@schema("public")
   @@map("products")
 }
 
 model Subscriptions {
-  id                   String               @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+  id                   String              @id @db.Uuid @default(dbgenerated("gen_random_uuid()")) /// @zod.string.uuid()
   /// Internal user id
-  user_id              String               @db.Uuid @unique
+  user_id              String              @db.Uuid @unique /// @zod.string.uuid()
   /// Supabase user id
-  user_id_external     String?              @db.Uuid @unique
+  user_id_external     String?             @db.Uuid @unique /// @zod.string.uuid()
   status               SubscriptionStatus?
   metadata             Json?
-  product_id           String?              @db.Uuid
-  price_id             String?              @db.Uuid
+  product_id           String?             @db.Uuid /// @zod.string.uuid()
+  price_id             String?             @db.Uuid /// @zod.string.uuid()
   quantity             Int?
   cancel_at_period_end Boolean?
-  created_at           DateTime             @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
-  current_period_start DateTime             @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
-  current_period_end   DateTime             @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
-  ended_at             DateTime?            @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
-  cancel_at            DateTime?            @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
-  canceled_at          DateTime?            @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
-  trial_start          DateTime?            @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
-  trial_end            DateTime?            @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
-  prices               Prices?              @relation(fields: [price_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  products             Products?            @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  created_at           DateTime            @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  current_period_start DateTime            @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  current_period_end   DateTime            @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  ended_at             DateTime?           @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  cancel_at            DateTime?           @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  canceled_at          DateTime?           @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  trial_start          DateTime?           @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  trial_end            DateTime?           @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  prices               Prices?             @relation(fields: [price_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  products             Products?           @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@schema("public")
   @@map("subscriptions")
@@ -118,21 +137,21 @@ enum SubscriptionStatus {
 
 model Users {
   /// Internal user id (referenced in other tables)
-  id                   String               @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+  id                    String         @id @db.Uuid @default(dbgenerated("gen_random_uuid()")) /// @zod.string.uuid()
   /// Same id as the id in auth.users (ie Supabase user id)
   /// Can be null because users can delete their account but we keep the entry anyway
-  user_id_external     String?              @db.Uuid @unique
-  /// Name defaults to user email
-  username             String               @unique
-  email                String               @unique
-  user_role            KnowiiUserRole       @default(USER)
-  created_at           DateTime             @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
-  updated_at           DateTime             @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt
-  admin_of             Communities[]        @relation("community_admins")
-  member_of            Communities[]        @relation("community_members")
-  owner_of             Communities[]        @relation("community_owners")
-  user_profile         UserProfiles?        @relation("user_profile_user")
-  user_profile_external UserProfiles?       @relation("user_profile_external_user")
+  user_id_external      String?        @db.Uuid @unique /// @zod.string.uuid()
+  /// WARNING: The Zod validation rules MUST respect the same length rules as the UI & back-end (cfr constants.ts)
+  username              String         @unique /// @zod.string.min(3).max(36)
+  email                 String         @unique /// @zod.string.email()
+  user_role             KnowiiUserRole @default(USER)
+  created_at            DateTime       @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
+  updated_at            DateTime       @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt
+  admin_of              Communities[]  @relation("community_admins")
+  member_of             Communities[]  @relation("community_members")
+  owner_of              Communities[]  @relation("community_owners")
+  user_profile          UserProfiles?  @relation("user_profile_user")
+  user_profile_external UserProfiles?  @relation("user_profile_external_user")
 
   @@index([username], map: "idx_user_username")
   @@index([email], map: "idx_user_email")
@@ -141,49 +160,50 @@ model Users {
 }
 
 model UserProfiles {
-    id                   String               @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
-    /// Internal user id
-    user_id              String               @db.Uuid @unique
-    /// Supabase user id
-    user_id_external     String?              @db.Uuid @unique
-    name                 String               @default("")
-    avatar_url           String               @default("")
-    phone                String               @default("")
-    website              String               @default("")
-    twitter              String               @default("")
-    facebook             String               @default("")
-    instagram            String               @default("")
-    tiktok               String               @default("")
-    github               String               @default("")
-    bio                  String               @default("")
-    location             String               @default("")
-    organization_name    String               @default("")
-    organization_link    String               @default("")
-    /// WARNING: When adding/updating/removing fields here, make sure to update the triggers in supabase-db-seed.sql
-    created_at           DateTime             @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
-    updated_at           DateTime             @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt
-    user                 Users?               @relation("user_profile_user", fields: [user_id], references: [id])
-    user_external        Users?               @relation("user_profile_external_user", fields: [user_id_external], references: [user_id_external])
+  id                String   @id @db.Uuid @default(dbgenerated("gen_random_uuid()")) /// @zod.string.uuid()
+  /// Internal user id
+  user_id           String   @db.Uuid @unique /// @zod.string.uuid()
+  /// Supabase user id
+  user_id_external  String?  @db.Uuid @unique /// @zod.string.uuid()
+  name              String   @default("")
+  avatar_url        String   @default("")
+  phone             String   @default("")
+  website           String   @default("")
+  twitter           String   @default("")
+  facebook          String   @default("")
+  instagram         String   @default("")
+  tiktok            String   @default("")
+  github            String   @default("")
+  bio               String   @default("")
+  location          String   @default("")
+  organization_name String   @default("")
+  organization_link String   @default("")
+  /// WARNING: When adding/updating/removing fields here, make sure to update the triggers in supabase-db-seed.sql
+  created_at        DateTime @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
+  updated_at        DateTime @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt
+  user              Users?   @relation("user_profile_user", fields: [user_id], references: [id])
+  user_external     Users?   @relation("user_profile_external_user", fields: [user_id_external], references: [user_id_external])
 
-    @@index([name], map: "idx_user_profile_name")
-    @@schema("public")
-    @@map("user_profiles")
+  @@index([name], map: "idx_user_profile_name")
+  @@schema("public")
+  @@map("user_profiles")
 }
 
 model Communities {
-  id                   String                     @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
-  name                 String                     @unique
-  slug                 String                     @unique
-  description          String                     @default("")
-  visibility           KnowiiCommunityVisibility  @default(PUBLIC)
-  created_at           DateTime                   @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
-  updated_at           DateTime                   @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt
-  admins               Users[]                    @relation("community_admins")
-  members              Users[]                    @relation("community_members")
-  owners               Users[]                    @relation("community_owners")
-  resource_collections ResourceCollections[]      @relation("community_resource_collections")
-  resources            Resources[]                @relation("community_resources")
-  tags                 Tags[]                     @relation("community_tags")
+  id                   String                    @id @db.Uuid @default(dbgenerated("gen_random_uuid()")) /// @zod.string.uuid()
+  /// WARNING: The Zod validation rules MUST respect the same length rules as the UI & back-end (cfr constants.ts)
+  name                 String                    @unique /// @zod.string.min(3).max(64)
+  slug                 String                    @unique /// @zod.string.min(3).max(64)
+  description          String                    @default("")
+  visibility           KnowiiCommunityVisibility @default(PUBLIC)
+  created_at           DateTime                  @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
+  updated_at           DateTime                  @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt
+  admins               Users[]                   @relation("community_admins")
+  members              Users[]                   @relation("community_members")
+  owners               Users[]                   @relation("community_owners")
+  resource_collections ResourceCollections[]     @relation("community_resource_collections")
+  resources            Resources[]               @relation("community_resources")
+  tags                 Tags[]                    @relation("community_tags")
 
   @@index([name], map: "idx_community_name")
   @@schema("public")
@@ -191,15 +211,15 @@ model Communities {
 }
 
 model ResourceCollections {
-  id                   String                     @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
-  name                 String                     @default("")
-  slug                 String                     @unique
-  description          String                     @default("")
-  community_id         String                     @db.Uuid
-  created_at           DateTime                   @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
-  updated_at           DateTime                   @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt
-  community            Communities                @relation("community_resource_collections", fields: [community_id], references: [id])
-  resources            Resources[]                @relation("resource_collection_resources")
+  id           String      @id @db.Uuid @default(dbgenerated("gen_random_uuid()")) /// @zod.string.uuid()
+  name         String      @default("")
+  slug         String      @unique
+  description  String      @default("")
+  community_id String      @db.Uuid /// @zod.string.uuid()
+  created_at   DateTime    @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
+  updated_at   DateTime    @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt
+  community    Communities @relation("community_resource_collections", fields: [community_id], references: [id])
+  resources    Resources[] @relation("resource_collection_resources")
 
   @@index([name], map: "idx_resource_collection_name")
   @@schema("public")
@@ -207,21 +227,21 @@ model ResourceCollections {
 }
 
 model Resources {
-  id                       String                     @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
-  name                     String                     @default("")
-  description              String                     @default("")
-  content                  String                     @default("")
-  source                   String                     @default("")
-  slug                     String                     @unique
-  up_votes                    Int                     @default(0)
-  down_votes                  Int                     @default(0)
-  community_id             String                     @db.Uuid
-  resource_collection_id   String                     @db.Uuid
-  created_at               DateTime                   @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
-  updated_at               DateTime                   @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt
-  resource_collection      ResourceCollections        @relation("resource_collection_resources", fields: [resource_collection_id], references: [id])
-  community                Communities                @relation("community_resources", fields: [community_id], references: [id])
-  tags                     Tags[]                     @relation("resource_tags")
+  id                     String              @id @db.Uuid @default(dbgenerated("gen_random_uuid()")) /// @zod.string.uuid()
+  name                   String              @default("")
+  description            String              @default("")
+  content                String              @default("")
+  source                 String              @default("")
+  slug                   String              @unique
+  up_votes               Int                 @default(0)
+  down_votes             Int                 @default(0)
+  community_id           String              @db.Uuid /// @zod.string.uuid()
+  resource_collection_id String              @db.Uuid /// @zod.string.uuid()
+  created_at             DateTime            @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
+  updated_at             DateTime            @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt
+  resource_collection    ResourceCollections @relation("resource_collection_resources", fields: [resource_collection_id], references: [id])
+  community              Communities         @relation("community_resources", fields: [community_id], references: [id])
+  tags                   Tags[]              @relation("resource_tags")
 
   @@index([slug], map: "idx_resource_slug")
   @@schema("public")
@@ -229,13 +249,13 @@ model Resources {
 }
 
 model Tags {
-  id                       String                     @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
-  name                     String                     @unique
-  community_id             String                     @db.Uuid
-  community                Communities?               @relation("community_tags", fields: [community_id], references: [id])
-  created_at               DateTime                   @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
-  updated_at               DateTime                   @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt
-  resources                Resources[]                @relation("resource_tags")
+  id           String       @id @db.Uuid @default(dbgenerated("gen_random_uuid()")) /// @zod.string.uuid()
+  name         String       @unique
+  community_id String       @db.Uuid /// @zod.string.uuid()
+  community    Communities? @relation("community_tags", fields: [community_id], references: [id])
+  created_at   DateTime     @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
+  updated_at   DateTime     @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt
+  resources    Resources[]  @relation("resource_tags")
 
   @@index([name], map: "idx_tag_name")
   @@schema("public")
