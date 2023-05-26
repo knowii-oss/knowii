@@ -1,6 +1,5 @@
 import { useSupabaseClient, useUser } from '@supabase/auth-helpers-react';
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
 import { useRouter } from 'next/router';
 import { useCallback, useMemo, useState } from 'react';
 import { Database, SIGN_IN_URL, SubscriptionPlan, SubscriptionPlanId } from '@knowii/common';
@@ -147,22 +146,34 @@ export function useSubscriptionActions() {
       }
 
       try {
-        const {
-          data: { sessionId },
-        } = await axios.post('/api/stripe-checkout-session', {
+        // FIXME add Zod request type
+        const requestBody = {
           priceId,
           metadata: {
             userId: user.id,
           },
+        };
+
+        // FIXME add Zod response type
+        const response = await fetch('/api/stripe-checkout-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody),
         });
 
-        if (!sessionId) {
-          throw new Error('No session id returned');
+        if (response.ok) {
+          const responseBody = await response.json();
+
+          if (!responseBody.sessionId) {
+            throw new Error('No session id returned');
+          }
+
+          const sessionId = responseBody.sessionId;
+
+          const stripeClient = await getStripe();
+
+          await stripeClient?.redirectToCheckout({ sessionId });
         }
-
-        const stripeClient = await getStripe();
-
-        await stripeClient?.redirectToCheckout({ sessionId });
       } catch (error) {
         console.error(error);
       }
@@ -176,14 +187,21 @@ export function useSubscriptionActions() {
     setLoading(true);
 
     try {
-      const {
-        data: { url },
-      } = await axios.post('/api/stripe-portal-link');
+      const response = await fetch('/api/stripe-checkout-session', {
+        method: 'POST',
+      });
 
-      if (!url) {
-        throw new Error('No portal url returned');
+      if (response.ok) {
+        const responseBody = await response.json();
+
+        if (!responseBody.url) {
+          throw new Error('No portal url returned');
+        }
+
+        const url = responseBody.url;
+
+        window.location.assign(url);
       }
-      window.location.assign(url);
     } catch (error) {
       console.error(error);
     }
