@@ -125,6 +125,7 @@
     "stripe": "12.4.0",
     "tslib": "2.5.0",
     "zod": "3.21.4",
+    "zod-error": "1.5.0",
     "@nx/next": "16.1.4"
   },
   "devDependencies": {
