@@ -72,6 +72,8 @@ export function ForgotPasswordForm(_props: ForgotPasswordFormProps) {
                   </InputLeftElement>
 
                   <Input
+                    required
+                    isRequired
                     type="email"
                     autoComplete="email"
                     {...register('email', {

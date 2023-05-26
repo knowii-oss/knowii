@@ -166,6 +166,7 @@ export function SignupForm(props: SignupFormProps) {
                   </InputLeftElement>
                   <Input
                     required
+                    isRequired
                     // Reference: https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/autocomplete
                     autoComplete="name"
                     {...register('name', { required: t('validationError.name.required') })}
@@ -184,6 +185,7 @@ export function SignupForm(props: SignupFormProps) {
 
                   <Input
                     required
+                    isRequired
                     type="email"
                     // Reference: https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/autocomplete
                     autoComplete="email"
@@ -202,6 +204,7 @@ export function SignupForm(props: SignupFormProps) {
                   </InputLeftElement>
                   <Input
                     required
+                    isRequired
                     {...register('username', {
                       required: t('validationError.username.required'),
                       minLength: {
@@ -249,6 +252,7 @@ export function SignupForm(props: SignupFormProps) {
                   </InputLeftElement>
                   <Input
                     required
+                    isRequired
                     type={isPasswordVisible ? 'text' : 'password'}
                     // Reference: https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/autocomplete
                     autoComplete="new-password"
