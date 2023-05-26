@@ -39,11 +39,6 @@ import {
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CreateNewCommunityPageProps {}
 
-// https://github.com/DeveloPassion/knowii/issues/238
-// FIXME add link to this page on the communities page (only when the user is logged in!)
-// FIXME autofill the community slug based on the entered name
-// FIXME ensure availability of the community slug
-
 // name
 // slug
 // description
