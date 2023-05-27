@@ -13,7 +13,7 @@ import { PrismaClient } from '@prisma/client';
 import { generateErrorMessage } from 'zod-error';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<IsUsernameAvailableResponse>) {
-  const logger = getLogger(req.url!);
+  const logger = getLogger('users', req.url!);
 
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');

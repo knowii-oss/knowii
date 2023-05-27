@@ -18,7 +18,7 @@ const handler: NextRequestHandler<IsCommunityNameAvailableResponse> = async (
   req: NextApiRequest,
   res: NextApiResponse<IsCommunityNameAvailableResponse>,
 ) => {
-  const logger = getLogger(req.url!);
+  const logger = getLogger('communities', req.url!);
 
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
