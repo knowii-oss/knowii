@@ -1,5 +1,6 @@
 export * from './clean-community-name';
 export * from './clean-username';
+export * from './generate-slug';
 export * from './generic-list-converter';
 export * from './helpers';
 export * from './replace-diacritics';
