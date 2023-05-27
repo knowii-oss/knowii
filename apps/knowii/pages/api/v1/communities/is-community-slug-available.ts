@@ -14,13 +14,16 @@ import {
   IsCommunitySlugAvailableResponse,
 } from '@knowii/common';
 import { PrismaClient } from '@prisma/client';
+import { daoFnIsCommunitySlugAvailable } from '@knowii/server';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse<IsCommunitySlugAvailableResponse>) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     res.status(405).end('Method Not Allowed');
     return;
   }
+
+  console.log('Handling communities:is-community-slug-available request');
 
   const supabaseClient = createServerSupabaseClient({ req, res });
 
@@ -64,24 +67,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
 
-  console.log('Community slug to check: ', slugToCheck);
+  console.log('Request validated. Community slug to check: ', slugToCheck);
 
   try {
-    const prisma = new PrismaClient();
+    const prismaClient = new PrismaClient();
 
-    const communitiesWithThatSlug = await prisma.communities.count({
-      where: {
-        slug: slugToCheck,
-      },
-    });
-
-    const isSlugAvailable = communitiesWithThatSlug === 0;
-
-    if (isSlugAvailable) {
-      console.log('The community slug is available');
-    } else {
-      console.log('The community slug is not available');
-    }
+    const isSlugAvailable = await daoFnIsCommunitySlugAvailable(slugToCheck, prismaClient);
 
     const responseBody: IsCommunitySlugAvailableResponse = {
       isSlugAvailable,
@@ -92,10 +83,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (hasErrorMessage(err)) {
       console.warn(`Error while checking for community slug availability: ${err.message}`);
       res.status(500).json({
-        error: {
-          statusCode: 500,
-          errorDescription: errorInternalServerError.description,
-        },
+        error: errorInternalServerError.code,
+        errorDescription: errorInternalServerError.description,
       });
       return;
     }

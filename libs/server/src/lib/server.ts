@@ -3,6 +3,7 @@ export function server(): string {
 }
 
 export * from './blog';
+export * from './dao';
 export * from './prisma-connection';
 export * from './stripe-admin';
 export * from './subscriptions-admin';

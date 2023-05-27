@@ -64,6 +64,8 @@ export const API_COMMUNITIES_BASE_PATH = '/communities';
 export const API_USERS_BASE_PATH = '/users';
 export const API_USERNAME_AVAILABILITY_CHECK = `${API_BASE_PATH}/${API_USERS_BASE_PATH}/is-username-available`;
 export const API_COMMUNITY_NAME_AVAILABILITY_CHECK = `${API_BASE_PATH}/${API_COMMUNITIES_BASE_PATH}/is-community-name-available`;
+export const API_CREATE_NEW_COMMUNITY = `${API_BASE_PATH}/${API_COMMUNITIES_BASE_PATH}/create`;
+
 /**
  * Auth
  */
@@ -197,6 +199,11 @@ export const errorInternalServerError: ReusableError = {
 export const errorClientNotAuthenticated: ReusableError = {
   code: 'client_not_authenticated',
   description: 'The client does not have an active session or is not authenticated',
+};
+
+export const errorInputValidation: ReusableError = {
+  code: 'invalid_request_error',
+  description: 'The provided request data is incomplete or invalid',
 };
 
 /**

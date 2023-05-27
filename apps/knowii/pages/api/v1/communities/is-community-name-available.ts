@@ -15,13 +15,16 @@ import {
   cleanCommunityName,
 } from '@knowii/common';
 import { PrismaClient } from '@prisma/client';
+import { daoFnIsCommunityNameAvailable } from '@knowii/server';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse<IsCommunityNameAvailableResponse>) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     res.status(405).end('Method Not Allowed');
     return;
   }
+
+  console.log('Handling communities:is-community-name-available request');
 
   const supabaseClient = createServerSupabaseClient({ req, res });
 
@@ -66,25 +69,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       errorDescription: errorCommunityNameTooShort.description,
     });
   }
-
-  console.log('Community name to check: ', nameToCheck);
+  console.log('Request validated. Community name to check: ', nameToCheck);
 
   try {
-    const prisma = new PrismaClient();
+    const prismaClient = new PrismaClient();
 
-    const communitiesWithThatName = await prisma.communities.count({
-      where: {
-        name: nameToCheck,
-      },
-    });
-
-    const isNameAvailable = communitiesWithThatName === 0;
-
-    if (isNameAvailable) {
-      console.log('The community name is available');
-    } else {
-      console.log('The community name is not available');
-    }
+    const isNameAvailable = await daoFnIsCommunityNameAvailable(nameToCheck, prismaClient);
 
     const responseBody: IsCommunityNameAvailableResponse = {
       isNameAvailable,
@@ -95,10 +85,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (hasErrorMessage(err)) {
       console.warn(`Error while checking for community name availability: ${err.message}`);
       res.status(500).json({
-        error: {
-          statusCode: 500,
-          errorDescription: errorInternalServerError.description,
-        },
+        error: errorInternalServerError.code,
+        errorDescription: errorInternalServerError.description,
       });
       return;
     }
