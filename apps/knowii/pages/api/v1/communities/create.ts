@@ -10,18 +10,21 @@ import {
   errorInputValidation,
   generateSlug,
   CreateCommunityInput,
+  getLogger,
 } from '@knowii/common';
-import { daoFnCreateCommunity, errorMessageOptions } from '@knowii/server';
+import { daoFnCreateCommunity, errorMessageOptions, NextRequestHandler } from '@knowii/server';
 import { PrismaClient } from '@prisma/client';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<CreateCommunityResponse>): Promise<void> {
+const handler: NextRequestHandler<CreateCommunityResponse> = async (req: NextApiRequest, res: NextApiResponse<CreateCommunityResponse>) => {
+  const logger = getLogger(req.url!);
+
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     res.status(405).end('Method Not Allowed');
     return;
   }
 
-  console.log('Handling communities:create request');
+  logger.info('Handling request');
 
   const supabaseClient = createServerSupabaseClient({ req, res });
 
@@ -40,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
   if (!requestValidationResult.success) {
     const errorMessage = generateErrorMessage(requestValidationResult.error.issues, errorMessageOptions);
-    console.warn(`${errorInputValidation.description}. Error(s) detected: `, errorMessage);
+    logger.warn(`${errorInputValidation.description}. Error(s) detected: %s`, errorMessage);
 
     res.status(400).json({
       error: errorInputValidation.code,
@@ -50,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     return;
   }
 
-  console.log('Request validated. Data: ', requestValidationResult.data);
+  logger.info('Request validated. Data: %o', requestValidationResult.data);
 
   const { name, description } = requestValidationResult.data;
   const slug = generateSlug(name);
@@ -61,14 +64,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     slug,
   };
 
-  console.log('Proceeding with the creation: ', creationPayload);
+  logger.info('Proceeding with the creation: %o', creationPayload);
 
   try {
     const prismaClient = new PrismaClient();
 
     const createdCommunity = await daoFnCreateCommunity(creationPayload, prismaClient);
 
-    console.log('Created community: ', createdCommunity);
+    logger.info('Created community: %o', createdCommunity);
 
     // FIXME continue here
 
@@ -79,7 +82,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     return res.status(200).json(responseBody);
   } catch (err: unknown) {
     if (hasErrorMessage(err)) {
-      console.warn(`Error while creating a new community: ${err.message}`);
+      logger.warn('Error while creating a new community: %', err.message);
 
       return res.status(500).json({
         error: errorInternalServerError.code,
@@ -87,11 +90,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       });
     }
 
-    console.warn(`Error while creating a new community: ${err}`);
+    logger.warn('Error while creating a new community: %o', err);
 
     res.status(500).json({
       error: errorInternalServerError.code,
       errorDescription: errorInternalServerError.description,
     });
   }
-}
+};
+
+export default handler;

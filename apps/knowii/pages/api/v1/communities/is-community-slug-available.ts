@@ -4,26 +4,25 @@ import {
   errorClientNotAuthenticated,
   errorInternalServerError,
   hasErrorMessage,
-  errorNoCommunitySlugProvided,
-  errorInvalidCommunitySlug,
-  forbiddenCommunitySlugCharactersRegex,
-  maxLengthCommunitySlug,
-  minLengthCommunitySlug,
-  errorCommunitySlugTooLong,
-  errorCommunitySlugTooShort,
+  getLogger,
   IsCommunitySlugAvailableResponse,
+  errorInputValidation,
+  isCommunitySlugAvailableRequestSchema,
 } from '@knowii/common';
 import { PrismaClient } from '@prisma/client';
-import { daoFnIsCommunitySlugAvailable } from '@knowii/server';
+import { daoFnIsCommunitySlugAvailable, errorMessageOptions } from '@knowii/server';
+import { generateErrorMessage } from 'zod-error';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<IsCommunitySlugAvailableResponse>) {
+  const logger = getLogger(req.url!);
+
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     res.status(405).end('Method Not Allowed');
     return;
   }
 
-  console.log('Handling communities:is-community-slug-available request');
+  logger.info('Handling request');
 
   const supabaseClient = createServerSupabaseClient({ req, res });
 
@@ -38,41 +37,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     });
   }
 
-  // FIXME check shape with Zod and IsCommunitySlugAvailableRequest
-  let { slugToCheck = '' } = req.body;
+  const requestValidationResult = isCommunitySlugAvailableRequestSchema.safeParse(req.body);
 
-  if (!slugToCheck || '' === slugToCheck) {
-    console.warn(errorNoCommunitySlugProvided.description);
-    return res.status(400).json({
-      error: errorNoCommunitySlugProvided.code,
-      errorDescription: errorNoCommunitySlugProvided.description,
+  if (!requestValidationResult.success) {
+    const errorMessage = generateErrorMessage(requestValidationResult.error.issues, errorMessageOptions);
+    logger.warn(`${errorInputValidation.description}. Error(s) detected: %s`, errorMessage);
+
+    res.status(400).json({
+      error: errorInputValidation.code,
+      errorDescription: errorInputValidation.description,
+      errorDetails: errorMessage,
     });
-  } else if (forbiddenCommunitySlugCharactersRegex.test(slugToCheck)) {
-    console.warn(errorInvalidCommunitySlug.description);
-    return res.status(400).json({
-      error: errorInvalidCommunitySlug.code,
-      errorDescription: errorInvalidCommunitySlug.description,
-    });
-  } else if (slugToCheck.trim().length > maxLengthCommunitySlug) {
-    console.warn(errorCommunitySlugTooLong.description);
-    return res.status(400).json({
-      error: errorCommunitySlugTooLong.code,
-      errorDescription: errorCommunitySlugTooLong.description,
-    });
-  } else if (slugToCheck.trim().length < minLengthCommunitySlug) {
-    console.warn(errorCommunitySlugTooShort.description);
-    return res.status(400).json({
-      error: errorCommunitySlugTooShort.code,
-      errorDescription: errorCommunitySlugTooShort.description,
-    });
+    return;
   }
 
-  console.log('Request validated. Community slug to check: ', slugToCheck);
+  logger.info('Request validated. Data: %o', requestValidationResult.data);
+
+  const { slugToCheck } = requestValidationResult.data;
 
   try {
     const prismaClient = new PrismaClient();
 
     const isSlugAvailable = await daoFnIsCommunitySlugAvailable(slugToCheck, prismaClient);
+
+    logger.info('Community slug is %s', isSlugAvailable ? 'available' : 'not available');
 
     const responseBody: IsCommunitySlugAvailableResponse = {
       isSlugAvailable,
@@ -81,7 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     return res.status(200).json(responseBody);
   } catch (err: unknown) {
     if (hasErrorMessage(err)) {
-      console.warn(`Error while checking for community slug availability: ${err.message}`);
+      logger.warn('Error while checking for community slug availability: %', err.message);
       res.status(500).json({
         error: errorInternalServerError.code,
         errorDescription: errorInternalServerError.description,
@@ -89,7 +77,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return;
     }
 
-    console.warn(`Error while checking for community slug availability: ${err}`);
+    logger.warn('Error while checking for community slug availability: %o', err);
     res.status(500).json({
       error: errorInternalServerError.code,
       errorDescription: errorInternalServerError.description,

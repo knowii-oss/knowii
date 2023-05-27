@@ -131,66 +131,6 @@ interface ReusableError {
   description: string;
 }
 
-export const errorInvalidUsername: ReusableError = {
-  code: 'invalid_username_provided',
-  description: 'The provided username contains forbidden characters',
-};
-
-export const errorNoUsernameProvided: ReusableError = {
-  code: 'no_username_provided',
-  description: 'You must provide a username',
-};
-
-export const errorUsernameTooLong: ReusableError = {
-  code: 'username_too_long',
-  description: 'The provided username is too long',
-};
-
-export const errorUsernameTooShort: ReusableError = {
-  code: 'username_too_short',
-  description: 'The provided username is too short',
-};
-
-export const errorNoCommunityNameProvided: ReusableError = {
-  code: 'no_community_name_provided',
-  description: 'You must provide a community name',
-};
-
-export const errorInvalidCommunityName: ReusableError = {
-  code: 'invalid_community_name_provided',
-  description: 'The provided community name contains forbidden characters',
-};
-
-export const errorCommunityNameTooLong: ReusableError = {
-  code: 'community_name_too_long',
-  description: 'The provided community name is too long',
-};
-
-export const errorCommunityNameTooShort: ReusableError = {
-  code: 'community_name_too_short',
-  description: 'The provided community name is too short',
-};
-
-export const errorNoCommunitySlugProvided: ReusableError = {
-  code: 'no_community_slug_provided',
-  description: 'You must provide a community slug',
-};
-
-export const errorInvalidCommunitySlug: ReusableError = {
-  code: 'invalid_community_slug_provided',
-  description: 'The provided community slug contains forbidden characters',
-};
-
-export const errorCommunitySlugTooLong: ReusableError = {
-  code: 'community_slug_too_long',
-  description: 'The provided community slug is too long',
-};
-
-export const errorCommunitySlugTooShort: ReusableError = {
-  code: 'community_slug_too_short',
-  description: 'The provided community slug is too short',
-};
-
 export const errorInternalServerError: ReusableError = {
   code: 'internal_server_error',
   description: 'We have encountered an unexpected issue',
