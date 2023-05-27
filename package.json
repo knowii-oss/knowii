@@ -77,6 +77,8 @@
     "test:knowii": "npx nx test knowii",
     "test:server": "npx nx test server",
     "tsc": "npx tsc -p ./tsconfig.app.json --noEmit",
+    "tscw": "npm run tsc:watch",
+    "tsc:watch": "npm run tsc -- --watch",
     "update": "npm run migrate"
   },
   "dependencies": {
