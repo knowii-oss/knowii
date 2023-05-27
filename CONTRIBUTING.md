@@ -1,29 +1,17 @@
 # Contributing to Knowii
 
-Third party contributions are more than welcome! Here you'll find all the information you need to get started.
-
 As a contributor, here are the guidelines we would like you to follow.
 
-## Code of Conduct
+## General guidelines
 
-Help us keep Knowii open and inclusive. Please read and follow our [Code of Conduct](/CODE_OF_CONDUCT.md).
+Third party contributions are more than welcome! Here you'll find all the information you need to get started.
 
-## Got a question or problem?
-
-Create GitHub discussions: https://github.com/DeveloPassion/knowii/discussions
+First, make sure to read the [general guidelines](https://github.com/knowii-oss/.github/blob/main/CODE_OF_CONDUCT.md).
 
 ## Don't know where to start?
 
 Take a look at the project's open [issues](https://github.com/DeveloPassion/knowii/issues).
 This contains tons of ideas to help us out.
-
-## Found a bug?
-
-If you feel like you've discovered a bug, then a GH issue is clearly the way to go, with a follow-up PR indeed ;-)
-
-## Missing a feature?
-
-You can _request_ a new feature by submitting an issue to our repository. If you would like to _implement_ a new feature, please submit an issue with a proposal for your work first, to be sure that we can use it.
 
 ## Submission guidelines
 
@@ -158,38 +146,12 @@ We also use the git commit messages to generate our changelog.
 
 We're using the following commit message format: `type(scope): subject`
 
-#### Type
+#### Type & Scope
 
-Must be one of the following:
-
-- **feat**: A new feature
-- **fix**: A bug fix
-- **docs**: Documentation only changes
-- **style**: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
-- **refactor**: A code change that neither fixes a bug nor adds a feature
-- **perf**: A code change that improves performance
-- **test**: Adding missing tests or correcting existing tests
-- **build**: Changes that affect the build system or external dependencies
-- **ci**: Changes to our CI configuration files and scripts
-- **chore**: Changes to the build process or auxiliary tools and libraries such as documentation generation
-- **revert**: Reverts a previous commit
-
-#### Scope
-
-Must be one of the following:
-
-- **all**
-- **a11y**
-- **code**
-- **deps**
-- **docs**
-- **i18n**
-- **qa**
-- **release**
-- **sec**
+Each commit must specify a valid type and scope. Use the `npm run commit` command to make sure you comply.
 
 If the scope you want to specify is not in the list, you can ask to add it or add it in the commitlint
-configuration file (`commitlint.config.js`) in the root.
+configuration file (`commitlint.config.js`) at the root of the repository.
 
 #### Subject
 
