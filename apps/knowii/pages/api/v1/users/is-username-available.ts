@@ -1,67 +1,54 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import {
   cleanUsername,
+  errorInputValidation,
   errorInternalServerError,
-  errorInvalidUsername,
-  errorNoUsernameProvided,
-  errorUsernameTooLong,
-  errorUsernameTooShort,
-  forbiddenUsernameCharactersRegex,
+  getLogger,
   hasErrorMessage,
+  isUsernameAvailableRequestSchema,
   IsUsernameAvailableResponse,
-  maxLengthUsername,
-  minLengthUsername,
 } from '@knowii/common';
-import { daoFnIsUsernameAvailable } from '@knowii/server';
+import { daoFnIsUsernameAvailable, errorMessageOptions } from '@knowii/server';
 import { PrismaClient } from '@prisma/client';
+import { generateErrorMessage } from 'zod-error';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<IsUsernameAvailableResponse>) {
+  const logger = getLogger(req.url!);
+
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     res.status(405).end('Method Not Allowed');
     return;
   }
 
-  console.log('Handling users:is-community-slug-available request');
+  logger.info('Handling request');
 
-  // FIXME check shape with Zod and IsUsernameAvailableRequest
-  let { usernameToCheck = '' } = req.body;
+  const requestValidationResult = isUsernameAvailableRequestSchema.safeParse(req.body);
 
-  usernameToCheck = cleanUsername(usernameToCheck);
+  if (!requestValidationResult.success) {
+    const errorMessage = generateErrorMessage(requestValidationResult.error.issues, errorMessageOptions);
+    logger.warn(`${errorInputValidation.description}. Error(s) detected: %s`, errorMessage);
 
-  if (!usernameToCheck || '' === usernameToCheck) {
-    console.warn(errorNoUsernameProvided.description);
-    return res.status(400).json({
-      error: errorNoUsernameProvided.code,
-      errorDescription: errorNoUsernameProvided.description,
+    res.status(400).json({
+      error: errorInputValidation.code,
+      errorDescription: errorInputValidation.description,
+      errorDetails: errorMessage,
     });
-  } else if (forbiddenUsernameCharactersRegex.test(usernameToCheck)) {
-    console.warn(errorInvalidUsername.description);
-    return res.status(400).json({
-      error: errorInvalidUsername.code,
-      errorDescription: errorInvalidUsername.description,
-    });
-  } else if (usernameToCheck.trim().length > maxLengthUsername) {
-    console.warn(errorUsernameTooLong.description);
-    return res.status(400).json({
-      error: errorUsernameTooLong.code,
-      errorDescription: errorUsernameTooLong.description,
-    });
-  } else if (usernameToCheck.trim().length < minLengthUsername) {
-    console.warn(errorUsernameTooShort.description);
-    return res.status(400).json({
-      error: errorUsernameTooShort.code,
-      errorDescription: errorUsernameTooShort.description,
-    });
+    return;
   }
 
-  console.log('Request validated. Username to check: ', usernameToCheck);
+  logger.info('Request validated. Data: %o', requestValidationResult.data);
+
+  let { usernameToCheck } = requestValidationResult.data;
+  usernameToCheck = cleanUsername(usernameToCheck);
 
   try {
     // WARNING: The argument name MUST match the exact argument name of the function declared in supabase-db-seed.sql
     const prismaClient = new PrismaClient();
 
     const isUsernameAvailable = await daoFnIsUsernameAvailable(usernameToCheck, prismaClient);
+
+    logger.info('Username is %s', isUsernameAvailable ? 'available' : 'not available');
 
     const responseBody: IsUsernameAvailableResponse = {
       isUsernameAvailable,
@@ -70,7 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     return res.status(200).json(responseBody);
   } catch (err: unknown) {
     if (hasErrorMessage(err)) {
-      console.warn(`Error while checking for username availability: ${err.message}`);
+      logger.warn('Error while checking for username availability: %s', err.message);
       res.status(500).json({
         error: errorInternalServerError.code,
         errorDescription: errorInternalServerError.description,
@@ -78,7 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return;
     }
 
-    console.warn(`Error while checking for username availability: ${err}`);
+    logger.warn('Error while checking for username availability: %o', err);
     res.status(500).json({
       error: errorInternalServerError.code,
       errorDescription: errorInternalServerError.description,

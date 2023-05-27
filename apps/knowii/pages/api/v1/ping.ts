@@ -1,14 +1,17 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { NextRequestHandler } from '@knowii/server';
+import { getLogger } from '@knowii/common';
 
 export interface PingResponse {
   pong: string;
 }
 
-const handler: NextRequestHandler<PingResponse> = (_req: NextApiRequest, res: NextApiResponse) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'application/json');
-  res.end(JSON.stringify({ pong: 'pong' }));
+const handler: NextRequestHandler<PingResponse> = async (req: NextApiRequest, res: NextApiResponse<PingResponse>) => {
+  const logger = getLogger(req.url!);
+
+  logger.info('Handling request');
+
+  res.status(200).json({ pong: 'pong' });
 };
 
 export default handler;

@@ -1,30 +1,32 @@
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
 import { NextApiRequest, NextApiResponse } from 'next';
 import {
-  forbiddenCommunityNameCharactersRegex,
   errorClientNotAuthenticated,
   errorInternalServerError,
-  errorInvalidCommunityName,
-  errorNoCommunityNameProvided,
   hasErrorMessage,
-  maxLengthCommunityName,
-  errorCommunityNameTooLong,
-  minLengthCommunityName,
-  errorCommunityNameTooShort,
   IsCommunityNameAvailableResponse,
   cleanCommunityName,
+  getLogger,
+  isCommunityNameAvailableRequestSchema,
+  errorInputValidation,
 } from '@knowii/common';
 import { PrismaClient } from '@prisma/client';
-import { daoFnIsCommunityNameAvailable } from '@knowii/server';
+import { daoFnIsCommunityNameAvailable, errorMessageOptions, NextRequestHandler } from '@knowii/server';
+import { generateErrorMessage } from 'zod-error';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<IsCommunityNameAvailableResponse>) {
+const handler: NextRequestHandler<IsCommunityNameAvailableResponse> = async (
+  req: NextApiRequest,
+  res: NextApiResponse<IsCommunityNameAvailableResponse>,
+) => {
+  const logger = getLogger(req.url!);
+
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     res.status(405).end('Method Not Allowed');
     return;
   }
 
-  console.log('Handling communities:is-community-name-available request');
+  logger.info('Handling request');
 
   const supabaseClient = createServerSupabaseClient({ req, res });
 
@@ -39,42 +41,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     });
   }
 
-  // FIXME check shape with Zod and IsCommunityNameAvailableRequest
-  let { nameToCheck = '' } = req.body;
+  const requestValidationResult = isCommunityNameAvailableRequestSchema.safeParse(req.body);
 
-  nameToCheck = cleanCommunityName(nameToCheck);
+  if (!requestValidationResult.success) {
+    const errorMessage = generateErrorMessage(requestValidationResult.error.issues, errorMessageOptions);
+    logger.warn(`${errorInputValidation.description}. Error(s) detected: %s`, errorMessage);
 
-  if (!nameToCheck || '' === nameToCheck) {
-    console.warn(errorNoCommunityNameProvided.description);
-    return res.status(400).json({
-      error: errorNoCommunityNameProvided.code,
-      errorDescription: errorNoCommunityNameProvided.description,
+    res.status(400).json({
+      error: errorInputValidation.code,
+      errorDescription: errorInputValidation.description,
+      errorDetails: errorMessage,
     });
-  } else if (forbiddenCommunityNameCharactersRegex.test(nameToCheck)) {
-    console.warn(errorInvalidCommunityName.description);
-    return res.status(400).json({
-      error: errorInvalidCommunityName.code,
-      errorDescription: errorInvalidCommunityName.description,
-    });
-  } else if (nameToCheck.trim().length > maxLengthCommunityName) {
-    console.warn(errorCommunityNameTooLong.description);
-    return res.status(400).json({
-      error: errorCommunityNameTooLong.code,
-      errorDescription: errorCommunityNameTooLong.description,
-    });
-  } else if (nameToCheck.trim().length < minLengthCommunityName) {
-    console.warn(errorCommunityNameTooShort.description);
-    return res.status(400).json({
-      error: errorCommunityNameTooShort.code,
-      errorDescription: errorCommunityNameTooShort.description,
-    });
+    return;
   }
-  console.log('Request validated. Community name to check: ', nameToCheck);
+
+  logger.info('Request validated. Data: %o', requestValidationResult.data);
+
+  let { nameToCheck } = requestValidationResult.data;
+  nameToCheck = cleanCommunityName(nameToCheck);
 
   try {
     const prismaClient = new PrismaClient();
 
     const isNameAvailable = await daoFnIsCommunityNameAvailable(nameToCheck, prismaClient);
+
+    logger.info('Community name is %s', isNameAvailable ? 'available' : 'not available');
 
     const responseBody: IsCommunityNameAvailableResponse = {
       isNameAvailable,
@@ -83,7 +74,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     return res.status(200).json(responseBody);
   } catch (err: unknown) {
     if (hasErrorMessage(err)) {
-      console.warn(`Error while checking for community name availability: ${err.message}`);
+      logger.warn('Error while checking for community name availability: %s', err.message);
       res.status(500).json({
         error: errorInternalServerError.code,
         errorDescription: errorInternalServerError.description,
@@ -91,10 +82,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return;
     }
 
-    console.warn(`Error while checking for community name availability: ${err}`);
+    logger.warn('Error while checking for community name availability: %o', err);
     res.status(500).json({
       error: errorInternalServerError.code,
       errorDescription: errorInternalServerError.description,
     });
   }
-}
+};
+
+export default handler;
