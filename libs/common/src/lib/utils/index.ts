@@ -3,6 +3,7 @@ export * from './clean-username';
 export * from './generate-slug';
 export * from './generic-list-converter';
 export * from './helpers';
+export * from './logging';
 export * from './replace-diacritics';
 export * from './type.utils';
 export * from './type-converter.intf';
