@@ -7,7 +7,7 @@ export interface PingResponse {
 }
 
 const handler: NextRequestHandler<PingResponse> = async (req: NextApiRequest, res: NextApiResponse<PingResponse>) => {
-  const logger = getLogger(req.url!);
+  const logger = getLogger('utils', req.url!);
 
   logger.info('Handling request');
 

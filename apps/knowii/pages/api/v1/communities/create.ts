@@ -16,7 +16,7 @@ import { daoFnCreateCommunity, errorMessageOptions, NextRequestHandler } from '@
 import { PrismaClient } from '@prisma/client';
 
 const handler: NextRequestHandler<CreateCommunityResponse> = async (req: NextApiRequest, res: NextApiResponse<CreateCommunityResponse>) => {
-  const logger = getLogger(req.url!);
+  const logger = getLogger('communities', req.url!);
 
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');

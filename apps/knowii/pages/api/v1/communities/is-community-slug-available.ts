@@ -14,7 +14,7 @@ import { daoFnIsCommunitySlugAvailable, errorMessageOptions } from '@knowii/serv
 import { generateErrorMessage } from 'zod-error';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<IsCommunitySlugAvailableResponse>) {
-  const logger = getLogger(req.url!);
+  const logger = getLogger('communities', req.url!);
 
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');

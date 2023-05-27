@@ -1,5 +1,9 @@
 # TODO
 
+## In progress
+
+- ...
+
 ## Auth providers setup
 
 - Make sure the redirect_uri and url are correct for production
