@@ -12,14 +12,17 @@ import {
   maxLengthUsername,
   minLengthUsername,
 } from '@knowii/common';
+import { daoFnIsUsernameAvailable } from '@knowii/server';
 import { PrismaClient } from '@prisma/client';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse<IsUsernameAvailableResponse>) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     res.status(405).end('Method Not Allowed');
     return;
   }
+
+  console.log('Handling users:is-community-slug-available request');
 
   // FIXME check shape with Zod and IsUsernameAvailableRequest
   let { usernameToCheck = '' } = req.body;
@@ -52,25 +55,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
 
-  console.log('Username to check: ', usernameToCheck);
+  console.log('Request validated. Username to check: ', usernameToCheck);
 
   try {
     // WARNING: The argument name MUST match the exact argument name of the function declared in supabase-db-seed.sql
-    const prisma = new PrismaClient();
+    const prismaClient = new PrismaClient();
 
-    const usersWithThatUsername = await prisma.users.count({
-      where: {
-        username: usernameToCheck,
-      },
-    });
-
-    const isUsernameAvailable = usersWithThatUsername === 0;
-
-    if (isUsernameAvailable) {
-      console.log('The username is available');
-    } else {
-      console.log('The username is not available');
-    }
+    const isUsernameAvailable = await daoFnIsUsernameAvailable(usernameToCheck, prismaClient);
 
     const responseBody: IsUsernameAvailableResponse = {
       isUsernameAvailable,
@@ -81,10 +72,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (hasErrorMessage(err)) {
       console.warn(`Error while checking for username availability: ${err.message}`);
       res.status(500).json({
-        error: {
-          statusCode: 500,
-          errorDescription: errorInternalServerError.description,
-        },
+        error: errorInternalServerError.code,
+        errorDescription: errorInternalServerError.description,
       });
       return;
     }

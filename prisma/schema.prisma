@@ -1,3 +1,9 @@
+/// -------------------------------------------------
+/// WARNING
+/// -------------------------------------------------
+/// Whenever making changes here, make sure that everything that defines types based on the generated zod types includes or omits whatever is (not) needed
+/// -------------------------------------------------
+
 generator client {
   provider        = "prisma-client-js"
   /// Reference: https://www.prisma.io/docs/guides/database/multi-schema

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { allowedCommunityNameCharactersRegex, maxLengthCommunityName, minLengthCommunityName } from '../constants';
+import CommunitiesSchema from '../generated/prisma/modelSchema/CommunitiesSchema';
 
 // FIXME improve with Prisma-zod generated types
 
@@ -13,9 +13,9 @@ export const isUsernameAvailableRequestSchema = z.object({
 export type IsUsernameAvailableRequest = z.infer<typeof isUsernameAvailableRequestSchema>;
 
 export const isUsernameAvailableResponseSchema = z.object({
-  error: z.optional(z.string()),
-  errorDescription: z.optional(z.string()),
-  isUsernameAvailable: z.optional(z.boolean()),
+  error: z.string().optional(),
+  errorDescription: z.string().optional(),
+  isUsernameAvailable: z.boolean().optional(),
 });
 
 export type IsUsernameAvailableResponse = z.infer<typeof isUsernameAvailableResponseSchema>;
@@ -30,9 +30,9 @@ export const isCommunityNameAvailableRequestSchema = z.object({
 export type IsCommunityNameAvailableRequest = z.infer<typeof isCommunityNameAvailableRequestSchema>;
 
 export const isCommunityNameAvailableResponseSchema = z.object({
-  error: z.optional(z.string()),
-  errorDescription: z.optional(z.string()),
-  isNameAvailable: z.optional(z.boolean()),
+  error: z.string().optional(),
+  errorDescription: z.string().optional(),
+  isNameAvailable: z.boolean().optional(),
 });
 
 export type IsCommunityNameAvailableResponse = z.infer<typeof isCommunityNameAvailableResponseSchema>;
@@ -47,9 +47,9 @@ export const isCommunitySlugAvailableRequestSchema = z.object({
 export type IsCommunitySlugAvailableRequest = z.infer<typeof isCommunitySlugAvailableRequestSchema>;
 
 export const isCommunitySlugAvailableResponseSchema = z.object({
-  error: z.optional(z.string()),
-  errorDescription: z.optional(z.string()),
-  isSlugAvailable: z.optional(z.boolean()),
+  error: z.string().optional(),
+  errorDescription: z.string().optional(),
+  isSlugAvailable: z.boolean().optional(),
 });
 
 export type IsCommunitySlugAvailableResponse = z.infer<typeof isCommunitySlugAvailableResponseSchema>;
@@ -57,23 +57,30 @@ export type IsCommunitySlugAvailableResponse = z.infer<typeof isCommunitySlugAva
 // ----------------------------------------
 // CREATE COMMUNITY
 // ----------------------------------------
-export const createCommunityRequestSchema = z.object({
-  name: z.string().min(minLengthCommunityName).max(maxLengthCommunityName).regex(allowedCommunityNameCharactersRegex),
-  description: z.string(),
+export const createCommunityRequestSchema = CommunitiesSchema.pick({
+  name: true,
+  description: true,
 });
 
 export type CreateCommunityRequest = z.infer<typeof createCommunityRequestSchema>;
 
 export const createCommunityResponseSchema = z.object({
   error: z.optional(z.string()),
-  errorDescription: z.optional(z.string()),
-  data: z.optional(
-    z.object({
-      name: z.string(),
-      description: z.string(),
-      slug: z.string(),
-    }),
-  ),
+  errorDescription: z.string().optional(),
+  errorDetails: z.string().optional(),
+  data: CommunitiesSchema.pick({
+    name: true,
+    description: true,
+    slug: true,
+  }).optional(),
 });
 
 export type CreateCommunityResponse = z.infer<typeof createCommunityResponseSchema>;
+
+export const createCommunityInputSchema = CommunitiesSchema.pick({
+  name: true,
+  description: true,
+  slug: true,
+});
+
+export type CreateCommunityInput = z.infer<typeof createCommunityInputSchema>;
