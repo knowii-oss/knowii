@@ -3,7 +3,7 @@ import pino from 'pino';
 /**
  * Categories of logs, roughly matching functional areas of the application
  */
-type LoggingCategory = 'none' | '*' | 'communities' | 'users' | 'utils';
+type LoggingCategory = 'none' | '*' | 'communities' | 'users' | 'utils' | 'stripe';
 
 /**
  * Configuration of the log levels for each category
@@ -14,6 +14,7 @@ const logLevelData: Record<LoggingCategory, pino.Level> = {
   users: 'debug',
   communities: 'debug',
   utils: 'debug',
+  stripe: 'debug',
 };
 
 const logLevels = new Map<LoggingCategory | string, pino.Level>(Object.entries(logLevelData));
