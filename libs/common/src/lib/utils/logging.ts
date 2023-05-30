@@ -4,7 +4,7 @@ import { IS_PROD } from '../constants';
 /**
  * Categories of logs, roughly matching functional areas of the application
  */
-type LoggingCategory = 'none' | '*' | 'communities' | 'users' | 'utils' | 'stripe';
+export type LoggingCategory = 'none' | '*' | 'communities' | 'users' | 'utils' | 'stripe';
 
 /**
  * Configuration of the log levels for each category in DEV
@@ -39,7 +39,7 @@ const prodLogLevels = new Map<LoggingCategory | string, pino.Level>(Object.entri
  * The levels vary depending on the environment.
  * @param loggingCategory the category to get the level for
  */
-function getLogLevel(loggingCategory: LoggingCategory): pino.Level {
+export function getLogLevel(loggingCategory: LoggingCategory): pino.Level {
   if (IS_PROD) {
     return prodLogLevels.get(loggingCategory) || prodLogLevels.get('*') || 'warn';
   }
@@ -57,19 +57,6 @@ export function getLogger(loggingCategory: LoggingCategory, subCategory?: string
 
   const retVal = pino({
     browser: {},
-    // pino-pretty is only enabled in production
-    transport: IS_PROD
-      ? undefined
-      : {
-          target: 'pino-pretty',
-          // Reference: https://github.com/pinojs/pino-pretty
-          options: {
-            colorize: true,
-            colorizeObjects: true,
-            // Reference: https://www.npmjs.com/package/dateformat
-            translateTime: 'UTC:yyyy-mm-dd HH:MM:ss.l o',
-          },
-        },
     base: {
       // Not displaying additional information for now
       //env: process.env.NODE_ENV,
