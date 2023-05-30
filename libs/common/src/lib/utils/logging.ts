@@ -1,4 +1,5 @@
 import pino from 'pino';
+import { IS_PROD } from '../constants';
 
 /**
  * Categories of logs, roughly matching functional areas of the application
@@ -6,9 +7,9 @@ import pino from 'pino';
 type LoggingCategory = 'none' | '*' | 'communities' | 'users' | 'utils' | 'stripe';
 
 /**
- * Configuration of the log levels for each category
+ * Configuration of the log levels for each category in DEV
  */
-const logLevelData: Record<LoggingCategory, pino.Level> = {
+const devLogLevelData: Record<LoggingCategory, pino.Level> = {
   '*': 'warn',
   none: 'debug',
   users: 'debug',
@@ -17,10 +18,33 @@ const logLevelData: Record<LoggingCategory, pino.Level> = {
   stripe: 'debug',
 };
 
-const logLevels = new Map<LoggingCategory | string, pino.Level>(Object.entries(logLevelData));
+const devLogLevels = new Map<LoggingCategory | string, pino.Level>(Object.entries(devLogLevelData));
 
+/**
+ * Configuration of the log levels for each category in DEV
+ */
+const prodLogLevelData: Record<LoggingCategory, pino.Level> = {
+  '*': 'warn',
+  none: 'warn',
+  users: 'warn',
+  communities: 'warn',
+  utils: 'warn',
+  stripe: 'warn',
+};
+
+const prodLogLevels = new Map<LoggingCategory | string, pino.Level>(Object.entries(prodLogLevelData));
+
+/**
+ * Return the log level to use for the given category.
+ * The levels vary depending on the environment.
+ * @param loggingCategory the category to get the level for
+ */
 function getLogLevel(loggingCategory: LoggingCategory): pino.Level {
-  return logLevels.get(loggingCategory) || logLevels.get('*') || 'info';
+  if (IS_PROD) {
+    return prodLogLevels.get(loggingCategory) || prodLogLevels.get('*') || 'warn';
+  }
+
+  return devLogLevels.get(loggingCategory) || devLogLevels.get('*') || 'debug';
 }
 
 /**
@@ -33,16 +57,19 @@ export function getLogger(loggingCategory: LoggingCategory, subCategory?: string
 
   const retVal = pino({
     browser: {},
-    transport: {
-      target: 'pino-pretty',
-      // Reference: https://github.com/pinojs/pino-pretty
-      options: {
-        colorize: true,
-        colorizeObjects: true,
-        // Reference: https://www.npmjs.com/package/dateformat
-        translateTime: 'UTC:yyyy-mm-dd HH:MM:ss.l o',
-      },
-    },
+    // pino-pretty is only enabled in production
+    transport: IS_PROD
+      ? undefined
+      : {
+          target: 'pino-pretty',
+          // Reference: https://github.com/pinojs/pino-pretty
+          options: {
+            colorize: true,
+            colorizeObjects: true,
+            // Reference: https://www.npmjs.com/package/dateformat
+            translateTime: 'UTC:yyyy-mm-dd HH:MM:ss.l o',
+          },
+        },
     base: {
       // Not displaying additional information for now
       //env: process.env.NODE_ENV,
