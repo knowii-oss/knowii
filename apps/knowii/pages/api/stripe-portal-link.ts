@@ -1,6 +1,6 @@
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
 import { NextApiRequest, NextApiResponse } from 'next';
-import { accountPath, errorClientNotAuthenticated, getBaseURL, hasErrorMessage } from '@knowii/common';
+import { ACCOUNT_URL, errorClientNotAuthenticated, getBaseURL, hasErrorMessage } from '@knowii/common';
 import { getOrCreateStripeCustomer, stripe } from '@knowii/server';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -41,7 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const { url } = await stripe.billingPortal.sessions.create({
       customer,
-      return_url: new URL(accountPath, getBaseURL()).href,
+      return_url: new URL(ACCOUNT_URL, getBaseURL()).href,
     });
 
     return res.status(200).json({ url });

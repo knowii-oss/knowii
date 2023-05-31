@@ -3,7 +3,7 @@
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import { useSupabase } from './supabase-provider';
-import { SIGN_IN_URL } from '@knowii/common';
+import { ACCOUNT_URL, APP_BASE_URL, SIGN_IN_URL } from '@knowii/common';
 
 // this component handles refreshing server data when the user logs in or out
 // this method avoids the need to pass a session down to child components
@@ -26,8 +26,8 @@ export function SupabaseListener({ serverAccessToken }: { serverAccessToken?: st
       }
 
       // FIXME test this!
-      // FIXME avoid hardcoded strings here (same as in middlewar.ts
-      if (event === 'SIGNED_OUT' && pathname && (pathname.startsWith('/app') || pathname.startsWith('/account'))) {
+      // FIXME avoid hardcoded strings here (same as in middleware.ts
+      if (event === 'SIGNED_OUT' && pathname && (pathname.startsWith(APP_BASE_URL) || pathname.startsWith(ACCOUNT_URL))) {
         router.replace(SIGN_IN_URL);
       }
     });

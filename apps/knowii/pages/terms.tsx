@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { Layout } from '../components/layout/layout';
 import { i18nConfig } from '../../../i18n.config.mjs';
 import Link from 'next/link';
+import { CONTACT_URL, PRIVACY_POLICY_URL } from '@knowii/common';
 
 export const getStaticProps: GetStaticProps = async (ctx) => {
   const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
@@ -107,16 +108,16 @@ export function TermsOfServicePage(_props: TermsOfServicePageProps) {
         <br />
         <p>
           To protect your account, keep your password confidential. You are responsible for the activity that happens on or through your
-          account. If you learn of any unauthorized use of your password, please <Link href="/contact">contact us</Link>.
+          account. If you learn of any unauthorized use of your password, please <Link href={CONTACT_URL}>contact us</Link>.
         </p>
         <br />
         <h2>3. Privacy and Feedback</h2>
         <p>
-          Our <Link href="/privacy">privacy policy</Link> explains how we treat your personal information and protect your privacy when you
-          use our Services. By using our Services, you agree that we can collect, use, and share data from you as described in our privacy
-          policy. We are not responsible for any information or Content that you share with others via your use of the Services. You assume
-          all privacy, security, and other risks associated with providing any information, including personally identifiable information,
-          to other users of the Service.
+          Our <Link href={PRIVACY_POLICY_URL}>privacy policy</Link> explains how we treat your personal information and protect your privacy
+          when you use our Services. By using our Services, you agree that we can collect, use, and share data from you as described in our
+          privacy policy. We are not responsible for any information or Content that you share with others via your use of the Services. You
+          assume all privacy, security, and other risks associated with providing any information, including personally identifiable
+          information, to other users of the Service.
         </p>
         <br />
         <p>
@@ -143,12 +144,12 @@ export function TermsOfServicePage(_props: TermsOfServicePageProps) {
         </p>
         <br />
         <p>
-          You may request that we delete any of Your Content that you submit to the Services by <Link href="/contact">contacting us</Link>.
-          To the extent within our control we'll remove Your Content from public display and mark it for future deletion if permitted by
-          applicable law; however, it may persist in backup or residual copies for a reasonable period of time (but will not be available to
-          other users through the Services). For purposes of clarification, once you submit or share Your Content with others via the
-          Services (e.g., other users or third parties), we no longer have control over those portions of Your Content and will not be able
-          to delete it or prevent them from using it.
+          You may request that we delete any of Your Content that you submit to the Services by{' '}
+          <Link href={CONTACT_URL}>contacting us</Link>. To the extent within our control we'll remove Your Content from public display and
+          mark it for future deletion if permitted by applicable law; however, it may persist in backup or residual copies for a reasonable
+          period of time (but will not be available to other users through the Services). For purposes of clarification, once you submit or
+          share Your Content with others via the Services (e.g., other users or third parties), we no longer have control over those
+          portions of Your Content and will not be able to delete it or prevent them from using it.
         </p>
         <br />
         <p>You agree that you will not use the Services to:</p>
@@ -238,7 +239,7 @@ export function TermsOfServicePage(_props: TermsOfServicePageProps) {
         <br />
         <p>
           If you believe that any of your intellectual property rights other than copyrights have been infringed, please{' '}
-          <Link href="/contact">contact us</Link>. We reserve the right, in our sole and absolute discretion, to suspend or terminate any
+          <Link href={CONTACT_URL}>contact us</Link>. We reserve the right, in our sole and absolute discretion, to suspend or terminate any
           user who infringes the intellectual property rights of DeveloPassion or others, and/or to remove, delete, edit or disable access
           to such person's content. You agree that we have no liability for any action taken under this section.
         </p>
@@ -352,7 +353,7 @@ export function TermsOfServicePage(_props: TermsOfServicePageProps) {
         <p>
           You may not assign or delegate your rights or obligations relating to these terms or your account for the Services without our
           prior written consent. We may assign these terms or assign or delegate any of our rights or obligations at any time. For
-          information about how to contact DeveloPassion, please visit our <Link href="/contact">contact page</Link>.
+          information about how to contact DeveloPassion, please visit our <Link href={CONTACT_URL}>contact page</Link>.
         </p>
         <br />
         <h2>12. Binding Arbitration</h2>

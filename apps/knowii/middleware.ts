@@ -1,6 +1,6 @@
 import { createMiddlewareSupabaseClient } from '@supabase/auth-helpers-nextjs';
 import { NextRequest, NextResponse } from 'next/server';
-import { SIGN_IN_URL } from '@knowii/common';
+import { ACCOUNT_URL, APP_BASE_URL, CREATE_COMMUNITY_URL, SIGN_IN_URL } from '@knowii/common';
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
@@ -21,5 +21,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/app/:path*', '/account', '/communities/create'],
+  matcher: [`${APP_BASE_URL}/:path*`, ACCOUNT_URL, CREATE_COMMUNITY_URL],
 };

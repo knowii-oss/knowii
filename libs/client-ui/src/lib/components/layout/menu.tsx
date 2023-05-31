@@ -3,6 +3,7 @@ import { useUser } from '@supabase/auth-helpers-react';
 import Link from 'next/link';
 import { useMobileBreakpoint } from './layout';
 import { useTranslations } from 'next-intl';
+import { APP_BASE_URL, BLOG_BASE_URL, COMMUNITIES_BASE_URL } from '@knowii/common';
 
 export interface MenuProps {
   mobileMode: boolean;
@@ -27,15 +28,15 @@ export function Menu({ mobileMode }: MenuProps) {
     // },
     {
       label: t('communities'),
-      link: '/communities',
+      link: COMMUNITIES_BASE_URL,
     },
     {
       label: t('blog'),
-      link: '/blog',
+      link: BLOG_BASE_URL,
     },
   ]
     // add dashboard link only if user is logged in
-    .concat(user ? [{ label: t('dashboard'), link: '/app' }] : []);
+    .concat(user ? [{ label: t('dashboard'), link: APP_BASE_URL }] : []);
 
   return (
     <Stack hidden={isHidden} direction={mobileMode ? 'column' : 'row'} spacing={4} align={mobileMode ? 'start' : 'center'}>

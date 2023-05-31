@@ -18,7 +18,7 @@ import { useRouter } from 'next/router';
 import ProgressBar from '../components/layout/progress-bar';
 import Head from 'next/head';
 import { NextIntlProvider } from 'next-intl';
-import { SIGN_IN_URL } from '@knowii/common';
+import { ACCOUNT_URL, APP_BASE_URL, SIGN_IN_URL } from '@knowii/common';
 import { MaybeSupabaseSession } from '../components/supabase-provider';
 import { createBrowserClient } from '@knowii/client';
 import { ChakraBaseProvider, cookieStorageManagerSSR, localStorageManager } from '@chakra-ui/react';
@@ -74,7 +74,8 @@ const App = ({ Component, pageProps }: AppProps<CustomPageProps>) => {
     const {
       data: { subscription },
     } = supabaseClient.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_OUT' && (router.asPath.startsWith('/app') || router.asPath.startsWith('/account'))) router.replace(SIGN_IN_URL);
+      if (event === 'SIGNED_OUT' && (router.asPath.startsWith(APP_BASE_URL) || router.asPath.startsWith(ACCOUNT_URL)))
+        router.replace(SIGN_IN_URL);
     });
 
     return () => subscription.unsubscribe();

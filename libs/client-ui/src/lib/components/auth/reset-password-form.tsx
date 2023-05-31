@@ -17,9 +17,9 @@ import { useRouter } from 'next/router';
 import { FormEvent, useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { FaEye, FaEyeSlash, FaLock } from 'react-icons/fa';
-import { redirectPath } from '@knowii/common';
 import { AuthFormWrapper } from './auth-form-wrapper';
 import { useTranslations } from 'next-intl';
+import { APP_BASE_URL } from '@knowii/common';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ResetPasswordFormProps {}
@@ -47,7 +47,8 @@ export function ResetPasswordForm(_props: ResetPasswordFormProps) {
         return;
       }
 
-      await router.push(redirectPath);
+      await router.push(APP_BASE_URL);
+
       toast({
         status: 'success',
         title: t('successMessage'),

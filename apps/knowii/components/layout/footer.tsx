@@ -16,6 +16,7 @@ import Link from 'next/link';
 import { FaEnvelope, FaGithub, FaTwitter } from 'react-icons/fa';
 import { useTranslations } from 'next-intl';
 import { Logo } from '@knowii/client-ui';
+import { PRIVACY_POLICY_URL, TERMS_OF_USE_URL } from '@knowii/common';
 
 // eslint-disable-next-line  @typescript-eslint/no-var-requires
 const author = require('../../../../libs/common/src/lib/metadata.json').author;
@@ -76,12 +77,12 @@ export function Footer(_props: FooterProps) {
             </Heading>
             <List spacing={1} opacity={0.75}>
               <ListItem>
-                <StyledLink as={Link} href="/privacy">
+                <StyledLink as={Link} href={PRIVACY_POLICY_URL}>
                   {t('privacy')}
                 </StyledLink>
               </ListItem>
               <ListItem>
-                <StyledLink as={Link} href="/terms">
+                <StyledLink as={Link} href={TERMS_OF_USE_URL}>
                   {t('terms')}
                 </StyledLink>
               </ListItem>

@@ -2,7 +2,7 @@ import { Button } from '@chakra-ui/react';
 import { useUser } from '@supabase/auth-helpers-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { SIGN_UP_URL } from '@knowii/common';
+import { APP_BASE_URL, SIGN_UP_URL } from '@knowii/common';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface HeroProps {}
@@ -17,7 +17,7 @@ export function Hero(_props: HeroProps) {
       <h2 className="text-white">{t('description')}</h2>
 
       <div className="flex flex-col md:flex-row gap-3 mt-5 justify-center">
-        <Button as={Link} href={user ? '/app' : SIGN_UP_URL} size="lg" colorScheme="primary">
+        <Button as={Link} href={user ? APP_BASE_URL : SIGN_UP_URL} size="lg" colorScheme="primary">
           {user ? t('dashboardButton') : t('signupButton')} &rarr;
         </Button>
       </div>

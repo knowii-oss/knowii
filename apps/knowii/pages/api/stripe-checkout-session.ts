@@ -1,6 +1,6 @@
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
 import { NextApiRequest, NextApiResponse } from 'next';
-import { accountPath, errorClientNotAuthenticated, getBaseURL, hasErrorMessage } from '@knowii/common';
+import { ACCOUNT_URL, errorClientNotAuthenticated, getBaseURL, hasErrorMessage } from '@knowii/common';
 import { getOrCreateStripeCustomer, stripe } from '@knowii/server';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -50,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       subscription_data: {
         metadata,
       },
-      success_url: new URL(accountPath, getBaseURL()).href,
+      success_url: new URL(ACCOUNT_URL, getBaseURL()).href,
       cancel_url: getBaseURL(),
     });
 

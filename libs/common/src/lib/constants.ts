@@ -52,9 +52,18 @@ export const THEME_DARK = 'dark';
 export const THEME_LIGHT = 'light';
 
 /**
- * Home
+ * URLs
  */
 export const HOME_URL = '/';
+export const APP_BASE_URL = '/app';
+export const ACCOUNT_URL = '/account';
+export const COMMUNITY_BASE_URL = '/community';
+export const COMMUNITIES_BASE_URL = '/communities';
+export const CREATE_COMMUNITY_URL = `${COMMUNITIES_BASE_URL}/create`;
+export const BLOG_BASE_URL = '/blog';
+export const PRIVACY_POLICY_URL = '/privacy';
+export const TERMS_OF_USE_URL = '/terms';
+export const CONTACT_URL = '/contact';
 
 /**
  * API

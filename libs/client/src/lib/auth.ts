@@ -1,7 +1,7 @@
 import { useUser } from '@supabase/auth-helpers-react';
 import { useRouter } from 'next/router';
 import { useMemo } from 'react';
-import { redirectPath } from '@knowii/common';
+import { APP_BASE_URL } from '@knowii/common';
 
 export function useUserName() {
   const user = useUser();
@@ -12,7 +12,7 @@ export function useUserName() {
   return userName;
 }
 
-export function useAuthRedirectUrl(path = redirectPath) {
+export function useAuthRedirectUrl(path = APP_BASE_URL) {
   const { locale, defaultLocale } = useRouter();
 
   const baseUrl = useMemo(() => (typeof window !== 'undefined' ? window.location.origin : '/'), []);
