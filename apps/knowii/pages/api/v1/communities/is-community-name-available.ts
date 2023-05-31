@@ -10,13 +10,11 @@ import {
   errorInputValidation,
 } from '@knowii/common';
 import { PrismaClient } from '@prisma/client';
-import { daoFnIsCommunityNameAvailable, errorMessageOptions, NextRequestHandler } from '@knowii/server';
+import { daoFnIsCommunityNameAvailable, errorMessageOptions } from '@knowii/server';
 import { generateErrorMessage } from 'zod-error';
+import { createPagesServerClient } from '@supabase/auth-helpers-nextjs';
 
-const handler: NextRequestHandler<IsCommunityNameAvailableResponse> = async (
-  req: NextApiRequest,
-  res: NextApiResponse<IsCommunityNameAvailableResponse>,
-) => {
+export default async function handler(req: NextApiRequest, res: NextApiResponse<IsCommunityNameAvailableResponse>) {
   const logger = getLogger('communities', req.url!);
 
   if (req.method !== 'POST') {
@@ -87,6 +85,4 @@ const handler: NextRequestHandler<IsCommunityNameAvailableResponse> = async (
       errorDescription: errorInternalServerError.description,
     });
   }
-};
-
-export default handler;
+}

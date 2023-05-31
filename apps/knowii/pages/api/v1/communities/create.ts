@@ -12,10 +12,10 @@ import {
   CreateCommunityInput,
   getLogger,
 } from '@knowii/common';
-import { daoFnCreateCommunity, errorMessageOptions, NextRequestHandler } from '@knowii/server';
+import { daoFnCreateCommunity, errorMessageOptions } from '@knowii/server';
 import { PrismaClient } from '@prisma/client';
 
-const handler: NextRequestHandler<CreateCommunityResponse> = async (req: NextApiRequest, res: NextApiResponse<CreateCommunityResponse>) => {
+export default async function handler(req: NextApiRequest, res: NextApiResponse<CreateCommunityResponse>) {
   const logger = getLogger('communities', req.url!);
 
   if (req.method !== 'POST') {
@@ -95,6 +95,4 @@ const handler: NextRequestHandler<CreateCommunityResponse> = async (req: NextApi
       errorDescription: errorInternalServerError.description,
     });
   }
-};
-
-export default handler;
+}
