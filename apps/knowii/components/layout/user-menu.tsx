@@ -6,6 +6,7 @@ import { useCallback } from 'react';
 import { FaSignOutAlt, FaUser } from 'react-icons/fa';
 import { useTranslations } from 'next-intl';
 import { useUserName } from '@knowii/client';
+import { ACCOUNT_URL } from '@knowii/common';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface UserMenuProps {}
@@ -27,7 +28,7 @@ export function UserMenu(_props: UserMenuProps) {
       <MenuButton as={IconButton} size="sm" aria-label="Options" icon={<FaUser />} rounded="full" colorScheme="primary" />
       <MenuList>
         <MenuGroup title={t('message', { user: userName })}>
-          <MenuItem as={Link} href="/account" icon={<FaUser />}>
+          <MenuItem as={Link} href={ACCOUNT_URL} icon={<FaUser />}>
             {t('account')}
           </MenuItem>
 

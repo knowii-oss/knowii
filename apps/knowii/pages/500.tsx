@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Layout } from '../components/layout/layout';
 import { i18nConfig } from '../../../i18n.config.mjs';
 import { CustomPageProps } from './_app';
+import { HOME_URL } from '@knowii/common';
 
 export const getStaticProps: GetStaticProps<Partial<CustomPageProps>> = async (ctx) => {
   const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
@@ -36,7 +37,7 @@ export function InternalServerErrorPage(_props: InternalServerErrorPageProps) {
       <div className="flex flex-col text-center px-8 py-36 bg-primary-500 dark:bg-steel-500 gap-2">
         <h1 className="text-white">{t('title')}</h1>
         <h2 className="text-white">{t('message')}</h2>
-        <Link href="/" className="site-button">
+        <Link href={HOME_URL} className="site-button">
           {t('goBackHomeLink')}
         </Link>
       </div>

@@ -20,7 +20,7 @@ import { useForm } from 'react-hook-form';
 import { FaAt, FaLock } from 'react-icons/fa';
 import { useTranslations } from 'next-intl';
 import { useAuthRedirectUrl } from '@knowii/client';
-import { CALLBACK_URL, Database, FORGOT_PASSWORD_URL, invalidateNextRouterCache, redirectPath, SIGN_UP_URL } from '@knowii/common';
+import { APP_BASE_URL, CALLBACK_URL, Database, FORGOT_PASSWORD_URL, invalidateNextRouterCache, SIGN_UP_URL } from '@knowii/common';
 import { Loader } from '../common/loader';
 import { AuthFormWrapper } from './auth-form-wrapper';
 import { SigninMode, SigninModeSwitch } from './signin-mode-switch';
@@ -39,7 +39,7 @@ export function SigninForm(props: SigninFormProps) {
 
   const supabaseClient = useSupabaseClient<Database>();
 
-  const redirectAfterSignin = query.redirectAfterSignin ? decodeURIComponent(query.redirectAfterSignin as string) : redirectPath;
+  const redirectAfterSignin = query.redirectAfterSignin ? decodeURIComponent(query.redirectAfterSignin as string) : APP_BASE_URL;
 
   const redirectTo = useAuthRedirectUrl(
     mode === SigninMode.MagicLink ? `${CALLBACK_URL}?redirectAfterSignin=${encodeURIComponent(redirectAfterSignin)}` : redirectAfterSignin,

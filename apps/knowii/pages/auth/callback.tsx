@@ -3,9 +3,9 @@ import { useSessionContext, useUser } from '@supabase/auth-helpers-react';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { Loader } from '@knowii/client-ui';
-import { redirectPath } from '@knowii/common';
 import { GetStaticProps } from 'next';
 import { CustomPageProps } from '../_app';
+import { APP_BASE_URL } from '@knowii/common';
 
 export const getStaticProps: GetStaticProps<Partial<CustomPageProps>> = async (_ctx) => {
   return {
@@ -29,7 +29,7 @@ export default function AuthCallbackPage() {
 
   const { query } = router;
 
-  const redirectTo = query.redirectAfterSignin ? decodeURIComponent(query.redirectAfterSignin as string) : redirectPath;
+  const redirectTo = query.redirectAfterSignin ? decodeURIComponent(query.redirectAfterSignin as string) : APP_BASE_URL;
 
   // when the user is loaded, redirect to the authenticated page
   useEffect(() => {

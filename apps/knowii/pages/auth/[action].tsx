@@ -20,11 +20,11 @@ import {
   Database,
   isValidAuthAction,
   minLengthUsername,
-  redirectPath,
   SIGN_IN_URL,
   API_USERNAME_AVAILABILITY_CHECK,
   IsUsernameAvailableRequest,
   IsUsernameAvailableResponse,
+  APP_BASE_URL,
 } from '@knowii/common';
 import { i18nConfig } from '../../../../i18n.config.mjs';
 import { CustomPageProps } from '../_app';
@@ -67,7 +67,7 @@ export const getServerSideProps: GetServerSideProps<Partial<CustomPageProps> & A
   if (isUserLoggedIn && action !== 'reset-password') {
     return {
       redirect: {
-        destination: redirectPath,
+        destination: APP_BASE_URL,
         permanent: false,
       },
     };

@@ -21,10 +21,10 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 import { FaAt, FaCheckCircle, FaClock, FaEye, FaEyeSlash, FaLock, FaTimesCircle, FaUserAlt } from 'react-icons/fa';
 import {
   allowedUsernameCharactersRegex,
+  APP_BASE_URL,
   forbiddenUsernameCharactersRegex,
   maxLengthUsername,
   minLengthUsername,
-  redirectPath,
   SIGN_IN_URL,
 } from '@knowii/common';
 import { useAuthRedirectUrl } from '@knowii/client';
@@ -109,7 +109,7 @@ export function SignupForm(props: SignupFormProps) {
     }
 
     // if email confirmations are disabled, the user will be signed in automatically and redirected
-    await router.push(redirectPath);
+    await router.push(APP_BASE_URL);
   };
 
   const togglePassword = useCallback(() => setPasswordVisible(!isPasswordVisible), [isPasswordVisible]);

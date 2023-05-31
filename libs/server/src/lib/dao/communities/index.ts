@@ -48,7 +48,7 @@ export async function daoFnIsCommunitySlugAvailable(slug: string, prismaClient: 
 export async function daoFnCreateCommunity(input: CreateCommunityInput, prismaClient: PrismaClient): Promise<Communities> {
   const logger = getLogger('communities', daoFnCreateCommunity.name);
 
-  logger.info('Creating a new community: %s', input);
+  logger.info('Creating a new community: %o', input);
 
   const inputValidationResult = createCommunityInputSchema.safeParse(input);
 
@@ -56,7 +56,7 @@ export async function daoFnCreateCommunity(input: CreateCommunityInput, prismaCl
     const errorMessage = generateErrorMessage(inputValidationResult.error.issues, errorMessageOptions);
     logger.warn(`${errorInputValidation.description}. Error(s) detected: %s`, errorMessage);
 
-    // FIXME introduce specific error types
+    // TODO introduce specific error types
     throw new Error(errorMessage);
   }
 

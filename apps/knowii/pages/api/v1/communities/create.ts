@@ -73,8 +73,6 @@ const handler: NextRequestHandler<CreateCommunityResponse> = async (req: NextApi
 
     logger.info('Created community: %o', createdCommunity);
 
-    // FIXME continue here
-
     const responseBody: CreateCommunityResponse = {
       data: createdCommunity,
     };
