@@ -28,8 +28,8 @@ export const customTheme = extendTheme(
   withDefaultColorScheme({ colorScheme: 'primary', components: ['Button'] }),
 );
 
-export const defaultToastOptions = {
-  position: 'top',
+export const defaultToastOptions: UseToastOptions = {
+  position: 'top-right',
   duration: 5000,
   isClosable: true,
-} as UseToastOptions;
+};
