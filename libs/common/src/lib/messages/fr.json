@@ -277,7 +277,8 @@
     "successMessage": "Votre communauté a été créée avec succès 🎉",
     "errorMessage": "Nous n'avons pas réussi à créer votre communauté \uD83D\uDE2D",
     "fields": {
-      "name": "Nom:"
+      "name": "Nom:",
+      "description": "Description:"
     },
     "validationError": {
       "name": {

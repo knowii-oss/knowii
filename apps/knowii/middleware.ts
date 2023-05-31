@@ -21,5 +21,7 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
+  // List of URLs that require authentication
+  // When users are not authenticated and try to access one of those paths, they are redirected to the signin page
   matcher: [`${APP_BASE_URL}/:path*`, ACCOUNT_URL, CREATE_COMMUNITY_URL],
 };

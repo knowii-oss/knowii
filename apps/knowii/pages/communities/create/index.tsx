@@ -12,6 +12,8 @@ import {
   InputGroup,
   InputRightElement,
   Stack,
+  Textarea,
+  useToast,
   VStack,
 } from '@chakra-ui/react';
 import { GetServerSideProps } from 'next';
@@ -21,40 +23,35 @@ import { PageHeader, useDebounce } from '@knowii/client-ui';
 import { i18nConfig } from '../../../../../i18n.config.mjs';
 import { CustomPageProps } from '../../_app';
 import { SubmitHandler, useForm } from 'react-hook-form';
-import { ClipboardEvent, KeyboardEvent, useState, useRef, useEffect } from 'react';
+import { ClipboardEvent, KeyboardEvent, useEffect, useRef, useState } from 'react';
 import { FaCheckCircle, FaClock, FaTimesCircle } from 'react-icons/fa';
 import {
   allowedCommunityNameCharactersRegex,
   API_COMMUNITY_NAME_AVAILABILITY_CHECK,
+  API_CREATE_NEW_COMMUNITY,
+  COMMUNITY_BASE_URL,
+  CommunitiesSchema,
+  CreateCommunityRequest,
+  CreateCommunityResponse,
   forbiddenCommunityNameCharactersRegex,
   IsCommunityNameAvailableRequest,
+  IsCommunityNameAvailableResponse,
   maxLengthCommunityName,
   minLengthCommunityName,
 } from '@knowii/common';
+import { z } from 'zod';
 
-//import { useRouter } from 'next/router';
-//import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
-//import { Database, HOME_URL } from '@knowii/common';
+import { useRouter } from 'next/router';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CreateNewCommunityPageProps {}
 
-// name
-// slug
-// description
-// visibility: public and read-only (only if paid for right away)
-
-export const getServerSideProps: GetServerSideProps<Partial<CustomPageProps>> = async (ctx) => {
+export const getServerSideProps: GetServerSideProps<Partial<CustomPageProps> & CreateNewCommunityPageProps> = async (ctx) => {
   const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
 
   const messages = (await import(`../../../../../libs/common/src/lib/messages/${locale}.json`)).default;
 
-  //const supabaseClient = createServerSupabaseClient<Database>(ctx);
-  //const { data: session } = await supabaseClient.auth.getSession();
-
-  const retVal: {
-    props: Partial<CustomPageProps & CreateNewCommunityPageProps>;
-  } = {
+  const retVal = {
     props: {
       messages,
       // Note that when `now` is passed to the app, you need to make sure the
@@ -67,15 +64,19 @@ export const getServerSideProps: GetServerSideProps<Partial<CustomPageProps>> = 
   return retVal;
 };
 
-interface CreateNewCommunityFormData {
-  name: string;
+const createNewCommunityFormSchema = CommunitiesSchema.pick({
+  name: true,
+  description: true,
+});
+
+type CreateNewCommunityFormData = z.infer<typeof createNewCommunityFormSchema> & {
   serverError?: void;
-}
+};
 
 export function CreateNewCommunityPage(_props: CreateNewCommunityPageProps) {
   const t = useTranslations('createNewCommunityPage');
-  //const router = useRouter();
-  //const supabaseClient = useSupabaseClient();
+  const router = useRouter();
+  const toast = useToast();
 
   const {
     register,
@@ -89,27 +90,50 @@ export function CreateNewCommunityPage(_props: CreateNewCommunityPageProps) {
     mode: 'all', // WARNING: Impact on performance when set to all vs onBlur (many re-renders)
     defaultValues: {
       name: '',
+      description: '',
     },
   });
 
   const [checkingNameAvailability, setCheckingNameAvailability] = useState(false);
   const [isNameAvailable, setIsNameAvailable] = useState(false);
 
-  const onSubmit: SubmitHandler<CreateNewCommunityFormData> = ({ name }) => {
+  const onSubmit: SubmitHandler<CreateNewCommunityFormData> = async ({ name, description }) => {
     clearErrors('serverError');
-    // FIXME implement
-    console.log('Name: ', name);
-    //await supabaseClient.
 
-    // FIXME remove dummy error handling
-    const error = false;
-    if (error) {
+    const requestBody: CreateCommunityRequest = {
+      name,
+      description,
+    };
+
+    const response = await fetch(API_CREATE_NEW_COMMUNITY, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody),
+    });
+
+    console.log('Response: ', response);
+
+    const responseBody: CreateCommunityResponse = await response.json();
+
+    if (!response.ok || !responseBody.data) {
+      console.log('Response body: ', responseBody);
+      if (responseBody.error) {
+        setError('serverError', { message: responseBody.error });
+        return;
+      }
       setError('serverError', { message: '' });
       return;
     }
 
-    // FIXME if everything is okay, redirect to the new community's page
-    //await router.push(redirectPath);
+    const redirectPath = `${COMMUNITY_BASE_URL}/${responseBody.data.slug}`;
+    console.log('Redirecting to: ', redirectPath);
+
+    await router.push(redirectPath);
+
+    toast({
+      status: 'success',
+      title: t('successMessage'),
+    });
   };
 
   const filterInvalidNameCharacters = (e: KeyboardEvent) => {
@@ -176,10 +200,8 @@ export function CreateNewCommunityPage(_props: CreateNewCommunityPageProps) {
         body: JSON.stringify(requestBody),
       });
 
-      //console.log('Response: ', response);
-
       if (response.ok) {
-        const responseBody = await response.json();
+        const responseBody: IsCommunityNameAvailableResponse = await response.json();
 
         if (responseBody.isNameAvailable) {
           console.log('Name is available');
@@ -208,18 +230,12 @@ export function CreateNewCommunityPage(_props: CreateNewCommunityPageProps) {
           <VStack spacing={4} align="stretch">
             <form onSubmit={handleSubmit(onSubmit)}>
               <Stack spacing={5}>
-                {isSubmitted &&
-                  (isSubmitSuccessful ? (
-                    <Alert status="success" rounded="lg">
-                      <AlertIcon />
-                      <AlertTitle>{t('successMessage')}</AlertTitle>
-                    </Alert>
-                  ) : (
-                    <Alert status="error" rounded="lg">
-                      <AlertIcon />
-                      <AlertTitle>{t('errorMessage')}</AlertTitle>
-                    </Alert>
-                  ))}
+                {isSubmitted && !isSubmitSuccessful && (
+                  <Alert status="error" rounded="lg">
+                    <AlertIcon />
+                    <AlertTitle>{t('errorMessage')}</AlertTitle>
+                  </Alert>
+                )}
 
                 {(!isSubmitted || !isSubmitSuccessful) && (
                   <>
@@ -229,6 +245,7 @@ export function CreateNewCommunityPage(_props: CreateNewCommunityPageProps) {
                       <InputGroup>
                         <Input
                           required
+                          isRequired
                           {...register('name', {
                             required: t('validationError.name.required'),
                             minLength: {
@@ -264,6 +281,15 @@ export function CreateNewCommunityPage(_props: CreateNewCommunityPageProps) {
                         </InputRightElement>
                       </InputGroup>
                       <FormErrorMessage>{errors.name && errors.name.message}</FormErrorMessage>
+                    </FormControl>
+
+                    {/* Description field */}
+                    <FormControl isInvalid={!!errors.description}>
+                      <FormLabel>{t('fields.description')}</FormLabel>
+                      <InputGroup>
+                        <Textarea {...register('description', {})} />
+                      </InputGroup>
+                      <FormErrorMessage>{errors.description && errors.description.message}</FormErrorMessage>
                     </FormControl>
 
                     {/* Submit button */}
