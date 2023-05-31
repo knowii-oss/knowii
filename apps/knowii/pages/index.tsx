@@ -5,7 +5,10 @@ import { i18nConfig } from '../../../i18n.config.mjs';
 import { GetStaticProps } from 'next';
 import { CustomPageProps } from './_app';
 
-export const getStaticProps: GetStaticProps<Partial<CustomPageProps>> = async (ctx) => {
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface HomePageProps {}
+
+export const getStaticProps: GetStaticProps<Partial<CustomPageProps> & HomePageProps> = async (ctx) => {
   const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
   const messages = (await import(`../../../libs/common/src/lib/messages/${locale}.json`)).default;
 
@@ -20,10 +23,7 @@ export const getStaticProps: GetStaticProps<Partial<CustomPageProps>> = async (c
   };
 };
 
-// eslint-disable-next-line
-interface HomeProps {}
-
-const Home = (_props: HomeProps) => {
+const HomePage = (_props: HomePageProps) => {
   return (
     <Layout>
       <Hero />
@@ -33,4 +33,4 @@ const Home = (_props: HomeProps) => {
   );
 };
 
-export default Home;
+export default HomePage;

@@ -77,7 +77,9 @@ export const getStaticPaths: GetStaticPaths<MdxFilePathParams> = async (_ctx) =>
   };
 };
 
-export const getStaticProps: GetStaticProps<BlogPostPageProps, MdxFilePathParams> = async (ctx) => {
+type BlogPostPageProps = MdxEntry;
+
+export const getStaticProps: GetStaticProps<Partial<CustomPageProps> & BlogPostPageProps, MdxFilePathParams> = async (ctx) => {
   const slug = ctx.params?.['slug'] as string;
   const locale: LocaleCode = ctx.locale ? (ctx.locale as LocaleCode) : (i18nConfig.i18n.defaultLocale as LocaleCode);
 
@@ -126,11 +128,8 @@ export const getStaticProps: GetStaticProps<BlogPostPageProps, MdxFilePathParams
   return retVal;
 };
 
-type BlogPostPageProps = Partial<CustomPageProps> & MdxEntry;
-
 /**
  * Renders a specific blog post
- * @param input
  * @constructor
  */
 export function BlogPostPage({ mdxSource, frontMatter }: BlogPostPageProps) {

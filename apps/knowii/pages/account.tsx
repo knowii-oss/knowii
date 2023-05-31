@@ -10,7 +10,10 @@ import { useUserName } from '@knowii/client';
 import { i18nConfig } from '../../../i18n.config.mjs';
 import { CustomPageProps } from './_app';
 
-export const getServerSideProps: GetServerSideProps<Partial<CustomPageProps>> = async (ctx) => {
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface AccountPageProps {}
+
+export const getServerSideProps: GetServerSideProps<Partial<CustomPageProps> & AccountPageProps> = async (ctx) => {
   const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
   const messages = (await import(`../../../libs/common/src/lib/messages/${locale}.json`)).default;
 
@@ -18,9 +21,6 @@ export const getServerSideProps: GetServerSideProps<Partial<CustomPageProps>> = 
     props: { messages },
   };
 };
-
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface AccountPageProps {}
 
 export function AccountPage(_props: AccountPageProps) {
   const t = useTranslations('accountPage');

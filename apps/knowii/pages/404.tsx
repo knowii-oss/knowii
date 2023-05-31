@@ -7,7 +7,10 @@ import { i18nConfig } from '../../../i18n.config.mjs';
 import { CustomPageProps } from './_app';
 import { HOME_URL } from '@knowii/common';
 
-export const getStaticProps: GetStaticProps<Partial<CustomPageProps>> = async (ctx) => {
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface NotFoundPageProps {}
+
+export const getStaticProps: GetStaticProps<Partial<CustomPageProps> & NotFoundPageProps> = async (ctx) => {
   const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
   const messages = (await import(`../../../libs/common/src/lib/messages/${locale}.json`)).default;
 
@@ -21,9 +24,6 @@ export const getStaticProps: GetStaticProps<Partial<CustomPageProps>> = async (c
     },
   };
 };
-
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface NotFoundPageProps {}
 
 export function NotFoundPage(_props: NotFoundPageProps) {
   const t = useTranslations('pageNotFoundPage');

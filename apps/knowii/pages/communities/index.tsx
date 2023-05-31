@@ -9,14 +9,12 @@ import { CustomPageProps } from '../_app';
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CommunitiesPageProps {}
 
-export const getStaticProps: GetStaticProps<Partial<CustomPageProps>> = async (ctx) => {
+export const getStaticProps: GetStaticProps<Partial<CustomPageProps> & CommunitiesPageProps> = async (ctx) => {
   const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
 
   const messages = (await import(`../../../../libs/common/src/lib/messages/${locale}.json`)).default;
 
-  const retVal: {
-    props: Partial<CustomPageProps & CommunitiesPageProps>;
-  } = {
+  const retVal = {
     props: {
       messages,
       // Note that when `now` is passed to the app, you need to make sure the

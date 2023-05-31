@@ -8,7 +8,11 @@ import { BlogPostOverview, PageHeader } from '@knowii/client-ui';
 import { i18nConfig } from '../../../../i18n.config.mjs';
 import { CustomPageProps } from '../_app';
 
-export const getStaticProps: GetStaticProps<Partial<CustomPageProps>> = async (ctx) => {
+interface BlogPageProps {
+  entries: MdxEntry[];
+}
+
+export const getStaticProps: GetStaticProps<Partial<CustomPageProps> & BlogPageProps> = async (ctx) => {
   const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
 
   const entries = (
@@ -26,9 +30,7 @@ export const getStaticProps: GetStaticProps<Partial<CustomPageProps>> = async (c
 
   const messages = (await import(`../../../../libs/common/src/lib/messages/${locale}.json`)).default;
 
-  const retVal: {
-    props: Partial<CustomPageProps & BlogPageProps>;
-  } = {
+  const retVal = {
     props: {
       messages,
       entries,
@@ -41,10 +43,6 @@ export const getStaticProps: GetStaticProps<Partial<CustomPageProps>> = async (c
 
   return retVal;
 };
-
-interface BlogPageProps {
-  entries: Array<MdxEntry>;
-}
 
 export function BlogPage({ entries }: BlogPageProps) {
   const t = useTranslations('blogPage');

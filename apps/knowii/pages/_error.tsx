@@ -4,7 +4,12 @@ import { CustomPageProps } from './_app';
 import { PageNotFoundError } from 'next/dist/shared/lib/utils';
 import InternalServerErrorPage from './500';
 
-export const getServerSideProps: GetServerSideProps<Partial<CustomPageProps>> = async ({ res }) => {
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface ErrorPageProps {
+  statusCode: number;
+}
+
+export const getServerSideProps: GetServerSideProps<Partial<CustomPageProps> & ErrorPageProps> = async ({ res }) => {
   const statusCode = res ? res.statusCode : 404;
 
   return {
@@ -17,11 +22,6 @@ export const getServerSideProps: GetServerSideProps<Partial<CustomPageProps>> = 
     },
   };
 };
-
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface ErrorPageProps {
-  statusCode: number;
-}
 
 export function ErrorPage(props: ErrorPageProps) {
   if (props.statusCode === 404) {
