@@ -74,8 +74,9 @@ const App = ({ Component, pageProps }: AppProps<CustomPageProps>) => {
     const {
       data: { subscription },
     } = supabaseClient.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_OUT' && (router.asPath.startsWith(APP_BASE_URL) || router.asPath.startsWith(ACCOUNT_URL)))
+      if (event === 'SIGNED_OUT' && (router.asPath.startsWith(APP_BASE_URL) || router.asPath.startsWith(ACCOUNT_URL))) {
         router.replace(SIGN_IN_URL);
+      }
     });
 
     return () => subscription.unsubscribe();
