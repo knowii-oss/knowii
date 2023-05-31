@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
+import { createPagesServerClient } from '@supabase/auth-helpers-nextjs';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { generateErrorMessage } from 'zod-error';
 import {
@@ -26,7 +26,7 @@ const handler: NextRequestHandler<CreateCommunityResponse> = async (req: NextApi
 
   logger.info('Handling request');
 
-  const supabaseClient = createServerSupabaseClient({ req, res });
+  const supabaseClient = createPagesServerClient({ req, res });
 
   const {
     data: { session },

@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
+import { createPagesServerClient } from '@supabase/auth-helpers-nextjs';
 import { NextApiRequest, NextApiResponse } from 'next';
 import {
   errorClientNotAuthenticated,
@@ -24,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
   logger.info('Handling request');
 
-  const supabaseClient = createServerSupabaseClient({ req, res });
+  const supabaseClient = createPagesServerClient({ req, res });
 
   const {
     data: { session },

@@ -41,6 +41,20 @@ export interface Database {
           A?: string;
           B?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: '_community_admins_A_fkey';
+            columns: ['A'];
+            referencedRelation: 'communities';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: '_community_admins_B_fkey';
+            columns: ['B'];
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       _community_members: {
         Row: {
@@ -55,6 +69,20 @@ export interface Database {
           A?: string;
           B?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: '_community_members_A_fkey';
+            columns: ['A'];
+            referencedRelation: 'communities';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: '_community_members_B_fkey';
+            columns: ['B'];
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       _community_owners: {
         Row: {
@@ -69,6 +97,20 @@ export interface Database {
           A?: string;
           B?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: '_community_owners_A_fkey';
+            columns: ['A'];
+            referencedRelation: 'communities';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: '_community_owners_B_fkey';
+            columns: ['B'];
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       _prisma_migrations: {
         Row: {
@@ -101,6 +143,7 @@ export interface Database {
           rolled_back_at?: string | null;
           started_at?: string;
         };
+        Relationships: [];
       };
       _resource_tags: {
         Row: {
@@ -115,6 +158,20 @@ export interface Database {
           A?: string;
           B?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: '_resource_tags_A_fkey';
+            columns: ['A'];
+            referencedRelation: 'resources';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: '_resource_tags_B_fkey';
+            columns: ['B'];
+            referencedRelation: 'tags';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       communities: {
         Row: {
@@ -144,6 +201,7 @@ export interface Database {
           updated_at?: string;
           visibility?: Database['public']['Enums']['community_visibility'];
         };
+        Relationships: [];
       };
       customers: {
         Row: {
@@ -158,6 +216,7 @@ export interface Database {
           stripe_customer_id?: string;
           user_id?: string;
         };
+        Relationships: [];
       };
       prices: {
         Row: {
@@ -199,6 +258,14 @@ export interface Database {
           type?: Database['public']['Enums']['pricing_type'] | null;
           unit_amount?: number | null;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'prices_product_id_fkey';
+            columns: ['product_id'];
+            referencedRelation: 'products';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       products: {
         Row: {
@@ -225,6 +292,7 @@ export interface Database {
           metadata?: Json | null;
           name?: string | null;
         };
+        Relationships: [];
       };
       resource_collections: {
         Row: {
@@ -254,6 +322,14 @@ export interface Database {
           slug?: string;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'resource_collections_community_id_fkey';
+            columns: ['community_id'];
+            referencedRelation: 'communities';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       resources: {
         Row: {
@@ -298,6 +374,20 @@ export interface Database {
           up_votes?: number;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'resources_community_id_fkey';
+            columns: ['community_id'];
+            referencedRelation: 'communities';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'resources_resource_collection_id_fkey';
+            columns: ['resource_collection_id'];
+            referencedRelation: 'resource_collections';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       subscriptions: {
         Row: {
@@ -357,6 +447,20 @@ export interface Database {
           user_id?: string;
           user_id_external?: string | null;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'subscriptions_price_id_fkey';
+            columns: ['price_id'];
+            referencedRelation: 'prices';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'subscriptions_product_id_fkey';
+            columns: ['product_id'];
+            referencedRelation: 'products';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       tags: {
         Row: {
@@ -380,6 +484,14 @@ export interface Database {
           name?: string;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'tags_community_id_fkey';
+            columns: ['community_id'];
+            referencedRelation: 'communities';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       user_profiles: {
         Row: {
@@ -442,6 +554,20 @@ export interface Database {
           user_id_external?: string | null;
           website?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'user_profiles_user_id_external_fkey';
+            columns: ['user_id_external'];
+            referencedRelation: 'users';
+            referencedColumns: ['user_id_external'];
+          },
+          {
+            foreignKeyName: 'user_profiles_user_id_fkey';
+            columns: ['user_id'];
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       users: {
         Row: {
@@ -471,6 +597,7 @@ export interface Database {
           user_role?: Database['public']['Enums']['user_role'];
           username?: string;
         };
+        Relationships: [];
       };
     };
     Views: {
@@ -584,6 +711,14 @@ export interface Database {
           public?: boolean | null;
           updated_at?: string | null;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'buckets_owner_fkey';
+            columns: ['owner'];
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       migrations: {
         Row: {
@@ -604,6 +739,7 @@ export interface Database {
           id?: number;
           name?: string;
         };
+        Relationships: [];
       };
       objects: {
         Row: {
@@ -642,6 +778,20 @@ export interface Database {
           updated_at?: string | null;
           version?: string | null;
         };
+        Relationships: [
+          {
+            foreignKeyName: 'objects_bucketId_fkey';
+            columns: ['bucket_id'];
+            referencedRelation: 'buckets';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'objects_owner_fkey';
+            columns: ['owner'];
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
       };
     };
     Views: {
@@ -673,7 +823,7 @@ export interface Database {
         Args: {
           name: string;
         };
-        Returns: string[];
+        Returns: unknown;
       };
       get_size_by_bucket: {
         Args: Record<PropertyKey, never>;

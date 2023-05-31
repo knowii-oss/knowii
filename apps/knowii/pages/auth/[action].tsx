@@ -1,5 +1,5 @@
 import { Box, Container, Flex, HStack, Text, useColorModeValue, VStack } from '@chakra-ui/react';
-import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
+import { createPagesServerClient } from '@supabase/auth-helpers-nextjs';
 import { GetServerSideProps } from 'next';
 import Head from 'next/head';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -47,7 +47,7 @@ export const getServerSideProps: GetServerSideProps<Partial<CustomPageProps> & A
     };
   }
 
-  const supabaseClient = createServerSupabaseClient<Database>(ctx);
+  const supabaseClient = createPagesServerClient<Database>(ctx);
   const { data: session } = await supabaseClient.auth.getSession();
 
   const isUserLoggedIn = !!session?.session;
