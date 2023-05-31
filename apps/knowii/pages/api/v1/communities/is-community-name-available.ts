@@ -1,4 +1,3 @@
-import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
 import { NextApiRequest, NextApiResponse } from 'next';
 import {
   errorClientNotAuthenticated,
@@ -28,7 +27,7 @@ const handler: NextRequestHandler<IsCommunityNameAvailableResponse> = async (
 
   logger.info('Handling request');
 
-  const supabaseClient = createServerSupabaseClient({ req, res });
+  const supabaseClient = createPagesServerClient({ req, res });
 
   const {
     data: { session },

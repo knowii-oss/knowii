@@ -1,4 +1,4 @@
-import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs';
+import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs';
 import { Database } from '@knowii/common';
 
-export const createBrowserClient = () => createBrowserSupabaseClient<Database>();
+export const createBrowserClient = () => createPagesBrowserClient<Database>();
