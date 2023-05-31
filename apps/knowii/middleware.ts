@@ -1,6 +1,6 @@
 import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 import { NextRequest, NextResponse } from 'next/server';
-import { ACCOUNT_URL, APP_BASE_URL, CREATE_COMMUNITY_URL, SIGN_IN_URL } from '@knowii/common';
+import { SIGN_IN_URL } from '@knowii/common';
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
@@ -23,5 +23,7 @@ export async function middleware(req: NextRequest) {
 export const config = {
   // List of URLs that require authentication
   // When users are not authenticated and try to access one of those paths, they are redirected to the signin page
-  matcher: [`${APP_BASE_URL}/:path*`, ACCOUNT_URL, CREATE_COMMUNITY_URL],
+  // WARNING: The rules below are evaluated at build time and cannot use variables for some reason
+  // Make sure to keep those aligned with constants in constants.ts
+  matcher: ['/app/:path*', '/account', '/communities/create'],
 };

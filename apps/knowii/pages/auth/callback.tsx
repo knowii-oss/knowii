@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { Loader } from '@knowii/client-ui';
 import { GetStaticProps } from 'next';
 import { CustomPageProps } from '../_app';
-import { APP_BASE_URL } from '@knowii/common';
+import { APP_BASE_URL, HOME_URL } from '@knowii/common';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface AuthCallbackPageProps {}
@@ -41,7 +41,7 @@ export default function AuthCallbackPage(_props: AuthCallbackPageProps) {
 
   // fallback if the user is not loaded after 5s to make sure this page is not shown forever
   useEffect(() => {
-    const timeout = setTimeout(() => router.push('/'), 5000);
+    const timeout = setTimeout(() => router.push(HOME_URL), 5000);
     return () => clearTimeout(timeout);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
