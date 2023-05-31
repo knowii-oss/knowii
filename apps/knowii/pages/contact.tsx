@@ -3,8 +3,12 @@ import { GetStaticProps } from 'next';
 import { useTranslations } from 'next-intl';
 import { Layout } from '../components/layout/layout';
 import { i18nConfig } from '../../../i18n.config.mjs';
+import { CustomPageProps } from './_app';
 
-export const getStaticProps: GetStaticProps = async (ctx) => {
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface ContactPageProps {}
+
+export const getStaticProps: GetStaticProps<Partial<CustomPageProps> & ContactPageProps> = async (ctx) => {
   const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
   const messages = (await import(`../../../libs/common/src/lib/messages/${locale}.json`)).default;
 
@@ -12,9 +16,6 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
     props: { messages },
   };
 };
-
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface ContactPageProps {}
 
 export function ContactPage(_props: ContactPageProps) {
   const t = useTranslations('contactPage');

@@ -33,6 +33,13 @@ const siteDescription = require('../../../libs/common/src/lib/metadata.json').de
 
 const queryClient = new QueryClient();
 
+export interface CustomPageProps {
+  cookies?: NextApiRequestCookies;
+  initialSession: MaybeSupabaseSession;
+  messages: Messages;
+  now: number;
+}
+
 export const getServerSideProps: GetServerSideProps<Partial<CustomPageProps>> = async ({ req }) => {
   const retVal = {
     props: {
@@ -46,13 +53,6 @@ export const getServerSideProps: GetServerSideProps<Partial<CustomPageProps>> = 
 
   return retVal;
 };
-
-export interface CustomPageProps {
-  cookies?: NextApiRequestCookies;
-  initialSession: MaybeSupabaseSession;
-  messages: Messages;
-  now: number;
-}
 
 /**
  * Wrapper around all pages

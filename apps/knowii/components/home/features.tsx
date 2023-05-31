@@ -3,7 +3,7 @@ import { FaCloud } from 'react-icons/fa';
 import { useTranslations } from 'next-intl';
 import { SectionHeadline } from './section-headline';
 
-// eslint-disable-next-line
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface FeaturesProps {}
 
 export function Features(_props: FeaturesProps) {

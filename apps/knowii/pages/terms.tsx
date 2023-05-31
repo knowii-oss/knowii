@@ -5,8 +5,12 @@ import { Layout } from '../components/layout/layout';
 import { i18nConfig } from '../../../i18n.config.mjs';
 import Link from 'next/link';
 import { CONTACT_URL, PRIVACY_POLICY_URL } from '@knowii/common';
+import { CustomPageProps } from './_app';
 
-export const getStaticProps: GetStaticProps = async (ctx) => {
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface TermsOfServicePageProps {}
+
+export const getStaticProps: GetStaticProps<Partial<CustomPageProps> & TermsOfServicePageProps> = async (ctx) => {
   const locale = ctx.locale ? ctx.locale : i18nConfig.i18n.defaultLocale;
   const messages = (await import(`../../../libs/common/src/lib/messages/${locale}.json`)).default;
 
@@ -14,9 +18,6 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
     props: { messages },
   };
 };
-
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface TermsOfServicePageProps {}
 
 export function TermsOfServicePage(_props: TermsOfServicePageProps) {
   const t = useTranslations('termsOfServicePage');

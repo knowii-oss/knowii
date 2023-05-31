@@ -30,7 +30,6 @@ import { i18nConfig } from '../../../../i18n.config.mjs';
 import { CustomPageProps } from '../_app';
 import { Provider } from '@supabase/supabase-js';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface AuthPageProps {
   action: string;
   enabledAuthProviders: Provider[];

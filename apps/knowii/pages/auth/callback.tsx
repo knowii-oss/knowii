@@ -7,7 +7,10 @@ import { GetStaticProps } from 'next';
 import { CustomPageProps } from '../_app';
 import { APP_BASE_URL } from '@knowii/common';
 
-export const getStaticProps: GetStaticProps<Partial<CustomPageProps>> = async (_ctx) => {
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface AuthCallbackPageProps {}
+
+export const getStaticProps: GetStaticProps<Partial<CustomPageProps> & AuthCallbackPageProps> = async (_ctx) => {
   return {
     props: {
       // Note that when `now` is passed to the app, you need to make sure the
@@ -22,7 +25,7 @@ export const getStaticProps: GetStaticProps<Partial<CustomPageProps>> = async (_
   This is the page that is shown when the user is redirected from the authentication provider.
   Its necessary because the cookie setting request is sent frontend side and we have to wait before we redirect to the authenticated page.
 */
-export default function AuthCallbackPage() {
+export default function AuthCallbackPage(_props: AuthCallbackPageProps) {
   const router = useRouter();
   const user = useUser();
   const { isLoading } = useSessionContext();
