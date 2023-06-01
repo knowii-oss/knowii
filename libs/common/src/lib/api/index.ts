@@ -81,6 +81,7 @@ export const createCommunityResponseSchema = z.object({
   errorDescription: z.string().optional(),
   errorDetails: z.string().optional(),
   data: CommunitiesSchema.pick({
+    id: true,
     name: true,
     description: true,
     slug: true,
@@ -93,6 +94,8 @@ export const createCommunityInputSchema = CommunitiesSchema.pick({
   name: true,
   description: true,
   slug: true,
+}).extend({
+  ownerUserId: z.string().uuid(),
 });
 
 export type CreateCommunityInput = z.infer<typeof createCommunityInputSchema>;
