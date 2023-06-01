@@ -133,7 +133,15 @@ export function SocialSigninButton({ provider, redirectAfterSignin }: SocialSign
   const providerData = useMemo(() => providers[provider], [provider, providers]);
 
   const signIn = useCallback(
-    () => supabaseClient.auth.signInWithOAuth({ provider, options: { redirectTo } }),
+    () =>
+      supabaseClient.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo,
+          // TODO request precise scopes for specific OAuth providers
+          // google: scopes: "openid profile email",
+        },
+      }),
     [provider, redirectTo, supabaseClient.auth],
   );
 

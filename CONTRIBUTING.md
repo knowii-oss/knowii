@@ -286,7 +286,7 @@ Make sure to configure it on Supabase, but also for local development (with dev 
 - The CONFIGURED_AUTH_PROVIDERS environment variable to list the newly added providers (WARNING: don't forget to also
   update it on Vercel)
 - The auth-form-wrapper.tsx component
-- The supabase-db-seed.sql script, in particular the triggers that create/update users and user profiles
+- The supabase-db-seed.sql script, in particular the triggers that create/update users and user profiles, and detect the provider type. Regarding that, make sure to check if the raw_user_meta_data column contains a full_name and/or user_name field
 - The technical documentation wiki
 
 Once done, make sure to recreate/restart the local Supabase instance.
@@ -317,3 +317,13 @@ GitHub provides "name" and "user_name" fields. Knowii as well (email signup), bu
 - Request user email (project > User authentication settings > Edit > "Request email from users")
 
 WARNING: For Twitter, you MUST use the API Key and API Key Secret, and NOT the Client ID and Client Secret! (Reference: https://github.com/orgs/supabase/discussions/2270)
+
+## Testing registration/authentication
+
+Registration and authentication work fine locally. When making multiple tests it's sometimes useful to clean the user tables. This can easily be done like this:
+
+```
+delete from auth.users;
+delete from public.user_profiles;
+delete from public.users;
+```

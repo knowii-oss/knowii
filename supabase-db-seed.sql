@@ -283,6 +283,7 @@ declare
 provider_name text;
 user_name     text;
 name          text;
+internal_user_id uuid;
 username_is_available boolean;
 begin
 raise warning 'Creating a new user';
@@ -304,6 +305,14 @@ from auth.users
 where id = new.id;
 elsif provider_name = 'github' then
 raise notice 'User was created via Github';
+
+    -- Github provides a user_name field in the metadata
+select raw_user_meta_data ->> 'user_name' as user_name
+into user_name
+from auth.users
+where id = new.id;
+elsif provider_name = 'twitter' then
+raise notice 'User was created via Twitter';
 
     -- Github provides a user_name field in the metadata
 select raw_user_meta_data ->> 'user_name' as user_name
@@ -343,8 +352,17 @@ end loop;
 
 raise warning 'Username for the new user: %', user_name;
 
-insert into public.users (user_id_external, username, email)
-values (new.id, user_name, new.email);
+select gen_random_uuid()
+into internal_user_id;
+
+-- CUSTOMIZE THE APP METADATA
+-- Store the internal user id in the app metadata
+-- Thanks to this, we can retrieve it through the JWT and through the Supabase session
+-- WARNING: We MUST write to raw_user_meta_data and now raw_app_meta_data because the latter is sometimes overridden (e.g., sign in with Twitter)
+update auth.users set raw_user_meta_data = raw_user_meta_data || json_build_object('knowii_user_id_internal', internal_user_id)::jsonb where id = new.id;
+
+insert into public.users (id, user_id_external, username, email)
+values (internal_user_id, new.id, user_name, new.email);
 
 return new;
 end;
