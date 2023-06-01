@@ -11,3 +11,4 @@ backups/
 pnpm-lock.yaml
 package-lock.json
 tmp/
+supabase-db-seed.sql
