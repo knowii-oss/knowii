@@ -1,4 +1,4 @@
-import { createPagesServerClient } from '@supabase/auth-helpers-nextjs';
+import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { ACCOUNT_URL, errorClientNotAuthenticated, getBaseURL, hasErrorMessage } from '@knowii/common';
 import { getOrCreateStripeCustomer, stripe } from '@knowii/server';
@@ -10,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const supabaseClient = createPagesServerClient({ req, res });
+  const supabaseClient = createServerSupabaseClient({ req, res });
 
   const {
     data: { session },
