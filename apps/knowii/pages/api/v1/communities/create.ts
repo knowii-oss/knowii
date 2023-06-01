@@ -12,7 +12,7 @@ import {
   CreateCommunityInput,
   getLogger,
 } from '@knowii/common';
-import { daoFnCreateCommunity, errorMessageOptions } from '@knowii/server';
+import { daoFnCreateCommunity, errorMessageOptions, getInternalUserIdFromSupabaseSession } from '@knowii/server';
 import { PrismaClient } from '@prisma/client';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<CreateCommunityResponse>) {
@@ -57,8 +57,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
   const { name, description } = requestValidationResult.data;
   const slug = generateSlug(name);
+  const ownerUserId = getInternalUserIdFromSupabaseSession(session);
 
   const creationPayload: CreateCommunityInput = {
+    ownerUserId,
     name,
     description,
     slug,

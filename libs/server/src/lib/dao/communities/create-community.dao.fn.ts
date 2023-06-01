@@ -19,12 +19,16 @@ export async function daoFnCreateCommunity(input: CreateCommunityInput, prismaCl
   }
 
   try {
-    // FIXME add current user as owner!
     const createdCommunity = await prismaClient.communities.create({
       data: {
         name: input.name,
         description: input.description,
         slug: input.slug,
+        owners: {
+          connect: {
+            id: input.ownerUserId,
+          },
+        },
       },
     });
 
