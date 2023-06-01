@@ -12,7 +12,7 @@ import {
 import { PrismaClient } from '@prisma/client';
 import { daoFnIsCommunityNameAvailable, errorMessageOptions } from '@knowii/server';
 import { generateErrorMessage } from 'zod-error';
-import { createPagesServerClient } from '@supabase/auth-helpers-nextjs';
+import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<IsCommunityNameAvailableResponse>) {
   const logger = getLogger('communities', req.url!);
@@ -25,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
   logger.info('Handling request');
 
-  const supabaseClient = createPagesServerClient({ req, res });
+  const supabaseClient = createServerSupabaseClient({ req, res });
 
   const {
     data: { session },

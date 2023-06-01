@@ -32,7 +32,6 @@ import { AuthFormWrapper } from './auth-form-wrapper';
 import { useTranslations } from 'next-intl';
 import { Provider } from '@supabase/supabase-js';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface SignupFormProps {
   checkingUsernameAvailability: boolean;
   isUsernameAvailable: boolean;

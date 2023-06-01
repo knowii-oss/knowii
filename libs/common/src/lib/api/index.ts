@@ -12,8 +12,6 @@ import {
   minLengthUsername,
 } from '../constants';
 
-// FIXME improve with Prisma-zod generated types
-
 // ----------------------------------------
 // IS USERNAME AVAILABLE
 // ----------------------------------------

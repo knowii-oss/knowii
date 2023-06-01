@@ -1,10 +1,10 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
+import { createMiddlewareSupabaseClient } from '@supabase/auth-helpers-nextjs';
 import { NextRequest, NextResponse } from 'next/server';
 import { SIGN_IN_URL } from '@knowii/common';
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
-  const supabaseClient = createMiddlewareClient({ req, res });
+  const supabaseClient = createMiddlewareSupabaseClient({ req, res });
 
   const {
     data: { session },
