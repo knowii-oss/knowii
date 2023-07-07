@@ -6,7 +6,7 @@ As a contributor, here are the guidelines we would like you to follow.
 
 Third party contributions are more than welcome! Here you'll find all the information you need to get started.
 
-First, make sure to read the [general guidelines](https://github.com/knowii-oss/.github/blob/main/CODE_OF_CONDUCT.md).
+First, make sure to read the [general guidelines](https://github.com/knowii-oss/.github/blob/main/CONTRIBUTING.md).
 
 ## Don't know where to start?
 
