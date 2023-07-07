@@ -288,5 +288,8 @@
         "forbiddenCharacters": "The name cannot contain special characters"
       }
     }
+  },
+  "communityPage": {
+    "title": "Community - {communityName}"
   }
 }
