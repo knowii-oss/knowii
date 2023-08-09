@@ -36,7 +36,11 @@ export const CommunitiesSchema = z.object({
    * WARNING: The Zod validation rules MUST respect the same length rules as the UI & back-end (cfr constants.ts)
    */
   name: z.string().min(3).max(64),
-  slug: z.string().min(3).max(64),
+  slug: z
+    .string()
+    .min(3)
+    .max(64)
+    .regex(/^[a-z0-9-]+$/gim),
   description: z.string(),
   created_at: z.coerce.date(),
   updated_at: z.coerce.date(),

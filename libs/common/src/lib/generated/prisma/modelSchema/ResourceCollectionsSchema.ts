@@ -19,7 +19,11 @@ import { ResourcesOptionalDefaultsWithRelationsSchema } from './ResourcesSchema'
 export const ResourceCollectionsSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
-  slug: z.string(),
+  slug: z
+    .string()
+    .min(3)
+    .max(64)
+    .regex(/^[a-z0-9-]+$/gim),
   description: z.string(),
   community_id: z.string().uuid(),
   created_at: z.coerce.date(),
