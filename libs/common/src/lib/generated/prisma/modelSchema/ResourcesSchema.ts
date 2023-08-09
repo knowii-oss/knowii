@@ -28,7 +28,11 @@ export const ResourcesSchema = z.object({
   description: z.string(),
   content: z.string(),
   source: z.string(),
-  slug: z.string(),
+  slug: z
+    .string()
+    .min(3)
+    .max(64)
+    .regex(/^[a-z0-9-]+$/gim),
   up_votes: z.number().int(),
   down_votes: z.number().int(),
   community_id: z.string().uuid(),

@@ -199,7 +199,7 @@ model Communities {
   id                   String                    @id @db.Uuid @default(dbgenerated("gen_random_uuid()")) /// @zod.string.uuid()
   /// WARNING: The Zod validation rules MUST respect the same length rules as the UI & back-end (cfr constants.ts)
   name                 String                    @unique /// @zod.string.min(3).max(64)
-  slug                 String                    @unique /// @zod.string.min(3).max(64)
+  slug                 String                    @unique /// @zod.string.min(3).max(64).regex(/^[a-z0-9-]+$/igm)
   description          String                    @default("")
   visibility           KnowiiCommunityVisibility @default(PUBLIC)
   created_at           DateTime                  @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
@@ -219,7 +219,7 @@ model Communities {
 model ResourceCollections {
   id           String      @id @db.Uuid @default(dbgenerated("gen_random_uuid()")) /// @zod.string.uuid()
   name         String      @default("")
-  slug         String      @unique
+  slug         String      @unique /// @zod.string.min(3).max(64).regex(/^[a-z0-9-]+$/igm)
   description  String      @default("")
   community_id String      @db.Uuid /// @zod.string.uuid()
   created_at   DateTime    @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
@@ -238,7 +238,7 @@ model Resources {
   description            String              @default("")
   content                String              @default("")
   source                 String              @default("")
-  slug                   String              @unique
+  slug                   String              @unique /// @zod.string.min(3).max(64).regex(/^[a-z0-9-]+$/igm)
   up_votes               Int                 @default(0)
   down_votes             Int                 @default(0)
   community_id           String              @db.Uuid /// @zod.string.uuid()
