@@ -53,7 +53,7 @@ model Prices {
   id                String               @id @db.Uuid @default(dbgenerated("gen_random_uuid()")) /// @zod.string.uuid()
   product_id        String?              @db.Uuid /// @zod.string.uuid()
   active            Boolean?
-  description       String?
+  description       String? /// @zod.string
   unit_amount       BigInt?
   currency          String?
   type              PricingType?
@@ -70,9 +70,9 @@ model Prices {
 
 model Products {
   id            String          @id @db.Uuid @default(dbgenerated("gen_random_uuid()")) /// @zod.string.uuid()
-  active        Boolean?
-  name          String?
-  description   String?
+  active        Boolean? /// @zod.boolean
+  name          String? /// @zod.string
+  description   String? /// @zod.string
   image         String?
   metadata      Json?
   prices        Prices[]
@@ -92,8 +92,8 @@ model Subscriptions {
   metadata             Json?
   product_id           String?             @db.Uuid /// @zod.string.uuid()
   price_id             String?             @db.Uuid /// @zod.string.uuid()
-  quantity             Int?
-  cancel_at_period_end Boolean?
+  quantity             Int? /// @zod.number
+  cancel_at_period_end Boolean? /// @zod.boolean
   created_at           DateTime            @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
   current_period_start DateTime            @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
   current_period_end   DateTime            @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
@@ -171,19 +171,19 @@ model UserProfiles {
   user_id           String   @db.Uuid @unique /// @zod.string.uuid()
   /// Supabase user id
   user_id_external  String?  @db.Uuid @unique /// @zod.string.uuid()
-  name              String   @default("")
-  avatar_url        String   @default("")
-  phone             String   @default("")
-  website           String   @default("")
-  twitter           String   @default("")
-  facebook          String   @default("")
-  instagram         String   @default("")
-  tiktok            String   @default("")
-  github            String   @default("")
-  bio               String   @default("")
-  location          String   @default("")
-  organization_name String   @default("")
-  organization_link String   @default("")
+  name              String   @default("") /// @zod.string
+  avatar_url        String   @default("") /// @zod.string.url()
+  phone             String   @default("") /// @zod.string
+  website           String   @default("") /// @zod.string.url()
+  twitter           String   @default("") /// @zod.string.url()
+  facebook          String   @default("") /// @zod.string.url()
+  instagram         String   @default("") /// @zod.string.url()
+  tiktok            String   @default("") /// @zod.string.url()
+  github            String   @default("") /// @zod.string.url()
+  bio               String   @default("") /// @zod.string
+  location          String   @default("") /// @zod.string
+  organization_name String   @default("") /// @zod.string
+  organization_link String   @default("") /// @zod.string.url()
   /// WARNING: When adding/updating/removing fields here, make sure to update the triggers in supabase-db-seed.sql
   created_at        DateTime @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
   updated_at        DateTime @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt
@@ -200,7 +200,7 @@ model Communities {
   /// WARNING: The Zod validation rules MUST respect the same length rules as the UI & back-end (cfr constants.ts)
   name                 String                    @unique /// @zod.string.min(3).max(64)
   slug                 String                    @unique /// @zod.string.min(3).max(64).regex(/^[a-z0-9-]+$/igm)
-  description          String                    @default("")
+  description          String                    @default("") /// @zod.string
   visibility           KnowiiCommunityVisibility @default(PUBLIC)
   created_at           DateTime                  @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
   updated_at           DateTime                  @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt
@@ -218,9 +218,9 @@ model Communities {
 
 model ResourceCollections {
   id           String      @id @db.Uuid @default(dbgenerated("gen_random_uuid()")) /// @zod.string.uuid()
-  name         String      @default("")
+  name         String      @default("") /// @zod.string
   slug         String      @unique /// @zod.string.min(3).max(64).regex(/^[a-z0-9-]+$/igm)
-  description  String      @default("")
+  description  String      @default("") /// @zod.string
   community_id String      @db.Uuid /// @zod.string.uuid()
   created_at   DateTime    @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
   updated_at   DateTime    @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt
@@ -234,13 +234,13 @@ model ResourceCollections {
 
 model Resources {
   id                     String              @id @db.Uuid @default(dbgenerated("gen_random_uuid()")) /// @zod.string.uuid()
-  name                   String              @default("")
-  description            String              @default("")
-  content                String              @default("")
-  source                 String              @default("")
+  name                   String              @default("") /// @zod.string
+  description            String              @default("") /// @zod.string
+  content                String              @default("") /// @zod.string
+  source                 String              @default("") /// @zod.string.url()
   slug                   String              @unique /// @zod.string.min(3).max(64).regex(/^[a-z0-9-]+$/igm)
-  up_votes               Int                 @default(0)
-  down_votes             Int                 @default(0)
+  up_votes               Int                 @default(0) /// @zod.number
+  down_votes             Int                 @default(0) /// @zod.number
   community_id           String              @db.Uuid /// @zod.string.uuid()
   resource_collection_id String              @db.Uuid /// @zod.string.uuid()
   created_at             DateTime            @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
@@ -256,7 +256,7 @@ model Resources {
 
 model Tags {
   id           String       @id @db.Uuid @default(dbgenerated("gen_random_uuid()")) /// @zod.string.uuid()
-  name         String       @unique
+  name         String       @unique /// @zod.string
   community_id String       @db.Uuid /// @zod.string.uuid()
   community    Communities? @relation("community_tags", fields: [community_id], references: [id])
   created_at   DateTime     @db.Timestamptz(6) @default(dbgenerated("timezone('utc'::text, now())"))
