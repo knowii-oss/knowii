@@ -10,7 +10,7 @@ import 'prismjs/plugins/line-numbers/prism-line-numbers.css';
 
 import { ThemeProvider } from 'next-themes';
 import React, { useEffect, useState } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { DehydratedState, Hydrate, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useRouterScroll } from '@knowii/client';
 import { GetServerSideProps } from 'next';
 import { NextApiRequestCookies } from 'next/dist/server/api-utils';
@@ -31,13 +31,12 @@ const siteTitle = require('../../../libs/common/src/lib/metadata.json').title;
 // eslint-disable-next-line  @typescript-eslint/no-var-requires
 const siteDescription = require('../../../libs/common/src/lib/metadata.json').description;
 
-const queryClient = new QueryClient();
-
 export interface CustomPageProps {
   cookies?: NextApiRequestCookies;
   initialSession: MaybeSupabaseSession;
   messages: Messages;
   now: number;
+  dehydratedState: DehydratedState;
 }
 
 export const getServerSideProps: GetServerSideProps<Partial<CustomPageProps>> = async ({ req }) => {
@@ -66,6 +65,8 @@ const App = ({ Component, pageProps }: AppProps<CustomPageProps>) => {
   const { cookies } = pageProps;
 
   const [supabaseClient] = useState(() => createBrowserClient());
+
+  const [queryClient] = React.useState(() => new QueryClient());
 
   const colorModeManager = typeof cookies === 'string' ? cookieStorageManagerSSR(cookies) : localStorageManager;
 
@@ -134,12 +135,14 @@ const App = ({ Component, pageProps }: AppProps<CustomPageProps>) => {
             <ProgressBar />
 
             <QueryClientProvider client={queryClient}>
-              <SessionContextProvider supabaseClient={supabaseClient} initialSession={pageProps.initialSession}>
-                {/* Use the ThemeProvider of next-themes, combined with Tailwind: https://github.com/pacocoursey/next-themes#with-tailwind */}
-                <ThemeProvider attribute="class">
-                  <Component {...pageProps} />
-                </ThemeProvider>
-              </SessionContextProvider>
+              <Hydrate state={pageProps.dehydratedState}>
+                <SessionContextProvider supabaseClient={supabaseClient} initialSession={pageProps.initialSession}>
+                  {/* Use the ThemeProvider of next-themes, combined with Tailwind: https://github.com/pacocoursey/next-themes#with-tailwind */}
+                  <ThemeProvider attribute="class">
+                    <Component {...pageProps} />
+                  </ThemeProvider>
+                </SessionContextProvider>
+              </Hydrate>
             </QueryClientProvider>
           </main>
         </ChakraBaseProvider>
