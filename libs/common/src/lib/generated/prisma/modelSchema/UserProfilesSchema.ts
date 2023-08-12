@@ -32,7 +32,7 @@ export const UserProfilesSchema = z.object({
   bio: z.string(),
   location: z.string(),
   organization_name: z.string(),
-  organization_link: z.string(),
+  organization_link: z.string().url(),
   /**
    * WARNING: When adding/updating/removing fields here, make sure to update the triggers in supabase-db-seed.sql
    */
@@ -69,7 +69,7 @@ export const UserProfilesOptionalDefaultsSchema = UserProfilesSchema.merge(
     bio: z.string().optional(),
     location: z.string().optional(),
     organization_name: z.string().optional(),
-    organization_link: z.string().optional(),
+    organization_link: z.string().url().optional(),
     /**
      * WARNING: When adding/updating/removing fields here, make sure to update the triggers in supabase-db-seed.sql
      */

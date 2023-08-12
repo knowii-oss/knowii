@@ -27,14 +27,14 @@ export const ResourcesSchema = z.object({
   name: z.string(),
   description: z.string(),
   content: z.string(),
-  source: z.string(),
+  source: z.string().url(),
   slug: z
     .string()
     .min(3)
     .max(64)
     .regex(/^[a-z0-9-]+$/gim),
-  up_votes: z.number().int(),
-  down_votes: z.number().int(),
+  up_votes: z.number(),
+  down_votes: z.number(),
   community_id: z.string().uuid(),
   resource_collection_id: z.string().uuid(),
   created_at: z.coerce.date(),
@@ -61,9 +61,9 @@ export const ResourcesOptionalDefaultsSchema = ResourcesSchema.merge(
     name: z.string().optional(),
     description: z.string().optional(),
     content: z.string().optional(),
-    source: z.string().optional(),
-    up_votes: z.number().int().optional(),
-    down_votes: z.number().int().optional(),
+    source: z.string().url().optional(),
+    up_votes: z.number().optional(),
+    down_votes: z.number().optional(),
     created_at: z.coerce.date().optional(),
     updated_at: z.coerce.date().optional(),
   }),
