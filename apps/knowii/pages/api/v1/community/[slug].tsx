@@ -10,6 +10,7 @@ import {
   getCommunityRequestSchema,
   GetCommunityInput,
   errorCommunityNotFound,
+  GetCommunityResponseData,
 } from '@knowii/common';
 import { daoFnGetCommunity, errorMessageOptions, getInternalUserIdFromSupabaseSession } from '@knowii/server';
 import { PrismaClient } from '@prisma/client';
@@ -79,8 +80,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     logger.info('Found community: %o', foundCommunity);
 
+    logger.debug('Mapping the found community to a DTO: %o', foundCommunity);
+
+    // We do not want to return too much data, so we have to create a DTO and map just what we need
+    const foundCommunityDTO: GetCommunityResponseData = {
+      name: foundCommunity.name,
+      description: foundCommunity.description,
+    };
+
     const responseBody: GetCommunityResponse = {
-      data: foundCommunity,
+      data: foundCommunityDTO,
     };
 
     return res.status(200).json(responseBody);

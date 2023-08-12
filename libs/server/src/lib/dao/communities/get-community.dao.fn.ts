@@ -1,9 +1,9 @@
-import { errorInputValidation, GetCommunityInput, getCommunityInputSchema, GetCommunityResponseData, getLogger } from '@knowii/common';
+import { errorInputValidation, GetCommunityInput, getCommunityInputSchema, getLogger } from '@knowii/common';
 import { Communities, PrismaClient } from '@prisma/client';
 import { generateErrorMessage } from 'zod-error';
 import { errorMessageOptions } from '@knowii/server';
 
-export async function daoFnGetCommunity(input: GetCommunityInput, prismaClient: PrismaClient): Promise<GetCommunityResponseData | null> {
+export async function daoFnGetCommunity(input: GetCommunityInput, prismaClient: PrismaClient): Promise<Communities | null> {
   const logger = getLogger('communities', daoFnGetCommunity.name);
 
   logger.info('Loading a community: %o', input);
@@ -38,13 +38,7 @@ export async function daoFnGetCommunity(input: GetCommunityInput, prismaClient: 
     return null;
   }
 
-  logger.info('Community loaded successfully: %o. Creating a DTO', foundCommunity);
+  logger.info('Community loaded successfully: %o', foundCommunity);
 
-  // We do not want to return too much data, so we have to create a DTO and map just what we need
-  const retVal: GetCommunityResponseData = {
-    name: foundCommunity.name,
-    description: foundCommunity.description,
-  };
-
-  return retVal;
+  return foundCommunity;
 }
