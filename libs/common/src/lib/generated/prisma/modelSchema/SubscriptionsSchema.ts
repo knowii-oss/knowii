@@ -33,7 +33,7 @@ export const SubscriptionsSchema = z.object({
   metadata: NullableJsonValue.optional(),
   product_id: z.string().uuid().nullable(),
   price_id: z.string().uuid().nullable(),
-  quantity: z.number().int().nullable(),
+  quantity: z.number().nullable(),
   cancel_at_period_end: z.boolean().nullable(),
   created_at: z.coerce.date(),
   current_period_start: z.coerce.date(),
