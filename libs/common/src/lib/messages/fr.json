@@ -290,6 +290,11 @@
     }
   },
   "communityPage": {
-    "title": "Communauté - {communityName}"
+    "title": "Communauté - {communityName}",
+    "comingSoon": "En construction...",
+    "news": "News",
+    "recentResources": "Ressources récentes",
+    "resourceCollections": "Collections de ressources",
+    "peopleDirectory": "Annuaire"
   }
 }
