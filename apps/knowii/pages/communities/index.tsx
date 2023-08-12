@@ -1,4 +1,4 @@
-import { Box, Container, VStack } from '@chakra-ui/react';
+import { Box, Container, Heading, VStack } from '@chakra-ui/react';
 import { GetStaticProps } from 'next';
 import { useTranslations } from 'next-intl';
 import Layout from '../../components/layout/layout';
@@ -40,7 +40,7 @@ export function CommunitiesPage(_props: CommunitiesPageProps) {
       <Box px={4} py={12}>
         <Container maxW="5xl">
           <VStack spacing={4} align="stretch">
-            {t('comingSoon')}
+            <Heading>{t('comingSoon')}</Heading>
           </VStack>
         </Container>
       </Box>
