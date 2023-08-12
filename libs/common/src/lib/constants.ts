@@ -43,6 +43,7 @@ const siteAuthorAvatar = require('./metadata.json').avatars.sebastien;
 export const IS_BROWSER = typeof window !== 'undefined';
 export const IS_SERVER = typeof window === 'undefined';
 export const IS_PROD = process.env.NODE_ENV === 'production';
+export const IS_DEV = process.env.NODE_ENV === 'development';
 export const IS_TEST = process.env.NODE_ENV === 'test';
 
 /**
@@ -153,6 +154,11 @@ export const errorClientNotAuthenticated: ReusableError = {
 export const errorInputValidation: ReusableError = {
   code: 'invalid_request_error',
   description: 'The provided request data is incomplete or invalid',
+};
+
+export const errorCommunityNotFound: ReusableError = {
+  code: 'community_not_found_error',
+  description: 'The community could not be found',
 };
 
 /**
