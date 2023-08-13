@@ -9,7 +9,6 @@
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {
-        "root": "apps/knowii",
         "outputPath": "dist/apps/knowii"
       },
       "configurations": {

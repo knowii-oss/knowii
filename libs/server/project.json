@@ -11,7 +11,8 @@
         "outputPath": "dist/libs/server",
         "main": "libs/server/src/index.ts",
         "tsConfig": "libs/server/tsconfig.lib.json",
-        "assets": ["libs/server/*.md"]
+        "assets": ["libs/server/*.md"],
+        "updateBuildableProjectDepsInPackageJson": true
       }
     },
     "lint": {
