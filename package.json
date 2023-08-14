@@ -106,6 +106,7 @@
     "framer-motion": "10.15.1",
     "gray-matter": "4.0.3",
     "image-size": "1.0.2",
+    "immer": "10.0.2",
     "mdx-embed": "1.1.2",
     "next": "13.3.4",
     "next-intl": "2.14.0-beta.4",
@@ -128,7 +129,8 @@
     "stripe": "12.4.0",
     "tslib": "2.5.0",
     "zod": "3.21.4",
-    "zod-error": "1.5.0"
+    "zod-error": "1.5.0",
+    "zustand": "4.4.1"
   },
   "devDependencies": {
     "@babel/core": "7.12.17",

@@ -1,4 +1,4 @@
-import { Box, Container } from '@chakra-ui/react';
+import { Box, Container, FormControl, FormLabel, Switch } from '@chakra-ui/react';
 import { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 import { Loader, PageHeader } from '@knowii/client-ui';
@@ -8,7 +8,7 @@ import { CustomPageProps } from '../_app';
 import { i18nConfig } from '../../../../i18n.config.mjs';
 import { useTranslations } from 'next-intl';
 import { dehydrate, QueryClient, useQuery } from '@tanstack/react-query';
-import { getCommunity } from '@knowii/client';
+import { AppState, getCommunity, useAppState } from '@knowii/client';
 
 interface CommunityPageProps {
   slug: string;
@@ -81,6 +81,8 @@ export function CommunityPage(props: CommunityPageProps) {
   // WARNING: The message parameter name MUST correspond in the translation file
   const pageTitle = `${t('title', { communityName: data?.name })}`;
 
+  const appState: AppState = useAppState();
+
   return (
     <>
       <Layout
@@ -100,15 +102,31 @@ export function CommunityPage(props: CommunityPageProps) {
         >
           {isLoading || isFetching ? <Loader /> : null}
         </PageHeader>
-        <Box px={4} py={12} className="grid md-grid-flow-row md:grid-cols-2 gap-8">
+
+        <Box px={4} py={8}>
+          <FormControl display="flex" alignItems="center">
+            <FormLabel htmlFor="email-alerts" mb="0">
+              Show recent resources
+            </FormLabel>
+            <Switch
+              defaultChecked={appState.communityPage.showRecentResources}
+              isChecked={appState.communityPage.showRecentResources}
+              onChange={() => appState.communityPage.toggleShowRecentResources()}
+            />
+          </FormControl>
+        </Box>
+
+        <Box px={4} py={4} className="grid md-grid-flow-row md:grid-cols-2 gap-8">
           <Container maxW="3xl" className="">
             <div className="rounded-t-lg bg-pink-500 p-2 text-center font-bold text-xl">{t('news')}</div>
             <div className="bg-gray-700 p-4 rounded-b-lg">{t('comingSoon')}</div>
           </Container>
-          <Container maxW="3xl" className="">
-            <div className="rounded-t-lg bg-pink-500 p-2 text-center font-bold text-xl">{t('recentResources')}</div>
-            <div className="bg-gray-700 p-4 rounded-b-lg">{t('comingSoon')}</div>
-          </Container>
+          {appState.communityPage.showRecentResources ? (
+            <Container maxW="3xl" className="">
+              <div className="rounded-t-lg bg-pink-500 p-2 text-center font-bold text-xl">{t('recentResources')}</div>
+              <div className="bg-gray-700 p-4 rounded-b-lg">{t('comingSoon')}</div>
+            </Container>
+          ) : null}
           <Container maxW="3xl" className="">
             <div className="rounded-t-lg bg-pink-500 p-2 text-center font-bold text-xl">{t('resourceCollections')}</div>
             <div className="bg-gray-700 p-4 rounded-b-lg">{t('comingSoon')}</div>
