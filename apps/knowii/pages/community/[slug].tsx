@@ -8,7 +8,7 @@ import { CustomPageProps } from '../_app';
 import { i18nConfig } from '../../../../i18n.config.mjs';
 import { useTranslations } from 'next-intl';
 import { dehydrate, QueryClient, useQuery } from '@tanstack/react-query';
-import { getCommunity } from '../../api-client';
+import { getCommunity } from '@knowii/client';
 
 interface CommunityPageProps {
   slug: string;
