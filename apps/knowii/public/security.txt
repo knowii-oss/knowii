@@ -1,0 +1,2 @@
+Contact: mailto:security@developassion.be
+Expires: 2030-12-31T23:00:00.000Z
