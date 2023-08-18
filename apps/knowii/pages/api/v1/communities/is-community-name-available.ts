@@ -32,9 +32,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   } = await supabaseClient.auth.getSession();
 
   if (!session) {
-    return res.status(401).json({
-      error: errorClientNotAuthenticated.code,
-      errorDescription: errorClientNotAuthenticated.description,
+    return res.status(errorClientNotAuthenticated.statusCode).json({
+      errors: {
+        type: errorClientNotAuthenticated.type,
+        title: errorClientNotAuthenticated.code,
+        titleKey: errorClientNotAuthenticated.key,
+        errorDetails: [
+          {
+            detail: errorClientNotAuthenticated.description,
+            detailKey: errorClientNotAuthenticated.key,
+            status: errorClientNotAuthenticated.statusCode,
+          },
+        ],
+      },
     });
   }
 
@@ -44,10 +54,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const errorMessage = generateErrorMessage(requestValidationResult.error.issues, errorMessageOptions);
     logger.warn(`${errorInputValidation.description}. Error(s) detected: %s`, errorMessage);
 
-    res.status(400).json({
-      error: errorInputValidation.code,
-      errorDescription: errorInputValidation.description,
-      errorDetails: errorMessage,
+    res.status(errorInputValidation.statusCode).json({
+      errors: {
+        type: errorInputValidation.type,
+        title: errorInputValidation.code,
+        titleKey: errorInputValidation.key,
+        errorDetails: [
+          {
+            detail: errorInputValidation.description,
+            detailKey: errorInputValidation.key,
+            status: errorInputValidation.statusCode,
+          },
+        ],
+      },
     });
     return;
   }
@@ -65,24 +84,46 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     logger.info('Community name is %s', isNameAvailable ? 'available' : 'not available');
 
     const responseBody: IsCommunityNameAvailableResponse = {
-      isNameAvailable,
+      data: {
+        isNameAvailable,
+      },
     };
 
     return res.status(200).json(responseBody);
   } catch (err: unknown) {
     if (hasErrorMessage(err)) {
       logger.warn('Error while checking for community name availability: %s', err.message);
-      res.status(500).json({
-        error: errorInternalServerError.code,
-        errorDescription: errorInternalServerError.description,
+      res.status(errorInternalServerError.statusCode).json({
+        errors: {
+          type: errorInternalServerError.type,
+          title: errorInternalServerError.code,
+          titleKey: errorInternalServerError.key,
+          errorDetails: [
+            {
+              detail: errorInternalServerError.description,
+              detailKey: errorInternalServerError.key,
+              status: errorInternalServerError.statusCode,
+            },
+          ],
+        },
       });
       return;
     }
 
     logger.warn('Error while checking for community name availability: %o', err);
-    res.status(500).json({
-      error: errorInternalServerError.code,
-      errorDescription: errorInternalServerError.description,
+    res.status(errorInternalServerError.statusCode).json({
+      errors: {
+        type: errorInternalServerError.type,
+        title: errorInternalServerError.code,
+        titleKey: errorInternalServerError.key,
+        errorDetails: [
+          {
+            detail: errorInternalServerError.description,
+            detailKey: errorInternalServerError.key,
+            status: errorInternalServerError.statusCode,
+          },
+        ],
+      },
     });
   }
 }

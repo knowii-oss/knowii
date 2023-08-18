@@ -117,8 +117,9 @@ export function CreateNewCommunityPage(_props: CreateNewCommunityPageProps) {
 
     if (!response.ok || !responseBody.data) {
       console.log('Response body: ', responseBody);
-      if (responseBody.error) {
-        setError('serverError', { message: responseBody.error });
+      // TODO improve error handling
+      if (responseBody.errors) {
+        setError('serverError', { message: responseBody.errors.title });
         return;
       }
       setError('serverError', { message: '' });
@@ -203,7 +204,11 @@ export function CreateNewCommunityPage(_props: CreateNewCommunityPageProps) {
       if (response.ok) {
         const responseBody: IsCommunityNameAvailableResponse = await response.json();
 
-        if (responseBody.isNameAvailable) {
+        if (!responseBody.data) {
+          return false;
+        }
+
+        if (responseBody.data.isNameAvailable) {
           console.log('Name is available');
           return true;
         } else {

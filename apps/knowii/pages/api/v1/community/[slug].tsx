@@ -42,10 +42,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const errorMessage = generateErrorMessage(requestValidationResult.error.issues, errorMessageOptions);
     logger.warn(`${errorInputValidation.description}. Error(s) detected: %s`, errorMessage);
 
-    res.status(400).json({
-      error: errorInputValidation.code,
-      errorDescription: errorInputValidation.description,
-      errorDetails: errorMessage,
+    res.status(errorInputValidation.statusCode).json({
+      errors: {
+        type: errorInputValidation.type,
+        title: errorInputValidation.code,
+        titleKey: errorInputValidation.key,
+        errorDetails: [
+          {
+            detail: errorInputValidation.description,
+            detailKey: errorInputValidation.key,
+            status: errorInputValidation.statusCode,
+          },
+        ],
+      },
     });
     return;
   }
@@ -72,9 +81,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const foundCommunity = await daoFnGetCommunity(getPayload, prismaClient);
 
     if (!foundCommunity) {
-      return res.status(400).json({
-        error: errorCommunityNotFound.code,
-        errorDescription: errorCommunityNotFound.description,
+      return res.status(errorCommunityNotFound.statusCode).json({
+        errors: {
+          type: errorCommunityNotFound.type,
+          title: errorCommunityNotFound.code,
+          titleKey: errorCommunityNotFound.key,
+          errorDetails: [
+            {
+              detail: errorCommunityNotFound.description,
+              detailKey: errorCommunityNotFound.key,
+              status: errorCommunityNotFound.statusCode,
+            },
+          ],
+        },
       });
     }
 
@@ -97,17 +116,37 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     if (hasErrorMessage(err)) {
       logger.warn('Error while loading a community: %o', err.message);
 
-      return res.status(500).json({
-        error: errorInternalServerError.code,
-        errorDescription: errorInternalServerError.description,
+      return res.status(errorInternalServerError.statusCode).json({
+        errors: {
+          type: errorInternalServerError.type,
+          title: errorInternalServerError.code,
+          titleKey: errorInternalServerError.key,
+          errorDetails: [
+            {
+              detail: errorInternalServerError.description,
+              detailKey: errorInternalServerError.key,
+              status: errorInternalServerError.statusCode,
+            },
+          ],
+        },
       });
     }
 
     logger.warn('Error while loading a community: %o', err);
 
-    res.status(500).json({
-      error: errorInternalServerError.code,
-      errorDescription: errorInternalServerError.description,
+    res.status(errorInternalServerError.statusCode).json({
+      errors: {
+        type: errorInternalServerError.type,
+        title: errorInternalServerError.code,
+        titleKey: errorInternalServerError.key,
+        errorDetails: [
+          {
+            detail: errorInternalServerError.description,
+            detailKey: errorInternalServerError.key,
+            status: errorInternalServerError.statusCode,
+          },
+        ],
+      },
     });
   }
 }

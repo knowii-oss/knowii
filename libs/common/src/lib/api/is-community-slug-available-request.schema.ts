@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { allowedCommunitySlugCharactersRegex, maxLengthCommunitySlug, minLengthCommunitySlug } from '../constants';
+import { createApiResponseSchema } from './api-response.schema';
 
 export const isCommunitySlugAvailableRequestSchema = z.object({
   slugToCheck: z.string().regex(allowedCommunitySlugCharactersRegex).min(minLengthCommunitySlug).max(maxLengthCommunitySlug),
@@ -7,11 +8,12 @@ export const isCommunitySlugAvailableRequestSchema = z.object({
 
 export type IsCommunitySlugAvailableRequest = z.infer<typeof isCommunitySlugAvailableRequestSchema>;
 
-export const isCommunitySlugAvailableResponseSchema = z.object({
-  error: z.string().optional(),
-  errorDescription: z.string().optional(),
-  errorDetails: z.string().optional(),
-  isSlugAvailable: z.boolean().optional(),
+export const isCommunitySlugAvailableResponseDataSchema = z.object({
+  isSlugAvailable: z.boolean(),
 });
+
+export type IsCommunitySlugAvailableResponseData = z.infer<typeof isCommunitySlugAvailableResponseDataSchema>;
+
+export const isCommunitySlugAvailableResponseSchema = createApiResponseSchema(isCommunitySlugAvailableResponseDataSchema);
 
 export type IsCommunitySlugAvailableResponse = z.infer<typeof isCommunitySlugAvailableResponseSchema>;

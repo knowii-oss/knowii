@@ -2,17 +2,26 @@ import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { generateErrorMessage } from 'zod-error';
 import {
-  errorClientNotAuthenticated,
-  errorInternalServerError,
-  hasErrorMessage,
+  Communities,
+  CreateCommunityInput,
   createCommunityRequestSchema,
   CreateCommunityResponse,
+  errorClientNotAuthenticated,
+  errorCommunityNameNotAvailable,
+  errorCommunitySlugNotAvailable,
   errorInputValidation,
+  errorInternalServerError,
   generateSlug,
-  CreateCommunityInput,
   getLogger,
+  hasErrorMessage,
 } from '@knowii/common';
-import { daoFnCreateCommunity, errorMessageOptions, getInternalUserIdFromSupabaseSession } from '@knowii/server';
+import {
+  daoFnCreateCommunity,
+  daoFnIsCommunityNameAvailable,
+  daoFnIsCommunitySlugAvailable,
+  errorMessageOptions,
+  getInternalUserIdFromSupabaseSession,
+} from '@knowii/server';
 import { PrismaClient } from '@prisma/client';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<CreateCommunityResponse>) {
@@ -33,9 +42,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   } = await supabaseClient.auth.getSession();
 
   if (!session) {
-    return res.status(401).json({
-      error: errorClientNotAuthenticated.code,
-      errorDetails: errorClientNotAuthenticated.description,
+    return res.status(errorClientNotAuthenticated.statusCode).json({
+      errors: {
+        type: errorClientNotAuthenticated.type,
+        title: errorClientNotAuthenticated.code,
+        titleKey: errorClientNotAuthenticated.key,
+        errorDetails: [
+          {
+            detail: errorClientNotAuthenticated.description,
+            detailKey: errorClientNotAuthenticated.key,
+            status: errorClientNotAuthenticated.statusCode,
+          },
+        ],
+      },
     });
   }
 
@@ -45,10 +64,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const errorMessage = generateErrorMessage(requestValidationResult.error.issues, errorMessageOptions);
     logger.warn(`${errorInputValidation.description}. Error(s) detected: %s`, errorMessage);
 
-    res.status(400).json({
-      error: errorInputValidation.code,
-      errorDescription: errorInputValidation.description,
-      errorDetails: errorMessage,
+    res.status(errorInputValidation.statusCode).json({
+      errors: {
+        type: errorInputValidation.type,
+        title: errorInputValidation.code,
+        titleKey: errorInputValidation.key,
+        errorDetails: [
+          {
+            detail: errorInputValidation.description,
+            detailKey: errorInputValidation.key,
+            status: errorInputValidation.statusCode,
+          },
+        ],
+      },
     });
     return;
   }
@@ -66,35 +94,101 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     slug,
   };
 
-  logger.info('Proceeding with the creation: %o', creationPayload);
-
   try {
     const prismaClient = new PrismaClient();
 
-    const createdCommunity = await daoFnCreateCommunity(creationPayload, prismaClient);
+    logger.info('Verifying if the community name is available');
+    const isCommunityNameAvailable = await daoFnIsCommunityNameAvailable(creationPayload.name, prismaClient);
+
+    if (!isCommunityNameAvailable) {
+      logger.info('The community name is not available');
+      return res.status(errorCommunityNameNotAvailable.statusCode).json({
+        errors: {
+          type: errorCommunityNameNotAvailable.type,
+          title: errorCommunityNameNotAvailable.code,
+          titleKey: errorCommunityNameNotAvailable.key,
+          errorDetails: [
+            {
+              detail: errorCommunityNameNotAvailable.description,
+              detailKey: errorCommunityNameNotAvailable.key,
+              status: errorCommunityNameNotAvailable.statusCode,
+            },
+          ],
+        },
+      });
+    }
+
+    logger.info('Verifying if the community slug is available');
+    const isCommunitySlugAvailable = await daoFnIsCommunitySlugAvailable(creationPayload.slug, prismaClient);
+
+    if (!isCommunitySlugAvailable) {
+      logger.info('The community slug is not available');
+      return res.status(errorCommunitySlugNotAvailable.statusCode).json({
+        errors: {
+          type: errorCommunitySlugNotAvailable.type,
+          title: errorCommunitySlugNotAvailable.code,
+          titleKey: errorCommunitySlugNotAvailable.key,
+          errorDetails: [
+            {
+              detail: errorCommunitySlugNotAvailable.description,
+              detailKey: errorCommunitySlugNotAvailable.key,
+              status: errorCommunitySlugNotAvailable.statusCode,
+            },
+          ],
+        },
+      });
+    }
+
+    logger.info('Proceeding with the creation: %o', creationPayload);
+
+    const createdCommunity = <Communities>await daoFnCreateCommunity(creationPayload, prismaClient);
 
     logger.info('Created community: %o', createdCommunity);
 
     const responseBody: CreateCommunityResponse = {
-      data: createdCommunity,
+      data: {
+        name: createdCommunity.name,
+        description: createdCommunity.description,
+        slug: createdCommunity.slug,
+      },
     };
 
     return res.status(200).json(responseBody);
   } catch (err: unknown) {
     if (hasErrorMessage(err)) {
-      logger.warn('Error while creating a new community: %', err.message);
+      logger.warn('Error while creating a new community: %o', err.message);
 
-      return res.status(500).json({
-        error: errorInternalServerError.code,
-        errorDescription: errorInternalServerError.description,
+      return res.status(errorInternalServerError.statusCode).json({
+        errors: {
+          type: errorInternalServerError.type,
+          title: errorInternalServerError.code,
+          titleKey: errorInternalServerError.key,
+          errorDetails: [
+            {
+              detail: errorInternalServerError.description,
+              detailKey: errorInternalServerError.key,
+              status: errorInternalServerError.statusCode,
+            },
+          ],
+        },
       });
     }
 
     logger.warn('Error while creating a new community: %o', err);
 
-    res.status(500).json({
-      error: errorInternalServerError.code,
-      errorDescription: errorInternalServerError.description,
+    res.status(errorInternalServerError.statusCode).json({
+      errors: {
+        type: errorInternalServerError.type,
+        title: errorInternalServerError.code,
+        titleKey: errorInternalServerError.key,
+        errorDetails: [
+          {
+            detail: errorInternalServerError.description,
+            detailKey: errorInternalServerError.key,
+            status: errorInternalServerError.statusCode,
+          },
+        ],
+      },
     });
   }
 }

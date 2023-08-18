@@ -1,4 +1,4 @@
-import create, { StateCreator } from 'zustand';
+import { create, StateCreator } from 'zustand';
 
 import { CommunityPageState, createCommunityPageState } from './community-page.state';
 import { immer } from 'zustand/middleware/immer';
