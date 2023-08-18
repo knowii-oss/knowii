@@ -32,6 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     res.status(errorInputValidation.statusCode).json({
       errors: {
         type: errorInputValidation.type,
+        category: errorInputValidation.category,
         title: errorInputValidation.code,
         titleKey: errorInputValidation.key,
         errorDetails: [
@@ -72,6 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       res.status(errorInternalServerError.statusCode).json({
         errors: {
           type: errorInternalServerError.type,
+          category: errorInternalServerError.category,
           title: errorInternalServerError.code,
           titleKey: errorInternalServerError.key,
           errorDetails: [
@@ -90,6 +92,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     res.status(errorInternalServerError.statusCode).json({
       errors: {
         type: errorInternalServerError.type,
+        category: errorInternalServerError.category,
         title: errorInternalServerError.code,
         titleKey: errorInternalServerError.key,
         errorDetails: [

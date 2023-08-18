@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { apiErrorSchema } from './api-error.schema';
-import { ErrorType } from '../constants';
+import { ErrorCategory, ErrorType } from '../constants';
 
 /**
  * API errors schema, based on RFC5646
@@ -12,6 +12,7 @@ import { ErrorType } from '../constants';
 export const apiErrorsSchema = z.object({
   errorDetails: z.array(apiErrorSchema),
   type: z.nativeEnum(ErrorType),
+  category: z.nativeEnum(ErrorCategory),
   title: z.string(),
   titleKey: z.string(),
   titleKeyParameters: z.string().optional(),
