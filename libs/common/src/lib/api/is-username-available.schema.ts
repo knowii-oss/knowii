@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { allowedUsernameCharactersRegex, maxLengthUsername, minLengthUsername } from '../constants';
+import { createApiResponseSchema } from './api-response.schema';
 
 export const isUsernameAvailableRequestSchema = z.object({
   usernameToCheck: z.string().regex(allowedUsernameCharactersRegex).min(minLengthUsername).max(maxLengthUsername),
@@ -7,11 +8,12 @@ export const isUsernameAvailableRequestSchema = z.object({
 
 export type IsUsernameAvailableRequest = z.infer<typeof isUsernameAvailableRequestSchema>;
 
-export const isUsernameAvailableResponseSchema = z.object({
-  error: z.string().optional(),
-  errorDescription: z.string().optional(),
-  errorDetails: z.string().optional(),
-  isUsernameAvailable: z.boolean().optional(),
+export const isUsernameAvailableResponseDataSchema = z.object({
+  isUsernameAvailable: z.boolean(),
 });
+
+export type IsUsernameAvailableResponseData = z.infer<typeof isUsernameAvailableResponseDataSchema>;
+
+export const isUsernameAvailableResponseSchema = createApiResponseSchema(isUsernameAvailableResponseDataSchema);
 
 export type IsUsernameAvailableResponse = z.infer<typeof isUsernameAvailableResponseSchema>;

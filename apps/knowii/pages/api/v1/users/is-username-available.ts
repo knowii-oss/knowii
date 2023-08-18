@@ -29,10 +29,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const errorMessage = generateErrorMessage(requestValidationResult.error.issues, errorMessageOptions);
     logger.warn(`${errorInputValidation.description}. Error(s) detected: %s`, errorMessage);
 
-    res.status(400).json({
-      error: errorInputValidation.code,
-      errorDescription: errorInputValidation.description,
-      errorDetails: errorMessage,
+    res.status(errorInputValidation.statusCode).json({
+      errors: {
+        type: errorInputValidation.type,
+        title: errorInputValidation.code,
+        titleKey: errorInputValidation.key,
+        errorDetails: [
+          {
+            detail: errorInputValidation.description,
+            detailKey: errorInputValidation.key,
+            status: errorInputValidation.statusCode,
+          },
+        ],
+      },
     });
     return;
   }
@@ -51,24 +60,46 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     logger.info('Username is %s', isUsernameAvailable ? 'available' : 'not available');
 
     const responseBody: IsUsernameAvailableResponse = {
-      isUsernameAvailable,
+      data: {
+        isUsernameAvailable,
+      },
     };
 
     return res.status(200).json(responseBody);
   } catch (err: unknown) {
     if (hasErrorMessage(err)) {
       logger.warn('Error while checking for username availability: %s', err.message);
-      res.status(500).json({
-        error: errorInternalServerError.code,
-        errorDescription: errorInternalServerError.description,
+      res.status(errorInternalServerError.statusCode).json({
+        errors: {
+          type: errorInternalServerError.type,
+          title: errorInternalServerError.code,
+          titleKey: errorInternalServerError.key,
+          errorDetails: [
+            {
+              detail: errorInternalServerError.description,
+              detailKey: errorInternalServerError.key,
+              status: errorInternalServerError.statusCode,
+            },
+          ],
+        },
       });
       return;
     }
 
     logger.warn('Error while checking for username availability: %o', err);
-    res.status(500).json({
-      error: errorInternalServerError.code,
-      errorDescription: errorInternalServerError.description,
+    res.status(errorInternalServerError.statusCode).json({
+      errors: {
+        type: errorInternalServerError.type,
+        title: errorInternalServerError.code,
+        titleKey: errorInternalServerError.key,
+        errorDetails: [
+          {
+            detail: errorInternalServerError.description,
+            detailKey: errorInternalServerError.key,
+            status: errorInternalServerError.statusCode,
+          },
+        ],
+      },
     });
   }
 }

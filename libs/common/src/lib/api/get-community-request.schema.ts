@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import CommunitiesSchema from '../generated/prisma/modelSchema/CommunitiesSchema';
+import { createApiResponseSchema } from './api-response.schema';
 
 export const getCommunityRequestSchema = CommunitiesSchema.pick({
   slug: true,
@@ -14,12 +15,7 @@ export const getCommunityResponseDataSchema = CommunitiesSchema.pick({
 
 export type GetCommunityResponseData = z.infer<typeof getCommunityResponseDataSchema>;
 
-export const getCommunityResponseSchema = z.object({
-  error: z.optional(z.string()),
-  errorDescription: z.string().optional(),
-  errorDetails: z.string().optional(),
-  data: getCommunityResponseDataSchema,
-});
+const getCommunityResponseSchema = createApiResponseSchema(getCommunityResponseDataSchema);
 
 export type GetCommunityResponse = z.infer<typeof getCommunityResponseSchema>;
 

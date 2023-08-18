@@ -1,4 +1,13 @@
-import { API_BASE_PATH, COMMUNITY_BASE_URL, GetCommunityResponse, GetCommunityResponseData, IS_DEV, IS_SERVER } from '@knowii/common';
+import {
+  API_BASE_PATH,
+  ApiErrors,
+  COMMUNITY_BASE_URL,
+  errorCommunityNotFound,
+  GetCommunityResponse,
+  GetCommunityResponseData,
+  IS_DEV,
+  IS_SERVER,
+} from '@knowii/common';
 
 export async function getCommunity(slug: string, host?: string): Promise<GetCommunityResponseData> {
   let requestUrl = `${API_BASE_PATH}${COMMUNITY_BASE_URL}/${slug}`;
@@ -14,7 +23,6 @@ export async function getCommunity(slug: string, host?: string): Promise<GetComm
   let retVal: GetCommunityResponseData | null = null;
 
   if (response.ok) {
-    // TODO validate response structure with Zod
     const foundCommunity = getCommunityResponse.data;
 
     if (foundCommunity) {
@@ -22,16 +30,21 @@ export async function getCommunity(slug: string, host?: string): Promise<GetComm
       return retVal;
     }
 
-    return Promise.reject({
-      error: 'Not found',
-      errorDescription: 'Could not find a community with that slug',
-      errorDetails: `Could not find a community with the following slug: ${slug}`,
-    });
+    const apiError: ApiErrors = {
+      type: errorCommunityNotFound.type,
+      title: errorCommunityNotFound.code,
+      titleKey: errorCommunityNotFound.key,
+      errorDetails: [
+        {
+          detail: errorCommunityNotFound.description,
+          detailKey: errorCommunityNotFound.key,
+          status: errorCommunityNotFound.statusCode,
+        },
+      ],
+    };
+
+    return Promise.reject(apiError);
   } else {
-    return Promise.reject({
-      error: getCommunityResponse.error,
-      errorDescription: getCommunityResponse.errorDescription,
-      errorDetails: getCommunityResponse.errorDetails,
-    });
+    return Promise.reject(getCommunityResponse.errors);
   }
 }

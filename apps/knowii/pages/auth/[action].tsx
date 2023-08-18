@@ -166,12 +166,16 @@ export default function AuthPage(props: AuthPageProps) {
       if (response.ok) {
         const responseBody: IsUsernameAvailableResponse = await response.json();
 
-        if (responseBody.isUsernameAvailable) {
-          console.log('Username is available');
-          return true;
-        } else {
+        if (!responseBody.data) {
           return false;
         }
+
+        if (responseBody.data.isUsernameAvailable) {
+          console.log('Username is available');
+          return true;
+        }
+
+        return false;
       }
     } catch (error) {
       // FIXME handle error cases
