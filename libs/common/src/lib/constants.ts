@@ -130,69 +130,6 @@ export const minLengthCommunitySlug = 3;
 export const maxLengthCommunitySlug = 64;
 
 /**
- * Errors
- */
-
-/**
- * An error with basic information
- */
-interface ReusableError {
-  code: string;
-  key: string;
-  description: string;
-  statusCode: number;
-  type: ErrorType;
-}
-
-export const errorInternalServerError: ReusableError = {
-  code: 'internal_server_error',
-  key: 'errors.internalServerError',
-  description: 'We have encountered an unexpected issue',
-  statusCode: 500,
-  type: 'server',
-};
-
-export const errorClientNotAuthenticated: ReusableError = {
-  code: 'client_not_authenticated',
-  key: 'errors.clientNotAuthenticated',
-  description: 'The client does not have an active session or is not authenticated',
-  statusCode: 401,
-  type: 'authentication',
-};
-
-export const errorInputValidation: ReusableError = {
-  code: 'invalid_request_error',
-  key: 'errors.invalidRequestError',
-  description: 'The provided request data is incomplete or invalid',
-  statusCode: 400,
-  type: 'validation',
-};
-
-export const errorCommunityNotFound: ReusableError = {
-  code: 'community_not_found_error',
-  key: 'communityNotFoundError',
-  description: 'The community could not be found',
-  statusCode: 404,
-  type: 'notFound',
-};
-
-export const errorCommunityNameNotAvailable: ReusableError = {
-  code: 'community_name_not_available',
-  key: 'communityNameNotAvailable',
-  description: 'The chosen community name is not available',
-  statusCode: 409,
-  type: 'notAvailable',
-};
-
-export const errorCommunitySlugNotAvailable: ReusableError = {
-  code: 'community_slug_not_available',
-  key: 'communitySlugNotAvailable',
-  description: 'The chosen community slug is not available',
-  statusCode: 409,
-  type: 'notAvailable',
-};
-
-/**
  * Possible error types
  */
 export const ErrorType = {
@@ -205,6 +142,84 @@ export const ErrorType = {
 } as const;
 
 export type ErrorType = keyof typeof ErrorType;
+
+export const ErrorCategory = {
+  business: 'business',
+  security: 'security',
+  technical: 'technical',
+} as const;
+
+export type ErrorCategory = keyof typeof ErrorCategory;
+
+/**
+ * Errors
+ */
+
+/**
+ * An error with basic information
+ */
+interface ReusableError {
+  code: string;
+  key: string;
+  description: string;
+  statusCode: number;
+  type: ErrorType;
+  category: ErrorCategory;
+}
+
+export const errorInternalServerError: ReusableError = {
+  code: 'internal_server_error',
+  key: 'errors.internalServerError',
+  description: 'We have encountered an unexpected issue',
+  statusCode: 500,
+  type: 'server',
+  category: 'technical',
+};
+
+export const errorClientNotAuthenticated: ReusableError = {
+  code: 'client_not_authenticated',
+  key: 'errors.clientNotAuthenticated',
+  description: 'The client does not have an active session or is not authenticated',
+  statusCode: 401,
+  type: 'authentication',
+  category: 'security',
+};
+
+export const errorInputValidation: ReusableError = {
+  code: 'invalid_request_error',
+  key: 'errors.invalidRequestError',
+  description: 'The provided request data is incomplete or invalid',
+  statusCode: 400,
+  type: 'validation',
+  category: 'business',
+};
+
+export const errorCommunityNotFound: ReusableError = {
+  code: 'community_not_found_error',
+  key: 'communityNotFoundError',
+  description: 'The community could not be found',
+  statusCode: 404,
+  type: 'notFound',
+  category: 'business',
+};
+
+export const errorCommunityNameNotAvailable: ReusableError = {
+  code: 'community_name_not_available',
+  key: 'communityNameNotAvailable',
+  description: 'The chosen community name is not available',
+  statusCode: 409,
+  type: 'notAvailable',
+  category: 'business',
+};
+
+export const errorCommunitySlugNotAvailable: ReusableError = {
+  code: 'community_slug_not_available',
+  key: 'communitySlugNotAvailable',
+  description: 'The chosen community slug is not available',
+  statusCode: 409,
+  type: 'notAvailable',
+  category: 'business',
+};
 
 /**
  * Meta

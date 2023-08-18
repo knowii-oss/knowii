@@ -45,6 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     return res.status(errorClientNotAuthenticated.statusCode).json({
       errors: {
         type: errorClientNotAuthenticated.type,
+        category: errorClientNotAuthenticated.category,
         title: errorClientNotAuthenticated.code,
         titleKey: errorClientNotAuthenticated.key,
         errorDetails: [
@@ -67,6 +68,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     res.status(errorInputValidation.statusCode).json({
       errors: {
         type: errorInputValidation.type,
+        category: errorInputValidation.category,
         title: errorInputValidation.code,
         titleKey: errorInputValidation.key,
         errorDetails: [
@@ -105,6 +107,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(errorCommunityNameNotAvailable.statusCode).json({
         errors: {
           type: errorCommunityNameNotAvailable.type,
+          category: errorCommunityNameNotAvailable.category,
           title: errorCommunityNameNotAvailable.code,
           titleKey: errorCommunityNameNotAvailable.key,
           errorDetails: [
@@ -126,6 +129,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(errorCommunitySlugNotAvailable.statusCode).json({
         errors: {
           type: errorCommunitySlugNotAvailable.type,
+          category: errorCommunitySlugNotAvailable.category,
           title: errorCommunitySlugNotAvailable.code,
           titleKey: errorCommunitySlugNotAvailable.key,
           errorDetails: [
@@ -161,6 +165,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(errorInternalServerError.statusCode).json({
         errors: {
           type: errorInternalServerError.type,
+          category: errorInternalServerError.category,
           title: errorInternalServerError.code,
           titleKey: errorInternalServerError.key,
           errorDetails: [
@@ -179,6 +184,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     res.status(errorInternalServerError.statusCode).json({
       errors: {
         type: errorInternalServerError.type,
+        category: errorInternalServerError.category,
         title: errorInternalServerError.code,
         titleKey: errorInternalServerError.key,
         errorDetails: [

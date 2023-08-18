@@ -32,6 +32,7 @@ export async function getCommunity(slug: string, host?: string): Promise<GetComm
 
     const apiError: ApiErrors = {
       type: errorCommunityNotFound.type,
+      category: errorCommunityNotFound.category,
       title: errorCommunityNotFound.code,
       titleKey: errorCommunityNotFound.key,
       errorDetails: [
