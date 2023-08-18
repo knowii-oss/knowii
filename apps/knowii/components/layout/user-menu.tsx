@@ -19,6 +19,7 @@ export function UserMenu(_props: UserMenuProps) {
   const userName = useUserName();
 
   const signOut = useCallback(async () => {
+    console.log('Logging out and redirecting back home');
     await router.push(HOME_URL);
     supabaseClient.auth.signOut();
   }, [router, supabaseClient.auth]);
