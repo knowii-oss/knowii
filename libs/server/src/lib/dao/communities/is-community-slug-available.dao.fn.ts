@@ -4,7 +4,7 @@ import { getLogger } from '@knowii/common';
 export async function daoFnIsCommunitySlugAvailable(slug: string, prismaClient: PrismaClient): Promise<boolean> {
   const logger = getLogger('communities', daoFnIsCommunitySlugAvailable.name);
 
-  logger.debug('Checking if the following community slug is available: %s', name);
+  logger.debug('Checking if the following community slug is available: %s', slug);
   const communitiesWithThatSlug = await prismaClient.communities.count({
     where: {
       slug,
