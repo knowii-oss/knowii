@@ -64,6 +64,11 @@ export function Footer(_props: FooterProps) {
                 </StyledLink>
               </ListItem>
               <ListItem>
+                <StyledLink as={Link} href={social.newsletterSebastien}>
+                  {t('linkNewsletter')}
+                </StyledLink>
+              </ListItem>
+              <ListItem>
                 <StyledLink as={Link} href={social.blogSebastien}>
                   {t('linkSebastien')}
                 </StyledLink>
