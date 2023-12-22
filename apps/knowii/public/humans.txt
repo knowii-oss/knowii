@@ -8,7 +8,7 @@
 
 # THANKS
 
-  Thanks to the open source community!
+  Thanks to the Open Source community!
 
 # TECHNOLOGY COLOPHON
   HTML
