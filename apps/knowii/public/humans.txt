@@ -18,3 +18,6 @@
   Next.js
   Tailwind
   Sass
+  PostgreSQL
+  Vercel
+  Supabase
