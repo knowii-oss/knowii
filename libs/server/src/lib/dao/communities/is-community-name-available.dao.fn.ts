@@ -5,19 +5,24 @@ export async function daoFnIsCommunityNameAvailable(name: string, prismaClient: 
   const logger = getLogger('communities', daoFnIsCommunityNameAvailable.name);
 
   logger.debug('Checking if the following community name is available: %s', name);
-  const communitiesWithThatName = await prismaClient.communities.count({
-    where: {
-      name,
-    },
-  });
+  try {
+    const communitiesWithThatName = await prismaClient.communities.count({
+      where: {
+        name,
+      },
+    });
 
-  const isNameAvailable = communitiesWithThatName === 0;
+    const isNameAvailable = communitiesWithThatName === 0;
 
-  if (isNameAvailable) {
-    logger.debug('The community name is available');
-  } else {
-    logger.debug('The community name is not available');
+    if (isNameAvailable) {
+      logger.debug('The community name is available');
+    } else {
+      logger.debug('The community name is not available');
+    }
+
+    return isNameAvailable;
+  } catch (err: unknown) {
+    logger.error('Failed to check if the community name is available: %o', err);
+    throw new Error('Failed to check if the community name is available');
   }
-
-  return isNameAvailable;
 }
