@@ -7,8 +7,6 @@ tmp
 
 # dependencies
 node_modules
-/.pnp
-.pnp.js
 
 # IDEs and editors
 /.idea
@@ -35,34 +33,34 @@ npm-debug.log
 yarn-error.log
 testem.log
 /typings
-*.pem
+/.pnp
+.pnp.js
 
 # System Files
 .DS_Store
 Thumbs.db
+
+.nx/cache
+.nx/workspace-data
+
+# Next.js and Vercel
+.next
+out
+.now
+.vercel
+/apps/app/.next
 
 # local env files
 # do not commit any .env files to git, except for the .env.example file.
 .env
 .env.*
 
-# Next
-.now
-.vercel
-/apps/knowii/.next
-
-# i18n
-compiled-lang
-
 # App
 /backups
-
-# Next.js
-.next
 
 # Supabase config
 # Contains sensitive information during dev
 supabase/config.toml
 
 # Google Cloud service account key (used for local Supabase logging)
-apps/knowii/gcloud.json
+apps/app/gcloud.json
