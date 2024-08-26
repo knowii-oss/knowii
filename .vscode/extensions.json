@@ -5,6 +5,7 @@
     "esbenp.prettier-vscode",
     "firsttris.vscode-jest-runner",
     "lokalise.i18n-ally",
-    "nrwl.angular-console"
+    "nrwl.angular-console",
+    "ms-playwright.playwright"
   ]
 }
