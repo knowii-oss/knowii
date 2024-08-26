@@ -1,4 +1,4 @@
-import './global.scss';
+import './styles/global.scss';
 import 'primereact/resources/themes/lara-light-blue/theme.css';
 import 'primeicons/primeicons.css';
 
