@@ -12,6 +12,10 @@
   @tailwind utilities;
 }
 
+html {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0); /* no blue flashes */
+}
+
 html,
 body {
   text-rendering: optimizeLegibility;
@@ -48,4 +52,18 @@ svg {
 
 .full-page {
   @apply h-full min-h-full w-full min-w-full;
+}
+
+h1 {
+  @apply font-bold text-4xl md:text-5xl lg:text-6xl leading-none tracking-tight #{!important};
+}
+/* font-semibold */
+
+h2 {
+  @apply p-6 text-xl md:text-2xl #{!important};
+}
+
+pre {
+  @apply p-2 rounded-sm overflow-scroll;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
 }
