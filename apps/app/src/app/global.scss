@@ -71,8 +71,9 @@ pre {
 }
 
 .knowii-content-wrapper {
-  @apply mt-4 p-4 min-h-[500px] h-auto;
+  @apply p-4 min-h-[500px] h-auto;
 }
 
 .knowii-page-content {
+  @apply mt-4;
 }

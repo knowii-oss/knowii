@@ -2,5 +2,4 @@
 .branches
 .temp
 
-# Contains sensitive information
-config.toml
+.env
