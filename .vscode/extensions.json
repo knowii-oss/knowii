@@ -2,10 +2,9 @@
   "recommendations": [
     "attilabuti.vscode-mjml",
     "dbaeumer.vscode-eslint",
+    "denoland.vscode-deno",
     "esbenp.prettier-vscode",
     "firsttris.vscode-jest-runner",
-    "lokalise.i18n-ally",
-    "nrwl.angular-console",
     "ms-playwright.playwright"
   ]
 }
