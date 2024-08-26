@@ -2,7 +2,17 @@
 
 ## In progress
 
-- ...
+- Add Drizzle
+- Handle DB seed: supabase seed?
+- Handle DB migrations
+- Clean existing DBs in production
+- Rebuild UI from scratch using PrimeReact and Tailwind
+- Remove supabase logging mess
+- Rewrite
+- Add instantdb
+- Fix blog
+- Review TODO list
+- Add notion notes to GitHub
 
 ## Auth providers setup
 
