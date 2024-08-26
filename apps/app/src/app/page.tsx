@@ -2,13 +2,9 @@
 
 export default function Index() {
   return (
-    <div className="full-page">
-      {/* Turn Knowii logo into a component */}
-      <h1 className="p-4 bg-gray-800 text-white text-3xl font-bold">
-        &nbsp;Know<span className="text-primary-500 font-extrabold">ii</span>
-      </h1>
-
-      <div className="mt-4 p-4 flex flex-col lg:flex-row w-full">Hello world</div>
+    <div className="knowii-page-content block flex flex-col items-center">
+      <h1 className="mt-8 text-primary-500">Welcome 👋</h1>
+      <h2 className="mt-4">Knowii is a place for your community's Knowledge, Ideas and Inspiration.</h2>
     </div>
   );
 }
