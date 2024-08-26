@@ -2,17 +2,29 @@
 
 ## In progress
 
-- Add Drizzle
-- Handle DB seed: supabase seed?
+- Test npm run db:start
+- Test npm run db:clean
+- Test npm run db:reset
+- Do we need both db:clean and db:reset?
+-
+- Test npm run db:types:generate
+- Test npm run predb:seed
+- Test npm run psql:shell
+- Add Drizzle: https://orm.drizzle.team/learn/tutorials/drizzle-with-supabase
+- Handle DB seed: supabase seed? Add new db:seed script
 - Handle DB migrations
+- Add a FK from user to auth.user of Supabase: https://github.com/supabase/supabase/issues/19883#issuecomment-2094656180
 - Clean existing DBs in production
 - Rebuild UI from scratch using PrimeReact and Tailwind
 - Remove supabase logging mess
 - Rewrite
 - Add instantdb
 - Fix blog
-- Review TODO list
+- Add progress bar to top of page
+  - deps: "nextjs-progressbar": "0.0.16",
 - Add notion notes to GitHub
+- Review TODO list
+- Add stripe
 
 ## Auth providers setup
 
@@ -23,17 +35,12 @@
 
 ## Migration to Next.js 13 app folder
 
-- Migrate to use new Supabase approach for next.js 13: https://supabase.com/blog/fetching-and-caching-supabase-data-in-next-js-server-components
-- Remove encoding devDependency once this is fixed: https://github.com/supabase/supabase-js/issues/612
-- Wrap Chakra components with "use client" to be able to use those in server components: https://stackoverflow.com/questions/75591291/how-to-use-server-components-in-nextjs-13-with-chakra-ui
+-
 - Follow: https://github.com/supabase/auth-helpers/tree/main/examples/nextjs-server-components
-  - ColorModeScript should probably move to chakra-providers
 
-## Temporary word lists
+## Improve word lists
 
-The word lists used in supabase-db-seed.sql were too long. The arrays should be converted to a table. Reference: https://stackoverflow.com/questions/8674718/best-way-to-select-random-rows-postgresql
-
-For now I've just removed a big part of those so that the functions don't take forever to generate a username:
+Cfr #599
 
 Nouns:
 

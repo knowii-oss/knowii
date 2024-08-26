@@ -1,6 +1,12 @@
 {
-  "editor.formatOnSave": true,
+  "[typescript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno"
+  },
+  "deno.enablePaths": ["supabase/functions"],
+  "deno.lint": true,
+  "deno.unstable": true,
   "editor.codeActionsOnSave": {
     "source.organizeImports": true
-  }
+  },
+  "editor.formatOnSave": true
 }
