@@ -1,20 +1,20 @@
-.env
-.env.*
-apps/knowii/.env.example
-.eslintrc.js
-.eslintrc.json
+# Reference: https://vercel.com/docs/deployments/vercel-ignore
+.github
+.husky
+.idea
+.nx
+.vscode/
+node_modules/
+tmp/
+.cz-config.js
+.editorconfig
+.gitattributes
 .gitignore
-.prettierrc
-.eslintignore
-.prettierignore
-.github/
+.release-it.js
+commitlint.config.js
+apps/app/.env.example
+.next/
 
 README.md
 TODO.md
 LICENSE
-
-.idea
-.vscode/
-.next/
-.vercelignore/
-node_modules/
