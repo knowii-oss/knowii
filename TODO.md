@@ -1,41 +1,5 @@
 # TODO
 
-## In progress
-
-- Test npm run db:start
-- Do we need both db:clean and db:reset?
--
-- Test npm run db:types:generate
-- Test npm run predb:seed
-- Test npm run psql:shell
-- Add Drizzle: https://orm.drizzle.team/learn/tutorials/drizzle-with-supabase
-- Handle DB seed: supabase seed? Add new db:seed script
-- Handle DB migrations
-- Add a FK from user to auth.user of Supabase: https://github.com/supabase/supabase/issues/19883#issuecomment-2094656180
-- Clean existing DBs in production
-- Rebuild UI from scratch using PrimeReact and Tailwind
-- Remove supabase logging mess
-- Rewrite
-- Add instantdb
-- Fix blog
-- Add progress bar to top of page
-  - deps: "nextjs-progressbar": "0.0.16",
-- Add notion notes to GitHub
-- Review TODO list
-- Add stripe
-
-## Auth providers setup
-
-- Make sure the redirect_uri and url are correct for production
-- Edit app consent screen details for Google (URL, privacy policy, terms of service, etc): https://console.cloud.google.com/apis/credentials/consent/edit?authuser=1&project=starry-axis-302621
-  - Also PUBLISH the app
-- Edit app consent screen details for GitHub
-
-## Migration to Next.js 13 app folder
-
--
-- Follow: https://github.com/supabase/auth-helpers/tree/main/examples/nextjs-server-components
-
 ## Improve word lists
 
 Cfr #599
