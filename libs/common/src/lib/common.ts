@@ -4,3 +4,4 @@ export function common(): string {
 
 export * from './generated';
 export * from './typed-supabase-client';
+export * from './utils/logging';
