@@ -1,0 +1,51 @@
+@layer tailwind-base, primereact, tailwind-utilities;
+
+/* IMPORTANT: In "styled" mode you must add the PrimeReact Theme here. Do NOT include in "unstyled" mode */
+@import 'primereact/resources/themes/lara-light-blue/theme.css' layer(primereact);
+
+@layer tailwind-base {
+  @tailwind base;
+}
+
+@layer tailwind-utilities {
+  @tailwind components;
+  @tailwind utilities;
+}
+
+html,
+body {
+  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+  @apply antialiased;
+}
+
+html,
+body,
+body > div:first-child,
+#__next {
+  @apply m-0 p-0 font-app text-base font-normal;
+  -webkit-text-size-adjust: 100%;
+  letter-spacing: -0.1px;
+  /* Standard line height */
+  /* Reference for line-height: https://dev.to/lampewebdev/css-line-height-jjp */
+  line-height: 1.5;
+  tab-size: 4;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: inherit;
+  line-height: inherit;
+  margin: 0;
+}
+
+svg {
+  display: block;
+  vertical-align: middle;
+  shape-rendering: auto;
+  text-rendering: optimizeLegibility;
+}
+
+.full-page {
+  @apply h-full min-h-full w-full min-w-full;
+}
