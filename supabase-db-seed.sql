@@ -1,5 +1,4 @@
-
-
+-- FIXME review after schema migration
 
 -- --------------------------------------------------------
 -- Create functions to proxy supabase auth schema functions
@@ -43,22 +42,22 @@ $$ language plpgsql;
 -- Enable row level security
 -- --------------------------------------------------------
 alter table public.users enable row level security;
-alter table public.user_profiles enable row level security;
-alter table public.customers enable row level security;
-alter table public.prices enable row level security;
-alter table public.products enable row level security;
-alter table public.subscriptions enable row level security;
+-- alter table public.user_profiles enable row level security;
+-- alter table public.customers enable row level security;
+-- alter table public.prices enable row level security;
+-- alter table public.products enable row level security;
+-- alter table public.subscriptions enable row level security;
 
-alter table public.communities enable row level security;
-alter table public.resource_collections enable row level security;
-alter table public.resources enable row level security;
-alter table public.tags enable row level security;
+-- alter table public.communities enable row level security;
+-- alter table public.resource_collections enable row level security;
+-- alter table public.resources enable row level security;
+-- alter table public.tags enable row level security;
 
-alter table public._community_admins enable row level security;
-alter table public._community_members enable row level security;
-alter table public._community_owners enable row level security;
-alter table public._resource_tags enable row level security;
-alter table public._prisma_migrations enable row level security;
+-- alter table public._community_admins enable row level security;
+-- alter table public._community_members enable row level security;
+-- alter table public._community_owners enable row level security;
+-- alter table public._resource_tags enable row level security;
+alter table drizzle.__drizzle_migrations enable row level security;
 
 -- --------------------------------------------------------
 -- Functions to generate usernames
@@ -453,6 +452,7 @@ where user_id_external = new.id::uuid;
 
 update public.user_profiles
 -- we clear all fields we can clear
+-- FIXME add fields (threads_dot_net, gitlab, wikipedia, ...
 set user_id_external  = null, -- first of all the external user id
     avatar_url        = '',
     phone             = '',
@@ -484,26 +484,25 @@ create trigger on_auth_user_deleted
 -- --------------------------------------------------------
 -- Create policies
 -- --------------------------------------------------------
-drop policy if exists "Allow public read-only access" on products;
-create policy "Allow public read-only access" on products for select using (true);
-drop policy if exists "Allow public read-only access" on prices;
-create policy "Allow public read-only access" on prices for select using (true);
-drop policy if exists "User can read own subscription" on subscriptions;
-create policy "User can read own subscription" on subscriptions for select using (auth.uid() = user_id_external);
+-- drop policy if exists "Allow public read-only access" on products;
+-- create policy "Allow public read-only access" on products for select using (true);
+-- drop policy if exists "Allow public read-only access" on prices;
+-- create policy "Allow public read-only access" on prices for select using (true);
+-- drop policy if exists "User can read own subscription" on subscriptions;
+-- create policy "User can read own subscription" on subscriptions for select using (auth.uid() = user_id_external);
 
 drop policy if exists "Users can only access their own account" on users;
 create policy "Users can only access their own account" on users for all using (auth.uid() = user_id_external);
 
-drop policy if exists "User profiles are public" on user_profiles;
-create policy "User profiles are public" on user_profiles for select using (true);
+-- drop policy if exists "User profiles are public" on user_profiles;
+-- create policy "User profiles are public" on user_profiles for select using (true);
 
-drop policy if exists "Users can edit their own user profile" on user_profiles;
-create policy "Users can edit their own user profile" on user_profiles for update using (auth.uid() = user_id_external);
+-- drop policy if exists "Users can edit their own user profile" on user_profiles;
+-- create policy "Users can edit their own user profile" on user_profiles for update using (auth.uid() = user_id_external);
 
 -- --------------------------------------------------------
 -- Make sure that the default security rules of Supabase are in place
--- Needed as those might be broken by Prisma when running 'prisma migrate dev' multiple times
--- Reference: https://supabase.com/docs/guides/integrations/prisma#troubleshooting
+-- Needed as those might be broken when running DB migrations
 -- --------------------------------------------------------
 grant usage on schema public to postgres, anon, authenticated, service_role;
 
