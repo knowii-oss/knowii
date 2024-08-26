@@ -8,12 +8,6 @@
       {
         "paths": []
       }
-    ],
-    "storybook/no-uninstalled-addons": [
-      "error",
-      {
-        "ignore": ["@nx/react/plugins/storybook"]
-      }
     ]
   },
   "overrides": [
@@ -45,6 +39,5 @@
       "extends": ["plugin:@nx/javascript"],
       "rules": {}
     }
-  ],
-  "extends": [null, "plugin:storybook/recommended"]
+  ]
 }
