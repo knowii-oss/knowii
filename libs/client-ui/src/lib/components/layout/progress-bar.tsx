@@ -8,11 +8,7 @@ import { theme } from '../../theme';
 interface ProgressBarProps {}
 
 export function ProgressBar(_props: ProgressBarProps) {
-  return (
-    <NextNProgress height={4} color={theme.colors.primary.DEFAULT} showOnShallow={true} options={{
-
-    }} />
-  );
+  return <NextNProgress height={4} color={theme.colors.primary.DEFAULT} showOnShallow={true} options={{}} />;
 }
 
-export default ProgressBar
+export default ProgressBar;
