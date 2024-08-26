@@ -1,14 +1,14 @@
 # Add files here to ignore them from prettier formatting
-dist/
-coverage/
+/dist
+/coverage
 node_modules/
-coverage/
-.next/
-backups/
-.devcontainer/
+/.nx/cache
+/.nx/workspace-data
+/apps/app/.next
+../apps/app/.env.example
 .env.*
 *.sh
 pnpm-lock.yaml
 package-lock.json
-tmp/
+/tmp
 supabase-db-seed.sql
