@@ -11,8 +11,7 @@ export function ClientUi() {
 export default ClientUi;
 
 // Theme
-export {theme} from './theme';
+export { theme } from './theme';
 
 // Components
 export * from './components/layout/progress-bar';
-
