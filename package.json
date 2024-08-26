@@ -30,7 +30,7 @@
     "db:setup": "npm run db:reset",
     "db:start": "npx supabase start",
     "db:stop": "npx supabase stop",
-    "db:types:generate": "npx supabase gen types typescript --local > libs/common/src/lib/generated/supabase/supabase.ts && npx prettier --write libs/common/src/lib/generated/supabase/supabase.ts",
+    "db:types:generate": "npx supabase gen types --lang=typescript --local > libs/common/src/lib/generated/supabase/supabase.ts && npx prettier --write libs/common/src/lib/generated/supabase/supabase.ts",
     "format": "npx nx format --all",
     "format:all": "npm run format",
     "format:check": "npx nx format:check",
