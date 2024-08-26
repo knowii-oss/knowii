@@ -3,7 +3,7 @@ import './global.scss';
 import 'primereact/resources/themes/lara-light-blue/theme.css';
 import 'primeicons/primeicons.css';
 
-import ProgressBar from './components/layout/progress-bar';
+import {ProgressBar} from '@knowii/client-ui';
 
 import { PrimeReactProvider } from 'primereact/api';
 import { Metadata } from 'next';

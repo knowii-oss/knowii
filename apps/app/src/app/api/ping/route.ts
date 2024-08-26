@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getLogger } from '../../utils/logging';
+import { getLogger } from '@knowii/common';
 
 export const PingResponseSchema = z.object({
   pong: z.string(),
