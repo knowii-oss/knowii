@@ -21,7 +21,7 @@
     "inlineSources": false,
     "isolatedModules": true,
     "jsx": "preserve",
-    "lib": ["esnext", "DOM", "DOM.Iterable"],
+    "lib": ["es2020", "DOM", "DOM.Iterable"],
     "listEmittedFiles": false,
     "listFiles": false,
     "module": "esnext",
@@ -38,7 +38,6 @@
     "noPropertyAccessFromIndexSignature": false,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "outDir": "dist/out-tsc/dummy",
     "paths": {
       "@knowii/client": ["libs/client/src/index.ts"],
       "@knowii/client-ui": ["libs/client-ui/src/index.ts"],
@@ -61,14 +60,9 @@
     "stripInternal": true,
     "suppressExcessPropertyErrors": false,
     "suppressImplicitAnyIndexErrors": false,
+    "target": "ES2021",
     "typeRoots": ["node_modules/@types"],
-    "types": ["node", "jest"],
-    "target": "es2022",
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ]
+    "types": ["node", "jest"]
   },
   "exclude": ["node_modules", "tmp"]
 }
