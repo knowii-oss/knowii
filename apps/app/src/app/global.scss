@@ -18,16 +18,16 @@ html {
 
 html,
 body {
+  @apply antialiased;
   text-rendering: optimizeLegibility;
   -moz-osx-font-smoothing: grayscale;
-  @apply antialiased;
 }
 
 html,
 body,
 body > div:first-child,
 #__next {
-  @apply m-0 p-0 font-app text-base font-normal;
+  @apply h-dvh w-dvw antialiased m-0 p-0 font-app text-base font-normal bg-gray-50;
   -webkit-text-size-adjust: 100%;
   letter-spacing: -0.1px;
   /* Standard line height */
@@ -40,7 +40,6 @@ body > div:first-child,
 body {
   font-family: inherit;
   line-height: inherit;
-  margin: 0;
 }
 
 svg {
@@ -50,20 +49,30 @@ svg {
   text-rendering: optimizeLegibility;
 }
 
-.full-page {
-  @apply h-full min-h-full w-full min-w-full;
-}
-
 h1 {
   @apply font-bold text-4xl md:text-5xl lg:text-6xl leading-none tracking-tight #{!important};
 }
-/* font-semibold */
 
 h2 {
-  @apply p-6 text-xl md:text-2xl #{!important};
+  @apply font-semibold text-xl md:text-2xl #{!important};
 }
 
 pre {
   @apply p-2 rounded-sm overflow-scroll;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+}
+
+.full-page {
+  @apply h-full min-h-full w-full min-w-full;
+}
+
+.knowii-app-wrapper {
+  @apply full-page;
+}
+
+.knowii-content-wrapper {
+  @apply mt-4 p-4 min-h-[500px] h-auto;
+}
+
+.knowii-page-content {
 }
