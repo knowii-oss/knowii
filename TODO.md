@@ -3,8 +3,6 @@
 ## In progress
 
 - Test npm run db:start
-- Test npm run db:clean
-- Test npm run db:reset
 - Do we need both db:clean and db:reset?
 -
 - Test npm run db:types:generate
