@@ -6,16 +6,18 @@ import { IS_PROD } from '../constants';
 /**
  * Categories of logs, roughly matching functional areas of the application
  */
-export type LoggingCategory = 'none' | '*' | 'api' | 'utils';
+export type LoggingCategory = 'none' | '*' | 'communities' | 'users' | 'utils' | 'stripe';
 
 /**
  * Configuration of the log levels for each category in DEV
  */
 const devLogLevelData: Record<LoggingCategory, pino.Level> = {
-  '*': 'debug',
-  api: 'debug',
+  '*': 'warn',
   none: 'debug',
+  users: 'debug',
+  communities: 'debug',
   utils: 'debug',
+  stripe: 'debug',
 };
 
 const devLogLevels = new Map<LoggingCategory | string, pino.Level>(Object.entries(devLogLevelData));
@@ -25,9 +27,11 @@ const devLogLevels = new Map<LoggingCategory | string, pino.Level>(Object.entrie
  */
 const prodLogLevelData: Record<LoggingCategory, pino.Level> = {
   '*': 'warn',
-  api: 'warn',
   none: 'warn',
+  users: 'warn',
+  communities: 'warn',
   utils: 'warn',
+  stripe: 'warn',
 };
 
 const prodLogLevels = new Map<LoggingCategory | string, pino.Level>(Object.entries(prodLogLevelData));
