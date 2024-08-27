@@ -12,7 +12,7 @@ export type PingResponse = z.infer<typeof PingResponseSchema>;
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
-  const logger = getLogger('api', request.url);
+  const logger = getLogger('utils', request.url);
   logger.trace('Handling GET Ping request');
 
   const responseBody: PingResponse = {
