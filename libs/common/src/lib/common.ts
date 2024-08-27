@@ -21,4 +21,5 @@ export * from './domain/identifiable.intf';
 export * from './generated';
 
 // Utils
+export * from './utils/encode-redirect.fn';
 export * from './utils/logging';
