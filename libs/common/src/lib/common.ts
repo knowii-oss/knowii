@@ -20,8 +20,5 @@ export * from './domain/identifiable.intf';
 // Generated code
 export * from './generated';
 
-// Supabase
-export * from './typed-supabase-client';
-
 // Utils
 export * from './utils/logging';

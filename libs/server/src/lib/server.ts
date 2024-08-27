@@ -3,7 +3,8 @@ export function server(): string {
 }
 
 // Supabase
-export * from './supabase/supabase-admin';
+export * from './supabase/create-supabase-server-side-client.fn';
+export * from './supabase/create-supabase-admin-server-side-client.fn';
 export * from './supabase/get-internal-user-id-from-supabase-session.fn';
 
 // Utils
