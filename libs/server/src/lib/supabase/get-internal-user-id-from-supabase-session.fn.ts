@@ -1,4 +1,4 @@
-import { Session } from '@supabase/auth-helpers-react';
+import { Session } from '@supabase/supabase-js';
 
 /**
  * WARNING: this MUST remain in line with the JSON field name we set in supabase-db-seed.sql

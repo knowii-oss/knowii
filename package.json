@@ -79,9 +79,7 @@
     "update": "npm run migrate"
   },
   "dependencies": {
-    "@supabase/auth-helpers-nextjs": "0.10.0",
-    "@supabase/auth-helpers-react": "0.5.0",
-    "@supabase/supabase-js": "2.45.2",
+    "@supabase/ssr": "0.5.0",
     "date-fns": "3.6.0",
     "diacritics": "1.3.0",
     "immer": "10.1.1",
