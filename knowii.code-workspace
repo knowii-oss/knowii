@@ -1,12 +1,32 @@
 {
   "folders": [
     {
-      "name": "project-root",
+      "name": "Root",
       "path": "./"
     },
     {
       "name": "supabase-functions",
       "path": "supabase/functions"
+    },
+    {
+      "name": "App",
+      "path": "./apps/app"
+    },
+    {
+      "name": "Libs - Common",
+      "path": "./libs/common"
+    },
+    {
+      "name": "Libs - Client",
+      "path": "./libs/client"
+    },
+    {
+      "name": "Libs - Client UI",
+      "path": "./libs/client-ui"
+    },
+    {
+      "name": "Libs - Server",
+      "path": "./libs/server"
     }
   ],
   "settings": {
