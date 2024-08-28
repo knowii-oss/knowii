@@ -48,15 +48,21 @@ export function getLogLevel(loggingCategory: LoggingCategory): pino.Level {
   return devLogLevels.get(loggingCategory) || devLogLevels.get('*') || 'debug';
 }
 
+interface LoggingModuleInfo {
+  subCategory: string;
+  details?: Record<string, any>;
+}
+
 /**
  * Get a configured logger
  * @param loggingCategory the logging category (e.g., communities)
- * @param subCategory the sub-category (context) (e.g., request URL)
+ * @param moduleInfo the context
  */
-export function getLogger(loggingCategory: LoggingCategory, subCategory?: string) {
-  const loggerName = `${loggingCategory} ${subCategory ? '- ' + subCategory : ''}`;
+export function getLogger(loggingCategory: LoggingCategory, moduleInfo?: LoggingModuleInfo) {
+  // If a subCategory is provided, append it to the logger name
+  const loggerName = `${loggingCategory} ${moduleInfo ? '- ' + moduleInfo.subCategory : ''}`;
 
-  const retVal = pino({
+  let retVal = pino({
     // References:
     // https://github.com/pinojs/pino/blob/main/docs/api.md
     // https://betterstack.com/community/guides/logging/how-to-install-setup-and-use-pino-to-log-node-js-applications/
@@ -80,6 +86,10 @@ export function getLogger(loggingCategory: LoggingCategory, subCategory?: string
     },
     timestamp: pino.stdTimeFunctions.isoTime,
   });
+
+  if (moduleInfo && moduleInfo.details) {
+    retVal = retVal.child(moduleInfo.details);
+  }
 
   return retVal;
 }

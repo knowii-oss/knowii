@@ -1,8 +1,5 @@
 # TODO
 
-- Debug log levels
-- Adds logging explanations to readme
-
 ## Improve word lists
 
 Cfr #599

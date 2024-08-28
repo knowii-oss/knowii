@@ -11,8 +11,13 @@ export type PingResponse = z.infer<typeof PingResponseSchema>;
 // Force dynamic rendering: https://nextjs.org/docs/app/building-your-application/rendering/server-components#dynamic-rendering
 export const dynamic = 'force-dynamic';
 
-export async function GET(_request: Request) {
-  const logger = getLogger('api', 'ping');
+export async function GET(request: Request) {
+  const logger = getLogger('api', {
+    subCategory: 'ping',
+    details: {
+      url: request.url,
+    },
+  });
   logger.info('Processing ping API request');
 
   const responseBody: PingResponse = {
