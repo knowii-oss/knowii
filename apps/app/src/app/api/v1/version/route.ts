@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { utilsLogger } from '@knowii/common';
+import { getLogger } from '@knowii/common';
 
 // eslint-disable-next-line  @typescript-eslint/no-var-requires
 const version = require('../../../../../../../package.json').version;
@@ -15,7 +15,8 @@ export type VersionResponse = z.infer<typeof VersionResponseSchema>;
 export const dynamic = 'force-dynamic';
 
 export async function GET(_request: Request) {
-  utilsLogger('Handling GET Version request');
+  const logger = getLogger('api', 'ping');
+  logger.info('Processing version API request');
 
   const responseBody: VersionResponse = {
     version,
