@@ -35,8 +35,7 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   experimental: {
-    // FIXME unsure if this helps
-    serverComponentsExternalPackages: ['pino', 'pino-pretty'],
+    serverComponentsExternalPackages: [],
   },
 };
 
