@@ -14,8 +14,13 @@ export type VersionResponse = z.infer<typeof VersionResponseSchema>;
 // Force dynamic rendering: https://nextjs.org/docs/app/building-your-application/rendering/server-components#dynamic-rendering
 export const dynamic = 'force-dynamic';
 
-export async function GET(_request: Request) {
-  const logger = getLogger('api', 'ping');
+export async function GET(request: Request) {
+  const logger = getLogger('api', {
+    subCategory: 'version',
+    details: {
+      url: request.url,
+    },
+  });
   logger.info('Processing version API request');
 
   const responseBody: VersionResponse = {
