@@ -35,7 +35,7 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   experimental: {
-    serverComponentsExternalPackages: [],
+    serverComponentsExternalPackages: ['pino', 'pino-pretty', 'pino-std-serializers'],
   },
 };
 

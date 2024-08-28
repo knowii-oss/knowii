@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { utilsLogger } from '@knowii/common';
+import { getLogger } from '@knowii/common';
 
 export const PingResponseSchema = z.object({
   pong: z.string(),
@@ -12,7 +12,8 @@ export type PingResponse = z.infer<typeof PingResponseSchema>;
 export const dynamic = 'force-dynamic';
 
 export async function GET(_request: Request) {
-  utilsLogger('Handling GET Ping request');
+  const logger = getLogger('api', 'ping');
+  logger.info('Processing ping API request');
 
   const responseBody: PingResponse = {
     pong: 'pong',

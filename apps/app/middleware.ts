@@ -1,15 +1,16 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { updateSession } from '@knowii/server';
-import { middlewareLogger } from '@knowii/common';
+import { getLogger } from '@knowii/common';
 
 export default async function middleware(request: NextRequest) {
-  middlewareLogger('Processing request %o', request);
+  const logger = getLogger('middleware');
+  logger.info('Processing request %o', request);
 
   await updateSession(request);
 
   const response = NextResponse.next();
-  middlewareLogger('Request', request);
-  middlewareLogger('Response', response);
+  logger.info('Request', request);
+  logger.info('Response', response);
 
   return response;
 }
@@ -32,10 +33,8 @@ export const config = {
      * Feel free to modify this pattern to include more paths.
      */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-    // FIXME are those still needed?
-    // If those need to be protected, the layout.tsx in their folder could do the same as the one under app/app
+    // FIXME WARNING if the paths below need to be protected, the layout.tsx in their folder could do the same as the one under app/app
     //'/account',
-    // FIXME reimplement
     //'/communities/create',
   ],
 };
