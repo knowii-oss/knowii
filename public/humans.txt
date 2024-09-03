@@ -1,0 +1,26 @@
+# humanstxt.org/
+# The humans responsible & technology colophon.
+
+# TEAM
+
+  Sébastien Dubois -- Founder -- https://dsebastien.net — https://x.com/@dsebastien
+
+# THANKS
+
+  Thanks to the Open Source community!
+
+# TECHNOLOGY COLOPHON
+  HTML
+  CSS
+  TypeScript / EcmaScript
+  PHP
+  Laravel
+  Inertia
+  React
+  Tailwind
+  Sass
+  PrimeVue
+  PostgreSQL
+  Nrwl NX
+  Vite
+  ...

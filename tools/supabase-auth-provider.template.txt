@@ -1,9 +1,0 @@
-[auth.external.%PROVIDER_NAME%]
-enabled = true
-client_id = "%PROVIDER_CLIENT_ID%"
-secret = "%PROVIDER_SECRET%"
-# Overrides the default auth redirectUrl.
-redirect_uri = "%PROVIDER_REDIRECT_URI%"
-# Overrides the default auth provider URL. Used to support self-hosted gitlab, single-tenant Azure,
-# or any other third-party OIDC providers.
-#url = ""

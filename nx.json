@@ -4,31 +4,26 @@
     "default": ["{projectRoot}/**/*", "sharedGlobals"],
     "production": [
       "default",
-      "!{projectRoot}/.eslintrc.json",
-      "!{projectRoot}/eslint.config.js",
       "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
       "!{projectRoot}/tsconfig.spec.json",
+      "!{projectRoot}/.eslintrc.json",
+      "!{projectRoot}/eslint.config.js",
       "!{projectRoot}/jest.config.[jt]s",
       "!{projectRoot}/src/test-setup.[jt]s",
       "!{projectRoot}/test-setup.[jt]s"
     ],
-    "sharedGlobals": []
+    "sharedGlobals": ["{workspaceRoot}/.github/workflows/ci.yml"]
   },
-  "nxCloudAccessToken": "YTg1MzkxNDYtZmNmNy00MjEwLWI3NzktZTZmMTI0YzE2MWVkfHJlYWQtd3JpdGU=",
+  "nxCloudAccessToken": "NTIxNjA3M2UtMjI5NC00MjcyLWFiZmItNTgxMThjN2ZlYTc3fHJlYWQtd3JpdGU=",
   "plugins": [
     {
-      "plugin": "@nx/next/plugin",
+      "plugin": "@nx/vite/plugin",
       "options": {
-        "startTargetName": "start",
         "buildTargetName": "build",
-        "devTargetName": "dev",
+        "testTargetName": "test",
+        "serveTargetName": "serve",
+        "previewTargetName": "preview",
         "serveStaticTargetName": "serve-static"
-      }
-    },
-    {
-      "plugin": "@nx/playwright/plugin",
-      "options": {
-        "targetName": "e2e"
       }
     },
     {
@@ -45,14 +40,20 @@
     }
   ],
   "generators": {
-    "@nx/next": {
+    "@nx/react": {
       "application": {
+        "babel": true,
+        "style": "tailwind",
+        "linter": "eslint",
+        "bundler": "vite"
+      },
+      "component": {
+        "style": "tailwind"
+      },
+      "library": {
         "style": "tailwind",
         "linter": "eslint"
       }
-    },
-    "@nx/react": {
-      "library": {}
     }
   },
   "targetDefaults": {
@@ -60,9 +61,6 @@
       "cache": true,
       "dependsOn": ["^build"],
       "inputs": ["production", "^production"]
-    },
-    "e2e-ci--**/*": {
-      "dependsOn": ["^build"]
     }
   }
 }

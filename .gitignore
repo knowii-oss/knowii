@@ -1,5 +1,23 @@
 # See http://help.github.com/ignore-files/ for more about ignoring files.
 
+# Laravel
+/.phpunit.cache
+/bootstrap/ssr
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/vendor
+.env
+.env.backup
+.env.production
+.phpactor.json
+.phpunit.result.cache
+/.phpunit.cache
+Homestead.json
+Homestead.yaml
+auth.json
+
 # compiled output
 dist
 tmp
@@ -8,7 +26,7 @@ tsconfig.app.tsbuildinfo
 *.tsbuildinfo
 
 # dependencies
-node_modules
+/node_modules
 
 # IDEs and editors
 /.idea
@@ -18,6 +36,7 @@ node_modules
 *.launch
 .settings/
 *.sublime-workspace
+/.fleet
 
 # IDE - VSCode
 .vscode/*
@@ -42,27 +61,11 @@ testem.log
 .DS_Store
 Thumbs.db
 
+# nx
 .nx/cache
 .nx/workspace-data
-
-# Next.js and Vercel
-.next
-out
-.now
-.vercel
-/apps/app/.next
 
 # local env files
 # do not commit any .env files to git, except for the .env.example file.
 .env
 .env.*
-
-# App
-/backups
-
-# Supabase config
-# Contains sensitive information during dev
-supabase/config.toml
-
-# Google Cloud service account key (used for local Supabase logging)
-apps/app/gcloud.json

@@ -5,33 +5,28 @@
       "path": "./"
     },
     {
-      "name": "supabase-functions",
-      "path": "supabase/functions"
+      "name": "Backend",
+      "path": "./app"
     },
     {
-      "name": "App",
-      "path": "./apps/app"
+      "name": "Config",
+      "path": "./config"
     },
     {
-      "name": "Libs - Common",
+      "name": "Database",
+      "path": "./database"
+    },
+    {
+      "name": "Frontend",
+      "path": "./apps/knowii"
+    },
+    {
+      "name": "Frontend - Common",
       "path": "./libs/common"
-    },
-    {
-      "name": "Libs - Client",
-      "path": "./libs/client"
-    },
-    {
-      "name": "Libs - Client UI",
-      "path": "./libs/client-ui"
-    },
-    {
-      "name": "Libs - Server",
-      "path": "./libs/server"
     }
   ],
   "settings": {
     "files.exclude": {
-      "supabase/functions/": true
     }
   }
 }

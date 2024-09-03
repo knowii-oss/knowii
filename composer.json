@@ -1,0 +1,87 @@
+{
+  "name": "knowii-oss/knowii",
+  "type": "project",
+  "description": "Knowii",
+  "keywords": [
+    "knowii"
+  ],
+  "license": "GNU AFFERO GENERAL PUBLIC LICENSE Version 3",
+  "require": {
+    "php": "^8.2",
+    "inertiajs/inertia-laravel": "^1.0",
+    "laravel/framework": "^11.9",
+    "laravel/jetstream": "^5.1",
+    "laravel/sanctum": "^4.0",
+    "laravel/tinker": "^2.9",
+    "tightenco/ziggy": "^2.0"
+  },
+  "require-dev": {
+    "fakerphp/faker": "^1.23",
+    "laravel/pint": "^1.13",
+    "laravel/sail": "^1.31",
+    "mockery/mockery": "^1.6",
+    "nunomaduro/collision": "^8.0",
+    "pestphp/pest": "^2.0",
+    "pestphp/pest-plugin-laravel": "^2.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/",
+      "Database\\Factories\\": "database/factories/",
+      "Database\\Seeders\\": "database/seeders/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "sail:cache:clean": [
+      "sail artisan cache:clear && sail artisan route:clear && sail artisan config:clear && sail artisan view:clear"
+    ],
+    "sail:clean": [
+      "sail down --volumes && sail build --no-cache && sail up -d && sail artisan migrate --force"
+    ],
+    "serve": [
+      "composer start"
+    ],
+    "start": [
+      "sail up -d && sail npm run dev"
+    ],
+    "stop": [
+      "sail down"
+    ],
+    "post-autoload-dump": [
+      "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+      "@php artisan package:discover --ansi"
+    ],
+    "post-update-cmd": [
+      "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+    ],
+    "post-root-package-install": [
+      "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+    ],
+    "post-create-project-cmd": [
+      "@php artisan key:generate --ansi",
+      "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
+      "@php artisan migrate --graceful --ansi"
+    ]
+  },
+  "extra": {
+    "laravel": {
+      "dont-discover": []
+    }
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "preferred-install": "dist",
+    "sort-packages": true,
+    "allow-plugins": {
+      "pestphp/pest-plugin": true,
+      "php-http/discovery": true
+    }
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}

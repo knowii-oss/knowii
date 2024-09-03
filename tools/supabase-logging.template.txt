@@ -1,9 +1,0 @@
-[analytics]
-enabled = true
-port = 54327
-vector_port = 54328
-# Setup BigQuery project to enable log viewer on local development stack.
-# See: https://logflare.app/guides/bigquery-setup
-gcp_project_id = "%GCP_PROJECT_ID%"
-gcp_project_number = "%GCP_PROJECT_NUMBER%"
-gcp_jwt_path = "apps/knowii/gcloud.json"

@@ -1,14 +1,19 @@
 # Add files here to ignore them from prettier formatting
+/.devcontainer
+/.idea
+/.nx
+/.vscode
+/assets
 /dist
 /coverage
-node_modules/
 /.nx/cache
 /.nx/workspace-data
-/apps/app/.next
-../apps/app/.env.example
+/public
+/tmp
+/vendor
 .env.*
 *.sh
-pnpm-lock.yaml
+composer.lock
+CHANGELOG.md
 package-lock.json
-/tmp
-supabase-db-seed.sql
+tsconfig.*.json
