@@ -20,6 +20,8 @@ export const REGISTER_URL = 'register';
 export const LOGOUT_URL = 'logout';
 export const DASHBOARD_URL = 'dashboard';
 export const PASSWORD_CONFIRM_URL = 'password.confirm';
+// URL for sending password forgotten requests
+export const EMAIL_PASSWORD_URL = 'password.email';
 export const PASSWORD_CONFIRMATION_URL = 'password.confirmation';
 export const FORGOT_PASSWORD_URL = 'password.request';
 export const TERMS_OF_SERVICE_URL = 'terms.show';
