@@ -47,12 +47,12 @@ export default function Login(props: Props) {
             />
             <div>
               <Link href={route(USER_PROFILE_URL)} className="simple-link">
-                <Button severity="primary" label="Edit profile" className="min-w-48 min-h-16" />
+                Edit profile
               </Link>
             </div>
             <div>
               <Link href={route(LOGOUT_URL)} method="POST" className="simple-link">
-                <Button severity="secondary" label="Log out" className="" />
+                Log out
               </Link>
             </div>
           </div>

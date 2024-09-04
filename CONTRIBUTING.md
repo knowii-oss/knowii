@@ -35,6 +35,11 @@ This contains tons of ideas to help us out.
 - Run `sail artisan migrate` to run the DB migrations in the Sail containers
 - Run `sail down` to stop sail
 
+Necessary environment keys for development:
+
+- `RESEND_KEY`: for sending emails
+
+
 ### Docker usage
 
 During development, we use Laravel Sail with Docker and docker-compose.
