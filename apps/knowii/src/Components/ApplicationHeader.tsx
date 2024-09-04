@@ -1,12 +1,13 @@
 import { PropsWithChildren } from 'react';
 import { useRoute } from 'ziggy-js';
-import { DASHBOARD_URL, LOGIN_URL, LOGOUT_URL, REGISTER_URL } from '@knowii/common';
+import { DASHBOARD_URL, HOME_URL, LOGIN_URL, LOGOUT_URL, REGISTER_URL } from '@knowii/common';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import { Button } from 'primereact/button';
 import { Link } from '@inertiajs/react';
 import { FaSignOutAlt } from 'react-icons/fa';
 
 interface Props {
+  addLinkOnLogo: boolean;
   showDashboardButton: boolean,
   showLoginButton: boolean;
   showLogoutButton: boolean;
@@ -18,7 +19,11 @@ export default function ApplicationHeader(props: PropsWithChildren<Props>) {
 
   return (
     <header className="p-4 md:p-6 lg:p-12 bg-gray-800 flex flex-col md:flex-row flex-wrap items-center justify-center md:justify-between">
-      <ApplicationLogo />
+      {props.addLinkOnLogo? (
+        <a href={HOME_URL}>
+          <ApplicationLogo />
+        </a>
+      ): (<ApplicationLogo />)}
 
       {props.showDashboardButton || props.showLoginButton || props.showLogoutButton || props.showRegisterButton ? (
           <nav className="flex flex-col sm:flex-row flex-wrap gap-4 mt-6 md:mt-0">
