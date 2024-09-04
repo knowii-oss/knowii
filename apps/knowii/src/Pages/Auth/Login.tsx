@@ -10,6 +10,7 @@ import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import { FaPassport, FaUser } from 'react-icons/fa';
 import { Checkbox } from 'primereact/checkbox';
+import FooterGuest from "@/Components/FooterGuest";
 
 interface Props {
   canResetPassword: boolean;
@@ -115,9 +116,7 @@ export default function Login({ canResetPassword, status }: Props) {
           </div>
         </form>
       </AuthenticationCard>
-      <div className="mt-4 py-2 text-center text-gray-600 text-sm">
-        <span>© Knowii. All rights reserved.</span>
-      </div>
+      <FooterGuest />
     </>
   );
 }
