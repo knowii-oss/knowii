@@ -15,13 +15,13 @@ interface Props {
   status?: string;
 }
 
-interface ForgotPasswordProps {
+interface ForgotPasswordFormData {
   email: string;
 }
 
 export default function ForgotPassword(props: Props) {
   const route = useRoute();
-  const form = useForm<ForgotPasswordProps>({
+  const form = useForm<ForgotPasswordFormData>({
     email: '',
   });
 
@@ -34,7 +34,7 @@ export default function ForgotPassword(props: Props) {
     <>
       <Head title="Forgot Password" />
       <AuthenticationCard>
-        <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+        <div className="mb-4 text-sm text-gray-600">
           Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow
           you to choose a new one.
         </div>
@@ -63,7 +63,7 @@ export default function ForgotPassword(props: Props) {
           </div>
           <div className="mt-4 flex items-center justify-end">
             <Button
-              label="Email Password Reset Link"
+              label="Email password reset link"
               className={classNames('ml-4', { 'opacity-25': form.processing })}
               disabled={form.processing}
             />
