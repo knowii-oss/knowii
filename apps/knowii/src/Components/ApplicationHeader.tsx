@@ -25,7 +25,7 @@ export default function ApplicationHeader(props: PropsWithChildren<Props>) {
             {page.props.auth.user ? (
               <>
                 <Link href={route(LOGOUT_URL)} method="POST" className="">
-                  <Button severity="secondary" label="Logout" className="min-w-48 min-h-16" />
+                  <Button severity="secondary" label="Log out" className="min-w-48 min-h-16" />
                 </Link>
                 <Link href={route(DASHBOARD_URL)} className="">
                   <Button label="Dashboard" className="font-mono font-bold min-w-48 min-h-16" />
