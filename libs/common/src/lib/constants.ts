@@ -15,19 +15,24 @@ export const IS_TEST = process.env.NODE_ENV === 'test';
  * URLs
  */
 export const HOME_URL = '/';
+export const DASHBOARD_URL = 'dashboard';
+export const TERMS_OF_SERVICE_URL = 'terms.show';
+export const PRIVACY_POLICY_URL = 'policy.show';
+export const USER_PROFILE_URL = 'profile.show';
+
+// Authentication
 export const LOGIN_URL = 'login';
 export const REGISTER_URL = 'register';
 export const LOGOUT_URL = 'logout';
-export const DASHBOARD_URL = 'dashboard';
 export const PASSWORD_CONFIRM_URL = 'password.confirm';
 // URL for sending password forgotten requests
 export const EMAIL_PASSWORD_URL = 'password.email';
 export const PASSWORD_CONFIRMATION_URL = 'password.confirmation';
 export const PASSWORD_UPDATE_URL = 'password.update';
 export const FORGOT_PASSWORD_URL = 'password.request';
-export const TERMS_OF_SERVICE_URL = 'terms.show';
-export const PRIVACY_POLICY_URL = 'policy.show';
-
+// URL for sending email verification requests
+export const EMAIL_VERIFICATION_URL = 'verification.send';
+export const EMAIL_VERIFICATION_STATUS_LINK_SENT = 'verification-link-sent';
 /**
  * API
  */

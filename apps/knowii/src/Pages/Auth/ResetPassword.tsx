@@ -1,14 +1,13 @@
 import FooterGuest from '@/Components/FooterGuest';
 import AuthenticationCard from '@/Components/AuthenticationCard';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import React, { FormEventHandler } from 'react';
-import {LOGIN_URL, PASSWORD_UPDATE_URL, PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL} from '@knowii/common';
+import { PASSWORD_UPDATE_URL } from '@knowii/common';
 import { useRoute } from 'ziggy-js';
 import InputLabel from '@/Components/InputLabel';
-import { FaAt, FaLock, FaUser } from 'react-icons/fa';
+import { FaAt, FaLock } from 'react-icons/fa';
 import { InputText } from 'primereact/inputtext';
 import InputError from '@/Components/InputError';
-import { Checkbox } from 'primereact/checkbox';
 import { Button } from 'primereact/button';
 import classNames from 'classnames';
 
