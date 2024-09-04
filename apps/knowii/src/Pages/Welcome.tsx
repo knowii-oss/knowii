@@ -1,9 +1,5 @@
-import { Head, Link } from '@inertiajs/react';
-import { useRoute } from 'ziggy-js';
-import React from 'react';
-import { DASHBOARD_URL, HOME_URL, LOGIN_URL, REGISTER_URL, useTypedPage } from '@knowii/common';
-import ApplicationLogo from '@/Components/ApplicationLogo';
-import { Button } from 'primereact/button';
+import { Head } from '@inertiajs/react';
+import { useTypedPage } from '@knowii/common';
 import ApplicationHeader from '@/Components/ApplicationHeader';
 
 interface WelcomePageProps {
@@ -11,19 +7,28 @@ interface WelcomePageProps {
   canRegister: boolean;
 }
 
-export default function Welcome({ canLogin, canRegister }: WelcomePageProps) {
-  const route = useRoute();
+export default function Welcome(props: WelcomePageProps) {
   const page = useTypedPage();
+
+  const showLogout = props.canLogin && page.props.auth.user !== null;
+  const showDashboard = props.canLogin && page.props.auth.user !== null;
+  const showLogin = props.canLogin && !page.props.auth.user;
+  const showRegister = props.canLogin && !page.props.auth.user;
 
   return (
     <>
       <Head title="Welcome" />
 
-      <div className="bg-gray-50 text-black/80 full-page">
-        <ApplicationHeader canLogin={canLogin} canRegister={canRegister} showAuthenticationLinks={true} />
+      <div className="bg-gray-50 full-page">
+        <ApplicationHeader
+          showDashboardButton={showDashboard}
+          showLogoutButton={showLogout}
+          showLoginButton={showLogin}
+          showRegisterButton={showRegister}
+        />
 
-        <main className="mt-8 md:mt-12 lg:mt-16 px-8 md:px-0">
-          <div className="block flex flex-col items-center">
+        <main className="mt-8 md:mt-12 lg:mt-16 px-8 md:px-0 text-black/80">
+          <div className="flex flex-col items-center">
             <h1 className="text-primary-500">Welcome&nbsp;👋</h1>
             <h2 className="mt-4">
               Know<span className="text-primary-500">ii</span> is a place for your community's Knowledge, Ideas and Inspiration.

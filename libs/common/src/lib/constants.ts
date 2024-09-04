@@ -20,6 +20,9 @@ export const TERMS_OF_SERVICE_URL = 'terms.show';
 export const PRIVACY_POLICY_URL = 'policy.show';
 export const USER_PROFILE_URL = 'profile.show';
 
+// Teams
+export const CHANGE_CURRENT_TEAM_URL = 'current-team.update';
+
 // Authentication
 export const LOGIN_URL = 'login';
 export const REGISTER_URL = 'register';

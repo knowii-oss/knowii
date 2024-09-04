@@ -1,5 +1,3 @@
-import React from 'react';
-
 // TODO add support for passing: { className }: { className?: string }
 // TODO replace by SVG logo -->
 export default function ApplicationLogo() {
