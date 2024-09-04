@@ -30,6 +30,10 @@ This contains tons of ideas to help us out.
 - Run `php artisan key:generate` to generate an encryption key
 - Run `npm install` or `npm run install:linux` if you're on Linux
 - Run `npm run build` at least once to build the assets under `public/build` (at least `.vite/manifest.json` which is required for the application to start)
+- Run `composer clean` to build/rebuild the Sail docker images
+- Run `sail up` to start the Sail containers
+- Run `sail artisan migrate` to run the DB migrations in the Sail containers
+- Run `sail down` to stop sail
 
 ### Docker usage
 
