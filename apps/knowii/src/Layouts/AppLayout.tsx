@@ -1,10 +1,5 @@
 import React, { FormEventHandler, useState } from 'react';
-import { Link, router, Head } from '@inertiajs/react';
-import ApplicationMark from '@/Components/ApplicationMark';
-import Dropdown from '@/Components/Dropdown';
-import DropdownLink from '@/Components/DropdownLink';
-import NavLink from '@/Components/NavLink';
-import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
+import { router, Head } from '@inertiajs/react';
 import { CHANGE_CURRENT_TEAM_URL, LOGOUT_URL, Team, useTypedPage } from '@knowii/common';
 import { useRoute } from 'ziggy-js';
 import ApplicationHeader from '@/Components/ApplicationHeader';
@@ -48,12 +43,12 @@ export default function AppLayout(props: Props) {
         {/*<Banner />*/}
 
         <ApplicationHeader
+          addLinkOnLogo={true}
           showRegisterButton={false}
           showLoginButton={false}
           showDashboardButton={false}
-          showLogoutButton={true}>
+          showLogoutButton={true} />
 
-        </ApplicationHeader>
         {/* Add nav */}
 
         {props.header && (
