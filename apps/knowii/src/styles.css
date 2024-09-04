@@ -70,3 +70,7 @@ h2 {
 .full-page {
   @apply h-full min-h-full w-full min-w-full;
 }
+
+.simple-link {
+  @apply underline text-sm text-gray-600 hover:text-primary-500;
+}
