@@ -58,8 +58,7 @@ return [
     */
 
     'features' => [
-        // FIXME enable terms and privacy policy
-        // Features::termsAndPrivacyPolicy(),
+        Features::termsAndPrivacyPolicy(),
         // Features::profilePhotos(),
         Features::api(),
         Features::teams(['invitations' => true]),

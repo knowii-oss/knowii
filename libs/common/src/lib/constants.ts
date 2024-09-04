@@ -22,6 +22,8 @@ export const DASHBOARD_URL = 'dashboard';
 export const PASSWORD_CONFIRM_URL = 'password.confirm';
 export const PASSWORD_CONFIRMATION_URL = 'password.confirmation';
 export const FORGOT_PASSWORD_URL = 'password.request';
+export const TERMS_OF_SERVICE_URL = 'terms.show';
+export const PRIVACY_POLICY_URL = 'policy.show';
 
 /**
  * API
