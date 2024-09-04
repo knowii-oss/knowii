@@ -11,7 +11,6 @@ import DropdownLink from '@/Components/DropdownLink';
 import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import { Team } from '@/types';
-import { LOGOUT_URL } from '@knowii/common';
 
 interface Props {
   title: string;

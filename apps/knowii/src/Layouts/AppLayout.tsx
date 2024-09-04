@@ -17,7 +17,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ title, children, header }) => {
   const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
   const { props }: any = usePage();
 
-  const switchToTeam = (team: any) => {
+  const switchToTeam = e: React.FormEvent, team: Team) => {
     router.put(
       route('current-team.update'),
       {
