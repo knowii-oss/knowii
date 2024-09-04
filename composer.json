@@ -13,6 +13,7 @@
     "laravel/jetstream": "^5.1",
     "laravel/sanctum": "^4.0",
     "laravel/tinker": "^2.9",
+    "resend/resend-php": "^0.13.0",
     "tightenco/ziggy": "^2.0"
   },
   "require-dev": {
