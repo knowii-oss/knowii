@@ -13,4 +13,3 @@ export const BLOG_BASE_URL = '/blog';
  * Authentication / Registration
  */
 export const AUTH_BASE_PATH = '/auth';
-

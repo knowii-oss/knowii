@@ -51,44 +51,42 @@ export default function PageHeader(props: PropsWithChildren<Props>) {
         normalLogoAndMark
       )}
 
-      {props.showDashboardButton || props.showLoginButton || props.showLogoutButton || props.showRegisterButton ? (
-        <nav className="flex flex-row flex-wrap gap-4 mt-6 md:mt-0">
-          {props.showDashboardButton && (
-            <Link href={route(DASHBOARD_URL)} className="">
-              <Button label="Dashboard" className={classNames('font-mono font-bold min-w-48', { 'min-h-16': !props.compact })} />
-            </Link>
-          )}
-          {props.showLogoutButton && (
-            <Link href={route(LOGOUT_URL)} method="post" className="">
-              <Button
-                aria-label={'Log out'}
-                severity="secondary"
-                className={classNames('font-mono font-bold', { 'min-h-16': !props.compact })}
-              >
-                <FaSignOutAlt />
-              </Button>
-            </Link>
-          )}
-          {props.showLoginButton && (
-            <Link href={route(LOGIN_URL)} className="">
-              <Button
-                severity="secondary"
-                label="Log in"
-                aria-label={'Log in'}
-                className={classNames('font-mono font-bold min-w-48', { 'min-h-16': !props.compact })}
-              />
-            </Link>
-          )}
+      <nav className="flex flex-row flex-wrap gap-4 mt-6 md:mt-0">
+        {props.showDashboardButton && (
+          <Link href={route(DASHBOARD_URL)} className="">
+            <Button label="Dashboard" className={classNames('font-mono font-bold', { 'min-w-48 min-h-16': !props.compact })} />
+          </Link>
+        )}
+        {props.showLogoutButton && (
+          <Link href={route(LOGOUT_URL)} method="post" className="">
+            <Button
+              aria-label={'Log out'}
+              severity="secondary"
+              className={classNames('font-mono font-bold min-h-full', { 'flex flex-row justify-center': !props.compact })}
+            >
+              <FaSignOutAlt />
+            </Button>
+          </Link>
+        )}
+        {props.showLoginButton && (
+          <Link href={route(LOGIN_URL)} className="">
+            <Button
+              severity="secondary"
+              label="Log in"
+              aria-label={'Log in'}
+              className={classNames('font-mono font-bold min-w-48 min-h-full')}
+            />
+          </Link>
+        )}
 
-          {props.showRegisterButton && (
-            <Link href={route(REGISTER_URL)} className="">
-              <Button label="Register" className={classNames('font-mono font-bold min-w-48', { 'min-h-16': !props.compact })} />
-            </Link>
-          )}
+        {props.showRegisterButton && (
+          <Link href={route(REGISTER_URL)} className="">
+            <Button label="Register" className={classNames('font-mono font-bold min-w-48', { 'min-h-16': !props.compact })} />
+          </Link>
+        )}
 
-          {props.children}
-        </nav>
-      ) : null}
+        {props.children}
+      </nav>
     </header>
   );
 }
