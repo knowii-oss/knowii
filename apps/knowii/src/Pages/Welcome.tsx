@@ -1,6 +1,6 @@
 import { Head } from '@inertiajs/react';
 import { useTypedPage } from '@knowii/common';
-import ApplicationHeader from '@/Components/ApplicationHeader';
+import PageHeader from '@/Components/PageHeader';
 import { PageContentWrapper } from '@/Components/PageContentWrapper';
 
 interface WelcomePageProps {
@@ -21,7 +21,8 @@ export default function Welcome(props: WelcomePageProps) {
       <Head title="Welcome" />
 
       <div className="bg-gray-50 full-page">
-        <ApplicationHeader
+        <PageHeader
+          compact={false}
           addLinkOnLogo={false}
           showDashboardButton={showDashboard}
           showLogoutButton={showLogout}
@@ -33,8 +34,7 @@ export default function Welcome(props: WelcomePageProps) {
           <div className="flex flex-col items-center">
             <h1 className="text-primary-500">Welcome&nbsp;👋</h1>
             <h2 className="mt-4">
-              Know<span className="text-primary-500">ii</span> is a place for your community's Knowledge, Ideas and
-              Inspiration.
+              Know<span className="text-primary-500">ii</span> is a place for your community's Knowledge, Ideas and Inspiration.
             </h2>
           </div>
 

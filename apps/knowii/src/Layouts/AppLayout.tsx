@@ -2,7 +2,7 @@ import React, { FormEventHandler, useState } from 'react';
 import { router, Head } from '@inertiajs/react';
 import { CHANGE_CURRENT_TEAM_URL, LOGOUT_URL, Team, useTypedPage } from '@knowii/common';
 import { useRoute } from 'ziggy-js';
-import ApplicationHeader from '@/Components/ApplicationHeader';
+import PageHeader from '@/Components/PageHeader';
 
 interface Props {
   title: string;
@@ -42,19 +42,21 @@ export default function AppLayout(props: Props) {
         {/* FIXME add banner */}
         {/*<Banner />*/}
 
-        <ApplicationHeader
+        <PageHeader
+          compact={true}
           addLinkOnLogo={true}
           showRegisterButton={false}
           showLoginButton={false}
           showDashboardButton={false}
-          showLogoutButton={true} />
+          showLogoutButton={true}
+        />
 
         {/* Add nav */}
 
         {props.header && (
-          <header className="bg-gray-600">
+          <div className="bg-gray-600">
             <div className="px-4 py-6 mx-auto max-w-7xl sm:px-6 lg:px-8">{props.header}</div>
-          </header>
+          </div>
         )}
 
         <main>{props.children}</main>

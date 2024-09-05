@@ -1,6 +1,6 @@
 import React, { PropsWithChildren } from 'react';
 import AuthenticationCardLogo from '@/Components/AuthenticationCardLogo';
-import ApplicationHeader from '@/Components/ApplicationHeader';
+import ApplicationHeader from '@/Components/PageHeader';
 
 export default function AuthenticationCard({ children }: PropsWithChildren<Record<string, unknown>>) {
   return (
