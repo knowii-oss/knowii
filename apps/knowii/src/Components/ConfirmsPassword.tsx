@@ -4,10 +4,10 @@ import React, { PropsWithChildren, useRef, useState } from 'react';
 import DialogModal from '@/Components/DialogModal';
 import InputError from '@/Components/InputError';
 import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
 import SecondaryButton from '@/Components/SecondaryButton';
 import { useRoute } from 'ziggy-js';
 import { PASSWORD_CONFIRM_URL, PASSWORD_CONFIRMATION_URL } from '@knowii/common';
+import { InputText } from 'primereact/inputtext';
 
 interface Props {
   title?: string;
@@ -79,7 +79,7 @@ export default function ConfirmsPassword({
           {content}
 
           <div className="mt-4">
-            <TextInput
+            <InputText
               ref={passwordRef}
               type="password"
               className="mt-1 block w-3/4"
