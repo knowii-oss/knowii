@@ -38,7 +38,7 @@ export default function PageHeader(props: PropsWithChildren<Props>) {
   return (
     <header
       className={classNames(
-        `bg-gray-800 flex flex-col md:flex-row flex-wrap items-center justify-center md:justify-between`,
+        `bg-gray-800 flex flex-col sm:flex-row flex-wrap items-center justify-between`,
         { 'p-4 md:p-6 lg:p-12': !props.compact },
         { 'pl-0 sm:pl-4 sm:pr-4 pb-2 lg:pb-2': props.compact },
       )}
@@ -52,7 +52,7 @@ export default function PageHeader(props: PropsWithChildren<Props>) {
       )}
 
       {props.showDashboardButton || props.showLoginButton || props.showLogoutButton || props.showRegisterButton ? (
-        <nav className="flex flex-col sm:flex-row flex-wrap gap-4 mt-6 md:mt-0">
+        <nav className="flex flex-row flex-wrap gap-4 mt-6 md:mt-0">
           {props.showDashboardButton && (
             <Link href={route(DASHBOARD_URL)} className="">
               <Button label="Dashboard" className={classNames('font-mono font-bold min-w-48', { 'min-h-16': !props.compact })} />
@@ -61,9 +61,9 @@ export default function PageHeader(props: PropsWithChildren<Props>) {
           {props.showLogoutButton && (
             <Link href={route(LOGOUT_URL)} method="post" className="">
               <Button
+                aria-label={'Log out'}
                 severity="secondary"
-                label="Log out"
-                className={classNames('font-mono font-bold min-w-48', { 'min-h-16': !props.compact })}
+                className={classNames('font-mono font-bold', { 'min-h-16': !props.compact })}
               >
                 <FaSignOutAlt />
               </Button>
@@ -73,7 +73,8 @@ export default function PageHeader(props: PropsWithChildren<Props>) {
             <Link href={route(LOGIN_URL)} className="">
               <Button
                 severity="secondary"
-                label="Login"
+                label="Log in"
+                aria-label={'Log in'}
                 className={classNames('font-mono font-bold min-w-48', { 'min-h-16': !props.compact })}
               />
             </Link>

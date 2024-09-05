@@ -1,8 +1,11 @@
-import React, { FormEventHandler, useState } from 'react';
-import { router, Head } from '@inertiajs/react';
-import { CHANGE_CURRENT_TEAM_URL, LOGOUT_URL, Team, useTypedPage } from '@knowii/common';
+import React, { useState } from 'react';
+import { Head } from '@inertiajs/react';
+import { useTypedPage } from '@knowii/common';
 import { useRoute } from 'ziggy-js';
 import PageHeader from '@/Components/PageHeader';
+import { Sidebar } from 'primereact/sidebar';
+import { Button } from 'primereact/button';
+import { FaBars } from 'react-icons/fa';
 
 interface Props {
   title: string;
@@ -14,25 +17,7 @@ export default function AppLayout(props: Props) {
   const page = useTypedPage();
   const route = useRoute();
 
-  const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
-
-  const switchToTeam: FormEventHandler = (e: React.FormEvent, team: Team) => {
-    e.preventDefault();
-    router.put(
-      route(CHANGE_CURRENT_TEAM_URL),
-      {
-        team_id: team.id,
-      },
-      {
-        preserveState: false,
-      },
-    );
-  };
-
-  const logout: FormEventHandler = (e) => {
-    e.preventDefault();
-    router.post(route(LOGOUT_URL));
-  };
+  const [menuVisible, setMenuVisible] = useState(false);
 
   return (
     <>
@@ -49,9 +34,22 @@ export default function AppLayout(props: Props) {
           showLoginButton={false}
           showDashboardButton={false}
           showLogoutButton={true}
-        />
-
-        {/* Add nav */}
+        >
+          <Sidebar
+            className="bg-gray-50 min-w-full md:min-w-[30%] lg:min-w-[30%]"
+            visible={menuVisible}
+            onHide={() => setMenuVisible(false)}
+          >
+            <h2>Sidebar</h2>
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+              enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+            </p>
+          </Sidebar>
+          <Button className="" onClick={() => setMenuVisible(!menuVisible)}>
+            <FaBars />
+          </Button>
+        </PageHeader>
 
         {props.header && (
           <div className="bg-gray-600">
@@ -59,6 +57,7 @@ export default function AppLayout(props: Props) {
           </div>
         )}
 
+        {/* Page content */}
         <main>{props.children}</main>
       </div>
     </>
