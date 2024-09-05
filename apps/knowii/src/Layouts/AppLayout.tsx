@@ -20,7 +20,7 @@ export default function AppLayout(props: Props) {
   const page = useTypedPage();
   const route = useRoute();
 
-  const [menuVisible, setMenuVisible] = useState(false);
+  const [mainMenuVisible, setMainMenuVisible] = useState(false);
 
   return (
     <>
@@ -40,8 +40,8 @@ export default function AppLayout(props: Props) {
         >
           <Sidebar
             className="bg-gray-800 min-w-full sm:min-w-[40%] lg:min-w-[30%]"
-            visible={menuVisible}
-            onHide={() => setMenuVisible(false)}
+            visible={mainMenuVisible}
+            onHide={() => setMainMenuVisible(false)}
             closeIcon={<FaXmark className="text-primary-500 text-3xl hover:text-5xl" />}
           >
             <div className="flex flex-col items-center gap-4">
@@ -58,7 +58,7 @@ export default function AppLayout(props: Props) {
               </ul>
             </div>
           </Sidebar>
-          <Button className="" onClick={() => setMenuVisible(!menuVisible)}>
+          <Button className="" onClick={() => setMainMenuVisible(!mainMenuVisible)}>
             <FaBars />
           </Button>
         </PageHeader>
