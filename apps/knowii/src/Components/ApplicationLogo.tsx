@@ -6,7 +6,7 @@ interface Props {
 
 export default function ApplicationLogo(props: Props) {
   return (
-    <div className={classNames('text-5xl md:text-6xl lg:text-8xl tracking-wide min-h-full', props.className)}>
+    <div className={classNames('antialiased text-5xl md:text-6xl lg:text-8xl tracking-wide leading-none', props.className)}>
       <span className="font-bold text-white">Know</span>
       <span className="text-primary-500 font-extrabold">ii</span>
     </div>
