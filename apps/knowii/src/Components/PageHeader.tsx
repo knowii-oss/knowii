@@ -22,7 +22,7 @@ export default function PageHeader(props: PropsWithChildren<Props>) {
 
   const compactLogoAndMark = (
     <div className="flex flex-col sm:flex-row gap-2 items-center h-full">
-      <ApplicationMark className="w-12 md:w-10" />
+      <ApplicationMark className="w-12 md:w-14 lg:w-16" />
       {/* Hide the logo when the screen is too small in compact mode */}
       <ApplicationLogo className="hidden sm:block text-2xl md:text-4xl lg:text-4xl" />
     </div>
@@ -40,7 +40,7 @@ export default function PageHeader(props: PropsWithChildren<Props>) {
       className={classNames(
         `bg-gray-800 flex flex-col md:flex-row flex-wrap items-center justify-center md:justify-between`,
         { 'p-4 md:p-6 lg:p-12': !props.compact },
-        { 'p-2 lg:p-2': props.compact },
+        { 'pl-0 sm:pl-4 sm:pr-4 pb-2 lg:pb-2': props.compact },
       )}
     >
       {props.addLinkOnLogo ? (

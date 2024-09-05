@@ -13,7 +13,7 @@
   "homepage": "https://github.com/DeveloPassion/knowii",
   "author": "dSebastien <sebastien@developassion.be> (https://dsebastien.net)",
   "scripts": {
-    "build": "npx nx build knowii && node ./tools/fix-vite-manifest.mjs",
+    "build": "npx cross-env NODE_ENV=production && npx nx build knowii && node ./tools/fix-vite-manifest.mjs",
     "clean": "rm -rf ./public/build && rm -rf ./public/hot && rm -rf ./dist",
     "cm": "npm run commit",
     "commit": "cz",
