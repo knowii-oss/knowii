@@ -1,12 +1,38 @@
-import FooterGuest from '@/Components/FooterGuest';
+import React from 'react';
+import PageHeader from '@/Components/PageHeader';
+import { PageContentWrapper } from '@/Components/PageContentWrapper';
 import { Head } from '@inertiajs/react';
+import FooterGuest from '@/Components/FooterGuest';
 
-export default function TermsOfService() {
+interface Props {
+  policy: string;
+}
+
+export default function PrivacyPolicy(props: Props) {
   return (
     <>
       <Head title="Privacy Policy" />
-      <h1 className="mt-16 text-center w-full">Coming soon...</h1>
-      <FooterGuest />
+
+      <div className="bg-gray-50 full-page">
+        <PageHeader
+          compact={true}
+          addLinkOnLogo={true}
+          showDashboardButton={false}
+          showLogoutButton={false}
+          showLoginButton={false}
+          showRegisterButton={false}
+        />
+
+        <PageContentWrapper>
+          <div className="flex flex-col items-center">
+            <div
+              className="min-w-full md:min-w-[75%] xl:min-w-[50%] p-6 mt-6 overflow-hidden prose bg-white shadow-md sm:max-w-2xl sm:rounded-lg"
+              dangerouslySetInnerHTML={{ __html: props.policy }}
+            />
+          </div>
+          <FooterGuest />
+        </PageContentWrapper>
+      </div>
     </>
   );
 }
