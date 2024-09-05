@@ -39,7 +39,6 @@ Necessary environment keys for development:
 
 - `RESEND_KEY`: for sending emails
 
-
 ### Docker usage
 
 During development, we use Laravel Sail with Docker and docker-compose.
