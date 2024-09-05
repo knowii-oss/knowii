@@ -75,8 +75,16 @@ h2 {
   @apply underline text-sm text-gray-600 hover:text-primary-500;
 }
 
+.menu-content-wrapper {
+  @apply flex flex-col gap-4 h-full;
+}
+
 .main-menu-entry > * {
   @apply flex flex-row gap-4 justify-center text-2xl py-2 rounded-md leading-none text-white bg-primary-500 hover:bg-primary-600 hover:cursor-pointer;
+}
+
+.user-menu-entry {
+  @apply hover:cursor-pointer flex flex-row p-4 rounded-md bg-gray-50 hover:outline hover:outline-primary-600;
 }
 
 .page-content-wrapper {
