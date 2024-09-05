@@ -1,11 +1,8 @@
-import { router } from '@inertiajs/core';
-import { Link, Head } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import classNames from 'classnames';
-import React, { PropsWithChildren, useState } from 'react';
-import useRoute from '@/Hooks/useRoute';
-import useTypedPage from '@/Hooks/useTypedPage';
+import React, { PropsWithChildren } from 'react';
+
 import ApplicationMark from '@/Components/ApplicationMark';
-import Banner from '@/Components/Banner';
 import Dropdown from '@/Components/Dropdown';
 import DropdownLink from '@/Components/DropdownLink';
 import NavLink from '@/Components/NavLink';
@@ -21,12 +18,6 @@ export default function AppLayout({ title, renderHeader, children }: PropsWithCh
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
               <div className="flex">
-                {/* <!-- Logo --> */}
-                <div className="flex-shrink-0 flex items-center">
-                  <Link href={route('dashboard')}>
-                    <ApplicationMark className="block h-9 w-auto" />
-                  </Link>
-                </div>
 
                 {/* <!-- Navigation Links --> */}
                 <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
