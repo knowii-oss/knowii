@@ -74,3 +74,12 @@ h2 {
 .simple-link {
   @apply underline text-sm text-gray-600 hover:text-primary-500;
 }
+
+.main-menu-entry > * {
+  @apply flex flex-row gap-4 justify-center text-2xl py-2 rounded-md leading-none text-white bg-primary-500 hover:bg-primary-600 hover:cursor-pointer;
+}
+
+.page-content-wrapper {
+  /* TODO implement */
+  /*@apply m-4 p-4 shadow-md rounded-md min-h-96;*/
+}

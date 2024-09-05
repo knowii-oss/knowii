@@ -128,10 +128,6 @@
     "password": "Password",
     "changeMyPassword": "Change my password"
   },
-  "dashboardPage": {
-    "pageTitle": "Dashboard",
-    "pageDescription": "Welcome to your personal dashboard."
-  },
   "blogPage": {
     "title": "Blog",
     "description": "Read the latest stories from our team!"

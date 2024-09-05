@@ -12,21 +12,6 @@ export default function AppLayout({ title, renderHeader, children }: PropsWithCh
   return (
     <div>
 
-      <div className="min-h-screen bg-gray-100">
-        <nav className="bg-white border-b border-gray-100">
-          {/* <!-- Primary Navigation Menu --> */}
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
-              <div className="flex">
-
-                {/* <!-- Navigation Links --> */}
-                <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                  <NavLink href={route('dashboard')} active={route().current('dashboard')}>
-                    Dashboard
-                  </NavLink>
-                </div>
-              </div>
-
                 {/* <!-- Settings Dropdown --> */}
                 <div className="ml-3 relative">
                   <Dropdown
