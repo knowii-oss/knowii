@@ -1,4 +1,4 @@
-import React, { PropsWithChildren, useRef } from 'react';
+import React, { PropsWithChildren } from 'react';
 
 interface Props {
   on: boolean;
