@@ -13,7 +13,7 @@ export default function TermsOfService(props: Props) {
     <>
       <Head title="Terms of Service" />
 
-      <div className="bg-gray-50 full-page">
+      <div className="page-wrapper">
         <PageHeader
           compact={true}
           addLinkOnLogo={true}

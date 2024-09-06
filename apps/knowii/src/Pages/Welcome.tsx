@@ -20,7 +20,7 @@ export default function Welcome(props: WelcomePageProps) {
     <>
       <Head title="Welcome" />
 
-      <div className="bg-gray-50 full-page">
+      <div className="page-wrapper">
         <PageHeader
           compact={false}
           addLinkOnLogo={false}

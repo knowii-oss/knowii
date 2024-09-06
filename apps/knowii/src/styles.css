@@ -87,6 +87,10 @@ h2 {
   @apply hover:cursor-pointer flex flex-row p-4 rounded-md bg-gray-50 hover:outline hover:outline-primary-600;
 }
 
+.page-wrapper {
+  @apply bg-gray-50 full-page;
+}
+
 .page-content-wrapper {
   /* TODO implement */
   /*@apply m-4 p-4 shadow-md rounded-md min-h-96;*/

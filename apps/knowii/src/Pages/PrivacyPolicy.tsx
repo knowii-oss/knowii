@@ -13,7 +13,7 @@ export default function PrivacyPolicy(props: Props) {
     <>
       <Head title="Privacy Policy" />
 
-      <div className="bg-gray-50 full-page">
+      <div className="page-wrapper">
         <PageHeader
           compact={true}
           addLinkOnLogo={true}

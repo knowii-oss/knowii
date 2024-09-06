@@ -8,7 +8,7 @@ export default function Contact() {
     <>
       <Head title="Contact Us" />
 
-      <div className="bg-gray-50 full-page">
+      <div className="page-wrapper">
         <PageHeader
           compact={true}
           addLinkOnLogo={true}
