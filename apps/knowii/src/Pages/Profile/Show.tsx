@@ -1,7 +1,8 @@
 import AppLayout from '@/Layouts/AppLayout';
 import { Session, useTypedPage } from '@knowii/common';
 import UpdateProfileInformationForm from '@/Pages/Profile/Partials/UpdateProfileInformationForm';
-import { Divider } from 'primereact/divider';
+import Separator from '@/Components/Separator';
+import UpdatePasswordForm from '@/Pages/Profile/Partials/UpdatePasswordForm';
 
 interface Props {
   confirmsTwoFactorAuthentication: boolean;
@@ -13,12 +14,11 @@ export default function UserProfile(props: Props) {
 
   return (
     <AppLayout title="Private profile" header={<h1 className="text-xl font-semibold leading-tight text-white">Your user profile</h1>}>
-      {page.props.jetstream.canUpdateProfileInformation ? (
-        <div className="">
-          <UpdateProfileInformationForm user={page.props.auth.user!} />
-        </div>
-      ) : null}
-      <Divider />
+      {page.props.jetstream.canUpdateProfileInformation ? <UpdateProfileInformationForm user={page.props.auth.user!} /> : null}
+      <Separator />
+
+      {page.props.jetstream.canUpdatePassword ? <UpdatePasswordForm /> : null}
+      <Separator />
     </AppLayout>
   );
 }

@@ -1,4 +1,4 @@
-import {User, USER_PROFILE_INFORMATION_UPDATE_URL, useTypedPage} from '@knowii/common';
+import { User, USER_PROFILE_INFORMATION_UPDATE_URL, useTypedPage } from '@knowii/common';
 import { Link, useForm } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
 import { FormEventHandler, useState } from 'react';
