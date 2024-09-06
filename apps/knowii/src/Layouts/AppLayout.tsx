@@ -1,21 +1,22 @@
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { DASHBOARD_URL, LOGOUT_URL, USER_PROFILE_URL, useTypedPage } from '@knowii/common';
 import { useRoute } from 'ziggy-js';
-import PageHeader from '@/Components/PageHeader';
 import { Sidebar } from 'primereact/sidebar';
 import { Button } from 'primereact/button';
-import { FaBars, FaHome, FaSignOutAlt, FaUser } from 'react-icons/fa';
-import { FaXmark } from 'react-icons/fa6';
-import ApplicationMark from '@/Components/ApplicationMark';
 import { Divider } from 'primereact/divider';
 import { Avatar } from 'primereact/avatar';
+import { FaBars, FaHome, FaSignOutAlt, FaUser } from 'react-icons/fa';
+import { FaXmark } from 'react-icons/fa6';
+import PageHeader from '@/Components/PageHeader';
+import ApplicationMark from '@/Components/ApplicationMark';
 import Footer from '@/Components/Footer';
+import PageContentWrapper from '@/Components/PageContentWrapper';
 
 interface Props {
   title: string;
-  header?: React.ReactNode;
-  children: React.ReactNode;
+  header?: ReactNode;
+  children: ReactNode;
 }
 
 export default function AppLayout(props: Props) {
@@ -118,10 +119,8 @@ export default function AppLayout(props: Props) {
           </div>
         )}
 
-        {/* Page content */}
-        <main className="page-content-wrapper">{props.children}</main>
+        <PageContentWrapper>{props.children}</PageContentWrapper>
 
-        {/* Footer */}
         <Footer />
       </div>
     </>

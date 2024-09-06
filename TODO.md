@@ -1,6 +1,7 @@
 # TODO
 
 - implement Footer
+- Profile form needs margin on mobile
 - Create a GuestLayout and use it for all auth pages (except Welcome)
   - Use GuestFooter in there
 - Extract min content pane size to class, and reuse it: min-h-[48rem]

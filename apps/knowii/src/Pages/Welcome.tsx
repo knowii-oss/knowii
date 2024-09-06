@@ -1,7 +1,8 @@
 import { Head } from '@inertiajs/react';
 import { useTypedPage } from '@knowii/common';
 import PageHeader from '@/Components/PageHeader';
-import { PageContentWrapper } from '@/Components/PageContentWrapper';
+import PageContentWrapper from '@/Components/PageContentWrapper';
+import Footer from '@/Components/Footer';
 
 interface WelcomePageProps {
   canLogin: boolean;
@@ -21,6 +22,9 @@ export default function Welcome(props: WelcomePageProps) {
       <Head title="Welcome" />
 
       <div className="page-wrapper">
+        {/* FIXME add banner */}
+        {/*<Banner />*/}
+
         <PageHeader
           compact={false}
           addLinkOnLogo={false}
@@ -40,6 +44,7 @@ export default function Welcome(props: WelcomePageProps) {
 
           <div className="mt-16 flex flex-row justify-center text-5xl font-bold">Coming soon...</div>
         </PageContentWrapper>
+        <Footer />
       </div>
     </>
   );

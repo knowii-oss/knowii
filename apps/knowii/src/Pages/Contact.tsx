@@ -1,6 +1,7 @@
-import PageHeader from '@/Components/PageHeader';
-import { PageContentWrapper } from '@/Components/PageContentWrapper';
 import { Head } from '@inertiajs/react';
+
+import PageHeader from '@/Components/PageHeader';
+import PageContentWrapper from '@/Components/PageContentWrapper';
 import FooterGuest from '@/Components/FooterGuest';
 
 export default function Contact() {
