@@ -75,6 +75,7 @@ If you want to run the production version locally, you can:
 - `composer start`: Start the application
 
 ### Adding new pages
+
 To add new pages to the application, you can either create a dedicated controller (e.g., for API endpoints), or declare the page in the `web.php` routes file. Example: `Route::inertia('/contact', 'Contact');`
 
 ### Configuration

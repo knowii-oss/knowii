@@ -29,7 +29,7 @@ export default function AppLayout(props: Props) {
     <>
       <Head title={props.title} />
 
-      <div className="bg-gray-50 full-page">
+      <div className="page-wrapper">
         {/* FIXME add banner */}
         {/*<Banner />*/}
 
