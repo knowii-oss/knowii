@@ -28,7 +28,7 @@ export default function UpdatePasswordForm() {
 
   const passwordRef = useRef<HTMLInputElement | null>(null);
   const currentPasswordRef = useRef<HTMLInputElement | null>(null);
-  const toastRef = useRef(null);
+  const toastRef = useRef<Toast | null>(null);
 
   const updatePassword: FormEventHandler = (e) => {
     e.preventDefault();
@@ -38,7 +38,7 @@ export default function UpdatePasswordForm() {
       preserveScroll: true,
       onSuccess: () => {
         form.reset();
-        toastRef.current.show({ severity: 'success', summary: 'Success', detail: 'Password updated successfully.' });
+        toastRef.current?.show({ severity: 'success', summary: 'Success', detail: 'Password updated successfully.' });
       },
       onError: () => {
         if (form.errors.password) {
@@ -63,7 +63,7 @@ export default function UpdatePasswordForm() {
         <>
           <Toast position="bottom-center" ref={toastRef} />
 
-          <Button severity="primary" className={classNames({ 'opacity-25': form.processing })} disabled={form.processing}>
+          <Button className={classNames({ 'opacity-25': form.processing })} disabled={form.processing}>
             Save
           </Button>
         </>

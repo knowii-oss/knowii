@@ -33,7 +33,7 @@ export default function UpdateProfileInformationForm(props: Props) {
     photo: null as File | null,
   });
 
-  const toastRef = useRef(null);
+  const toastRef = useRef<Toast | null>(null);
 
   const updateProfileInformation: FormEventHandler = (e) => {
     e.preventDefault();
@@ -42,7 +42,7 @@ export default function UpdateProfileInformationForm(props: Props) {
       errorBag: 'updateProfileInformation',
       preserveScroll: true,
       onSuccess: () => {
-        toastRef.current.show({ severity: 'success', summary: 'Success', detail: 'Profile changed successfully.' });
+        toastRef.current?.show({ severity: 'success', summary: 'Success', detail: 'Profile changed successfully.' });
       },
     });
   };
@@ -60,7 +60,7 @@ export default function UpdateProfileInformationForm(props: Props) {
         <>
           <Toast position="bottom-center" ref={toastRef} />
 
-          <Button severity="primary" className={classNames({ 'opacity-25': form.processing })} disabled={form.processing}>
+          <Button className={classNames({ 'opacity-25': form.processing })} disabled={form.processing}>
             Save
           </Button>
         </>

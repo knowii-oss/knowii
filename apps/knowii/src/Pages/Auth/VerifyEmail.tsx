@@ -51,7 +51,7 @@ export default function Login(props: Props) {
               </Link>
             </div>
             <div>
-              <Link href={route(LOGOUT_URL)} method="POST" className="simple-link">
+              <Link href={route(LOGOUT_URL)} method="post" className="simple-link">
                 Log out
               </Link>
             </div>

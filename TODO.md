@@ -1,15 +1,10 @@
 # TODO
 
-<div className="flex flex-row justify-end">
-          <Button
-            className="w-32 h-16"
-            aria-label={'Log out'}
-            severity="primary"
-          >
-          <FaSignOutAlt/>
-          </Button>
-          </div>,
+- implement Banner component
+- remove usages of headlessui/react
+- remove usages of useForm() without the type parameter. See UpdateProfileInformationForm.tsx for a good example
+- add addLink to ApplicationLogo, use it on AuthenticationCard, and remove AuthenticationCardLogo
 
-        router.visit(LOGOUT_URL,{
-          method: 'post',
-        });
+use Illuminate\Support\Facades\Log;
+Log::emergency("LOL");
+dd($response->getStatusCode());

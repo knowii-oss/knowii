@@ -130,7 +130,16 @@ export default function Register() {
             <div className="mt-4">
               <InputLabel htmlFor="terms">
                 <div className="flex items-center">
-                  <Checkbox name="terms" id="terms" checked={form.data.terms} onChange={(e) => form.setData('terms', e.checked)} required />
+                  <Checkbox
+                    name="terms"
+                    id="terms"
+                    checked={form.data.terms}
+                    onChange={(e) => {
+                      // @ts-expect-error
+                      form.setData('terms', e.target.checked);
+                    }}
+                    required
+                  />
 
                   <div className="ml-2">
                     I agree to the&nbsp;

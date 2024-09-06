@@ -27,7 +27,7 @@ export default function LogoutOtherBrowserSessionsForm(props: Props) {
 
   const passwordRef = useRef<HTMLInputElement | null>(null);
 
-  const toastRef = useRef(null);
+  const toastRef = useRef<Toast | null>(null);
 
   const [confirmingLogout, setConfirmingLogout] = useState(false);
 
@@ -42,7 +42,7 @@ export default function LogoutOtherBrowserSessionsForm(props: Props) {
       preserveScroll: true,
       onSuccess: () => {
         closeModal();
-        toastRef.current.show({ severity: 'success', summary: 'Success', detail: 'Logged you out of other browser sessions.' });
+        toastRef.current?.show({ severity: 'success', summary: 'Success', detail: 'Logged you out of other browser sessions.' });
       },
       onError: () => passwordRef.current?.focus(),
       onFinish: () => form.reset(),
@@ -99,9 +99,7 @@ export default function LogoutOtherBrowserSessionsForm(props: Props) {
       )}
 
       <div className="flex items-center mt-5">
-        <Button severity="primary" onClick={confirmLogout}>
-          Log out other browser sessions
-        </Button>
+        <Button onClick={confirmLogout}>Log out other browser sessions</Button>
       </div>
 
       <Dialog
@@ -112,7 +110,7 @@ export default function LogoutOtherBrowserSessionsForm(props: Props) {
         footer={
           <>
             <Button severity="secondary" label="Cancel" onClick={closeModal} />
-            <Button severity="primary" label="Go ahead!" onClick={logoutOtherBrowserSessions} disabled={form.processing} className="ml-2" />
+            <Button label="Go ahead!" onClick={logoutOtherBrowserSessions} disabled={form.processing} className="ml-2" />
           </>
         }
       >
