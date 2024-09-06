@@ -1,5 +1,4 @@
-import { Transition } from '@headlessui/react';
-import React, { PropsWithChildren } from 'react';
+import React, { PropsWithChildren, useRef } from 'react';
 
 interface Props {
   on: boolean;
@@ -9,9 +8,7 @@ interface Props {
 export default function ActionMessage({ on, className, children }: PropsWithChildren<Props>) {
   return (
     <div className={className}>
-      <Transition show={on} leave="transition ease-in duration-1000" leave-from-class="opacity-100" leaveTo="opacity-0">
-        <div className="text-sm text-gray-600">{children}</div>
-      </Transition>
+      <div className={`text-sm text-gray-600 transition-opacity ease-in-out duration-1000 ${on ? '' : 'opacity-0'}`}>{children}</div>
     </div>
   );
 }
