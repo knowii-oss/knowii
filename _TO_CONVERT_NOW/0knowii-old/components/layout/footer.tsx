@@ -40,10 +40,10 @@ export function Footer(_props: FooterProps) {
           <VStack align="start" spacing={3}>
             <Logo />
             <HStack>
-              <IconButton aria-label="Email" as="a" href={`mailto:${contacts.mail}`} colorScheme="primary" variant="ghost" fontSize="xl">
+              <IconButton aria-label="Email" as="a" href={`mailto:${contacts.mail}`} variant="ghost" fontSize="xl">
                 <FaEnvelope />
               </IconButton>
-              <IconButton aria-label="Twitter" as="a" href={social.twitterSebastien} colorScheme="twitter" variant="ghost" fontSize="xl">
+              <IconButton aria-label="Twitter" as="a" href={social.twitterSebastien} variant="ghost" fontSize="xl">
                 <FaTwitter />
               </IconButton>
             </HStack>
