@@ -105,7 +105,7 @@ export default function UpdateProfileInformationForm(props: Props) {
         {page.props.jetstream.hasEmailVerification && props.user.email_verified_at === null ? (
           <div>
             <p className="text-sm mt-2">
-              Your email address is unverified.&nbsp;
+              <span className="text-red">Your email address is unverified.&nbsp;</span>
               <Link
                 href={route('verification.send')}
                 method="post"
