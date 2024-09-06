@@ -3,6 +3,7 @@ import { Session, useTypedPage } from '@knowii/common';
 import UpdateProfileInformationForm from '@/Pages/Profile/Partials/UpdateProfileInformationForm';
 import Separator from '@/Components/Separator';
 import UpdatePasswordForm from '@/Pages/Profile/Partials/UpdatePasswordForm';
+import LogoutOtherBrowserSessionsForm from '@/Pages/Profile/Partials/LogoutOtherBrowserSessionsForm';
 
 interface Props {
   confirmsTwoFactorAuthentication: boolean;
@@ -18,6 +19,9 @@ export default function UserProfile(props: Props) {
       <Separator />
 
       {page.props.jetstream.canUpdatePassword ? <UpdatePasswordForm /> : null}
+      <Separator />
+
+      <LogoutOtherBrowserSessionsForm sessions={props.sessions} />
       <Separator />
     </AppLayout>
   );
