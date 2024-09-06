@@ -46,6 +46,7 @@ export default function Login({ canResetPassword, status }: Props) {
         {status && <div className="mb-4 font-medium text-sm text-green-600">{status}</div>}
 
         <form onSubmit={submit}>
+          {/* Email */}
           <div>
             <InputLabel htmlFor="email">Email</InputLabel>
             <div className="p-inputgroup mt-1">
@@ -66,6 +67,7 @@ export default function Login({ canResetPassword, status }: Props) {
             <InputError className="mt-2" message={form.errors.email} />
           </div>
 
+          {/* Password */}
           <div className="mt-4">
             <InputLabel htmlFor="password">Password</InputLabel>
             <div className="p-inputgroup mt-1">
@@ -85,6 +87,7 @@ export default function Login({ canResetPassword, status }: Props) {
             <InputError className="mt-2" message={form.errors.password} />
           </div>
 
+          {/* Remember me */}
           <div className="mt-4">
             <label className="flex items-center">
               <Checkbox
@@ -96,7 +99,9 @@ export default function Login({ canResetPassword, status }: Props) {
             </label>
           </div>
 
+          {/* Actions */}
           <div className="flex flex-col space-y-2 md:flex-row md:items-center md:justify-between md:space-y-0 mt-4">
+            {/* Password reset */}
             {canResetPassword && (
               <div>
                 <Link href={route(FORGOT_PASSWORD_URL)} className="simple-link">
@@ -106,10 +111,12 @@ export default function Login({ canResetPassword, status }: Props) {
             )}
 
             <div className="flex items-center justify-end">
+              {/* Register */}
               <Link href={route(REGISTER_URL)} className="simple-link">
                 Need an account?
               </Link>
 
+              {/* Log in */}
               <Button label="Log in" className={classNames('ml-4', { 'opacity-25': form.processing })} disabled={form.processing} />
             </div>
           </div>
