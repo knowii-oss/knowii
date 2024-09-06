@@ -86,11 +86,3 @@ h2 {
 .user-menu-entry {
   @apply hover:cursor-pointer flex flex-row p-4 rounded-md bg-gray-50 hover:outline hover:outline-primary-600;
 }
-
-.page-wrapper {
-  @apply bg-gray-50 full-page;
-}
-
-.page-content-wrapper {
-  @apply mt-8 md:mt-12 lg:mt-16 sm:mx-4 md:mx-8 lg:mx-16 xl:mx-24 min-h-[32rem] xl:min-h-[48rem] px-4;
-}

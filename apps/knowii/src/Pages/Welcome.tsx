@@ -3,6 +3,7 @@ import { useTypedPage } from '@knowii/common';
 import PageHeader from '@/Components/PageHeader';
 import PageContentWrapper from '@/Components/PageContentWrapper';
 import Footer from '@/Components/Footer';
+import PageWrapper from '@/Components/PageWrapper';
 
 interface WelcomePageProps {
   canLogin: boolean;
@@ -21,7 +22,7 @@ export default function Welcome(props: WelcomePageProps) {
     <>
       <Head title="Welcome" />
 
-      <div className="page-wrapper">
+      <PageWrapper>
         {/* FIXME add banner */}
         {/*<Banner />*/}
 
@@ -45,7 +46,7 @@ export default function Welcome(props: WelcomePageProps) {
           <div className="mt-16 flex flex-row justify-center text-5xl font-bold">Coming soon...</div>
         </PageContentWrapper>
         <Footer />
-      </div>
+      </PageWrapper>
     </>
   );
 }

@@ -12,6 +12,7 @@ import PageHeader from '@/Components/PageHeader';
 import ApplicationMark from '@/Components/ApplicationMark';
 import Footer from '@/Components/Footer';
 import PageContentWrapper from '@/Components/PageContentWrapper';
+import PageWrapper from '@/Components/PageWrapper';
 
 interface Props {
   title: string;
@@ -30,7 +31,7 @@ export default function AppLayout(props: Props) {
     <>
       <Head title={props.title} />
 
-      <div className="page-wrapper">
+      <PageWrapper>
         {/* FIXME add banner */}
         {/*<Banner />*/}
 
@@ -122,7 +123,7 @@ export default function AppLayout(props: Props) {
         <PageContentWrapper>{props.children}</PageContentWrapper>
 
         <Footer />
-      </div>
+      </PageWrapper>
     </>
   );
 }
