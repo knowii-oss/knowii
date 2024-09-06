@@ -39,6 +39,7 @@ export const FORGOT_PASSWORD_URL = 'password.request';
 export const EMAIL_VERIFICATION_URL = 'verification.send';
 export const EMAIL_VERIFICATION_STATUS_LINK_SENT = 'verification-link-sent';
 export const DESTROY_OTHER_BROWSER_SESSIONS_URL = 'other-browser-sessions.destroy';
+export const DELETE_USER_URL = 'current-user.destroy';
 /**
  * API
  */
