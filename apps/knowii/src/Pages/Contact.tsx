@@ -3,13 +3,14 @@ import { Head } from '@inertiajs/react';
 import PageHeader from '@/Components/PageHeader';
 import PageContentWrapper from '@/Components/PageContentWrapper';
 import FooterGuest from '@/Components/FooterGuest';
+import PageWrapper from '@/Components/PageWrapper';
 
 export default function Contact() {
   return (
     <>
       <Head title="Contact Us" />
 
-      <div className="page-wrapper">
+      <PageWrapper>
         <PageHeader
           compact={true}
           addLinkOnLogo={true}
@@ -28,7 +29,7 @@ export default function Contact() {
           </div>
           <FooterGuest />
         </PageContentWrapper>
-      </div>
+      </PageWrapper>
     </>
   );
 }

@@ -1,7 +1,8 @@
 import PageHeader from '@/Components/PageHeader';
-import { PageContentWrapper } from '@/Components/PageContentWrapper';
+import PageContentWrapper from '@/Components/PageContentWrapper';
 import { Head } from '@inertiajs/react';
 import FooterGuest from '@/Components/FooterGuest';
+import PageWrapper from '@/Components/PageWrapper';
 
 interface Props {
   terms: string;
@@ -12,7 +13,7 @@ export default function TermsOfService(props: Props) {
     <>
       <Head title="Terms of Service" />
 
-      <div className="page-wrapper">
+      <PageWrapper>
         <PageHeader
           compact={true}
           addLinkOnLogo={true}
@@ -31,7 +32,7 @@ export default function TermsOfService(props: Props) {
           </div>
           <FooterGuest />
         </PageContentWrapper>
-      </div>
+      </PageWrapper>
     </>
   );
 }

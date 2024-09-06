@@ -5,6 +5,7 @@ import FooterGuest from '@/Components/FooterGuest';
 import { HOME_URL } from '@knowii/common';
 import { Button } from 'primereact/button';
 import { FaHome } from 'react-icons/fa';
+import PageWrapper from '@/Components/PageWrapper';
 
 interface Props {
   status: string;
@@ -31,7 +32,7 @@ export default function Error(props: Props) {
     <>
       <Head title={`Error: ${errorTitle}`} />
 
-      <div className="page-wrapper">
+      <PageWrapper>
         <PageHeader
           compact={true}
           addLinkOnLogo={true}
@@ -62,7 +63,7 @@ export default function Error(props: Props) {
           </div>
           <FooterGuest />
         </PageContentWrapper>
-      </div>
+      </PageWrapper>
     </>
   );
 }
