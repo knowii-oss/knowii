@@ -1,12 +1,12 @@
 import classNames from 'classnames';
-import React, { PropsWithChildren } from 'react';
+import { FormEventHandler, PropsWithChildren, ReactNode } from 'react';
 import SectionTitle from '@/Components/SectionTitle';
 
 interface Props {
   title: string;
   description: string;
-  renderActions?(): JSX.Element;
-  onSubmit(): void;
+  renderActions?(): ReactNode;
+  onSubmit: FormEventHandler;
 }
 
 export default function FormSection({ onSubmit, renderActions, title, description, children }: PropsWithChildren<Props>) {
@@ -17,12 +17,7 @@ export default function FormSection({ onSubmit, renderActions, title, descriptio
       <SectionTitle title={title} description={description} />
 
       <div className="mt-5 md:mt-0 md:col-span-2">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            onSubmit();
-          }}
-        >
+        <form onSubmit={onSubmit}>
           <div
             className={classNames('px-4 py-5 bg-white sm:p-6 shadow', hasActions ? 'sm:rounded-tl-md sm:rounded-tr-md' : 'sm:rounded-md')}
           >
@@ -30,7 +25,7 @@ export default function FormSection({ onSubmit, renderActions, title, descriptio
           </div>
 
           {hasActions && (
-            <div className="flex items-center justify-end px-4 py-3 bg-gray-50 text-right sm:px-6 shadow sm:rounded-bl-md sm:rounded-br-md">
+            <div className="flex flex-row justify-end px-4 py-3 bg-white items-center text-right sm:px-6 shadow-md sm:rounded-b-md">
               {renderActions?.()}
             </div>
           )}
