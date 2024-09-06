@@ -14,10 +14,6 @@ export const API_CREATE_NEW_COMMUNITY = `${API_BASE_PATH}${API_COMMUNITIES_BASE_
 export const COMMUNITY_BASE_URL = '/community';
 export const COMMUNITIES_BASE_URL = '/communities';
 export const CREATE_COMMUNITY_URL = `${COMMUNITIES_BASE_URL}/create`; // TODO use in UI
-export const BLOG_BASE_URL = '/blog';
-export const PRIVACY_POLICY_URL = '/privacy';
-export const TERMS_OF_USE_URL = '/terms';
-export const CONTACT_URL = '/contact';
 
 /**
  * Regexes
