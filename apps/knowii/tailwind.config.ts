@@ -1,11 +1,10 @@
 import type { Config } from 'tailwindcss';
-const { createGlobPatternsForDependencies } = require('@nx/react/tailwind');
-const { join } = require('path');
+import { createGlobPatternsForDependencies } from '@nx/react/tailwind';
+import { join } from 'path';
+import { theme } from './src/theme.mjs';
 import defaultTheme from 'tailwindcss/defaultTheme';
 import forms from '@tailwindcss/forms';
 import typography from '@tailwindcss/typography';
-
-import { theme } from './src/theme.mjs';
 
 /** @type {import('tailwindcss').Config} */
 export default {

@@ -37,7 +37,12 @@ export default function Welcome(props: WelcomePageProps) {
 
         <PageContentWrapper>
           <div className="flex flex-col items-center">
-            <h1 className="text-primary-500">Welcome&nbsp;👋</h1>
+            <h1 className="text-primary-500">
+              Welcome&nbsp;
+              <span role={'img'} aria-label="waving hand">
+                👋
+              </span>
+            </h1>
             <h2 className="mt-4">
               Know<span className="text-primary-500">ii</span> is a place for your community's Knowledge, Ideas and Inspiration.
             </h2>

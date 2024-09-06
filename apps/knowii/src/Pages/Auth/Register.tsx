@@ -135,19 +135,22 @@ export default function Register() {
                     id="terms"
                     checked={form.data.terms}
                     onChange={(e) => {
-                      // @ts-expect-error
-                      form.setData('terms', e.target.checked);
+                      if (e.target && e.target.checked === true) {
+                        form.setData('terms', true);
+                      } else {
+                        form.setData('terms', false);
+                      }
                     }}
                     required
                   />
 
                   <div className="ml-2">
                     I agree to the&nbsp;
-                    <a target="_blank" href={route(TERMS_OF_SERVICE_URL)} className="simple-link">
+                    <a target="_blank" rel="noreferrer" href={route(TERMS_OF_SERVICE_URL)} className="simple-link">
                       Terms of Service&nbsp;
                     </a>
                     and&nbsp;
-                    <a target="_blank" href={route(PRIVACY_POLICY_URL)} className="simple-link">
+                    <a target="_blank" rel="noreferrer" href={route(PRIVACY_POLICY_URL)} className="simple-link">
                       Privacy Policy
                     </a>
                   </div>
