@@ -92,6 +92,5 @@ h2 {
 }
 
 .page-content-wrapper {
-  /* TODO implement */
-  /*@apply m-4 p-4 shadow-md rounded-md min-h-96;*/
+  @apply sm:mx-4 md:mx-8 lg:mx-16 xl:mx-24 mt-4 p-4 min-h-[48rem] rounded-b-md;
 }
