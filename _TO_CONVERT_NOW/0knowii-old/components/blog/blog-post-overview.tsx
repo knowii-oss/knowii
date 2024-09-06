@@ -53,7 +53,7 @@ export function BlogPostOverview({ slug, title, publishedOn, summary, image }: B
             <Text w="full">{summary}</Text>
 
             {/* Read more link */}
-            <Button as={NextLink} href={link} variant="outline" colorScheme="primary">
+            <Button as={NextLink} href={link} variant="outline">
               {t('readMore')} &rarr;
             </Button>
           </VStack>

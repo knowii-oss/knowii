@@ -1,37 +1,3 @@
-import {
-  Alert,
-  AlertIcon,
-  AlertTitle,
-  Button,
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
-  Input,
-  InputGroup,
-  InputLeftElement,
-  InputRightElement,
-  Link,
-  Stack,
-} from '@chakra-ui/react';
-import { useSupabaseClient } from '@supabase/auth-helpers-react';
-import NextLink from 'next/link';
-import { useRouter } from 'next/router';
-import { ClipboardEvent, KeyboardEvent, useCallback, useState } from 'react';
-import { SubmitHandler, useForm } from 'react-hook-form';
-import { FaAt, FaCheckCircle, FaClock, FaEye, FaEyeSlash, FaLock, FaTimesCircle, FaUserAlt } from 'react-icons/fa';
-import {
-  allowedUsernameCharactersRegex,
-  APP_BASE_URL,
-  forbiddenUsernameCharactersRegex,
-  maxLengthUsername,
-  minLengthUsername,
-  SIGN_IN_URL,
-} from '@knowii/common';
-import { useAuthRedirectUrl } from '@knowii/client';
-import { AuthFormWrapper } from './auth-form-wrapper';
-import { useTranslations } from 'next-intl';
-import { Provider } from '@supabase/supabase-js';
-
 export interface SignupFormProps {
   checkingUsernameAvailability: boolean;
   isUsernameAvailable: boolean;
@@ -48,10 +14,6 @@ interface SignupFormData {
 }
 
 export function SignupForm(props: SignupFormProps) {
-  const t = useTranslations('signupForm');
-  const supabaseClient = useSupabaseClient();
-  const router = useRouter();
-  const redirectTo = useAuthRedirectUrl();
   const {
     register,
     handleSubmit,
@@ -71,45 +33,6 @@ export function SignupForm(props: SignupFormProps) {
   });
 
   const [isPasswordVisible, setPasswordVisible] = useState(false);
-
-  const onSubmit: SubmitHandler<SignupFormData> = async ({ email, username, password, name }) => {
-    clearErrors('serverError');
-
-    const {
-      data: { session, user: newUser },
-      error,
-    } = await supabaseClient.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          // WARNING: Those kay names are VERY sensitive
-          // They are used by the triggers defined in supabase-db-seed.sql
-          // 'name' matches the field name used by GitHub (OAuth)
-          name,
-          email,
-          // 'user_name' matches the field name used by GitHub (OAuth)
-          user_name: username,
-          avatar_url: '',
-        },
-        emailRedirectTo: redirectTo,
-      },
-    });
-
-    if (error || !newUser) {
-      setError('serverError', { message: error?.message });
-      return;
-    }
-
-    // if email confirmations are enabled, the user will have to confirm their email before they can sign in
-    // Reference: https://supabase.com/docs/reference/dart/auth-signup
-    if (!session) {
-      return;
-    }
-
-    // if email confirmations are disabled, the user will be signed in automatically and redirected
-    await router.push(APP_BASE_URL);
-  };
 
   const togglePassword = useCallback(() => setPasswordVisible(!isPasswordVisible), [isPasswordVisible]);
 
@@ -265,8 +188,8 @@ export function SignupForm(props: SignupFormProps) {
               </FormControl>
 
               {/* Submit button */}
-              <Button colorScheme="primary" type="submit" isLoading={isSubmitting} isDisabled={!isValid || !props.isUsernameAvailable}>
-                {t('submitButton')}
+              <Button type="submit" isLoading={isSubmitting} isDisabled={!isValid || !props.isUsernameAvailable}>
+                Submit
               </Button>
             </>
           )}
@@ -275,5 +198,3 @@ export function SignupForm(props: SignupFormProps) {
     </AuthFormWrapper>
   );
 }
-
-export default SignupForm;

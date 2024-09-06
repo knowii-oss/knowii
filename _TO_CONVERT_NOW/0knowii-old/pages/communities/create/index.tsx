@@ -277,7 +277,7 @@ export function CreateNewCommunityPage(_props: CreateNewCommunityPageProps) {
                     </FormControl>
 
                     {/* Submit button */}
-                    <Button colorScheme="primary" type="submit" isLoading={isSubmitting} isDisabled={!isValid || !isNameAvailable}>
+                    <Button type="submit" isLoading={isSubmitting} isDisabled={!isValid || !isNameAvailable}>
                       {t('submitButton')}
                     </Button>
                   </>

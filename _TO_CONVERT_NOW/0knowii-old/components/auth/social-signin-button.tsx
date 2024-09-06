@@ -152,7 +152,6 @@ export function SocialSigninButton({ provider, redirectAfterSignin }: SocialSign
   return (
     <Button
       width="full"
-      colorScheme="gray"
       bg={providerData.color}
       color="white"
       _hover={{ bg: darken(providerData.color, 0.05) }}
