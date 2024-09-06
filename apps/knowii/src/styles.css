@@ -37,7 +37,7 @@ body {
 html,
 body,
 body > div:first-child {
-  @apply h-dvh w-dvw antialiased m-0 p-0 text-base font-normal font-app bg-gray-50;
+  @apply antialiased m-0 p-0 text-base font-normal font-app bg-gray-50;
   -webkit-text-size-adjust: 100%;
   letter-spacing: -0.1px;
   /* Standard line height */
