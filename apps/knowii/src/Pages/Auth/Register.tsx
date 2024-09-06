@@ -44,6 +44,7 @@ export default function Register() {
       <Head title="Register" />
       <AuthenticationCard>
         <form onSubmit={submit}>
+          {/* Name */}
           <div>
             <InputLabel htmlFor="name">Name</InputLabel>
             <div className="p-inputgroup mt-1">
@@ -63,6 +64,8 @@ export default function Register() {
             </div>
             <InputError className="mt-2" message={form.errors.name} />
           </div>
+
+          {/* Email */}
           <div className="mt-4">
             <InputLabel htmlFor="email">Email</InputLabel>
             <div className="p-inputgroup mt-1">
@@ -81,6 +84,8 @@ export default function Register() {
             </div>
             <InputError className="mt-2" message={form.errors.email} />
           </div>
+
+          {/* Password */}
           <div className="mt-4">
             <InputLabel htmlFor="password">Password</InputLabel>
             <div className="p-inputgroup mt-1">
@@ -99,6 +104,8 @@ export default function Register() {
             </div>
             <InputError className="mt-2" message={form.errors.password} />
           </div>
+
+          {/* Confirm password */}
           <div className="mt-4">
             <InputLabel htmlFor="password_confirmation">Confirm password</InputLabel>
             <div className="p-inputgroup mt-1">
@@ -117,6 +124,8 @@ export default function Register() {
             </div>
             <InputError className="mt-2" message={form.errors.password_confirmation} />
           </div>
+
+          {/* Terms and privacy policy */}
           {page.props.jetstream.hasTermsAndPrivacyPolicyFeature && (
             <div className="mt-4">
               <InputLabel htmlFor="terms">
@@ -138,11 +147,15 @@ export default function Register() {
               </InputLabel>
             </div>
           )}
+
+          {/* Actions */}
           <div className="mt-4 flex items-center justify-end">
+            {/* Login */}
             <Link href={route(LOGIN_URL)} className="simple-link">
               Already registered?
             </Link>
 
+            {/* Register */}
             <Button label="Register" className={classNames('ml-4', { 'opacity-25': form.processing })} disabled={form.processing} />
           </div>
         </form>

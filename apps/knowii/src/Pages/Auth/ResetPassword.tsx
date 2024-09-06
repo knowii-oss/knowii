@@ -46,6 +46,8 @@ export default function Register(props: Props) {
 
       <AuthenticationCard>
         <form onSubmit={submit}>
+
+          {/* Email */}
           <div className="mt-4">
             <InputLabel htmlFor="email">Email</InputLabel>
             <div className="p-inputgroup mt-1">
@@ -64,6 +66,8 @@ export default function Register(props: Props) {
             </div>
             <InputError className="mt-2" message={form.errors.email} />
           </div>
+
+          {/* Password */}
           <div className="mt-4">
             <InputLabel htmlFor="password">Password</InputLabel>
             <div className="p-inputgroup mt-1">
@@ -82,6 +86,8 @@ export default function Register(props: Props) {
             </div>
             <InputError className="mt-2" message={form.errors.password} />
           </div>
+
+          {/* Confirm password */}
           <div className="mt-4">
             <InputLabel htmlFor="password_confirmation">Confirm password</InputLabel>
             <div className="p-inputgroup mt-1">
@@ -100,7 +106,10 @@ export default function Register(props: Props) {
             </div>
             <InputError className="mt-2" message={form.errors.password_confirmation} />
           </div>
+
+          {/* Actions */}
           <div className="mt-4 flex items-center justify-end">
+            {/* Reset password */}
             <Button label="Reset password" className={classNames('ml-4', { 'opacity-25': form.processing })} disabled={form.processing} />
           </div>
         </form>
