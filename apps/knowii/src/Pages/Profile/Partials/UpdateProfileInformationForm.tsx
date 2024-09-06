@@ -1,4 +1,4 @@
-import { User, useTypedPage } from '@knowii/common';
+import {User, USER_PROFILE_INFORMATION_UPDATE_URL, useTypedPage} from '@knowii/common';
 import { Link, useForm } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
 import { FormEventHandler, useState } from 'react';
@@ -15,13 +15,19 @@ interface Props {
   user: User;
 }
 
+interface UpdateProfileInformationFormData {
+  name: string;
+  email: string;
+  photo: File | null;
+}
+
 export default function UpdateProfileInformationForm(props: Props) {
   const route = useRoute();
   const page = useTypedPage();
 
   const [verificationLinkSent, setVerificationLinkSent] = useState(false);
 
-  const form = useForm({
+  const form = useForm<UpdateProfileInformationFormData>({
     name: props.user.name,
     email: props.user.email,
     photo: null as File | null,
@@ -30,7 +36,7 @@ export default function UpdateProfileInformationForm(props: Props) {
   const updateProfileInformation: FormEventHandler = (e) => {
     e.preventDefault();
 
-    form.put(route('user-profile-information.update'), {
+    form.put(route(USER_PROFILE_INFORMATION_UPDATE_URL), {
       errorBag: 'updateProfileInformation',
       preserveScroll: true,
     });
