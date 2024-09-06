@@ -92,5 +92,5 @@ h2 {
 }
 
 .page-content-wrapper {
-  @apply sm:mx-4 md:mx-8 lg:mx-16 xl:mx-24 mt-4 p-4 min-h-[48rem] rounded-b-md;
+  @apply mt-8 md:mt-12 lg:mt-16 sm:mx-4 md:mx-8 lg:mx-16 xl:mx-24 min-h-[32rem] xl:min-h-[48rem] px-4;
 }

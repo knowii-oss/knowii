@@ -16,7 +16,9 @@ export default function UserProfile(props: Props) {
 
   return (
     <AppLayout title="Private profile" header={<h1 className="text-xl font-semibold leading-tight text-white">Your user profile</h1>}>
-      {page.props.jetstream.canUpdateProfileInformation && <UpdateProfileInformationForm user={page.props.auth.user!} />}
+      {page.props.jetstream.canUpdateProfileInformation && page.props.auth.user && (
+        <UpdateProfileInformationForm user={page.props.auth.user} />
+      )}
       <Separator />
 
       {page.props.jetstream.canUpdatePassword && <UpdatePasswordForm />}
