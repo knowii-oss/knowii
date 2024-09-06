@@ -30,4 +30,6 @@ createInertiaApp({
   progress: {
     color: '#4B5563',
   },
-}).then((_createdApp) => {});
+}).then((_createdApp) => {
+  console.log('Welcome to Knowii ❤️');
+});
