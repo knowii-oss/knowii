@@ -10,6 +10,7 @@ import { FaXmark } from 'react-icons/fa6';
 import ApplicationMark from '@/Components/ApplicationMark';
 import { Divider } from 'primereact/divider';
 import { Avatar } from 'primereact/avatar';
+import Footer from '@/Components/Footer';
 
 interface Props {
   title: string;
@@ -119,6 +120,9 @@ export default function AppLayout(props: Props) {
 
         {/* Page content */}
         <main className="page-content-wrapper">{props.children}</main>
+
+        {/* Footer */}
+        <Footer />
       </div>
     </>
   );
