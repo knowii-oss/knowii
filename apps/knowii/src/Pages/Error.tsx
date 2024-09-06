@@ -1,18 +1,19 @@
 import PageHeader from '@/Components/PageHeader';
 import { PageContentWrapper } from '@/Components/PageContentWrapper';
-import { Head, Link } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import FooterGuest from '@/Components/FooterGuest';
-import { HOME_URL, LOGOUT_URL } from '@knowii/common';
+import { HOME_URL } from '@knowii/common';
 import { Button } from 'primereact/button';
-import classNames from 'classnames';
-import { FaHome, FaSignOutAlt } from 'react-icons/fa';
+import { FaHome } from 'react-icons/fa';
 import { useRoute } from 'ziggy-js';
 
 interface Props {
   status: string;
 }
 
-export default function Contact(props: Props) {
+// Generic error page
+// Reference: // https://inertiajs.com/error-handling
+export default function Error(props: Props) {
   const route = useRoute();
 
   const errorTitle = {
