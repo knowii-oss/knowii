@@ -1,8 +1,7 @@
 import { User, USER_PROFILE_INFORMATION_UPDATE_URL, useTypedPage } from '@knowii/common';
 import { Link, useForm } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
-import { FormEventHandler, useState } from 'react';
-import ActionMessage from '@/Components/ActionMessage';
+import React, { FormEventHandler, useRef, useState } from 'react';
 import { Button } from 'primereact/button';
 import FormSection from '@/Components/FormSection';
 import classNames from 'classnames';
@@ -10,6 +9,7 @@ import InputLabel from '@/Components/InputLabel';
 import { FaAt, FaUser } from 'react-icons/fa';
 import { InputText } from 'primereact/inputtext';
 import InputError from '@/Components/InputError';
+import { Toast } from 'primereact/toast';
 
 interface Props {
   user: User;
@@ -33,12 +33,17 @@ export default function UpdateProfileInformationForm(props: Props) {
     photo: null as File | null,
   });
 
+  const toastRef = useRef(null);
+
   const updateProfileInformation: FormEventHandler = (e) => {
     e.preventDefault();
 
     form.put(route(USER_PROFILE_INFORMATION_UPDATE_URL), {
       errorBag: 'updateProfileInformation',
       preserveScroll: true,
+      onSuccess: () => {
+        toastRef.current.show({ severity: 'success', summary: 'Success', detail: 'Profile changed successfully.' });
+      },
     });
   };
 
@@ -53,9 +58,7 @@ export default function UpdateProfileInformationForm(props: Props) {
       description={`Update your account's profile information and email address.`}
       renderActions={() => (
         <>
-          <ActionMessage on={form.recentlySuccessful} className="mr-3">
-            Saved.
-          </ActionMessage>
+          <Toast position="bottom-center" ref={toastRef} />
 
           <Button severity="primary" className={classNames({ 'opacity-25': form.processing })} disabled={form.processing}>
             Save

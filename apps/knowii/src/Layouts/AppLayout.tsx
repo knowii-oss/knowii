@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { DASHBOARD_URL, LOGOUT_URL, USER_PROFILE_URL, useTypedPage } from '@knowii/common';
 import { useRoute } from 'ziggy-js';
@@ -10,7 +10,6 @@ import { FaXmark } from 'react-icons/fa6';
 import ApplicationMark from '@/Components/ApplicationMark';
 import { Divider } from 'primereact/divider';
 import { Avatar } from 'primereact/avatar';
-import classNames from 'classnames';
 
 interface Props {
   title: string;

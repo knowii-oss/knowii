@@ -1,7 +1,7 @@
 import { useRoute } from 'ziggy-js';
 import { FormEventHandler, useRef, useState } from 'react';
 import { useForm } from '@inertiajs/react';
-import { DELETE_USER_URL, DESTROY_OTHER_BROWSER_SESSIONS_URL } from '@knowii/common';
+import { DELETE_USER_URL } from '@knowii/common';
 import { Button } from 'primereact/button';
 import { FaLock } from 'react-icons/fa';
 import { InputText } from 'primereact/inputtext';
@@ -35,16 +35,6 @@ export default function DeleteUserForm() {
 
     form.delete(route(DELETE_USER_URL), {
       preserveScroll: true,
-      onSuccess: () => closeModal(),
-      onError: () => passwordRef.current?.focus(),
-      onFinish: () => form.reset(),
-    });
-  };
-
-  const logoutOtherBrowserSessions = () => {
-    form.delete(route(DESTROY_OTHER_BROWSER_SESSIONS_URL), {
-      preserveScroll: true,
-      // FIXME implement
       onSuccess: () => closeModal(),
       onError: () => passwordRef.current?.focus(),
       onFinish: () => form.reset(),
