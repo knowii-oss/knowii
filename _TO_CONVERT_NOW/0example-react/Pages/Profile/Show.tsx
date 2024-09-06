@@ -1,18 +1,4 @@
 
-              <UpdateProfileInformationForm user={auth.user} jetstream={jetstream} />
-              <SectionBorder />
-
-
-
-
-          {jetstream.canUpdatePassword && (
-            <>
-              <div className="mt-10 sm:mt-0">
-                <UpdatePasswordForm />
-              </div>
-              <SectionBorder />
-            </>
-          )}
 
           {jetstream.canManageTwoFactorAuthentication && (
             <>

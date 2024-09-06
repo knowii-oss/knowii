@@ -20,6 +20,7 @@ export const TERMS_OF_SERVICE_URL = 'terms.show';
 export const PRIVACY_POLICY_URL = 'policy.show';
 export const USER_PROFILE_URL = 'profile.show';
 export const USER_PROFILE_INFORMATION_UPDATE_URL = 'user-profile-information.update';
+export const USER_PROFILE_PASSWORD_UPDATE_URL = 'user-password.update';
 
 // Teams
 export const CHANGE_CURRENT_TEAM_URL = 'current-team.update';
