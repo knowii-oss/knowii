@@ -38,6 +38,7 @@ export const FORGOT_PASSWORD_URL = 'password.request';
 // URL for sending email verification requests
 export const EMAIL_VERIFICATION_URL = 'verification.send';
 export const EMAIL_VERIFICATION_STATUS_LINK_SENT = 'verification-link-sent';
+export const DESTROY_OTHER_BROWSER_SESSIONS_URL = 'other-browser-sessions.destroy';
 /**
  * API
  */
