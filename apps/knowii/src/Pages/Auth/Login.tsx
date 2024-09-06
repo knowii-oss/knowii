@@ -1,6 +1,6 @@
 import { Link, useForm, Head } from '@inertiajs/react';
 import classNames from 'classnames';
-import React, { FormEventHandler } from 'react';
+import { FormEventHandler } from 'react';
 import AuthenticationCard from '@/Components/AuthenticationCard';
 import InputLabel from '@/Components/InputLabel';
 import InputError from '@/Components/InputError';

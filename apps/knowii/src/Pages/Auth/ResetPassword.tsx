@@ -1,7 +1,7 @@
 import FooterGuest from '@/Components/FooterGuest';
 import AuthenticationCard from '@/Components/AuthenticationCard';
 import { Head, useForm } from '@inertiajs/react';
-import React, { FormEventHandler } from 'react';
+import { FormEventHandler } from 'react';
 import { PASSWORD_UPDATE_URL } from '@knowii/common';
 import { useRoute } from 'ziggy-js';
 import InputLabel from '@/Components/InputLabel';

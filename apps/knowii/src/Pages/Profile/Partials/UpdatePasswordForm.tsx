@@ -1,8 +1,7 @@
 import { USER_PROFILE_PASSWORD_UPDATE_URL } from '@knowii/common';
 import { useForm } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
-import React, { FormEventHandler, useRef } from 'react';
-import ActionMessage from '@/Components/ActionMessage';
+import { FormEventHandler, useRef } from 'react';
 import { Button } from 'primereact/button';
 import FormSection from '@/Components/FormSection';
 import classNames from 'classnames';
@@ -10,6 +9,7 @@ import InputLabel from '@/Components/InputLabel';
 import { FaLock } from 'react-icons/fa';
 import { InputText } from 'primereact/inputtext';
 import InputError from '@/Components/InputError';
+import { Toast } from 'primereact/toast';
 
 interface UpdatePasswordFormData {
   current_password: string;
@@ -28,6 +28,7 @@ export default function UpdatePasswordForm() {
 
   const passwordRef = useRef<HTMLInputElement | null>(null);
   const currentPasswordRef = useRef<HTMLInputElement | null>(null);
+  const toastRef = useRef(null);
 
   const updatePassword: FormEventHandler = (e) => {
     e.preventDefault();
@@ -35,7 +36,10 @@ export default function UpdatePasswordForm() {
     form.put(route(USER_PROFILE_PASSWORD_UPDATE_URL), {
       errorBag: 'updatePassword',
       preserveScroll: true,
-      onSuccess: () => form.reset(),
+      onSuccess: () => {
+        form.reset();
+        toastRef.current.show({ severity: 'success', summary: 'Success', detail: 'Password updated successfully.' });
+      },
       onError: () => {
         if (form.errors.password) {
           form.reset('password', 'password_confirmation');
@@ -57,9 +61,7 @@ export default function UpdatePasswordForm() {
       description={`Ensure your account is using a long, random password to stay secure.`}
       renderActions={() => (
         <>
-          <ActionMessage on={form.recentlySuccessful} className="mr-3">
-            Saved.
-          </ActionMessage>
+          <Toast position="bottom-center" ref={toastRef} />
 
           <Button severity="primary" className={classNames({ 'opacity-25': form.processing })} disabled={form.processing}>
             Save

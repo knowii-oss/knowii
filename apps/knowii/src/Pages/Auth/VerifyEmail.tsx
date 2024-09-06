@@ -1,6 +1,6 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import classNames from 'classnames';
-import React, { FormEventHandler } from 'react';
+import { FormEventHandler } from 'react';
 import AuthenticationCard from '@/Components/AuthenticationCard';
 import { useRoute } from 'ziggy-js';
 import { EMAIL_VERIFICATION_STATUS_LINK_SENT, EMAIL_VERIFICATION_URL, LOGOUT_URL, USER_PROFILE_URL } from '@knowii/common';

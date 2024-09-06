@@ -1,4 +1,3 @@
-import React from 'react';
 import PageHeader from '@/Components/PageHeader';
 import { PageContentWrapper } from '@/Components/PageContentWrapper';
 import { Head } from '@inertiajs/react';

@@ -1,14 +1,14 @@
 import { DESTROY_OTHER_BROWSER_SESSIONS_URL, Session } from '@knowii/common';
 import { useForm } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import ActionSection from '@/Components/ActionSection';
 import { FaDesktop, FaLock, FaMobile } from 'react-icons/fa';
 import { Button } from 'primereact/button';
-import ActionMessage from '@/Components/ActionMessage';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import InputError from '@/Components/InputError';
+import { Toast } from 'primereact/toast';
 
 interface Props {
   sessions: Session[];
@@ -27,6 +27,8 @@ export default function LogoutOtherBrowserSessionsForm(props: Props) {
 
   const passwordRef = useRef<HTMLInputElement | null>(null);
 
+  const toastRef = useRef(null);
+
   const [confirmingLogout, setConfirmingLogout] = useState(false);
 
   const confirmLogout = () => {
@@ -38,8 +40,10 @@ export default function LogoutOtherBrowserSessionsForm(props: Props) {
   const logoutOtherBrowserSessions = () => {
     form.delete(route(DESTROY_OTHER_BROWSER_SESSIONS_URL), {
       preserveScroll: true,
-      // FIXME implement
-      onSuccess: () => closeModal(),
+      onSuccess: () => {
+        closeModal();
+        toastRef.current.show({ severity: 'success', summary: 'Success', detail: 'Logged you out of other browser sessions.' });
+      },
       onError: () => passwordRef.current?.focus(),
       onFinish: () => form.reset(),
     });
@@ -52,6 +56,8 @@ export default function LogoutOtherBrowserSessionsForm(props: Props) {
 
   return (
     <ActionSection title={'Browser Sessions'} description={'Manage and log out your active sessions on other browsers and devices.'}>
+      <Toast position="bottom-center" ref={toastRef} />
+
       <div className="max-w-xl text-sm text-gray-600">
         If necessary, you may log out of all of your other browser sessions across all of your devices. Some of your recent sessions are
         listed below; however, this list may not be exhaustive. If you feel your account has been compromised, you should also update your
@@ -94,12 +100,8 @@ export default function LogoutOtherBrowserSessionsForm(props: Props) {
 
       <div className="flex items-center mt-5">
         <Button severity="primary" onClick={confirmLogout}>
-          Log Out Other Browser Sessions
+          Log out other browser sessions
         </Button>
-
-        <ActionMessage on={form.recentlySuccessful} className="m-3">
-          Done.
-        </ActionMessage>
       </div>
 
       <Dialog
