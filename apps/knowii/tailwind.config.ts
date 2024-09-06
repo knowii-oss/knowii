@@ -5,7 +5,7 @@ import defaultTheme from 'tailwindcss/defaultTheme';
 import forms from '@tailwindcss/forms';
 import typography from '@tailwindcss/typography';
 
-import { theme } from './src/theme';
+import { theme } from './src/theme.mjs';
 
 /** @type {import('tailwindcss').Config} */
 export default {

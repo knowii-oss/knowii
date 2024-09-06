@@ -5,7 +5,6 @@ import FooterGuest from '@/Components/FooterGuest';
 import { HOME_URL } from '@knowii/common';
 import { Button } from 'primereact/button';
 import { FaHome } from 'react-icons/fa';
-import { useRoute } from 'ziggy-js';
 
 interface Props {
   status: string;
@@ -14,8 +13,6 @@ interface Props {
 // Generic error page
 // Reference: // https://inertiajs.com/error-handling
 export default function Error(props: Props) {
-  const route = useRoute();
-
   const errorTitle = {
     503: '503: Service Unavailable',
     500: '500: Server Error',
@@ -51,7 +48,7 @@ export default function Error(props: Props) {
               <h2>{errorDescription}</h2>
               <div className="mt-12 flex flex-row justify-center">
                 <a href={HOME_URL} className="">
-                  <Button aria-label={'Go back to the homepage'} severity="primary" className="">
+                  <Button aria-label={'Go back to the homepage'} className="">
                     <FaHome />
                     &nbsp;Go back to the homepage
                   </Button>
