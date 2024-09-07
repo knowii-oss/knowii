@@ -7,8 +7,7 @@ import { Link } from '@inertiajs/react';
 
 export default function Footer() {
   return (
-    <footer className="page-content-boundaries bg-gray-800 grid grid-cols-3 gap-8 min-h-[16rem] rounded-t-md p-4 text-white pt-8">
-      {/* first part */}
+    <footer className="page-content-boundaries bg-gray-800 grid grid-rows-3 md:grid-rows-1 md:grid-cols-3 gap-8 min-h-[16rem] rounded-t-md p-4 text-white pt-8">
       <div className="flex flex-col gap-4 items-center">
         <ApplicationLogo />
         <div className="flex flex-row gap-4 justify-center">
@@ -28,14 +27,13 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-2 items-center">
+      <div className="flex flex-col gap-2 items-center text-center md:text-left">
         <div className="mb-3 text-xl font-bold mt-4 w-full">Links</div>
         <ul className="text-sm w-full">
-          <li className="flex flex-row gap-2 items-center">
+          <li>
             <a className="hover:text-primary-500" href={metadata.sourceCodeUrl}>
               Source code
             </a>
-            <FaGithub />
           </li>
           <li>
             <a className="hover:text-primary-500" href={metadata.social.newsletterSebastien}>
@@ -50,7 +48,7 @@ export default function Footer() {
         </ul>
       </div>
 
-      <div className="flex flex-col gap-2 items-center">
+      <div className="flex flex-col gap-2 items-center text-center md:text-left">
         <div className="mb-3 text-xl font-bold mt-4 w-full">Legal</div>
         <ul className="text-sm w-full">
           <li>
