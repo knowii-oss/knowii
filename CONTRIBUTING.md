@@ -82,6 +82,7 @@ To add new pages to the application, you can either create a dedicated controlle
 
 If you want to look at the database during development, you can use the `npm run db:admin` command. It will start a container with PgAdmin.
 Once started, you can go to `http://localhost:5050, and log in using:
+
 - Username: root@knowii.net
 - Password: password
 

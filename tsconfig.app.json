@@ -5,5 +5,9 @@
       "module": "CommonJS"
     },
     "esm": true
-  }
+  },
+  "exclude": [
+    "apps/**/*spec.ts",
+    "libs/**/*spec.ts"
+  ]
 }

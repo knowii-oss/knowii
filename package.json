@@ -42,7 +42,7 @@
     "stop": "composer stop",
     "sync": "git fetch upstream && git rebase upstream/main && git push --force",
     "tailwind": "tailwind --config ./apps/knowii/tailwind.config.ts",
-    "test": "nx affected:test --all --parallel --maxParallel 10",
+    "test": "nx affected:test --parallel --maxParallel 10",
     "test:all": "npm run test:common && npm run test:knowii",
     "test:common": "npx nx test common",
     "test:knowii": "npx nx test knowii",
