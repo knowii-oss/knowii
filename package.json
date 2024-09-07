@@ -69,7 +69,6 @@
   "devDependencies": {
     "@commitlint/cli": "19.4.0",
     "@commitlint/config-conventional": "19.2.2",
-    "@headlessui/react": "1.4.0",
     "@inertiajs/react": "1.2.0",
     "@nx/eslint": "19.6.4",
     "@nx/eslint-plugin": "19.6.4",
