@@ -31,17 +31,17 @@ export default function Footer() {
         <div className="mb-3 text-xl font-bold mt-4 w-full">Links</div>
         <ul className="text-sm w-full">
           <li>
-            <a className="hover:text-primary-500" href={metadata.sourceCodeUrl}>
+            <a className="hover:text-primary-500" href={metadata.sourceCodeUrl} target="_blank" rel="noreferrer">
               Source code
             </a>
           </li>
           <li>
-            <a className="hover:text-primary-500" href={metadata.social.newsletterSebastien}>
+            <a className="hover:text-primary-500" href={metadata.social.newsletterSebastien} target="_blank" rel="noreferrer">
               Newsletter
             </a>
           </li>
           <li>
-            <a className="hover:text-primary-500" href={metadata.social.blogSebastien}>
+            <a className="hover:text-primary-500" href={metadata.social.blogSebastien} target="_blank" rel="noreferrer">
               Blog
             </a>
           </li>
