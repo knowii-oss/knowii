@@ -18,6 +18,7 @@
     "cm": "npm run commit",
     "commit": "cz",
     "commit:lint": "commitlint --env HUSKY_GIT_PARAMS",
+    "db:admin": "docker run -it --rm -p 5050:5050 --name=pgadmin4 --link=knowii-pgsql-1 --network=knowii_sail --env PGADMIN_LISTEN_ADDRESS=0.0.0.0 --env PGADMIN_LISTEN_PORT=5050 --env PGADMIN_DISABLE_POSTFIX=true --env PGADMIN_DEFAULT_EMAIL=root@knowii.net --env PGADMIN_DEFAULT_PASSWORD=password dpage/pgadmin4",
     "predev": "npm run clean",
     "dev": "npx nx run knowii:serve",
     "format": "npx nx format --all",
