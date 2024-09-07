@@ -1,5 +1,5 @@
 import PageHeader from '@/Components/PageHeader';
-import { PageContentWrapper } from '@/Components/PageContentWrapper';
+import PageContentWrapper from '@/Components/PageContentWrapper';
 import { Head } from '@inertiajs/react';
 import FooterGuest from '@/Components/FooterGuest';
 import { HOME_URL } from '@knowii/common';
