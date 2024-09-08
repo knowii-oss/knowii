@@ -18,6 +18,7 @@ This contains tons of ideas to help us out.
 ### Pre-requisites
 
 - PHP
+- PHP zip extension: `sudo apt install libzip-dev php-zip` and uncomment `extension=zip` in 'php.ini'
 - Composer
 - Docker
 - docker-compose
@@ -85,6 +86,14 @@ Once started, you can go to `http://localhost:5050, and log in using:
 
 - Username: root@knowii.net
 - Password: password
+
+### Database backup
+
+Database backups rely on the laravel backup package: https://spatie.be/docs/laravel-backup/v8/introduction
+To backup the database, run the following command: `php artisan backup:run`.
+If you want to test it locally in Sail, then run 'sail php artisan backup:run'
+
+By default, backups are stored under `storage/app/Knowii`
 
 ### Configuration
 
