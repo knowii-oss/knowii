@@ -91,7 +91,7 @@ Once started, you can go to `http://localhost:5050, and log in using:
 
 ### Database cleanup
 
-If you need to restart from scratch, you can reset the database to the default state and run all migrations using `composer db:clean`.
+If you need to restart from scratch, you can reset the database to the default state and run all migrations using `composer db:clean` or `sail php artisan migrate:fresh`.
 
 ### Database backup
 
