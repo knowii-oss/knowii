@@ -1,0 +1,38 @@
+<?php
+
+namespace App\Actions\Communities;
+
+use App\Contracts\Communities\CreatesCommunities;
+use App\Events\Communities\AddingCommunity;
+use App\Models\Community;
+use App\Models\User;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Validator;
+
+class CreateCommunity implements CreatesCommunities
+{
+  /**
+   * Validate and create a new community for the given user.
+   *
+   * @param User $user
+   * @param array $input
+   * @return Community
+   */
+    public function create(User $user, array $input): Community
+    {
+        Gate::forUser($user)->authorize('create', new Community());
+
+        Validator::make($input, [
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['required', 'string', 'max:255'], // FIXME extend length
+        ])->validateWithBag('createCommunity');
+
+        AddingCommunity::dispatch($user);
+
+        return $user->ownedCommunities()->create([
+          'name' => $input['name'],
+          'description' => $input['description'],
+          'personal_community' => false,
+        ]);
+    }
+}

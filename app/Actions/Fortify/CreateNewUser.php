@@ -2,7 +2,7 @@
 
 namespace App\Actions\Fortify;
 
-use App\Models\Team;
+use App\Models\Community;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -34,20 +34,21 @@ class CreateNewUser implements CreatesNewUsers
                 'email' => $input['email'],
                 'password' => Hash::make($input['password']),
             ]), function (User $user) {
-                $this->createTeam($user);
+                $this->createCommunity($user);
             });
         });
     }
 
     /**
-     * Create a personal team for the user.
+     * Create a personal community for the user.
      */
-    protected function createTeam(User $user): void
+    protected function createCommunity(User $user): void
     {
-        $user->ownedTeams()->save(Team::forceCreate([
+        $user->ownedCommunities()->save(Community::forceCreate([
             'user_id' => $user->id,
-            'name' => explode(' ', $user->name, 2)[0]."'s Team",
-            'personal_team' => true,
+            'name' => explode(' ', $user->name, 2)[0]."'s Space",
+            'description' => explode(' ', $user->name, 2)[0]."'s Personal Space",
+            'personal_community' => true,
         ]));
     }
 }

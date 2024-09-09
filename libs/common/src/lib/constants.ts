@@ -16,14 +16,29 @@ export const IS_TEST = process.env.NODE_ENV === 'test';
  */
 export const HOME_URL = '/';
 export const DASHBOARD_URL = 'dashboard';
+
+// Legal
 export const TERMS_OF_SERVICE_URL = 'terms.show';
 export const PRIVACY_POLICY_URL = 'policy.show';
+
+// User profile
 export const USER_PROFILE_URL = 'profile.show';
 export const USER_PROFILE_INFORMATION_UPDATE_URL = 'user-profile-information.update';
 export const USER_PROFILE_PASSWORD_UPDATE_URL = 'user-password.update';
 
-// Teams
-export const CHANGE_CURRENT_TEAM_URL = 'current-team.update';
+// Communities
+export const COMMUNITY_CREATE_URL = 'communities.create';
+
+// FIXME add constants for all routes
+//Route::post('/communities', [CommunityController::class, 'store'])->name('communities.store');
+//Route::get('/communities/{community}', [CommunityController::class, 'show'])->name('communities.show');
+//Route::put('/communities/{community}', [CommunityController::class, 'update'])->name('communities.update');
+//Route::delete('/communities/{community}', [CommunityController::class, 'destroy'])->name('communities.destroy');
+//Route::post('/communities/{community}/members', [CommunityMemberController::class, 'store'])->name('community-members.store');
+//Route::put('/communities/{community}/members/{user}', [CommunityMemberController::class, 'update'])->name('community-members.update');
+//Route::delete('/communities/{community}/members/{user}', [CommunityMemberController::class, 'destroy'])->name('community-members.destroy');
+//Route::get('/community-invitations/{invitation}', [CommunityInvitationController::class, 'accept'])->middleware(['signed'])->name('community-invitations.accept');
+//Route::delete('/community-invitations/{invitation}', [CommunityInvitationController::class, 'destroy'])->name('community-invitations.destroy');
 
 // Authentication
 export const LOGIN_URL = 'login';
