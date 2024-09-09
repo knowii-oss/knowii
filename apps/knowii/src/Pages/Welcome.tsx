@@ -23,9 +23,6 @@ export default function Welcome(props: WelcomePageProps) {
       <Head title="Welcome" />
 
       <PageWrapper>
-        {/* FIXME add banner */}
-        {/*<Banner />*/}
-
         <PageHeader
           compact={false}
           addLinkOnLogo={false}

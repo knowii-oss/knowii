@@ -39,6 +39,9 @@
     }
   },
   "scripts": {
+    "db:clean": [
+      "sail php artisan db:wipe && sail php artisan migrate"
+    ],
     "sail:cache:clean": [
       "sail artisan cache:clear && sail artisan route:clear && sail artisan config:clear && sail artisan view:clear"
     ],
@@ -53,6 +56,9 @@
     ],
     "stop": [
       "sail down"
+    ],
+    "test": [
+      "sail php artisan test"
     ],
     "post-autoload-dump": [
       "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",

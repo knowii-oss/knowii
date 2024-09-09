@@ -2,12 +2,11 @@
 
 namespace Database\Factories;
 
-use App\Models\Team;
+use App\Models\Community;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Laravel\Jetstream\Features;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
@@ -35,7 +34,6 @@ class UserFactory extends Factory
             'two_factor_recovery_codes' => null,
             'remember_token' => Str::random(10),
             'profile_photo_path' => null,
-            'current_team_id' => null,
         ];
     }
 
@@ -50,23 +48,20 @@ class UserFactory extends Factory
     }
 
     /**
-     * Indicate that the user should have a personal team.
+     * Indicate that the user should have a personal community.
      */
-    public function withPersonalTeam(?callable $callback = null): static
+    public function withPersonalCommunity(?callable $callback = null): static
     {
-        if (! Features::hasTeamFeatures()) {
-            return $this->state([]);
-        }
-
         return $this->has(
-            Team::factory()
+            Community::factory()
                 ->state(fn (array $attributes, User $user) => [
-                    'name' => $user->name.'\'s Team',
+                    'name' => $user->name.'\'s Space',
+                    'description' => $user->name.'\'s Personal Space',
                     'user_id' => $user->id,
-                    'personal_team' => true,
+                    'personal_community' => true,
                 ])
                 ->when(is_callable($callback), $callback),
-            'ownedTeams'
+            'ownedCommunities'
         );
     }
 }

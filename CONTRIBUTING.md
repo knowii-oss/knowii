@@ -74,6 +74,8 @@ If you want to run the production version locally, you can:
 - `composer sail:clean`: Stop the application and rebuild the container images
 - `composer serve`: Start the application
 - `composer start`: Start the application
+- `composer test`: Test the back-end code
+- `npm run test`: Test the front-end code
 
 ### Adding new pages
 
@@ -86,6 +88,10 @@ Once started, you can go to `http://localhost:5050, and log in using:
 
 - Username: root@knowii.net
 - Password: password
+
+### Database cleanup
+
+If you need to restart from scratch, you can reset the database to the default state and run all migrations using `composer db:clean`.
 
 ### Database backup
 
