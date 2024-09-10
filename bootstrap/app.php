@@ -33,7 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
   // https://inertiajs.com/error-handling
   // https://laravel.com/docs/11.x/errors#handling-exceptions
   ->withExceptions(function (Exceptions $exceptions) {
-    $exceptions->respond(function (Response | RedirectResponse $response, Throwable $exception, Request $request) {
+    $exceptions->respond(function (Response | RedirectResponse | JsonResponse $response, Throwable $exception, Request $request) {
       if (!app()->environment(['local', 'testing']) && in_array($response->getStatusCode(), [500, 503, 404, 403])) {
         return Inertia::render('Error', ['status' => $response->getStatusCode()])->toResponse($request)->setStatusCode($response->getStatusCode());
       } elseif ($response->getStatusCode() === 419) {
