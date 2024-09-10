@@ -1,4 +1,11 @@
 # TODO
+- tests require the front-end to be started
+
+- community API, cookie auth
+- Laraval: need resources for API?
+
+- Configure CORS: config/cors.php
+  - https://cdruc.com/laravel-spa-auth-extended
 
 - create community pages based on teams pages
 - InvitationModel --> replace by concrete model
