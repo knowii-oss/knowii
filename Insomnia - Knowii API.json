@@ -1,0 +1,232 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2024-09-11T05:37:05.859Z",
+  "__export_source": "insomnia.desktop.app:v9.3.3",
+  "resources": [
+    {
+      "_id": "req_2ad897c14a1d445cb5d22b7501ae4fc5",
+      "parentId": "wrk_718482cc5c8c4d33ba43b89654b1f0d9",
+      "modified": 1725988113411,
+      "created": 1725951527429,
+      "url": "http://localhost:4200/api/v1/auth/login",
+      "name": "Auth - API Login",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"email\": \"lechtitseb@gmail.com\",\n\t\"password\": \"ptindepass123!!!\"\n}\n"
+      },
+      "parameters": [],
+      "headers": [
+        { "name": "Content-Type", "value": "application/json", "id": "pair_3a060757a2184021bc9ab1082ac58528" },
+        {
+          "id": "pair_ed45c46d3b1641aea98ac2eb0e93a9d2",
+          "name": "Accept",
+          "value": "application/json",
+          "description": "",
+          "disabled": false
+        }
+      ],
+      "authentication": { "type": "none" },
+      "metaSortKey": -1725951527429,
+      "isPrivate": false,
+      "pathParameters": [],
+      "afterResponseScript": "",
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "wrk_718482cc5c8c4d33ba43b89654b1f0d9",
+      "parentId": null,
+      "modified": 1725953630386,
+      "created": 1725951502944,
+      "name": "API",
+      "description": "",
+      "scope": "collection",
+      "_type": "workspace"
+    },
+    {
+      "_id": "req_4e31e1b3055f452e8bfee7cafbbf8970",
+      "parentId": "wrk_718482cc5c8c4d33ba43b89654b1f0d9",
+      "modified": 1725988790307,
+      "created": 1725988692091,
+      "url": "http://localhost:4200/api/v1/auth/login",
+      "name": "Auth - API Login (include token)",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"email\": \"lechtitseb@gmail.com\",\n\t\"password\": \"ptindepass123!!!\",\n\t\"includeToken\": true\n}\n"
+      },
+      "parameters": [],
+      "headers": [
+        { "name": "Content-Type", "value": "application/json", "id": "pair_3a060757a2184021bc9ab1082ac58528" },
+        {
+          "id": "pair_ed45c46d3b1641aea98ac2eb0e93a9d2",
+          "name": "Accept",
+          "value": "application/json",
+          "description": "",
+          "disabled": false
+        }
+      ],
+      "authentication": { "type": "none" },
+      "metaSortKey": -1725951527422.75,
+      "isPrivate": false,
+      "pathParameters": [],
+      "afterResponseScript": "",
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_5205600251454c4b8f7b1f2b6fab5be5",
+      "parentId": "wrk_718482cc5c8c4d33ba43b89654b1f0d9",
+      "modified": 1725988083469,
+      "created": 1725970164352,
+      "url": "http://localhost:4200/api/v1/ping",
+      "name": "Ping",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "id": "pair_ed45c46d3b1641aea98ac2eb0e93a9d2",
+          "name": "Accept",
+          "value": "application/json",
+          "description": "",
+          "disabled": false
+        }
+      ],
+      "authentication": { "type": "none" },
+      "metaSortKey": -1725951527416.5,
+      "isPrivate": false,
+      "pathParameters": [],
+      "afterResponseScript": "",
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_164b2e6006964053867c01e3d556897a",
+      "parentId": "wrk_718482cc5c8c4d33ba43b89654b1f0d9",
+      "modified": 1725988120418,
+      "created": 1725963338484,
+      "url": "http://localhost:4200/api/v1/csrf-cookie",
+      "name": "Get CSRF Token",
+      "description": "",
+      "method": "GET",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"email\": \"lechtitseb@gmail.com\",\n\t\"password\": \"ptindepass123!!!\"\n}\n"
+      },
+      "parameters": [],
+      "headers": [
+        { "name": "Content-Type", "value": "application/json", "id": "pair_3a060757a2184021bc9ab1082ac58528" },
+        {
+          "id": "pair_ed45c46d3b1641aea98ac2eb0e93a9d2",
+          "name": "Accept",
+          "value": "application/json",
+          "description": "",
+          "disabled": false
+        }
+      ],
+      "authentication": { "type": "none" },
+      "metaSortKey": -1725951527404,
+      "isPrivate": false,
+      "pathParameters": [],
+      "afterResponseScript": "",
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_64c1b05051414efea728bf6908fa79f8",
+      "parentId": "wrk_718482cc5c8c4d33ba43b89654b1f0d9",
+      "modified": 1725989010533,
+      "created": 1725953639846,
+      "url": "http://localhost:4200/api/v1/communities",
+      "name": "Communities - Create",
+      "description": "",
+      "method": "POST",
+      "body": { "mimeType": "application/json", "text": "{\n\t\"name\": \"foo\",\n\t\"description\": \"foo\"\n}" },
+      "parameters": [],
+      "headers": [
+        { "name": "Content-Type", "value": "application/json", "id": "pair_3a060757a2184021bc9ab1082ac58528" },
+        {
+          "id": "pair_ed45c46d3b1641aea98ac2eb0e93a9d2",
+          "name": "Accept",
+          "value": "application/json",
+          "description": "",
+          "disabled": false
+        }
+      ],
+      "authentication": { "type": "bearer", "token": "103|9DTyBTOv0R5ojWsZj3jBdGrul1il3aIwAziA8PCQbd668bb6", "disabled": true },
+      "metaSortKey": -1725951527379,
+      "isPrivate": false,
+      "pathParameters": [],
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "env_183ea4badf797a9ae51346714a0d82b5f93f6154",
+      "parentId": "wrk_718482cc5c8c4d33ba43b89654b1f0d9",
+      "modified": 1725954757802,
+      "created": 1725951502946,
+      "name": "Base Environment",
+      "data": {},
+      "dataPropertyOrder": {},
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 1725951502946,
+      "_type": "environment"
+    },
+    {
+      "_id": "jar_183ea4badf797a9ae51346714a0d82b5f93f6154",
+      "parentId": "wrk_718482cc5c8c4d33ba43b89654b1f0d9",
+      "modified": 1726029993583,
+      "created": 1725951502947,
+      "name": "Default Jar",
+      "cookies": [
+        {
+          "key": "knowii_session",
+          "value": "eyJpdiI6IkdrcDNOUVF5T0NvK3VnQWtHOGJCb1E9PSIsInZhbHVlIjoiNXQ0MXM1SUFkNllTZXQ2NU1sMzE1a2tHd0dBUUFVTkZKN2hBcDFRa3Vicmh1c1hLWkk5amRTVlhhOWQ1TG1YUC9Mb1RFNnVBN2dxS2QxNmwrcEZNcmVzRHRxY0svUStqMWM0eFFCUDZzYXVkRnRZeHVjTVhSaDF1RDNmVjdXcjciLCJtYWMiOiI4MDI2MWFlY2M1NjNhNjc2N2YwZDNjZmQwY2Q0MzI4ZGM3MDg2OWI2MWQwNjczMDliZmE4ZGYyMmIzM2FiZDc1IiwidGFnIjoiIn0%3D",
+          "expires": "2024-09-11T06:46:33.000Z",
+          "maxAge": 7200,
+          "domain": "localhost",
+          "path": "/",
+          "httpOnly": true,
+          "hostOnly": false,
+          "creation": "2024-09-11T04:46:15.448Z",
+          "lastAccessed": "2024-09-11T04:46:33.583Z",
+          "sameSite": "lax",
+          "id": "bc634395-435b-468c-ba64-61c5ca4bea03"
+        }
+      ],
+      "_type": "cookie_jar"
+    }
+  ]
+}

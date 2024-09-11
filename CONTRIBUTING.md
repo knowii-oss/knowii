@@ -101,6 +101,11 @@ If you want to test it locally in Sail, then run 'sail php artisan backup:run'
 
 By default, backups are stored under `storage/app/Knowii`
 
+### API
+
+The API can be tested via Insomnia. A json file is included in the root folder, including example requests: `Insomnia - Knowii API.json`.
+You can install Insomnia, and load that file. If you make changes to the API, then don't forget to add tests, and to update that JSON file.
+
 ### Configuration
 
 #### Fortify
