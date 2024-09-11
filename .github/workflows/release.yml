@@ -29,6 +29,7 @@ jobs:
       - run: |
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          git config --global push.autoSetupRemote true
       - run: npm ci --legacy-peer-deps
       # Switch to a new branch before the release
       # This is necessary because the main branch is protected
