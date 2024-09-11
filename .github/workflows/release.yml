@@ -29,17 +29,17 @@ jobs:
           cache: 'npm'
 
       - name: Configure Git
-        run: |
+      - run: |
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+      - run: npm ci --legacy-peer-deps
 
       # Switch to a new branch before the release
       # This is necessary because the main branch is protected
       - name: Switch to temporary branch
-        run: git checkout -b release-${GITHUB_SHA}
+      - run: git checkout -b release-${GITHUB_SHA}
 
       - name: Release
       - uses: nrwl/nx-set-shas@v4
@@ -53,14 +53,14 @@ jobs:
       - name: Create release PR
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
+      - run: |
           gh pr create --title "Release ${GITHUB_SHA}" --body "This is a PR release" --base main --head release-${GITHUB_SHA}
         shell: bash
 
       - name: Merge release PR
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
+      - run: |
           pr_number=$(gh pr list --state open --limit 1 --json number --jq '.[0].number')
           gh pr merge $pr_number --merge
         shell: bash
