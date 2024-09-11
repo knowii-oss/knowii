@@ -1,0 +1,37 @@
+meta {
+  name: Auth - Login (include token)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+body:json {
+  {
+    "email": "{{USERNAME}}",
+    "password": "{{PASSWORD}}",
+    "includeToken": true
+  }
+  
+}
+
+tests {
+  test("should be able to get a token", function() {
+    const data = res.getBody();
+    expect(data.token).be.a('string');
+  });
+  
+  test("should return the token lifetime", function() {
+    const data = res.getBody();
+    expect(data.tokenValidUntil).be.a('string');
+  });
+}

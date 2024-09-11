@@ -1,0 +1,15 @@
+meta {
+  name: Get CSRF cookie
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/csrf-cookie
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}

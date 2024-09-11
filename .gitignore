@@ -70,3 +70,4 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+!/documentation/api/.env.example

@@ -1,0 +1,23 @@
+meta {
+  name: Communities - Create
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "foo",
+    "description": "foo"
+  }
+}

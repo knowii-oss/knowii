@@ -103,8 +103,12 @@ By default, backups are stored under `storage/app/Knowii`
 
 ### API
 
-The API can be tested via Insomnia. A json file is included in the root folder, including example requests: `Insomnia - Knowii API.json`.
-You can install Insomnia, and load that file. If you make changes to the API, then don't forget to add tests, and to update that JSON file.
+#### Testing
+
+The API can be tested via [Bruno](https://www.usebruno.com/). The Bruno workspace is included in the `documentation/api` folder, including example requests.
+To use it, you can copy the `documentation/api/.env.example` file to `documentation/api/.env` and fill in the necessary values. This is a safety measure to avoid checking in secrets while testing the API. We use the approach documented here: https://docs.usebruno.com/secrets-management/dotenv-file
+
+WARNING: If you make changes to the API, then don't forget to add tests, and to update that JSON file.
 
 ### Configuration
 

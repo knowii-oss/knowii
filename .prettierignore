@@ -6,6 +6,7 @@
 /assets
 /dist
 /coverage
+documentation/api
 /.nx/cache
 /.nx/workspace-data
 /public
