@@ -86,7 +86,7 @@ class Community extends Model
    */
   public function users()
   {
-    return $this->belongsToMany(Jetstream::userModel(), Jetstream::membershipModel())
+    return $this->belongsToMany(Jetstream::userModel(), Knowii::communityMembershipModel())
       ->withPivot('role')
       ->withTimestamps()
       ->as('membership');

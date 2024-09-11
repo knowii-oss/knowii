@@ -1,7 +1,7 @@
 import './bootstrap';
 import './styles.css';
 
-import React, { StrictMode } from 'react';
+import { StrictMode } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';

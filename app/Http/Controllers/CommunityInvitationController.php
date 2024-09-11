@@ -18,7 +18,7 @@ class CommunityInvitationController extends Controller
      * @param  int  $invitationId
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function accept(Request $request, $invitationId)
+    public function accept(Request $request, int $invitationId)
     {
         $model = Knowii::communityInvitationModel();
 

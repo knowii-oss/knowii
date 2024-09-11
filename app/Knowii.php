@@ -22,6 +22,12 @@ class Knowii
 
 
   /**
+   * The community membership model.
+   * @var string
+   */
+  public static string $communityMembershipModel = 'App\\Models\\Membership';
+
+  /**
    * Get a new instance of the community model.
    *
    * @return Community
@@ -39,6 +45,16 @@ class Knowii
   public static function communityModel(): string
   {
     return static::$communityModel;
+  }
+
+  /**
+   * Get the name of the community membership model used by the application.
+   *
+   * @return string
+   */
+  public static function communityMembershipModel(): string
+  {
+    return static::$communityMembershipModel;
   }
 
   /**

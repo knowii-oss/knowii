@@ -41,7 +41,7 @@ trait HasCommunities
    */
   public function communities()
   {
-    return $this->belongsToMany(Knowii::communityModel(), Jetstream::membershipModel())
+    return $this->belongsToMany(Knowii::communityModel(), Knowii::communityMembershipModel())
       ->withPivot('role')
       ->withTimestamps()
       ->as('membership');
