@@ -16,5 +16,6 @@ documentation/api
 *.sh
 composer.lock
 CHANGELOG.md
+package.json
 package-lock.json
 tsconfig.*.json
