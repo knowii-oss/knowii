@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 
-class PingController extends Controller
+class PingApiController extends Controller
 {
   public function ping(): JsonResponse
   {

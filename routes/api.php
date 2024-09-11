@@ -1,12 +1,23 @@
 <?php
 
+use App\Http\Controllers\API\LoginApiController;
+use App\Http\Controllers\API\PingApiController;
+use App\Http\Controllers\API\CommunityApiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-use App\Http\Controllers\PingController;
-
-Route::get('/v1/ping', [PingController::class, 'ping']);
-
+// TODO move under v1/auth
 Route::get('/user', function (Request $request) {
-    return $request->user();
+  return $request->user();
 })->middleware('auth:sanctum');
+
+Route::prefix('v1')->group(function (){
+  // Auth
+  Route::post('auth/login', LoginApiController::class);
+
+  // Utils
+  Route::get('ping', [PingApiController::class, 'ping']);
+
+  // Communities
+  Route::post('communities', [CommunityApiController::class, 'create'])->middleware('auth:sanctum');
+});

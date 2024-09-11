@@ -7,9 +7,11 @@ Welcome to Knowii, the place for your Knowledge, Ideas and Innovation
 Knowii is open source. We are always looking for new contributors. Check out the [contributing document](CONTRIBUTING.md) to know how.
 
 ## API
+
 In addition to the user interface, Knowii has an API, available at `/api/v1`.
 
 There are two ways to use it:
+
 - Using API tokens (recommended)
 - Using cookies
 
