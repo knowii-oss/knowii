@@ -112,6 +112,17 @@ You can install Insomnia, and load that file. If you make changes to the API, th
 
 See `./config/fortify.php` for configuration options.
 
+## Releasing a new version
+
+- Clone knowii-oss/knowii
+- `git checkout main`
+- `git pull`
+- `git switch production`
+- `git merge main`
+- `git tag <new version>`
+- `git push`
+- `git push --tags`
+
 ## Submission guidelines
 
 ### Submitting an issue
