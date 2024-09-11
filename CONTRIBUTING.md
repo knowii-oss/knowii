@@ -118,14 +118,23 @@ See `./config/fortify.php` for configuration options.
 
 ## Releasing a new version
 
-- Clone knowii-oss/knowii
-- `git checkout main`
-- `git pull`
-- `git switch production`
-- `git merge main`
-- `git tag <new version>`
-- `git push`
-- `git push --tags`
+If possible, add a `GITHUB_TOKEN` variable to your environment, so that the release script can create a release on GitHub. If it's not available, then the tag will be created and pushed, but the release don't be created and associated with the tag on GitHub.
+
+To release a new version, follow these steps:
+
+- Checkout the main repository (not a fork)
+- Checkout the main branch: `git checkout main`
+- Install the dependencies
+- Make sure you have the latest changes: `git fetch && git pull`
+- Run one of the release scripts: `npm run release` or `npm run release:patch` or `npm run release:minor` or `npm run release:major`
+- This will update the changelog, the version in package.json, tag, and push everything to the repository
+
+## Deploying a new version to production
+
+To deploy to production, all you have to do is merge changes into the `production` branch. To do so, run the following command: `npm run deploy`.
+
+This will checkout the main branch, make sure it is up to date, switch to the production branch, merge the main branch into the production branch, push the changes to the production branch, and then switch back to the main branch.
+Once this is done, the changes will be automatically deployed to production. This is handled by Laravel Forge.
 
 ## Submission guidelines
 
