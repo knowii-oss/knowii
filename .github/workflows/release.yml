@@ -43,7 +43,7 @@ jobs:
 
       - name: Release
       - uses: nrwl/nx-set-shas@v4
-        run: npm run release
+      - run: npm run release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
