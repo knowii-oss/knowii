@@ -8,6 +8,7 @@ export interface CommunityPermissions {
   canUpdateCommunity: boolean;
 }
 
+// FIXME refactor
 export interface CommunityInvitation {
   cuid: string;
   community_id: number;
@@ -25,3 +26,5 @@ export interface Community {
   created_at: DateTime;
   updated_at: DateTime;
 }
+
+export type NewCommunity = Omit<Community, 'cuid' | 'created_at' | 'updated_at'>;

@@ -60,12 +60,6 @@ export default function AppLayout(props: Props) {
                     Dashboard
                   </Link>
                 </li>
-                <li className="main-menu-entry">
-                  <Link href={route(COMMUNITY_CREATE_URL)}>
-                    <FaPeopleGroup />
-                    New community
-                  </Link>
-                </li>
               </ul>
             </div>
           </Sidebar>

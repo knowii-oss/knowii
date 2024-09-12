@@ -23,7 +23,7 @@ class CreateCommunity implements CreatesCommunities
         Gate::forUser($user)->authorize('create', new Community());
 
         Validator::make($input, [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'min: 3', 'max:255'],
             'description' => ['required', 'string', 'max:255'], // FIXME extend length
         ])->validateWithBag('createCommunity');
 

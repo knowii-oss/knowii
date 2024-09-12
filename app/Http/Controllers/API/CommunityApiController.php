@@ -18,6 +18,9 @@ class CommunityApiController extends Controller
     Log::info('Processing request to create a new community.');
     Log::info("User: ", [$request->user()]);
 
+    // $creator = app(CreatesCommunities::class);
+    //$creator->create($request->user(), $request->all());
+
     return $this->success('Community created successfully', Response::HTTP_CREATED);
   }
 }

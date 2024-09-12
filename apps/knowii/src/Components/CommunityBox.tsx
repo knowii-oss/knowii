@@ -6,7 +6,7 @@ import { FaPlus } from 'react-icons/fa';
 import { Link } from '@inertiajs/react';
 
 interface Props {
-  community: Community;
+  community?: Community;
   creationMode: boolean;
   clickHandler?: () => void;
   /**
@@ -17,7 +17,7 @@ interface Props {
 }
 
 export default function CommunityBox(props: Props) {
-  const normalModeCard = (
+  const normalModeCard = props.community && (
     <Card
       title={<span className={classNames('text-[1.2rem] text-primary-500 leading-none ')}>{props.community.name}</span>}
       subTitle={<Divider className={classNames('p-0 m-0')} />}

@@ -8,7 +8,6 @@ use App\Contracts\Communities\RemovesCommunityMembers;
 use App\Knowii;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Laravel\Jetstream\Features;
 use Laravel\Jetstream\Jetstream;
 
 class CommunityMemberController extends Controller

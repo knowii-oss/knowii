@@ -26,10 +26,7 @@ Route::middleware([
 
 Route::inertia('/contact', 'Contact');
 
-Route::get('/communities/create', [CommunityController::class, 'create'])->name('communities.create');
-
 // FIXME implement
-Route::post('/communities', [CommunityController::class, 'store'])->name('communities.store');
 Route::get('/communities/{community}', [CommunityController::class, 'show'])->name('communities.show');
 Route::put('/communities/{community}', [CommunityController::class, 'update'])->name('communities.update');
 Route::delete('/communities/{community}', [CommunityController::class, 'destroy'])->name('communities.destroy');
