@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('community_user', function (Blueprint $table) {
             $table->id();
+            $table->string('cuid');
             $table->foreignId('community_id');
             $table->foreignId('user_id');
             $table->string('role')->nullable();

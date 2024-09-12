@@ -13,6 +13,7 @@
     "laravel/jetstream": "^5.1",
     "laravel/sanctum": "^4.0",
     "laravel/tinker": "^2.9",
+    "parables/laravel-cuid2": "^1.0",
     "resend/resend-php": "^0.13.0",
     "spatie/laravel-backup": "^9.0",
     "tightenco/ziggy": "^2.0"

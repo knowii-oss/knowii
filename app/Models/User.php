@@ -10,6 +10,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
+use Parables\Cuid\GeneratesCuid;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -19,6 +20,10 @@ class User extends Authenticatable implements MustVerifyEmail
     use HasCommunities;
     use Notifiable;
     use TwoFactorAuthenticatable;
+
+    // Automatically generate cuid2 for the model
+    // Reference: https://github.com/Parables/laravel-cuid2
+    use GeneratesCuid;
 
     /**
      * The attributes that are mass assignable.
@@ -37,6 +42,7 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var array<int, string>
      */
     protected $hidden = [
+        'id',
         'password',
         'remember_token',
         'two_factor_recovery_codes',

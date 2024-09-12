@@ -13,10 +13,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 use Laravel\Jetstream\Jetstream;
+use Parables\Cuid\GeneratesCuid;
 
 class Community extends Model
 {
   use HasFactory;
+
+  // Automatically generate cuid2 for the model
+  // Reference: https://github.com/Parables/laravel-cuid2
+  use GeneratesCuid;
 
   /**
    * The attributes that are mass assignable.
@@ -29,12 +34,14 @@ class Community extends Model
     'personal_community',
   ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<string>
-     */
-    protected $hidden = [];
+  /**
+   * The attributes that should be hidden for serialization.
+   *
+   * @var array<int, string>
+   */
+  protected $hidden = [
+    'id',
+  ];
 
   /**
    * The event map for the model.

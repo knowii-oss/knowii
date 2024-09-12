@@ -5,9 +5,14 @@ namespace App\Models;
 use App\Knowii;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\CommunityInvitation as KnowiiCommunityInvitation;
+use Parables\Cuid\GeneratesCuid;
 
 class CommunityInvitation extends KnowiiCommunityInvitation
 {
+  // Automatically generate cuid2 for the model
+  // Reference: https://github.com/Parables/laravel-cuid2
+  use GeneratesCuid;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -16,6 +21,15 @@ class CommunityInvitation extends KnowiiCommunityInvitation
     protected $fillable = [
         'email',
         'role',
+    ];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+      'id',
     ];
 
     /**

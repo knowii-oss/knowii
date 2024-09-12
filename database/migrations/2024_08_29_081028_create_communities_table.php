@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('communities', function (Blueprint $table) {
             $table->id();
+            $table->string('cuid');
             $table->foreignId('user_id')->index();
             $table->string('name')->index();
             $table->string('description');

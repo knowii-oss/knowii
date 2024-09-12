@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('community_invitations', function (Blueprint $table) {
             $table->id();
+            $table->string('cuid');
             $table->foreignId('community_id')->constrained()->cascadeOnDelete();
             $table->string('email');
             $table->string('role')->nullable();
