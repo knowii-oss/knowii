@@ -100,24 +100,28 @@ export default function Login({ canResetPassword, status }: Props) {
           </div>
 
           {/* Actions */}
-          <div className="flex flex-col space-y-2 md:flex-row md:items-center md:justify-between md:space-y-0 mt-4">
-            {/* Password reset */}
-            {canResetPassword && (
-              <div>
+          <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              {/* Password reset */}
+              {canResetPassword && (
                 <Link href={route(FORGOT_PASSWORD_URL)} className="simple-link">
                   Forgot your password?
                 </Link>
-              </div>
-            )}
+              )}
 
-            <div className="flex items-center justify-end">
               {/* Register */}
               <Link href={route(REGISTER_URL)} className="simple-link">
                 Need an account?
               </Link>
+            </div>
 
+            <div className="mt-4 sm:mt-0 flex justify-center sm:justify-start">
               {/* Log in */}
-              <Button label="Log in" className={classNames('ml-4', { 'opacity-25': form.processing })} disabled={form.processing} />
+              <Button
+                label="Log in"
+                className={classNames('w-full sm:w-auto text-lg', { 'opacity-25': form.processing })}
+                disabled={form.processing}
+              />
             </div>
           </div>
         </form>
