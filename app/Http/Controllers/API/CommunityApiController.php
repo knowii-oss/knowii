@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -17,6 +18,6 @@ class CommunityApiController extends Controller
     Log::info('Processing request to create a new community.');
     Log::info("User: ", [$request->user()]);
 
-    return $this->success('Community created successfully', 201);
+    return $this->success('Community created successfully', Response::HTTP_CREATED);
   }
 }
