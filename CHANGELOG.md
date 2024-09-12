@@ -1,13 +1,13 @@
 
 
-## [0.1.1](https://github.com/DeveloPassion/knowii/compare/0.1.0...0.1.1) (2024-09-11)
+## [0.1.2](https://github.com/DeveloPassion/knowii/compare/0.1.0...0.1.2) (2024-09-12)
 
 
 ### Bug Fixes
 
 * **all:** fix release pipeline def ([75aa7fa](https://github.com/DeveloPassion/knowii/commit/75aa7fa3ef19c5c8662baf8ed60ff8501522593f))
 
-## [0.1.1](https://github.com/DeveloPassion/knowii/compare/0.1.0...0.1.1) (2024-09-11)
+## [0.1.2](https://github.com/DeveloPassion/knowii/compare/0.1.0...0.1.2) (2024-09-12)
 
 
 ### Bug Fixes
