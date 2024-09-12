@@ -1,8 +1,3 @@
-import { defineWorkspace } from "vitest/config";
+import { defineWorkspace } from 'vitest/config';
 
-export default defineWorkspace([
-  '**/*/vite.config.ts',
-  '**/*/vitest.config.ts',
-  '**/*/vite.config.mts',
-  '**/*/vitest.config.mts',
-]);
+export default defineWorkspace(['**/*/vite.config.ts', '**/*/vitest.config.ts', '**/*/vite.config.mts', '**/*/vitest.config.mts']);
