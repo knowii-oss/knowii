@@ -1,14 +1,6 @@
 import { DateTime } from '../date-time.intf';
 import { Nullable } from '../nullable.intf';
 
-export interface Community {
-  id: number;
-  name: string;
-  personal_community: boolean;
-  created_at: DateTime;
-  updated_at: DateTime;
-}
-
 export interface User {
   id: number;
   name: string;
@@ -22,11 +14,7 @@ export interface User {
 }
 
 export interface Auth {
-  user: Nullable<
-    User & {
-      all_communities?: Community[];
-    }
-  >;
+  user: Nullable<User>;
 }
 
 export type InertiaSharedProps<T = NonNullable<unknown>> = T & {

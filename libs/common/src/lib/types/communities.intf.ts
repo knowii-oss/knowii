@@ -9,10 +9,19 @@ export interface CommunityPermissions {
 }
 
 export interface CommunityInvitation {
-  id: number;
+  cuid: string;
   community_id: number;
   email: string;
   role: Nullable<string>;
+  created_at: DateTime;
+  updated_at: DateTime;
+}
+
+export interface Community {
+  cuid: string;
+  name: string;
+  description: string;
+  personal_community: boolean;
   created_at: DateTime;
   updated_at: DateTime;
 }
