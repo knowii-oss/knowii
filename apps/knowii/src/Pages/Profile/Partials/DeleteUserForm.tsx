@@ -61,6 +61,7 @@ export default function DeleteUserForm() {
 
       <Dialog
         header="Are you sure you want to delete your account?"
+        closeOnEscape={true}
         visible={confirmingUserDeletion}
         className="w-full sm:w-[75vw] md:w-[60vw] lg:w-[40vw] xl:w-[30vw]"
         onHide={() => closeModal()}

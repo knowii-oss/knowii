@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Inertia;
 
 use App\Actions\Communities\ValidateCommunityDeletion;
-use App\Contracts\Communities\CreatesCommunities;
 use App\Contracts\Communities\DeletesCommunities;
 use App\Contracts\Communities\UpdatesCommunityNames;
 use App\Knowii;
@@ -16,6 +15,8 @@ use Laravel\Jetstream\RedirectsActions;
 class CommunityController extends Controller
 {
     use RedirectsActions;
+
+  // FIXME refactor
 
     /**
      * Show the community management screen.
@@ -43,34 +44,6 @@ class CommunityController extends Controller
                 'canUpdateCommunityMembers' => Gate::check('updateCommunityMember', $community),
             ],
         ]);
-    }
-
-    /**
-     * Show the community creation screen.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Inertia\Response
-     */
-    public function create(Request $request)
-    {
-        Gate::authorize('create', Knowii::newCommunityModel());
-
-        return Jetstream::inertia()->render($request, 'Communities/Create');
-    }
-
-    /**
-     * Create a new community.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function store(Request $request)
-    {
-        $creator = app(CreatesCommunities::class);
-
-        $creator->create($request->user(), $request->all());
-
-        return $this->redirectPath($creator);
     }
 
     /**

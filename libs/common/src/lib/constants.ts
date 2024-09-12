@@ -27,9 +27,6 @@ export const USER_PROFILE_URL = 'profile.show';
 export const USER_PROFILE_INFORMATION_UPDATE_URL = 'user-profile-information.update';
 export const USER_PROFILE_PASSWORD_UPDATE_URL = 'user-password.update';
 
-// Communities
-export const COMMUNITY_CREATE_URL = 'communities.create';
-
 // FIXME add constants for all routes
 //Route::post('/communities', [CommunityController::class, 'store'])->name('communities.store');
 //Route::get('/communities/{community}', [CommunityController::class, 'show'])->name('communities.show');
@@ -60,3 +57,4 @@ export const DELETE_USER_URL = 'current-user.destroy';
  * API
  */
 export const API_BASE_PATH = '/api/v1';
+export const COMMUNITY_API_BASE_PATH = `${API_BASE_PATH}/communities`;

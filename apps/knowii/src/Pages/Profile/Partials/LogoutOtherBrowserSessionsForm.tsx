@@ -104,6 +104,7 @@ export default function LogoutOtherBrowserSessionsForm(props: Props) {
 
       <Dialog
         header="Log Out Other Browser Sessions"
+        closeOnEscape={true}
         visible={confirmingLogout}
         className="w-full sm:w-[75vw] md:w-[60vw] lg:w-[40vw] xl:w-[30vw]"
         onHide={() => closeModal()}
