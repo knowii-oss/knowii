@@ -7,8 +7,8 @@ import { Link } from '@inertiajs/react';
 
 export default function Footer() {
   return (
-    <footer className="page-content-boundaries bg-gray-800 grid grid-rows-3 md:grid-rows-1 md:grid-cols-3 gap-8 min-h-[16rem] rounded-t-md p-4 text-white pt-8">
-      <div className="flex flex-col gap-4 items-center">
+    <footer className="page-content-boundaries bg-gray-800 grid grid-rows-3 md:grid-rows-1 md:grid-cols-3 gap-2 md:gap-8 min-h-[16rem] rounded-t-md p-2 md:p-4 text-white pt-2 md:pt-8">
+      <div className="flex flex-col gap-2 md:gap-4 items-center">
         <ApplicationLogo />
         <div className="flex flex-row gap-4 justify-center">
           <a href={`mailto:${metadata.contact.info}`}>
@@ -27,8 +27,8 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-2 items-center text-center md:text-left">
-        <div className="mb-3 text-xl font-bold mt-4 w-full">Links</div>
+      <div className="flex flex-col gap-1 md:gap-2 items-center text-center md:text-left">
+        <div className="mb-1 md:mb-3 text-xl font-bold mt-1 md:mt-4 w-full">Links</div>
         <ul className="text-sm w-full">
           <li>
             <a className="hover:text-primary-500" href={metadata.sourceCodeUrl} target="_blank" rel="noreferrer">
@@ -48,8 +48,8 @@ export default function Footer() {
         </ul>
       </div>
 
-      <div className="flex flex-col gap-2 items-center text-center md:text-left">
-        <div className="mb-3 text-xl font-bold mt-4 w-full">Legal</div>
+      <div className="flex flex-col gap-1 md:gap-2 items-center text-center md:text-left">
+        <div className="mb-1 md:mb-3 text-xl font-bold mt-1 md:mt-4 w-full">Legal</div>
         <ul className="text-sm w-full">
           <li>
             <Link className="hover:text-primary-500" href={route(TERMS_OF_SERVICE_URL)}>
