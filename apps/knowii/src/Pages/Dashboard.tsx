@@ -1,6 +1,5 @@
 import AppLayout from '@/Layouts/AppLayout';
 import CommunityBox from '@/Components/CommunityBox';
-import { Link } from '@inertiajs/react';
 import { Community } from '@knowii/common';
 import CardGroup from '@/Components/CardGroup';
 
@@ -26,7 +25,7 @@ export default function Dashboard() {
       {/* TODO add link to open the given community page */}
       <CardGroup className="mt-4">
         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map((item) => (
-          <Link href={''}>
+          <>
             {/* TODO add link to open the given community page. The link should use the slug */}
             <CommunityBox
               community={{
@@ -38,8 +37,9 @@ export default function Dashboard() {
                 personal_community: false,
               }}
               creationMode={false}
+              link={'/communities/' + item}
             />
-          </Link>
+          </>
         ))}
         <CommunityBox community={communityToCreate} creationMode={true} clickHandler={createNewCommunity} />
       </CardGroup>
