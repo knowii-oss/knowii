@@ -81,7 +81,15 @@ If you want to run the production version locally, you can:
 
 To add new pages to the application, you can either create a dedicated controller (e.g., for API endpoints), or declare the page in the `web.php` routes file. Example: `Route::inertia('/contact', 'Contact');`
 
-### Database administration
+### Database
+
+#### Creating new tables
+
+When creating new database tables, make sure to include a `cuid` string field right after the `id` field. This field is used, and exposed by the API. The `cuid` column is filled in automatically when creating new entities, assuming that you don't forget to add `use GeneratesCuid;` to the model.
+
+You can learn more about cuid2 here: https://github.com/paralleldrive/cuid2?tab=readme-ov-file#why
+
+#### Administration
 
 If you want to look at the database during development, you can use the `npm run db:admin` command. It will start a container with PgAdmin.
 Once started, you can go to `http://localhost:5050, and log in using:
@@ -89,11 +97,11 @@ Once started, you can go to `http://localhost:5050, and log in using:
 - Username: root@knowii.net
 - Password: password
 
-### Database cleanup
+#### Cleanup
 
 If you need to restart from scratch, you can reset the database to the default state and run all migrations using `composer db:clean` or `sail php artisan migrate:fresh`.
 
-### Database backup
+#### Backup
 
 Database backups rely on the laravel backup package: https://spatie.be/docs/laravel-backup/v8/introduction
 To backup the database, run the following command: `php artisan backup:run`.
