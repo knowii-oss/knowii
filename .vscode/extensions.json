@@ -4,6 +4,19 @@
     "esbenp.prettier-vscode",
     "firsttris.vscode-jest-runner",
     "ms-playwright.playwright",
-    "nrwl.angular-console"
+    "nrwl.angular-console",
+    "amiralizadeh9480.laravel-extra-intellisense",
+    "austenc.tailwind-docs",
+    "bmewburn.vscode-intelephense-client",
+    "devadvise.php-documentor",
+    "mikestead.dotenv",
+    "bradlc.vscode-tailwindcss",
+    "m1guelpf.better-pest",
+    "ms-azuretools.vscode-docker",
+    "ryannaddy.laravel-artisan",
+    "xdebug.php-debug",
+    "zhang-renyang.vscode-react",
+    "onecentlin.laravel-blade",
+    "amiralizadeh9480.laravel-extra-intellisense"
   ]
 }
