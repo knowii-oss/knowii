@@ -15,7 +15,7 @@ export default function UserProfile(props: Props) {
   const page = useTypedPage();
 
   return (
-    <AppLayout title="Private profile" header={<h1 className="text-xl font-semibold leading-tight text-white">Your user profile</h1>}>
+    <AppLayout title="Private profile" pageTitle="Your user profile">
       {page.props.jetstream.canUpdateProfileInformation && page.props.auth.user && (
         <UpdateProfileInformationForm user={page.props.auth.user} />
       )}

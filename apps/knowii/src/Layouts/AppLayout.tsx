@@ -16,7 +16,7 @@ import PageWrapper from '@/Components/PageWrapper';
 
 interface Props {
   title: string;
-  header?: ReactNode;
+  pageTitle: string;
   children: ReactNode;
 }
 
@@ -117,11 +117,11 @@ export default function AppLayout(props: Props) {
           </div>
         </PageHeader>
 
-        {props.header && (
-          <div className="bg-gray-600">
-            <div className="px-4 py-6 mx-auto max-w-7xl sm:px-6 lg:px-8">{props.header}</div>
+        <div className="bg-gradient-to-r from-gray-700 via-gray-500 to-gray-700">
+          <div className="px-4 py-3 mx-auto max-w-7xl sm:px-6 lg:px-8 flex justify-center">
+            <h1 className="text-white text-2xl sm:text-3xl font-bold tracking-wide uppercase shadow-sm">{props.pageTitle}</h1>
           </div>
-        )}
+        </div>
 
         <PageContentWrapper>{props.children}</PageContentWrapper>
 

@@ -50,7 +50,7 @@ export default function CreateCommunity() {
   };
 
   return (
-    <AppLayout title="New Community" header={<h1 className="text-xl font-semibold leading-tight text-white">New Community</h1>}>
+    <AppLayout title="New Community" pageTitle="New Community">
       <FormSection
         onSubmit={createCommunity}
         title={'Community Information'}
