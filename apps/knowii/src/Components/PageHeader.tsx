@@ -38,7 +38,7 @@ export default function PageHeader(props: PropsWithChildren<Props>) {
   return (
     <header
       className={classNames(
-        `bg-gray-800 flex flex-col sm:flex-row flex-wrap items-center justify-between`,
+        `bg-gray-800 flex flex-col flex-wrap md:flex-row sm:justify-center items-center md:justify-between`,
         { 'p-4 md:p-6 lg:p-12': !props.compact },
         { 'pt-4 pl-0 sm:pl-4 sm:pr-4 pb-2 lg:pb-2': props.compact },
       )}
