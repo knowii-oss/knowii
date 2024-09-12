@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -38,19 +39,17 @@ class LoginApiController extends Controller
           $tokenValidUntil = now()->addHours(12);
           Log::info("Token valid until: ".$tokenValidUntil);
           $token = $user->createToken('api', [], $tokenValidUntil)->plainTextToken;
+          
           return response()->json([
               'message' => __('Welcome to Knowii\'s API'),
               'token' => $token,
               'tokenValidUntil' => $tokenValidUntil,
-          ],200);
+          ], Response::HTTP_OK);
       }
 
-
-      return response()->json([
-          'message' => __('Welcome to Knowii\'s API'),
-      ],200);
+      return $this->success('Welcome to Knowii\'s API');
     }
 
-    return $this->error('The provided credentials do not match our records.', 401);
+    return $this->error('The provided credentials do not match our records.', Response::HTTP_UNAUTHORIZED);
   }
 }
