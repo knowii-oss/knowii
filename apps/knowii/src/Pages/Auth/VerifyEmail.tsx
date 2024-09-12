@@ -39,18 +39,16 @@ export default function Login(props: Props) {
         )}
 
         <form onSubmit={submit}>
-          <div className="mt-4 flex items-center justify-between">
+          <div className="mt-4 flex flex-col sm:flex-row items-center sm:justify-between">
             <Button
               label="Resend verification email"
-              className={classNames('ml-4', { 'opacity-25': form.processing })}
+              className={classNames('mb-4 sm:mb-0', { 'opacity-25': form.processing })}
               disabled={form.processing}
             />
-            <div>
-              <Link href={route(USER_PROFILE_URL)} className="simple-link">
+            <div className="flex flex-col sm:flex-row items-center">
+              <Link href={route(USER_PROFILE_URL)} className="simple-link mb-2 sm:mb-0 sm:mr-4">
                 Edit profile
               </Link>
-            </div>
-            <div>
               <Link href={route(LOGOUT_URL)} method="post" className="simple-link">
                 Log out
               </Link>

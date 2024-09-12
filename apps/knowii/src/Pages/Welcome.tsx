@@ -46,7 +46,6 @@ export default function Welcome(props: WelcomePageProps) {
             <div className="mt-8 text-2xl">Get ready for a revolutionary knowledge-sharing experience!</div>
           </div>
 
-
           {/*<div className="mt-16 flex flex-col items-center mt-8">*/}
           {/*  <button className="px-6 py-2 bg-primary-500 text-white rounded-full hover:bg-primary-600 transition-colors duration-300">*/}
           {/*    Join the waitlist*/}
