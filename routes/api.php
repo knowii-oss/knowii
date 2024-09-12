@@ -6,7 +6,6 @@ use App\Http\Controllers\API\CommunityApiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-// TODO move under v1/auth
 Route::get('/user', function (Request $request) {
   return $request->user();
 })->middleware('auth:sanctum');

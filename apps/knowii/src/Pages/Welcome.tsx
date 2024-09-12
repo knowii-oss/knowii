@@ -43,7 +43,7 @@ export default function Welcome(props: WelcomePageProps) {
             <h2 className="mt-4">
               Know<span className="text-primary-500">ii</span> is a place for your community's Knowledge, Ideas and Inspiration.
             </h2>
-            <div className="mt-8 text-2xl">Get ready for a revolutionary knowledge-sharing experience!</div>
+            <div className="mt-8 text-xl">Get ready for a revolutionary knowledge-sharing experience!</div>
           </div>
 
           {/*<div className="mt-16 flex flex-col items-center mt-8">*/}

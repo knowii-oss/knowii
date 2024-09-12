@@ -44,31 +44,28 @@ export default function Dashboard() {
       body: JSON.stringify(newCommunity),
     });
 
-    // FIXME remove
-    const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-    await sleep(1000);
+    //const responseAsJson = await response.json();
 
-    setLoading(false);
-
-    //onError: () => passwordRef.current?.focus(),
-    //onFinish: () => form.reset(),
-
-    if (HttpStatus.CREATED !== response.status) {
+    if (HttpStatus.CREATED === response.status) {
       closeCreateCommunityModal();
+      form.reset();
       toastRef.current?.show({
         severity: 'success',
         summary: 'Community created successfully',
       });
+
+      // FIXME extract new community details from the response and add to the list of communities
     } else {
       form.setError('name', { message: 'Name is already taken' });
       toastRef.current?.show({
         severity: 'error',
         summary: 'Failed to create the community',
       });
+
+      // FIXME load error details and show
     }
 
-    const responseAsJson = await response.json();
-    console.log(responseAsJson);
+    setLoading(false);
   };
 
   const openCreateCommunityModal = () => {
@@ -145,21 +142,14 @@ export default function Dashboard() {
                       // Reference: https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/apps/knowii/pages/communities/create/index.tsx
                       // add regex pattern
                     })}
-                    // FIXME NOK
-                    aria-invalid={form.errors.name ? 'true' : 'false'}
+                    aria-invalid={form.formState.errors.name ? true : false}
                     autoComplete="name"
                     required
                     disabled={form.formState.isSubmitting || form.formState.isLoading}
                   />
                 </div>
 
-                {/* FIXME NOK
-                  https://react-hook-form.com/get-started#Handleerrors
-                 */}
-                {/*{form.errors.name && (*/}
-                {/*  <p role="alert">First name is required</p>*/}
-                {/*  <InputError className="mt-2" message={} />*/}
-                {/*)}*/}
+                {form.formState.errors.name && <InputError className="mt-2" message={form.formState.errors.name.message} />}
               </div>
               {/* Description */}
               <div className="mt-4 col-span-6 sm:col-span-4">
@@ -172,8 +162,7 @@ export default function Dashboard() {
                       required: false,
                       maxLength: 255,
                     })}
-                    // FIXME NOK
-                    aria-invalid={form.errors.description ? 'true' : 'false'}
+                    aria-invalid={form.formState.errors.description ? true : false}
                     disabled={loading}
                   />
                 </div>

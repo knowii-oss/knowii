@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Visus\Cuid2\Cuid2;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Community>
@@ -18,6 +19,7 @@ class CommunityFactory extends Factory
     public function definition(): array
     {
         return [
+            'cuid' => new Cuid2(),
             'name' => $this->faker->unique()->company(),
             'description' => $this->faker->unique()->sentence(nbWords: 5),
             'user_id' => User::factory(),
