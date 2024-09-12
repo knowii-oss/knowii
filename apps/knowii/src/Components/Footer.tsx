@@ -1,4 +1,4 @@
-import { metadata, PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL } from '@knowii/common';
+import { CONTACT_URL, metadata, PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL } from '@knowii/common';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import { Button } from 'primereact/button';
 import { FaEnvelope } from 'react-icons/fa';
@@ -44,6 +44,11 @@ export default function Footer() {
             <a className="hover:text-primary-500" href={metadata.social.blogSebastien} target="_blank" rel="noreferrer">
               Blog
             </a>
+          </li>
+          <li>
+            <Link className="hover:text-primary-500" href={CONTACT_URL}>
+              Contact us
+            </Link>
           </li>
         </ul>
       </div>
