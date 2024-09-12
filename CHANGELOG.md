@@ -1,6 +1,6 @@
 
 
-# 0.2.0 (2024-09-12)
+# 0.3.0 (2024-09-12)
 
 
 ### Bug Fixes
@@ -18,6 +18,7 @@
 * **code:** fixed issue with the prisma schema. Removed invalid zod annotation ([437f4c3](https://github.com/DeveloPassion/knowii/commit/437f4c3aa23506d2cb68c3710782a342cf1d4f78))
 * **deps:** fixed issue with local supabase ([1ed3983](https://github.com/DeveloPassion/knowii/commit/1ed3983c3cab86f5ed0409e2867e5f2f60c7a94d)), closes [#497](https://github.com/DeveloPassion/knowii/issues/497)
 * **ui:** fixed issue with body style too wide ([32df299](https://github.com/DeveloPassion/knowii/commit/32df299f0f93823e0609d1a1057ff224f4fb3a02))
+* **ui:** fixed margin issue with header logo in compact mode ([1d88ca0](https://github.com/DeveloPassion/knowii/commit/1d88ca0768de96fcd002d780262344a201cd3ceb)), closes [#693](https://github.com/DeveloPassion/knowii/issues/693)
 * **ui:** fixed the login page links on small screens ([fd168b1](https://github.com/DeveloPassion/knowii/commit/fd168b1fad73891481685a60cd39fc8d3c513500)), closes [#734](https://github.com/DeveloPassion/knowii/issues/734)
 * **ui:** removed margin top for login pages on mobile ([bbb6aea](https://github.com/DeveloPassion/knowii/commit/bbb6aea9893d7847d50581e878b2c8890b73fa6d)), closes [#738](https://github.com/DeveloPassion/knowii/issues/738)
 * **ui:** reused appcontentwrapper and fixed styles ([640908d](https://github.com/DeveloPassion/knowii/commit/640908d0f0b958273fa2d4c37faa5ac822268dc2))
@@ -80,7 +81,7 @@
 
 * **deps:** reverted update of supabase auth-helpers as those break sign up ([ae06319](https://github.com/DeveloPassion/knowii/commit/ae063191d0ed4db0fa83b743ea582fea5f76c93f)), closes [#533](https://github.com/DeveloPassion/knowii/issues/533)
 
-# 0.2.0 (2024-09-12)
+# 0.3.0 (2024-09-12)
 
 
 ### Bug Fixes
@@ -98,6 +99,7 @@
 * **code:** fixed issue with the prisma schema. Removed invalid zod annotation ([437f4c3](https://github.com/DeveloPassion/knowii/commit/437f4c3aa23506d2cb68c3710782a342cf1d4f78))
 * **deps:** fixed issue with local supabase ([1ed3983](https://github.com/DeveloPassion/knowii/commit/1ed3983c3cab86f5ed0409e2867e5f2f60c7a94d)), closes [#497](https://github.com/DeveloPassion/knowii/issues/497)
 * **ui:** fixed issue with body style too wide ([32df299](https://github.com/DeveloPassion/knowii/commit/32df299f0f93823e0609d1a1057ff224f4fb3a02))
+* **ui:** fixed margin issue with header logo in compact mode ([1d88ca0](https://github.com/DeveloPassion/knowii/commit/1d88ca0768de96fcd002d780262344a201cd3ceb)), closes [#693](https://github.com/DeveloPassion/knowii/issues/693)
 * **ui:** fixed the login page links on small screens ([fd168b1](https://github.com/DeveloPassion/knowii/commit/fd168b1fad73891481685a60cd39fc8d3c513500)), closes [#734](https://github.com/DeveloPassion/knowii/issues/734)
 * **ui:** removed margin top for login pages on mobile ([bbb6aea](https://github.com/DeveloPassion/knowii/commit/bbb6aea9893d7847d50581e878b2c8890b73fa6d)), closes [#738](https://github.com/DeveloPassion/knowii/issues/738)
 * **ui:** reused appcontentwrapper and fixed styles ([640908d](https://github.com/DeveloPassion/knowii/commit/640908d0f0b958273fa2d4c37faa5ac822268dc2))
