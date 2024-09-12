@@ -13,7 +13,7 @@ const releaseItConfig = {
     requireCommits: false,
     commit: true,
     commitMessage: 'chore(release): release ${version}',
-    commitArgs: '',
+    commitArgs: '--no-verify',
     tag: true,
     tagName: '${version}',
     tagAnnotation: 'Release ${version}',
