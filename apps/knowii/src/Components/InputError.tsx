@@ -11,7 +11,9 @@ export default function InputError({ message, className, children }: PropsWithCh
   }
   return (
     <div className={className}>
-      <p className="text-sm text-red-600">{message || children}</p>
+      <p className="text-sm text-red-600" role="alert">
+        {message || children}
+      </p>
     </div>
   );
 }

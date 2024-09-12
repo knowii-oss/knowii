@@ -25,14 +25,17 @@ class CreateCommunity implements CreatesCommunities
         Validator::make($input, [
             'name' => ['required', 'string', 'min: 3', 'max:255'],
             'description' => ['required', 'string', 'max:255'], // FIXME extend length
+            'personal_community' => ['required', 'boolean'],
         ])->validateWithBag('createCommunity');
 
         AddingCommunity::dispatch($user);
 
-        return $user->ownedCommunities()->create([
+        $retVal = $user->ownedCommunities()->create([
           'name' => $input['name'],
           'description' => $input['description'],
-          'personal_community' => false,
+          'personal_community' => $input['personal_community'],
         ]);
+
+        return $retVal;
     }
 }

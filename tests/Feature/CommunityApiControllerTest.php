@@ -1,27 +1,20 @@
 <?php
 
-use App\Actions\Communities\CreateCommunity;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-test('communities can be created via the creator', function () {
+test('communities can be created via the API', function () {
     $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
 
-    expect($user->ownedCommunities)->toHaveCount(1);
+    $response = $this->post('api/v1/communities', [
+        'name' => 'Test Community',
+        'description' => 'Awesome community',
+        'personal_community' => true,
+    ]);
 
-    $input = [
-      'name' => 'Test Community',
-      'description' => 'Awesome community',
-      'personal_community' => true,
-    ];
-
-    $creator = new CreateCommunity();
-
-    $creator->create($user, $input);
-
-    expect($user->fresh()->ownedCommunities)->toHaveCount(2);
+    expect($user->ownedCommunities)->toHaveCount(2);
     expect($user->ownedCommunities()->latest('id')->first()->name)->toEqual('Test Community');
     expect($user->ownedCommunities()->latest('id')->first()->description)->toEqual('Awesome community');
     expect($user->ownedCommunities()->latest('id')->first()->personal_community)->toEqual(true);
