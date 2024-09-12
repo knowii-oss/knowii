@@ -40,7 +40,7 @@ export default function PageHeader(props: PropsWithChildren<Props>) {
       className={classNames(
         `bg-gray-800 flex flex-col sm:flex-row flex-wrap items-center justify-between`,
         { 'p-4 md:p-6 lg:p-12': !props.compact },
-        { 'pl-0 sm:pl-4 sm:pr-4 pb-2 lg:pb-2': props.compact },
+        { 'pt-4 pl-0 sm:pl-4 sm:pr-4 pb-2 lg:pb-2': props.compact },
       )}
     >
       {props.addLinkOnLogo ? (
