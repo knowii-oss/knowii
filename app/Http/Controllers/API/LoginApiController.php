@@ -7,8 +7,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
+use \App\Traits\ApiResponses;
 class LoginApiController extends Controller
 {
+
+  use ApiResponses;
+
   /**
    * Handle API login requests
    * @param Request $request
@@ -47,8 +51,6 @@ class LoginApiController extends Controller
       ],200);
     }
 
-    return response()->json([
-      'message' => 'The provided credentials do not match our records.'
-    ], 401);
+    return $this->error('The provided credentials do not match our records.', 401);
   }
 }
