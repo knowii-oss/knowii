@@ -86,22 +86,21 @@ export default function Dashboard() {
         </h2>
         {/* TODO add link to open the given community page */}
         <CardGroup className="mt-4">
+          {/* TODO add link to open the given community page. The link should use the slug */}
           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map((item) => (
-            <>
-              {/* TODO add link to open the given community page. The link should use the slug */}
-              <CommunityBox
-                community={{
-                  name: `Community ${item}`,
-                  description: `This is the description for community ${item}.`,
-                  cuid: '',
-                  created_at: '',
-                  updated_at: '',
-                  personal_community: false,
-                }}
-                creationMode={false}
-                link={'/communities/' + item}
-              />
-            </>
+            <CommunityBox
+              key={item}
+              community={{
+                name: `Community ${item}`,
+                description: `This is the description for community ${item}.`,
+                cuid: '',
+                created_at: '',
+                updated_at: '',
+                personal_community: false,
+              }}
+              creationMode={false}
+              link={'/communities/' + item}
+            />
           ))}
           <CommunityBox creationMode={true} clickHandler={openCreateCommunityModal} />
         </CardGroup>
