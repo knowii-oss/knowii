@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('cuid');
             $table->foreignId('user_id')->index();
             $table->string('name')->index();
-            $table->string('description');
+            $table->string('description')->nullable();
             $table->boolean('personal');
             $table->timestamps();
         });
