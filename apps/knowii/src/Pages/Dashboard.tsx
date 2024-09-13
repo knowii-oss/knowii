@@ -1,17 +1,18 @@
 import AppLayout from '@/Layouts/AppLayout';
-import CommunityBox from '@/Components/CommunityBox';
-import { COMMUNITY_API_BASE_PATH, HttpStatus, NewCommunity } from '@knowii/common';
-import CardGroup from '@/Components/CardGroup';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import React, { useRef, useState } from 'react';
 import { Toast } from 'primereact/toast';
-import InputLabel from '@/Components/InputLabel';
 import { InputText } from 'primereact/inputtext';
-import InputError from '@/Components/InputError';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { useForm } from 'react-hook-form';
+
+import InputError from '@/Components/InputError';
+import CommunityBox from '@/Components/CommunityBox';
+import { COMMUNITY_API_BASE_PATH, HttpStatus, NewCommunity } from '@knowii/common';
+import CardGroup from '@/Components/CardGroup';
+import InputLabel from '@/Components/InputLabel';
 
 export default function Dashboard() {
   const toastRef = useRef<Toast | null>(null);
@@ -21,20 +22,12 @@ export default function Dashboard() {
 
   const form = useForm<NewCommunity>();
 
-  const createCommunity = async () => {
+  const createCommunity = async (newCommunity: NewCommunity) => {
     setCreatingCommunity(true);
 
     // FIXME show loading spinner
     setLoading(true);
 
-    const newCommunity: NewCommunity = {
-      name: form.getValues('name'),
-      description: form.getValues('description'),
-      // FIXME add support for creating public ones
-      personal: true,
-    };
-
-    // FIXME extract request making logic to reusable function
     const response = await fetch(COMMUNITY_API_BASE_PATH, {
       method: 'post',
       headers: new Headers({
@@ -87,7 +80,7 @@ export default function Dashboard() {
         {/* TODO add link to open the given community page */}
         <CardGroup className="mt-4">
           {/* TODO add link to open the given community page. The link should use the slug */}
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map((item) => (
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((item) => (
             <CommunityBox
               key={item}
               community={{
@@ -114,7 +107,7 @@ export default function Dashboard() {
         footer={
           <>
             <Button severity="secondary" label="Cancel" onClick={closeCreateCommunityModal} />
-            <Button label="Go ahead!" onClick={createCommunity} disabled={!form.formState.isValid || loading} className="ml-2" />
+            <Button type="submit" label="Go ahead!" disabled={!form.formState.isValid || loading} className="ml-2" />
           </>
         }
       >
@@ -125,7 +118,7 @@ export default function Dashboard() {
         ) : (
           <>
             <span>Provide the details of your new community.</span>
-            <form>
+            <form onSubmit={form.handleSubmit(createCommunity)}>
               {/* Name */}
               <div className="mt-4 col-span-6 sm:col-span-4">
                 <InputLabel htmlFor="name">Name</InputLabel>

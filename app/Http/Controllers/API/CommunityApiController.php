@@ -15,7 +15,7 @@ class CommunityApiController extends Controller
 {
   use ApiResponses;
 
-  public function create(Request $request): JsonResponse {
+  final public function store(Request $request): JsonResponse {
     Log::info('Processing API request to create a new community.');
     Log::debug("User: ", [$request->user()]);
 

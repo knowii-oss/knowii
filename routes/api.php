@@ -18,5 +18,5 @@ Route::prefix('v1')->group(function (){
   Route::get('ping', [PingApiController::class, 'ping']);
 
   // Communities
-  Route::post('communities', [CommunityApiController::class, 'create'])->middleware('auth:sanctum');
+  Route::post('communities', [CommunityApiController::class, 'store'])->middleware('auth:sanctum');
 });
