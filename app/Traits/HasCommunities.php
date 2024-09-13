@@ -54,7 +54,7 @@ trait HasCommunities
    */
   public function personalCommunity()
   {
-    return $this->ownedCommunities->where('personal_community', true)->first();
+    return $this->ownedCommunities->where('personal', true)->first();
   }
 
   /**

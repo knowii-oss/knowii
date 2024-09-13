@@ -23,7 +23,7 @@ class CommunityFactory extends Factory
             'name' => $this->faker->unique()->company(),
             'description' => $this->faker->unique()->sentence(nbWords: 5),
             'user_id' => User::factory(),
-            'personal_community' => true,
+            'personal' => true,
         ];
     }
 }

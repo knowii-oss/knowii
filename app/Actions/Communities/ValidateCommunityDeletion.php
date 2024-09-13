@@ -20,7 +20,7 @@ class ValidateCommunityDeletion
     {
         Gate::forUser($user)->authorize('delete', $community);
 
-        if ($community->personal_community) {
+        if ($community->personal) {
             throw ValidationException::withMessages([
                 'community' => __('You may not delete your personal space.'),
             ])->errorBag('deleteCommunity');

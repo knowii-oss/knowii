@@ -31,7 +31,7 @@ export default function Dashboard() {
       name: form.getValues('name'),
       description: form.getValues('description'),
       // FIXME add support for creating public ones
-      personal_community: true,
+      personal: true,
     };
 
     // FIXME extract request making logic to reusable function
@@ -94,9 +94,9 @@ export default function Dashboard() {
                 name: `Community ${item}`,
                 description: `This is the description for community ${item}.`,
                 cuid: '',
-                created_at: '',
-                updated_at: '',
-                personal_community: false,
+                created_at: new Date(),
+                updated_at: new Date(),
+                personal: false,
               }}
               creationMode={false}
               link={'/communities/' + item}
