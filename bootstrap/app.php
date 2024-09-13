@@ -83,7 +83,7 @@ return Application::configure(basePath: dirname(__DIR__))
     $exceptions->respond(function (Response | RedirectResponse | JsonResponse $response, Throwable $exception, Request $request) {
       if($request->expectsJson()) {
         Log::debug("Client expects JSON");
-        if($exception instanceof AlreadyAuthenticatedException and $response instanceof JsonResponse) {
+        if($exception instanceof AlreadyAuthenticatedException && $response instanceof JsonResponse) {
           Log::debug('AlreadyAuthenticatedException');
           $response->setJson('{ "message": "You are already logged in" }');
           $response->setStatusCode(200);

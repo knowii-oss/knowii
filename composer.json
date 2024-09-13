@@ -16,6 +16,7 @@
     "parables/laravel-cuid2": "^1.0",
     "resend/resend-php": "^0.13.0",
     "spatie/laravel-backup": "^9.0",
+    "tartanlegrand/laravel-openapi": "^2.0",
     "tightenco/ziggy": "^2.0",
     "visus/cuid2": "^4.1"
   },
