@@ -4,8 +4,10 @@ namespace App\Actions\Communities;
 
 use App\Contracts\Communities\CreatesCommunities;
 use App\Events\Communities\AddingCommunity;
+use App\Exceptions\TechnicalException;
 use App\Models\Community;
 use App\Models\User;
+use Exception;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -18,6 +20,7 @@ class CreateCommunity implements CreatesCommunities
    * @param User $user
    * @param array $input
    * @return Community
+   * @throws TechnicalException
    */
   final public function create(User $user, array $input): Community
   {
@@ -41,13 +44,23 @@ class CreateCommunity implements CreatesCommunities
     AddingCommunity::dispatch($user);
 
     Log::debug('Saving the new community');
-    $retVal = $user->ownedCommunities()->create([
-      'name' => $input['name'],
-      'description' => $input['description'],
-      'personal' => $input['personal'],
-    ]);
-    Log::debug('New community');
 
-    return $retVal;
+    // At this point business validations are done, so all that can happen is a technical issue
+
+    try {
+      $retVal = $user->ownedCommunities()->create([
+        'name' => $input['name'],
+        'description' => $input['description'],
+        'personal' => $input['personal'],
+      ]);
+      Log::debug('New community');
+
+      throw new Exception("BOOM");
+
+      return $retVal;
+    } catch(\Exception $e) {
+      Log::error('Failed to create the community', ['exception' => $e]);
+      throw new TechnicalException('Failed to create the community', null, $e);
+    }
   }
 }
