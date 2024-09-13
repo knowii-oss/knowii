@@ -1,7 +1,35 @@
 # TODO
 
-- Improve ApiResponses trait: https://github.com/knowii-oss/knowii/issues/783
--
+Improve LoginController data output
+
+- message
+- data
+- errors (returned after validation)
+- Handle exceptions when saving data in the database
+
+- API Design: https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki
+
+  - Error handling
+    - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Error-handling-About
+    - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Error-handling-Expectations
+    - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Error-handling-Status-codes
+    - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Error-handling-Error-details
+    - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Error-handling-Example-with-a-single-error
+    - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Error-handling-Example-with-multiple-errors
+    - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Error-handling-Example-with-parameters
+    - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Error-handling-Example-with-additional-metadata
+    - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Error-handling-Warnings
+    -
+  - Pagination
+    - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Pagination-About
+    - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Pagination-Rules-and-metadata
+    - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Pagination-Example
+    - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Pagination-Out-of-range-bounds
+  - Collections
+    - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/CRUD-Retrieve-Collection
+  - Single item
+    - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/CRUD-Retrieve-Single-item
+
 - catch BusinessException and TechnicalException in the render method of bootstrap\app.php
 
 - Implement isUsername available API: https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/libs/common/src/lib/api/is-username-available.schema.ts
@@ -20,6 +48,8 @@
 
   - Reset prod DB
 
+Customize pagination information: https://laravel.com/docs/11.x/eloquent-resources#customizing-the-pagination-information
+
 Places to update when modifying the Community model
 
 - PHP
@@ -29,6 +59,7 @@ Places to update when modifying the Community model
   - ...
   - CommunityController (inertia)
   - CommunityApiController
+  - CommunityResource
   - Factories
   - Tests
 - Frontend

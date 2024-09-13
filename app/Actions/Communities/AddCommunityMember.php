@@ -48,7 +48,7 @@ class AddCommunityMember implements AddsCommunityMembers
             'email.exists' => __('We were unable to find a registered user with this email address.'),
         ])->after(
             $this->ensureUserIsNotAlreadyInCommunity($community, $email)
-        )->validateWithBag('addCommunityMember');
+        );
     }
 
     /**

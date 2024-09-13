@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
-import { createApiResponseSchema } from '../api-response.schema';
 import { communitySchema } from '../../types/community.schema';
+import { singleItemApiResponseSchema } from '../single-item-api-response.schema';
 
-const createCommunityResponseSchema = createApiResponseSchema(
+const createCommunityResponseSchema = singleItemApiResponseSchema(
   communitySchema.pick({
     name: true,
     description: true,

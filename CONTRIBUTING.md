@@ -161,6 +161,21 @@ By default, backups are stored under `storage/app/Knowii`
 
 ### API
 
+#### Structure
+
+- API Controllers are under `app/Http/Controllers/API`
+- They should not validate the input (not their responsibility)
+- They should delegate operations to a dedicated controller (e.g., CreateCommunity)
+- They should not catch exceptions returned by the business controllers (that handle validation)
+- Exceptions will be converted more generally toward the clients
+- They should leverage the ApiResponses trait to return consistent responses
+
+Flow:
+
+- Request > API Controller > Business Controller (input validation, business validation, ...) > Database
+- Business Controller > API Controller > ApiResponses > Response
+- OR Business Controller > Exception > Global Exception Handler > Response
+
 #### MUST
 
 When adding/modifying API endpoints, make sure to:

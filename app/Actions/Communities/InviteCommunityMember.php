@@ -50,7 +50,7 @@ class InviteCommunityMember implements InvitesCommunityMembers
             'email.unique' => __('This user has already been invited to the community.'),
         ])->after(
             $this->ensureUserIsNotAlreadyInCommunity($community, $email)
-        )->validateWithBag('addCommunityMember');
+        );
     }
 
     /**

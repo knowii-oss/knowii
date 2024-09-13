@@ -23,7 +23,7 @@ class UpdateCommunityName implements UpdatesCommunityNames
 
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
-        ])->validateWithBag('updateCommunityName');
+        ]);
 
         $community->forceFill([
             'name' => $input['name'],

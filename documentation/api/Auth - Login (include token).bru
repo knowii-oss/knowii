@@ -26,12 +26,12 @@ body:json {
 
 tests {
   test("should be able to get a token", function() {
-    const data = res.getBody();
-    expect(data.token).be.a('string');
+    const responseBody = res.getBody();
+    expect(responseBody.data.token).be.a('string');
   });
   
   test("should return the token lifetime", function() {
-    const data = res.getBody();
-    expect(data.tokenValidUntil).be.a('string');
+    const responseBody = res.getBody();
+    expect(responseBody.data.tokenValidUntil).be.a('string');
   });
 }
