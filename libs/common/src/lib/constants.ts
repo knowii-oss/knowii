@@ -53,8 +53,117 @@ export const EMAIL_VERIFICATION_URL = 'verification.send';
 export const EMAIL_VERIFICATION_STATUS_LINK_SENT = 'verification-link-sent';
 export const DESTROY_OTHER_BROWSER_SESSIONS_URL = 'other-browser-sessions.destroy';
 export const DELETE_USER_URL = 'current-user.destroy';
+
 /**
  * API
  */
 export const API_BASE_PATH = '/api/v1';
 export const COMMUNITY_API_BASE_PATH = `${API_BASE_PATH}/communities`;
+
+/**
+ * Regexes
+ * WARNING: Some of those must match the regexes used by PL/SQL functions defined in supabase-db-seed.sql
+ */
+export const forbiddenUsernameCharactersRegex = /[^a-zA-Z0-9_-]+/g;
+// Used with react hook form forms
+export const allowedUsernameCharactersRegex = /[a-zA-Z0-9_-]+/g;
+export const minLengthUsername = 3;
+export const maxLengthUsername = 36;
+
+export const forbiddenCommunityNameCharactersRegex = /[^a-zA-Z0-9 -]+/g;
+// Used with react hook form forms
+export const allowedCommunityNameCharactersRegex = /[a-zA-Z0-9 -]+/g;
+
+export const forbiddenCommunitySlugCharactersRegex = /[^a-zA-Z0-9-]+/g;
+// Used with react hook form forms
+export const allowedCommunitySlugCharactersRegex = /[a-zA-Z0-9-]+/g;
+
+export const minLengthCommunityName = 3;
+export const maxLengthCommunityName = 64;
+
+export const minLengthCommunitySlug = 3;
+export const maxLengthCommunitySlug = 64;
+
+/**
+ * Possible error types
+ */
+export const ErrorType = {
+  authentication: 'authentication',
+  authorization: 'authorization',
+  notAvailable: 'notAvailable',
+  notFound: 'notFound',
+  server: 'server',
+  validation: 'validation',
+} as const;
+
+export type ErrorType = keyof typeof ErrorType;
+
+export const ErrorCategory = {
+  business: 'business',
+  security: 'security',
+  technical: 'technical',
+} as const;
+
+export type ErrorCategory = keyof typeof ErrorCategory;
+
+// FIXME reuse those types
+/**
+ * Errors
+ */
+
+/**
+ * An error with basic information
+ */
+interface ReusableError {
+  code: string;
+  key: string;
+  description: string;
+  statusCode: number;
+  type: ErrorType;
+  category: ErrorCategory;
+}
+
+export const errorInternalServerError: ReusableError = {
+  code: 'internal_server_error',
+  key: 'errors.internalServerError',
+  description: 'We have encountered an unexpected issue',
+  statusCode: 500,
+  type: 'server',
+  category: 'technical',
+};
+
+export const errorClientNotAuthenticated: ReusableError = {
+  code: 'client_not_authenticated',
+  key: 'errors.clientNotAuthenticated',
+  description: 'The client does not have an active session or is not authenticated',
+  statusCode: 401,
+  type: 'authentication',
+  category: 'security',
+};
+
+export const errorInputValidation: ReusableError = {
+  code: 'invalid_request_error',
+  key: 'errors.invalidRequestError',
+  description: 'The provided request data is incomplete or invalid',
+  statusCode: 400,
+  type: 'validation',
+  category: 'business',
+};
+
+export const errorCommunityNotFound: ReusableError = {
+  code: 'community_not_found_error',
+  key: 'communityNotFoundError',
+  description: 'The community could not be found',
+  statusCode: 404,
+  type: 'notFound',
+  category: 'business',
+};
+
+export const errorCommunityNameNotAvailable: ReusableError = {
+  code: 'community_name_not_available',
+  key: 'communityNameNotAvailable',
+  description: 'The chosen community name is not available',
+  statusCode: 409,
+  type: 'notAvailable',
+  category: 'business',
+};
