@@ -2,9 +2,7 @@
 
 namespace App\Exceptions;
 
-use Exception;
-
-class AlreadyAuthenticatedException extends Exception
+class AlreadyAuthenticatedException extends KnowiiException
 {
     //
 }
