@@ -7,7 +7,7 @@ test('communities can be deleted', function () {
     $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
 
     $user->ownedCommunities()->save($community = Community::factory()->make([
-        'personal_community' => false,
+        'personal' => false,
     ]));
 
     $community->users()->attach(

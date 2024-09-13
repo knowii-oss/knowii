@@ -48,7 +48,7 @@ class CreateNewUser implements CreatesNewUsers
             'user_id' => $user->id,
             'name' => explode(' ', $user->name, 2)[0]."'s Space",
             'description' => explode(' ', $user->name, 2)[0]."'s Personal Space",
-            'personal_community' => true,
+            'personal' => true,
         ]));
     }
 }

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('user_id')->index();
             $table->string('name')->index();
             $table->string('description');
-            $table->boolean('personal_community');
+            $table->boolean('personal');
             $table->timestamps();
         });
     }

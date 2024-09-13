@@ -14,7 +14,7 @@ test('communities can be created via the creator', function () {
     $input = [
       'name' => 'Test Community',
       'description' => 'Awesome community',
-      'personal_community' => true,
+      'personal' => true,
     ];
 
     $creator = new CreateCommunity();
@@ -24,5 +24,5 @@ test('communities can be created via the creator', function () {
     expect($user->fresh()->ownedCommunities)->toHaveCount(2);
     expect($user->ownedCommunities()->latest('id')->first()->name)->toEqual('Test Community');
     expect($user->ownedCommunities()->latest('id')->first()->description)->toEqual('Awesome community');
-    expect($user->ownedCommunities()->latest('id')->first()->personal_community)->toEqual(true);
+    expect($user->ownedCommunities()->latest('id')->first()->personal)->toEqual(true);
 });

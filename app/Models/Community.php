@@ -31,7 +31,7 @@ class Community extends Model
   protected $fillable = [
     'name',
     'description',
-    'personal_community',
+    'personal',
   ];
 
   /**
@@ -62,7 +62,7 @@ class Community extends Model
   protected function casts(): array
   {
     return [
-      'personal_community' => 'boolean',
+      'personal' => 'boolean',
     ];
   }
 

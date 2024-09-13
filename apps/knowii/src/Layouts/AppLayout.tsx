@@ -1,13 +1,13 @@
 import { ReactNode, useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import { COMMUNITY_CREATE_URL, DASHBOARD_URL, LOGOUT_URL, USER_PROFILE_URL, useTypedPage } from '@knowii/common';
+import { DASHBOARD_URL, LOGOUT_URL, USER_PROFILE_URL, useTypedPage } from '@knowii/common';
 import { useRoute } from 'ziggy-js';
 import { Sidebar } from 'primereact/sidebar';
 import { Button } from 'primereact/button';
 import { Divider } from 'primereact/divider';
 import { Avatar } from 'primereact/avatar';
 import { FaBars, FaHome, FaSignOutAlt, FaUser } from 'react-icons/fa';
-import { FaPeopleGroup, FaXmark } from 'react-icons/fa6';
+import { FaXmark } from 'react-icons/fa6';
 import PageHeader from '@/Components/PageHeader';
 import ApplicationMark from '@/Components/ApplicationMark';
 import Footer from '@/Components/Footer';

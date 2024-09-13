@@ -60,7 +60,7 @@ class UserFactory extends Factory
                     'name' => $user->name.'\'s Space',
                     'description' => $user->name.'\'s Personal Space',
                     'user_id' => $user->id,
-                    'personal_community' => true,
+                    'personal' => true,
                 ])
                 ->when(is_callable($callback), $callback),
             'ownedCommunities'
