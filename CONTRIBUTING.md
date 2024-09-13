@@ -77,6 +77,56 @@ If you want to run the production version locally, you can:
 - `composer test`: Test the back-end code
 - `npm run test`: Test the front-end code
 
+### IntelliJ / PHPStorm
+
+First, install the following plugins:
+
+- Docker (useful for Sail)
+  - PHP
+  - PHP Annotations
+  - Php Inspections (EA Extended)
+  - PHPUnit Enhancement
+  - Pest
+  - PhpClean
+  - PHPStan Support
+  - PHP Toolbox
+  - PHP Advanced AutoComplete
+  - PHP Command Line Tool
+  - PHP Remote Interpreter
+  - PHP Docker
+  - PHP WSL Support
+  - PHP RegExp Support
+  - PHP Class Templates
+  - PHP Foldings
+  - JsonToPHP
+  - Blade
+  - Laravel Idea
+  - Laravel Query
+  - Inertia.js Support
+
+Also, install the XDebug helper in your browser: https://chromewebstore.google.com/detail/xdebug-helper/eadndfjplgieldjbigjakmdgkmoaaaoc. It makes it easy to connect XDebug to IntelliJ / PHPStorm while using the Web application.
+
+To run the tests from IntelliJ / PHPStorm, you need to configure the PHP interpreter, and the test framework.
+
+Go to Settings > Languages & Frameworks > CLI Interpreter, and add a new one:
+
+- From Docker, Vagrant, WSL, etc
+- Choose Docker compose
+- Locate your Docker engine
+- Choose `./docker-compose.yml` for the configuration file
+- Select `laravel.test` as service
+- Select `Connect to existing container ('docker-compose exec')`
+
+WARNING: Make sure that `.idea/php.xml` points to `/var/www/html` and NOT `/opt/...`. Otherwise, the tests won't run.
+If needed, replace this line: `<remote_data INTERPRETER_PATH="php" HELPERS_PATH="/opt/.phpstorm_helpers" VALID="true" RUN_AS_ROOT_VIA_SUDO="false" DOCKER_ACCOUNT_NAME="Docker" DOCKER_COMPOSE_SERVICE_NAME="laravel.test" DOCKER_REMOTE_PROJECT_PATH="/var/www/html">`
+
+For tests, go to Settings > Languages & Frameworks > PHP > Test Frameworks:
+
+- Click on "+"
+- Select Pest
+- Choose the right PHP interpreter: `laravel.test`
+- Set the path to the Pest executable: `/var/www/html/vendor/bin/pest`
+
 ### Adding new pages
 
 To add new pages to the application, you can either create a dedicated controller (e.g., for API endpoints), or declare the page in the `web.php` routes file. Example: `Route::inertia('/contact', 'Contact');`
