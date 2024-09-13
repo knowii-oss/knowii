@@ -24,13 +24,13 @@ class LoginApiController extends Controller
   /**
    * Log in through the API
    * @param Request $request
-   * @return \Illuminate\Http\JsonResponse
+   * @return JsonResponse
    */
   #[OpenApi\Operation(tags: ['auth'], method: 'post')]
   #[OpenApi\Parameters(factory: LoginApiRequestParameters::class)]
   #[OpenApi\RequestBody(factory: LoginApiRequestBody::class)]
   #[OpenApi\Response(factory: LoginApiResponse::class)]
-  public function login(Request $request): JsonResponse {
+  final public function login(Request $request): JsonResponse {
     $credentials = $request->validate([
       'email' => ['required', 'email'],
       'password' => ['required'],

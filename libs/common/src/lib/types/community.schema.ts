@@ -1,10 +1,10 @@
 import { z } from 'zod';
+import { baseEntitySchema } from './base-entity.schema';
 
-export const communitySchema = z.object({
+export const newCommunitySchema = z.object({
   // FIXME align length constraint between backend and frontend
-  name: z.string().min(3).max(64),
+  name: z.string().min(3, { message: 'Too short' }).max(64, { message: 'Too long' }),
   description: z.string(),
-  cuid: z.string(),
   personal: z.boolean(),
   // TODO add slug
   // slug: z
@@ -12,13 +12,12 @@ export const communitySchema = z.object({
   //   .min(3)
   //   .max(64)
   //   .regex(/^[a-z0-9-]+$/gim),
-  created_at: z.coerce.date(),
-  updated_at: z.coerce.date(),
 });
 
-export type Community = z.infer<typeof communitySchema>;
+export type NewCommunity = z.infer<typeof newCommunitySchema>;
 
-export type NewCommunity = Omit<Community, 'cuid' | 'created_at' | 'updated_at'>;
+export const communitySchema = baseEntitySchema.merge(newCommunitySchema);
+export type Community = z.infer<typeof communitySchema>;
 
 // TODO extract those types
 // export interface CommunityPermissions {

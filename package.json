@@ -54,6 +54,7 @@
     "update": "npm run migrate"
   },
   "dependencies": {
+    "@hookform/resolvers": "3.9.0",
     "classnames": "2.5.1",
     "clsx": "2.1.1",
     "date-fns": "3.6.0",

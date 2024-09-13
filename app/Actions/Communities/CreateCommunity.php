@@ -18,7 +18,7 @@ class CreateCommunity implements CreatesCommunities
    * @param array $input
    * @return Community
    */
-    public function create(User $user, array $input): Community
+    final public function create(User $user, array $input): Community
     {
         Gate::forUser($user)->authorize('create', new Community());
 
