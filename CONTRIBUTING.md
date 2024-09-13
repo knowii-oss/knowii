@@ -161,6 +161,31 @@ By default, backups are stored under `storage/app/Knowii`
 
 ### API
 
+#### MUST
+
+When adding/modifying API endpoints, make sure to:
+
+- Create a controller in the `Http/Controllers/API` folder
+- Name the controller `SomethingApiController`
+- Register those in the `routes/api.php` file
+- Add OpenAPI annotations to the controller methods
+
+#### OpenAPI
+
+This project is using the Laravel OpenAPI package:
+
+- Documentation: https://vyuldashev.github.io/laravel-openapi
+- Source code: https://github.com/TartanLeGrand/laravel-openapi
+
+For parameters, make sure to read: https://vyuldashev.github.io/laravel-openapi/paths/parameters.html
+
+For examples, look at the `LoginApiController`.
+
+The OpenAPI documentation can be generated using the `php artisan openapi:generate` command.
+It is also exposed via: http://localhost:4200/openapi
+
+To test it, you can use Swagger and paste in the schema: https://editor.swagger.io/
+
 #### Testing
 
 The API can be tested via [Bruno](https://www.usebruno.com/). The Bruno workspace is included in the `documentation/api` folder, including example requests.

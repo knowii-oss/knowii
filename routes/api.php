@@ -12,7 +12,7 @@ Route::get('/user', function (Request $request) {
 
 Route::prefix('v1')->group(function (){
   // Auth
-  Route::post('auth/login', LoginApiController::class);
+  Route::post('auth/login', [LoginApiController::class, 'login']);
 
   // Utils
   Route::get('ping', [PingApiController::class, 'ping']);
