@@ -77,4 +77,27 @@ trait ApiResponses
   {
     return $this->success($message, $statusCode);
   }
+
+  /**
+ * Handle exceptions and return a JSON response.
+ *
+ * @param \Exception $exception
+ * @return JsonResponse
+ */
+final public function handleException(\Exception $exception): JsonResponse
+{
+    $statusCode = $exception instanceof BusinessException
+        ? Response::HTTP_BAD_REQUEST
+        : Response::HTTP_INTERNAL_SERVER_ERROR;
+
+    $exceptionMessage = $exception->getMessage();
+    $exceptionData = $exception instanceof BusinessException || $exception instanceof TechnicalException
+        ? $exception->getData()
+        : [];
+
+    return response()->json([
+        'message' => $exceptionMessage,
+        'errors' => $exceptionData,
+    ], $statusCode);
+}
 }
