@@ -10,16 +10,19 @@ import { useForm } from 'react-hook-form';
 
 import InputError from '@/Components/InputError';
 import CommunityBox from '@/Components/CommunityBox';
-import { knowiiApiClient, NewCommunity } from '@knowii/common';
+import { Community, knowiiApiClient, NewCommunity } from '@knowii/common';
 import CardGroup from '@/Components/CardGroup';
 import InputLabel from '@/Components/InputLabel';
 import { InputSwitch } from 'primereact/inputswitch';
+import { useImmer } from 'use-immer';
 
 export default function Dashboard() {
   const toastRef = useRef<Toast | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [creatingCommunity, setCreatingCommunity] = useState(false);
+
+  const [communities, updateCommunities] = useImmer<Community[]>([]);
 
   const form = useForm<NewCommunity>({
     defaultValues: {
@@ -49,6 +52,13 @@ export default function Dashboard() {
         severity: 'success',
         summary: 'Community created successfully',
       });
+
+      if (response.data) {
+        updateCommunities((draft) => {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          draft.push(response.data!);
+        });
+      }
     } else {
       toastRef.current?.show({
         severity: 'error',
@@ -76,23 +86,10 @@ export default function Dashboard() {
         <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b-2 border-primary-500 pb-2 block text-center sm:text-left">
           My Communities
         </h2>
-        {/* TODO add link to open the given community page */}
         <CardGroup className="mt-4">
           {/* TODO add link to open the given community page. The link should use the slug */}
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((item) => (
-            <CommunityBox
-              key={item}
-              community={{
-                name: `Community ${item}`,
-                description: `This is the description for community ${item}.`,
-                cuid: '',
-                created_at: new Date(),
-                updated_at: new Date(),
-                personal: false,
-              }}
-              creationMode={false}
-              link={'/communities/' + item}
-            />
+          {communities.map((item) => (
+            <CommunityBox key={item.cuid} community={item} creationMode={false} link={`/communities/${item.cuid}`} />
           ))}
           <CommunityBox creationMode={true} clickHandler={openCreateCommunityModal} />
         </CardGroup>
@@ -160,7 +157,7 @@ export default function Dashboard() {
 
                 {/* Personal */}
                 <div className="mt-4">
-                  <InputLabel htmlFor="description">Personal</InputLabel>
+                  <InputLabel htmlFor="description">Personal (only for your eyes)</InputLabel>
                   <InputSwitch
                     id="personal"
                     className="mt-1 block"
