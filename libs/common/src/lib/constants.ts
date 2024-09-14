@@ -58,6 +58,7 @@ export const DELETE_USER_URL = 'current-user.destroy';
  * API
  */
 export const API_BASE_PATH = '/api/v1';
+export const PING_API_PATH = `${API_BASE_PATH}/ping`;
 export const COMMUNITY_API_BASE_PATH = `${API_BASE_PATH}/communities`;
 
 /**

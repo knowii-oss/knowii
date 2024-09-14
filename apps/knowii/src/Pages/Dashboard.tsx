@@ -1,7 +1,7 @@
 import AppLayout from '@/Layouts/AppLayout';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Toast } from 'primereact/toast';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
@@ -10,9 +10,10 @@ import { useForm } from 'react-hook-form';
 
 import InputError from '@/Components/InputError';
 import CommunityBox from '@/Components/CommunityBox';
-import { COMMUNITY_API_BASE_PATH, HttpStatus, NewCommunity } from '@knowii/common';
+import { knowiiApiClient, NewCommunity } from '@knowii/common';
 import CardGroup from '@/Components/CardGroup';
 import InputLabel from '@/Components/InputLabel';
+import { InputSwitch } from 'primereact/inputswitch';
 
 export default function Dashboard() {
   const toastRef = useRef<Toast | null>(null);
@@ -22,40 +23,31 @@ export default function Dashboard() {
 
   const form = useForm<NewCommunity>();
 
-  const createCommunity = async (newCommunity: NewCommunity) => {
+  const createCommunity = async () => {
     setCreatingCommunity(true);
-
-    // FIXME show loading spinner
     setLoading(true);
 
-    const response = await fetch(COMMUNITY_API_BASE_PATH, {
-      method: 'post',
-      headers: new Headers({
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      }),
-      body: JSON.stringify(newCommunity),
-    });
+    const newCommunity: NewCommunity = {
+      name: form.getValues().name,
+      description: form.getValues().description,
+      personal: form.getValues().personal ? form.getValues().personal : false,
+    };
 
-    //const responseAsJson = await response.json();
+    const response = await knowiiApiClient.createCommunity(newCommunity);
 
-    if (HttpStatus.CREATED === response.status) {
+    if ('success' === response.type && !response.errors) {
       closeCreateCommunityModal();
       form.reset();
       toastRef.current?.show({
         severity: 'success',
         summary: 'Community created successfully',
       });
-
-      // FIXME extract new community details from the response and add to the list of communities
     } else {
-      form.setError('name', { message: 'Name is already taken' });
       toastRef.current?.show({
         severity: 'error',
         summary: 'Failed to create the community',
+        detail: response.message,
       });
-
-      // FIXME load error details and show
     }
 
     setLoading(false);
@@ -107,7 +99,7 @@ export default function Dashboard() {
         footer={
           <>
             <Button severity="secondary" label="Cancel" onClick={closeCreateCommunityModal} />
-            <Button type="submit" label="Go ahead!" disabled={!form.formState.isValid || loading} className="ml-2" />
+            <Button onClick={createCommunity} label="Go ahead!" disabled={!form.formState.isValid || loading} className="ml-2" />
           </>
         }
       >
@@ -118,7 +110,7 @@ export default function Dashboard() {
         ) : (
           <>
             <span>Provide the details of your new community.</span>
-            <form onSubmit={form.handleSubmit(createCommunity)}>
+            <form>
               {/* Name */}
               <div className="mt-4 col-span-6 sm:col-span-4">
                 <InputLabel htmlFor="name">Name</InputLabel>
@@ -155,6 +147,22 @@ export default function Dashboard() {
                       maxLength: 255,
                     })}
                     aria-invalid={form.formState.errors.description ? true : false}
+                    disabled={loading}
+                  />
+                </div>
+
+                {/* Personal */}
+                <div className="mt-4">
+                  <InputLabel htmlFor="description">Personal</InputLabel>
+                  <InputSwitch
+                    id="personal"
+                    className="mt-1 block"
+                    {...form.register('personal')}
+                    onChange={(e) => {
+                      form.setValue('personal', e.target.value);
+                      form.trigger('personal');
+                    }}
+                    checked={form.watch('personal')}
                     disabled={loading}
                   />
                 </div>
