@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { allowedCommunityNameCharactersRegex, maxLengthCommunityName, minLengthCommunityName } from '../../constants';
-import { emptyMetadataSchema, singleItemApiResponseSchema } from '../single-item-api-response.schema';
+import { singleItemApiResponseSchema } from '../single-item-api-response.schema';
 
 export const isCommunityNameAvailableRequestSchema = z.object({
   nameToCheck: z.string().regex(allowedCommunityNameCharactersRegex).min(minLengthCommunityName).max(maxLengthCommunityName),
@@ -15,6 +15,6 @@ export const isCommunityNameAvailableResponseDataSchema = z.object({
 
 export type IsCommunityNameAvailableResponseData = z.infer<typeof isCommunityNameAvailableResponseDataSchema>;
 
-export const isCommunityNameAvailableResponseSchema = singleItemApiResponseSchema(isCommunityNameAvailableResponseDataSchema, emptyMetadataSchema);
+export const isCommunityNameAvailableResponseSchema = singleItemApiResponseSchema(isCommunityNameAvailableResponseDataSchema, z.object({}));
 
 export type IsCommunityNameAvailableResponse = z.infer<typeof isCommunityNameAvailableResponseSchema>;

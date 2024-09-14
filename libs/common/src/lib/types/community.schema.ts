@@ -17,9 +17,10 @@ export const newCommunitySchema = z.object({
 export type NewCommunity = z.infer<typeof newCommunitySchema>;
 
 export const communitySchema = baseEntitySchema.merge(newCommunitySchema);
+
 export type Community = z.infer<typeof communitySchema>;
 
-// TODO extract those types
+// FIXME extract those types
 // export interface CommunityPermissions {
 //   canAddCommunityMembers: boolean;
 //   canDeleteCommunity: boolean;

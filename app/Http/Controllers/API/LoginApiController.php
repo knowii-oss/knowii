@@ -9,7 +9,6 @@ use App\OpenApi\Responses\LoginApiResponse;
 use App\Traits\ApiResponses;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Vyuldashev\LaravelOpenApi\Attributes as OpenApi;
@@ -40,7 +39,7 @@ class LoginApiController extends Controller
       $user = Auth::user();
 
       if (!$user) {
-        return $this->error('We could not authenticate your credentials. Please try again later.', Response::HTTP_UNAUTHORIZED);
+        return self::authenticationIssue('We could not authenticate your credentials. Please try again later.');
       }
 
       Log::info('Authenticated successfully: ' . $user->email);
@@ -55,15 +54,15 @@ class LoginApiController extends Controller
         Log::info("Token valid until: " . $tokenValidUntil);
         $token = $user->createToken('api', [], $tokenValidUntil)->plainTextToken;
 
-        return $this->successWithData('Welcome to Knowii\'s API', [
+        return self::success("Welcome to Knowii's API 🎉", null, [
           'token' => $token,
           'tokenValidUntil' => $tokenValidUntil,
         ]);
       }
 
-      return $this->success('Welcome to Knowii\'s API');
+      return self::success("Welcome to Knowii's API 🎉", null, null);
     }
 
-    return $this->error('The provided credentials do not match our records.', Response::HTTP_UNAUTHORIZED);
+    return self::authenticationIssue('The provided credentials do not match our records.');
   }
 }
