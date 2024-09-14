@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use \Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -80,6 +81,30 @@ return Application::configure(basePath: dirname(__DIR__))
   // https://inertiajs.com/error-handling
   // https://laravel.com/docs/11.x/errors#handling-exceptions
   ->withExceptions(function (Exceptions $exceptions) {
+
+    // Convert ValidationException to Knowii's error representation
+    // FIXME extract conversion logic to static utility function
+    $exceptions->render(function (ValidationException $e, Request $request) {
+      if (!$request->expectsJson()) {
+        // Default Laravel processing if not expecting a JSON response
+        return null;
+      }
+      return response()->json([
+        'message' => $e->getMessage(),
+        'error' => "lol",
+        'data' => $e->errors()
+      ], Response::HTTP_BAD_REQUEST);
+    });
+
+    //  "message": "The email field is required.",
+    //  "errors": {
+    //    "email": [
+    //      "The email field is required."
+    //    ]
+    // }
+
+
+
     $exceptions->respond(function (Response | RedirectResponse | JsonResponse $response, Throwable $exception, Request $request) {
       if($request->expectsJson()) {
         Log::debug("Client expects JSON");

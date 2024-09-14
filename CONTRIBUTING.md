@@ -161,6 +161,10 @@ By default, backups are stored under `storage/app/Knowii`
 
 ### API
 
+#### Design
+The API loosely takes inspiration from the following design guide: https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki
+Notably, the way errors are returned is different/simpler, and the root-level response structure is different.
+
 #### Structure
 
 - API Controllers are under `app/Http/Controllers/API`
