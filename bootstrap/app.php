@@ -1,16 +1,21 @@
 <?php
 
-use App\Exceptions\AlreadyAuthenticatedException;
+use App\Exceptions\BusinessException;
+use App\Exceptions\TechnicalException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use \Illuminate\Http\RedirectResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
+
+use App\Exceptions\AlreadyAuthenticatedException;
+use App\Traits\ApiResponses;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
   ->withRouting(
@@ -82,32 +87,58 @@ return Application::configure(basePath: dirname(__DIR__))
   // https://laravel.com/docs/11.x/errors#handling-exceptions
   ->withExceptions(function (Exceptions $exceptions) {
 
-    // Convert ValidationException to Knowii's error representation
-    // FIXME extract conversion logic to static utility function
+    // Convert NotFoundHttpException instances to Knowii's error representation
+    $exceptions->render(function (NotFoundHttpException $e, Request $request) {
+      if (!$request->expectsJson()) {
+        // Default Laravel processing if not expecting a JSON response
+        return null;
+      }
+
+      // Workaround to use the ApiResponses trait
+      // Reference: https://stackoverflow.com/questions/42054265/can-i-call-a-static-function-from-a-trait-outside-of-a-class
+      return (new class { use ApiResponses; })::notFoundIssue($e->getMessage());
+    });
+
+
+    // Convert ValidationException instances to Knowii's error representation
     $exceptions->render(function (ValidationException $e, Request $request) {
       if (!$request->expectsJson()) {
         // Default Laravel processing if not expecting a JSON response
         return null;
       }
-      return response()->json([
-        'message' => $e->getMessage(),
-        'error' => "lol",
-        'data' => $e->errors()
-      ], Response::HTTP_BAD_REQUEST);
+
+      // Workaround to use the ApiResponses trait
+      // Reference: https://stackoverflow.com/questions/42054265/can-i-call-a-static-function-from-a-trait-outside-of-a-class
+      return (new class { use ApiResponses; })::validationIssue($e->getMessage(), $e->errors(), null);
     });
 
-    //  "message": "The email field is required.",
-    //  "errors": {
-    //    "email": [
-    //      "The email field is required."
-    //    ]
-    // }
+    // Convert BusinessException instances
+    $exceptions->render(function (BusinessException $e, Request $request) {
+      if (!$request->expectsJson()) {
+        // Default Laravel processing if not expecting a JSON response
+        return null;
+      }
 
+      // Workaround to use the ApiResponses trait
+      // Reference: https://stackoverflow.com/questions/42054265/can-i-call-a-static-function-from-a-trait-outside-of-a-class
+      return (new class { use ApiResponses; })::businessIssue($e->getMessage(), $e->getErrors(), $e->getMetadata());
+    });
 
+    // Convert TechnicalException instances
+    $exceptions->render(function (TechnicalException $e, Request $request) {
+      if (!$request->expectsJson()) {
+        // Default Laravel processing if not expecting a JSON response
+        return null;
+      }
 
+      // Workaround to use the ApiResponses trait
+      // Reference: https://stackoverflow.com/questions/42054265/can-i-call-a-static-function-from-a-trait-outside-of-a-class
+      return (new class { use ApiResponses; })::technicalIssue($e->getMessage(), $e->getErrors(), $e->getMetadata());
+    });
+
+    // Handle responses
     $exceptions->respond(function (Response | RedirectResponse | JsonResponse $response, Throwable $exception, Request $request) {
       if($request->expectsJson()) {
-        Log::debug("Client expects JSON");
         if($exception instanceof AlreadyAuthenticatedException && $response instanceof JsonResponse) {
           Log::debug('AlreadyAuthenticatedException');
           $response->setJson('{ "message": "You are already logged in" }');
@@ -117,7 +148,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
       if (!app()->environment(['local', 'testing']) && in_array($response->getStatusCode(), [500, 503, 404, 403])) {
         return Inertia::render('Error', ['status' => $response->getStatusCode()])->toResponse($request)->setStatusCode($response->getStatusCode());
-      } elseif ($response->getStatusCode() === 419) {
+      }
+
+      if ($response->getStatusCode() === 419) {
         return back()->with([
           'message' => 'The page expired, please try again.',
         ]);

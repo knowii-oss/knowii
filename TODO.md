@@ -1,139 +1,33 @@
 # TODO
 
-- create enum for response category
-- create enum for responseType
-- create enum for responseTypeKey
-
-
-
-{
-  category: business | security | technical
-  type: "Validation issues"
-  typeKey: "errors.invalidRequest"
-  message: ""
-  metadata: {}
-  data: {}
-  errors: {
-    "field_name": [
-        ...
-    ]
-  }
-}
-
-
-
-type: validationIssue | authenticationIssue | authorizationIssue | internalError | success
-
-
-
-- app.php: Transform ValidationError
-
-
-https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/libs/client/src/lib/api-client/community/get-community.ts
-
-CreateCommunity.php
-CommunityApiController.php
-ApiResponses.php
-KnowiiValidationException.php
-api-errors.schema.ts
-api-error.schema.ts
-single-item-api-response.schema.ts
-
-Transform other exceptions
-
-
-
-
-export const errorInternalServerError: ReusableError = {
-key: 'errors.internalServerError',
-description: 'We have encountered an unexpected issue',
-statusCode: 500,
-type: 'server',
-category: 'technical',
-};
-
-export const errorClientNotAuthenticated: ReusableError = {
-code: 'client_not_authenticated',
-key: 'errors.clientNotAuthenticated',
-description: 'The client does not have an active session or is not authenticated',
-statusCode: 401,
-type: 'authentication',
-category: 'security',
-};
-
-export const errorCommunityNotFound: ReusableError = {
-code: 'community_not_found_error',
-key: 'communityNotFoundError',
-description: 'The community could not be found',
-statusCode: 404,
-type: 'notFound',
-category: 'business',
-};
-
-export const errorCommunityNameNotAvailable: ReusableError = {
-code: 'community_name_not_available',
-key: 'communityNameNotAvailable',
-description: 'The chosen community name is not available',
-statusCode: 409,
-type: 'notAvailable',
-category: 'business',
-};
-
-
-- Handle 500 internal server error
-- Handle 404 not found
-- Handle ...
-- Handle exceptions when saving data in the database
-
-  - Error handling
-    - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Error-handling-About
-    - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Error-handling-Expectations
-    - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Error-handling-Status-codes
-    - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Error-handling-Error-details
-    - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Error-handling-Example-with-multiple-errors
-    - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Error-handling-Example-with-parameters
-    - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Error-handling-Example-with-additional-metadata
-    - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Error-handling-Warnings
-    -
-  - Pagination
-    - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Pagination-About
-    - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Pagination-Rules-and-metadata
-    - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Pagination-Example
-    - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Pagination-Out-of-range-bounds
-  - Collections
-    - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/CRUD-Retrieve-Collection
-    - Customize output: https://laravel.com/docs/11.x/eloquent-resources#customizing-the-pagination-information
-  - Single item
-    - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/CRUD-Retrieve-Single-item
-
-- catch BusinessException and TechnicalException in the render method of bootstrap\app.php
-
-- Implement isUsername available API: https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/libs/common/src/lib/api/is-username-available.schema.ts
-- Create API client: https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/libs/client/src/lib/api-client/community/get-community.ts
--
-- GET Community list API: https://github.com/knowii-oss/knowii/issues/784
+- create API client
+- API: Collections & pagination
+  - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/CRUD-Retrieve-Collection
+  - Customize output: https://laravel.com/docs/11.x/eloquent-resources#customizing-the-pagination-information
+  - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Pagination-About
+  - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Pagination-Rules-and-metadata
+  - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Pagination-Example
+  - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Pagination-Out-of-range-bounds
 - Throw BusinessException if community slug is already taken
+- GET Community list API: https://github.com/knowii-oss/knowii/issues/784
+- API: Rate limiting (status code: 429)
+- Implement isUsername available API: https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/libs/common/src/lib/api/is-username-available.schema.ts
 - Create community from dashboard: https://github.com/knowii-oss/knowii/issues/786
+- Create community API, take inspiration from: https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/libs/server/src/lib/dao/communities/create-community.dao.fn.ts
+- Second: https://github.com/knowii-oss/knowii/issues/702 (includes code)
+- Clean community name
+- Implement isCommunityName available API: https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/libs/server/src/lib/dao/communities/is-community-name-available.dao.fn.ts
+- Implement isCommunitySlug available API: https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/libs/server/src/lib/dao/communities/is-community-slug-available.dao.fn.ts
+- Rate limiting for those calls (to avoid user enumeration)
 
-  - Create community API, take inspiration from: https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/libs/server/src/lib/dao/communities/create-community.dao.fn.ts
-  - Second: https://github.com/knowii-oss/knowii/issues/702 (includes code)
-
-    - Clean community name
-    - Implement isCommunityName available API: https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/libs/server/src/lib/dao/communities/is-community-name-available.dao.fn.ts
-    - Implement isCommunitySlug available API: https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/libs/server/src/lib/dao/communities/is-community-slug-available.dao.fn.ts
-    - Rate limiting for those calls (to avoid user enumeration)
-
-  - Reset prod DB
-
-Customize pagination information: https://laravel.com/docs/11.x/eloquent-resources#customizing-the-pagination-information
+- Reset prod DB
 
 Places to update when modifying the Community model
 
 - PHP
   - Migration file
   - Community model
-  - CreateCommunity implements CreatesCommunities
-  - ...
+  - CreateCommunity
   - CommunityController (inertia)
   - CommunityApiController
   - CommunityResource
@@ -150,7 +44,6 @@ Places to update when modifying the Community model
 - Add waitlist form to landing page: https://github.com/knowii-oss/knowii/issues/714
   - EmailOctopus list?
 - Remove errorbags
-
 
 $exceptions->render(function (NotFoundHttpException $e, Request $request) {
   if ($request->is('api/\*')) {

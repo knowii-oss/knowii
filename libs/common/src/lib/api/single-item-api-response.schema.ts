@@ -1,19 +1,15 @@
 import { z } from 'zod';
 
-import { apiErrorsSchema } from './errors/api-errors.schema';
+import { baseApiResponseSchema } from './base-api-response.schema';
 
 /**
  * Base schema for single item API responses
- * @param itemSchema
+ * @param dataSchema
  * @param metadataSchema
  */
-export function singleItemApiResponseSchema<ItemType extends z.ZodTypeAny, MetadataType extends z.ZodTypeAny>(itemSchema: ItemType, metadataSchema: MetadataType) {
-  return z.object({
-    data: itemSchema.optional(),
-    errors: apiErrorsSchema.optional(),
-    message: z.string().optional(),
-    metadata: metadataSchema.optional(),
-  });
+export function singleItemApiResponseSchema<DataType extends z.ZodTypeAny, MetadataType extends z.ZodTypeAny>(
+  dataSchema: DataType,
+  metadataSchema: MetadataType,
+) {
+  return baseApiResponseSchema(dataSchema, metadataSchema);
 }
-
-export const emptyMetadataSchema = z.object({});

@@ -159,35 +159,67 @@ If you want to test it locally in Sail, then run 'sail php artisan backup:run'
 
 By default, backups are stored under `storage/app/Knowii`
 
+### Error handling
+
+- Validation should be done using `Validator::make(...)->validate()` calls. This will throw a `ValidationException` if the validation fails. Such exceptions will be converted automatically to a JSON response by the global exception handlers
+- When there are business related problems, a `BusinessException` should be thrown. This exception should be caught in the global exception handler, and converted to a JSON response as well
+- Where there are other problems (e.g., unavailable database), a `TechnicalException` should be thrown. This exception should be caught in the global exception handler, and converted to a JSON response as well
+
+The global exception handlers are located in `bootstrap/app.php`. They must translate all exceptions to JSON when the client requests a JSON response.
+
 ### API
 
 #### Design
+
 The API loosely takes inspiration from the following design guide: https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki
 Notably, the way errors are returned is different/simpler, and the root-level response structure is different.
 
-#### Structure
+The response data structure looks like this:
+
+```
+{
+  category: KnowiiApiResponseCategory // enum
+  type: KnowiiApiResponseType // enum
+  message: ""
+  metadata: {} // optional
+  data: {} // optional
+  errors: { // optional
+    "field_name": [ // example for validation errors
+      ...
+    ]
+  }
+}
+```
+
+Status codes follow the API design guide:
+
+- 200 for successful requests
+- 201 for successful creations
+- 400 for bad requests / data validation issues
+- 401 for authentication issues
+- 403 for authorization issues
+- 404 for not found issues
+- 412 for precondition failed issues
+- 422 for business issues (e.g., name already taken)
+- 429 for rate limited calls
+- 500 for internal server errors
+
+#### Architecture and data flow
 
 - API Controllers are under `app/Http/Controllers/API`
-- They should not validate the input (not their responsibility)
+- API Controllers are named `SomethingApiController`
+- API Controllers are registered in the `routes/api.php` file
+- API Controllers should include OpenAPI annotations
+- They should NOT validate the input (not their responsibility)
 - They should delegate operations to a dedicated controller (e.g., CreateCommunity)
-- They should not catch exceptions returned by the business controllers (that handle validation)
-- Exceptions will be converted more generally toward the clients
+- They should not catch exceptions returned by the business controllers (that handle validation). Those are handled by the global exception handler (without leaking sensitive information)
 - They should leverage the ApiResponses trait to return consistent responses
 
-Flow:
+Data flow:
 
 - Request > API Controller > Business Controller (input validation, business validation, ...) > Database
 - Business Controller > API Controller > ApiResponses > Response
 - OR Business Controller > Exception > Global Exception Handler > Response
-
-#### MUST
-
-When adding/modifying API endpoints, make sure to:
-
-- Create a controller in the `Http/Controllers/API` folder
-- Name the controller `SomethingApiController`
-- Register those in the `routes/api.php` file
-- Add OpenAPI annotations to the controller methods
 
 #### OpenAPI
 

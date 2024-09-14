@@ -1,0 +1,30 @@
+meta {
+  name: Auth - Login - Invalid input
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+body:json {
+  {
+    "email": "",
+    "password": "{{PASSWORD}}"
+  }
+  
+}
+
+tests {
+  test("should be able to log in", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+}

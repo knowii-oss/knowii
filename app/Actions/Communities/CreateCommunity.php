@@ -7,7 +7,6 @@ use App\Events\Communities\AddingCommunity;
 use App\Exceptions\TechnicalException;
 use App\Models\Community;
 use App\Models\User;
-use Exception;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -38,7 +37,8 @@ class CreateCommunity implements CreatesCommunities
       // Reference: https://laravel.com/docs/11.x/validation#a-note-on-optional-fields
       'description' => ['nullable', 'string', 'max:255'], // FIXME extend length
       'personal' => ['required', 'boolean'],
-    ]);
+    ])->validate();
+
     Log::debug('Input validated');
 
     AddingCommunity::dispatch($user);
@@ -53,13 +53,11 @@ class CreateCommunity implements CreatesCommunities
         'description' => $input['description'],
         'personal' => $input['personal'],
       ]);
-      Log::debug('New community');
-
-      throw new Exception("BOOM");
+      Log::info('New community created successfully', ['community' => $retVal]);
 
       return $retVal;
     } catch(\Exception $e) {
-      Log::error('Failed to create the community', ['exception' => $e]);
+      Log::warning('Failed to create the community', ['exception' => $e]);
       throw new TechnicalException('Failed to create the community', null, $e);
     }
   }

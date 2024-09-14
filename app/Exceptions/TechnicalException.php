@@ -7,5 +7,5 @@ namespace App\Exceptions;
  */
 class TechnicalException extends KnowiiException
 {
-
+  //
 }

@@ -11,8 +11,8 @@ class PingApiController extends Controller
 {
   use ApiResponses;
 
-  public function ping(): JsonResponse
+  final public function ping(): JsonResponse
   {
-    return $this->success('Pong');
+    return $this->success("Pong", null, null);
   }
 }

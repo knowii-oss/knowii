@@ -2,6 +2,9 @@
 
 namespace App\Traits;
 
+use App\KnowiiApiResponse;
+use App\KnowiiApiResponseCategory;
+use App\KnowiiApiResponseType;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Response;
@@ -13,91 +16,100 @@ trait ApiResponses
 {
   /**
    * Newly created entity
-   *
-   * @param string $item
+   * @param JsonResource $data
+   * @param string|null $message
+   * @param array|null $metadata
    * @return JsonResponse
    */
-  final public function created(JsonResource $item): JsonResponse
+  final public static function created(JsonResource $data, ?string $message = "Success", ?array $metadata = null): JsonResponse
   {
-    return $item->response()->setStatusCode(Response::HTTP_CREATED);
+    return self::success($message, $metadata, $data, Response::HTTP_CREATED);
   }
 
   /**
-   * Return a success JSON response.
-   *
+   * Success
    * @param string $message
-   * @param int $statusCode
-   * @return JsonResponse
-   */
-  final public function success(string $message = "Success", int $statusCode = Response::HTTP_OK): JsonResponse
-  {
-    return response()->json([
-      'message' => $message,
-    ], $statusCode);
-  }
-
-  /**
-   * Return a success JSON response with optional message and data.
-   *
-   * @param string $message
-   * @param array $data
+   * @param array|null $metadata
+   * @param array|JsonResource|null $data
    * @param int|null $statusCode
    * @return JsonResponse
    */
-  final public function successWithData(string $message = "Success", array $data = [], int|null $statusCode = Response::HTTP_OK): JsonResponse
+  final public static function success(string $message = "Success", ?array $metadata = null, array|JsonResource|null $data = null, ?int $statusCode = Response::HTTP_OK): JsonResponse
   {
-    return response()->json([
-      'message' => $message,
-      'data' => $data,
-    ], $statusCode);
+    $knowiiResponse = new KnowiiApiResponse(KnowiiApiResponseCategory::Business, KnowiiApiResponseType::Success, $message, $metadata, $data, null);
+
+    return response()->json($knowiiResponse->jsonSerialize(), $statusCode);
   }
 
   /**
-   * Return an error JSON response.
-   *
-   * @param string $errorMessage
-   * @param int $statusCode
-   * @return JsonResponse
-   */
-  final public function error(string $errorMessage, int $statusCode = Response::HTTP_BAD_REQUEST): JsonResponse
-  {
-    return response()->json([
-      'message' => $errorMessage,
-    ], $statusCode);
-  }
-
-  /**
-   * Return an OK JSON response.
+   * Return an authentication issue response.
    *
    * @param string $message
-   * @param int $statusCode
+   * @param array|null $metadata
+   * @param array|null $errorDetails
    * @return JsonResponse
    */
-  final public function ok(string $message, int $statusCode = Response::HTTP_OK): JsonResponse
+  final public static function authenticationIssue(string $message, ?array $metadata = null, ?array $errorDetails = []): JsonResponse
   {
-    return $this->success($message, $statusCode);
+    $knowiiResponse = new KnowiiApiResponse(KnowiiApiResponseCategory::Security, KnowiiApiResponseType::AuthenticationIssue, $message, $metadata, null, $errorDetails);
+    return response()->json($knowiiResponse->jsonSerialize(), Response::HTTP_UNAUTHORIZED);
   }
 
   /**
- * Handle exceptions and return a JSON response.
- *
- * @param \Exception $exception
+   * Return a not found issue response.
+   *
+   * @param ?string $message
+   * @return JsonResponse
+   */
+  final public static function notFoundIssue(?string $message = "Not found"): JsonResponse
+  {
+    $knowiiResponse = new KnowiiApiResponse(KnowiiApiResponseCategory::Technical, KnowiiApiResponseType::NotFound, $message, null, null, null);
+    return response()->json($knowiiResponse->jsonSerialize(), Response::HTTP_NOT_FOUND);
+  }
+
+  /**
+   * Return a validation issue response.
+   * Reference: https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/HTTP-Status-Codes-Client-Error-%284xx%29
+   *
+   * @param string $message
+   * @param array $errorDetails
+   * @param array|null $metadata
  * @return JsonResponse
- */
-final public function handleException(\Exception $exception): JsonResponse
-{
-    $statusCode = $exception instanceof BusinessException
-        ? Response::HTTP_BAD_REQUEST
-        : Response::HTTP_INTERNAL_SERVER_ERROR;
+   */
+  final public static function validationIssue(string $message, array $errorDetails, ?array $metadata = null): JsonResponse
+  {
+    $knowiiResponse = new KnowiiApiResponse(KnowiiApiResponseCategory::Business, KnowiiApiResponseType::ValidationIssue, $message, $metadata, null, $errorDetails);
+    return response()->json($knowiiResponse->jsonSerialize(), Response::HTTP_BAD_REQUEST);
+  }
 
-    $exceptionMessage = $exception->getMessage();
-    $exceptionData = $exception instanceof BusinessException || $exception instanceof TechnicalException
-        ? $exception->getData()
-        : [];
+  /**
+   * Return a business issue response.
+   * Reference: https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/HTTP-Status-Codes-Client-Error-%284xx%29
+   *
+   * @param string $message
+   * @param array $errorDetails
+   * @param array|null $metadata
+   * @return JsonResponse
+   */
+  final public static function businessIssue(string $message, array $errorDetails, ?array $metadata = null): JsonResponse
+  {
+    $knowiiResponse = new KnowiiApiResponse(KnowiiApiResponseCategory::Business, KnowiiApiResponseType::BusinessIssue, $message, $metadata, null, $errorDetails);
+    return response()->json($knowiiResponse->jsonSerialize(), Response::HTTP_UNPROCESSABLE_ENTITY);
+  }
 
-    return response()->json([
-        'message' => $exceptionMessage,
-        'errors' => $exceptionData,
-    ], $statusCode);
-}
+  /**
+   * Return a technical issue response.
+   * Reference: https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/HTTP-Status-Codes-Server-Error-%285xx%29
+   *
+   * @param string $message
+   * @param array $errorDetails
+   * @param array|null $metadata
+   * @return JsonResponse
+   */
+  final public static function technicalIssue(string $message, array $errorDetails, ?array $metadata = null): JsonResponse
+  {
+    $knowiiResponse = new KnowiiApiResponse(KnowiiApiResponseCategory::Technical, KnowiiApiResponseType::InternalError, $message, $metadata, null, $errorDetails);
+    return response()->json($knowiiResponse->jsonSerialize(), Response::HTTP_INTERNAL_SERVER_ERROR);
+  }
+
 }
