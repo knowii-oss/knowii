@@ -5,6 +5,7 @@ export function common(): string {
 // Constants
 export * from './constants';
 
+export * from './api/knowii-api-client';
 export * from './types/jetstream/jetstream-inertia.intf';
 export * from './types/community.schema';
 export * from './types/http-status.intf';
