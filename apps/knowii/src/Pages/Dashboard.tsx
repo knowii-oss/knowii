@@ -21,7 +21,14 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [creatingCommunity, setCreatingCommunity] = useState(false);
 
-  const form = useForm<NewCommunity>();
+  const form = useForm<NewCommunity>({
+    defaultValues: {
+      name: '',
+      description: '',
+      // New communities are personal by default
+      personal: true,
+    },
+  });
 
   const createCommunity = async () => {
     setCreatingCommunity(true);
