@@ -1,10 +1,34 @@
 # TODO
 
-Transform ValidationError
+- create enum for response category
+- create enum for responseType
+- create enum for responseTypeKey
 
-Read
-https://laracasts.com/discuss/channels/laravel/need-to-create-custom-validationexception?page=1&replyId=772308
-https://stackoverflow.com/questions/35097371/laravel-validation-error-customise-format-of-the-response
+
+
+{
+  category: business | security | technical
+  type: "Validation issues"
+  typeKey: "errors.invalidRequest"
+  message: ""
+  metadata: {}
+  data: {}
+  errors: {
+    "field_name": [
+        ...
+    ]
+  }
+}
+
+
+
+type: validationIssue | authenticationIssue | authorizationIssue | internalError | success
+
+
+
+- app.php: Transform ValidationError
+
+
 https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/libs/client/src/lib/api-client/community/get-community.ts
 
 CreateCommunity.php
@@ -17,20 +41,49 @@ single-item-api-response.schema.ts
 
 Transform other exceptions
 
-{
-message
-metadata
-data
-errors: {
-"field_name": [
-"message"
-]
-}
-}
 
+
+
+export const errorInternalServerError: ReusableError = {
+key: 'errors.internalServerError',
+description: 'We have encountered an unexpected issue',
+statusCode: 500,
+type: 'server',
+category: 'technical',
+};
+
+export const errorClientNotAuthenticated: ReusableError = {
+code: 'client_not_authenticated',
+key: 'errors.clientNotAuthenticated',
+description: 'The client does not have an active session or is not authenticated',
+statusCode: 401,
+type: 'authentication',
+category: 'security',
+};
+
+export const errorCommunityNotFound: ReusableError = {
+code: 'community_not_found_error',
+key: 'communityNotFoundError',
+description: 'The community could not be found',
+statusCode: 404,
+type: 'notFound',
+category: 'business',
+};
+
+export const errorCommunityNameNotAvailable: ReusableError = {
+code: 'community_name_not_available',
+key: 'communityNameNotAvailable',
+description: 'The chosen community name is not available',
+statusCode: 409,
+type: 'notAvailable',
+category: 'business',
+};
+
+
+- Handle 500 internal server error
+- Handle 404 not found
+- Handle ...
 - Handle exceptions when saving data in the database
-
-- API Design: https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki
 
   - Error handling
     - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Error-handling-About
@@ -98,11 +151,6 @@ Places to update when modifying the Community model
   - EmailOctopus list?
 - Remove errorbags
 
-->withExceptions(function (Exceptions $exceptions) {
-$exceptions->render(function (InvalidOrderException $e, Request $request) {
-return response()->view('errors.invalid-order', status: 500);
-});
-})
 
 $exceptions->render(function (NotFoundHttpException $e, Request $request) {
   if ($request->is('api/\*')) {
@@ -111,95 +159,3 @@ return response()->json([
 ], 404);
 }
 });
-
-->withExceptions(function (Exceptions $exceptions) {
-  $exceptions->shouldRenderJsonWhen(function (Request $request, Throwable $e) {
-    if ($request->is('admin/\*')) {
-return true;
-}
-return $request->expectsJson();
-});
-})
-
-types:
-authentication
-authorization
-notAvailable
-notFound
-server
-validation
-
-categories:
-business
-security
-technical
-
-/\*\*
-
-- An error with basic information
-  \*/
-  interface ReusableError {
-  code: string;
-  key: string;
-  description: string;
-  statusCode: number;
-  type: ErrorType;
-  category: ErrorCategory;
-  }
-
-export const errorInternalServerError: ReusableError = {
-code: 'internal_server_error',
-key: 'errors.internalServerError',
-description: 'We have encountered an unexpected issue',
-statusCode: 500,
-type: 'server',
-category: 'technical',
-};
-
-export const errorClientNotAuthenticated: ReusableError = {
-code: 'client_not_authenticated',
-key: 'errors.clientNotAuthenticated',
-description: 'The client does not have an active session or is not authenticated',
-statusCode: 401,
-type: 'authentication',
-category: 'security',
-};
-
-export const errorInputValidation: ReusableError = {
-code: 'invalid_request_error',
-key: 'errors.invalidRequestError',
-description: 'The provided request data is incomplete or invalid',
-statusCode: 400,
-type: 'validation',
-category: 'business',
-};
-
-export const errorCommunityNotFound: ReusableError = {
-code: 'community_not_found_error',
-key: 'communityNotFoundError',
-description: 'The community could not be found',
-statusCode: 404,
-type: 'notFound',
-category: 'business',
-};
-
-export const errorCommunityNameNotAvailable: ReusableError = {
-code: 'community_name_not_available',
-key: 'communityNameNotAvailable',
-description: 'The chosen community name is not available',
-statusCode: 409,
-type: 'notAvailable',
-category: 'business',
-};
-
-class InvalidOrderException extends Exception
-{
-/\*\*
-
-- Render the exception into an HTTP response.
-  _/
-  public function render(Request $request): Response
-  {
-  return response(/_ ... \*/);
-  }
-  }
