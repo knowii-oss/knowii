@@ -6,15 +6,15 @@ import { Toast } from 'primereact/toast';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { ProgressSpinner } from 'primereact/progressspinner';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 
 import InputError from '@/Components/InputError';
 import CommunityBox from '@/Components/CommunityBox';
-import { Community, knowiiApiClient, NewCommunity } from '@knowii/common';
+import { Community, communityVisibilityOptions, knowiiApiClient, MIN_ACTION_TIME, NewCommunity, sleep } from '@knowii/common';
 import CardGroup from '@/Components/CardGroup';
 import InputLabel from '@/Components/InputLabel';
-import { InputSwitch } from 'primereact/inputswitch';
 import { useImmer } from 'use-immer';
+import { SelectButton } from 'primereact/selectbutton';
 
 export default function Dashboard() {
   const toastRef = useRef<Toast | null>(null);
@@ -28,9 +28,10 @@ export default function Dashboard() {
     defaultValues: {
       name: '',
       description: '',
-      // New communities are personal by default
-      visibility: 'personal',
     },
+    // Reference: https://daily.dev/blog/react-hook-form-errors-not-working-troubleshooting-tips
+    mode: 'onChange',
+    reValidateMode: 'onChange',
   });
 
   const createCommunity = async () => {
@@ -40,8 +41,11 @@ export default function Dashboard() {
     const newCommunity: NewCommunity = {
       name: form.getValues().name,
       description: form.getValues().description,
-      visibility: form.getValues().personal ? form.getValues().personal : false,
+      // New communities are public by default
+      visibility: form.getValues().visibility ? form.getValues().visibility : 'public',
     };
+
+    await sleep(MIN_ACTION_TIME);
 
     const response = await knowiiApiClient.createCommunity(newCommunity);
 
@@ -119,21 +123,32 @@ export default function Dashboard() {
               <div className="mt-4 col-span-6 sm:col-span-4">
                 <InputLabel htmlFor="name">Name</InputLabel>
                 <div className="p-inputgroup mt-1">
-                  <InputText
-                    id="name"
-                    type="name"
-                    className="mt-1 block w-full"
-                    {...form.register('name', {
-                      required: true,
-                      validate: (value) => value.trim().length >= 3 && value.trim().length <= 255,
+                  <Controller
+                    // Reference https://react-hook-form.com/get-started#IntegratingControlledInputs
+                    // WARNING: The name below MUST match the name of the field in the form
+                    // In this case it matches the NewCommunity "name" field
+                    name="name"
+                    control={form.control}
+                    rules={{
+                      required: 'Please choose a name for your new community',
+                      validate: (value) =>
+                        (value.trim().length >= 3 && value.trim().length <= 255) || 'The name must be between 3 and 255 characters',
                       // TODO add validation constraints
                       // Reference: https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/apps/knowii/pages/communities/create/index.tsx
                       // add regex pattern
-                    })}
-                    aria-invalid={form.formState.errors.name ? true : false}
-                    autoComplete="name"
-                    required
-                    disabled={form.formState.isSubmitting || form.formState.isLoading}
+                    }}
+                    render={({ field }) => (
+                      <InputText
+                        id="name"
+                        type="text"
+                        className="mt-1 block w-full"
+                        {...field}
+                        aria-invalid={form.formState.errors.name ? true : false}
+                        autoComplete="name"
+                        required
+                        disabled={form.formState.isSubmitting || form.formState.isLoading}
+                      />
+                    )}
                   />
                 </div>
 
@@ -157,18 +172,32 @@ export default function Dashboard() {
 
                 {/* Visibility */}
                 <div className="mt-4">
-                  <InputLabel htmlFor="description">Community visibility</InputLabel>
-                  <InputSwitch
-                    id="visiility"
-                    className="mt-1 block"
-                    {...form.register('visibility')}
-                    onChange={(e) => {
-                      form.setValue('visibility', e.target.value);
-                      form.trigger('personal');
-                    }}
-                    checked={form.watch('personal')}
-                    disabled={loading}
-                  />
+                  <InputLabel htmlFor="visibility">Community visibility</InputLabel>
+                  <div className="p-inputgroup mt-1">
+                    <Controller
+                      // Reference https://react-hook-form.com/get-started#IntegratingControlledInputs
+                      // WARNING: The name below MUST match the name of the field in the form
+                      // In this case it matches the NewCommunity "visibility" field
+                      name="visibility"
+                      control={form.control}
+                      rules={{ required: 'Please select at least one visibility option' }}
+                      render={({ field }) => (
+                        <SelectButton
+                          id="visibility"
+                          className="mt-1 block"
+                          options={communityVisibilityOptions}
+                          optionLabel="name"
+                          optionValue="visibility"
+                          required
+                          {...field}
+                          aria-invalid={form.formState.errors.visibility ? true : false}
+                          disabled={loading}
+                        />
+                      )}
+                    />
+                  </div>
+
+                  {form.formState.errors.visibility && <InputError className="mt-2" message={form.formState.errors.visibility.message} />}
                 </div>
               </div>
             </form>

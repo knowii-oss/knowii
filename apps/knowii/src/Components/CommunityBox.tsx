@@ -29,7 +29,9 @@ export default function CommunityBox(props: Props) {
             () => {}
       }
     >
-      <p className={classNames('text-sm text-gray-800 text-ellipsis line-clamp-1 sm:line-clamp-2')}>{props.community.description}</p>
+      <p className={classNames('text-sm text-gray-800 text-ellipsis line-clamp-1 sm:line-clamp-2 min-h-6')}>
+        {props.community.description}
+      </p>
     </Card>
   );
 
