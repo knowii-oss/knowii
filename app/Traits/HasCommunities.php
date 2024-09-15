@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use App\Knowii;
+use App\KnowiiCommunityVisibility;
 use App\Models\Community;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -54,7 +55,7 @@ trait HasCommunities
    */
   public function personalCommunity()
   {
-    return $this->ownedCommunities->where('personal', true)->first();
+    return $this->ownedCommunities->where('visibility', KnowiiCommunityVisibility::Personal)->first();
   }
 
   /**

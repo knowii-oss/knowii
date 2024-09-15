@@ -6,6 +6,7 @@ use App\Events\Communities\CommunityCreated;
 use App\Events\Communities\CommunityDeleted;
 use App\Events\Communities\CommunityUpdated;
 use App\Knowii;
+use App\KnowiiCommunityVisibility;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -31,7 +32,7 @@ class Community extends Model
   protected $fillable = [
     'name',
     'description',
-    'personal',
+    'visibility',
   ];
 
   /**
@@ -62,7 +63,7 @@ class Community extends Model
   protected function casts(): array
   {
     return [
-      'personal' => 'boolean',
+      'visibility' => KnowiiCommunityVisibility::class,
     ];
   }
 

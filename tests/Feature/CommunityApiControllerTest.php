@@ -1,5 +1,6 @@
 <?php
 
+use App\KnowiiCommunityVisibility;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -11,11 +12,11 @@ test('communities can be created via the API', function () {
     $response = $this->post('api/v1/communities', [
         'name' => 'Test Community',
         'description' => 'Awesome community',
-        'personal' => true,
+        'visibility' => KnowiiCommunityVisibility::Public->value,
     ]);
 
     expect($user->ownedCommunities)->toHaveCount(2);
     expect($user->ownedCommunities()->latest('id')->first()->name)->toEqual('Test Community');
     expect($user->ownedCommunities()->latest('id')->first()->description)->toEqual('Awesome community');
-    expect($user->ownedCommunities()->latest('id')->first()->personal)->toEqual(true);
+    expect($user->ownedCommunities()->latest('id')->first()->visibility)->toEqual(KnowiiCommunityVisibility::Public);
 });

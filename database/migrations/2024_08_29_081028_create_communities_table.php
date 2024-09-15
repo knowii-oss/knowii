@@ -1,5 +1,6 @@
 <?php
 
+use App\KnowiiCommunityVisibility;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -17,7 +18,7 @@ return new class extends Migration
             $table->foreignId('user_id')->index();
             $table->string('name')->index();
             $table->string('description')->nullable();
-            $table->boolean('personal');
+            $table->enum('visibility', KnowiiCommunityVisibility::toStringArray())->default(KnowiiCommunityVisibility::Personal->value);
             $table->timestamps();
         });
     }

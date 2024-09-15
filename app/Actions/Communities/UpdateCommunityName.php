@@ -17,16 +17,16 @@ class UpdateCommunityName implements UpdatesCommunityNames
    * @param Community $community
    * @param array $input
    */
-    public function update(User $user, Community $community, array $input): void
-    {
-        Gate::forUser($user)->authorize('update', $community);
+  public function update(User $user, Community $community, array $input): void
+  {
+    Gate::forUser($user)->authorize('update', $community);
 
-        Validator::make($input, [
-            'name' => ['required', 'string', 'max:255'],
-        ]);
+    Validator::make($input, [
+      'name' => ['required', 'string', 'max:255'],
+    ]);
 
-        $community->forceFill([
-            'name' => $input['name'],
-        ])->save();
-    }
+    $community->forceFill([
+      'name' => $input['name'],
+    ])->save();
+  }
 }

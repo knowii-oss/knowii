@@ -2,6 +2,7 @@
 
 namespace App\Actions\Fortify;
 
+use App\KnowiiCommunityVisibility;
 use App\Models\Community;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -48,7 +49,7 @@ class CreateNewUser implements CreatesNewUsers
             'user_id' => $user->id,
             'name' => explode(' ', $user->name, 2)[0]."'s Space",
             'description' => explode(' ', $user->name, 2)[0]."'s Personal Space",
-            'personal' => true,
+            'visibility' => KnowiiCommunityVisibility::Personal,
         ]));
     }
 }

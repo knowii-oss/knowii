@@ -2,7 +2,6 @@
 
 use App\Models\User;
 
-// FIXME add separate test: updateCommunityDescriptionTest
 test('community names can be updated', function () {
     $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
 

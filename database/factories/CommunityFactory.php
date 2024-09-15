@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\KnowiiCommunityVisibility;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Visus\Cuid2\Cuid2;
@@ -23,7 +24,7 @@ class CommunityFactory extends Factory
             'name' => $this->faker->unique()->company(),
             'description' => $this->faker->unique()->sentence(nbWords: 5),
             'user_id' => User::factory(),
-            'personal' => true,
+            'visibility' => KnowiiCommunityVisibility::Public,
         ];
     }
 }

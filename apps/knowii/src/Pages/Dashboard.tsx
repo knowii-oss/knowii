@@ -29,7 +29,7 @@ export default function Dashboard() {
       name: '',
       description: '',
       // New communities are personal by default
-      personal: true,
+      visibility: 'personal',
     },
   });
 
@@ -40,7 +40,7 @@ export default function Dashboard() {
     const newCommunity: NewCommunity = {
       name: form.getValues().name,
       description: form.getValues().description,
-      personal: form.getValues().personal ? form.getValues().personal : false,
+      visibility: form.getValues().personal ? form.getValues().personal : false,
     };
 
     const response = await knowiiApiClient.createCommunity(newCommunity);
@@ -155,15 +155,15 @@ export default function Dashboard() {
                   />
                 </div>
 
-                {/* Personal */}
+                {/* Visibility */}
                 <div className="mt-4">
-                  <InputLabel htmlFor="description">Personal (only for your eyes)</InputLabel>
+                  <InputLabel htmlFor="description">Community visibility</InputLabel>
                   <InputSwitch
-                    id="personal"
+                    id="visiility"
                     className="mt-1 block"
-                    {...form.register('personal')}
+                    {...form.register('visibility')}
                     onChange={(e) => {
-                      form.setValue('personal', e.target.value);
+                      form.setValue('visibility', e.target.value);
                       form.trigger('personal');
                     }}
                     checked={form.watch('personal')}

@@ -2,6 +2,7 @@
 
 namespace App\Actions\Communities;
 
+use App\KnowiiCommunityVisibility;
 use App\Models\Community;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
@@ -9,21 +10,21 @@ use Illuminate\Validation\ValidationException;
 
 class ValidateCommunityDeletion
 {
-    /**
-     * Validate that the community can be deleted by the given user.
-     *
-     * @param User $user
-     * @param  Community $community
-     * @return void
-     */
-    public function validate(User $user, Community $community): void
-    {
-        Gate::forUser($user)->authorize('delete', $community);
+  /**
+   * Validate that the community can be deleted by the given user.
+   *
+   * @param User $user
+   * @param Community $community
+   * @return void
+   */
+  public function validate(User $user, Community $community): void
+  {
+    Gate::forUser($user)->authorize('delete', $community);
 
-        if ($community->personal) {
-            throw ValidationException::withMessages([
-                'community' => __('You may not delete your personal space.'),
-            ])->errorBag('deleteCommunity');
-        }
+    if (KnowiiCommunityVisibility::Personal === $community->visibility) {
+      throw ValidationException::withMessages([
+        'community' => __('You may not delete your personal space.'),
+      ])->errorBag('deleteCommunity');
     }
+  }
 }

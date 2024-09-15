@@ -7,11 +7,11 @@ use App\Models\Community;
 
 class DeleteCommunity implements DeletesCommunities
 {
-    /**
-     * Delete the given community.
-     */
-    public function delete(Community $community): void
-    {
-        $community->purge();
-    }
+  /**
+   * Delete the given community.
+   */
+  final public function delete(Community $community): void
+  {
+    $community->purge();
+  }
 }
