@@ -65,6 +65,9 @@ Thumbs.db
 .nx/cache
 .nx/workspace-data
 
+# vite
+vite.config.mts.timestamp*
+
 # local env files
 # do not commit any .env files to git, except for the .env.example file.
 .env

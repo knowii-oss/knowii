@@ -1,5 +1,6 @@
 <?php
 
+use App\KnowiiCommunityVisibility;
 use App\Models\Community;
 use App\Models\User;
 
@@ -7,7 +8,7 @@ test('communities can be deleted', function () {
     $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
 
     $user->ownedCommunities()->save($community = Community::factory()->make([
-        'personal' => false,
+        'visibility' => KnowiiCommunityVisibility::Public,
     ]));
 
     $community->users()->attach(
