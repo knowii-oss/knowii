@@ -31,6 +31,7 @@ class CreateCommunity implements CreatesCommunities
     Log::debug('Authorizations verified');
 
     Log::debug('Validating the input');
+
     Validator::make($input, [
       'name' => ['required', 'string', 'min: 3', 'max:255'],
       // Nullable allows empty strings to be passed in

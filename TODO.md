@@ -1,6 +1,7 @@
 # TODO
 
-- Dashboard: extract new community details from the creation response and add to the list of communities
+- Dashboard: receive communities on load
+- CommunityBox: display community visibility level
 - API: Collections & pagination
   - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/CRUD-Retrieve-Collection
   - Customize output: https://laravel.com/docs/11.x/eloquent-resources#customizing-the-pagination-information
