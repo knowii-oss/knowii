@@ -1,6 +1,7 @@
 # TODO
-- Update constants and use regexes
+
 - Increase community box sizes
+- https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/apps/knowii/pages/communities/create/index.tsx
 - Community creation: https://github.com/knowii-oss/knowii/issues/702
   - Add community name regex (back and front + tests)
   - Ensure slug uniqueness when creating
@@ -22,3 +23,24 @@
   - EmailOctopus list?
 - Remove unused errorbags
 - Implement isUsername available API: https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/libs/common/src/lib/api/is-username-available.schema.ts
+
+
+import { z } from 'zod';
+import { allowedCommunitySlugCharactersRegex, maxLengthCommunitySlug, minLengthCommunitySlug } from '../../constants';
+import { singleItemApiResponseSchema } from '../single-item-api-response.schema';
+
+export const isCommunitySlugAvailableRequestSchema = z.object({
+slugToCheck: z.string().regex(allowedCommunitySlugCharactersRegex).min(minLengthCommunitySlug).max(maxLengthCommunitySlug),
+});
+
+export type IsCommunitySlugAvailableRequest = z.infer<typeof isCommunitySlugAvailableRequestSchema>;
+
+export const isCommunitySlugAvailableResponseDataSchema = z.object({
+isSlugAvailable: z.boolean(),
+});
+
+export type IsCommunitySlugAvailableResponseData = z.infer<typeof isCommunitySlugAvailableResponseDataSchema>;
+
+export const isCommunitySlugAvailableResponseSchema = singleItemApiResponseSchema(isCommunitySlugAvailableResponseDataSchema, z.object({}));
+
+export type IsCommunitySlugAvailableResponse = z.infer<typeof isCommunitySlugAvailableResponseSchema>;
