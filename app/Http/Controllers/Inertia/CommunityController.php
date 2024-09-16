@@ -29,6 +29,7 @@ class CommunityController extends Controller
 
         Gate::authorize('view', $community);
 
+        // WARNING: The props passed here must remain aligned with the props expected by the page
         return Jetstream::inertia()->render($request, 'Communities/Show', [
             'community' => $community->load('owner', 'users', 'communityInvitations'),
             'availableRoles' => array_values(Jetstream::$roles),

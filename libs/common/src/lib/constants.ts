@@ -36,7 +36,7 @@ export const USER_PROFILE_INFORMATION_UPDATE_URL = 'user-profile-information.upd
 export const USER_PROFILE_PASSWORD_UPDATE_URL = 'user-password.update';
 
 // Communities
-export const COMMUNITY_URL = 'communities';
+export const COMMUNITY_URL = 'communities.show';
 
 // Authentication
 export const LOGIN_URL = 'login';
