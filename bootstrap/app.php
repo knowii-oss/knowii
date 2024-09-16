@@ -15,6 +15,7 @@ use Inertia\Inertia;
 
 use App\Exceptions\AlreadyAuthenticatedException;
 use App\Traits\ApiResponses;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -107,9 +108,17 @@ return Application::configure(basePath: dirname(__DIR__))
         return null;
       }
 
-      // Workaround to use the ApiResponses trait
-      // Reference: https://stackoverflow.com/questions/42054265/can-i-call-a-static-function-from-a-trait-outside-of-a-class
       return (new class { use ApiResponses; })::validationIssue($e->getMessage(), $e->errors(), null);
+    });
+
+    // Convert AccessDeniedHttpException instances to Knowii's error representation
+    $exceptions->render(function (AccessDeniedHttpException $e, Request $request) {
+      if (!$request->expectsJson()) {
+        // Default Laravel processing if not expecting a JSON response
+        return null;
+      }
+
+      return (new class { use ApiResponses; })::authorizationIssue($e->getMessage(), null, null);
     });
 
     // Convert BusinessException instances
@@ -119,8 +128,6 @@ return Application::configure(basePath: dirname(__DIR__))
         return null;
       }
 
-      // Workaround to use the ApiResponses trait
-      // Reference: https://stackoverflow.com/questions/42054265/can-i-call-a-static-function-from-a-trait-outside-of-a-class
       return (new class { use ApiResponses; })::businessIssue($e->getMessage(), $e->getErrors(), $e->getMetadata());
     });
 
@@ -131,8 +138,6 @@ return Application::configure(basePath: dirname(__DIR__))
         return null;
       }
 
-      // Workaround to use the ApiResponses trait
-      // Reference: https://stackoverflow.com/questions/42054265/can-i-call-a-static-function-from-a-trait-outside-of-a-class
       return (new class { use ApiResponses; })::technicalIssue($e->getMessage(), $e->getErrors(), $e->getMetadata());
     });
 
