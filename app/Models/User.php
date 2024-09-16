@@ -31,6 +31,7 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var array<int, string>
      */
     protected $fillable = [
+        // WARNING: When new fields are added, this list should be updated!
         'name',
         'email',
         'password',

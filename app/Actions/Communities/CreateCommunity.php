@@ -4,6 +4,7 @@ namespace App\Actions\Communities;
 
 use App\Contracts\Communities\CreatesCommunities;
 use App\Events\Communities\AddingCommunity;
+use App\Events\Communities\CommunityCreated;
 use App\Exceptions\TechnicalException;
 use App\KnowiiCommunityVisibility;
 use App\Models\Community;
@@ -11,6 +12,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class CreateCommunity implements CreatesCommunities
 {
@@ -33,11 +35,12 @@ class CreateCommunity implements CreatesCommunities
     Log::debug('Validating the input');
 
     Validator::make($input, [
+      // WARNING: Those validation rules must match those in the community creation form in Dashboard.tsx
       'name' => ['required', 'string', 'min: 3', 'max:64'],
       // Nullable allows empty strings to be passed in
       // Note that the CommunityResource transforms null to an empty string
       // Reference: https://laravel.com/docs/11.x/validation#a-note-on-optional-fields
-      'description' => ['nullable', 'string', 'max:255'], // FIXME extend length
+      'description' => ['nullable', 'string', 'max:255'],
       'visibility' => ['required', 'string', 'in:' . KnowiiCommunityVisibility::toCommaSeparatedString()],
     ])->validate();
 
@@ -49,13 +52,19 @@ class CreateCommunity implements CreatesCommunities
 
     // At this point business validations are done, so all that can happen is a technical issue
 
+    $communityName = $input['name'];
+    $communitySlug = Str::slug($communityName);
+
     try {
       $retVal = $user->ownedCommunities()->create([
-        'name' => $input['name'],
+        'name' => $communityName,
+        'slug' => $communitySlug,
         'description' => $input['description'],
         'visibility' => $input['visibility'],
       ]);
+
       Log::info('New community created successfully', ['community' => $retVal]);
+      CommunityCreated::dispatch($retVal);
 
       return $retVal;
     } catch (\Exception $e) {

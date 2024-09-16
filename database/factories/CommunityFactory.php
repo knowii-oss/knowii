@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\KnowiiCommunityVisibility;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 use Visus\Cuid2\Cuid2;
 
 /**
@@ -19,9 +20,13 @@ class CommunityFactory extends Factory
      */
     public function definition(): array
     {
+        $communityName = $this->faker->unique()->company();
+        $communitySlug = Str::slug($communityName);
+
         return [
             'cuid' => new Cuid2(),
-            'name' => $this->faker->unique()->company(),
+            'name' => $communityName,
+            'slug' => $communitySlug,
             'description' => $this->faker->unique()->sentence(nbWords: 5),
             'user_id' => User::factory(),
             'visibility' => KnowiiCommunityVisibility::Public,

@@ -20,12 +20,12 @@ class CommunityController extends Controller
      * Show the community management screen.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  string $communityCuid
+     * @param  string $slug
      * @return \Inertia\Response
      */
-    public function show(Request $request, string $communityCuid) // FIXME use the slug instead of the cuid
+    public function show(Request $request, string $slug)
     {
-        $community = Knowii::newCommunityModel()->whereCuid($communityCuid)->firstOrFail();
+        $community = Knowii::newCommunityModel()->where('slug', $slug)->firstOrFail();
 
         Gate::authorize('view', $community);
 

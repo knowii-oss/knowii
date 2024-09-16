@@ -24,7 +24,7 @@ Route::middleware([
     })->name('dashboard');
 
   // FIXME replace parameter by the community slug and adapt link in Dashboard.tsx
-  Route::get('/community/{communityCuid}', [CommunityController::class, 'show'])->name('communities.show');
+  Route::get('/community/{communitySlug}', [CommunityController::class, 'show'])->name('communities.show');
 });
 
 Route::inertia('/contact', 'Contact');
