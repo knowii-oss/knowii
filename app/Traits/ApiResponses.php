@@ -56,6 +56,20 @@ trait ApiResponses
   }
 
   /**
+   * Return an authorization issue response.
+   *
+   * @param string $message
+   * @param array|null $metadata
+   * @param array|null $errorDetails
+   * @return JsonResponse
+   */
+  final public static function authorizationIssue(string $message, ?array $metadata = null, ?array $errorDetails = []): JsonResponse
+  {
+    $knowiiResponse = new KnowiiApiResponse(KnowiiApiResponseCategory::Security, KnowiiApiResponseType::AuthorizationIssue, $message, $metadata, null, $errorDetails);
+    return response()->json($knowiiResponse->jsonSerialize(), Response::HTTP_FORBIDDEN);
+  }
+
+  /**
    * Return a not found issue response.
    *
    * @param ?string $message
