@@ -10,6 +10,12 @@ export const communityVisibilityOptions: Array<{ name: string; visibility: Commu
   { name: 'Public', visibility: 'public' },
 ];
 
+// Only allow creating Private or Public communities, not personal ones
+export const allowedCommunityVisibilityOptionsForCreation: Array<{ name: string; visibility: CommunityVisibility }> = [
+  { name: 'Private', visibility: 'private' },
+  { name: 'Public', visibility: 'public' },
+];
+
 export const newCommunitySchema = z.object({
   // FIXME align length constraint between backend and frontend
   name: z.string().min(3, { message: 'Too short' }).max(64, { message: 'Too long' }),
