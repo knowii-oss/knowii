@@ -165,7 +165,6 @@ export default function Dashboard() {
                         className="mt-1 block w-full"
                         {...field}
                         aria-invalid={form.formState.errors.name ? true : false}
-                        autoComplete="name"
                         required
                         disabled={form.formState.isSubmitting || form.formState.isLoading}
                       />
@@ -175,51 +174,66 @@ export default function Dashboard() {
 
                 {form.formState.errors.name && <InputError className="mt-2" message={form.formState.errors.name.message} />}
               </div>
+
               {/* Description */}
               <div className="mt-4 col-span-6 sm:col-span-4">
                 <InputLabel htmlFor="description">Description</InputLabel>
                 <div className="p-inputgroup mt-1">
-                  <InputTextarea
-                    id="description"
-                    className="mt-1 block w-full"
-                    {...form.register('description', {
+                  <Controller
+                    // Reference https://react-hook-form.com/get-started#IntegratingControlledInputs
+                    // WARNING: The name below MUST match the name of the field in the form
+                    name="description"
+                    control={form.control}
+                    rules={{
                       required: false,
-                      maxLength: 255,
-                    })}
-                    aria-invalid={form.formState.errors.description ? true : false}
-                    disabled={loading}
+                      maxLength: {
+                        value: 255,
+                        message: 'The description must be shorter than 255 characters',
+                      },
+                    }}
+                    render={({ field }) => (
+                      <InputTextarea
+                        id="description"
+                        className="mt-1 block w-full"
+                        {...field}
+                        aria-invalid={form.formState.errors.description ? true : false}
+                        disabled={loading}
+                      />
+                    )}
                   />
                 </div>
 
-                {/* Visibility */}
-                <div className="mt-4">
-                  <InputLabel htmlFor="visibility">Community visibility</InputLabel>
-                  <div className="p-inputgroup mt-1">
-                    <Controller
-                      // Reference https://react-hook-form.com/get-started#IntegratingControlledInputs
-                      // WARNING: The name below MUST match the name of the field in the form
-                      // In this case it matches the NewCommunity "visibility" field
-                      name="visibility"
-                      control={form.control}
-                      rules={{ required: 'Please select at least one visibility option' }}
-                      render={({ field }) => (
-                        <SelectButton
-                          id="visibility"
-                          className="mt-1 block"
-                          options={allowedCommunityVisibilityOptionsForCreation}
-                          optionLabel="name"
-                          optionValue="visibility"
-                          required
-                          {...field}
-                          aria-invalid={form.formState.errors.visibility ? true : false}
-                          disabled={loading}
-                        />
-                      )}
-                    />
-                  </div>
+                {form.formState.errors.description && <InputError className="mt-2" message={form.formState.errors.description.message} />}
+              </div>
 
-                  {form.formState.errors.visibility && <InputError className="mt-2" message={form.formState.errors.visibility.message} />}
+              {/* Visibility */}
+              <div className="mt-4">
+                <InputLabel htmlFor="visibility">Community visibility</InputLabel>
+                <div className="p-inputgroup mt-1">
+                  <Controller
+                    // Reference https://react-hook-form.com/get-started#IntegratingControlledInputs
+                    // WARNING: The name below MUST match the name of the field in the form
+                    // In this case it matches the NewCommunity "visibility" field
+                    name="visibility"
+                    control={form.control}
+                    rules={{ required: 'Please select at least one visibility option' }}
+                    render={({ field }) => (
+                      <SelectButton
+                        id="visibility"
+                        className="mt-1 block"
+                        options={allowedCommunityVisibilityOptionsForCreation}
+                        optionLabel="name"
+                        optionValue="visibility"
+                        required
+                        {...field}
+                        aria-invalid={form.formState.errors.visibility ? true : false}
+                        disabled={loading}
+                      />
+                    )}
+                  />
                 </div>
+
+                {form.formState.errors.visibility && <InputError className="mt-2" message={form.formState.errors.visibility.message} />}
               </div>
             </form>
           </>
