@@ -20,7 +20,7 @@ trait HasCommunities
    *
    * @return Collection
    */
-  public function allCommunities()
+  final public function allCommunities(): Collection
   {
     return $this->ownedCommunities->merge($this->communities)->sortBy('name');
   }
@@ -30,7 +30,7 @@ trait HasCommunities
    *
    * @return HasMany
    */
-  public function ownedCommunities()
+  final public function ownedCommunities()
   {
     return $this->hasMany(Knowii::communityModel());
   }
@@ -40,7 +40,7 @@ trait HasCommunities
    *
    * @return BelongsToMany
    */
-  public function communities()
+  final public function communities()
   {
     return $this->belongsToMany(Knowii::communityModel(), Knowii::communityMembershipModel())
       ->withPivot('role')
@@ -53,7 +53,7 @@ trait HasCommunities
    *
    * @return Community
    */
-  public function personalCommunity()
+  final public function personalCommunity(): Community
   {
     return $this->ownedCommunities->where('visibility', KnowiiCommunityVisibility::Personal)->first();
   }
@@ -64,7 +64,7 @@ trait HasCommunities
    * @param Community $community
    * @return bool
    */
-  public function ownsCommunity(Community $community)
+  final public function ownsCommunity(Community $community): bool
   {
     if (is_null($community)) {
       return false;
@@ -79,7 +79,7 @@ trait HasCommunities
    * @param Community $community
    * @return bool
    */
-  public function belongsToCommunity(Community $community)
+  final public function belongsToCommunity(Community $community)
   {
     if (is_null($community)) {
       return false;
@@ -96,7 +96,7 @@ trait HasCommunities
    * @param Community $community
    * @return \Laravel\Jetstream\Role|null
    */
-  public function communityRole(Community $community)
+  final public function communityRole(Community $community)
   {
     if ($this->ownsCommunity($community)) {
       return new OwnerRole;
@@ -122,7 +122,7 @@ trait HasCommunities
    * @param string $role
    * @return bool
    */
-  public function hasCommunityRole(Community $community, string $role)
+  final public function hasCommunityRole(Community $community, string $role): bool
   {
     if ($this->ownsCommunity($community)) {
       return true;
@@ -139,7 +139,7 @@ trait HasCommunities
    * @param Community $community
    * @return array
    */
-  public function communityPermissions(Community $community)
+  final public function communityPermissions(Community $community): array
   {
     if ($this->ownsCommunity($community)) {
       return ['*'];
@@ -159,7 +159,7 @@ trait HasCommunities
    * @param string $permission
    * @return bool
    */
-  public function hasCommunityPermission(Community $community, string $permission)
+  final public function hasCommunityPermission(Community $community, string $permission): bool
   {
     if ($this->ownsCommunity($community)) {
       return true;
