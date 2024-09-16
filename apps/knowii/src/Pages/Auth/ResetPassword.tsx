@@ -10,6 +10,7 @@ import { InputText } from 'primereact/inputtext';
 import InputError from '@/Components/InputError';
 import { Button } from 'primereact/button';
 import classNames from 'classnames';
+import { Password } from 'primereact/password';
 
 interface Props {
   token: string;
@@ -61,6 +62,7 @@ export default function Register(props: Props) {
                 onChange={(e) => form.setData('email', e.target.value)}
                 autoComplete="username"
                 required
+                disabled={form.processing}
               />
             </div>
             <InputError className="mt-2" message={form.errors.email} />
@@ -73,14 +75,20 @@ export default function Register(props: Props) {
               <span className="p-inputgroup-addon mt-1">
                 <FaLock />
               </span>
-              <InputText
+              <Password
                 id="password"
-                type="password"
-                className="mt-1 block w-full p-inputtext-lg"
+                className="mt-1 block w-full"
+                promptLabel="Choose a new password"
+                weakLabel="Too simple"
+                mediumLabel="Average complexity"
+                strongLabel="Complex password"
+                pt={{ input: { className: 'w-full p-inputtext-lg' } }}
                 value={form.data.password}
                 onChange={(e) => form.setData('password', e.target.value)}
+                toggleMask
                 autoComplete="new-password"
                 required
+                disabled={form.processing}
               />
             </div>
             <InputError className="mt-2" message={form.errors.password} />
@@ -93,14 +101,17 @@ export default function Register(props: Props) {
               <span className="p-inputgroup-addon mt-1">
                 <FaLock />
               </span>
-              <InputText
+              <Password
                 id="password_confirmation"
-                type="password"
-                className="mt-1 block w-full p-inputtext-lg"
+                className="mt-1 block w-full"
+                pt={{ input: { className: 'w-full p-inputtext-lg' } }}
                 value={form.data.password_confirmation}
                 onChange={(e) => form.setData('password_confirmation', e.target.value)}
                 autoComplete="new-password"
+                toggleMask
+                feedback={false}
                 required
+                disabled={form.processing}
               />
             </div>
             <InputError className="mt-2" message={form.errors.password_confirmation} />

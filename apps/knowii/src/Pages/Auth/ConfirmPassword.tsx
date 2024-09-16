@@ -6,10 +6,10 @@ import { PASSWORD_CONFIRM_URL } from '@knowii/common';
 import AuthenticationCard from '@/Components/AuthenticationCard';
 import InputLabel from '@/Components/InputLabel';
 import { FaLock } from 'react-icons/fa';
-import { InputText } from 'primereact/inputtext';
 import InputError from '@/Components/InputError';
 import { Button } from 'primereact/button';
 import classNames from 'classnames';
+import { Password } from 'primereact/password';
 
 interface ConfirmPasswordFormData {
   password: string;
@@ -44,14 +44,16 @@ export default function ForgotPassword() {
               <span className="p-inputgroup-addon mt-1">
                 <FaLock />
               </span>
-              <InputText
+              <Password
                 id="password"
-                type="password"
-                className="mt-1 block w-full p-inputtext-lg"
+                className="mt-1 block w-full"
+                feedback={false}
+                pt={{ input: { className: 'w-full p-inputtext-lg' } }}
                 value={form.data.password}
                 onChange={(e) => form.setData('password', e.target.value)}
                 required
                 autoComplete="current-password"
+                disabled={form.processing}
               />
             </div>
             <InputError className="mt-2" message={form.errors.password} />
