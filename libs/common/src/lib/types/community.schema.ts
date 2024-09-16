@@ -1,5 +1,11 @@
 import { z } from 'zod';
 import { baseEntitySchema } from './base-entity.schema';
+import {
+  ALLOWED_COMMUNITY_NAME_CHARACTERS_REGEX,
+  MAX_LENGTH_COMMUNITY_DESCRIPTION,
+  MAX_LENGTH_COMMUNITY_NAME,
+  MIN_LENGTH_COMMUNITY_NAME,
+} from '../constants';
 
 const communityVisibilitySchema = z.enum(['personal', 'private', 'public'], {
   message: 'Please select the visibility level for your community',
@@ -20,15 +26,18 @@ export const allowedCommunityVisibilityOptionsForCreation: Array<{ name: string;
 
 export const newCommunitySchema = z.object({
   // WARNING: those rules must remain aligned with those in CreateCommunity.php
-
-  // TODO add validation constraints
-  // Reference: https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/apps/knowii/pages/communities/create/index.tsx
-  // add regex pattern
   name: z
     .string()
-    .min(3, { message: 'Please choose a name for your new community (between 3 and 64 characters' })
-    .max(64, { message: 'The name is too long (maximum 64 characters)' }),
-  description: z.string().max(255, { message: 'Your description is too long (maximum 255 characters)' }),
+    .min(MIN_LENGTH_COMMUNITY_NAME, {
+      message: `Please choose a name for your new community (between ${MIN_LENGTH_COMMUNITY_NAME} and ${MAX_LENGTH_COMMUNITY_NAME} characters)`,
+    })
+    .max(MAX_LENGTH_COMMUNITY_NAME, { message: `The name is too long (maximum ${MAX_LENGTH_COMMUNITY_NAME} characters)` })
+    .regex(new RegExp(ALLOWED_COMMUNITY_NAME_CHARACTERS_REGEX), {
+      message: 'Please use only letters, numbers, spaces, hyphens, or arobases',
+    }),
+  description: z.string().max(MAX_LENGTH_COMMUNITY_DESCRIPTION, {
+    message: `Your description is too long (maximum ${MAX_LENGTH_COMMUNITY_DESCRIPTION} characters)`,
+  }),
   visibility: communityVisibilitySchema,
 });
 

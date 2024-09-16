@@ -132,6 +132,10 @@ For tests, go to Settings > Languages & Frameworks > PHP > Test Frameworks:
 To add new pages to the application, you can either create a dedicated controller (e.g., for API endpoints), or declare the page in the `web.php` routes file. Example: `Route::inertia('/contact', 'Contact');`.
 The initial data the page needs should be passed via Inertia. All further actions should be handled through the API, not via Inertia. This ensures that the API is on par with the UI.
 
+### Global data
+
+If you need to pass data to all pages (e.g., the user's list of communities), you can update `HandleInertiaRequests` to load and include the data you need.
+
 ### Database
 
 #### Creating new tables
@@ -184,6 +188,7 @@ More details: https://laravel.com/docs/11.x/authorization
 ### Error handling
 
 - Validation should be done using `Validator::make(...)->validate()` calls. This will throw a `ValidationException` if the validation fails. Such exceptions will be converted automatically to a JSON response by the global exception handlers
+- Validation constraints should use constants defined in the `App\Constants` class. Those should be reflected on the front-end as well in the `constants.ts` file
 - When there are business related problems, a `BusinessException` should be thrown. This exception should be caught in the global exception handler, and converted to a JSON response as well
 - Where there are other problems (e.g., unavailable database), a `TechnicalException` should be thrown. This exception should be caught in the global exception handler, and converted to a JSON response as well
 

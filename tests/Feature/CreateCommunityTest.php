@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\Communities\CreateCommunity;
+use App\Constants;
 use App\KnowiiCommunityVisibility;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -28,6 +29,74 @@ test('communities can be created via the creator', function () {
     expect($user->ownedCommunities()->latest('id')->first()->slug)->toEqual('test-community');
     expect($user->ownedCommunities()->latest('id')->first()->description)->toEqual('Awesome community');
     expect($user->ownedCommunities()->latest('id')->first()->visibility)->toEqual(KnowiiCommunityVisibility::Public);
+});
+
+test('creation is rejected by the community creator if the name is too short', function () {
+  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+
+  expect($user->ownedCommunities)->toHaveCount(1);
+
+  $input = [
+    'name' => 'a',
+    'description' => 'Awesome community',
+    'visibility' => KnowiiCommunityVisibility::Public->value,
+  ];
+
+  $this->expectException(ValidationException::class);
+
+  $creator = new CreateCommunity();
+  $creator->create($user, $input);
+});
+
+test('creation is rejected by the community creator if the name is too long', function () {
+  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+
+  expect($user->ownedCommunities)->toHaveCount(1);
+
+  $input = [
+    'name' => str_repeat('a', Constants::$MAX_LENGTH_COMMUNITY_NAME+1),
+    'description' => 'Awesome community',
+    'visibility' => KnowiiCommunityVisibility::Public->value,
+  ];
+
+  $this->expectException(ValidationException::class);
+
+  $creator = new CreateCommunity();
+  $creator->create($user, $input);
+});
+
+test('creation is rejected by the community creator if the name contains forbidden characters', function () {
+  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+
+  expect($user->ownedCommunities)->toHaveCount(1);
+
+  $input = [
+    'name' => 'foo ##!}{',
+    'description' => 'Awesome community',
+    'visibility' => KnowiiCommunityVisibility::Public->value,
+  ];
+
+  $this->expectException(ValidationException::class);
+
+  $creator = new CreateCommunity();
+  $creator->create($user, $input);
+});
+
+test('creation is rejected by the community creator if the description is too long', function () {
+  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+
+  expect($user->ownedCommunities)->toHaveCount(1);
+
+  $input = [
+    'name' => 'foo',
+    'description' => str_repeat('a', Constants::$MAX_LENGTH_COMMUNITY_DESCRIPTION+1),
+    'visibility' => KnowiiCommunityVisibility::Public->value,
+  ];
+
+  $this->expectException(ValidationException::class);
+
+  $creator = new CreateCommunity();
+  $creator->create($user, $input);
 });
 
 test('creation is rejected by the community creator if the name is missing', function () {

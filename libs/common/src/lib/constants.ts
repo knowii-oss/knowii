@@ -62,28 +62,12 @@ export const PING_API_PATH = `${API_BASE_PATH}/ping`;
 export const COMMUNITY_API_BASE_PATH = `${API_BASE_PATH}/communities`;
 
 /**
- * Regexes
+ * Regexes and other constants
  */
-
-//TODO use
-// export const minLengthUsername = 3;
-// export const maxLengthUsername = 36;
-
-export const forbiddenUsernameCharactersRegex = /[^a-zA-Z0-9_-]+/g;
-
-export const forbiddenCommunityNameCharactersRegex = /[^a-zA-Z0-9 -]+/g;
-// Used with react hook form forms
-export const allowedCommunityNameCharactersRegex = /[a-zA-Z0-9 -]+/g;
-
-export const forbiddenCommunitySlugCharactersRegex = /[^a-zA-Z0-9-]+/g;
-// Used with react hook form forms
-export const allowedCommunitySlugCharactersRegex = /[a-zA-Z0-9-]+/g;
-
-export const minLengthCommunityName = 3;
-export const maxLengthCommunityName = 64;
-
-export const minLengthCommunitySlug = 3;
-export const maxLengthCommunitySlug = 64;
+export const MIN_LENGTH_COMMUNITY_NAME = 3;
+export const MAX_LENGTH_COMMUNITY_NAME = 64;
+export const MAX_LENGTH_COMMUNITY_DESCRIPTION = 255;
+export const ALLOWED_COMMUNITY_NAME_CHARACTERS_REGEX = /^[a-zA-Z0-9-@' ]+$/;
 
 /**
  * Possible error types
