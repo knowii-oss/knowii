@@ -4,6 +4,7 @@ use App\Actions\Communities\CreateCommunity;
 use App\KnowiiCommunityVisibility;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 
 uses(RefreshDatabase::class);
 
@@ -26,4 +27,88 @@ test('communities can be created via the creator', function () {
     expect($user->ownedCommunities()->latest('id')->first()->name)->toEqual('Test Community');
     expect($user->ownedCommunities()->latest('id')->first()->description)->toEqual('Awesome community');
     expect($user->ownedCommunities()->latest('id')->first()->visibility)->toEqual(KnowiiCommunityVisibility::Public);
+});
+
+test('creation is rejected by the community creator if the name is missing', function () {
+  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+
+  expect($user->ownedCommunities)->toHaveCount(1);
+
+  $input = [
+    'description' => 'Awesome community',
+    'visibility' => KnowiiCommunityVisibility::Public->value,
+  ];
+
+  $this->expectException(ValidationException::class);
+
+  $creator = new CreateCommunity();
+  $creator->create($user, $input);
+});
+
+test('creation is rejected by the community creator if the name is empty', function () {
+  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+
+  expect($user->ownedCommunities)->toHaveCount(1);
+
+  $input = [
+    'name' => '   ',
+    'description' => 'Awesome community',
+    'visibility' => KnowiiCommunityVisibility::Public->value,
+  ];
+
+  $this->expectException(ValidationException::class);
+
+  $creator = new CreateCommunity();
+  $creator->create($user, $input);
+});
+
+test('creation is rejected by the community creator if the name is not long enough', function () {
+  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+
+  expect($user->ownedCommunities)->toHaveCount(1);
+
+  $input = [
+    'name' => 'a',
+    'description' => 'Awesome community',
+    'visibility' => KnowiiCommunityVisibility::Public->value,
+  ];
+
+  $this->expectException(ValidationException::class);
+
+  $creator = new CreateCommunity();
+  $creator->create($user, $input);
+});
+
+test('creation is rejected by the community creator if the visibility is not provided', function () {
+  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+
+  expect($user->ownedCommunities)->toHaveCount(1);
+
+  $input = [
+    'name' => 'a',
+    'description' => 'Awesome community',
+    'visibility' => KnowiiCommunityVisibility::Public->value,
+  ];
+
+  $this->expectException(ValidationException::class);
+
+  $creator = new CreateCommunity();
+  $creator->create($user, $input);
+});
+
+test('creation is rejected by the community creator if the provided visibility does not exist', function () {
+  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+
+  expect($user->ownedCommunities)->toHaveCount(1);
+
+  $input = [
+    'name' => 'a',
+    'description' => 'Awesome community',
+    'visibility' => 'foobar',
+  ];
+
+  $this->expectException(ValidationException::class);
+
+  $creator = new CreateCommunity();
+  $creator->create($user, $input);
 });
