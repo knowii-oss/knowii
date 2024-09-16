@@ -1,6 +1,5 @@
 # TODO
 
-- Add controller to description field
 - Try to use Zod again
 - Community creation: https://github.com/knowii-oss/knowii/issues/702
   - Implement isCommunityName available API: https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/libs/server/src/lib/dao/communities/is-community-name-available.dao.fn.ts
