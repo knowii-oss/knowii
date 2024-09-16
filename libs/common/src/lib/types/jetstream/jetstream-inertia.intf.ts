@@ -1,13 +1,15 @@
 import { DateTime } from '../date-time.intf';
 import { Nullable } from '../nullable.intf';
+import { Community } from '../community.schema';
 
 export interface User {
-  id: number;
+  cuid: string;
   name: string;
   email: string;
   profile_photo_path: Nullable<string>;
   profile_photo_url: string;
   two_factor_enabled: boolean;
+  two_factor_confirmed_at: Nullable<DateTime>;
   email_verified_at: Nullable<DateTime>;
   created_at: DateTime;
   updated_at: DateTime;
@@ -30,6 +32,7 @@ export type InertiaSharedProps<T = NonNullable<unknown>> = T & {
     hasEmailVerification: boolean;
   };
   auth: Auth;
+  communities: Community[];
   // FIXME improve types
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   errorBags: any;
