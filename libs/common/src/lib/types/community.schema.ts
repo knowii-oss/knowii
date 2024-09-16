@@ -1,7 +1,9 @@
 import { z } from 'zod';
 import { baseEntitySchema } from './base-entity.schema';
 
-const communityVisibilitySchema = z.enum(['personal', 'private', 'public']);
+const communityVisibilitySchema = z.enum(['personal', 'private', 'public'], {
+  message: 'Please select the visibility level for your community',
+});
 export type CommunityVisibility = z.infer<typeof communityVisibilitySchema>;
 
 export const communityVisibilityOptions: Array<{ name: string; visibility: CommunityVisibility }> = [
@@ -18,8 +20,15 @@ export const allowedCommunityVisibilityOptionsForCreation: Array<{ name: string;
 
 export const newCommunitySchema = z.object({
   // WARNING: those rules must remain aligned with those in CreateCommunity.php
-  name: z.string().min(3, { message: 'Too short' }).max(128, { message: 'Too long' }),
-  description: z.string().max(255, { message: 'Too long' }),
+
+  // TODO add validation constraints
+  // Reference: https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/apps/knowii/pages/communities/create/index.tsx
+  // add regex pattern
+  name: z
+    .string()
+    .min(3, { message: 'Please choose a name for your new community (between 3 and 64 characters' })
+    .max(64, { message: 'The name is too long (maximum 64 characters)' }),
+  description: z.string().max(255, { message: 'Your description is too long (maximum 255 characters)' }),
   visibility: communityVisibilitySchema,
   // TODO add slug
   // slug: z

@@ -18,6 +18,7 @@ import {
   knowiiApiClient,
   MIN_ACTION_TIME,
   NewCommunity,
+  newCommunitySchema,
   sleep,
   useTypedPage,
 } from '@knowii/common';
@@ -26,6 +27,7 @@ import InputLabel from '@/Components/InputLabel';
 import { useImmer } from 'use-immer';
 import { SelectButton } from 'primereact/selectbutton';
 import { useRoute } from 'ziggy-js';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 export default function Dashboard() {
   const page = useTypedPage();
@@ -39,6 +41,7 @@ export default function Dashboard() {
   const [communities, updateCommunities] = useImmer<Community[]>(page.props.communities);
 
   const form = useForm<NewCommunity>({
+    resolver: zodResolver(newCommunitySchema),
     defaultValues: {
       name: '',
       description: '',
@@ -150,14 +153,6 @@ export default function Dashboard() {
                     // In this case it matches the NewCommunity "name" field
                     name="name"
                     control={form.control}
-                    rules={{
-                      required: 'Please choose a name for your new community',
-                      validate: (value) =>
-                        (value.trim().length >= 3 && value.trim().length <= 255) || 'The name must be between 3 and 255 characters',
-                      // TODO add validation constraints
-                      // Reference: https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/apps/knowii/pages/communities/create/index.tsx
-                      // add regex pattern
-                    }}
                     render={({ field }) => (
                       <InputText
                         id="name"
@@ -184,13 +179,6 @@ export default function Dashboard() {
                     // WARNING: The name below MUST match the name of the field in the form
                     name="description"
                     control={form.control}
-                    rules={{
-                      required: false,
-                      maxLength: {
-                        value: 255,
-                        message: 'The description must be shorter than 255 characters',
-                      },
-                    }}
                     render={({ field }) => (
                       <InputTextarea
                         id="description"

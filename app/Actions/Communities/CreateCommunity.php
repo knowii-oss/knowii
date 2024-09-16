@@ -33,7 +33,7 @@ class CreateCommunity implements CreatesCommunities
     Log::debug('Validating the input');
 
     Validator::make($input, [
-      'name' => ['required', 'string', 'min: 3', 'max:128'],
+      'name' => ['required', 'string', 'min: 3', 'max:64'],
       // Nullable allows empty strings to be passed in
       // Note that the CommunityResource transforms null to an empty string
       // Reference: https://laravel.com/docs/11.x/validation#a-note-on-optional-fields
