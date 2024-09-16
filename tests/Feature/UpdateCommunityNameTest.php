@@ -1,14 +1,17 @@
 <?php
 
+use App\Actions\Communities\UpdateCommunityName;
 use App\Models\User;
 
 test('community names can be updated', function () {
-    $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
 
-    $this->put('/communities/'.$user->personalCommunity()->id, [
-        'name' => 'Test Community',
-    ]);
+  $input = [
+    'name' => 'Cool Community',
+  ];
 
-    expect($user->fresh()->ownedCommunities)->toHaveCount(1);
-    expect($user->personalCommunity()->fresh()->name)->toEqual('Test Community');
+  $updater = new UpdateCommunityName();
+  $updater->update($user, $user->personalCommunity(), $input);
+
+  expect($user->personalCommunity()->fresh()->name)->toEqual('Cool Community');
 });

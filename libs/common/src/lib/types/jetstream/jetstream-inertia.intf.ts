@@ -62,8 +62,10 @@ export interface ApiToken {
 }
 
 export interface Role {
+  description: string;
   key: string;
   name: string;
-  permissions: string[];
-  description: string;
+  permissions: Permission[];
 }
+
+export type Permission = 'create' | 'read' | 'update' | 'delete';

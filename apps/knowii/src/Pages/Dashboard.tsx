@@ -13,6 +13,7 @@ import CommunityBox from '@/Components/CommunityBox';
 import {
   allowedCommunityVisibilityOptionsForCreation,
   Community,
+  COMMUNITY_URL,
   DEFAULT_TOAST_POSITION,
   knowiiApiClient,
   MIN_ACTION_TIME,
@@ -104,7 +105,7 @@ export default function Dashboard() {
         <CardGroup className="mt-4">
           {/* TODO add link to open the given community page. The link should use the slug */}
           {communities.map((item) => (
-            <CommunityBox key={item.cuid} community={item} creationMode={false} link={`/communities/${item.cuid}`} />
+            <CommunityBox key={item.cuid} community={item} creationMode={false} link={`${COMMUNITY_URL}/${item.cuid}`} />
           ))}
           <CommunityBox creationMode={true} clickHandler={openCreateCommunityModal} />
         </CardGroup>
