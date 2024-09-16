@@ -1,3 +1,5 @@
+import { ToastProps } from 'primereact/toast';
+
 /**
  * Meta
  */
@@ -12,9 +14,10 @@ export const IS_DEV = process.env.NODE_ENV === 'development';
 export const IS_TEST = process.env.NODE_ENV === 'test';
 
 /**
- * UX
+ * UI/UX
  */
 export const MIN_ACTION_TIME = 250;
+export const DEFAULT_TOAST_POSITION: ToastProps['position'] = 'top-center';
 
 /**
  * URLs
