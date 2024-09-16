@@ -1,5 +1,5 @@
 # TODO
-
+- Update constants and use regexes
 - Increase community box sizes
 - Community creation: https://github.com/knowii-oss/knowii/issues/702
   - Add community name regex (back and front + tests)
@@ -14,7 +14,6 @@
   - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Pagination-Rules-and-metadata
   - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Pagination-Example
   - https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/Pagination-Out-of-range-bounds
-- Implement isUsername available API: https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/libs/common/src/lib/api/is-username-available.schema.ts
 - TODO adapt CommunityPolicy rules
 - Reset prod DB
 - Bruno requests/tests/...
@@ -22,3 +21,4 @@
 - Add waitlist form to landing page: https://github.com/knowii-oss/knowii/issues/714
   - EmailOctopus list?
 - Remove unused errorbags
+- Implement isUsername available API: https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/libs/common/src/lib/api/is-username-available.schema.ts
