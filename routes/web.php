@@ -22,14 +22,13 @@ Route::middleware([
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
     })->name('dashboard');
+
+  Route::get('/communities/{communityCuid}', [CommunityController::class, 'show'])->name('communities.show');
 });
 
 Route::inertia('/contact', 'Contact');
 
 // FIXME implement
-Route::get('/communities/{community}', [CommunityController::class, 'show'])->name('communities.show');
-Route::put('/communities/{community}', [CommunityController::class, 'update'])->name('communities.update');
-Route::delete('/communities/{community}', [CommunityController::class, 'destroy'])->name('communities.destroy');
 Route::post('/communities/{community}/members', [CommunityMemberController::class, 'store'])->name('community-members.store');
 Route::put('/communities/{community}/members/{user}', [CommunityMemberController::class, 'update'])->name('community-members.update');
 Route::delete('/communities/{community}/members/{user}', [CommunityMemberController::class, 'destroy'])->name('community-members.destroy');

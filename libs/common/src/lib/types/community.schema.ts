@@ -17,9 +17,9 @@ export const allowedCommunityVisibilityOptionsForCreation: Array<{ name: string;
 ];
 
 export const newCommunitySchema = z.object({
-  // FIXME align length constraint between backend and frontend
-  name: z.string().min(3, { message: 'Too short' }).max(64, { message: 'Too long' }),
-  description: z.string(),
+  // WARNING: those rules must remain aligned with those in CreateCommunity.php
+  name: z.string().min(3, { message: 'Too short' }).max(128, { message: 'Too long' }),
+  description: z.string().max(255, { message: 'Too long' }),
   visibility: communityVisibilitySchema,
   // TODO add slug
   // slug: z
@@ -35,13 +35,15 @@ export const communitySchema = baseEntitySchema.merge(newCommunitySchema);
 
 export type Community = z.infer<typeof communitySchema>;
 
-// FIXME extract those types
-// export interface CommunityPermissions {
-//   canAddCommunityMembers: boolean;
-//   canDeleteCommunity: boolean;
-//   canRemoveCommunityMembers: boolean;
-//   canUpdateCommunity: boolean;
-// }
+export interface CommunityPermissions {
+  canAddCommunityMembers: boolean;
+  canDeleteCommunity: boolean;
+  canRemoveCommunityMembers: boolean;
+  canUpdateCommunity: boolean;
+  canUpdateCommunityMembers: boolean;
+}
+
+// TODO implement
 //
 // export interface CommunityInvitation {
 //   cuid: string;

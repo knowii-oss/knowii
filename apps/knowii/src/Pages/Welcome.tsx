@@ -5,12 +5,12 @@ import PageContentWrapper from '@/Components/PageContentWrapper';
 import Footer from '@/Components/Footer';
 import PageWrapper from '@/Components/PageWrapper';
 
-interface WelcomePageProps {
+interface Props {
   canLogin: boolean;
   canRegister: boolean;
 }
 
-export default function Welcome(props: WelcomePageProps) {
+export default function Welcome(props: Props) {
   const page = useTypedPage();
 
   const showLogout = props.canLogin && page.props.auth.user !== null;

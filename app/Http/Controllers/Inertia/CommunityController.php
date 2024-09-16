@@ -20,12 +20,12 @@ class CommunityController extends Controller
      * Show the community management screen.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  int  $communityId
+     * @param  string $communityCuid
      * @return \Inertia\Response
      */
-    public function show(Request $request, $communityId)
+    public function show(Request $request, string $communityCuid) // FIXME use the slug instead of the cuid
     {
-        $community = Knowii::newCommunityModel()->findOrFail($communityId);
+        $community = Knowii::newCommunityModel()->whereCuid($communityCuid)->firstOrFail();
 
         Gate::authorize('view', $community);
 
@@ -42,41 +42,5 @@ class CommunityController extends Controller
                 'canUpdateCommunityMembers' => Gate::check('updateCommunityMember', $community),
             ],
         ]);
-    }
-
-    /**
-     * Update the given community's name.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $communityId
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function update(Request $request, int $communityId)
-    {
-        $community = Knowii::newCommunityModel()->findOrFail($communityId);
-
-        app(UpdatesCommunityNames::class)->update($request->user(), $community, $request->all());
-
-        return back(303);
-    }
-
-    /**
-     * Delete the given community.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $communityId
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function destroy(Request $request, int $communityId)
-    {
-        $community = Knowii::newCommunityModel()->findOrFail($communityId);
-
-        app(ValidateCommunityDeletion::class)->validate($request->user(), $community);
-
-        $deleter = app(DeletesCommunities::class);
-
-        $deleter->delete($community);
-
-        return $this->redirectPath($deleter);
     }
 }
