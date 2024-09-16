@@ -1,4 +1,4 @@
-import { DESTROY_OTHER_BROWSER_SESSIONS_URL, Session } from '@knowii/common';
+import { DEFAULT_TOAST_POSITION, DESTROY_OTHER_BROWSER_SESSIONS_URL, Session } from '@knowii/common';
 import { useForm } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
 import { useRef, useState } from 'react';
@@ -56,7 +56,7 @@ export default function LogoutOtherBrowserSessionsForm(props: Props) {
 
   return (
     <ActionSection title={'Browser Sessions'} description={'Manage and log out your active sessions on other browsers and devices.'}>
-      <Toast position="bottom-center" ref={toastRef} />
+      <Toast position={DEFAULT_TOAST_POSITION} ref={toastRef} />
 
       <div className="max-w-xl text-sm text-gray-600">
         If necessary, you may log out of all of your other browser sessions across all of your devices. Some of your recent sessions are

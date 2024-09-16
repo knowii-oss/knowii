@@ -10,7 +10,15 @@ import { Controller, useForm } from 'react-hook-form';
 
 import InputError from '@/Components/InputError';
 import CommunityBox from '@/Components/CommunityBox';
-import { Community, communityVisibilityOptions, knowiiApiClient, MIN_ACTION_TIME, NewCommunity, sleep } from '@knowii/common';
+import {
+  Community,
+  communityVisibilityOptions,
+  DEFAULT_TOAST_POSITION,
+  knowiiApiClient,
+  MIN_ACTION_TIME,
+  NewCommunity,
+  sleep,
+} from '@knowii/common';
 import CardGroup from '@/Components/CardGroup';
 import InputLabel from '@/Components/InputLabel';
 import { useImmer } from 'use-immer';
@@ -86,7 +94,7 @@ export default function Dashboard() {
   return (
     <>
       <AppLayout title="Dashboard" pageTitle="Dashboard">
-        <Toast position="bottom-center" ref={toastRef} />
+        <Toast position={DEFAULT_TOAST_POSITION} ref={toastRef} />
         <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b-2 border-primary-500 pb-2 block text-center sm:text-left">
           My Communities
         </h2>

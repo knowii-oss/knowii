@@ -1,4 +1,4 @@
-import { User, USER_PROFILE_INFORMATION_UPDATE_URL, useTypedPage } from '@knowii/common';
+import { DEFAULT_TOAST_POSITION, User, USER_PROFILE_INFORMATION_UPDATE_URL, useTypedPage } from '@knowii/common';
 import { Link, useForm } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
 import React, { FormEventHandler, useRef, useState } from 'react';
@@ -58,7 +58,7 @@ export default function UpdateProfileInformationForm(props: Props) {
       description={`Update your account's profile information and email address.`}
       renderActions={() => (
         <>
-          <Toast position="bottom-center" ref={toastRef} />
+          <Toast position={DEFAULT_TOAST_POSITION} ref={toastRef} />
 
           <Button className={classNames({ 'opacity-25': form.processing })} disabled={form.processing}>
             Save

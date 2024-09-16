@@ -1,4 +1,4 @@
-import { USER_PROFILE_PASSWORD_UPDATE_URL } from '@knowii/common';
+import { DEFAULT_TOAST_POSITION, USER_PROFILE_PASSWORD_UPDATE_URL } from '@knowii/common';
 import { useForm } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
 import { FormEventHandler, useRef } from 'react';
@@ -61,7 +61,7 @@ export default function UpdatePasswordForm() {
       description={`Ensure your account is using a long, random password to stay secure.`}
       renderActions={() => (
         <>
-          <Toast position="bottom-center" ref={toastRef} />
+          <Toast position={DEFAULT_TOAST_POSITION} ref={toastRef} />
 
           <Button className={classNames({ 'opacity-25': form.processing })} disabled={form.processing}>
             Save
