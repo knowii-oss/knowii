@@ -1,5 +1,6 @@
 # TODO
 
+- Increase community box sizes
 - Community creation: https://github.com/knowii-oss/knowii/issues/702
   - Add community name regex (back and front + tests)
   - Ensure slug uniqueness when creating

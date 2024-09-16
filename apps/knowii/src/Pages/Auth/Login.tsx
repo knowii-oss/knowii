@@ -11,6 +11,7 @@ import { Button } from 'primereact/button';
 import { FaAt, FaLock } from 'react-icons/fa';
 import { Checkbox } from 'primereact/checkbox';
 import FooterGuest from '@/Components/FooterGuest';
+import { Password } from 'primereact/password';
 
 interface LoginFormData {
   email: string;
@@ -62,6 +63,7 @@ export default function Login({ canResetPassword, status }: Props) {
                 autoComplete="username"
                 autoFocus={true}
                 required
+                disabled={form.processing}
               />
             </div>
             <InputError className="mt-2" message={form.errors.email} />
@@ -74,14 +76,17 @@ export default function Login({ canResetPassword, status }: Props) {
               <span className="p-inputgroup-addon mt-1">
                 <FaLock />
               </span>
-              <InputText
+              <Password
                 id="password"
-                type="password"
-                className="mt-1 block w-full p-inputtext-lg"
+                className="mt-1 block w-full"
+                feedback={false}
+                pt={{ input: { className: 'w-full p-inputtext-lg' } }}
                 value={form.data.password}
                 onChange={(e) => form.setData('password', e.target.value)}
+                toggleMask
                 required
                 autoComplete="current-password"
+                disabled={form.processing}
               />
             </div>
             <InputError className="mt-2" message={form.errors.password} />
@@ -94,6 +99,7 @@ export default function Login({ canResetPassword, status }: Props) {
                 name="remember"
                 checked={form.data.remember === 'on'}
                 onChange={(e) => form.setData('remember', e.target.checked ? 'on' : '')}
+                disabled={form.processing}
               />
               <span className="ms-2 text-sm text-gray-600">Remember me</span>
             </label>

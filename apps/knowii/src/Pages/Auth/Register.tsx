@@ -11,6 +11,7 @@ import InputError from '@/Components/InputError';
 import { Checkbox } from 'primereact/checkbox';
 import { Button } from 'primereact/button';
 import classNames from 'classnames';
+import { Password } from 'primereact/password';
 
 interface RegisterFormData {
   name: string;
@@ -60,6 +61,7 @@ export default function Register() {
                 autoComplete="name"
                 autoFocus={true}
                 required
+                disabled={form.processing}
               />
             </div>
             <InputError className="mt-2" message={form.errors.name} />
@@ -80,6 +82,7 @@ export default function Register() {
                 onChange={(e) => form.setData('email', e.target.value)}
                 autoComplete="username"
                 required
+                disabled={form.processing}
               />
             </div>
             <InputError className="mt-2" message={form.errors.email} />
@@ -92,14 +95,20 @@ export default function Register() {
               <span className="p-inputgroup-addon mt-1">
                 <FaLock />
               </span>
-              <InputText
+              <Password
                 id="password"
-                type="password"
-                className="mt-1 block w-full p-inputtext-lg"
+                className="mt-1 block w-full"
+                promptLabel="Choose a password"
+                weakLabel="Too simple"
+                mediumLabel="Average complexity"
+                strongLabel="Complex password"
+                pt={{ input: { className: 'w-full p-inputtext-lg' } }}
                 value={form.data.password}
                 onChange={(e) => form.setData('password', e.target.value)}
                 autoComplete="new-password"
+                toggleMask
                 required
+                disabled={form.processing}
               />
             </div>
             <InputError className="mt-2" message={form.errors.password} />
@@ -112,14 +121,17 @@ export default function Register() {
               <span className="p-inputgroup-addon mt-1">
                 <FaLock />
               </span>
-              <InputText
+              <Password
                 id="password_confirmation"
-                type="password"
-                className="mt-1 block w-full p-inputtext-lg"
+                className="mt-1 block w-full"
+                pt={{ input: { className: 'w-full p-inputtext-lg' } }}
                 value={form.data.password_confirmation}
                 onChange={(e) => form.setData('password_confirmation', e.target.value)}
                 autoComplete="new-password"
+                toggleMask
+                feedback={false}
                 required
+                disabled={form.processing}
               />
             </div>
             <InputError className="mt-2" message={form.errors.password_confirmation} />
@@ -142,6 +154,7 @@ export default function Register() {
                       }
                     }}
                     required
+                    disabled={form.processing}
                   />
 
                   <div className="ml-2">

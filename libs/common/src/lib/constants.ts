@@ -63,13 +63,13 @@ export const COMMUNITY_API_BASE_PATH = `${API_BASE_PATH}/communities`;
 
 /**
  * Regexes
- * WARNING: Some of those must match the regexes used by PL/SQL functions defined in supabase-db-seed.sql
  */
+
+//TODO use
+// export const minLengthUsername = 3;
+// export const maxLengthUsername = 36;
+
 export const forbiddenUsernameCharactersRegex = /[^a-zA-Z0-9_-]+/g;
-// Used with react hook form forms
-export const allowedUsernameCharactersRegex = /[a-zA-Z0-9_-]+/g;
-export const minLengthUsername = 3;
-export const maxLengthUsername = 36;
 
 export const forbiddenCommunityNameCharactersRegex = /[^a-zA-Z0-9 -]+/g;
 // Used with react hook form forms

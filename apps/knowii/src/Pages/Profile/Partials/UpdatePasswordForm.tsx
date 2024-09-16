@@ -85,6 +85,7 @@ export default function UpdatePasswordForm() {
             onChange={(e) => form.setData('current_password', e.target.value)}
             required
             autoComplete="current-password"
+            disabled={form.processing}
           />
         </div>
         <InputError className="mt-2" message={form.errors.current_password} />
@@ -106,6 +107,7 @@ export default function UpdatePasswordForm() {
             onChange={(e) => form.setData('password', e.target.value)}
             required
             autoComplete="new-password"
+            disabled={form.processing}
           />
         </div>
         <InputError className="mt-2" message={form.errors.password} />
@@ -126,6 +128,7 @@ export default function UpdatePasswordForm() {
             onChange={(e) => form.setData('password_confirmation', e.target.value)}
             required
             autoComplete="new-password"
+            disabled={form.processing}
           />
         </div>
         <InputError className="mt-2" message={form.errors.password_confirmation} />
