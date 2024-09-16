@@ -35,7 +35,6 @@ class AppServiceProvider extends ServiceProvider
       // Register singletons implementing contracts (cfr \App\Contracts)
       app()->singleton(CreatesCommunities::class, CreateCommunity::class);
       app()->singleton(UpdatesCommunityNames::class, UpdateCommunityName::class);
-      // FIXME add class to handle UpdatesCommunityDescriptions
       app()->singleton(AddsCommunityMembers::class, AddCommunityMember::class);
       app()->singleton(InvitesCommunityMembers::class, InviteCommunityMember::class);
       app()->singleton(RemovesCommunityMembers::class, RemoveCommunityMember::class);

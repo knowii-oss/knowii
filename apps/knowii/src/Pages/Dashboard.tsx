@@ -25,9 +25,11 @@ import CardGroup from '@/Components/CardGroup';
 import InputLabel from '@/Components/InputLabel';
 import { useImmer } from 'use-immer';
 import { SelectButton } from 'primereact/selectbutton';
+import { useRoute } from 'ziggy-js';
 
 export default function Dashboard() {
   const page = useTypedPage();
+  const route = useRoute();
 
   const toastRef = useRef<Toast | null>(null);
 
@@ -103,9 +105,16 @@ export default function Dashboard() {
           My Communities
         </h2>
         <CardGroup className="mt-4">
-          {/* TODO add link to open the given community page. The link should use the slug */}
           {communities.map((item) => (
-            <CommunityBox key={item.cuid} community={item} creationMode={false} link={`${COMMUNITY_URL}/${item.cuid}`} />
+            <CommunityBox
+              key={item.cuid}
+              community={item}
+              creationMode={false}
+              link={route(COMMUNITY_URL, {
+                // TODO replace with the community slug
+                communityCuid: item.cuid,
+              })}
+            />
           ))}
           <CommunityBox creationMode={true} clickHandler={openCreateCommunityModal} />
         </CardGroup>

@@ -129,7 +129,8 @@ For tests, go to Settings > Languages & Frameworks > PHP > Test Frameworks:
 
 ### Adding new pages
 
-To add new pages to the application, you can either create a dedicated controller (e.g., for API endpoints), or declare the page in the `web.php` routes file. Example: `Route::inertia('/contact', 'Contact');`
+To add new pages to the application, you can either create a dedicated controller (e.g., for API endpoints), or declare the page in the `web.php` routes file. Example: `Route::inertia('/contact', 'Contact');`.
+The initial data the page needs should be passed via Inertia. All further actions should be handled through the API, not via Inertia. This ensures that the API is on par with the UI.
 
 ### Database
 
@@ -158,6 +159,27 @@ To backup the database, run the following command: `php artisan backup:run`.
 If you want to test it locally in Sail, then run 'sail php artisan backup:run'
 
 By default, backups are stored under `storage/app/Knowii`
+
+### Actions
+
+Modifications (e.g., creating a community, deleting a community, etc) should be implemented using actions. Actions are classes that encapsulate the logic of a single task. They are located in the `app/Actions` directory.
+Actions should:
+
+- Be named after the task they perform (e.g., CreateCommunity, DeleteCommunity, etc)
+- Be placed in the `app/Actions` directory
+- Be registered in the `app/Providers/AppServiceProvider.php` file
+- Be used in the API controllers to perform the task (cfr API section below)
+- Verify authorizations, perform input validation, perform business validation, and perform the actual changes (e.g., saving a new entity to the database)
+
+To verify authorizations, use Gate: `Gate::forUser($user)->authorize('<operation>', $item);`. An AuthorizationException will be thrown if the user is not authorized.
+
+#### Authorization
+
+Authorization is done using Laravel's built-in authorization system. Policies are used to define the authorization rules. Policies are located in the `app/Policies` directory, and must be named after the model they apply to, with the `Policy` suffix (e.g., `CommunityPolicy`). When names don't match a given model, they must be registered manually in the `AppServiceProvider` file.
+
+Authorizations are checked in Action classes.
+
+More details: https://laravel.com/docs/11.x/authorization
 
 ### Error handling
 
@@ -211,15 +233,15 @@ Status codes follow the API design guide:
 - API Controllers are registered in the `routes/api.php` file
 - API Controllers should include OpenAPI annotations
 - They should NOT validate the input (not their responsibility)
-- They should delegate operations to a dedicated controller (e.g., CreateCommunity)
-- They should not catch exceptions returned by the business controllers (that handle validation). Those are handled by the global exception handler (without leaking sensitive information)
+- They should delegate operations to a dedicated action classes (e.g., CreateCommunity)
+- They should not catch exceptions returned by the action classes (that handle validation). Those are handled by the global exception handler (without leaking sensitive information)
 - They should leverage the ApiResponses trait to return consistent responses
 
 Data flow:
 
-- Request > API Controller > Business Controller (input validation, business validation, ...) > Database
-- Business Controller > API Controller > ApiResponses > Response
-- OR Business Controller > Exception > Global Exception Handler > Response
+- Request > API Controller > Action class (authorization, input validation, business validation, ...) > Database
+- Action class > API Controller > ApiResponses > Response
+- OR Action class > Exception > Global Exception Handler > Response
 
 #### OpenAPI
 

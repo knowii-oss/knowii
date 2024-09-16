@@ -23,7 +23,8 @@ Route::middleware([
         return Inertia::render('Dashboard');
     })->name('dashboard');
 
-  Route::get('/communities/{communityCuid}', [CommunityController::class, 'show'])->name('communities.show');
+  // FIXME replace parameter by the community slug and adapt link in Dashboard.tsx
+  Route::get('/community/{communityCuid}', [CommunityController::class, 'show'])->name('communities.show');
 });
 
 Route::inertia('/contact', 'Contact');

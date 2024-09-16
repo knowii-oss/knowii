@@ -21,7 +21,7 @@ class CommunityPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Community $community): bool
+    final public function view(User $user, Community $community): bool
     {
         return $user->belongsToCommunity($community);
     }
@@ -29,7 +29,7 @@ class CommunityPolicy
     /**
      * Determine whether the user can create models.
      */
-    public function create(User $user): bool
+    final public function create(User $user): bool
     {
         return true;
     }
@@ -37,7 +37,7 @@ class CommunityPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Community $community): bool
+    final public function update(User $user, Community $community): bool
     {
         return $user->ownsCommunity($community);
     }
@@ -45,7 +45,7 @@ class CommunityPolicy
     /**
      * Determine whether the user can add members.
      */
-    public function addCommunityMember(User $user, Community $community): bool
+    final public function addCommunityMember(User $user, Community $community): bool
     {
         return $user->ownsCommunity($community);
     }
@@ -53,7 +53,7 @@ class CommunityPolicy
     /**
      * Determine whether the user can update member permissions.
      */
-    public function updateCommunityMember(User $user, Community $community): bool
+    final public function updateCommunityMember(User $user, Community $community): bool
     {
         return $user->ownsCommunity($community);
     }
@@ -61,7 +61,7 @@ class CommunityPolicy
     /**
      * Determine whether the user can remove members.
      */
-    public function removeCommunityMember(User $user, Community $community): bool
+    final public function removeCommunityMember(User $user, Community $community): bool
     {
         return $user->ownsCommunity($community);
     }
@@ -69,7 +69,7 @@ class CommunityPolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Community $community): bool
+    final public function delete(User $user, Community $community): bool
     {
         return $user->ownsCommunity($community);
     }
