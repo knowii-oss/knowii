@@ -16,8 +16,6 @@ class CommunityController extends Controller
 {
     use RedirectsActions;
 
-  // FIXME refactor
-
     /**
      * Show the community management screen.
      *

@@ -18,6 +18,7 @@ import {
   MIN_ACTION_TIME,
   NewCommunity,
   sleep,
+  useTypedPage,
 } from '@knowii/common';
 import CardGroup from '@/Components/CardGroup';
 import InputLabel from '@/Components/InputLabel';
@@ -25,12 +26,14 @@ import { useImmer } from 'use-immer';
 import { SelectButton } from 'primereact/selectbutton';
 
 export default function Dashboard() {
+  const page = useTypedPage();
+
   const toastRef = useRef<Toast | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [creatingCommunity, setCreatingCommunity] = useState(false);
 
-  const [communities, updateCommunities] = useImmer<Community[]>([]);
+  const [communities, updateCommunities] = useImmer<Community[]>(page.props.communities);
 
   const form = useForm<NewCommunity>({
     defaultValues: {
