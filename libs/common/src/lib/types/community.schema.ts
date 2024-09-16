@@ -30,17 +30,13 @@ export const newCommunitySchema = z.object({
     .max(64, { message: 'The name is too long (maximum 64 characters)' }),
   description: z.string().max(255, { message: 'Your description is too long (maximum 255 characters)' }),
   visibility: communityVisibilitySchema,
-  // TODO add slug
-  // slug: z
-  //   .string()
-  //   .min(3)
-  //   .max(64)
-  //   .regex(/^[a-z0-9-]+$/gim),
 });
 
 export type NewCommunity = z.infer<typeof newCommunitySchema>;
 
-export const communitySchema = baseEntitySchema.merge(newCommunitySchema);
+export const communitySchema = baseEntitySchema.merge(newCommunitySchema).extend({
+  slug: z.string(),
+});
 
 export type Community = z.infer<typeof communitySchema>;
 

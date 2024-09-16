@@ -25,6 +25,7 @@ test('communities can be created via the creator', function () {
 
     expect($user->fresh()->ownedCommunities)->toHaveCount(2);
     expect($user->ownedCommunities()->latest('id')->first()->name)->toEqual('Test Community');
+    expect($user->ownedCommunities()->latest('id')->first()->slug)->toEqual('test-community');
     expect($user->ownedCommunities()->latest('id')->first()->description)->toEqual('Awesome community');
     expect($user->ownedCommunities()->latest('id')->first()->visibility)->toEqual(KnowiiCommunityVisibility::Public);
 });

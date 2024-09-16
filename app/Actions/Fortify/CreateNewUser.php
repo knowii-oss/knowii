@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 use Laravel\Jetstream\Jetstream;
 
@@ -20,7 +21,7 @@ class CreateNewUser implements CreatesNewUsers
      *
      * @param  array<string, string>  $input
      */
-    public function create(array $input): User
+    final public function create(array $input): User
     {
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
@@ -43,12 +44,21 @@ class CreateNewUser implements CreatesNewUsers
     /**
      * Create a personal community for the user.
      */
-    protected function createCommunity(User $user): void
+    final protected function createCommunity(User $user): void
     {
+        $communityName = $user->name;
+        if($user->name[-1] === 's') {
+            $communityName .= "' Personal space";
+        } else {
+            $communityName .= "'s Personal space";
+        }
+        $communitySlug = Str::slug($user->name);
+
         $user->ownedCommunities()->save(Community::forceCreate([
             'user_id' => $user->id,
-            'name' => explode(' ', $user->name, 2)[0]."'s Space",
-            'description' => explode(' ', $user->name, 2)[0]."'s Personal Space",
+            'name' => $communityName,
+            'slug' => $communitySlug,
+            'description' => $user->name. "'s Personal space",
             'visibility' => KnowiiCommunityVisibility::Personal,
         ]));
     }

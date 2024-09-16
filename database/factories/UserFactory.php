@@ -59,6 +59,7 @@ class UserFactory extends Factory
       Community::factory()
         ->state(fn(array $attributes, User $user) => [
           'name' => $user->name . '\'s Space',
+          'slug' => Str::slug($user->name . '\'s Space'),
           'description' => $user->name . '\'s Personal Space',
           'user_id' => $user->id,
           'visibility' => KnowiiCommunityVisibility::Personal,

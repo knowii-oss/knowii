@@ -114,8 +114,7 @@ export default function Dashboard() {
               community={item}
               creationMode={false}
               link={route(COMMUNITY_URL, {
-                // TODO replace with the community slug
-                communityCuid: item.cuid,
+                communitySlug: item.slug,
               })}
             />
           ))}

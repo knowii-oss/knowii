@@ -30,7 +30,9 @@ class Community extends Model
    * @var array<int, string>
    */
   protected $fillable = [
+    // WARNING: When new fields are added, this list should be updated!
     'name',
+    'slug',
     'description',
     'visibility',
   ];
