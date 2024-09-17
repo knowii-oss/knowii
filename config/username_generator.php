@@ -47,7 +47,7 @@ return [
     /*
      * Convert spaces in username to a separator
      */
-    'separator' => '-',
+    'separator' => '',
 
     /*
      * Model to check if the username is unique to.
