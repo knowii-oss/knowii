@@ -182,3 +182,29 @@ test('creation is rejected by the community creator if the provided visibility d
   $creator = new CreateCommunity();
   $creator->create($user, $input);
 });
+
+test('community slug generation avoids duplicate slugs', function () {
+  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+
+  $input1 = [
+    'name' => 'Test',
+    'description' => 'Awesome community',
+    'visibility' => KnowiiCommunityVisibility::Public->value,
+  ];
+
+  $input2 = [
+    'name' => 'Test',
+    'description' => 'Awesome community',
+    'visibility' => KnowiiCommunityVisibility::Public->value,
+  ];
+
+  $creator = new CreateCommunity();
+
+  $community1 = $creator->create($user, $input1);
+  $community2 = $creator->create($user, $input2);
+
+  expect($user->fresh()->ownedCommunities)->toHaveCount(3);
+  expect($community1->getAttribute('slug'))->toEqual('test');
+  expect($community2->getAttribute('slug'))->toEqual('test-2');
+
+});

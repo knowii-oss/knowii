@@ -9,6 +9,7 @@ use App\Knowii;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Gate;
+use Inertia\Response;
 use Laravel\Jetstream\Jetstream;
 use Laravel\Jetstream\RedirectsActions;
 
@@ -19,11 +20,11 @@ class CommunityController extends Controller
     /**
      * Show the community management screen.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  Request  $request
      * @param  string $slug
-     * @return \Inertia\Response
+     * @return Response
      */
-    public function show(Request $request, string $slug)
+    public function show(Request $request, string $slug): Response
     {
         $community = Knowii::newCommunityModel()->where('slug', $slug)->firstOrFail();
 
