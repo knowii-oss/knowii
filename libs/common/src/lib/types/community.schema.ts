@@ -6,6 +6,7 @@ import {
   MAX_LENGTH_COMMUNITY_NAME,
   MIN_LENGTH_COMMUNITY_NAME,
 } from '../constants';
+import { slugSchema } from './slug.schema';
 
 const communityVisibilitySchema = z.enum(['personal', 'private', 'public'], {
   message: 'Please select the visibility level for your community',
@@ -43,9 +44,7 @@ export const newCommunitySchema = z.object({
 
 export type NewCommunity = z.infer<typeof newCommunitySchema>;
 
-export const communitySchema = baseEntitySchema.merge(newCommunitySchema).extend({
-  slug: z.string(),
-});
+export const communitySchema = baseEntitySchema.merge(newCommunitySchema).merge(slugSchema);
 
 export type Community = z.infer<typeof communitySchema>;
 
