@@ -2,7 +2,7 @@ import { DateTime } from '../date-time.intf';
 import { Nullable } from '../nullable.intf';
 import { Community } from '../community.schema';
 
-export interface User {
+export interface CurrentUser {
   cuid: string;
   name: string;
   email: string;
@@ -17,7 +17,7 @@ export interface User {
 }
 
 export interface Auth {
-  user: Nullable<User>;
+  user: Nullable<CurrentUser>;
 }
 
 export type InertiaSharedProps<T = NonNullable<unknown>> = T & {
