@@ -1,5 +1,19 @@
 # TODO
 
+- Ensure community slug uniqueness
+-
+- Add username generation
+  - Create new UserResource to serialize only what we need for other users
+  - New User client-side type for representing other users -> limited information
+    - hide email from serializable User fields?
+  - Implement isUsername available API: https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/libs/common/src/lib/api/is-username-available.schema.ts
+    - https://github.com/knowii-oss/knowii/issues/630
+  - UpdateUserProfileInformation
+  - UpdateProfileInformationForm
+  - ProfileInformationTest
+  - CommunityMemberController ??
+  - Community - hasUserWithEmail ??
+  - jetstream-inertia.intf.ts
 - Increase community box sizes
 - https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/apps/knowii/pages/communities/create/index.tsx
 - Community creation: https://github.com/knowii-oss/knowii/issues/702
@@ -22,8 +36,6 @@
 - Add waitlist form to landing page: https://github.com/knowii-oss/knowii/issues/714
   - EmailOctopus list?
 - Remove unused errorbags
-- Implement isUsername available API: https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/libs/common/src/lib/api/is-username-available.schema.ts
-
 
 import { z } from 'zod';
 import { allowedCommunitySlugCharactersRegex, maxLengthCommunitySlug, minLengthCommunitySlug } from '../../constants';

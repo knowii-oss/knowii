@@ -11,6 +11,8 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
 use Parables\Cuid\GeneratesCuid;
+use TaylorNetwork\UsernameGenerator\FindSimilarUsernames;
+use TaylorNetwork\UsernameGenerator\GeneratesUsernames;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -20,6 +22,8 @@ class User extends Authenticatable implements MustVerifyEmail
     use HasCommunities;
     use Notifiable;
     use TwoFactorAuthenticatable;
+    use FindSimilarUsernames;
+    use GeneratesUsernames;
 
     // Automatically generate cuid2 for the model
     // Reference: https://github.com/Parables/laravel-cuid2
@@ -33,6 +37,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $fillable = [
         // WARNING: When new fields are added, this list should be updated!
         'name',
+        'username',
         'email',
         'password',
     ];

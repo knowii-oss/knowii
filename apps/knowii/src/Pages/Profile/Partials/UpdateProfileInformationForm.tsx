@@ -1,7 +1,7 @@
 import { DEFAULT_TOAST_POSITION, User, USER_PROFILE_INFORMATION_UPDATE_URL, useTypedPage } from '@knowii/common';
 import { Link, useForm } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
-import React, { FormEventHandler, useRef, useState } from 'react';
+import { FormEventHandler, useRef, useState } from 'react';
 import { Button } from 'primereact/button';
 import FormSection from '@/Components/FormSection';
 import classNames from 'classnames';
