@@ -2,6 +2,7 @@
 
 namespace App\Actions\Fortify;
 
+use App\Constants;
 use App\Models\User;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Validator;
@@ -17,9 +18,10 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
      */
     public function update(User $user, array $input): void
     {
+        // WARNING: Those rules must remain aligned with those in CreateNewUser.php
         Validator::make($input, [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'name' => ['required', 'string', 'max:' . Constants::$MAX_LENGTH_USER_NAME],
+            'email' => ['required', 'email', 'max:' . Constants::$MAX_LENGTH_USER_EMAIL, Rule::unique('users')->ignore($user->id)],
             'photo' => ['nullable', 'mimes:jpg,jpeg,png', 'max:1024'],
         ])->validateWithBag('updateProfileInformation');
 

@@ -2,6 +2,7 @@
 
 namespace App\Actions\Communities;
 
+use App\Constants;
 use App\Contracts\Communities\UpdatesCommunityNames;
 use App\Models\Community;
 use App\Models\User;
@@ -22,7 +23,8 @@ class UpdateCommunityName implements UpdatesCommunityNames
     Gate::forUser($user)->authorize('update', $community);
 
     Validator::make($input, [
-      'name' => ['required', 'string', 'max:255'],
+      // WARNING: Those validation rules must match those in the community creation form in Dashboard.tsx and those in CreateCommunity.php
+      'name' => ['required', 'string', 'min:'.Constants::$MIN_LENGTH_COMMUNITY_NAME, 'max:'.Constants::$MAX_LENGTH_COMMUNITY_NAME, 'regex:'.Constants::$ALLOWED_COMMUNITY_NAME_CHARACTERS_REGEX],
     ]);
 
     $community->forceFill([

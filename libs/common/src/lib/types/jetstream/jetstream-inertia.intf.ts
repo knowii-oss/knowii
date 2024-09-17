@@ -6,6 +6,7 @@ export interface User {
   cuid: string;
   name: string;
   email: string;
+  username: string;
   profile_photo_path: Nullable<string>;
   profile_photo_url: string;
   two_factor_enabled: boolean;

@@ -63,7 +63,11 @@ export const COMMUNITY_API_BASE_PATH = `${API_BASE_PATH}/communities`;
 
 /**
  * Regexes and other constants
+ * WARNING: Those MUST remain aligned with those defined in Constants.php on the back-end
  */
+export const MIN_LENGTH_USER_USERNAME = 3;
+export const MAX_LENGTH_USER_USERNAME = 36;
+export const ALLOWED_USER_USERNAME_CHARACTERS_REGEX = /^[a-zA-Z0-9-@']+$/;
 export const MIN_LENGTH_COMMUNITY_NAME = 3;
 export const MAX_LENGTH_COMMUNITY_NAME = 64;
 export const MAX_LENGTH_COMMUNITY_DESCRIPTION = 255;

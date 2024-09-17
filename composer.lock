@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "97da2d4b68709b8bd9d369853a498bc5",
+    "content-hash": "aea49c4ebad40ea15857274da45d87df",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -849,6 +849,78 @@
                 }
             ],
             "time": "2024-07-20T21:45:45+00:00"
+        },
+        {
+            "name": "grantholle/laravel-username-generator",
+            "version": "2.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/grantholle/laravel-username-generator.git",
+                "reference": "a5f0a453d97ae6cbbfc0d98ee8e6458b9c0b147f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/grantholle/laravel-username-generator/zipball/a5f0a453d97ae6cbbfc0d98ee8e6458b9c0b147f",
+                "reference": "a5f0a453d97ae6cbbfc0d98ee8e6458b9c0b147f",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/contracts": "^10.0|^11.0",
+                "illuminate/support": "^10.0|^11.0",
+                "php": "^8.1",
+                "spatie/laravel-package-tools": "^1.9.2"
+            },
+            "require-dev": {
+                "nunomaduro/collision": "^8.1",
+                "orchestra/testbench": "^9.0",
+                "pestphp/pest": "^2.0",
+                "pestphp/pest-plugin-laravel": "^2.0",
+                "spatie/laravel-ray": "^1.26"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "GrantHolle\\UsernameGenerator\\UsernameServiceProvider"
+                    ],
+                    "aliases": {
+                        "Username": "GrantHolle\\UsernameGenerator\\Facades\\Username"
+                    }
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "GrantHolle\\UsernameGenerator\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Grant Holle",
+                    "email": "hollegrant@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Generate a random, kid-safe username.",
+            "homepage": "https://github.com/grantholle/laravel-username-generator",
+            "keywords": [
+                "username",
+                "username generator"
+            ],
+            "support": {
+                "issues": "https://github.com/grantholle/laravel-username-generator/issues",
+                "source": "https://github.com/grantholle/laravel-username-generator/tree/2.1.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/grantholle",
+                    "type": "github"
+                }
+            ],
+            "time": "2024-03-28T15:54:58+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",
@@ -6762,6 +6834,61 @@
                 "source": "https://github.com/TartanLeGrand/laravel-openapi/tree/v2.0.0"
             },
             "time": "2024-08-02T08:08:01+00:00"
+        },
+        {
+            "name": "taylornetwork/laravel-username-generator",
+            "version": "2.8.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/taylornetwork/laravel-username-generator.git",
+                "reference": "f0761073a1209368896559d66fd57a6927c46853"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/taylornetwork/laravel-username-generator/zipball/f0761073a1209368896559d66fd57a6927c46853",
+                "reference": "f0761073a1209368896559d66fd57a6927c46853",
+                "shasum": ""
+            },
+            "require": {
+                "ext-mbstring": "*",
+                "illuminate/support": ">=5.5",
+                "php": "^7.4|^8.0|^8.1"
+            },
+            "require-dev": {
+                "orchestra/testbench": "*",
+                "psy/psysh": "*"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "TaylorNetwork\\UsernameGenerator\\ServiceProvider"
+                    ],
+                    "aliases": {
+                        "UsernameGenerator": "TaylorNetwork\\UsernameGenerator\\Facades\\UsernameGenerator"
+                    }
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "TaylorNetwork\\UsernameGenerator\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Sam Taylor",
+                    "email": "sam@taylornetwork.ca"
+                }
+            ],
+            "support": {
+                "issues": "https://github.com/taylornetwork/laravel-username-generator/issues",
+                "source": "https://github.com/taylornetwork/laravel-username-generator/tree/2.8.0"
+            },
+            "time": "2022-07-29T11:43:51+00:00"
         },
         {
             "name": "tightenco/ziggy",
