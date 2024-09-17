@@ -1,4 +1,4 @@
-import { DEFAULT_TOAST_POSITION, User, USER_PROFILE_INFORMATION_UPDATE_URL, useTypedPage } from '@knowii/common';
+import { DEFAULT_TOAST_POSITION, CurrentUser, USER_PROFILE_INFORMATION_UPDATE_URL, useTypedPage } from '@knowii/common';
 import { Link, useForm } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
 import { FormEventHandler, useRef, useState } from 'react';
@@ -12,7 +12,7 @@ import InputError from '@/Components/InputError';
 import { Toast } from 'primereact/toast';
 
 interface Props {
-  user: User;
+  user: CurrentUser;
 }
 
 interface UpdateProfileInformationFormData {
