@@ -54,12 +54,11 @@ class CreateCommunity implements CreatesCommunities
     // At this point business validations are done, so all that can happen is a technical issue
 
     $communityName = $input['name'];
-    $communitySlug = Str::slug($communityName); // FIXME must verify if the slug is unique
 
     try {
       $retVal = $user->ownedCommunities()->create([
         'name' => $communityName,
-        'slug' => $communitySlug,
+        // Slug is generated automatically
         'description' => $input['description'],
         'visibility' => $input['visibility'],
       ]);

@@ -61,12 +61,11 @@ class CreateNewUser implements CreatesNewUsers
     } else {
       $communityName .= "'s Personal space";
     }
-    $communitySlug = Str::slug($user->name);
 
     $user->ownedCommunities()->save(Community::forceCreate([
       'user_id' => $user->id,
       'name' => $communityName,
-      'slug' => $communitySlug,
+      // The slug is generated automatically
       'description' => $user->name . "'s Personal space",
       'visibility' => KnowiiCommunityVisibility::Personal,
     ]));

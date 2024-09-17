@@ -7,6 +7,7 @@ use App\Events\Communities\CommunityDeleted;
 use App\Events\Communities\CommunityUpdated;
 use App\Knowii;
 use App\KnowiiCommunityVisibility;
+use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -23,6 +24,10 @@ class Community extends Model
   // Automatically generate cuid2 for the model
   // Reference: https://github.com/Parables/laravel-cuid2
   use GeneratesCuid;
+
+  // Automatically generate slugs
+  // Reference: https://github.com/cviebrock/eloquent-sluggable
+  use Sluggable;
 
   /**
    * The attributes that are mass assignable.
@@ -169,5 +174,20 @@ class Community extends Model
   {
     $this->users()->detach();
     $this->delete();
+  }
+
+  /**
+   * Return the sluggable configuration array for this model.
+   * Reference: https://github.com/cviebrock/eloquent-sluggable
+   * @return array
+   */
+  public function sluggable(): array
+  {
+    // The slug is derived from the name (and uniqueness is ensured)
+    return [
+      'slug' => [
+        'source' => 'name'
+      ]
+    ];
   }
 }
