@@ -271,6 +271,12 @@ To use it, you can copy the `documentation/api/.env.example` file to `documentat
 
 WARNING: If you make changes to the API, then don't forget to add tests, and to update that JSON file.
 
+#### Slugs
+
+We create slugs for the different concepts using the following library: https://github.com/cviebrock/eloquent-sluggable
+Take a look at the `Community` model and `CreateCommunity` to see how it's used. Basically, the `slug` field need to exist on the model, the model must use certain traits, implement a function, and the library derives the slug automatically based on some other field. For instance, we use the "name" field for communities.
+The library ensures that slugs are unique, which is key.
+
 ### Configuration
 
 #### Fortify

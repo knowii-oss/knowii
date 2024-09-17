@@ -75,9 +75,11 @@ export default function Dashboard() {
       });
 
       if (response.data) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const createdCommunity: Community = response.data!;
+
         updateCommunities((draft) => {
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          draft.push(response.data!);
+          draft.push(createdCommunity);
         });
       }
     } else {
