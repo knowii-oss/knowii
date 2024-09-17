@@ -1,6 +1,5 @@
 # TODO
 
-- Increase community box sizes
 - Implement isUsername available API: https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/libs/common/src/lib/api/is-username-available.schema.ts
   - https://github.com/knowii-oss/knowii/issues/630
   - Usage inspiration (client-side): https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/apps/knowii/pages/communities/create/index.tsx
