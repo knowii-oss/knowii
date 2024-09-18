@@ -6,6 +6,7 @@ use App\Constants;
 use App\Contracts\Communities\CreatesCommunities;
 use App\Events\Communities\AddingCommunity;
 use App\Events\Communities\CommunityCreated;
+use App\Exceptions\BusinessException;
 use App\Exceptions\TechnicalException;
 use App\KnowiiCommunityVisibility;
 use App\Models\Community;
@@ -13,7 +14,6 @@ use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 
 class CreateCommunity implements CreatesCommunities
 {
@@ -24,6 +24,7 @@ class CreateCommunity implements CreatesCommunities
    * @param array $input
    * @return Community
    * @throws TechnicalException
+   * @throws BusinessException
    */
   final public function create(User $user, array $input): Community
   {
@@ -44,6 +45,11 @@ class CreateCommunity implements CreatesCommunities
       'description' => ['nullable', 'string', 'max:' . Constants::$MAX_LENGTH_COMMUNITY_DESCRIPTION],
       'visibility' => ['required', 'string', 'in:' . KnowiiCommunityVisibility::toCommaSeparatedString()],
     ])->validate();
+
+    if($input['visibility'] === KnowiiCommunityVisibility::Personal->value) {
+      Log::warning('User is not allowed to create an additional private community');
+      throw new BusinessException('Users can have a single private community');
+    }
 
     Log::debug('Input validated');
 

@@ -4,6 +4,7 @@ use App\Constants;
 use TaylorNetwork\UsernameGenerator\Drivers\EmailDriver;
 use TaylorNetwork\UsernameGenerator\Drivers\NameDriver;
 
+// Reference: https://github.com/taylornetwork/laravel-username-generator
 return [
 
     /*
