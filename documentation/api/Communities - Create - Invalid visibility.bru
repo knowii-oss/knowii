@@ -1,0 +1,24 @@
+meta {
+  name: Communities - Create - Invalid visibility
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "foo",
+    "description": "bar",
+    "visibility": "personal"
+  }
+}

@@ -1,10 +1,11 @@
 # TODO
 
-- Implement isUsername available API: https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/libs/common/src/lib/api/is-username-available.schema.ts
+- Implement isUsername available API client:
+  - api client schema: https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/libs/common/src/lib/api/is-username-available.schema.ts
   - https://github.com/knowii-oss/knowii/issues/630
   - Usage inspiration (client-side): https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/apps/knowii/pages/communities/create/index.tsx
 - Add possibility to change username: UpdateUserProfileInformation, maybe via UpdateProfileInformationForm
-  - Integrate name availability check
+  - Integrate username availability check
   - Submit form to update the username (not via the API)
 - Make sure this still works: ProfileInformationTest
 - Create new UserResource to serialize only what we need for other users and ensure that Inertia props.user... does not use it (otherwise would break CurrentUser and the UpdateUserProfileInformation page)
@@ -31,6 +32,7 @@
 - Add waitlist form to landing page: https://github.com/knowii-oss/knowii/issues/714
   - EmailOctopus list?
 - Remove unused errorbags
+- add constants for API paths on the server side and use those in api.php and in tests
 
 import { z } from 'zod';
 import { allowedCommunitySlugCharactersRegex, maxLengthCommunitySlug, minLengthCommunitySlug } from '../../constants';

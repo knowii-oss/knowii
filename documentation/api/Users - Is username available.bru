@@ -1,0 +1,22 @@
+meta {
+  name: Users - Is username available
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/users/is-username-available
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "usernameToCheck": "foo"
+  }
+}

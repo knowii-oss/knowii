@@ -23,11 +23,6 @@ class CommunityApiController extends Controller
 
     Log::info("Input", [$request->all()]);
 
-    //throw new BusinessException("The community name is already taken", null, null, ["name" => "The community name is already taken"]);
-    //throw new TechnicalException("Could not create the new community");
-
-    //return self::technicalIssue("Could not create the new community");
-
     $createdCommunity = $creator->create($request->user(), $request->all());
     return self::created(new CommunityResource($createdCommunity), "Community created successfully");
   }
