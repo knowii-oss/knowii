@@ -64,7 +64,7 @@ export default function Dashboard() {
 
     await sleep(MIN_ACTION_TIME);
 
-    const response = await knowiiApiClient.createCommunity(newCommunity);
+    const response = await knowiiApiClient.communities.create(newCommunity);
 
     if ('success' === response.type && !response.errors) {
       closeCreateCommunityModal();

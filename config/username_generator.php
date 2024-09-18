@@ -100,7 +100,7 @@ return [
      * if someone enters their own. If set to false, when the username
      * field is not empty then the generator will not run.
      */
-    'generate_entered_username' => true,
+    'generate_entered_username' => false,
 
     /*
      * Prefer using database REGEXP function?

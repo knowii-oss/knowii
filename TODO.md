@@ -1,9 +1,7 @@
 # TODO
 
-- Implement isUsername available API client:
-  - api client schema: https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/libs/common/src/lib/api/is-username-available.schema.ts
-  - https://github.com/knowii-oss/knowii/issues/630
-  - Usage inspiration (client-side): https://github.com/knowii-oss/knowii/blob/588760bb5aee7328d35be597a1656ba983ba43f1/apps/knowii/pages/communities/create/index.tsx
+- username availability should NOT use like
+- Implement isUsername available API client: https://github.com/knowii-oss/knowii/issues/630
 - Add possibility to change username: UpdateUserProfileInformation, maybe via UpdateProfileInformationForm
   - Integrate username availability check
   - Submit form to update the username (not via the API)

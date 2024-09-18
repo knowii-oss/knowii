@@ -60,6 +60,8 @@ export const DELETE_USER_URL = 'current-user.destroy';
 export const API_BASE_PATH = '/api/v1';
 export const PING_API_PATH = `${API_BASE_PATH}/ping`;
 export const COMMUNITY_API_BASE_PATH = `${API_BASE_PATH}/communities`;
+export const USERS_API_BASE_PATH = `${API_BASE_PATH}/users`;
+export const USERS_API_IS_USERNAME_AVAILABLE_PATH = `${USERS_API_BASE_PATH}/is-username-available`;
 
 /**
  * Regexes and other constants
@@ -67,7 +69,7 @@ export const COMMUNITY_API_BASE_PATH = `${API_BASE_PATH}/communities`;
  */
 export const MIN_LENGTH_USER_USERNAME = 3;
 export const MAX_LENGTH_USER_USERNAME = 36;
-export const ALLOWED_USER_USERNAME_CHARACTERS_REGEX = /^[a-zA-Z0-9-@']+$/;
+export const ALLOWED_USER_USERNAME_CHARACTERS_REGEX = /^[a-zA-Z0-9-']+$/;
 export const MIN_LENGTH_SLUG = 3;
 export const MAX_LENGTH_SLUG = 128;
 export const MIN_LENGTH_COMMUNITY_NAME = 3;
