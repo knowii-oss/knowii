@@ -27,7 +27,7 @@ class VerifyUsernameAvailability implements VerifiesUsernameAvailability
     Log::debug('Validating the input');
 
     Validator::make($input, [
-      // WARNING: Those validation rules must match those of users
+      // WARNING: Those rules must remain aligned with those in UpdateUser>ProfileInformation.php and with the client-side usernameSchema
       'usernameToCheck' => ['required', 'string', 'min:'.Constants::$MIN_LENGTH_USER_USERNAME, 'max:'.Constants::$MAX_LENGTH_USER_USERNAME, 'regex:'.Constants::$ALLOWED_USER_USERNAME_CHARACTERS_REGEX],
     ])->validate();
 
