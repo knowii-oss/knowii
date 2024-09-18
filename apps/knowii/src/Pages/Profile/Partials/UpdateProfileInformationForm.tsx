@@ -46,16 +46,14 @@ export default function UpdateProfileInformationForm(props: Props) {
   });
 
   const [checkingUsernameAvailability, setCheckingUsernameAvailability] = useState(false);
-  const [isUsernameAvailable, setIsUsernameAvailable] = useState<boolean>(false);
   // TODO extract debounce value to a constant
   const usernameToCheck = useDebounce(form.data.username, 200);
 
   const lastAbortController = useRef<AbortController | null>();
 
   const verifyUsernameAvailability = async (abortController: AbortController) => {
-    if (form.data.username === page.props.auth.user.username) {
+    if (props.user && form.data.username === props.user.username) {
       // No need to check if the username is the same as the current one
-      setIsUsernameAvailable(true);
       form.clearErrors('username');
       return;
     }
@@ -70,11 +68,9 @@ export default function UpdateProfileInformationForm(props: Props) {
     setCheckingUsernameAvailability(true);
 
     const checkResult = await checkIfUsernameIsAvailable(form.data.username, abortController.signal);
-    setIsUsernameAvailable(checkResult);
-
     if (!checkResult) {
       console.log('The username is already taken.');
-      form.errors.username = 'The username is already taken.';
+      form.setError('username', 'The username is already taken.');
     } else {
       console.log('The username is available');
       form.clearErrors('username');
@@ -147,7 +143,6 @@ export default function UpdateProfileInformationForm(props: Props) {
               type="button"
               onClick={() => {
                 form.reset();
-                setIsUsernameAvailable(true);
               }}
               severity="secondary"
               className={classNames({ 'opacity-25': form.processing })}
@@ -156,7 +151,7 @@ export default function UpdateProfileInformationForm(props: Props) {
             </Button>
             <Button
               className={classNames({ 'opacity-25': form.processing })}
-              disabled={form.processing || checkingUsernameAvailability || form.errors.username}
+              disabled={form.processing}
             >
               Save
             </Button>
@@ -179,7 +174,8 @@ export default function UpdateProfileInformationForm(props: Props) {
             onChange={(e) => form.setData('name', e.target.value)}
             autoComplete="name"
             required
-            disabled={form.processing}
+            BROKEN
+            disabled={form.processing || checkingUsernameAvailability || (form.errors !== null && form.errors !== undefined && form.errors.username !== undefined && form.errors.username !== null)}
           />
         </div>
         <InputError className="mt-2" message={form.errors.name} />
