@@ -6,6 +6,8 @@ import {
   knowiiApiClient,
   useDebounce,
   usernameSchema,
+  sleep,
+  MIN_ACTION_TIME,
 } from '@knowii/common';
 import { Link, useForm } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
@@ -46,7 +48,6 @@ export default function UpdateProfileInformationForm(props: Props) {
   });
 
   const [checkingUsernameAvailability, setCheckingUsernameAvailability] = useState(false);
-  // TODO extract debounce value to a constant
   const usernameToCheck = useDebounce(form.data.username, 200);
 
   const lastAbortController = useRef<AbortController | null>();
@@ -60,7 +61,7 @@ export default function UpdateProfileInformationForm(props: Props) {
 
     const usernameValidationResults = usernameSchema.safeParse(form.data.username);
     if (!usernameValidationResults.success) {
-      console.log('The username is invalid.');
+      //console.log('The username is invalid.');
       form.setError('username', usernameValidationResults.error.errors[0].message);
       return;
     }
@@ -69,10 +70,10 @@ export default function UpdateProfileInformationForm(props: Props) {
 
     const checkResult = await checkIfUsernameIsAvailable(form.data.username, abortController.signal);
     if (!checkResult) {
-      console.log('The username is already taken.');
+      //console.log('The username is already taken.');
       form.setError('username', 'The username is already taken.');
     } else {
-      console.log('The username is available');
+      //console.log('The username is available');
       form.clearErrors('username');
     }
 
@@ -84,7 +85,7 @@ export default function UpdateProfileInformationForm(props: Props) {
   };
 
   const checkIfUsernameIsAvailable = async (username: string, signal?: AbortSignal): Promise<boolean> => {
-    console.log('Checking username availability');
+    //console.log('Checking username availability');
 
     const response = await knowiiApiClient.users.isUsernameAvailable(
       {
@@ -92,6 +93,9 @@ export default function UpdateProfileInformationForm(props: Props) {
       },
       signal,
     );
+
+    // Checking username availability takes time ;-)
+    await sleep(MIN_ACTION_TIME);
 
     if ('success' === response.type && !response.errors && response.data) {
       const isUsernameAvailable = response.data.isUsernameAvailable;
@@ -151,7 +155,7 @@ export default function UpdateProfileInformationForm(props: Props) {
             </Button>
             <Button
               className={classNames({ 'opacity-25': form.processing })}
-              disabled={form.processing}
+              disabled={form.processing || form.hasErrors || checkingUsernameAvailability}
             >
               Save
             </Button>
@@ -174,8 +178,7 @@ export default function UpdateProfileInformationForm(props: Props) {
             onChange={(e) => form.setData('name', e.target.value)}
             autoComplete="name"
             required
-            BROKEN
-            disabled={form.processing || checkingUsernameAvailability || (form.errors !== null && form.errors !== undefined && form.errors.username !== undefined && form.errors.username !== null)}
+            disabled={form.processing}
           />
         </div>
         <InputError className="mt-2" message={form.errors.name} />
