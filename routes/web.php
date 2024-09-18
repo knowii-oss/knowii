@@ -27,15 +27,3 @@ Route::middleware([
 });
 
 Route::inertia('/contact', 'Contact');
-
-// FIXME implement
-Route::post('/communities/{community}/members', [CommunityMemberController::class, 'store'])->name('community-members.store');
-Route::put('/communities/{community}/members/{user}', [CommunityMemberController::class, 'update'])->name('community-members.update');
-Route::delete('/communities/{community}/members/{user}', [CommunityMemberController::class, 'destroy'])->name('community-members.destroy');
-
-Route::get('/community-invitations/{invitation}', [CommunityInvitationController::class, 'accept'])
-  ->middleware(['signed'])
-  ->name('community-invitations.accept');
-
-Route::delete('/community-invitations/{invitation}', [CommunityInvitationController::class, 'destroy'])
-  ->name('community-invitations.destroy');

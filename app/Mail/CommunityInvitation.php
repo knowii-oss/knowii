@@ -15,10 +15,8 @@ class CommunityInvitation extends Mailable
 
   /**
    * The invitation instance.
-   *
-   * @var \App\CommunityInvitation
    */
-  public $invitation;
+  public CommunityInvitationModel $invitation;
 
   /**
    * Create a new message instance.

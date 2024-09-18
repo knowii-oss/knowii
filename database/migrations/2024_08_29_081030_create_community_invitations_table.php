@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('cuid');
             $table->foreignId('community_id')->constrained()->cascadeOnDelete();
-            $table->string('email');
+            $table->string('email'); // Email of the invited user
             $table->string('role')->nullable();
             $table->timestamps();
 

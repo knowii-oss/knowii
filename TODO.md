@@ -1,19 +1,7 @@
 # TODO
 
-- username availability should NOT use like
-- Implement isUsername available API client: https://github.com/knowii-oss/knowii/issues/630
-- Add possibility to change username: UpdateUserProfileInformation, maybe via UpdateProfileInformationForm
-  - Integrate username availability check
-  - Submit form to update the username (not via the API)
-- Make sure this still works: ProfileInformationTest
 - Create new UserResource to serialize only what we need for other users and ensure that Inertia props.user... does not use it (otherwise would break CurrentUser and the UpdateUserProfileInformation page)
-- New User client-side type for representing other users, limited information: "User" with a Zod userSchema
-- CommunityMemberController ??
-- Community - hasUserWithEmail ??
-- Add updateCommunity API endpoint
-- Fix bug: https://github.com/knowii-oss/knowii/issues/814
-  - either remove the CommunityController that loads the initial data, and let it load the data itself on load
-  - or use this to persist the updated state: https://inertiajs.com/remembering-state
+  - New User client-side type for representing other users, limited information: "User" with a Zod userSchema
 - Review JetstreamServiceProvider roles
   - editor??
 - API: Collections & pagination
