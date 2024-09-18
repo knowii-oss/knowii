@@ -41,7 +41,7 @@ class VerifyUsernameAvailability implements VerifiesUsernameAvailability
     $retVal = true; // consider it is available by default
 
     try {
-      $usagesOfThatUsername = DB::table('users')->whereLike('username', '%' . $usernameToCheck. '%', caseSensitive: false)->count();
+      $usagesOfThatUsername = DB::table('users')->whereLike('username', $usernameToCheck, caseSensitive: false)->count();
       if($usagesOfThatUsername > 0) {
         Log::debug('Username is not available');
         $retVal = false;
