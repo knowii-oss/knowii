@@ -4,6 +4,7 @@ import PageHeader from '@/Components/PageHeader';
 import PageContentWrapper from '@/Components/PageContentWrapper';
 import Footer from '@/Components/Footer';
 import PageWrapper from '@/Components/PageWrapper';
+import { useEffect } from 'react';
 
 interface Props {
   canLogin: boolean;
@@ -17,6 +18,24 @@ export default function Welcome(props: Props) {
   const showDashboard = props.canLogin && page.props.auth.user !== null;
   const showLogin = props.canLogin && !page.props.auth.user;
   const showRegister = props.canLogin && !page.props.auth.user;
+
+  useEffect(() => {
+    const script = document.createElement('script');
+
+    script.src = 'https://eocampaign1.com/form/ab92cdda-764d-11ef-9338-89ce4ce1395d.js';
+    script.async = true;
+    script.setAttribute('data-form', 'ab92cdda-764d-11ef-9338-89ce4ce1395d');
+
+    document.getElementById('waitlist-container')?.appendChild(script);
+
+    return () => {
+      try {
+        document.getElementById('waitlist-container')?.removeChild(script);
+      } catch (e) {
+        /* empty */
+      }
+    };
+  }, []);
 
   return (
     <>
@@ -43,14 +62,12 @@ export default function Welcome(props: Props) {
             <h2 className="mt-4">
               Know<span className="text-primary-500">ii</span> is a place for your community's Knowledge, Ideas and Inspiration.
             </h2>
-            <div className="mt-8 text-xl">Get ready for a revolutionary knowledge-sharing experience!</div>
+            <div className="mt-8 text-xl">
+              Get ready for a <i>revolutionary</i> knowledge-sharing experience!
+            </div>
           </div>
 
-          {/*<div className="mt-16 flex flex-col items-center mt-8">*/}
-          {/*  <button className="px-6 py-2 bg-primary-500 text-white rounded-full hover:bg-primary-600 transition-colors duration-300">*/}
-          {/*    Join the waitlist*/}
-          {/*  </button>*/}
-          {/*</div>*/}
+          <div id="waitlist-container" className="mt-20 flex flex-col items-center mt-8 border-primary-500 border-6"></div>
         </PageContentWrapper>
         <Footer />
       </PageWrapper>
