@@ -27,11 +27,8 @@
 
   <meta name="theme-color" content="#ffffff" />
   <meta name="msapplication-TileColor" content="#ffffff" />
-  <link href="/icons/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180" />
-  <link href="/icons/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png" />
-  <link href="/icons/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png" />
   <!-- Safari Pinned Tab Icon: https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/pinnedTabs/pinnedTabs.html -->
-  <link color="#4a9885" href="/icons/favicon.svg" rel="mask-icon" />
+  <link color="#37404c" href="/icons/favicon.svg" rel="mask-icon" />
 
   <script id="site-microdata-script" type="application/ld+json">
     {

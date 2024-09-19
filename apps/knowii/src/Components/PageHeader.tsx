@@ -1,12 +1,12 @@
 import { PropsWithChildren } from 'react';
 import { useRoute } from 'ziggy-js';
 import { DASHBOARD_URL, HOME_URL, LOGIN_URL, LOGOUT_URL, REGISTER_URL } from '@knowii/common';
-import ApplicationLogo from '@/Components/ApplicationLogo';
 import { Button } from 'primereact/button';
 import { Link } from '@inertiajs/react';
 import { FaSignOutAlt } from 'react-icons/fa';
 import classNames from 'classnames';
 import ApplicationMark from '@/Components/ApplicationMark';
+import ApplicationName from '@/Components/ApplicationName';
 
 interface Props {
   compact: boolean;
@@ -22,16 +22,16 @@ export default function PageHeader(props: PropsWithChildren<Props>) {
 
   const compactLogoAndMark = (
     <div className="flex flex-col sm:flex-row gap-2 items-center h-full">
-      <ApplicationMark className="w-12 md:w-14 lg:w-16" />
+      <ApplicationMark className="w-12 md:w-14 lg:w-14" />
       {/* Hide the logo when the screen is too small in compact mode */}
-      <ApplicationLogo className="hidden sm:block text-2xl md:text-4xl lg:text-4xl" />
+      <ApplicationName className="hidden sm:block sm:w-40 md:w-44 xl:w-48" />
     </div>
   );
 
   const normalLogoAndMark = (
     <div className="flex flex-col sm:flex-row gap-2 items-center h-full">
       <ApplicationMark className="w-14 md:w-18 lg:w-24" />
-      <ApplicationLogo />
+      <ApplicationName className="w-40 lg:w-auto" />
     </div>
   );
 

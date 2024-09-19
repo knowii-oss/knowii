@@ -1,15 +1,15 @@
 import { CONTACT_URL, metadata, PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL } from '@knowii/common';
-import ApplicationLogo from '@/Components/ApplicationLogo';
 import { Button } from 'primereact/button';
 import { FaEnvelope } from 'react-icons/fa';
 import { FaX } from 'react-icons/fa6';
 import { Link } from '@inertiajs/react';
+import ApplicationName from '@/Components/ApplicationName';
 
 export default function Footer() {
   return (
     <footer className="page-content-boundaries bg-gray-800 grid grid-rows-3 md:grid-rows-1 md:grid-cols-3 gap-2 md:gap-8 min-h-[16rem] rounded-t-md p-2 md:p-4 text-white pt-2 md:pt-8">
       <div className="flex flex-col gap-2 md:gap-4 items-center">
-        <ApplicationLogo />
+        <ApplicationName className="w-[60%] sm:w-[50%] md:w-[40%]" />
         <div className="flex flex-row gap-4 justify-center">
           <a href={`mailto:${metadata.contact.info}`}>
             <Button aria-label="Contact Knowii">
