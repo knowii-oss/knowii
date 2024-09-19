@@ -90,3 +90,7 @@ h2 {
 .page-content-boundaries {
   @apply px-4 mt-8 md:mt-12 lg:mt-16 sm:mx-4 md:mx-8 lg:mx-16 xl:mx-24;
 }
+
+#waitlist-container > div.inline-container {
+  @apply rounded-lg outline outline-4 outline-offset-[-4px] outline-primary-500 shadow-md transition-all duration-300 ease-in-out hover:outline-offset-[-2px] hover:shadow-lg mb-0 pb-0 !important;
+}
