@@ -1,6 +1,6 @@
 
 
-# 0.6.0 (2024-09-21)
+# 0.7.0 (2024-09-21)
 
 
 ### Bug Fixes
@@ -38,6 +38,8 @@
 * **all:** added logging utility ([b2bfbd6](https://github.com/DeveloPassion/knowii/commit/b2bfbd6b3b708c87877ebee46ce1cceceb875f0b)), closes [#265](https://github.com/DeveloPassion/knowii/issues/265)
 * **all:** added new app skeleton ([e817b1f](https://github.com/DeveloPassion/knowii/commit/e817b1f8607e069180b00f9ffe1f614b2cc8a692))
 * **all:** added slug to communities ([d87a36d](https://github.com/DeveloPassion/knowii/commit/d87a36dc5fa713546ea56f13c20bbaf56587df4a))
+* **all:** added social media links to user profiles ([ff2a971](https://github.com/DeveloPassion/knowii/commit/ff2a971d845c549198f8e8a36797c5e1ec0b8af5)), closes [#836](https://github.com/DeveloPassion/knowii/issues/836)
+* **all:** added social media links to user profiles ([980f8c0](https://github.com/DeveloPassion/knowii/commit/980f8c0b2834727b0aa751782589e545f606ded8))
 * **all:** added username and random username generation at user creation time ([7ec1200](https://github.com/DeveloPassion/knowii/commit/7ec120050e7ac1332123d5819837b5bef34c7ff7))
 * **all:** added Zod validation for the community creation form ([1d45156](https://github.com/DeveloPassion/knowii/commit/1d45156294a8a7b869671d65d586d7d021b066a3)), closes [#425](https://github.com/DeveloPassion/knowii/issues/425) [#805](https://github.com/DeveloPassion/knowii/issues/805)
 * **all:** enabled email sending using Resend ([284b198](https://github.com/DeveloPassion/knowii/commit/284b198c1060c3060e8e8ffb162f97e69fb786a4))
@@ -106,7 +108,7 @@
 
 * **deps:** reverted update of supabase auth-helpers as those break sign up ([ae06319](https://github.com/DeveloPassion/knowii/commit/ae063191d0ed4db0fa83b743ea582fea5f76c93f)), closes [#533](https://github.com/DeveloPassion/knowii/issues/533)
 
-# 0.6.0 (2024-09-21)
+# 0.7.0 (2024-09-21)
 
 
 ### Bug Fixes
@@ -144,6 +146,8 @@
 * **all:** added logging utility ([b2bfbd6](https://github.com/DeveloPassion/knowii/commit/b2bfbd6b3b708c87877ebee46ce1cceceb875f0b)), closes [#265](https://github.com/DeveloPassion/knowii/issues/265)
 * **all:** added new app skeleton ([e817b1f](https://github.com/DeveloPassion/knowii/commit/e817b1f8607e069180b00f9ffe1f614b2cc8a692))
 * **all:** added slug to communities ([d87a36d](https://github.com/DeveloPassion/knowii/commit/d87a36dc5fa713546ea56f13c20bbaf56587df4a))
+* **all:** added social media links to user profiles ([ff2a971](https://github.com/DeveloPassion/knowii/commit/ff2a971d845c549198f8e8a36797c5e1ec0b8af5)), closes [#836](https://github.com/DeveloPassion/knowii/issues/836)
+* **all:** added social media links to user profiles ([980f8c0](https://github.com/DeveloPassion/knowii/commit/980f8c0b2834727b0aa751782589e545f606ded8))
 * **all:** added username and random username generation at user creation time ([7ec1200](https://github.com/DeveloPassion/knowii/commit/7ec120050e7ac1332123d5819837b5bef34c7ff7))
 * **all:** added Zod validation for the community creation form ([1d45156](https://github.com/DeveloPassion/knowii/commit/1d45156294a8a7b869671d65d586d7d021b066a3)), closes [#425](https://github.com/DeveloPassion/knowii/issues/425) [#805](https://github.com/DeveloPassion/knowii/issues/805)
 * **all:** enabled email sending using Resend ([284b198](https://github.com/DeveloPassion/knowii/commit/284b198c1060c3060e8e8ffb162f97e69fb786a4))
