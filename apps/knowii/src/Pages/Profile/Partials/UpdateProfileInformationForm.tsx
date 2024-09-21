@@ -254,7 +254,7 @@ export default function UpdateProfileInformationForm(props: Props) {
         {SOCIAL_MEDIA_LINK_PROPERTIES.map((link) => {
           const IconComponent = SOCIAL_MEDIA_LINK_ICONS[link as keyof typeof SOCIAL_MEDIA_LINK_ICONS];
           return (
-            <div key={link as string} className="col-span-6 sm:col-span-4">
+            <div key={link as string} className="col-span-6 sm:col-span-4 mt-4">
               <InputLabel htmlFor={link as string}>{SOCIAL_MEDIA_LINK_NAMES[link as keyof typeof SOCIAL_MEDIA_LINK_NAMES]}</InputLabel>
               <div className="p-inputgroup mt-1">
                 <span className="p-inputgroup-addon mt-1">
