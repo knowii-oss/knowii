@@ -12,6 +12,32 @@ export interface CurrentUser {
   two_factor_enabled: boolean;
   two_factor_confirmed_at: Nullable<DateTime>;
   email_verified_at: Nullable<DateTime>;
+
+  social_link_x: string | null;
+  social_link_website: string | null;
+  social_link_newsletter: string | null;
+  social_link_mastodon: string | null;
+  social_link_bluesky: string | null;
+  social_link_threads_dot_net: string | null;
+  social_link_linkedin: string | null;
+  social_link_facebook: string | null;
+  social_link_instagram: string | null;
+  social_link_reddit: string | null;
+  social_link_medium: string | null;
+  social_link_substack: string | null;
+  social_link_hackernews: string | null;
+  social_link_hashnode: string | null;
+  social_link_dev_dot_to: string | null;
+  social_link_youtube: string | null;
+  social_link_tiktok: string | null;
+  social_link_twitch: string | null;
+  social_link_gumroad: string | null;
+  social_link_buymeacoffee: string | null;
+  social_link_patreon: string | null;
+  social_link_producthunt: string | null;
+  social_link_github: string | null;
+  social_link_gitlab: string | null;
+
   created_at: DateTime;
   updated_at: DateTime;
 }
