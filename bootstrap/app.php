@@ -30,6 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
     $middleware->web(append: [
       \App\Http\Middleware\HandleInertiaRequests::class,
       \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
+      \Bepsvpt\SecureHeaders\SecureHeadersMiddleware::class,
     ]);
 
     $middleware->api([
@@ -40,10 +41,12 @@ return Application::configure(basePath: dirname(__DIR__))
       \Laravel\Sanctum\Http\Middleware\AuthenticateSession::class,
       \Illuminate\Http\Middleware\HandleCors::class,
 
-      // WARNING: Enabling this causes 302 redirects
+      // WARNING: Enabling this causes 302 redirects for API calls
       //\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
 
       \Illuminate\Routing\Middleware\SubstituteBindings::class,
+
+      \Bepsvpt\SecureHeaders\SecureHeadersMiddleware::class,
     ]);
 
     $middleware->statefulApi();

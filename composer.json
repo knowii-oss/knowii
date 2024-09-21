@@ -8,6 +8,7 @@
   "license": "GNU AFFERO GENERAL PUBLIC LICENSE Version 3",
   "require": {
     "php": "^8.2",
+    "bepsvpt/secure-headers": "^7.5",
     "cviebrock/eloquent-sluggable": "^11.0",
     "inertiajs/inertia-laravel": "^1.0",
     "laravel/framework": "^11.9",
