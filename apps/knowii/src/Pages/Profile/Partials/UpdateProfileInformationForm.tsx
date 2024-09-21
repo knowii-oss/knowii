@@ -24,6 +24,7 @@ import { FaAt, FaPassport, FaUser } from 'react-icons/fa';
 import { InputText } from 'primereact/inputtext';
 import InputError from '@/Components/InputError';
 import { Toast } from 'primereact/toast';
+import { Fieldset } from 'primereact/fieldset';
 
 interface Props {
   user: CurrentUser;
@@ -249,28 +250,31 @@ export default function UpdateProfileInformationForm(props: Props) {
       </div>
 
       {/* Social Links */}
-      {SOCIAL_MEDIA_LINK_PROPERTIES.map((link) => {
-        const IconComponent = SOCIAL_MEDIA_LINK_ICONS[link as keyof typeof SOCIAL_MEDIA_LINK_ICONS];
-        return (
-          <div key={link as string} className="col-span-6 sm:col-span-4">
-            <InputLabel htmlFor={link as string}>{SOCIAL_MEDIA_LINK_NAMES[link as keyof typeof SOCIAL_MEDIA_LINK_NAMES]}</InputLabel>
-            <div className="p-inputgroup mt-1">
-              <span className="p-inputgroup-addon mt-1">
-                <IconComponent />
-              </span>
-              <InputText
-                id={link as string}
-                type="url"
-                className="mt-1 block w-full"
-                value={(form.data[link as keyof typeof form.data] as string) || ''}
-                onChange={(e) => form.setData(link as keyof typeof form.data, e.target.value)}
-                disabled={form.processing}
-              />
+      <Fieldset toggleable={true} collapsed={true} legend="Social Links" className="col-span-6 sm:col-span-4">
+        {SOCIAL_MEDIA_LINK_PROPERTIES.map((link) => {
+          const IconComponent = SOCIAL_MEDIA_LINK_ICONS[link as keyof typeof SOCIAL_MEDIA_LINK_ICONS];
+          return (
+            <div key={link as string} className="col-span-6 sm:col-span-4">
+              <InputLabel htmlFor={link as string}>{SOCIAL_MEDIA_LINK_NAMES[link as keyof typeof SOCIAL_MEDIA_LINK_NAMES]}</InputLabel>
+              <div className="p-inputgroup mt-1">
+                <span className="p-inputgroup-addon mt-1">
+                  <IconComponent />
+                </span>
+                <InputText
+                  id={link as string}
+                  type="url"
+                  className="mt-1 block w-full"
+                  placeholder="https://..."
+                  value={(form.data[link as keyof typeof form.data] as string) || ''}
+                  onChange={(e) => form.setData(link as keyof typeof form.data, e.target.value)}
+                  disabled={form.processing}
+                />
+              </div>
+              <InputError className="mt-2" message={form.errors[link as keyof typeof form.errors]} />
             </div>
-            <InputError className="mt-2" message={form.errors[link as keyof typeof form.errors]} />
-          </div>
-        );
-      })}
+          );
+        })}
+      </Fieldset>
     </FormSection>
   );
 }
