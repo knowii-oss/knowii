@@ -1,6 +1,6 @@
 
 
-# 0.5.0 (2024-09-19)
+# 0.6.0 (2024-09-21)
 
 
 ### Bug Fixes
@@ -73,6 +73,7 @@
 * **code:** set current user as owner of newly created communities ([b4c6a95](https://github.com/DeveloPassion/knowii/commit/b4c6a95c7fd36d44064b1a90a85d5dd04dbb7c5e)), closes [#528](https://github.com/DeveloPassion/knowii/issues/528)
 * **code:** vary the logging levels per environment ([db61c01](https://github.com/DeveloPassion/knowii/commit/db61c01f24db75ad744a842bf9844fbde3db692d)), closes [#524](https://github.com/DeveloPassion/knowii/issues/524)
 * **qa:** improved logging details (subcategory + detailed context logging) ([275c3b6](https://github.com/DeveloPassion/knowii/commit/275c3b6e78b02c129fa4ed634a1c5d607b18727e))
+* **sec:** added http security headers ([7e8e766](https://github.com/DeveloPassion/knowii/commit/7e8e766f3f17cdc6df58b46471afab98393dc8a4))
 * **ui:** added a compact mode to the page header ([7bd7a2a](https://github.com/DeveloPassion/knowii/commit/7bd7a2a53c34cef9d8706ab192c1393da1def8ae))
 * **ui:** added a page content wrapper ([a535e03](https://github.com/DeveloPassion/knowii/commit/a535e0319620a00b0f8e300b4b739a6b2d357690))
 * **ui:** added contact page. Closes [#688](https://github.com/DeveloPassion/knowii/issues/688) ([7e6678f](https://github.com/DeveloPassion/knowii/commit/7e6678f9a41fa18704173201393a8caca5e0a4e3))
@@ -105,7 +106,7 @@
 
 * **deps:** reverted update of supabase auth-helpers as those break sign up ([ae06319](https://github.com/DeveloPassion/knowii/commit/ae063191d0ed4db0fa83b743ea582fea5f76c93f)), closes [#533](https://github.com/DeveloPassion/knowii/issues/533)
 
-# 0.5.0 (2024-09-19)
+# 0.6.0 (2024-09-21)
 
 
 ### Bug Fixes
@@ -178,6 +179,7 @@
 * **code:** set current user as owner of newly created communities ([b4c6a95](https://github.com/DeveloPassion/knowii/commit/b4c6a95c7fd36d44064b1a90a85d5dd04dbb7c5e)), closes [#528](https://github.com/DeveloPassion/knowii/issues/528)
 * **code:** vary the logging levels per environment ([db61c01](https://github.com/DeveloPassion/knowii/commit/db61c01f24db75ad744a842bf9844fbde3db692d)), closes [#524](https://github.com/DeveloPassion/knowii/issues/524)
 * **qa:** improved logging details (subcategory + detailed context logging) ([275c3b6](https://github.com/DeveloPassion/knowii/commit/275c3b6e78b02c129fa4ed634a1c5d607b18727e))
+* **sec:** added http security headers ([7e8e766](https://github.com/DeveloPassion/knowii/commit/7e8e766f3f17cdc6df58b46471afab98393dc8a4))
 * **ui:** added a compact mode to the page header ([7bd7a2a](https://github.com/DeveloPassion/knowii/commit/7bd7a2a53c34cef9d8706ab192c1393da1def8ae))
 * **ui:** added a page content wrapper ([a535e03](https://github.com/DeveloPassion/knowii/commit/a535e0319620a00b0f8e300b4b739a6b2d357690))
 * **ui:** added contact page. Closes [#688](https://github.com/DeveloPassion/knowii/issues/688) ([7e6678f](https://github.com/DeveloPassion/knowii/commit/7e6678f9a41fa18704173201393a8caca5e0a4e3))
