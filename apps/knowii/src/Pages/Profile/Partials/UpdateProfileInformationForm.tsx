@@ -1,13 +1,17 @@
 import {
-  DEFAULT_TOAST_POSITION,
   CurrentUser,
-  USER_PROFILE_INFORMATION_UPDATE_URL,
-  useTypedPage,
+  DEFAULT_TOAST_POSITION,
   knowiiApiClient,
-  useDebounce,
-  usernameSchema,
-  sleep,
   MIN_ACTION_TIME,
+  sleep,
+  SOCIAL_MEDIA_LINK_ICONS,
+  SOCIAL_MEDIA_LINK_NAMES,
+  SOCIAL_MEDIA_LINK_PROPERTIES,
+  SocialMediaLinkProperty,
+  useDebounce,
+  USER_PROFILE_INFORMATION_UPDATE_URL,
+  usernameSchema,
+  useTypedPage,
 } from '@knowii/common';
 import { Link, useForm } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
@@ -25,12 +29,12 @@ interface Props {
   user: CurrentUser;
 }
 
-interface UpdateProfileInformationFormData {
+type UpdateProfileInformationFormData = { [K in SocialMediaLinkProperty]: string } & {
   name: string;
   email: string;
   username: string;
   photo: File | null;
-}
+};
 
 export default function UpdateProfileInformationForm(props: Props) {
   const route = useRoute();
@@ -41,9 +45,7 @@ export default function UpdateProfileInformationForm(props: Props) {
   const [verificationLinkSent, setVerificationLinkSent] = useState(false);
 
   const form = useForm<UpdateProfileInformationFormData>({
-    name: props.user.name,
-    email: props.user.email,
-    username: props.user.username,
+    ...props.user,
     photo: null as File | null,
   });
 
@@ -245,6 +247,30 @@ export default function UpdateProfileInformationForm(props: Props) {
         </div>
         <InputError className="mt-2" message={form.errors.username} />
       </div>
+
+      {/* Social Links */}
+      {SOCIAL_MEDIA_LINK_PROPERTIES.map((link) => {
+        const IconComponent = SOCIAL_MEDIA_LINK_ICONS[link as keyof typeof SOCIAL_MEDIA_LINK_ICONS];
+        return (
+          <div key={link as string} className="col-span-6 sm:col-span-4">
+            <InputLabel htmlFor={link as string}>{SOCIAL_MEDIA_LINK_NAMES[link as keyof typeof SOCIAL_MEDIA_LINK_NAMES]}</InputLabel>
+            <div className="p-inputgroup mt-1">
+              <span className="p-inputgroup-addon mt-1">
+                <IconComponent />
+              </span>
+              <InputText
+                id={link as string}
+                type="url"
+                className="mt-1 block w-full"
+                value={(form.data[link as keyof typeof form.data] as string) || ''}
+                onChange={(e) => form.setData(link as keyof typeof form.data, e.target.value)}
+                disabled={form.processing}
+              />
+            </div>
+            <InputError className="mt-2" message={form.errors[link as keyof typeof form.errors]} />
+          </div>
+        );
+      })}
     </FormSection>
   );
 }
