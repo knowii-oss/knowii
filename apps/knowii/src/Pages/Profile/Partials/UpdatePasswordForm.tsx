@@ -1,4 +1,4 @@
-import { DEFAULT_TOAST_POSITION, USER_PROFILE_PASSWORD_UPDATE_URL } from '@knowii/common';
+import { useAppData, USER_PROFILE_PASSWORD_UPDATE_URL } from '@knowii/common';
 import { useForm } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
 import { FormEventHandler, useRef } from 'react';
@@ -9,7 +9,6 @@ import InputLabel from '@/Components/InputLabel';
 import { FaLock } from 'react-icons/fa';
 import { InputText } from 'primereact/inputtext';
 import InputError from '@/Components/InputError';
-import { Toast } from 'primereact/toast';
 
 interface UpdatePasswordFormData {
   current_password: string;
@@ -20,6 +19,9 @@ interface UpdatePasswordFormData {
 export default function UpdatePasswordForm() {
   const route = useRoute();
 
+  const appData = useAppData();
+  const toast = appData.toast;
+
   const form = useForm<UpdatePasswordFormData>({
     current_password: '',
     password: '',
@@ -28,7 +30,6 @@ export default function UpdatePasswordForm() {
 
   const passwordRef = useRef<HTMLInputElement | null>(null);
   const currentPasswordRef = useRef<HTMLInputElement | null>(null);
-  const toastRef = useRef<Toast | null>(null);
 
   const updatePassword: FormEventHandler = (e) => {
     e.preventDefault();
@@ -38,7 +39,7 @@ export default function UpdatePasswordForm() {
       preserveScroll: true,
       onSuccess: () => {
         form.reset();
-        toastRef.current?.show({ severity: 'success', summary: 'Success', detail: 'Password updated successfully.' });
+        toast?.show({ severity: 'success', summary: 'Success', detail: 'Password updated successfully.' });
       },
       onError: () => {
         if (form.errors.password) {
@@ -61,8 +62,6 @@ export default function UpdatePasswordForm() {
       description={`Ensure your account is using a long, random password to stay secure.`}
       renderActions={() => (
         <>
-          <Toast position={DEFAULT_TOAST_POSITION} ref={toastRef} />
-
           <Button className={classNames({ 'opacity-25': form.processing })} disabled={form.processing}>
             Save
           </Button>

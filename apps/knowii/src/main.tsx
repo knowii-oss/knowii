@@ -6,6 +6,7 @@ import * as ReactDOM from 'react-dom/client';
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { PrimeReactProvider } from 'primereact/api';
+import { AppDataProvider } from '@knowii/common';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -22,7 +23,9 @@ createInertiaApp({
             ripple: true,
           }}
         >
-          <App {...props} />
+          <AppDataProvider>
+            <App {...props} />
+          </AppDataProvider>
         </PrimeReactProvider>
       </StrictMode>,
     );

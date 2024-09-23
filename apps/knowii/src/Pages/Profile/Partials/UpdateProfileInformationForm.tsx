@@ -1,6 +1,5 @@
 import {
   CurrentUser,
-  DEFAULT_TOAST_POSITION,
   knowiiApiClient,
   MIN_ACTION_TIME,
   sleep,
@@ -8,6 +7,7 @@ import {
   SOCIAL_MEDIA_LINK_NAMES,
   SOCIAL_MEDIA_LINK_PROPERTIES,
   SocialMediaLinkProperty,
+  useAppData,
   useDebounce,
   USER_PROFILE_INFORMATION_UPDATE_URL,
   usernameSchema,
@@ -23,14 +23,13 @@ import InputLabel from '@/Components/InputLabel';
 import { FaAt, FaPassport, FaUser } from 'react-icons/fa';
 import { InputText } from 'primereact/inputtext';
 import InputError from '@/Components/InputError';
-import { Toast } from 'primereact/toast';
 import { Fieldset } from 'primereact/fieldset';
 
 interface Props {
   user: CurrentUser;
 }
 
-type UpdateProfileInformationFormData = { [K in SocialMediaLinkProperty]: string } & {
+type UpdateProfileInformationFormData = { [K in SocialMediaLinkProperty]: string | null } & {
   name: string;
   email: string;
   username: string;
@@ -41,7 +40,8 @@ export default function UpdateProfileInformationForm(props: Props) {
   const route = useRoute();
   const page = useTypedPage();
 
-  const toastRef = useRef<Toast | null>(null);
+  const appData = useAppData();
+  const toast = appData.toast;
 
   const [verificationLinkSent, setVerificationLinkSent] = useState(false);
 
@@ -127,7 +127,7 @@ export default function UpdateProfileInformationForm(props: Props) {
       errorBag: 'updateProfileInformation',
       preserveScroll: true,
       onSuccess: () => {
-        toastRef.current?.show({ severity: 'success', summary: 'Success', detail: 'Profile changed successfully.' });
+        toast?.show({ severity: 'success', summary: 'Success', detail: 'Profile changed successfully.' });
       },
     });
   };
@@ -142,28 +142,24 @@ export default function UpdateProfileInformationForm(props: Props) {
       title={'Profile Information'}
       description={`Update your account's profile information and email address.`}
       renderActions={() => (
-        <>
-          <Toast position={DEFAULT_TOAST_POSITION} ref={toastRef} />
-
-          <div className="flex flex-col sm:flex-row gap-2 w-full items-center sm:w-auto sm:justify-end">
-            <Button
-              type="button"
-              onClick={() => {
-                form.reset();
-              }}
-              severity="secondary"
-              className={classNames({ 'opacity-25': form.processing })}
-            >
-              Reset
-            </Button>
-            <Button
-              className={classNames({ 'opacity-25': form.processing })}
-              disabled={form.processing || form.hasErrors || checkingUsernameAvailability}
-            >
-              Save
-            </Button>
-          </div>
-        </>
+        <div className="flex flex-col sm:flex-row gap-2 w-full items-center sm:w-auto sm:justify-end">
+          <Button
+            type="button"
+            onClick={() => {
+              form.reset();
+            }}
+            severity="secondary"
+            className={classNames({ 'opacity-25': form.processing })}
+          >
+            Reset
+          </Button>
+          <Button
+            className={classNames({ 'opacity-25': form.processing })}
+            disabled={form.processing || form.hasErrors || checkingUsernameAvailability}
+          >
+            Save
+          </Button>
+        </div>
       )}
     >
       {/* Name */}
