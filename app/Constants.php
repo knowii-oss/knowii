@@ -16,4 +16,31 @@ class Constants
   public static int $MAX_LENGTH_COMMUNITY_NAME = 64;
   public static int $MAX_LENGTH_COMMUNITY_DESCRIPTION = 255;
   public static string $ALLOWED_COMMUNITY_NAME_CHARACTERS_REGEX = '/^[a-zA-Z0-9-@\' ]+$/';
+
+  public static array $SOCIAL_MEDIA_LINK_PROPERTIES = [
+    'social_link_x',
+    'social_link_website',
+    'social_link_newsletter',
+    'social_link_mastodon',
+    'social_link_bluesky',
+    'social_link_threads_dot_net',
+    'social_link_linkedin',
+    'social_link_facebook',
+    'social_link_instagram',
+    'social_link_reddit',
+    'social_link_medium',
+    'social_link_substack',
+    'social_link_hackernews',
+    'social_link_hashnode',
+    'social_link_dev_dot_to',
+    'social_link_youtube',
+    'social_link_tiktok',
+    'social_link_twitch',
+    'social_link_gumroad',
+    'social_link_buymeacoffee',
+    'social_link_patreon',
+    'social_link_producthunt',
+    'social_link_github',
+    'social_link_gitlab',
+  ];
 }
