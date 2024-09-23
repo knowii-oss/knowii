@@ -1,8 +1,6 @@
 <?php
 
-use App\Http\Controllers\CommunityInvitationController;
 use App\Http\Controllers\Inertia\CommunityController;
-use App\Http\Controllers\Inertia\CommunityMemberController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 

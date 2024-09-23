@@ -16,7 +16,8 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
   /**
    * Validate and update the given user's profile information.
    *
-   * @param array<string, mixed> $input
+   * @param User $user
+   * @param array $input
    */
   final public function update(User $user, array $input): void
   {
@@ -27,30 +28,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
       'username' => ['string', 'min:' . Constants::$MIN_LENGTH_USER_USERNAME, 'max:' . Constants::$MAX_LENGTH_USER_USERNAME, 'regex:' . Constants::$ALLOWED_USER_USERNAME_CHARACTERS_REGEX],
       'email' => ['required', 'email', 'max:' . Constants::$MAX_LENGTH_USER_EMAIL, Rule::unique('users')->ignore($user->id)],
       'photo' => ['nullable', 'mimes:jpg,jpeg,png', 'max:1024'],
-      'social_link_x' => ['nullable', 'string', 'max: 255'],
-      'social_link_website' => ['nullable', 'string', 'max: 255'],
-      'social_link_newsletter' => ['nullable', 'string', 'max: 255'],
-      'social_link_mastodon' => ['nullable', 'string', 'max: 255'],
-      'social_link_bluesky' => ['nullable', 'string', 'max: 255'],
-      'social_link_threads_dot_net' => ['nullable', 'string', 'max: 255'],
-      'social_link_linkedin' => ['nullable', 'string', 'max: 255'],
-      'social_link_facebook' => ['nullable', 'string', 'max: 255'],
-      'social_link_instagram' => ['nullable', 'string', 'max: 255'],
-      'social_link_reddit' => ['nullable', 'string', 'max: 255'],
-      'social_link_medium' => ['nullable', 'string', 'max: 255'],
-      'social_link_substack' => ['nullable', 'string', 'max: 255'],
-      'social_link_hackernews' => ['nullable', 'string', 'max: 255'],
-      'social_link_hashnode' => ['nullable', 'string', 'max: 255'],
-      'social_link_dev_dot_to' => ['nullable', 'string', 'max: 255'],
-      'social_link_youtube' => ['nullable', 'string', 'max: 255'],
-      'social_link_tiktok' => ['nullable', 'string', 'max: 255'],
-      'social_link_twitch' => ['nullable', 'string', 'max: 255'],
-      'social_link_gumroad' => ['nullable', 'string', 'max: 255'],
-      'social_link_buymeacoffee' => ['nullable', 'string', 'max: 255'],
-      'social_link_patreon' => ['nullable', 'string', 'max: 255'],
-      'social_link_producthunt' => ['nullable', 'string', 'max: 255'],
-      'social_link_github' => ['nullable', 'string', 'max: 255'],
-      'social_link_gitlab' => ['nullable', 'string', 'max: 255'],
+      ...array_fill_keys(Constants::$SOCIAL_MEDIA_LINK_PROPERTIES, ['nullable', 'string', 'max:255']),
     ])->validateWithBag('updateProfileInformation');
 
     if (isset($input['photo'])) {
@@ -122,37 +100,10 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
    */
   final public function updateSocialLinks(User $user, array $input): void
   {
-    $socialLinks = [
-      'social_link_x',
-      'social_link_website',
-      'social_link_newsletter',
-      'social_link_mastodon',
-      'social_link_bluesky',
-      'social_link_threads_dot_net',
-      'social_link_linkedin',
-      'social_link_facebook',
-      'social_link_instagram',
-      'social_link_reddit',
-      'social_link_medium',
-      'social_link_substack',
-      'social_link_hackernews',
-      'social_link_hashnode',
-      'social_link_dev_dot_to',
-      'social_link_youtube',
-      'social_link_tiktok',
-      'social_link_twitch',
-      'social_link_gumroad',
-      'social_link_buymeacoffee',
-      'social_link_patreon',
-      'social_link_producthunt',
-      'social_link_github',
-      'social_link_gitlab',
-    ];
-
     $updatedLinks = [];
-    foreach ($socialLinks as $link) {
-      if (isset($input[$link])) {
-        $updatedLinks[$link] = $input[$link];
+    foreach (Constants::$SOCIAL_MEDIA_LINK_PROPERTIES as $socialMediaLinkProperty) {
+      if (isset($input[$socialMediaLinkProperty])) {
+        $updatedLinks[$socialMediaLinkProperty] = $input[$socialMediaLinkProperty];
       }
     }
     $user->forceFill($updatedLinks)->save();
