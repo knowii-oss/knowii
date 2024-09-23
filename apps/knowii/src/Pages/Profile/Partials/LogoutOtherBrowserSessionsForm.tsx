@@ -1,4 +1,4 @@
-import { DEFAULT_TOAST_POSITION, DESTROY_OTHER_BROWSER_SESSIONS_URL, Session } from '@knowii/common';
+import { DESTROY_OTHER_BROWSER_SESSIONS_URL, Session, useAppData } from '@knowii/common';
 import { useForm } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
 import { useRef, useState } from 'react';
@@ -8,7 +8,6 @@ import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import InputError from '@/Components/InputError';
-import { Toast } from 'primereact/toast';
 
 interface Props {
   sessions: Session[];
@@ -21,13 +20,14 @@ interface LogoutOtherBrowserSessionsFormProps {
 export default function LogoutOtherBrowserSessionsForm(props: Props) {
   const route = useRoute();
 
+  const appData = useAppData();
+  const toast = appData.toast;
+
   const form = useForm<LogoutOtherBrowserSessionsFormProps>({
     password: '',
   });
 
   const passwordRef = useRef<HTMLInputElement | null>(null);
-
-  const toastRef = useRef<Toast | null>(null);
 
   const [confirmingLogout, setConfirmingLogout] = useState(false);
 
@@ -42,7 +42,7 @@ export default function LogoutOtherBrowserSessionsForm(props: Props) {
       preserveScroll: true,
       onSuccess: () => {
         closeModal();
-        toastRef.current?.show({ severity: 'success', summary: 'Success', detail: 'Logged you out of other browser sessions.' });
+        toast?.show({ severity: 'success', summary: 'Success', detail: 'Logged you out of other browser sessions.' });
       },
       onError: () => passwordRef.current?.focus(),
       onFinish: () => form.reset(),
@@ -56,8 +56,6 @@ export default function LogoutOtherBrowserSessionsForm(props: Props) {
 
   return (
     <ActionSection title={'Browser Sessions'} description={'Manage and log out your active sessions on other browsers and devices.'}>
-      <Toast position={DEFAULT_TOAST_POSITION} ref={toastRef} />
-
       <div className="max-w-xl text-sm text-gray-600">
         If necessary, you may log out of all of your other browser sessions across all of your devices. Some of your recent sessions are
         listed below; however, this list may not be exhaustive. If you feel your account has been compromised, you should also update your

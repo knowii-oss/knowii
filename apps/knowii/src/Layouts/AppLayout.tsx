@@ -1,6 +1,6 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import { DASHBOARD_URL, LOGOUT_URL, USER_PROFILE_URL, useTypedPage } from '@knowii/common';
+import { DASHBOARD_URL, DEFAULT_TOAST_POSITION, LOGOUT_URL, useAppData, USER_PROFILE_URL, useTypedPage } from '@knowii/common';
 import { useRoute } from 'ziggy-js';
 import { Sidebar } from 'primereact/sidebar';
 import { Button } from 'primereact/button';
@@ -13,6 +13,7 @@ import ApplicationMark from '@/Components/ApplicationMark';
 import Footer from '@/Components/Footer';
 import PageContentWrapper from '@/Components/PageContentWrapper';
 import PageWrapper from '@/Components/PageWrapper';
+import { Toast } from 'primereact/toast';
 
 interface Props {
   title: string;
@@ -24,12 +25,24 @@ export default function AppLayout(props: Props) {
   const page = useTypedPage();
   const route = useRoute();
 
+  const appData = useAppData();
+  const toastRef = useRef<Toast | null>(null);
+
+  useEffect(() => {
+    if (!toastRef.current) {
+      return;
+    }
+    appData.toast = toastRef.current;
+  }, [appData]);
+
   const [mainMenuVisible, setMainMenuVisible] = useState(false);
   const [userMenuVisible, setUserMenuVisible] = useState(false);
 
   return (
     <>
       <Head title={props.title} />
+
+      <Toast position={DEFAULT_TOAST_POSITION} ref={toastRef} />
 
       <PageWrapper>
         <PageHeader

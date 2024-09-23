@@ -1,8 +1,7 @@
 import AppLayout from '@/Layouts/AppLayout';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
-import { useRef, useState } from 'react';
-import { Toast } from 'primereact/toast';
+import { useState } from 'react';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { ProgressSpinner } from 'primereact/progressspinner';
@@ -14,12 +13,12 @@ import {
   allowedCommunityVisibilityOptionsForCreation,
   Community,
   COMMUNITY_URL,
-  DEFAULT_TOAST_POSITION,
   knowiiApiClient,
   MIN_ACTION_TIME,
   NewCommunity,
   newCommunitySchema,
   sleep,
+  useAppData,
   useTypedPage,
 } from '@knowii/common';
 import CardGroup from '@/Components/CardGroup';
@@ -33,7 +32,8 @@ export default function Dashboard() {
   const page = useTypedPage();
   const route = useRoute();
 
-  const toastRef = useRef<Toast | null>(null);
+  const appData = useAppData();
+  const toast = appData.toast;
 
   const [loading, setLoading] = useState(false);
   const [creatingCommunity, setCreatingCommunity] = useState(false);
@@ -69,7 +69,7 @@ export default function Dashboard() {
     if ('success' === response.type && !response.errors) {
       closeCreateCommunityModal();
       form.reset();
-      toastRef.current?.show({
+      toast?.show({
         severity: 'success',
         summary: 'Community created successfully',
       });
@@ -83,7 +83,7 @@ export default function Dashboard() {
         });
       }
     } else {
-      toastRef.current?.show({
+      toast?.show({
         severity: 'error',
         summary: 'Failed to create the community',
         detail: response.message,
@@ -105,7 +105,6 @@ export default function Dashboard() {
   return (
     <>
       <AppLayout title="Dashboard" pageTitle="Dashboard">
-        <Toast position={DEFAULT_TOAST_POSITION} ref={toastRef} />
         <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b-2 border-primary-500 pb-2 block text-center sm:text-left">
           My Communities
         </h2>

@@ -135,6 +135,7 @@ The initial data the page needs should be passed via Inertia. All further action
 ### Global data
 
 If you need to pass data to all pages (e.g., the user's list of communities), you can update `HandleInertiaRequests` to load and include the data you need.
+If it's completely on the client-side, then you can leverage the React Context defined in `app-context.tsx`. A provider has been added to `main.tsx` and is available on all pages. For instance, the `Toast` Prime React component is added to it by the `AppLayout`, then used in the `Dashboard` page and other components.
 
 ### Database
 
