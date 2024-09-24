@@ -28,7 +28,7 @@ import { SelectButton } from 'primereact/selectbutton';
 import { useRoute } from 'ziggy-js';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-export default function Dashboard() {
+export default function DashboardPage() {
   const page = useTypedPage();
   const route = useRoute();
 

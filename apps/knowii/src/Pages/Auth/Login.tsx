@@ -24,7 +24,7 @@ interface Props {
   status: string;
 }
 
-export default function Login({ canResetPassword, status }: Props) {
+export default function LoginPage({ canResetPassword, status }: Props) {
   const route = useRoute();
 
   const form = useForm<LoginFormData>({

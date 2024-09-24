@@ -11,7 +11,7 @@ interface Props {
   status: string;
 }
 
-export default function Login(props: Props) {
+export default function VerifyEmailPage(props: Props) {
   const route = useRoute();
 
   const verificationLinkSent = props.status === EMAIL_VERIFICATION_STATUS_LINK_SENT;
