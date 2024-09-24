@@ -8,7 +8,7 @@ interface Props {
   terms: string;
 }
 
-export default function TermsOfService(props: Props) {
+export default function TermsOfServicePage(props: Props) {
   return (
     <>
       <Head title="Terms of Service" />

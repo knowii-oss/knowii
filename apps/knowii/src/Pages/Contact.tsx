@@ -5,7 +5,7 @@ import PageContentWrapper from '@/Components/PageContentWrapper';
 import FooterGuest from '@/Components/FooterGuest';
 import PageWrapper from '@/Components/PageWrapper';
 
-export default function Contact() {
+export default function ContactPage() {
   return (
     <>
       <Head title="Contact Us" />

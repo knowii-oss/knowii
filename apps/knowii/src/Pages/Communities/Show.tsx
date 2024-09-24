@@ -12,7 +12,7 @@ interface Props {
   permissions: CommunityPermissions;
 }
 
-export default function Dashboard(props: Props) {
+export default function CommunityPage(props: Props) {
   return (
     <AppLayout title={props.community.name} pageTitle={props.community.name}>
       <div className="flex flex-col md:flex-row gap-6">

@@ -8,7 +8,7 @@ interface Props {
   policy: string;
 }
 
-export default function PrivacyPolicy(props: Props) {
+export default function PrivacyPolicyPage(props: Props) {
   return (
     <>
       <Head title="Privacy Policy" />

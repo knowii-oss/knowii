@@ -15,7 +15,7 @@ interface ConfirmPasswordFormData {
   password: string;
 }
 
-export default function ForgotPassword() {
+export default function ConfirmPasswordPage() {
   const route = useRoute();
   const form = useForm<ConfirmPasswordFormData>({
     password: '',

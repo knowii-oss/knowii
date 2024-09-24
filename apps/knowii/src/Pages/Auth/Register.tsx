@@ -21,7 +21,7 @@ interface RegisterFormData {
   terms: boolean;
 }
 
-export default function Register() {
+export default function RegisterPage() {
   const page = useTypedPage();
   const route = useRoute();
 

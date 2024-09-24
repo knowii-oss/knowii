@@ -19,7 +19,7 @@ interface ForgotPasswordFormData {
   email: string;
 }
 
-export default function ForgotPassword(props: Props) {
+export default function ForgotPasswordPage(props: Props) {
   const route = useRoute();
   const form = useForm<ForgotPasswordFormData>({
     email: '',

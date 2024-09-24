@@ -24,7 +24,7 @@ interface ResetPasswordFormData {
   password_confirmation: string;
 }
 
-export default function Register(props: Props) {
+export default function ResetPasswordPage(props: Props) {
   const route = useRoute();
 
   const form = useForm<ResetPasswordFormData>({

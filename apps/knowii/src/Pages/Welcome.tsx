@@ -11,7 +11,7 @@ interface Props {
   canRegister: boolean;
 }
 
-export default function Welcome(props: Props) {
+export default function WelcomePage(props: Props) {
   const page = useTypedPage();
 
   const showLogout = props.canLogin && page.props.auth.user !== null;

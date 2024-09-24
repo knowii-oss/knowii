@@ -13,7 +13,7 @@ interface Props {
 
 // Generic error page
 // Reference: // https://inertiajs.com/error-handling
-export default function Error(props: Props) {
+export default function ErrorPage(props: Props) {
   const errorTitle = {
     503: '503: Service Unavailable',
     500: '500: Server Error',
