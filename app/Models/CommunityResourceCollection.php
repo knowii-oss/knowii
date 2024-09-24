@@ -1,0 +1,124 @@
+<?php
+
+namespace App\Models;
+
+use App\Events\ResourceCollections\ResourceCollectionCreated;
+use App\Events\ResourceCollections\ResourceCollectionDeleted;
+use App\Events\ResourceCollections\ResourceCollectionUpdated;
+use App\Knowii;
+use Cviebrock\EloquentSluggable\Sluggable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Parables\Cuid\GeneratesCuid;
+
+class CommunityResourceCollection extends Model
+{
+  use HasFactory;
+
+  // Automatically generate cuid2 for the model
+  // Reference: https://github.com/Parables/laravel-cuid2
+  use GeneratesCuid;
+
+  // Automatically generate slugs
+  // Reference: https://github.com/cviebrock/eloquent-sluggable
+  use Sluggable;
+
+  /**
+   * The attributes that are mass assignable.
+   *
+   * @var array<int, string>
+   */
+  protected $fillable = [
+    // WARNING: When new fields are added, this list should be updated!
+    'name',
+    'slug',
+    'description',
+  ];
+
+  /**
+   * The attributes that should be hidden for serialization.
+   *
+   * @var array<int, string>
+   */
+  protected $hidden = [
+    'id',
+  ];
+
+  /**
+   * The event map for the model.
+   *
+   * @var array<string, class-string>
+   */
+  protected $dispatchesEvents = [
+    'created' => ResourceCollectionCreated::class,
+    'updated' => ResourceCollectionUpdated::class,
+    'deleted' => ResourceCollectionDeleted::class,
+  ];
+
+  /**
+   * Get the attributes that should be cast.
+   *
+   * @return array<string, string>
+   */
+  protected function casts(): array
+  {
+    return [
+    ];
+  }
+
+  /**
+   * Get the community that the invitation belongs to.
+   */
+  public function community(): BelongsTo
+  {
+    return $this->belongsTo(Knowii::communityModel());
+  }
+
+//  /**
+//   * Get all of the resources in the collection.
+//   *
+//   * @return Collection
+//   */
+//  public function allResources()
+//  {
+//    return $this->resources;
+//  }
+
+//  /**
+//   * Determine if the given resource belongs to the community.
+//   *
+//   * @param Resource $resource
+//   * @return bool
+//   */
+//  public function hasResource(Resource $resource): bool
+//  {
+//    return $this->resources->contains($resource);
+//  }
+
+//  /**
+//   * Purge the collection.
+//   *
+//   * @return void
+//   */
+//  public function purge(): void
+//  {
+//    $this->resources()->delete();
+//    $this->delete();
+//  }
+
+  /**
+   * Return the sluggable configuration array for this model.
+   * Reference: https://github.com/cviebrock/eloquent-sluggable
+   * @return array
+   */
+  public function sluggable(): array
+  {
+    // The slug is derived from the name (and uniqueness is ensured)
+    return [
+      'slug' => [
+        'source' => 'name'
+      ]
+    ];
+  }
+}
