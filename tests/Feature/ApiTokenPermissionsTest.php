@@ -10,20 +10,20 @@ test('api token permissions can be updated', function () {
     $token = $user->tokens()->create([
         'name' => 'Test Token',
         'token' => Str::random(40),
-        'abilities' => ['create', 'read'],
+        'abilities' => ['community:create', 'community:read'],
     ]);
 
     $this->put('/user/api-tokens/'.$token->id, [
         'name' => $token->name,
         'permissions' => [
-            'delete',
+            'community:create',
             'missing-permission',
         ],
     ]);
 
     expect($user->fresh()->tokens->first())
-        ->can('delete')->toBeTrue()
-        ->can('read')->toBeFalse()
+        ->can('community:create')->toBeTrue()
+        ->can('community:read')->toBeFalse()
         ->can('missing-permission')->toBeFalse();
 })->skip(function () {
     return ! Features::hasApiFeatures();
