@@ -51,7 +51,7 @@ export const DASHBOARD_URL = 'dashboard';
 export const CONTACT_URL = 'contact';
 
 // Legal
-export const TERMS_OF_SERVICE_URL = 'terms-or-service.show';
+export const TERMS_OF_SERVICE_URL = 'terms-of-service.show';
 export const PRIVACY_POLICY_URL = 'privacy-policy.show';
 
 // User profile
