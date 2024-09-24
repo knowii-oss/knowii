@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Inertia\CommunityController;
+use App\Http\Controllers\PrivacyPolicyController;
+use App\Http\Controllers\TermsOfServiceController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -25,3 +27,5 @@ Route::middleware([
 });
 
 Route::inertia('/contact', 'Contact');
+Route::get('/privacy-policy', [PrivacyPolicyController::class, 'show'])->name('privacy-policy.show');
+Route::get('/terms-of-service', [TermsOfServiceController::class, 'show'])->name('terms-of-service.show');

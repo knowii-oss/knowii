@@ -1,6 +1,8 @@
 # TODO
 
+- Add and configure the following plugins for ReactMarkdown: remark-gfm, remark-toc, remark-mdx, remark-frontmatter
 - Implement RBAC model
+
   - Users can have a role which depends on the platform, not on the content
     - Admin: boolean flag on the user account
   - Users have generic permissions (e.g., canLogin, canRegister, etc)
