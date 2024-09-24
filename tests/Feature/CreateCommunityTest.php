@@ -2,7 +2,7 @@
 
 use App\Actions\Communities\CreateCommunity;
 use App\Constants;
-use App\KnowiiCommunityVisibility;
+use App\Enums\KnowiiCommunityVisibility;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;

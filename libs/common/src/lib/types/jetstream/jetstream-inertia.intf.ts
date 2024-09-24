@@ -70,4 +70,17 @@ export interface Role {
   permissions: Permission[];
 }
 
-export type Permission = 'create' | 'read' | 'update' | 'delete';
+// WARNING MUST remain aligned with permissions defined in JetstreamServiceProvider.php
+export type Permission =
+  | 'community:create'
+  | 'community:read'
+  | 'community:update'
+  | 'community:delete'
+  | 'resource_collection:create'
+  | 'resource_collection:read'
+  | 'resource_collection:update'
+  | 'resource_collection:delete'
+  | 'resource:create'
+  | 'resource:read'
+  | 'resource:update'
+  | 'resource:delete';

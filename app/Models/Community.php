@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use App\Enums\KnowiiCommunityVisibility;
 use App\Events\Communities\CommunityCreated;
 use App\Events\Communities\CommunityDeleted;
 use App\Events\Communities\CommunityUpdated;
 use App\Knowii;
-use App\KnowiiCommunityVisibility;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

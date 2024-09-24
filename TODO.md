@@ -1,6 +1,11 @@
 # TODO
 
-- Add and configure the following plugins for ReactMarkdown: remark-gfm, remark-toc, remark-mdx, remark-frontmatter
+- CommunityController.php
+- community.schema.ts
+- CommunityPolicy
+- Create a database migration 
+- $table->foreignId('user_id');
+- When a new community is created, an entry should be added to the CommunityUser table, with the current user having the owner role
 - Implement RBAC model
 
   - Users can have a role which depends on the platform, not on the content
@@ -32,3 +37,9 @@
 - When entering a resource collection, should show Community Name - Resource collection name as title and the community name should have a link (breadcrumb)
 - Create ContentBox taking e.g., upcoming events, members, new resources, etc.
   - Should have inputs to pass a canAdd boolean, a onAdd function, and children
+- Move KnowiiApiResponse, KnowiiApiResponseCategory, and KnowiiApiResponseType to a dedicated package -> App\Enums
+- Add and configure the following plugins for ReactMarkdown: remark-gfm, remark-toc, remark-mdx, remark-frontmatter
+
+'availableRoles' => array_values(Jetstream::$roles),
+'availablePermissions' => Jetstream::$permissions,
+'defaultPermissions' => Jetstream::$defaultPermissions,
