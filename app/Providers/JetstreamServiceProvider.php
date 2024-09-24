@@ -8,53 +8,69 @@ use Laravel\Jetstream\Jetstream;
 
 class JetstreamServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
-    public function register(): void
-    {
-        //
-    }
+  /**
+   * Register any application services.
+   */
+  public function register(): void
+  {
+    //
+  }
 
-    /**
-     * Bootstrap any application services.
-     */
-    public function boot(): void
-    {
-        $this->configurePermissions();
+  /**
+   * Bootstrap any application services.
+   */
+  public function boot(): void
+  {
+    $this->configurePermissions();
 
-        Jetstream::deleteUsersUsing(DeleteUser::class);
+    Jetstream::deleteUsersUsing(DeleteUser::class);
 
-        // Example of how to pass additional data to a Vue component (props)
-        // When rendered via Inertia
-        //Jetstream::inertia()->whenRendering(
-        //    'Profile/Show',
-        //    function (Request $request, array $data) {
-        //        return array_merge($data, [
-        //            // Custom data...
-        //        ]);
-        //    }
-        //);
-    }
+    // Example of how to pass additional data to a client-side page (via pprops)
+    // When rendered via Inertia
+    //Jetstream::inertia()->whenRendering(
+    //    'Profile/Show',
+    //    function (Request $request, array $data) {
+    //        return array_merge($data, [
+    //            // Custom data...
+    //        ]);
+    //    }
+    //);
+  }
 
-    /**
-     * Configure the roles and permissions that are available within the application.
-     */
-    protected function configurePermissions(): void
-    {
-        Jetstream::defaultApiTokenPermissions(['read']);
+  /**
+   * Configure the roles and permissions that are available within the application.
+   */
+  protected function configurePermissions(): void
+  {
 
-        Jetstream::role('admin', 'Administrator', [
-            'create',
-            'read',
-            'update',
-            'delete',
-        ])->description('Administrator users can perform any action.');
+    // All permissions
+    // WARNING: MUST remain aligned with those defined in jetstream-inertia.intf.ts on the client-side
+    $allPermissions = [
+      'community:create',
+      'community:read',
+      'community:update',
+      'community:delete',
+      'resource_collection:create',
+      'resource_collection:read',
+      'resource_collection:update',
+      'resource_collection:delete',
+      'resource:create',
+      'resource:read',
+      'resource:update',
+      'resource:delete',
+      // WARNING: All concepts should be listed
 
-        Jetstream::role('editor', 'Editor', [
-            'read',
-            'create',
-            'update',
-        ])->description('Editor users have the ability to read, create, and update.');
-    }
+      // TODO implement
+      // 'user_account:update'
+    ];
+
+    // All permissions
+    Jetstream::permissions($allPermissions);
+
+    // Default API token permissions
+    Jetstream::defaultApiTokenPermissions($allPermissions);
+
+    // TODO define the exact admin permissions
+    Jetstream::role('admin', 'Administrator', $allPermissions)->description('Administrator users can perform any action.');
+  }
 }

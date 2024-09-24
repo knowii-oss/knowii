@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\KnowiiCommunityVisibility;
+use App\Enums\KnowiiCommunityVisibility;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Visus\Cuid2\Cuid2;

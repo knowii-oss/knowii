@@ -4,11 +4,11 @@ namespace App\Actions\Communities;
 
 use App\Constants;
 use App\Contracts\Communities\CreatesCommunities;
+use App\Enums\KnowiiCommunityVisibility;
 use App\Events\Communities\AddingCommunity;
 use App\Events\Communities\CommunityCreated;
 use App\Exceptions\BusinessException;
 use App\Exceptions\TechnicalException;
-use App\KnowiiCommunityVisibility;
 use App\Models\Community;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;

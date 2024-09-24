@@ -1,6 +1,6 @@
 <?php
 
-use App\KnowiiCommunityVisibility;
+use App\Enums\KnowiiCommunityVisibility;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Response;

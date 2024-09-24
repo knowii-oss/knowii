@@ -2,7 +2,7 @@
 
 namespace App\Actions\Communities;
 
-use App\KnowiiCommunityVisibility;
+use App\Enums\KnowiiCommunityVisibility;
 use App\Models\Community;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;

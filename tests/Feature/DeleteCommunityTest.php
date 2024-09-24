@@ -1,7 +1,7 @@
 <?php
 
 use App\Contracts\Communities\DeletesCommunities;
-use App\KnowiiCommunityVisibility;
+use App\Enums\KnowiiCommunityVisibility;
 use App\Models\Community;
 use App\Models\User;
 use Illuminate\Validation\ValidationException;

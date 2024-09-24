@@ -1,14 +1,11 @@
 import AppLayout from '@/Layouts/AppLayout';
-import { Community, CommunityPermissions, Permission, Role } from '@knowii/common';
+import { Community, CommunityPermissions } from '@knowii/common';
 import { Card } from 'primereact/card';
 import classNames from 'classnames';
 import { Divider } from 'primereact/divider';
 
 interface Props {
-  availablePermissions: string[];
-  availableRoles: Role[];
   community: Community;
-  defaultPermissions: Permission[];
   permissions: CommunityPermissions;
 }
 
