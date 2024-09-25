@@ -37,6 +37,8 @@ Rules you must respect:
 
 Back-end (PHP/Laravel) rules:
 - API controllers handle incoming requests, but processing is always delegated to an Action class that implements a "DoesSomething" contract
+- API controllers should use the ApiResponses trait
+- API controllers should be stored in the Http/Controllers/API directory
 - Validation is implemented in the action classes, and use constants defined in "Constants.php"
 - Each API endpoint should be added to api.php. Most should be protected by the sanctum middleware
 - Write tests using Pest
