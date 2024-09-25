@@ -37,6 +37,7 @@ class CreateCommunityResourceCollection implements CreatesCommunityResourceColle
         Log::debug('Validating the input');
 
         Validator::make($input, [
+            // WARNING: The fields MUST also match the ones listed in CommunityResourceCollectionApiController
             'name' => ['required', 'string', 'min:'.Constants::$MIN_LENGTH_COMMUNITY_RESOURCE_COLLECTION_NAME, 'max:'.Constants::$MAX_LENGTH_COMMUNITY_RESOURCE_COLLECTION_NAME, 'regex:'.Constants::$ALLOWED_COMMUNITY_RESOURCE_COLLECTION_NAME_CHARACTERS_REGEX],
             // Nullable allows empty strings to be passed in
             // Note that the CommunityResource transforms null to an empty string

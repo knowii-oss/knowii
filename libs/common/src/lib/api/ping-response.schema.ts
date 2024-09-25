@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { singleItemApiResponseSchema } from '../single-item-api-response.schema';
+import { singleItemApiResponseSchema } from './single-item-api-response.schema';
 
 export const pingResponseSchema = singleItemApiResponseSchema(
   z.object({

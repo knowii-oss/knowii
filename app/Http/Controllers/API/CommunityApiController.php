@@ -18,12 +18,13 @@ class CommunityApiController extends Controller
   final public function store(Request $request): JsonResponse {
     Log::info('Processing API request to create a new community.');
     Log::debug("User: ", [$request->user()]);
+    
+    // Filter the input to only include the fields that are needed/accepted
+    $input = $request->only(['name', 'description', 'visibility']);
+    Log::debug("Input", [$input]);
 
     $creator = app(CreatesCommunities::class);
-
-    Log::info("Input", [$request->all()]);
-
-    $createdCommunity = $creator->create($request->user(), $request->all());
-    return self::created(new CommunityResource($createdCommunity), "Community created successfully");
+    $createdItem = $creator->create($request->user(), $input);
+    return self::created(new CommunityResource($createdItem), "Community created successfully");
   }
 }

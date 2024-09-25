@@ -83,9 +83,15 @@ export const DELETE_USER_URL = 'current-user.destroy';
  */
 export const API_BASE_PATH = '/api/v1';
 export const PING_API_PATH = `${API_BASE_PATH}/ping`;
-export const COMMUNITY_API_BASE_PATH = `${API_BASE_PATH}/communities`;
+
+// Users
 export const USERS_API_BASE_PATH = `${API_BASE_PATH}/users`;
 export const USERS_API_IS_USERNAME_AVAILABLE_PATH = `${USERS_API_BASE_PATH}/is-username-available`;
+
+// Communities
+export const COMMUNITY_API_BASE_PATH = `${API_BASE_PATH}/communities`;
+export const COMMUNITY_RESOURCE_COLLECTION_PATH_PARAM = '{communityCuid}';
+export const COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH = `${API_BASE_PATH}/communities/{communityCuid}/resource-collections`;
 
 /**
  * Regexes and other constants
