@@ -63,6 +63,7 @@ export interface ApiToken {
   updated_at: DateTime;
 }
 
+// FIXME use or get rid of
 export interface Role {
   description: string;
   key: string;
