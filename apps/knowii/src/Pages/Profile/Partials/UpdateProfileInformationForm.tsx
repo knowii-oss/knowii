@@ -108,17 +108,21 @@ export default function UpdateProfileInformationForm(props: Props) {
     return false;
   };
 
-  useEffect(() => {
-    // When a new request is going to be issued,
-    // the first thing to do is cancel the previous one
-    lastAbortController.current?.abort();
+  useEffect(
+    () => {
+      // When a new request is going to be issued,
+      // the first thing to do is cancel the previous one
+      lastAbortController.current?.abort();
 
-    // Create new AbortController for the new request and store it in the ref
-    const currentAbortController = new AbortController();
-    lastAbortController.current = currentAbortController;
+      // Create new AbortController for the new request and store it in the ref
+      const currentAbortController = new AbortController();
+      lastAbortController.current = currentAbortController;
 
-    verifyUsernameAvailability(currentAbortController);
-  }, [usernameToCheck]);
+      verifyUsernameAvailability(currentAbortController);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [usernameToCheck],
+  );
 
   const updateProfileInformation: FormEventHandler = (e) => {
     e.preventDefault();
