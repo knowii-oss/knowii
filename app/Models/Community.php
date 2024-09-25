@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 use Parables\Cuid\GeneratesCuid;
+use App\Models\CommunityResourceCollection;
 
 class Community extends Model
 {
@@ -132,6 +133,16 @@ class Community extends Model
     return $this->allUsers()->contains(function ($user) use ($email) {
       return $user->email === $email;
     });
+  }
+
+  /**
+   * Get all of the pending user invitations for the community.
+   *
+   * @return HasMany
+   */
+  public function resourceCollections()
+  {
+    return $this->hasMany(CommunityResourceCollection::class);
   }
 
   /**
