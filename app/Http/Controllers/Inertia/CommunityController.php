@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Inertia;
 
+use App\Http\Resources\CommunityResource;
 use App\Models\Community;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -30,7 +31,7 @@ class CommunityController extends Controller
         // WARNING: The props passed here must remain aligned with the props expected by the page
         return Jetstream::inertia()->render($request, 'Communities/Show', [
             // WARNING: The props passed here must remain aligned with the props expected by the page
-            'community' => $community->load('owner', 'users', 'communityInvitations'),
+            'community' => $community,
 
             // WARNING: The props passed here must remain aligned with the props defined in community.schema.ts
             'permissions' => [
@@ -41,9 +42,13 @@ class CommunityController extends Controller
                 'canUpdateCommunityMembers' => Gate::check('updateCommunityMember', $community),
                 'canRemoveCommunityMembers' => Gate::check('removeCommunityMember', $community),
                 
-                'canCreateResourceCollections' => Gate::check('createResourceCollection', $community),
-                'canUpdateResourceCollections' => Gate::check('updateResourceCollection', $community),
-                'canDeleteResourceCollections' => Gate::check('deleteResourceCollection', $community),
+                'canCreateResourceCollection' => Gate::check('createResourceCollection', $community),
+                'canUpdateResourceCollection' => Gate::check('updateResourceCollection', $community),
+                'canDeleteResourceCollection' => Gate::check('deleteResourceCollection', $community),
+
+                'canCreateResource' => Gate::check('createResource', $community),
+                'canUpdateResource' => Gate::check('updateResource', $community),
+                'canDeleteResource' => Gate::check('deleteResource', $community),
             ],
         ]);
     }
