@@ -70,7 +70,7 @@ trait HasCommunities
       return false;
     }
 
-    return $this->id == $community->{$this->getForeignKey()};
+    return $this->id == $community->owner_id;
   }
 
   /**

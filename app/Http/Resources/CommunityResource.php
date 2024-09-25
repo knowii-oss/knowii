@@ -20,6 +20,7 @@ class CommunityResource extends JsonResource
           'slug' => $this->slug,
           'description' => $this->description ?? '', // Ensure description is never null when returning data
           'visibility' => $this->visibility,
+          'owner' => new UserResource($this->owner),
           'created_at' => $this->created_at,
           'updated_at' => $this->updated_at,
         ];

@@ -62,7 +62,7 @@ class CreateNewUser implements CreatesNewUsers
     }
 
     $user->ownedCommunities()->save(Community::forceCreate([
-      'user_id' => $user->id,
+      'owner_id' => $user->id,
       'name' => $communityName,
       // The slug is generated automatically
       'description' => $user->name . "'s Personal space",
