@@ -1,9 +1,19 @@
-import { COMMUNITY_API_BASE_PATH, PING_API_PATH, USERS_API_IS_USERNAME_AVAILABLE_PATH } from '../constants';
-import { PingResponse, pingResponseSchema } from './communities/ping-response.schema';
+import {
+  COMMUNITY_API_BASE_PATH,
+  PING_API_PATH,
+  USERS_API_IS_USERNAME_AVAILABLE_PATH,
+  COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH,
+} from '../constants';
+import { PingResponse, pingResponseSchema } from './ping-response.schema';
 import { CreateCommunityResponse, createCommunityResponseSchema } from './communities/create-community-response.schema';
 import { CreateCommunityRequest } from './communities/create-community-request.schema';
 import { IsUsernameAvailableRequest } from './users/is-username-available-request.schema';
 import { IsUsernameAvailableResponse, isUsernameAvailableResponseSchema } from './users/is-username-available-response.schema';
+import { CreateCommunityResourceCollectionRequest } from './community-resource-collections/create-community-resource-collection-request.schema';
+import {
+  CreateCommunityResourceCollectionResponse,
+  createCommunityResourceCollectionResponseSchema,
+} from './community-resource-collections/create-community-resource-collection-response.schema';
 
 const defaultHeaders: Headers = new Headers({
   Accept: 'application/json',
@@ -11,18 +21,6 @@ const defaultHeaders: Headers = new Headers({
 });
 
 export const knowiiApiClient = {
-  utils: {
-    ping: async (): Promise<PingResponse> => {
-      const response = await fetch(PING_API_PATH, {
-        method: 'get',
-        headers: defaultHeaders,
-      });
-
-      const responseAsJson = await response.json();
-
-      return pingResponseSchema.parse(responseAsJson);
-    },
-  },
   communities: {
     create: async (input: CreateCommunityRequest): Promise<CreateCommunityResponse> => {
       const response = await fetch(COMMUNITY_API_BASE_PATH, {
@@ -32,8 +30,19 @@ export const knowiiApiClient = {
       });
 
       const responseAsJson = await response.json();
-
       return createCommunityResponseSchema.parse(responseAsJson);
+    },
+    resourceCollections: {
+      create: async (input: CreateCommunityResourceCollectionRequest): Promise<CreateCommunityResourceCollectionResponse> => {
+        const response = await fetch(COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH, {
+          method: 'post',
+          headers: defaultHeaders,
+          body: JSON.stringify(input),
+        });
+
+        const responseAsJson = await response.json();
+        return createCommunityResourceCollectionResponseSchema.parse(responseAsJson);
+      },
     },
   },
   users: {
@@ -48,6 +57,18 @@ export const knowiiApiClient = {
       const responseAsJson = await response.json();
 
       return isUsernameAvailableResponseSchema.parse(responseAsJson);
+    },
+  },
+  utils: {
+    ping: async (): Promise<PingResponse> => {
+      const response = await fetch(PING_API_PATH, {
+        method: 'get',
+        headers: defaultHeaders,
+      });
+
+      const responseAsJson = await response.json();
+
+      return pingResponseSchema.parse(responseAsJson);
     },
   },
 };

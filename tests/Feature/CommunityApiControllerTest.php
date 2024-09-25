@@ -16,7 +16,10 @@ test('communities can be created via the API', function () {
     'visibility' => KnowiiCommunityVisibility::Public->value,
   ];
 
-  $response = $this->json('POST', 'api/v1/communities', $input, [
+  $requestUrl = 'api/v1/communities';
+
+  // TODO stop hardcoding URLs in tests
+  $response = $this->json('POST', $requestUrl, $input, [
     'Accept' => 'application/json',
   ]);
 

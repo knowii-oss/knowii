@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class CommunityResource extends JsonResource
+class CommunityResourceCollectionResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -19,7 +19,6 @@ class CommunityResource extends JsonResource
           'name' => $this->name,
           'slug' => $this->slug,
           'description' => $this->description ?? '', // Ensures description is never null when returning data
-          'visibility' => $this->visibility,
           'created_at' => $this->created_at,
           'updated_at' => $this->updated_at,
         ];

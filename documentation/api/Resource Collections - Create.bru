@@ -1,0 +1,24 @@
+meta {
+  name: Resource Collections - Create
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/cw8sgg0g8ogko8gc8ok80cco/resource-collections
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "foo",
+    "description": "bar",
+    "visibility": "public"
+  }
+}
