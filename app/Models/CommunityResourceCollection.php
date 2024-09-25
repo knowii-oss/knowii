@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use App\Events\ResourceCollections\ResourceCollectionCreated;
-use App\Events\ResourceCollections\ResourceCollectionDeleted;
-use App\Events\ResourceCollections\ResourceCollectionUpdated;
+use App\Events\CommunityResourceCollections\CommunityResourceCollectionCreated;
+use App\Events\CommunityResourceCollections\CommunityResourceCollectionDeleted;
+use App\Events\CommunityResourceCollections\CommunityResourceCollectionUpdated;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -50,9 +50,9 @@ class CommunityResourceCollection extends Model
    * @var array<string, class-string>
    */
   protected $dispatchesEvents = [
-    'created' => ResourceCollectionCreated::class,
-    'updated' => ResourceCollectionUpdated::class,
-    'deleted' => ResourceCollectionDeleted::class,
+    'created' => CommunityResourceCollectionCreated::class,
+    'updated' => CommunityResourceCollectionUpdated::class,
+    'deleted' => CommunityResourceCollectionDeleted::class,
   ];
 
   /**
