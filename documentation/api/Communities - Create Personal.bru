@@ -1,7 +1,7 @@
 meta {
-  name: Communities - Create - Invalid input
+  name: Communities - Create Personal
   type: http
-  seq: 8
+  seq: 7
 }
 
 post {
@@ -17,7 +17,8 @@ headers {
 
 body:json {
   {
-    "description": "",
+    "name": "foo",
+    "description": "bar",
     "visibility": "personal"
   }
 }

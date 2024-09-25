@@ -18,7 +18,7 @@ class DeleteCommunity implements DeletesCommunities
     Log::info("Deleting community", ['communityCuid' => $communityCuid]);
     $community = (new Community())->whereCuid($communityCuid)->firstOrFail();
     app(ValidateCommunityDeletion::class)->validate($user, $community);
-
     $community->purge();
+    Log::info("Community deleted", ['communityCuid' => $communityCuid]);
   }
 }
