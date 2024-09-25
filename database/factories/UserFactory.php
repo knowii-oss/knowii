@@ -68,7 +68,7 @@ class UserFactory extends Factory
           'name' => $user->name . '\'s Space',
           // The slug is generated automatically
           'description' => $user->name . '\'s Personal Space',
-          'user_id' => $user->id,
+          'owner_id' => $user->id,
           'visibility' => KnowiiCommunityVisibility::Personal,
         ])
         ->when(is_callable($callback), $callback),

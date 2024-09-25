@@ -93,4 +93,9 @@ class User extends Authenticatable implements MustVerifyEmail
       'password' => 'hashed',
     ];
   }
+
+  public function ownedCommunities(): \Illuminate\Database\Eloquent\Relations\HasMany
+  {
+    return $this->hasMany(Community::class, 'owner_id');
+  }
 }

@@ -40,6 +40,7 @@ class Community extends Model
     'slug',
     'description',
     'visibility',
+    'owner_id',
   ];
 
   /**
@@ -49,7 +50,7 @@ class Community extends Model
    */
   protected $hidden = [
     'id',
-    'user_id',
+    'owner_id',
   ];
 
   /**
@@ -82,7 +83,7 @@ class Community extends Model
    */
   public function owner()
   {
-    return $this->belongsTo(Jetstream::userModel(), 'user_id');
+    return $this->belongsTo(Jetstream::userModel(), 'owner_id', 'id');
   }
 
   /**

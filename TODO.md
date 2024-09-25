@@ -3,8 +3,6 @@
 - CommunityController.php
 - community.schema.ts
 - CommunityPolicy
-- Create a database migration 
-- $table->foreignId('user_id');
 - When a new community is created, an entry should be added to the CommunityUser table, with the current user having the owner role
 - Implement RBAC model
 

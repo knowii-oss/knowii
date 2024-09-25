@@ -24,8 +24,8 @@ class CommunityFactory extends Factory
             'name' => $this->faker->unique()->company(),
             // The slug is generated automatically
             'description' => $this->faker->unique()->sentence(nbWords: 5),
-            'user_id' => User::factory(),
             'visibility' => KnowiiCommunityVisibility::Public,
+            'owner_id' => User::factory(),
         ];
     }
 }
