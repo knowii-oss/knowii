@@ -31,9 +31,11 @@ export default function CommunityPage(props: Props) {
             title={
               <div className="flex flex-row items-center justify-between">
                 <span className={classNames('text-[1.2rem] text-primary-500 leading-none')}>Recent Resources</span>
-                <Button severity="success" className="p-1">
-                  <FaPlus />
-                </Button>
+                {props.permissions.canCreateResource && (
+                  <Button severity="success" className="p-1">
+                    <FaPlus />
+                  </Button>
+                )}
               </div>
             }
             subTitle={<Divider className={classNames('p-0 m-0')} />}
@@ -89,10 +91,11 @@ export default function CommunityPage(props: Props) {
             title={
               <div className="flex flex-row items-center justify-between">
                 <span className={classNames('text-[1.2rem] text-primary-500 leading-none')}>Resource Collections</span>
-                {/* TODO only show button if user can add */}
-                {/*<Button severity="success" className="p-1">*/}
-                {/*  <FaPlus />*/}
-                {/*</Button>*/}
+                {props.permissions.canCreateResourceCollection && (
+                  <Button severity="success" className="p-1">
+                    <FaPlus />
+                  </Button>
+                )}
               </div>
             }
             subTitle={<Divider className={classNames('p-0 m-0')} />}
@@ -122,21 +125,23 @@ export default function CommunityPage(props: Props) {
           {/*</Card>*/}
 
           {/* Members */}
-          <Card
-            title={
-              <div className="flex flex-row items-center justify-between">
-                <span className={classNames('text-[1.2rem] text-primary-500 leading-none')}>Members</span>
-                {/* TODO only show button if user can add */}
-                {/*<Button severity="success" className="p-1">*/}
-                {/*  <FaPlus />*/}
-                {/*</Button>*/}
-              </div>
-            }
-            subTitle={<Divider className={classNames('p-0 m-0')} />}
-            className=""
-          >
-            <p className={classNames('text-sm text-gray-800 text-ellipsis line-clamp-4 md:line-clamp-5 min-h-6')}>Coming soon...</p>
-          </Card>
+          {'personal' !== props.community.visibility && (
+            <Card
+              title={
+                <div className="flex flex-row items-center justify-between">
+                  <span className={classNames('text-[1.2rem] text-primary-500 leading-none')}>Members</span>
+                  {/* TODO only show button if user can add */}
+                  {/*<Button severity="success" className="p-1">*/}
+                  {/*  <FaPlus />*/}
+                  {/*</Button>*/}
+                </div>
+              }
+              subTitle={<Divider className={classNames('p-0 m-0')} />}
+              className=""
+            >
+              <p className={classNames('text-sm text-gray-800 text-ellipsis line-clamp-4 md:line-clamp-5 min-h-6')}>Coming soon...</p>
+            </Card>
+          )}
         </div>
       </div>
     </AppLayout>
