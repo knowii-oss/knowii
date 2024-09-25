@@ -61,11 +61,9 @@ export default function UpdatePasswordForm() {
       title={'Update Password'}
       description={`Ensure your account is using a long, random password to stay secure.`}
       renderActions={() => (
-        <>
-          <Button className={classNames({ 'opacity-25': form.processing })} disabled={form.processing}>
-            Save
-          </Button>
-        </>
+        <Button className={classNames({ 'opacity-25': form.processing })} disabled={form.processing}>
+          Save
+        </Button>
       )}
     >
       {/* Current password */}
