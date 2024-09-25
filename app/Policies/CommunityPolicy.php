@@ -105,4 +105,34 @@ class CommunityPolicy
         || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Admin) 
         || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Moderator);
   }
+
+  /**
+   * Determine whether the user can create resources.
+   */
+  final public function createResource(User $user, Community $community): bool
+  {
+    return $user->ownsCommunity($community) 
+        || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Admin) 
+        || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Moderator);
+  }
+
+  /**
+   * Determine whether the user can update resources.
+   */
+  final public function updateResource(User $user, Community $community): bool
+  {
+    return $user->ownsCommunity($community) 
+        || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Admin) 
+        || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Moderator);
+  }
+
+  /**
+   * Determine whether the user can delete resources.
+   */
+  final public function deleteResource(User $user, Community $community): bool
+  {
+    return $user->ownsCommunity($community) 
+        || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Admin) 
+        || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Moderator);
+  }
 }

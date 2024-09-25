@@ -50,6 +50,7 @@ class Community extends Model
    */
   protected $hidden = [
     'id',
+    'invitations',
     'owner_id',
   ];
 

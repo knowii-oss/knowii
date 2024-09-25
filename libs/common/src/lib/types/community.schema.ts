@@ -51,7 +51,11 @@ export interface CommunityPermissions {
   canUpdateCommunityMembers: boolean;
   canRemoveCommunityMembers: boolean;
 
-  canCreateResourceCollections: boolean;
-  canUpdateResourceCollections: boolean;
-  canDeleteResourceCollections: boolean;
+  canCreateResourceCollection: boolean;
+  canUpdateResourceCollection: boolean;
+  canDeleteResourceCollection: boolean;
+
+  canCreateResource: boolean;
+  canUpdateResource: boolean;
+  canDeleteResource: boolean;
 }
