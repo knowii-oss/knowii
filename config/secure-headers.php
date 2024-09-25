@@ -86,7 +86,9 @@ return [
      *                  'same-origin', 'strict-origin', 'strict-origin-when-cross-origin', 'unsafe-url'
      */
 
-    'referrer-policy' => 'no-referrer',
+    // WARNING: Setting this to 'no-referrer' breaks Laravel redirects after validation errors
+    // Reference: https://www.sentinelstand.com/article/laravel-redirects-break-when-using-origin-referrer-policy
+    'referrer-policy' => 'origin-when-cross-origin',
 
     /*
      * Cross-Origin-Embedder-Policy
