@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use App\Enums\KnowiiCommunityMemberRole;
 
 return new class extends Migration
 {
@@ -11,12 +12,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('community_user', function (Blueprint $table) {
+        Schema::create('community_members', function (Blueprint $table) {
             $table->id();
             $table->string('cuid');
-            $table->foreignId('community_id');
+            $table->foreignId('community_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id');
-            $table->string('role')->nullable();
+            $table->enum('role', KnowiiCommunityMemberRole::toStringArray());
             $table->timestamps();
 
             $table->unique(['community_id', 'user_id']);
@@ -28,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('community_user');
+        Schema::dropIfExists('community_members');
     }
 };

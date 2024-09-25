@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Inertia;
 
-use App\Knowii;
+use App\Models\Community;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Gate;
@@ -23,19 +23,27 @@ class CommunityController extends Controller
      */
     public function show(Request $request, string $slug): Response
     {
-        $community = Knowii::newCommunityModel()->where('slug', $slug)->firstOrFail();
+        $community = (new Community())->where('slug', $slug)->firstOrFail();
 
         Gate::authorize('view', $community);
 
         // WARNING: The props passed here must remain aligned with the props expected by the page
         return Jetstream::inertia()->render($request, 'Communities/Show', [
+            // WARNING: The props passed here must remain aligned with the props expected by the page
             'community' => $community->load('owner', 'users', 'communityInvitations'),
+
+            // WARNING: The props passed here must remain aligned with the props defined in community.schema.ts
             'permissions' => [
-                'canAddCommunityMembers' => Gate::check('addCommunityMember', $community),
-                'canDeleteCommunity' => Gate::check('delete', $community),
-                'canRemoveCommunityMembers' => Gate::check('removeCommunityMember', $community),
                 'canUpdateCommunity' => Gate::check('update', $community),
+                'canDeleteCommunity' => Gate::check('delete', $community),
+
+                'canAddCommunityMembers' => Gate::check('addCommunityMember', $community),
                 'canUpdateCommunityMembers' => Gate::check('updateCommunityMember', $community),
+                'canRemoveCommunityMembers' => Gate::check('removeCommunityMember', $community),
+                
+                'canCreateResourceCollections' => Gate::check('createResourceCollection', $community),
+                'canUpdateResourceCollections' => Gate::check('updateResourceCollection', $community),
+                'canDeleteResourceCollections' => Gate::check('deleteResourceCollection', $community),
             ],
         ]);
     }

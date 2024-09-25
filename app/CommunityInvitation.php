@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Models\Community;
 use Illuminate\Database\Eloquent\Model;
 
 class CommunityInvitation extends Model
@@ -23,6 +24,6 @@ class CommunityInvitation extends Model
    */
   public function community()
   {
-    return $this->belongsTo(Knowii::communityModel());
+    return $this->belongsTo(Community::class);
   }
 }

@@ -7,6 +7,7 @@ use App\Models\Community;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Laravel\Jetstream\Contracts\DeletesUsers;
+use Illuminate\Support\Facades\Log;
 
 class DeleteUser implements DeletesUsers
 {
@@ -22,10 +23,9 @@ class DeleteUser implements DeletesUsers
      */
     public function delete(User $user): void
     {
+        Log::info("Deleting user", ['user' => $user]);
         DB::transaction(function () use ($user) {
-            // FIXME should this be the default behavior if a community owner deletes his account?
             $this->deleteCommunities($user);
-            // TODO delete everything the user owns/is part of before deleting it
             $user->deleteProfilePhoto();
             $user->tokens->each->delete();
             $user->delete();
@@ -37,8 +37,10 @@ class DeleteUser implements DeletesUsers
      */
     protected function deleteCommunities(User $user): void
     {
+        // Remove memberships
         $user->communities()->detach();
 
+        // Remove owned communities
         $user->ownedCommunities->each(function (Community $community) {
             $this->deletesCommunities->delete($community);
         });
