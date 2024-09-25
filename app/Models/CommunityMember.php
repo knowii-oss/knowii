@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use App\Enums\KnowiiCommunityMemberRole;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Parables\Cuid\GeneratesCuid;
 
 
-class Membership extends Pivot
+class CommunityMember extends Pivot
 {
     // Automatically generate cuid2 for the model
     // Reference: https://github.com/Parables/laravel-cuid2
@@ -17,7 +18,7 @@ class Membership extends Pivot
      *
      * @var string
      */
-    protected $table = 'community_user';
+    protected $table = 'community_members';
 
     /**
      * Indicates if the IDs are auto-incrementing.
@@ -33,5 +34,19 @@ class Membership extends Pivot
      */
     protected $hidden = [
       'id',
+      'community_id',
+      'user_id',
     ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+    return [
+      'role' => KnowiiCommunityMemberRole::class,
+    ];
+  }
 }

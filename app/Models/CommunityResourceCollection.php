@@ -5,7 +5,6 @@ namespace App\Models;
 use App\Events\ResourceCollections\ResourceCollectionCreated;
 use App\Events\ResourceCollections\ResourceCollectionDeleted;
 use App\Events\ResourceCollections\ResourceCollectionUpdated;
-use App\Knowii;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -72,7 +71,7 @@ class CommunityResourceCollection extends Model
    */
   public function community(): BelongsTo
   {
-    return $this->belongsTo(Knowii::communityModel());
+    return $this->belongsTo(Community::class);
   }
 
 //  /**

@@ -5,7 +5,7 @@ namespace App\Enums;
 enum KnowiiCommunityMemberRole: string
 {
   case Admin = "admin";
-  case Contributor = "contributor";
+  case Moderator = "moderator";
   case Member = "member";
 
   public static function toCommaSeparatedString(): string

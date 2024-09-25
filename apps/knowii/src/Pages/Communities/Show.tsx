@@ -3,6 +3,8 @@ import { Community, CommunityPermissions } from '@knowii/common';
 import { Card } from 'primereact/card';
 import classNames from 'classnames';
 import { Divider } from 'primereact/divider';
+import { Button } from 'primereact/button';
+import { FaPlus } from 'react-icons/fa';
 
 interface Props {
   community: Community;
@@ -29,10 +31,9 @@ export default function CommunityPage(props: Props) {
             title={
               <div className="flex flex-row items-center justify-between">
                 <span className={classNames('text-[1.2rem] text-primary-500 leading-none')}>Recent Resources</span>
-                {/* TODO only show button if user can add */}
-                {/*<Button severity="success" className="p-1">*/}
-                {/*  <FaPlus />*/}
-                {/*</Button>*/}
+                <Button severity="success" className="p-1">
+                  <FaPlus />
+                </Button>
               </div>
             }
             subTitle={<Divider className={classNames('p-0 m-0')} />}

@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreign('owner_id')
               ->references('id')
               ->on('users')
-              ->onDelete('cascade');
+              ->cascadeOnDelete();
             $table->string('name')->index();
             $table->string('slug')->unique()->index();
             $table->string('description')->nullable();

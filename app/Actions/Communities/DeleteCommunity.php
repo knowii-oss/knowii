@@ -3,8 +3,9 @@
 namespace App\Actions\Communities;
 
 use App\Contracts\Communities\DeletesCommunities;
-use App\Knowii;
+use App\Models\Community;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 class DeleteCommunity implements DeletesCommunities
 {
@@ -14,7 +15,8 @@ class DeleteCommunity implements DeletesCommunities
    */
   final public function delete(User $user, string $communityCuid): void
   {
-    $community = Knowii::newCommunityModel()->whereCuid($communityCuid)->firstOrFail();
+    Log::info("Deleting community", ['communityCuid' => $communityCuid]);
+    $community = (new Community())->whereCuid($communityCuid)->firstOrFail();
     app(ValidateCommunityDeletion::class)->validate($user, $community);
 
     $community->purge();

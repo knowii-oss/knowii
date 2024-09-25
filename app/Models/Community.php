@@ -3,10 +3,11 @@
 namespace App\Models;
 
 use App\Enums\KnowiiCommunityVisibility;
+use App\Models\CommunityMember;
 use App\Events\Communities\CommunityCreated;
 use App\Events\Communities\CommunityDeleted;
 use App\Events\Communities\CommunityUpdated;
-use App\Knowii;
+use App\Models\User;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,7 +15,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
-use Laravel\Jetstream\Jetstream;
 use Parables\Cuid\GeneratesCuid;
 
 class Community extends Model
@@ -83,7 +83,7 @@ class Community extends Model
    */
   public function owner()
   {
-    return $this->belongsTo(Jetstream::userModel(), 'owner_id', 'id');
+    return $this->belongsTo(User::class, 'owner_id', 'id');
   }
 
   /**
@@ -103,10 +103,10 @@ class Community extends Model
    */
   public function users()
   {
-    return $this->belongsToMany(Jetstream::userModel(), Knowii::communityMembershipModel())
+    return $this->belongsToMany(User::class, CommunityMember::class)
       ->withPivot('role')
       ->withTimestamps()
-      ->as('membership');
+      ->as('communityMember');
   }
 
   /**
@@ -134,25 +134,13 @@ class Community extends Model
   }
 
   /**
-   * Determine if the given user has the given permission in the community.
-   *
-   * @param User $user
-   * @param  string  $permission
-   * @return bool
-   */
-  public function userHasPermission(User $user, string $permission): bool
-  {
-    return $user->hasCommunityPermission($this, $permission);
-  }
-
-  /**
    * Get all of the pending user invitations for the community.
    *
    * @return HasMany
    */
   public function communityInvitations()
   {
-    return $this->hasMany(Knowii::communityInvitationModel());
+    return $this->hasMany(CommunityInvitation::class);
   }
 
   /**

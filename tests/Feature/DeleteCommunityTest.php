@@ -1,6 +1,7 @@
 <?php
 
 use App\Contracts\Communities\DeletesCommunities;
+use App\Enums\KnowiiCommunityMemberRole;
 use App\Enums\KnowiiCommunityVisibility;
 use App\Models\Community;
 use App\Models\User;
@@ -14,7 +15,7 @@ test('communities can be deleted', function () {
   ]));
 
   $community->users()->attach(
-    $otherUser = User::factory()->create(), ['role' => 'test-role']
+    $otherUser = User::factory()->create(), ['role' => KnowiiCommunityMemberRole::Member]
   );
 
   $deleter = app(DeletesCommunities::class);

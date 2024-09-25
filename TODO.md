@@ -1,16 +1,15 @@
 # TODO
 
+- HasCommunities: roles, permissions, etc
 - CommunityController.php
 - community.schema.ts
 - CommunityPolicy
-- When a new community is created, an entry should be added to the CommunityUser table, with the current user having the owner role
 - Implement RBAC model
 
   - Users can have a role which depends on the platform, not on the content
     - Admin: boolean flag on the user account
   - Users have generic permissions (e.g., canLogin, canRegister, etc)
   - Users can have roles and permissions in communities
-  - Community roles: Owner, Admin, Moderator, Member
   - Community permissions
     - createPublicCommunity
     - createPrivateCommunity

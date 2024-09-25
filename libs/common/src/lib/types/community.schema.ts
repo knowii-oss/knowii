@@ -49,20 +49,15 @@ export const communitySchema = baseEntitySchema.merge(newCommunitySchema).merge(
 export type Community = z.infer<typeof communitySchema>;
 
 export interface CommunityPermissions {
-  canAddCommunityMembers: boolean;
-  canDeleteCommunity: boolean;
-  canRemoveCommunityMembers: boolean;
+  // WARNING: The props defined here must remain aligned with the props defined in CommunityController.php
   canUpdateCommunity: boolean;
-  canUpdateCommunityMembers: boolean;
-}
+  canDeleteCommunity: boolean;
 
-// TODO implement
-//
-// export interface CommunityInvitation {
-//   cuid: string;
-//   community_id: number;
-//   email: string;
-//   role: Nullable<string>;
-//   created_at: DateTime;
-//   updated_at: DateTime;
-// }
+  canAddCommunityMembers: boolean;
+  canUpdateCommunityMembers: boolean;
+  canRemoveCommunityMembers: boolean;
+
+  canCreateResourceCollections: boolean;
+  canUpdateResourceCollections: boolean;
+  canDeleteResourceCollections: boolean;
+}
