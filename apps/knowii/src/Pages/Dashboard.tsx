@@ -10,7 +10,7 @@ import { Controller, useForm } from 'react-hook-form';
 import InputError from '@/Components/InputError';
 import CommunityBox from '@/Components/CommunityBox';
 import {
-  allowedCommunityVisibilityOptionsForCreation,
+  communityVisibilityOptions,
   Community,
   COMMUNITY_URL,
   knowiiApiClient,
@@ -209,7 +209,7 @@ export default function DashboardPage() {
                       <SelectButton
                         id="visibility"
                         className="mt-1 block"
-                        options={allowedCommunityVisibilityOptionsForCreation}
+                        options={communityVisibilityOptions}
                         optionLabel="name"
                         optionValue="visibility"
                         required

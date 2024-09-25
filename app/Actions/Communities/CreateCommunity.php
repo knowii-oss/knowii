@@ -46,11 +46,6 @@ class CreateCommunity implements CreatesCommunities
       'visibility' => ['required', 'string', 'in:' . KnowiiCommunityVisibility::toCommaSeparatedString()],
     ])->validate();
 
-    if($input['visibility'] === KnowiiCommunityVisibility::Personal->value) {
-      Log::warning('User is not allowed to create an additional private community');
-      throw new BusinessException('Users can have a single private community');
-    }
-
     Log::debug('Input validated');
 
     AddingCommunity::dispatch($user);

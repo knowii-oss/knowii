@@ -5,7 +5,6 @@ use App\Enums\KnowiiCommunityMemberRole;
 use App\Enums\KnowiiCommunityVisibility;
 use App\Models\Community;
 use App\Models\User;
-use Illuminate\Validation\ValidationException;
 
 test('communities can be deleted', function () {
   $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
@@ -24,17 +23,3 @@ test('communities can be deleted', function () {
   expect($community->fresh())->toBeNull();
   expect($otherUser->fresh()->communities)->toHaveCount(0);
 });
-
-test('personal communities cannot be deleted', function () {
-  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
-
-  $this->expectException(ValidationException::class);
-
-  $deleter = app(DeletesCommunities::class);
-  $deleter->delete($user, $user->personalCommunity()->cuid);
-
-  expect($user->personalCommunity()->fresh())->not->toBeNull();
-});
-
-
-

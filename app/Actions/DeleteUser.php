@@ -21,7 +21,7 @@ class DeleteUser implements DeletesUsers
     /**
      * Delete the given user.
      */
-    public function delete(User $user): void
+    final public function delete(User $user): void
     {
         Log::info("Deleting user", ['user' => $user]);
         DB::transaction(function () use ($user) {
@@ -30,6 +30,7 @@ class DeleteUser implements DeletesUsers
             $user->tokens->each->delete();
             $user->delete();
         });
+        Log::info("User deleted", ['user' => $user]);
     }
 
     /**
@@ -41,8 +42,10 @@ class DeleteUser implements DeletesUsers
         $user->communities()->detach();
 
         // Remove owned communities
-        $user->ownedCommunities->each(function (Community $community) {
-            $this->deletesCommunities->delete($community);
-        });
+        $ownedCommunities = $user->ownedCommunities;
+
+        foreach ($ownedCommunities as $community) {
+            $this->deletesCommunities->delete($user, $community->cuid);
+        }
     }
 }

@@ -2,11 +2,10 @@
 
 namespace App\Actions\Communities;
 
-use App\Enums\KnowiiCommunityVisibility;
 use App\Models\Community;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Log;
 
 class ValidateCommunityDeletion
 {
@@ -19,12 +18,8 @@ class ValidateCommunityDeletion
    */
   public function validate(User $user, Community $community): void
   {
+    Log::info("Verifying community deletion authorization", ['community' => $community, 'user' => $user]);
     Gate::forUser($user)->authorize('delete', $community);
-
-    if (KnowiiCommunityVisibility::Personal === $community->visibility) {
-      throw ValidationException::withMessages([
-        'community' => __('You may not delete your personal space.'),
-      ])->errorBag('deleteCommunity');
-    }
+    Log::info("Community deletion authorized", ['community' => $community, 'user' => $user]);
   }
 }

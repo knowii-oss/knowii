@@ -19,12 +19,6 @@ export const communityVisibilityOptions: Array<{ name: string; visibility: Commu
   { name: 'Public', visibility: 'public' },
 ];
 
-// Only allow creating Private or Public communities, not personal ones
-export const allowedCommunityVisibilityOptionsForCreation: Array<{ name: string; visibility: CommunityVisibility }> = [
-  { name: 'Private', visibility: 'private' },
-  { name: 'Public', visibility: 'public' },
-];
-
 export const newCommunitySchema = z.object({
   // WARNING: those rules must remain aligned with those in CreateCommunity.php
   name: z
