@@ -1,7 +1,6 @@
 import { Divider } from 'primereact/divider';
 import { Card } from 'primereact/card';
 import { Community } from '@knowii/common';
-import classNames from 'classnames';
 import { FaPlus } from 'react-icons/fa';
 import { Link } from '@inertiajs/react';
 
@@ -19,8 +18,8 @@ interface Props {
 export default function CommunityBox(props: Props) {
   const normalModeCard = props.community && (
     <Card
-      title={<span className={classNames('text-[1.2rem] text-primary-500 leading-none')}>{props.community.name}</span>}
-      subTitle={<Divider className={classNames('p-0 m-0')} />}
+      title={<span className="text-[1.2rem] text-primary-500 leading-none">{props.community.name}</span>}
+      subTitle={<Divider className="p-0 m-0" />}
       className="h-[250px]"
       onClick={
         props.clickHandler
@@ -29,16 +28,14 @@ export default function CommunityBox(props: Props) {
             () => {}
       }
     >
-      <p className={classNames('text-sm text-gray-800 text-ellipsis line-clamp-4 md:line-clamp-5 min-h-6')}>
-        {props.community.description}
-      </p>
+      <p className="text-sm text-gray-800 text-ellipsis line-clamp-4 md:line-clamp-5 min-h-6">{props.community.description}</p>
     </Card>
   );
 
   return props.creationMode ? (
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     <div
-      className="w-full sm:w-[450px] h-[250px] rounded-md flex flex-col justify-center items-center outline-dashed outline-2 outline-offset-[-2px] text-gray-800 hover:text-primary-500 hover:cursor-pointer hover:outline-4 hover:outline-primary-500 hover:outline-offset-[0px] hover:rounded-md"
+      className="w-full sm:w-[450px] h-[250px] rounded-md flex flex-col justify-center items-center outline-dashed outline-2 outline-offset-[-2px] text-gray-800 cursor-pointer hover:text-primary-500 hover:outline-4 hover:outline-primary-500 hover:outline-offset-[0px] hover:rounded-md"
       onClick={
         props.clickHandler
           ? props.clickHandler

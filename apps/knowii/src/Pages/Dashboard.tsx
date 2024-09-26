@@ -36,16 +36,19 @@ export default function DashboardPage() {
         </h2>
         <CardGroup className="mt-4">
           {communities.map((item) => (
-            <CommunityBox
-              key={item.cuid}
-              community={item}
-              creationMode={false}
-              link={route(COMMUNITY_URL, {
-                communitySlug: item.slug,
-              })}
-            />
+            <li className="w-full sm:w-auto" key={item.cuid}>
+              <CommunityBox
+                community={item}
+                creationMode={false}
+                link={route(COMMUNITY_URL, {
+                  communitySlug: item.slug,
+                })}
+              />
+            </li>
           ))}
-          <CommunityBox creationMode={true} clickHandler={openCreateCommunityModal} />
+          <li className="w-full sm:w-auto">
+            <CommunityBox creationMode={true} clickHandler={openCreateCommunityModal} />
+          </li>
         </CardGroup>
       </AppLayout>
       <CreateCommunityDialog visible={creatingCommunity} onHide={closeCreateCommunityModal} onCommunityCreated={handleCommunityCreated} />

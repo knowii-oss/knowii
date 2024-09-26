@@ -7,6 +7,8 @@ import { Button } from 'primereact/button';
 import { FaPlus } from 'react-icons/fa';
 import { useState } from 'react';
 import CommunityResourceCollectionDialog from '@/Components/ResourceCollections/CreateResourceCollectionDialog';
+import CommunityResourceCollectionBox from '@/Components/ResourceCollections/CommunityResourceCollectionBox';
+import CardGroup from '@/Components/CardGroup';
 
 interface Props {
   community: Community;
@@ -129,13 +131,33 @@ export default function CommunityPage(props: Props) {
             className=""
           >
             {resourceCollections.length > 0 ? (
-              <ul className="list-disc pl-5">
+              <CardGroup>
                 {resourceCollections.map((collection) => (
-                  <li key={collection.cuid} className="text-sm text-gray-800 mb-2">
-                    {collection.name}
+                  <li className="w-full sm:w-auto bg-re" key={collection.cuid}>
+                    <CommunityResourceCollectionBox key={collection.cuid} resourceCollection={collection} />
                   </li>
                 ))}
-              </ul>
+                {resourceCollections.map((collection) => (
+                  <li className="w-full sm:w-auto" key={collection.cuid}>
+                    <CommunityResourceCollectionBox key={collection.cuid} resourceCollection={collection} />
+                  </li>
+                ))}
+                {resourceCollections.map((collection) => (
+                  <li className="w-full sm:w-auto" key={collection.cuid}>
+                    <CommunityResourceCollectionBox key={collection.cuid} resourceCollection={collection} />
+                  </li>
+                ))}
+                {resourceCollections.map((collection) => (
+                  <li className="w-full sm:w-auto" key={collection.cuid}>
+                    <CommunityResourceCollectionBox key={collection.cuid} resourceCollection={collection} />
+                  </li>
+                ))}
+                {resourceCollections.map((collection) => (
+                  <li className="w-full sm:w-auto" key={collection.cuid}>
+                    <CommunityResourceCollectionBox key={collection.cuid} resourceCollection={collection} />
+                  </li>
+                ))}
+              </CardGroup>
             ) : (
               <p className={classNames('text-sm text-gray-800 text-ellipsis line-clamp-4 md:line-clamp-5 min-h-6')}>
                 No resource collections yet.

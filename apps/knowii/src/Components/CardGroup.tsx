@@ -7,5 +7,7 @@ interface Props {
 }
 
 export default function CardGroup(props: PropsWithChildren<Props>) {
-  return <div className={classNames('flex flex-wrap gap-6 justify-center md:justify-start', props.className)}>{props.children}</div>;
+  return (
+    <ul className={classNames('flex flex-wrap gap-6 justify-center md:justify-start list-none', props.className)}>{props.children}</ul>
+  );
 }
