@@ -62,6 +62,9 @@ export const USER_PROFILE_PASSWORD_UPDATE_URL = 'user-password.update';
 // Communities
 export const COMMUNITY_URL = 'communities.show';
 
+// Resource collections
+export const RESOURCE_COLLECTION_URL = 'resource-collections.show';
+
 // Authentication
 export const LOGIN_URL = 'login';
 export const REGISTER_URL = 'register';

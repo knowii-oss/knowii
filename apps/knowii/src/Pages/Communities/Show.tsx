@@ -1,5 +1,5 @@
 import AppLayout from '@/Layouts/AppLayout';
-import { Community, CommunityPermissions, CommunityResourceCollection } from '@knowii/common';
+import { Community, CommunityPermissions, CommunityResourceCollection, RESOURCE_COLLECTION_URL } from '@knowii/common';
 import { Card } from 'primereact/card';
 import classNames from 'classnames';
 import { Divider } from 'primereact/divider';
@@ -134,27 +134,14 @@ export default function CommunityPage(props: Props) {
               <CardGroup>
                 {resourceCollections.map((collection) => (
                   <li className="w-full sm:w-auto bg-re" key={collection.cuid}>
-                    <CommunityResourceCollectionBox key={collection.cuid} resourceCollection={collection} />
-                  </li>
-                ))}
-                {resourceCollections.map((collection) => (
-                  <li className="w-full sm:w-auto" key={collection.cuid}>
-                    <CommunityResourceCollectionBox key={collection.cuid} resourceCollection={collection} />
-                  </li>
-                ))}
-                {resourceCollections.map((collection) => (
-                  <li className="w-full sm:w-auto" key={collection.cuid}>
-                    <CommunityResourceCollectionBox key={collection.cuid} resourceCollection={collection} />
-                  </li>
-                ))}
-                {resourceCollections.map((collection) => (
-                  <li className="w-full sm:w-auto" key={collection.cuid}>
-                    <CommunityResourceCollectionBox key={collection.cuid} resourceCollection={collection} />
-                  </li>
-                ))}
-                {resourceCollections.map((collection) => (
-                  <li className="w-full sm:w-auto" key={collection.cuid}>
-                    <CommunityResourceCollectionBox key={collection.cuid} resourceCollection={collection} />
+                    <CommunityResourceCollectionBox
+                      key={collection.cuid}
+                      resourceCollection={collection}
+                      link={route(RESOURCE_COLLECTION_URL, {
+                        communitySlug: props.community.slug,
+                        resourceCollectionSlug: collection.slug,
+                      })}
+                    />
                   </li>
                 ))}
               </CardGroup>
