@@ -7,6 +7,7 @@ import LogoutOtherBrowserSessionsForm from '@/Pages/Profile/Partials/LogoutOther
 import DeleteUserForm from '@/Pages/Profile/Partials/DeleteUserForm';
 import { MenuItem } from 'primereact/menuitem';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
+import { FaUser } from 'react-icons/fa';
 
 interface Props {
   confirmsTwoFactorAuthentication: boolean;
@@ -16,10 +17,20 @@ interface Props {
 export default function UserProfile(props: Props) {
   const page = useTypedPage();
 
-  const breadcrumbItems: MenuItem[] = [{ label: 'Your user profile' }];
+  const breadcrumbItems: MenuItem[] = [
+    {
+      label: 'Edit profile',
+      template: (item) => (
+        <span className="flex items-center gap-2">
+          <FaUser />
+          {item.label}
+        </span>
+      ),
+    },
+  ];
 
   return (
-    <AppLayout title="Private profile" breadcrumbItems={breadcrumbItems} breadcrumbHome={breadcrumbHome}>
+    <AppLayout title="Edit profile" breadcrumbItems={breadcrumbItems} breadcrumbHome={breadcrumbHome}>
       {page.props.jetstream.canUpdateProfileInformation && page.props.auth.user && (
         <UpdateProfileInformationForm user={page.props.auth.user} />
       )}

@@ -18,6 +18,7 @@ import {
   useAppData,
 } from '@knowii/common';
 import { useState } from 'react';
+import ResourceCollectionIcon from './ResourceCollectionIcon';
 
 interface CreateResourceCollectionDialogSettings {
   visible: boolean;
@@ -84,7 +85,12 @@ export default function CreateResourceCollectionDialog({
 
   return (
     <Dialog
-      header="New resource collection"
+      header={
+        <span className="flex items-center gap-2">
+          <ResourceCollectionIcon />
+          New resource collection
+        </span>
+      }
       closeOnEscape={true}
       visible={settings.visible}
       className="w-full sm:w-[75vw] md:w-[60vw] lg:w-[40vw] xl:w-[30vw]"
