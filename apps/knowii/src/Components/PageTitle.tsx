@@ -15,7 +15,7 @@ export default function PageTitle(props: Props) {
       <BreadCrumb
         model={props.breadcrumbItems}
         home={props.home}
-        className="w-full bg-gradient-to-r from-gray-700 via-gray-500 to-gray-700"
+        className="bg-gradient-to-r from-gray-700 via-gray-500 to-gray-700 rounded-none bg-red-500"
         pt={{
           root: { className: 'border-none p-0' },
           label: { className: 'text-white font-bold text-sm sm:text-base' },

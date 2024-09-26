@@ -94,3 +94,10 @@ h2 {
 #waitlist-container > div.inline-container {
   @apply rounded-lg outline outline-4 outline-offset-[-4px] outline-primary-500 shadow-md transition-all duration-300 ease-in-out hover:outline-offset-[-2px] hover:shadow-lg mb-0 pb-0 !important;
 }
+
+/**
+ * The last element of the breadcrumb should not be clickable, nor should it have a hover effect
+ */
+.p-breadcrumb-list > li:last-child {
+  @apply hover:text-white cursor-default;
+}
