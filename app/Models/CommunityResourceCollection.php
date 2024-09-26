@@ -42,6 +42,7 @@ class CommunityResourceCollection extends Model
    */
   protected $hidden = [
     'id',
+    'community_id',
   ];
 
   /**
