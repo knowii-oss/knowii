@@ -9,6 +9,8 @@ import { useState } from 'react';
 import CommunityResourceCollectionDialog from '@/Components/ResourceCollections/CreateResourceCollectionDialog';
 import CommunityResourceCollectionBox from '@/Components/ResourceCollections/CommunityResourceCollectionBox';
 import CardGroup from '@/Components/CardGroup';
+import { MenuItem } from 'primereact/menuitem';
+import { breadcrumbHome } from '@/Components/BreadcrumbHome';
 
 interface Props {
   community: Community;
@@ -17,6 +19,8 @@ interface Props {
 }
 
 export default function CommunityPage(props: Props) {
+  const breadcrumbItems: MenuItem[] = [{ label: props.community.name }];
+
   const [resourceCollectionDialogSettings, setResourceCollectionDialogSettings] = useState({
     visible: false,
     communityCuid: '',
@@ -42,7 +46,7 @@ export default function CommunityPage(props: Props) {
   };
 
   return (
-    <AppLayout title={props.community.name} pageTitle={props.community.name}>
+    <AppLayout title={props.community.name} breadcrumbItems={breadcrumbItems} breadcrumbHome={breadcrumbHome}>
       <div className="flex flex-col md:flex-row gap-6">
         {/* First Column */}
         <div className="md:w-2/5 flex flex-col gap-6">
