@@ -3,7 +3,6 @@ import { Community, CommunityPermissions, CommunityResourceCollection, COMMUNITY
 import { Link } from '@inertiajs/react';
 import { MenuItem } from 'primereact/menuitem';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
-import { RESOURCE_COLLECTION_URL } from '@knowii/common';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
 import ResourceCollectionIcon from '@/Components/ResourceCollections/ResourceCollectionIcon';
 
@@ -29,17 +28,10 @@ export default function ResourceCollectionPage(props: Props) {
     {
       label: props.resourceCollection.name,
       template: (item) => (
-        <Link
-          href={route(RESOURCE_COLLECTION_URL, {
-            communitySlug: props.community.slug,
-            resourceCollectionSlug: props.resourceCollection.slug,
-          })}
-        >
-          <span className="flex items-center gap-2">
-            <ResourceCollectionIcon />
-            {item.label}
-          </span>
-        </Link>
+        <span className="flex items-center gap-2">
+          <ResourceCollectionIcon />
+          {item.label}
+        </span>
       ),
     },
   ];
