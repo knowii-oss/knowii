@@ -1,17 +1,44 @@
 import AppLayout from '@/Layouts/AppLayout';
-import { Community, CommunityPermissions } from '@knowii/common';
+import { Community, CommunityPermissions, CommunityResourceCollection } from '@knowii/common';
 import { Card } from 'primereact/card';
 import classNames from 'classnames';
 import { Divider } from 'primereact/divider';
 import { Button } from 'primereact/button';
 import { FaPlus } from 'react-icons/fa';
+import { useState } from 'react';
+import CommunityResourceCollectionDialog from '@/Components/ResourceCollections/CreateResourceCollectionDialog';
 
 interface Props {
   community: Community;
   permissions: CommunityPermissions;
+  resourceCollections: CommunityResourceCollection[];
 }
 
 export default function CommunityPage(props: Props) {
+  const [resourceCollectionDialogSettings, setResourceCollectionDialogSettings] = useState({
+    visible: false,
+    communityCuid: '',
+  });
+  const [resourceCollections, setResourceCollections] = useState<CommunityResourceCollection[]>([]);
+
+  const openResourceCollectionDialog = (communityCuid: string) => {
+    setResourceCollectionDialogSettings({
+      visible: true,
+      communityCuid,
+    });
+  };
+
+  const closeResourceCollectionDialog = () => {
+    setResourceCollectionDialogSettings({
+      visible: false,
+      communityCuid: '',
+    });
+  };
+
+  const handleResourceCollectionCreated = (newResourceCollection: CommunityResourceCollection) => {
+    setResourceCollections((prevCollections) => [...prevCollections, newResourceCollection]);
+  };
+
   return (
     <AppLayout title={props.community.name} pageTitle={props.community.name}>
       <div className="flex flex-col md:flex-row gap-6">
@@ -92,7 +119,7 @@ export default function CommunityPage(props: Props) {
               <div className="flex flex-row items-center justify-between">
                 <span className={classNames('text-[1.2rem] text-primary-500 leading-none')}>Resource Collections</span>
                 {props.permissions.canCreateResourceCollection && (
-                  <Button severity="success" className="p-1">
+                  <Button severity="success" className="p-1" onClick={() => openResourceCollectionDialog(props.community.cuid)}>
                     <FaPlus />
                   </Button>
                 )}
@@ -101,39 +128,30 @@ export default function CommunityPage(props: Props) {
             subTitle={<Divider className={classNames('p-0 m-0')} />}
             className=""
           >
-            <p className={classNames('text-sm text-gray-800 text-ellipsis line-clamp-4 md:line-clamp-5 min-h-6')}>Coming soon...</p>
+            {resourceCollections.length > 0 ? (
+              <ul className="list-disc pl-5">
+                {resourceCollections.map((collection) => (
+                  <li key={collection.cuid} className="text-sm text-gray-800 mb-2">
+                    {collection.name}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className={classNames('text-sm text-gray-800 text-ellipsis line-clamp-4 md:line-clamp-5 min-h-6')}>
+                No resource collections yet.
+              </p>
+            )}
           </Card>
         </div>
 
         {/* Third Column */}
         <div className="md:w-1/5 md:h-full flex flex-col gap-6">
-          {/* Upcoming events */}
-          {/*<Card*/}
-          {/*  title={*/}
-          {/*    <div className="flex flex-row items-center justify-between">*/}
-          {/*      <span className={classNames('text-[1.2rem] text-primary-500 leading-none')}>Upcoming Events</span>*/}
-          {/*      /!* TODO only show button if user can add *!/*/}
-          {/*      /!*<Button severity="success" className="p-1">*!/*/}
-          {/*      /!*  <FaPlus />*!/*/}
-          {/*      /!*</Button>*!/*/}
-          {/*    </div>*/}
-          {/*  }*/}
-          {/*  subTitle={<Divider className={classNames('p-0 m-0')} />}*/}
-          {/*  className=""*/}
-          {/*>*/}
-          {/*  <p className={classNames('text-sm text-gray-800 text-ellipsis line-clamp-4 md:line-clamp-5 min-h-6')}>Coming soon...</p>*/}
-          {/*</Card>*/}
-
           {/* Members */}
           {'personal' !== props.community.visibility && (
             <Card
               title={
                 <div className="flex flex-row items-center justify-between">
                   <span className={classNames('text-[1.2rem] text-primary-500 leading-none')}>Members</span>
-                  {/* TODO only show button if user can add */}
-                  {/*<Button severity="success" className="p-1">*/}
-                  {/*  <FaPlus />*/}
-                  {/*</Button>*/}
                 </div>
               }
               subTitle={<Divider className={classNames('p-0 m-0')} />}
@@ -144,6 +162,12 @@ export default function CommunityPage(props: Props) {
           )}
         </div>
       </div>
+
+      <CommunityResourceCollectionDialog
+        settings={resourceCollectionDialogSettings}
+        onHide={closeResourceCollectionDialog}
+        onResourceCollectionCreated={handleResourceCollectionCreated}
+      />
     </AppLayout>
   );
 }

@@ -90,7 +90,7 @@ export const USERS_API_IS_USERNAME_AVAILABLE_PATH = `${USERS_API_BASE_PATH}/is-u
 
 // Communities
 export const COMMUNITY_API_BASE_PATH = `${API_BASE_PATH}/communities`;
-export const COMMUNITY_RESOURCE_COLLECTION_PATH_PARAM = '{communityCuid}';
+export const COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH_PARAM_COMMUNITY = '{communityCuid}';
 export const COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH = `${API_BASE_PATH}/communities/{communityCuid}/resource-collections`;
 
 /**
