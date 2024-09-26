@@ -19,7 +19,7 @@ export default function CommunityPage(props: Props) {
     visible: false,
     communityCuid: '',
   });
-  const [resourceCollections, setResourceCollections] = useState<CommunityResourceCollection[]>([]);
+  const [resourceCollections, setResourceCollections] = useState<CommunityResourceCollection[]>(props.resourceCollections);
 
   const openResourceCollectionDialog = (communityCuid: string) => {
     setResourceCollectionDialogSettings({

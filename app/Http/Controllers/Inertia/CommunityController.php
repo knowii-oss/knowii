@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Inertia;
 
-use App\Http\Resources\CommunityResource;
 use App\Models\Community;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -10,6 +9,7 @@ use Illuminate\Support\Facades\Gate;
 use Inertia\Response;
 use Laravel\Jetstream\Jetstream;
 use Laravel\Jetstream\RedirectsActions;
+use App\Models\CommunityResourceCollection;
 
 class CommunityController extends Controller
 {
@@ -25,6 +25,9 @@ class CommunityController extends Controller
     public function show(Request $request, string $slug): Response
     {
         $community = (new Community())->where('slug', $slug)->firstOrFail();
+        $communityResourceCollections = CommunityResourceCollection::where('community_id', $community->id)
+          ->orderBy('name')
+          ->get()->toArray();
 
         Gate::authorize('view', $community);
 
@@ -32,6 +35,7 @@ class CommunityController extends Controller
         return Jetstream::inertia()->render($request, 'Communities/Show', [
             // WARNING: The props passed here must remain aligned with the props expected by the page
             'community' => $community,
+            'resourceCollections' => $communityResourceCollections,
 
             // WARNING: The props passed here must remain aligned with the props defined in community.schema.ts
             'permissions' => [
