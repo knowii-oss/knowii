@@ -6,10 +6,13 @@ import CardGroup from '@/Components/CardGroup';
 import { useImmer } from 'use-immer';
 import { useRoute } from 'ziggy-js';
 import CreateCommunityDialog from '@/Components/Communities/CreateCommunityDialog';
+import { MenuItem } from 'primereact/menuitem';
 
 export default function DashboardPage() {
   const page = useTypedPage();
   const route = useRoute();
+
+  const breadcrumbItems: MenuItem[] = [{ label: 'Dashboard' }];
 
   const [creatingCommunity, setCreatingCommunity] = useState(false);
   const [communities, updateCommunities] = useImmer<Community[]>(page.props.communities);
@@ -30,7 +33,7 @@ export default function DashboardPage() {
 
   return (
     <>
-      <AppLayout title="Dashboard" pageTitle="Dashboard">
+      <AppLayout title="Dashboard" breadcrumbItems={breadcrumbItems}>
         <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b-2 border-primary-500 pb-2 block text-center sm:text-left">
           My Communities
         </h2>

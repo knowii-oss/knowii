@@ -1,5 +1,7 @@
 # TODO
 
+- Add concept icon to breadcrumb elements
+- AppLayout: rename title to browserPageTitle
 - Add resourceLevel TS type based on KnowiiCommunityResourceLevel
 - Add resource level to resource cards
 - HasCommunities: roles, permissions, etc
