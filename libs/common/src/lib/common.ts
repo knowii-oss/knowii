@@ -12,10 +12,13 @@ export * from './contexts/app-context';
 export * from './hooks/use-debounce.hook.fn';
 export * from './hooks/use-typed-page.hook.fn';
 
-export * from './types/jetstream/jetstream-inertia.intf';
+export * from './types/base-entity.schema';
 export * from './types/community.schema';
-export * from './types/username.schema';
+export * from './types/community-resource-collection.schema';
 export * from './types/http-status.intf';
+export * from './types/identifiable.schema';
+export * from './types/jetstream/jetstream-inertia.intf';
+export * from './types/username.schema';
 
 export * from './utils/sleep.fn';
 

@@ -3,6 +3,7 @@ import {
   PING_API_PATH,
   USERS_API_IS_USERNAME_AVAILABLE_PATH,
   COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH,
+  COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH_PARAM_COMMUNITY,
 } from '../constants';
 import { PingResponse, pingResponseSchema } from './ping-response.schema';
 import { CreateCommunityResponse, createCommunityResponseSchema } from './communities/create-community-response.schema';
@@ -34,7 +35,12 @@ export const knowiiApiClient = {
     },
     resourceCollections: {
       create: async (input: CreateCommunityResourceCollectionRequest): Promise<CreateCommunityResourceCollectionResponse> => {
-        const response = await fetch(COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH, {
+        const requestUrl = `${COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH.replace(
+          COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH_PARAM_COMMUNITY,
+          input.communityCuid,
+        )}`;
+
+        const response = await fetch(requestUrl, {
           method: 'post',
           headers: defaultHeaders,
           body: JSON.stringify(input),
