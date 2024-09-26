@@ -7,12 +7,23 @@ import { useImmer } from 'use-immer';
 import { useRoute } from 'ziggy-js';
 import CreateCommunityDialog from '@/Components/Communities/CreateCommunityDialog';
 import { MenuItem } from 'primereact/menuitem';
+import { FaHome } from 'react-icons/fa';
 
 export default function DashboardPage() {
   const page = useTypedPage();
   const route = useRoute();
 
-  const breadcrumbItems: MenuItem[] = [{ label: 'Dashboard' }];
+  const breadcrumbItems: MenuItem[] = [
+    {
+      label: 'Home',
+      template: (item) => (
+        <span className="flex items-center gap-2">
+          <FaHome />
+          {item.label}
+        </span>
+      ),
+    },
+  ];
 
   const [creatingCommunity, setCreatingCommunity] = useState(false);
   const [communities, updateCommunities] = useImmer<Community[]>(page.props.communities);

@@ -20,6 +20,7 @@ import {
   useAppData,
 } from '@knowii/common';
 import { useState } from 'react';
+import CommunityIcon from './CommunityIcon';
 
 interface CreateCommunityDialogProps {
   visible: boolean;
@@ -75,7 +76,12 @@ export default function CreateCommunityDialog({ visible, onHide, onCommunityCrea
 
   return (
     <Dialog
-      header="New community"
+      header={
+        <span className="flex items-center gap-2">
+          <CommunityIcon />
+          New community
+        </span>
+      }
       closeOnEscape={true}
       visible={visible}
       className="w-full sm:w-[75vw] md:w-[60vw] lg:w-[40vw] xl:w-[30vw]"

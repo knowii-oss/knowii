@@ -3,6 +3,7 @@ import { Card } from 'primereact/card';
 import { Community } from '@knowii/common';
 import { FaPlus } from 'react-icons/fa';
 import { Link } from '@inertiajs/react';
+import CommunityIcon from './CommunityIcon';
 
 interface Props {
   community?: Community;
@@ -18,7 +19,12 @@ interface Props {
 export default function CommunityBox(props: Props) {
   const normalModeCard = props.community && (
     <Card
-      title={<span className="text-[1.2rem] text-primary-500 leading-none">{props.community.name}</span>}
+      title={
+        <span className="text-[1.2rem] text-primary-500 leading-none flex items-center gap-2">
+          <CommunityIcon />
+          {props.community.name}
+        </span>
+      }
       subTitle={<Divider className="p-0 m-0" />}
       className="h-[250px]"
       onClick={

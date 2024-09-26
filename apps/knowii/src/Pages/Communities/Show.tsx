@@ -11,6 +11,10 @@ import CommunityResourceCollectionBox from '@/Components/ResourceCollections/Com
 import CardGroup from '@/Components/CardGroup';
 import { MenuItem } from 'primereact/menuitem';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
+import CommunityIcon from '@/Components/Communities/CommunityIcon';
+import ResourceIcon from '@/Components/Resources/ResourceIcon';
+import ResourceCollectionIcon from '@/Components/ResourceCollections/ResourceCollectionIcon';
+import CommunityMembersIcon from '@/Components/Communities/CommunityMembersIcon';
 
 interface Props {
   community: Community;
@@ -19,7 +23,17 @@ interface Props {
 }
 
 export default function CommunityPage(props: Props) {
-  const breadcrumbItems: MenuItem[] = [{ label: props.community.name }];
+  const breadcrumbItems: MenuItem[] = [
+    {
+      label: props.community.name,
+      template: (item) => (
+        <span className="flex items-center gap-2">
+          <CommunityIcon />
+          {item.label}
+        </span>
+      ),
+    },
+  ];
 
   const [resourceCollectionDialogSettings, setResourceCollectionDialogSettings] = useState({
     visible: false,
@@ -63,7 +77,10 @@ export default function CommunityPage(props: Props) {
           <Card
             title={
               <div className="flex flex-row items-center justify-between">
-                <span className={classNames('text-[1.2rem] text-primary-500 leading-none')}>Recent Resources</span>
+                <span className="text-[1.2rem] text-primary-500 leading-none flex items-center gap-2">
+                  <ResourceIcon />
+                  Recent Resources
+                </span>
                 {props.permissions.canCreateResource && (
                   <Button severity="success" className="p-1">
                     <FaPlus />
@@ -123,7 +140,10 @@ export default function CommunityPage(props: Props) {
           <Card
             title={
               <div className="flex flex-row items-center justify-between">
-                <span className={classNames('text-[1.2rem] text-primary-500 leading-none')}>Resource Collections</span>
+                <span className="text-[1.2rem] text-primary-500 leading-none flex items-center gap-2">
+                  <ResourceCollectionIcon />
+                  Resource Collections
+                </span>
                 {props.permissions.canCreateResourceCollection && (
                   <Button severity="success" className="p-1" onClick={() => openResourceCollectionDialog(props.community.cuid)}>
                     <FaPlus />
@@ -164,7 +184,10 @@ export default function CommunityPage(props: Props) {
             <Card
               title={
                 <div className="flex flex-row items-center justify-between">
-                  <span className={classNames('text-[1.2rem] text-primary-500 leading-none')}>Members</span>
+                  <span className="text-[1.2rem] text-primary-500 leading-none flex items-center gap-2">
+                    <CommunityMembersIcon />
+                    Members
+                  </span>
                 </div>
               }
               subTitle={<Divider className={classNames('p-0 m-0')} />}
