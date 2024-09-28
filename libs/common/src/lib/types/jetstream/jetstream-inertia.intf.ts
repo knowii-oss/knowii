@@ -10,6 +10,9 @@ export type CurrentUser = {
   username: string;
   profile_photo_path: Nullable<string>;
   profile_photo_url: string;
+  bio: Nullable<string>;
+  location: Nullable<string>;
+  phone: Nullable<string>;
   two_factor_enabled: boolean;
   two_factor_confirmed_at: Nullable<DateTime>;
   email_verified_at: Nullable<DateTime>;

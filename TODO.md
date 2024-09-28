@@ -1,7 +1,6 @@
 # TODO
 
 - 2024_09_26_172059_add_community_resources_table
-- AppLayout: rename title to browserPageTitle
 - Add resourceLevel TS type based on KnowiiCommunityResourceLevel
 - Add resource level to resource cards
 - HasCommunities: roles, permissions, etc

@@ -44,7 +44,7 @@ export default function AppLayout(props: Props) {
 
   return (
     <>
-      <Head title={props.title} />
+      <Head title={props.browserPageTitle} />
 
       <Toast position={DEFAULT_TOAST_POSITION} ref={toastRef} />
 
