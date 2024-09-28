@@ -28,11 +28,32 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
       'username' => ['string', 'min:' . Constants::$MIN_LENGTH_USER_USERNAME, 'max:' . Constants::$MAX_LENGTH_USER_USERNAME, 'regex:' . Constants::$ALLOWED_USER_USERNAME_CHARACTERS_REGEX],
       'email' => ['required', 'email', 'max:' . Constants::$MAX_LENGTH_USER_EMAIL, Rule::unique('users')->ignore($user->id)],
       'photo' => ['nullable', 'mimes:jpg,jpeg,png', 'max:1024'],
+      'bio' => ['nullable', 'string', 'max:' . Constants::$MAX_LENGTH_USER_BIO],
+      'location' => ['nullable', 'string', 'max:' . Constants::$MAX_LENGTH_USER_LOCATION],
+      'phone' => ['nullable', 'string', 'max:' . Constants::$MAX_LENGTH_USER_PHONE, 'regex:' . Constants::$USER_PHONE_REGEX],
       ...array_fill_keys(Constants::$SOCIAL_MEDIA_LINK_PROPERTIES, ['nullable', 'string', 'max:255']),
     ])->validateWithBag('updateProfileInformation');
 
     if (isset($input['photo'])) {
       $user->updateProfilePhoto($input['photo']);
+    }
+
+    if (isset($input['bio'])) {
+      $user->forceFill([
+        'bio' => $input['bio'],
+      ])->save();
+    }
+
+    if (isset($input['location'])) {
+      $user->forceFill([
+        'location' => $input['location'],
+      ])->save();
+    }
+
+    if (isset($input['phone'])) {
+      $user->forceFill([
+        'phone' => $input['phone'],
+      ])->save();
     }
 
     if (isset($input['username'])) {

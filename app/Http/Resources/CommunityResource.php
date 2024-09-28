@@ -18,7 +18,7 @@ class CommunityResource extends JsonResource
           'cuid' => $this->cuid,
           'name' => $this->name,
           'slug' => $this->slug,
-          'description' => $this->description ?? '', // Ensures description is never null when returning data
+          'description' => $this->description ?? '', // Ensures the returned value is never null
           'visibility' => $this->visibility,
           'created_at' => $this->created_at,
           'updated_at' => $this->updated_at,

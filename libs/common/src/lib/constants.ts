@@ -103,7 +103,12 @@ export const COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH = `${API_BASE_PATH}/com
 export const MIN_LENGTH_USER_USERNAME = 3;
 export const MAX_LENGTH_USER_USERNAME = 36;
 export const ALLOWED_USER_USERNAME_CHARACTERS_REGEX = /^[a-zA-Z0-9-']+$/;
-export const MIN_LENGTH_SLUG = 3;
+
+export const MAX_LENGTH_USER_LOCATION = 128;
+export const MAX_LENGTH_USER_BIO = 512;
+export const MAX_LENGTH_USER_PHONE = 48;
+export const USER_PHONE_REGEX = /^[0-9-+()./ ]+$/;
+
 export const MAX_LENGTH_SLUG = 128;
 
 // Community
