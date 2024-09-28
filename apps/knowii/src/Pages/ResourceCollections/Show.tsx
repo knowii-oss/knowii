@@ -38,7 +38,7 @@ export default function ResourceCollectionPage(props: Props) {
 
   return (
     <AppLayout
-      title={`${props.community.name} - ${props.resourceCollection.name}`}
+      browserPageTitle={`${props.community.name} - ${props.resourceCollection.name}`}
       breadcrumbItems={breadcrumbItems}
       breadcrumbHome={breadcrumbHome}
     >

@@ -18,7 +18,7 @@ import PageTitle from '@/Components/PageTitle';
 import { MenuItem } from 'primereact/menuitem';
 
 interface Props {
-  title: string;
+  browserPageTitle: string;
   pageTitle?: string;
   breadcrumbItems?: MenuItem[];
   breadcrumbHome?: MenuItem;

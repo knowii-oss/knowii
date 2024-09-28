@@ -44,7 +44,7 @@ export default function DashboardPage() {
 
   return (
     <>
-      <AppLayout title="Dashboard" breadcrumbItems={breadcrumbItems}>
+      <AppLayout browserPageTitle="Dashboard" breadcrumbItems={breadcrumbItems}>
         <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b-2 border-primary-500 pb-2 block text-center sm:text-left">
           My Communities
         </h2>

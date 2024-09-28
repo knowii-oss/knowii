@@ -60,7 +60,7 @@ export default function CommunityPage(props: Props) {
   };
 
   return (
-    <AppLayout title={props.community.name} breadcrumbItems={breadcrumbItems} breadcrumbHome={breadcrumbHome}>
+    <AppLayout browserPageTitle={props.community.name} breadcrumbItems={breadcrumbItems} breadcrumbHome={breadcrumbHome}>
       <div className="flex flex-col md:flex-row gap-6">
         {/* First Column */}
         <div className="md:w-2/5 flex flex-col gap-6">
