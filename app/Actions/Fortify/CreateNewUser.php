@@ -44,6 +44,11 @@ class CreateNewUser implements CreatesNewUsers
         'email' => $input['email'],
         'password' => Hash::make($input['password']),
       ]), function (User $user) {
+        $user->profile()->create([
+          'user_id' => $user->id,
+          'name' => $user->name,
+          // Add any default values for the UserProfile here
+        ]);
         $this->createCommunity($user);
       });
     });

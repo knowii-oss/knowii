@@ -15,7 +15,8 @@ import {
   MAX_LENGTH_USER_BIO,
   MAX_LENGTH_USER_PHONE,
   USER_PHONE_REGEX,
-  DEFAULT_TEXTAREA_ROWS,
+  UserProfile,
+  USER_PROFILE_BIO_TEXTAREA_ROWS,
 } from '@knowii/common';
 import { Link, useForm } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
@@ -36,15 +37,9 @@ interface Props {
 
 type UpdateProfileInformationFormData = { photo: File | null } & Omit<
   CurrentUser,
-  | 'created_at'
-  | 'updated_at'
-  | 'email_verified_at'
-  | 'cuid'
-  | 'profile_photo_path'
-  | 'profile_photo_url'
-  | 'two_factor_enabled'
-  | 'two_factor_confirmed_at'
->;
+  'created_at' | 'updated_at' | 'email_verified_at' | 'cuid' | 'two_factor_enabled' | 'two_factor_confirmed_at'
+> &
+  Omit<UserProfile, 'profile_photo_path' | 'profile_photo_url'>;
 
 export default function UpdateProfileInformationForm(props: Props) {
   const route = useRoute();
@@ -57,6 +52,7 @@ export default function UpdateProfileInformationForm(props: Props) {
 
   const form = useForm<UpdateProfileInformationFormData>({
     ...props.user,
+    ...page.props.userProfile,
     photo: null as File | null,
   });
 
@@ -141,7 +137,7 @@ export default function UpdateProfileInformationForm(props: Props) {
       errorBag: 'updateProfileInformation',
       preserveScroll: true,
       onSuccess: () => {
-        toast?.show({ severity: 'success', summary: 'Success', detail: 'Profile changed successfully.' });
+        toast?.show({ severity: 'success', summary: 'Success', detail: 'Profile updated successfully.' });
       },
     });
   };
@@ -269,7 +265,7 @@ export default function UpdateProfileInformationForm(props: Props) {
           <InputTextarea
             id="bio"
             className="mt-1 block w-full"
-            rows={DEFAULT_TEXTAREA_ROWS}
+            rows={USER_PROFILE_BIO_TEXTAREA_ROWS}
             value={form.data.bio || ''}
             onChange={(e) => form.setData('bio', e.target.value)}
             disabled={form.processing}

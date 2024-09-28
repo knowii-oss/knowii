@@ -5,7 +5,7 @@ use App\Models\User;
 use Illuminate\Http\Response;
 
 test('usernames availability can be verified via the user api controller', function () {
-  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+  $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
   $input = [
     'usernameToCheck' => 'foo',
@@ -21,7 +21,7 @@ test('usernames availability can be verified via the user api controller', funct
 });
 
 test('api controller returns false when a username is not available', function () {
-  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+  $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
   User::factory()->withPersonalCommunity()->create([
     'username' => 'foo',
@@ -41,9 +41,9 @@ test('api controller returns false when a username is not available', function (
 });
 
 test('api controller username availability check is case insensitive', function () {
-  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+  $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
-  User::factory()->withPersonalCommunity()->create([
+  User::factory()->withUserProfile()->withPersonalCommunity()->create([
     'username' => 'fOObaR',
   ]);
 
@@ -62,7 +62,7 @@ test('api controller username availability check is case insensitive', function 
 
 
 test('usernames availability checks return validation exception if the input is incorrect', function () {
-  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+  $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
   $input = [
   ];

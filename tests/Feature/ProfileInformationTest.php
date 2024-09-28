@@ -4,7 +4,7 @@ use App\Models\User;
 use Illuminate\Validation\ValidationException;
 
 test('profile information can be updated', function () {
-    $this->actingAs($user = User::factory()->create());
+    $this->actingAs($user = User::factory()->withUserProfile()->create());
 
     $this->put('/user/profile-information', [
         'name' => 'Test Name',
@@ -17,7 +17,7 @@ test('profile information can be updated', function () {
 });
 
 test('username can be updated via profile information', function () {
-  $this->actingAs($user = User::factory()->create());
+  $this->actingAs($user = User::factory()->withUserProfile()->create());
 
   $this->put('/user/profile-information', [
     'name' => 'Test Name',
@@ -32,7 +32,7 @@ test('username can be updated via profile information', function () {
 });
 
 test('username cannot be set to an invalid value via profile information', function () {
-  $this->actingAs($user = User::factory()->create());
+  $this->actingAs($user = User::factory()->withUserProfile()->create());
 
   $response = $this->put('/user/profile-information', [
     'name' => 'Test Name',

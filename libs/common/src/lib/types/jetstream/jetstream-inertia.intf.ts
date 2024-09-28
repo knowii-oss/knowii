@@ -8,16 +8,20 @@ export type CurrentUser = {
   name: string;
   email: string;
   username: string;
-  profile_photo_path: Nullable<string>;
-  profile_photo_url: string;
-  bio: Nullable<string>;
-  location: Nullable<string>;
-  phone: Nullable<string>;
   two_factor_enabled: boolean;
   two_factor_confirmed_at: Nullable<DateTime>;
   email_verified_at: Nullable<DateTime>;
   created_at: DateTime;
   updated_at: DateTime;
+};
+
+export type UserProfile = {
+  name: string;
+  profile_photo_path: Nullable<string>;
+  profile_photo_url: string;
+  bio: Nullable<string>;
+  location: Nullable<string>;
+  phone: Nullable<string>;
 } & { [K in SocialMediaLinkProperty]: string | null };
 
 export interface Auth {
@@ -43,6 +47,7 @@ export type InertiaSharedProps<T = NonNullable<unknown>> = T & {
   errorBags: any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   errors: any;
+  userProfile: UserProfile;
 };
 
 export interface Session {

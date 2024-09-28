@@ -8,7 +8,7 @@ use Illuminate\Http\Response;
 uses(RefreshDatabase::class);
 
 test('communities can be created via the API', function () {
-  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+  $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
   $input = [
     'name' => 'Test Community',

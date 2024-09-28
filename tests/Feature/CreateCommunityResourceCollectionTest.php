@@ -11,9 +11,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 test('resource collections can be created via the creator', function () {
-    $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+    $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
-    
+
     expect($user->ownedCommunities)->toHaveCount(1);
     $community = $user->ownedCommunities()->first();
 
@@ -32,8 +32,8 @@ test('resource collections can be created via the creator', function () {
 });
 
 test('creation is rejected by the creator if the name is too short', function () {
-    $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
-  
+    $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
+
     expect($user->ownedCommunities)->toHaveCount(1);
     $community = $user->ownedCommunities()->first();
 
@@ -45,13 +45,13 @@ test('creation is rejected by the creator if the name is too short', function ()
     $creator = new CreateCommunityResourceCollection();
 
     $this->expectException(ValidationException::class);
-    
+
     $creator->create($user, $community, $input);
 });
 
 test('creation is rejected by the creator if the name is too long', function () {
-    $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
-  
+    $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
+
     expect($user->ownedCommunities)->toHaveCount(1);
     $community = $user->ownedCommunities()->first();
 
@@ -63,13 +63,13 @@ test('creation is rejected by the creator if the name is too long', function () 
     $creator = new CreateCommunityResourceCollection();
 
     $this->expectException(ValidationException::class);
-    
+
     $creator->create($user, $community, $input);
 });
 
 test('creation is rejected by the creator if the name contains forbidden characters', function () {
-    $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
-  
+    $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
+
     expect($user->ownedCommunities)->toHaveCount(1);
     $community = $user->ownedCommunities()->first();
 
@@ -81,13 +81,13 @@ test('creation is rejected by the creator if the name contains forbidden charact
     $creator = new CreateCommunityResourceCollection();
 
     $this->expectException(ValidationException::class);
-    
+
     $creator->create($user, $community, $input);
 });
 
 test('creation is rejected by the creator if the description is too long', function () {
-    $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
-  
+    $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
+
     expect($user->ownedCommunities)->toHaveCount(1);
     $community = $user->ownedCommunities()->first();
 
@@ -99,13 +99,13 @@ test('creation is rejected by the creator if the description is too long', funct
     $creator = new CreateCommunityResourceCollection();
 
     $this->expectException(ValidationException::class);
-    
+
     $creator->create($user, $community, $input);
 });
 
 test('creation is rejected by the creator if the name is missing', function () {
-    $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
-  
+    $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
+
     expect($user->ownedCommunities)->toHaveCount(1);
     $community = $user->ownedCommunities()->first();
 
@@ -116,13 +116,13 @@ test('creation is rejected by the creator if the name is missing', function () {
     $creator = new CreateCommunityResourceCollection();
 
     $this->expectException(ValidationException::class);
-    
+
     $creator->create($user, $community, $input);
 });
 
 test('creation is rejected by the creator if the name is empty', function () {
-    $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
-  
+    $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
+
     expect($user->ownedCommunities)->toHaveCount(1);
     $community = $user->ownedCommunities()->first();
 
@@ -134,13 +134,13 @@ test('creation is rejected by the creator if the name is empty', function () {
     $creator = new CreateCommunityResourceCollection();
 
     $this->expectException(ValidationException::class);
-    
+
     $creator->create($user, $community, $input);
 });
 
 test('resource collection slug generation avoids duplicate slugs', function () {
-    $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
-  
+    $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
+
     expect($user->ownedCommunities)->toHaveCount(1);
     $community = $user->ownedCommunities()->first();
 

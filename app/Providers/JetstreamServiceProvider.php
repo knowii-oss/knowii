@@ -25,7 +25,7 @@ class JetstreamServiceProvider extends ServiceProvider
 
     Jetstream::deleteUsersUsing(DeleteUser::class);
 
-    // Example of how to pass additional data to a client-side page (via pprops)
+    // Example of how to pass additional data to a client-side page (via props)
     // When rendered via Inertia
     //Jetstream::inertia()->whenRendering(
     //    'Profile/Show',
