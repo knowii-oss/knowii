@@ -42,6 +42,7 @@ export const IS_TEST = process.env.NODE_ENV === 'test';
  */
 export const MIN_ACTION_TIME = 250;
 export const DEFAULT_TOAST_POSITION: ToastProps['position'] = 'top-center';
+export const DEFAULT_TEXTAREA_ROWS = 3;
 
 /**
  * URLs
