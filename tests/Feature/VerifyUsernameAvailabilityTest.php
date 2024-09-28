@@ -5,7 +5,7 @@ use App\Models\User;
 use Illuminate\Validation\ValidationException;
 
 test('usernames availability can be verified', function () {
-    $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+    $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
     $input = [
       'usernameToCheck' => 'foo',
@@ -18,7 +18,7 @@ test('usernames availability can be verified', function () {
 });
 
 test('username availability check rejects invalid input', function () {
-  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+  $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
   $input = [
     'foo' => 'bar',
@@ -31,9 +31,9 @@ test('username availability check rejects invalid input', function () {
 });
 
 test('username availability check returns false is the username is already taken', function () {
-  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+  $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
-  User::factory()->withPersonalCommunity()->create([
+  User::factory()->withUserProfile()->withPersonalCommunity()->create([
     'username' => 'foo',
   ]);
 
@@ -48,9 +48,9 @@ test('username availability check returns false is the username is already taken
 });
 
 test('username availability check is case insensitive', function () {
-  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+  $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
-  User::factory()->withPersonalCommunity()->create([
+  User::factory()->withUserProfile()->withPersonalCommunity()->create([
     'username' => 'FOOBaR',
   ]);
 

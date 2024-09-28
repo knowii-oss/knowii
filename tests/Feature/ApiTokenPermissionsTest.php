@@ -5,7 +5,7 @@ use Illuminate\Support\Str;
 use Laravel\Jetstream\Features;
 
 test('api token permissions can be updated', function () {
-    $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+    $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
     $token = $user->tokens()->create([
         'name' => 'Test Token',

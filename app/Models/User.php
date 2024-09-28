@@ -2,14 +2,12 @@
 
 namespace App\Models;
 
-use App\Constants;
 use App\Traits\HasCommunities;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
-use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
 use Parables\Cuid\GeneratesCuid;
 use TaylorNetwork\UsernameGenerator\FindSimilarUsernames;
@@ -19,7 +17,6 @@ class User extends Authenticatable implements MustVerifyEmail
 {
   use HasApiTokens;
   use HasFactory;
-  use HasProfilePhoto;
   use HasCommunities;
   use Notifiable;
   use TwoFactorAuthenticatable;
@@ -29,21 +26,6 @@ class User extends Authenticatable implements MustVerifyEmail
   // Automatically generate cuid2 for the model
   // Reference: https://github.com/Parables/laravel-cuid2
   use GeneratesCuid;
-
-  /**
-   * Initialize the model by setting up fillable attributes for social media links.
-   */
-  protected static function boot():void
-  {
-    parent::boot();
-
-    static::creating(static function ($model) {
-      // Add all social media link properties to the list of fillable fields
-      foreach (Constants::$SOCIAL_MEDIA_LINK_PROPERTIES as $property) {
-        $model->fillable[] = $property;
-      }
-    });
-  }
 
   /**
    * The attributes that are mass assignable.
@@ -73,20 +55,11 @@ class User extends Authenticatable implements MustVerifyEmail
   ];
 
   /**
-   * The accessors to append to the model's array form.
-   *
-   * @var array<int, string>
-   */
-  protected $appends = [
-    'profile_photo_url',
-  ];
-
-  /**
    * Get the attributes that should be cast.
    *
    * @return array<string, string>
    */
-  protected function casts(): array
+  final public function casts(): array
   {
     return [
       'email_verified_at' => 'datetime',
@@ -94,7 +67,18 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
   }
 
-  public function ownedCommunities(): \Illuminate\Database\Eloquent\Relations\HasMany
+  /**
+   * Get the user's profile.
+   */
+  final public function profile(): \Illuminate\Database\Eloquent\Relations\HasOne
+  {
+    return $this->hasOne(UserProfile::class);
+  }
+
+  /**
+   * Get the communities that the user owns.
+   */
+  final public function ownedCommunities(): \Illuminate\Database\Eloquent\Relations\HasMany
   {
     return $this->hasMany(Community::class, 'owner_id');
   }

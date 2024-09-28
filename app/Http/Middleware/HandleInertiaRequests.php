@@ -39,6 +39,11 @@ class HandleInertiaRequests extends Middleware
 
     // If the user is authenticated, load their communities
     if ($request->user()) {
+      // Add the user profile
+      $userProfile = $request->user()->profile;
+      $retVal['userProfile'] = $userProfile;
+
+      // Add the communities of the user
       $allCommunities = $request->user()->allCommunities();
       $retVal['communities'] = $allCommunities->values();
     } else {

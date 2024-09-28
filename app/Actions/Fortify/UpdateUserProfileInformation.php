@@ -4,7 +4,9 @@ namespace App\Actions\Fortify;
 
 use App\Constants;
 use App\Contracts\Users\VerifiesUsernameAvailability;
+use App\Exceptions\TechnicalException;
 use App\Models\User;
+use App\Models\UserProfile;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -18,6 +20,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
    *
    * @param User $user
    * @param array $input
+   * @throws TechnicalException
    */
   final public function update(User $user, array $input): void
   {
@@ -34,65 +37,60 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
       ...array_fill_keys(Constants::$SOCIAL_MEDIA_LINK_PROPERTIES, ['nullable', 'string', 'max:255']),
     ])->validateWithBag('updateProfileInformation');
 
-    if (isset($input['photo'])) {
-      $user->updateProfilePhoto($input['photo']);
+    $userProfile = $user->profile;
+    if (!$userProfile) {
+      // Should never happen. User profiles MUST be created along with user accounts
+      throw new TechnicalException("User profile not found");
     }
 
-    if (isset($input['bio'])) {
-      $user->forceFill([
-        'bio' => $input['bio'],
-      ])->save();
-    } else {
-      $user->forceFill([
-        'bio' => null,
-      ])->save();
-    }
+    // Handle user account updates
+    \DB::transaction(function () use ($user, $userProfile, $input) {
+      if (isset($input['username'])) {
+        $this->updateUsername($user, $input['username']);
+      }
 
-    if (isset($input['location'])) {
-      $user->forceFill([
-        'location' => $input['location'],
-      ])->save();
-    } else {
-      $user->forceFill([
-        'location' => null,
-      ])->save();
-    }
+      if ($input['email'] !== $user->email && $user instanceof MustVerifyEmail) {
+        $this->updateVerifiedUser($user, $input);
+      } else {
+        $user->forceFill([
+          'email' => $input['email'],
+        ])->save();
+      }
 
-    if (isset($input['phone'])) {
-      $user->forceFill([
-        'phone' => $input['phone'],
-      ])->save();
-    } else {
-      $user->forceFill([
-        'phone' => null,
-      ])->save();
-    }
+      // Handle name update (which impacts both user and user profile)
+      if (isset($input['name'])) {
+        $user->forceFill([
+          'name' => $input['name'],
+        ])->save();
+        $userProfile->forceFill([
+          'name' => $input['name'],
+        ])->save();
+      }
 
-    if (isset($input['username'])) {
-      $this->updateUsername($user, $input['username']);
-    }
+      // Handle user profile updates
+      if (isset($input['photo'])) {
+        $userProfile->updateProfilePhoto($input['photo']);
+      }
 
-    if ($input['email'] !== $user->email && $user instanceof MustVerifyEmail) {
-      $this->updateVerifiedUser($user, $input);
-    } else {
-      $user->forceFill([
-        'name' => $input['name'],
-        'email' => $input['email'],
+      $userProfile->forceFill([
+        'bio' => $input['bio'] ?? null,
+        'location' => $input['location'] ?? null,
+        'phone' => $input['phone'] ?? null,
       ])->save();
-    }
 
-    $this->updateSocialLinks($user, $input);
+      $this->updateSocialLinks($userProfile, $input);
+    });
   }
 
   /**
    * Update the given verified user's profile information.
    *
+   * @param User $user
    * @param array<string, string> $input
    */
   final public function updateVerifiedUser(User $user, array $input): void
   {
     $user->forceFill([
-      'name' => $input['name'],
       'email' => $input['email'],
       'email_verified_at' => null,
     ])->save();
@@ -127,11 +125,11 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 
   /**
    * Update social links if present
-   * @param User $user
+   * @param UserProfile $userProfile
    * @param array $input
    * @return void
    */
-  final public function updateSocialLinks(User $user, array $input): void
+  final public function updateSocialLinks(UserProfile $userProfile, array $input): void
   {
     $updatedLinks = [];
     foreach (Constants::$SOCIAL_MEDIA_LINK_PROPERTIES as $socialMediaLinkProperty) {
@@ -141,6 +139,6 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         $updatedLinks[$socialMediaLinkProperty] = null;
       }
     }
-    $user->forceFill($updatedLinks)->save();
+    $userProfile->forceFill($updatedLinks)->save();
   }
 }

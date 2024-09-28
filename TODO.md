@@ -1,8 +1,5 @@
 # TODO
 
-- Create the user_profiles table
-- Move, bio, location, phone, and social links to the user_profiles table
-- When a user is created, a row should be added to user_profiles
 - Add resourceLevel TS type based on KnowiiCommunityResourceLevel
 - Add resource level to resource cards
 - HasCommunities: roles, permissions, etc
@@ -35,6 +32,7 @@
   - Should have inputs to pass a canAdd boolean, a onAdd function, and children
 - Move KnowiiApiResponse, KnowiiApiResponseCategory, and KnowiiApiResponseType to a dedicated package -> App\Enums
 - Add and configure the following plugins for ReactMarkdown: remark-gfm, remark-toc, remark-mdx, remark-frontmatter
+- add "profile" to UserResource?
 
 'availableRoles' => array_values(Jetstream::$roles),
 'availablePermissions' => Jetstream::$permissions,

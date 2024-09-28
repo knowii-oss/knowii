@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Enums\KnowiiCommunityVisibility;
 use App\Models\Community;
 use App\Models\User;
+use App\Models\UserProfile;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -34,6 +35,7 @@ class UserFactory extends Factory
     $username = $usernameGenerator->generate($name);
 
     return [
+      'cuid' => new Cuid2(),
       'name' => $name,
       'username' => $username,
       'email' => fake()->unique()->safeEmail(),
@@ -42,8 +44,6 @@ class UserFactory extends Factory
       'two_factor_secret' => null,
       'two_factor_recovery_codes' => null,
       'remember_token' => Str::random(10),
-      'profile_photo_path' => null,
-      'cuid' => new Cuid2(),
     ];
   }
 
@@ -55,6 +55,21 @@ class UserFactory extends Factory
     return $this->state(fn(array $attributes) => [
       'email_verified_at' => null,
     ]);
+  }
+
+  /**
+   * Indicate that the user should have a user profile.
+   */
+  final public function withUserProfile(?callable $callback = null): static
+  {
+    return $this->has(
+      UserProfile::factory()
+        ->state(fn(array $attributes, User $user) => [
+          'name' => $user->name,
+        ])
+        ->when(is_callable($callback), $callback),
+      'profile'
+    );
   }
 
   /**

@@ -10,7 +10,7 @@ use Illuminate\Validation\ValidationException;
 uses(RefreshDatabase::class);
 
 test('communities can be created via the creator', function () {
-    $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+    $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
     expect($user->ownedCommunities)->toHaveCount(1);
 
@@ -32,7 +32,7 @@ test('communities can be created via the creator', function () {
 });
 
 test('creation is rejected by the community creator if the name is too short', function () {
-  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+  $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
   expect($user->ownedCommunities)->toHaveCount(1);
 
@@ -49,7 +49,7 @@ test('creation is rejected by the community creator if the name is too short', f
 });
 
 test('creation is rejected by the community creator if the name is too long', function () {
-  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+  $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
   expect($user->ownedCommunities)->toHaveCount(1);
 
@@ -66,7 +66,7 @@ test('creation is rejected by the community creator if the name is too long', fu
 });
 
 test('creation is rejected by the community creator if the name contains forbidden characters', function () {
-  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+  $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
   expect($user->ownedCommunities)->toHaveCount(1);
 
@@ -83,7 +83,7 @@ test('creation is rejected by the community creator if the name contains forbidd
 });
 
 test('creation is rejected by the community creator if the description is too long', function () {
-  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+  $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
   expect($user->ownedCommunities)->toHaveCount(1);
 
@@ -100,7 +100,7 @@ test('creation is rejected by the community creator if the description is too lo
 });
 
 test('creation is rejected by the community creator if the name is missing', function () {
-  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+  $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
   expect($user->ownedCommunities)->toHaveCount(1);
 
@@ -116,7 +116,7 @@ test('creation is rejected by the community creator if the name is missing', fun
 });
 
 test('creation is rejected by the community creator if the name is empty', function () {
-  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+  $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
   expect($user->ownedCommunities)->toHaveCount(1);
 
@@ -133,7 +133,7 @@ test('creation is rejected by the community creator if the name is empty', funct
 });
 
 test('creation is rejected by the community creator if the name is not long enough', function () {
-  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+  $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
   expect($user->ownedCommunities)->toHaveCount(1);
 
@@ -150,7 +150,7 @@ test('creation is rejected by the community creator if the name is not long enou
 });
 
 test('creation is rejected by the community creator if the visibility is not provided', function () {
-  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+  $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
   expect($user->ownedCommunities)->toHaveCount(1);
 
@@ -167,7 +167,7 @@ test('creation is rejected by the community creator if the visibility is not pro
 });
 
 test('creation is rejected by the community creator if the provided visibility does not exist', function () {
-  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+  $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
   expect($user->ownedCommunities)->toHaveCount(1);
 
@@ -184,7 +184,7 @@ test('creation is rejected by the community creator if the provided visibility d
 });
 
 test('community slug generation avoids duplicate slugs', function () {
-  $this->actingAs($user = User::factory()->withPersonalCommunity()->create());
+  $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
   $input1 = [
     'name' => 'Test',
