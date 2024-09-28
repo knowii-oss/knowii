@@ -42,17 +42,29 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
       $user->forceFill([
         'bio' => $input['bio'],
       ])->save();
+    } else {
+      $user->forceFill([
+        'bio' => null,
+      ])->save();
     }
 
     if (isset($input['location'])) {
       $user->forceFill([
         'location' => $input['location'],
       ])->save();
+    } else {
+      $user->forceFill([
+        'location' => null,
+      ])->save();
     }
 
     if (isset($input['phone'])) {
       $user->forceFill([
         'phone' => $input['phone'],
+      ])->save();
+    } else {
+      $user->forceFill([
+        'phone' => null,
       ])->save();
     }
 
@@ -125,6 +137,8 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     foreach (Constants::$SOCIAL_MEDIA_LINK_PROPERTIES as $socialMediaLinkProperty) {
       if (isset($input[$socialMediaLinkProperty])) {
         $updatedLinks[$socialMediaLinkProperty] = $input[$socialMediaLinkProperty];
+      } else {
+        $updatedLinks[$socialMediaLinkProperty] = null;
       }
     }
     $user->forceFill($updatedLinks)->save();
