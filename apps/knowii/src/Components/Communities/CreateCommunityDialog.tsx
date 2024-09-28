@@ -18,6 +18,7 @@ import {
   MIN_ACTION_TIME,
   sleep,
   useAppData,
+  DEFAULT_TEXTAREA_ROWS,
 } from '@knowii/common';
 import { useState } from 'react';
 import CommunityIcon from './CommunityIcon';
@@ -136,6 +137,7 @@ export default function CreateCommunityDialog({ visible, onHide, onCommunityCrea
                       id="description"
                       className="mt-1 block w-full"
                       {...field}
+                      rows={DEFAULT_TEXTAREA_ROWS}
                       aria-invalid={form.formState.errors.description ? true : false}
                       disabled={loading}
                     />

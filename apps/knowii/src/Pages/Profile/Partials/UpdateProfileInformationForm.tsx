@@ -15,6 +15,7 @@ import {
   MAX_LENGTH_USER_BIO,
   MAX_LENGTH_USER_PHONE,
   USER_PHONE_REGEX,
+  DEFAULT_TEXTAREA_ROWS,
 } from '@knowii/common';
 import { Link, useForm } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
@@ -267,8 +268,8 @@ export default function UpdateProfileInformationForm(props: Props) {
           </span>
           <InputTextarea
             id="bio"
-            rows={3}
             className="mt-1 block w-full"
+            rows={DEFAULT_TEXTAREA_ROWS}
             value={form.data.bio || ''}
             onChange={(e) => form.setData('bio', e.target.value)}
             disabled={form.processing}
