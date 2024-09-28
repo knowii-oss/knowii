@@ -2,7 +2,7 @@ import FooterGuest from '@/Components/FooterGuest';
 import AuthenticationCard from '@/Components/AuthenticationCard';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
-import { LOGIN_URL, PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL, useTypedPage } from '@knowii/common';
+import { LOGIN_URL, PRIVACY_POLICY_URL, REGISTER_URL, TERMS_OF_SERVICE_URL, useTypedPage } from '@knowii/common';
 import { useRoute } from 'ziggy-js';
 import InputLabel from '@/Components/InputLabel';
 import { FaAt, FaLock, FaUser } from 'react-icons/fa';
@@ -35,7 +35,7 @@ export default function RegisterPage() {
 
   const submit: FormEventHandler = (e) => {
     e.preventDefault();
-    form.post(route('register'), {
+    form.post(route(REGISTER_URL), {
       onFinish: () => form.reset('password', 'password_confirmation'),
     });
   };

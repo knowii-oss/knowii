@@ -1,6 +1,8 @@
 # TODO
 
-- 2024_09_26_172059_add_community_resources_table
+- Create the user_profiles table
+- Move, bio, location, phone, and social links to the user_profiles table
+- When a user is created, a row should be added to user_profiles
 - Add resourceLevel TS type based on KnowiiCommunityResourceLevel
 - Add resource level to resource cards
 - HasCommunities: roles, permissions, etc

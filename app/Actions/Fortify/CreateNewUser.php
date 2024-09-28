@@ -52,7 +52,7 @@ class CreateNewUser implements CreatesNewUsers
   /**
    * Create a personal community for the user.
    */
-  final protected function createCommunity(User $user): void
+  final public function createCommunity(User $user): void
   {
     $communityName = $user->name;
     if ($user->name[-1] === 's') {
