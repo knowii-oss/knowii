@@ -30,7 +30,7 @@ export default function UserProfile(props: Props) {
   ];
 
   return (
-    <AppLayout title="Edit profile" breadcrumbItems={breadcrumbItems} breadcrumbHome={breadcrumbHome}>
+    <AppLayout browserPageTitle="Profile" breadcrumbItems={breadcrumbItems} breadcrumbHome={breadcrumbHome}>
       {page.props.jetstream.canUpdateProfileInformation && page.props.auth.user && (
         <UpdateProfileInformationForm user={page.props.auth.user} />
       )}
