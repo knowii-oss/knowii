@@ -76,18 +76,18 @@ class User extends Authenticatable implements MustVerifyEmail
   }
 
   /**
- * Detach the user profile from this account.
- */
-final public function detachProfile(): void
-{
+   * Detach the user profile from this account.
+   */
+  final public function detachProfile(): void
+  {
     $profile = $this->profile;
     if ($profile) {
-        $profile->user_id = null;
-        // WARNING: the username and email fields should NOT be cleared when detaching the user profile
-        // This will enable re-claiming past user profiles
-        $profile->save();
+      $profile->user_id = null;
+      // WARNING: the username and email fields should NOT be cleared when detaching the user profile
+      // This will enable re-claiming past user profiles
+      $profile->save();
     }
-}
+  }
 
   /**
    * Get the communities that the user owns.

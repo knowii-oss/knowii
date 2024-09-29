@@ -61,7 +61,7 @@ class CommunityResourceCollection extends Model
    *
    * @return array<string, string>
    */
-  protected function casts(): array
+  final public function casts(): array
   {
     return [
     ];
@@ -70,7 +70,7 @@ class CommunityResourceCollection extends Model
   /**
    * Get the community that the invitation belongs to.
    */
-  public function community(): BelongsTo
+  final public function community(): BelongsTo
   {
     return $this->belongsTo(Community::class);
   }
@@ -112,7 +112,7 @@ class CommunityResourceCollection extends Model
    * Reference: https://github.com/cviebrock/eloquent-sluggable
    * @return array
    */
-  public function sluggable(): array
+  final public function sluggable(): array
   {
     // The slug is derived from the name (and uniqueness is ensured)
     return [

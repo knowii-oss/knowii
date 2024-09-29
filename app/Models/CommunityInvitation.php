@@ -4,9 +4,7 @@ namespace App\Models;
 
 
 use App\Enums\KnowiiCommunityMemberRole;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\CommunityInvitation as KnowiiCommunityInvitation;
-use App\Models\Community;
 use Parables\Cuid\GeneratesCuid;
 
 class CommunityInvitation extends KnowiiCommunityInvitation
@@ -36,19 +34,11 @@ class CommunityInvitation extends KnowiiCommunityInvitation
     ];
 
     /**
-     * Get the community that the invitation belongs to.
-     */
-    public function community(): BelongsTo
-    {
-        return $this->belongsTo(Community::class);
-    }
-
-    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
      */
-    protected function casts(): array
+    final public function casts(): array
     {
       return [
         'role' => KnowiiCommunityMemberRole::class,

@@ -23,7 +23,7 @@ class UserProfile extends Authenticatable implements MustVerifyEmail
   /**
    * Initialize the model by setting up fillable attributes for social media links.
    */
-  protected static function boot():void
+  final public static function boot(): void
   {
     parent::boot();
 
