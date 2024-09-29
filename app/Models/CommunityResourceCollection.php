@@ -68,19 +68,21 @@ class CommunityResourceCollection extends Model
   }
 
   /**
-   * Get the community that the invitation belongs to.
+   * Get the community that this belongs to
    */
   final public function community(): BelongsTo
   {
     return $this->belongsTo(Community::class);
   }
 
+  // FIXME implement methods
+
 //  /**
 //   * Get all of the resources in the collection.
 //   *
 //   * @return Collection
 //   */
-//  public function allResources()
+//  final public function allResources()
 //  {
 //    return $this->resources;
 //  }
@@ -91,7 +93,7 @@ class CommunityResourceCollection extends Model
 //   * @param Resource $resource
 //   * @return bool
 //   */
-//  public function hasResource(Resource $resource): bool
+//  final public function hasResource(Resource $resource): bool
 //  {
 //    return $this->resources->contains($resource);
 //  }
@@ -101,7 +103,7 @@ class CommunityResourceCollection extends Model
 //   *
 //   * @return void
 //   */
-//  public function purge(): void
+//  final public function purge(): void
 //  {
 //    $this->resources()->delete();
 //    $this->delete();
