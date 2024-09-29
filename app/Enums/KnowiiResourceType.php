@@ -2,13 +2,9 @@
 
 namespace App\Enums;
 
-enum KnowiiCommunityResourceLevel: string
+enum KnowiiResourceType: string
 {
-  case Beginner = "beginner";
-  case Intermediate = "intermediate";
-  case Advanced = "advanced";
-  case Expert = "expert";
-  case Unknown = "unknown";
+  case Article = "article";
 
   public static function toCommaSeparatedString(): string
   {
