@@ -99,14 +99,15 @@ export default function RegisterPage() {
                 id="password"
                 className="mt-1 block w-full"
                 promptLabel="Choose a password"
-                weakLabel="Too simple"
-                mediumLabel="Average complexity"
-                strongLabel="Complex password"
+                //weakLabel="Too simple"
+                //mediumLabel="Average complexity"
+                //strongLabel="Complex password"
+                feedback={false}
+                toggleMask
                 pt={{ input: { className: 'w-full p-inputtext-lg' } }}
                 value={form.data.password}
                 onChange={(e) => form.setData('password', e.target.value)}
                 autoComplete="new-password"
-                toggleMask
                 required
                 disabled={form.processing}
               />
