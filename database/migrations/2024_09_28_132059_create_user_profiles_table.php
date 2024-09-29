@@ -11,7 +11,7 @@ return new class extends Migration
    */
   public function up(): void
   {
-    Schema::create('user_profiles', function (Blueprint $table) {
+    Schema::create('user_profiles', static function (Blueprint $table) {
       $table->id();
       $table->string('cuid')->unique()->index();
       $table->unsignedBigInteger('user_id')->unique()->nullable(); // A user profile can exist for someone who has no user account.

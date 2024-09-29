@@ -12,7 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('community_members', function (Blueprint $table) {
+        Schema::create('community_members', static function (Blueprint $table) {
             $table->id();
             $table->string('cuid')->unique()->index();
             $table->foreignId('community_id')->constrained()->cascadeOnDelete();
