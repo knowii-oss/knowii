@@ -13,9 +13,14 @@ return new class extends Migration
   {
     Schema::create('user_profiles', function (Blueprint $table) {
       $table->id();
-      $table->string('cuid');
-      $table->unsignedBigInteger('user_id')->nullable()->unique(); // A user profile can exist for someone who has no user account.
-      $table->string('name'); // WARNING: This field is a synchronized COPY of the user's name (IF the user exists). That's why there is no foreign key to the users table for this column
+      $table->string('cuid')->unique()->index();
+      $table->unsignedBigInteger('user_id')->unique()->nullable(); // A user profile can exist for someone who has no user account.
+
+      // There is no foreign key for these fields because this information remains even if the user deletes their account
+      $table->string('username')->unique()->nullable()->index(); // WARNING: This field is a synchronized COPY of the user's username (IF the user exists).
+      $table->string('name')->index(); // WARNING: This field is a synchronized COPY of the user's name (IF the user exists)
+      $table->string('email')->unique()->nullable()->index(); // WARNING: This field is a synchronized COPY of the user's email (IF the user exists)
+
       $table->string('profile_photo_path', 2048)->nullable();
       $table->text('bio')->nullable();
       $table->string('location')->nullable();
@@ -46,7 +51,7 @@ return new class extends Migration
       $table->string('social_link_gitlab')->nullable();
       $table->timestamps();
 
-      $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
+      $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
     });
   }
 

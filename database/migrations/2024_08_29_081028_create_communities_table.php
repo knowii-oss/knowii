@@ -14,7 +14,7 @@ return new class extends Migration
     {
         Schema::create('communities', static function (Blueprint $table) {
             $table->id();
-            $table->string('cuid');
+            $table->string('cuid')->unique()->index();
             $table->unsignedBigInteger('owner_id');
             $table->foreign('owner_id')
               ->references('id')

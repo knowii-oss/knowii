@@ -14,7 +14,7 @@ return new class extends Migration
     {
         Schema::create('community_members', function (Blueprint $table) {
             $table->id();
-            $table->string('cuid');
+            $table->string('cuid')->unique()->index();
             $table->foreignId('community_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id');
             $table->enum('role', KnowiiCommunityMemberRole::toStringArray());

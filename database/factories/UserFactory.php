@@ -66,6 +66,8 @@ class UserFactory extends Factory
       UserProfile::factory()
         ->state(fn(array $attributes, User $user) => [
           'name' => $user->name,
+          'username' => $user->username,
+          'email' => $user->email,
         ])
         ->when(is_callable($callback), $callback),
       'profile'

@@ -46,22 +46,23 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     // Handle user account updates
     \DB::transaction(function () use ($user, $userProfile, $input) {
       if (isset($input['username'])) {
-        $this->updateUsername($user, $input['username']);
+        $this->updateUsername($user, $userProfile, $input['username']);
       }
 
       if ($input['email'] !== $user->email && $user instanceof MustVerifyEmail) {
-        $this->updateVerifiedUser($user, $input);
+        $this->updateVerifiedUser($user, $userProfile, $input);
       } else {
-        $user->forceFill([
-          'email' => $input['email'],
-        ])->save();
+        $this->updatedUnverifiedUser($user, $userProfile, $input);
       }
 
-      // Handle name update (which impacts both user and user profile)
+      // Handle name update
       if (isset($input['name'])) {
+        // Update the user account
         $user->forceFill([
           'name' => $input['name'],
         ])->save();
+
+        // Keep the user profile in sync
         $userProfile->forceFill([
           'name' => $input['name'],
         ])->save();
@@ -86,25 +87,53 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
    * Update the given verified user's profile information.
    *
    * @param User $user
+   * @param UserProfile $userProfile
    * @param array<string, string> $input
    */
-  final public function updateVerifiedUser(User $user, array $input): void
+  final public function updateVerifiedUser(User $user, UserProfile $userProfile, array $input): void
   {
+
+    // Update the user account
     $user->forceFill([
       'email' => $input['email'],
       'email_verified_at' => null,
+    ])->save();
+
+    // Keep the user profile in sync
+    $userProfile->forceFill([
+      'email' => $input['email'],
     ])->save();
 
     $user->sendEmailVerificationNotification();
   }
 
   /**
+   * @param User $user
+   * @param UserProfile $userProfile
+   * @param array $input
+   * @return void
+   */
+  final public function updatedUnverifiedUser(User $user, UserProfile $userProfile, array $input): void
+  {
+    // Update the user account
+    $user->forceFill([
+      'email' => $input['email'],
+    ])->save();
+
+    // Keep the user profile in sync
+    $userProfile->forceFill([
+      'email' => $input['email'],
+    ])->save();
+  }
+
+  /**
    * Update the username if needed/possible
    * @param User $user
+   * @param UserProfile $userProfile
    * @param string $newUsername
    * @return void
    */
-  final public function updateUsername(User $user, string $newUsername): void
+  final public function updateUsername(User $user, UserProfile $userProfile, string $newUsername): void
   {
     if (strtolower($user->username) === strtolower($newUsername)) {
       // No need to update the username if it's the same
@@ -118,8 +147,16 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
       throw new ValidationException("The username is already taken");
     }
 
+    $safeNewUsername = strtolower($newUsername);
+
+    // Update the user account
     $user->forceFill([
-      'username' => strtolower($newUsername),
+      'username' => $safeNewUsername,
+    ])->save();
+
+    // Keep the user profile in sync
+    $userProfile->forceFill([
+      'username' => $safeNewUsername,
     ])->save();
   }
 

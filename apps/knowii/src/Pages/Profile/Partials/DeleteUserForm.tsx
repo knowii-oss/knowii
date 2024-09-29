@@ -49,8 +49,8 @@ export default function DeleteUserForm() {
   return (
     <ActionSection title={'Delete Account'} description={'Permanently delete your account.'}>
       <div className="max-w-xl text-sm text-gray-600">
-        Once your account is deleted, all of its resources and data will be permanently deleted. Before deleting your account, please
-        download any data or information that you wish to retain.
+        Once your account is deleted, your own communities, resources, and interactions will all be be permanently removed. Only your public
+        profile will remain. If you create a new user account later, you will be able to re-claim your profile, but not the account data.
       </div>
 
       <div className="flex items-center mt-5">
@@ -72,8 +72,7 @@ export default function DeleteUserForm() {
           </>
         }
       >
-        Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you
-        would like to permanently delete your account.
+        Please enter your password to confirm you would like to permanently delete your account.
         <div className="mt-4">
           <div className="p-inputgroup mt-1">
             <span className="p-inputgroup-addon mt-1">

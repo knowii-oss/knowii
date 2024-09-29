@@ -17,6 +17,7 @@ class UserProfileResource extends JsonResource
         return [
             'cuid' => $this->cuid,
             'name' => $this->name,
+            'username' => $this->username ?? '',
             // FIXME: should the profile photo path be exposed to the client?
             'profile_photo_path' => $this->profile_photo_path,
             'profile_photo_url' => $this->profile_photo_url,

@@ -7,8 +7,8 @@ test('profile information can be updated', function () {
     $this->actingAs($user = User::factory()->withUserProfile()->create());
 
     $this->put('/user/profile-information', [
-        'name' => 'Test Name',
-        'email' => 'test@example.com',
+      'email' => 'test@example.com',
+      'name' => 'Test Name',
     ]);
 
     expect($user->fresh())
@@ -20,9 +20,9 @@ test('username can be updated via profile information', function () {
   $this->actingAs($user = User::factory()->withUserProfile()->create());
 
   $this->put('/user/profile-information', [
-    'name' => 'Test Name',
     'email' => 'test@example.com',
     'username' => 'foobar36',
+    'name' => 'Test Name',
   ]);
 
   expect($user->fresh())

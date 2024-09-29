@@ -43,6 +43,8 @@ class UserProfile extends Authenticatable implements MustVerifyEmail
   protected $fillable = [
     // WARNING: When new fields are added, this list should be updated!
     'name',
+    'username',
+    'email',
   ];
 
   /**
@@ -52,6 +54,7 @@ class UserProfile extends Authenticatable implements MustVerifyEmail
    */
   protected $hidden = [
     'id',
+    'email', // WARNING: the usernames MUST NOT be exposed
   ];
 
   /**

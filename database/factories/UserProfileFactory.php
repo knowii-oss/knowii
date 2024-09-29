@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use TaylorNetwork\UsernameGenerator\Generator;
 use Visus\Cuid2\Cuid2;
 
 /**
@@ -17,11 +18,16 @@ class UserProfileFactory extends Factory
    */
   final public function definition(): array
   {
+    $usernameGenerator = new Generator();
+
     $name = fake()->name();
+    $username = $usernameGenerator->generate($name);
 
     return [
       'cuid' => new Cuid2(),
       'name' => $name,
+      'username' => $username,
+      'email' => fake()->unique()->safeEmail(),
       'profile_photo_path' => null,
     ];
   }

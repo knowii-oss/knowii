@@ -47,6 +47,8 @@ class CreateNewUser implements CreatesNewUsers
         $user->profile()->create([
           'user_id' => $user->id,
           'name' => $user->name,
+          'username' => $user->username,
+          'email' => $user->email,
           // Add any default values for the UserProfile here
         ]);
         $this->createCommunity($user);
