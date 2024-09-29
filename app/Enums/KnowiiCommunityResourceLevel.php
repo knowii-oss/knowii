@@ -8,6 +8,7 @@ enum KnowiiCommunityResourceLevel: string
   case Intermediate = "intermediate";
   case Advanced = "advanced";
   case Expert = "expert";
+  case Unknown = "unknown";
 
   public static function toCommaSeparatedString(): string
   {
