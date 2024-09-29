@@ -17,6 +17,7 @@ export type CurrentUser = {
 
 export type UserProfile = {
   name: string;
+  username: Nullable<string>;
   profile_photo_path: Nullable<string>;
   profile_photo_url: string;
   bio: Nullable<string>;

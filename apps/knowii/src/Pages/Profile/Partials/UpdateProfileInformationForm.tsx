@@ -39,7 +39,7 @@ type UpdateProfileInformationFormData = { photo: File | null } & Omit<
   CurrentUser,
   'created_at' | 'updated_at' | 'email_verified_at' | 'cuid' | 'two_factor_enabled' | 'two_factor_confirmed_at'
 > &
-  Omit<UserProfile, 'profile_photo_path' | 'profile_photo_url'>;
+  Omit<UserProfile, 'profile_photo_path' | 'profile_photo_url' | 'username'>;
 
 export default function UpdateProfileInformationForm(props: Props) {
   const route = useRoute();
@@ -50,9 +50,12 @@ export default function UpdateProfileInformationForm(props: Props) {
 
   const [verificationLinkSent, setVerificationLinkSent] = useState(false);
 
+  // Some fields of the user profile are 1:1 copies of the user account, so they need to be ignored here
+  const { name: nameToIgnore, username: usernameToIgnore, ...userProfileFieldsToInclude } = page.props.userProfile;
+
   const form = useForm<UpdateProfileInformationFormData>({
     ...props.user,
-    ...page.props.userProfile,
+    ...userProfileFieldsToInclude,
     photo: null as File | null,
   });
 

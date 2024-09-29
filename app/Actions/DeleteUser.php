@@ -24,22 +24,20 @@ class DeleteUser implements DeletesUsers
     {
         Log::info("Deleting user", ['user' => $user]);
         DB::transaction(function () use ($user) {
-            $this->deleteUserProfile($user);
+            // Remove the user's communities and associated elements
             $this->deleteCommunities($user);
+
+            // When a user deletes their account, their user profile remains available, but is not associated with them anymore
+            // This ensures that associated resources are not lost
+            $user->detachProfile();
+
+            // Remove tokens
             $user->tokens->each->delete();
+
+            // Remove the user account
             $user->delete();
         });
         Log::info("User deleted", ['user' => $user]);
-    }
-
-        /**
-     * Delete the user's profile.
-     */
-    final public function deleteUserProfile(User $user): void
-    {
-        $userProfile = $user->profile;
-        $userProfile->deleteProfilePhoto();
-        $userProfile->delete();
     }
 
     /**
