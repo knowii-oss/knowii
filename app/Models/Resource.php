@@ -85,7 +85,7 @@ class Resource extends Model
   }
 
   /**
-   * Purge all of the community's resources.
+   * Purge
    *
    * @return void
    */
