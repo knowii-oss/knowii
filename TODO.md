@@ -1,5 +1,9 @@
 # TODO
 
+- create client-side types and enums for resources: Resource, ResourceType, ResourceLevel, CommunityResource, ResourceTextArticle, etc
+- create the action for creating CommunityResources
+- create an API controller for creating CommunityResources
+  - should create the underlying concepts automatically
 - Upon registration, before creating a user profile, make sure that there is none with the same email. If there is one, then attach it again
   - Improvement for later: create a temporary user profile, and when the user has verified their email, actually delete the new profile, and reattach the old one
 - Idea: create a dummy "Unknown" user account, and link user profiles of deleted users to it, for cases where the user explicitly requests the user profile to be removed as well (no recovery possible in that case)

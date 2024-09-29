@@ -76,7 +76,7 @@ class Resource extends Model
    *
    * @return array<string, string>
    */
-  protected function casts(): array
+  final public function casts(): array
   {
     return [
       'type' => KnowiiResourceType::class,
@@ -89,7 +89,7 @@ class Resource extends Model
    *
    * @return void
    */
-  public function purge(): void
+  final public function purge(): void
   {
     $this->delete();
   }
