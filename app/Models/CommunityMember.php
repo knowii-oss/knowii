@@ -43,7 +43,7 @@ class CommunityMember extends Pivot
      *
      * @return array<string, string>
      */
-    protected function casts(): array
+    final public function casts(): array
     {
     return [
       'role' => KnowiiCommunityMemberRole::class,

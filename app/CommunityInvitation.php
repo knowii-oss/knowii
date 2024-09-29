@@ -4,6 +4,7 @@ namespace App;
 
 use App\Models\Community;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CommunityInvitation extends Model
 {
@@ -22,7 +23,7 @@ class CommunityInvitation extends Model
    *
    * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
    */
-  public function community()
+  public function community(): BelongsTo
   {
     return $this->belongsTo(Community::class);
   }

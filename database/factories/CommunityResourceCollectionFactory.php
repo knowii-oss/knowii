@@ -2,15 +2,13 @@
 
 namespace Database\Factories;
 
-use App\Enums\KnowiiCommunityVisibility;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Visus\Cuid2\Cuid2;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Community>
  */
-class CommunityFactory extends Factory
+class CommunityResourceCollectionFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -24,8 +22,6 @@ class CommunityFactory extends Factory
             'name' => $this->faker->unique()->company(),
             // The slug is generated automatically
             'description' => $this->faker->unique()->sentence(nbWords: 5),
-            'visibility' => KnowiiCommunityVisibility::Public,
-            'owner_id' => User::factory(),
         ];
     }
 }

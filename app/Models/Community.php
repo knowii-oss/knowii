@@ -3,11 +3,9 @@
 namespace App\Models;
 
 use App\Enums\KnowiiCommunityVisibility;
-use App\Models\CommunityMember;
 use App\Events\Communities\CommunityCreated;
 use App\Events\Communities\CommunityDeleted;
 use App\Events\Communities\CommunityUpdated;
-use App\Models\User;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -16,7 +14,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 use Parables\Cuid\GeneratesCuid;
-use App\Models\CommunityResourceCollection;
 
 class Community extends Model
 {
@@ -71,7 +68,7 @@ class Community extends Model
    *
    * @return array<string, string>
    */
-  protected function casts(): array
+  final public function casts(): array
   {
     return [
       'visibility' => KnowiiCommunityVisibility::class,
@@ -83,7 +80,7 @@ class Community extends Model
    *
    * @return BelongsTo
    */
-  public function owner()
+  final public function owner(): BelongsTo
   {
     return $this->belongsTo(User::class, 'owner_id', 'id');
   }
@@ -93,7 +90,7 @@ class Community extends Model
    *
    * @return Collection
    */
-  public function allUsers()
+  final public function allUsers()
   {
     return $this->users->merge([$this->owner]);
   }
@@ -103,7 +100,7 @@ class Community extends Model
    *
    * @return BelongsToMany
    */
-  public function users()
+  final public function users()
   {
     return $this->belongsToMany(User::class, CommunityMember::class)
       ->withPivot('role')
@@ -117,7 +114,7 @@ class Community extends Model
    * @param User $user
    * @return bool
    */
-  public function hasUser(User $user): bool
+  final public function hasUser(User $user): bool
   {
     return $this->users->contains($user) || $user->ownsCommunity($this);
   }
@@ -128,7 +125,7 @@ class Community extends Model
    * @param  string  $email
    * @return bool
    */
-  public function hasUserWithEmail(string $email): bool
+  final public function hasUserWithEmail(string $email): bool
   {
     return $this->allUsers()->contains(function ($user) use ($email) {
       return $user->email === $email;
@@ -140,7 +137,7 @@ class Community extends Model
    *
    * @return HasMany
    */
-  public function resourceCollections()
+  final public function resourceCollections(): HasMany
   {
     return $this->hasMany(CommunityResourceCollection::class);
   }
@@ -150,7 +147,7 @@ class Community extends Model
    *
    * @return HasMany
    */
-  public function communityInvitations()
+  final public function communityInvitations(): HasMany
   {
     return $this->hasMany(CommunityInvitation::class);
   }
@@ -161,7 +158,7 @@ class Community extends Model
    * @param User $user
    * @return void
    */
-  public function removeUser(User $user): void
+  final public function removeUser(User $user): void
   {
     $this->users()->detach($user);
   }
@@ -171,7 +168,7 @@ class Community extends Model
    *
    * @return void
    */
-  public function purge(): void
+  final public function purge(): void
   {
     $this->users()->detach();
     $this->delete();
@@ -182,7 +179,7 @@ class Community extends Model
    * Reference: https://github.com/cviebrock/eloquent-sluggable
    * @return array
    */
-  public function sluggable(): array
+  final public function sluggable(): array
   {
     // The slug is derived from the name (and uniqueness is ensured)
     return [
