@@ -26,7 +26,9 @@ return new class extends Migration
 
       $table->boolean('is_featured')->default(false)->index();
       $table->timestamps();
-      $table->unique(['resource_id', 'community_id']);
+
+      // A given resource can only exist once within a given community and resource collection
+      $table->unique(['resource_id', 'community_id', 'collection_id']);
     });
   }
 
