@@ -1,0 +1,158 @@
+erDiagram
+    users ||--o{ user_profiles : has
+    users ||--o{ community_members : has
+    users ||--o{ communities : owns
+    communities ||--o{ community_members : has
+    communities ||--o{ community_invitations : has
+    communities ||--o{ community_resources : has
+    communities ||--o{ community_resource_collections : has
+    community_resource_collections ||--o{ community_resources : contains
+    resources ||--o{ community_resources : shared_in
+    resources ||--o{ resource_text_articles : has
+    user_profiles ||--o{ community_resources : curates
+
+    users {
+        bigint id PK
+        string cuid UK
+        string username UK
+        string name
+        string email UK
+        timestamp email_verified_at
+        string password
+        text two_factor_secret
+        text two_factor_recovery_codes
+        timestamp two_factor_confirmed_at
+        string remember_token
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    user_profiles {
+        bigint id PK
+        string cuid UK
+        bigint user_id UK, FK
+        string username UK
+        string name
+        string email UK
+        string profile_photo_path
+        text bio
+        string location
+        string phone
+        string social_link_website
+        string social_link_newsletter
+        string social_link_x
+        string social_link_mastodon
+        string social_link_bluesky
+        string social_link_threads_dot_net
+        string social_link_linkedin
+        string social_link_facebook
+        string social_link_instagram
+        string social_link_reddit
+        string social_link_medium
+        string social_link_substack
+        string social_link_hackernews
+        string social_link_hashnode
+        string social_link_dev_dot_to
+        string social_link_youtube
+        string social_link_tiktok
+        string social_link_twitch
+        string social_link_gumroad
+        string social_link_buymeacoffee
+        string social_link_patreon
+        string social_link_producthunt
+        string social_link_github
+        string social_link_gitlab
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    communities {
+        bigint id PK
+        string cuid UK
+        bigint owner_id FK
+        string name
+        string slug UK
+        string description
+        enum visibility
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    community_members {
+        bigint id PK
+        string cuid UK
+        bigint community_id FK
+        bigint user_id FK
+        enum role
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    community_invitations {
+        bigint id PK
+        string cuid UK
+        bigint community_id FK
+        string email
+        enum role
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    resources {
+        bigint id PK
+        string cuid UK
+        string name
+        string slug UK
+        text abstract
+        text description
+        text ai_summary
+        timestamp published_at
+        string language
+        string url
+        string thumbnail_url
+        enum type
+        enum level
+        boolean is_featured
+        integer view_count
+        integer share_count
+        timestamp last_captured_at
+        timestamp last_checked_at
+        integer check_failures_count
+        boolean is_unavailable
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    community_resources {
+        bigint id PK
+        string cuid UK
+        bigint resource_id FK
+        bigint community_id FK
+        bigint collection_id FK
+        bigint curator_id FK
+        boolean is_featured
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    community_resource_collections {
+        bigint id PK
+        string cuid UK
+        bigint community_id FK
+        string name
+        string slug UK
+        string description
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    resource_text_articles {
+        bigint id PK
+        string cuid UK
+        bigint resource_id FK
+        text content
+        integer word_count
+        integer reading_time
+        timestamp created_at
+        timestamp updated_at
+    }
