@@ -15,8 +15,8 @@ return new class extends Migration
       $table->string('cuid')->unique()->index();
       $table->string('name')->index();
       $table->string('slug')->unique()->index();
-      $table->text('excerpt')->nullable();
       $table->text('description')->nullable();
+      $table->text('excerpt')->nullable();
       $table->text('ai_summary')->nullable();
       $table->timestamp('published_at')->nullable()->index();
       $table->string('language', 5)->nullable();

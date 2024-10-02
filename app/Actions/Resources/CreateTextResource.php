@@ -2,6 +2,7 @@
 
 namespace App\Actions\Resources;
 
+use App\Constants;
 use App\Exceptions\TechnicalException;
 use App\Models\Community;
 use App\Models\CommunityResource;
@@ -57,6 +58,10 @@ class CreateTextResource implements CreatesTextResources
     Validator::make($input, [
         'url' => ['required', 'url'],
         'level' => ['required', Rule::enum(KnowiiResourceLevel::class)],
+        // Nullable allows empty strings to be passed in
+        // Note that the CommunityResource transforms null to an empty string
+        // Reference: https://laravel.com/docs/11.x/validation#a-note-on-optional-fields
+        'description' => ['nullable', 'string', 'max:' . Constants::$MAX_LENGTH_COMMUNITY_RESOURCE_DESCRIPTION],
       ]
     )->validate();
     Log::debug('Input validated');
@@ -99,11 +104,12 @@ class CreateTextResource implements CreatesTextResources
     }
     Log::debug("Page HTML loaded");
 
+
     $pageContent = [
       'content' => null,
       'title' => '',
+      'description' => $input['description'] ?? null, // Either use the provided description, or set to null
       'excerpt' => '',
-      'description' => null, // TODO let users provide a description
       'ai_summary' => null, // TODO generate summary using AI
       'published_at' => null, // FIXME identify the date
       'language' => null, // FIXME identify the language
@@ -183,7 +189,8 @@ class CreateTextResource implements CreatesTextResources
           'community_id' => $community->id,
           'collection_id' => $communityResourceCollection->id,
           'resource_text_article_id' => $resourceTextArticle->id,
-          'curator_id' => $user->id,
+          // We associate community resources with a user profile, not a user, so that when the user is deleted, the curation information remains
+          'curator_id' => $user->profile->id,
           'is_featured' => false,
         ]);
 
