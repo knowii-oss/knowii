@@ -2,6 +2,7 @@
 
 namespace App\Enums;
 
+// WARNING: Must remain in sync with the one defined in community.schema.ts
 enum KnowiiCommunityVisibility: string
 {
   case Personal = "personal";
