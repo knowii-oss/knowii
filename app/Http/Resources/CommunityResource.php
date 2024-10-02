@@ -19,7 +19,11 @@ class CommunityResource extends JsonResource
           'name' => $this->name,
           'slug' => $this->slug,
           'description' => $this->description ?? '', // Ensures the returned value is never null
-          'visibility' => $this->visibility,
+          'is_featured' => $this->is_featured,
+          // The name used with whenLoaded is the name of a function on the CommunityResource model
+          'curator' => UserProfileResource::make($this->whenLoaded('curator')),
+          'resource' => ResourceResource::make($this->whenLoaded('resource')),
+
           'created_at' => $this->created_at,
           'updated_at' => $this->updated_at,
         ];

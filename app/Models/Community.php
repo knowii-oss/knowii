@@ -137,7 +137,7 @@ class Community extends Model
    *
    * @return HasMany
    */
-  final public function resourceCollections(): HasMany
+  final public function communityResourceCollections(): HasMany
   {
     return $this->hasMany(CommunityResourceCollection::class);
   }

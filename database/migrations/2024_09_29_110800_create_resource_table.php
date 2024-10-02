@@ -20,7 +20,7 @@ return new class extends Migration
       $table->text('ai_summary')->nullable();
       $table->timestamp('published_at')->nullable()->index();
       $table->string('language', 5)->nullable();
-      $table->string('url')->nullable();
+      $table->string('url')->nullable()->unique()->index();
       $table->string('thumbnail_url')->nullable();
       $table->enum('type', KnowiiResourceType::toStringArray())->index();
       $table->enum('level', KnowiiResourceLevel::toStringArray())->index();

@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('name')->index();
             $table->string('slug')->unique()->index();
             $table->string('description')->nullable();
-            $table->enum('visibility', KnowiiCommunityVisibility::toStringArray());
+            $table->enum('visibility', KnowiiCommunityVisibility::toStringArray())->index();
             $table->timestamps();
         });
     }

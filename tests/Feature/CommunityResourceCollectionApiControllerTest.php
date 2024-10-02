@@ -27,7 +27,7 @@ test('resource collections can be created via the API', function () {
 
   $response->assertStatus(Response::HTTP_CREATED);
 
-  expect($community->resourceCollections)->toHaveCount(1);
-  expect($community->resourceCollections()->latest('id')->first()->name)->toEqual('Test');
-  expect($community->resourceCollections()->latest('id')->first()->description)->toEqual('Awesome collection');
+  expect($community->communityResourceCollections)->toHaveCount(1);
+  expect($community->communityResourceCollections()->latest('id')->first()->name)->toEqual('Test');
+  expect($community->communityResourceCollections()->latest('id')->first()->description)->toEqual('Awesome collection');
 });
