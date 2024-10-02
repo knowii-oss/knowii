@@ -1,13 +1,13 @@
 # TODO
 
+- Move KnowiiApiResponse, KnowiiApiResponseCategory, and KnowiiApiResponseType to a dedicated package -> App\Enums
+- serialized user profile should not return null for bio, location, phone, social links, etc (make sure it does not break the profile update page)
+- display recent resources
+- create CreateResourceDialog
+  - use newTextResourceSchema in CreateResourceDialog/Form
 - Add tests for CreateTextResource
 - Add tests for TextResourceApiController
-- create client-side types and enums for resources: Resource, ResourceType, ResourceLevel, CommunityResource, ResourceTextArticle, etc
-- all dates should be stored using the ISO-8601 format
 - HasCommunities: roles, permissions, etc
-- CommunityController.php
-- community.schema.ts
-- CommunityPolicy
 - Community permissions
   - createPublicCommunity
   - createPrivateCommunity
@@ -27,12 +27,9 @@
   - deleteCommunity
   - ...
 - CommunityController
-  - Add resource collections
-  - Add recent resources
   - Add members
 - Create ContentBox taking e.g., upcoming events, members, new resources, etc.
   - Should have inputs to pass a canAdd boolean, a onAdd function, and children
-- Move KnowiiApiResponse, KnowiiApiResponseCategory, and KnowiiApiResponseType to a dedicated package -> App\Enums
 - Add and configure the following plugins for ReactMarkdown: remark-gfm, remark-toc, remark-mdx, remark-frontmatter
 - add "profile" to UserResource?
 

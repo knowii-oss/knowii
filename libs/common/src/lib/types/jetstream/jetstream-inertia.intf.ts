@@ -1,29 +1,7 @@
 import { DateTime } from '../date-time.intf';
 import { Nullable } from '../nullable.intf';
 import { Community } from '../community.schema';
-import { SocialMediaLinkProperty } from '../../constants';
-
-export type CurrentUser = {
-  cuid: string;
-  name: string;
-  email: string;
-  username: string;
-  two_factor_enabled: boolean;
-  two_factor_confirmed_at: Nullable<DateTime>;
-  email_verified_at: Nullable<DateTime>;
-  created_at: DateTime;
-  updated_at: DateTime;
-};
-
-export type UserProfile = {
-  name: string;
-  username: Nullable<string>;
-  profile_photo_path: Nullable<string>;
-  profile_photo_url: string;
-  bio: Nullable<string>;
-  location: Nullable<string>;
-  phone: Nullable<string>;
-} & { [K in SocialMediaLinkProperty]: string | null };
+import { CurrentUser, UserProfile } from '../user.schema';
 
 export interface Auth {
   user: Nullable<CurrentUser>;
