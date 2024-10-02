@@ -4,7 +4,7 @@ namespace App\Enums;
 
 enum KnowiiResourceType: string
 {
-  case Text = "text";
+  case TextArticle = "textArticle";
 
   public static function toCommaSeparatedString(): string
   {

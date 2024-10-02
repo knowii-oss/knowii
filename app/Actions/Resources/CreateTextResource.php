@@ -141,7 +141,7 @@ class CreateTextResource implements CreatesTextResources
           'language' => $pageContent['language'],
           'url' => $finalUrl,
           'thumbnail_url' => $pageContent['thumbnail_url'],
-          'type' => KnowiiResourceType::Text->value,
+          'type' => KnowiiResourceType::TextArticle->value,
           'level' => $level->value,
           'is_featured' => false,
           'view_count' => 0,
