@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Inertia;
 
+use App\Models\CommunityResource;
 use App\Models\Community;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -25,9 +26,12 @@ class CommunityController extends Controller
     public function show(Request $request, string $slug): Response
     {
         $community = (new Community())->where('slug', $slug)->firstOrFail();
-        $communityResourceCollections = CommunityResourceCollection::where('community_id', $community->id)
+
+        $communityResourceCollections = $community->communityResourceCollections()
           ->orderBy('name')
           ->get()->toArray();
+
+        $recentResources = null;//$community->recentResources()->toArray();
 
         Gate::authorize('view', $community);
 
@@ -36,6 +40,7 @@ class CommunityController extends Controller
             // WARNING: The props passed here must remain aligned with the props expected by the page
             'community' => $community,
             'resourceCollections' => $communityResourceCollections,
+            'recentResources' => $recentResources ?? [],
 
             // WARNING: The props passed here must remain aligned with the props defined in community.schema.ts
             'permissions' => [
@@ -45,7 +50,7 @@ class CommunityController extends Controller
                 'canAddCommunityMembers' => Gate::check('addCommunityMember', $community),
                 'canUpdateCommunityMembers' => Gate::check('updateCommunityMember', $community),
                 'canRemoveCommunityMembers' => Gate::check('removeCommunityMember', $community),
-                
+
                 'canCreateResourceCollection' => Gate::check('createResourceCollection', $community),
                 'canUpdateResourceCollection' => Gate::check('updateResourceCollection', $community),
                 'canDeleteResourceCollection' => Gate::check('deleteResourceCollection', $community),

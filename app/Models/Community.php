@@ -143,6 +143,22 @@ class Community extends Model
   }
 
   /**
+ * Get the 10 most recent resources across all communityResourceCollections.
+ *
+ * @return \Illuminate\Database\Eloquent\Collection
+ */
+final public function recentResources(): Collection
+{
+    return $this->communityResourceCollections()
+        ->with(['communityResources', 'communityResources.resource', 'communityResources.curator'])
+        ->get()
+        ->pluck('communityResources')
+        ->flatten()
+        ->sortByDesc('created_at')
+        ->take(10);
+}
+
+  /**
    * Get all of the pending user invitations for the community.
    *
    * @return HasMany
