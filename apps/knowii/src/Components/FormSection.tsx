@@ -4,7 +4,7 @@ import SectionTitle from '@/Components/SectionTitle';
 
 interface Props {
   title: string;
-  description: string;
+  description: string | ReactNode;
   renderActions?(): ReactNode;
   onSubmit: FormEventHandler;
 }

@@ -10,8 +10,8 @@ use App\Models\UserProfile;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\UpdatesUserProfileInformation;
-use Nette\Schema\ValidationException;
 
 class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 {
@@ -21,6 +21,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
    * @param User $user
    * @param array $input
    * @throws TechnicalException
+   * @throws ValidationException
    */
   final public function update(User $user, array $input): void
   {
@@ -41,6 +42,12 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     if (!$userProfile) {
       // Should never happen. User profiles MUST be created along with user accounts
       throw new TechnicalException("User profile not found");
+    }
+
+    // WARNING: Profile information updates are NOT allowed until the user has verified their email address
+    // This is important to avoid abuse of the system where users register using a mail they don't own to take over an unclaimed user profile, and try to modify it
+    if (!$user->hasVerifiedEmail()) {
+      return;
     }
 
     // Handle user account updates
@@ -88,7 +95,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
    *
    * @param User $user
    * @param UserProfile $userProfile
-   * @param array<string, string> $input
+   * @param array $input
    */
   final public function updateVerifiedUser(User $user, UserProfile $userProfile, array $input): void
   {

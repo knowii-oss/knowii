@@ -45,6 +45,8 @@ export default function UpdateProfileInformationForm(props: Props) {
   const route = useRoute();
   const page = useTypedPage();
 
+  const userEmailNotVerified = page.props.jetstream.hasEmailVerification && props.user.email_verified_at === null;
+
   const appData = useAppData();
   const toast = appData.toast;
 
@@ -153,7 +155,19 @@ export default function UpdateProfileInformationForm(props: Props) {
     <FormSection
       onSubmit={updateProfileInformation}
       title={'Profile Information'}
-      description={`Update your account's profile information. Note that Apart from your username, all the information will be publicly visible to other Knowii users.`}
+      description={
+        <>
+          <span>
+            Update your account's profile information. Note that Apart from your username, all the information will be publicly visible to
+            other Knowii users.
+          </span>
+          {userEmailNotVerified && (
+            <div className="mt-2 text-red">
+              WARNING: You will not be able to edit your profile until your email address has been verified.
+            </div>
+          )}
+        </>
+      }
       renderActions={() => (
         <div className="flex flex-col sm:flex-row gap-2 w-full items-center sm:w-auto sm:justify-end">
           <Button
@@ -190,7 +204,7 @@ export default function UpdateProfileInformationForm(props: Props) {
             onChange={(e) => form.setData('name', e.target.value)}
             autoComplete="name"
             required
-            disabled={form.processing}
+            disabled={form.processing || userEmailNotVerified}
           />
         </div>
         <InputError className="mt-2" message={form.errors.name} />
@@ -211,12 +225,12 @@ export default function UpdateProfileInformationForm(props: Props) {
             onChange={(e) => form.setData('email', e.target.value)}
             autoComplete="username"
             required
-            disabled={form.processing}
+            disabled={form.processing || userEmailNotVerified}
           />
         </div>
         <InputError className="mt-2" message={form.errors.email} />
 
-        {page.props.jetstream.hasEmailVerification && props.user.email_verified_at === null ? (
+        {userEmailNotVerified ? (
           <div>
             <p className="text-sm mt-2">
               <span className="text-red">Your email address is unverified.&nbsp;</span>
@@ -251,7 +265,7 @@ export default function UpdateProfileInformationForm(props: Props) {
             value={form.data.username}
             onChange={(e) => form.setData('username', e.target.value)}
             autoComplete="username"
-            disabled={form.processing}
+            disabled={form.processing || userEmailNotVerified}
             required
           />
         </div>
@@ -271,7 +285,7 @@ export default function UpdateProfileInformationForm(props: Props) {
             rows={USER_PROFILE_BIO_TEXTAREA_ROWS}
             value={form.data.bio || ''}
             onChange={(e) => form.setData('bio', e.target.value)}
-            disabled={form.processing}
+            disabled={form.processing || userEmailNotVerified}
             maxLength={MAX_LENGTH_USER_BIO}
           />
         </div>
@@ -291,7 +305,7 @@ export default function UpdateProfileInformationForm(props: Props) {
             className="mt-1 block w-full"
             value={form.data.location || ''}
             onChange={(e) => form.setData('location', e.target.value)}
-            disabled={form.processing}
+            disabled={form.processing || userEmailNotVerified}
             maxLength={MAX_LENGTH_USER_LOCATION}
           />
         </div>
@@ -311,7 +325,7 @@ export default function UpdateProfileInformationForm(props: Props) {
             className="mt-1 block w-full"
             value={form.data.phone || ''}
             onChange={(e) => form.setData('phone', e.target.value)}
-            disabled={form.processing}
+            disabled={form.processing || userEmailNotVerified}
             maxLength={MAX_LENGTH_USER_PHONE}
             keyfilter={USER_PHONE_REGEX}
           />
@@ -337,7 +351,7 @@ export default function UpdateProfileInformationForm(props: Props) {
                   placeholder="https://..."
                   value={(form.data[link as keyof typeof form.data] as string) || ''}
                   onChange={(e) => form.setData(link as keyof typeof form.data, e.target.value)}
-                  disabled={form.processing}
+                  disabled={form.processing || userEmailNotVerified}
                 />
               </div>
               <InputError className="mt-2" message={form.errors[link as keyof typeof form.errors]} />

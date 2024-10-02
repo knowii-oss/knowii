@@ -1,6 +1,8 @@
+import { ReactNode } from 'react';
+
 interface Props {
   title: string;
-  description: string;
+  description: string | ReactNode;
 }
 
 export default function SectionTitle({ title, description }: Props) {
