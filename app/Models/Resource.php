@@ -34,7 +34,7 @@ class Resource extends Model
     // WARNING: When new fields are added, this list should be updated!
     'name',
     'slug',
-    'abstract',
+    'excerpt',
     'description',
     'ai_summary',
     'published_at',

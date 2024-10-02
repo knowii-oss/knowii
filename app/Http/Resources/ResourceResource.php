@@ -18,7 +18,7 @@ class ResourceResource extends JsonResource
           'cuid' => $this->cuid,
           'name' => $this->name,
           'slug' => $this->slug,
-          'abstract' => $this->abstract ?? '', // Ensures the returned value is never null
+          'excerpt' => $this->excerpt ?? '', // Ensures the returned value is never null
           'description' => $this->description ?? '', // Ensures the returned value is never null
           'ai_summary' => $this->ai_summary ?? '', // Ensures the returned value is never null
           'published_at' => $this->published_at ?? '', // Ensures the returned value is never null

@@ -22,7 +22,7 @@ class ResourceFactory extends Factory
     return [
       'cuid' => new Cuid2(),
       'name' => fake()->sentence(),
-      'abstract' => fake()->sentence(),
+      'excerpt' => fake()->sentence(),
       'description' => fake()->sentence(),
       'ai_summary' => null,
       'published_at' => fake()->dateTime(),

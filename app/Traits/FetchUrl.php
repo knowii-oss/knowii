@@ -4,8 +4,6 @@ namespace App\Traits;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\Exception\ConnectException;
-use GuzzleHttp\Exception\RequestException;
 
 trait FetchUrl
 {
@@ -16,7 +14,7 @@ trait FetchUrl
    * @return string
    * @throws GuzzleException
    */
-  protected function fetchUrl(string $url): string
+  final public function fetchUrl(string $url): string
   {
     $client = $this->getClient();
     $response = $client->get($url);
@@ -30,7 +28,7 @@ trait FetchUrl
    * @return string
    * @throws GuzzleException
    */
-  protected function getFinalUrl(string $url): string
+  final public function getFinalUrl(string $url): string
   {
     $client = $this->getClient();
     $response = $client->get($url, ['allow_redirects' => ['track_redirects' => true]]);
@@ -45,7 +43,7 @@ trait FetchUrl
    * @param string $url
    * @return bool
    */
-  protected function isUrlAvailable(string $url): bool
+  final public function isUrlAvailable(string $url): bool
   {
     $client = $this->getClient();
     try {
@@ -53,31 +51,11 @@ trait FetchUrl
       $statusCode = $response->getStatusCode();
 
       return $statusCode >= 200 && $statusCode < 300;
-    } catch (ConnectException $e) {
-      // FIXME log error
+    } catch (\RuntimeException $e) {
       return false;
-    } catch (RequestException $e) {
-      $statusCode = $e->hasResponse() ? $e->getResponse()->getStatusCode() : 'Unknown';
-      // FIXME log error and status code
-      return false;
-    } catch (\Exception $e) {
-      // FIXME log error
+    } catch (GuzzleException $e) {
       return false;
     }
-  }
-
-  /**
-   * Get response headers for a URL.
-   *
-   * @param string $url
-   * @return array
-   * @throws GuzzleException
-   */
-  protected function getUrlHeaders(string $url): array
-  {
-    $client = $this->getClient();
-    $response = $client->head($url);
-    return $response->getHeaders();
   }
 
   /**
@@ -85,13 +63,14 @@ trait FetchUrl
    *
    * @return Client
    */
-  private function getClient(): Client
+  final public function getClient(): Client
   {
     return new Client([
       'headers' => [
         'User-Agent' => 'Knowii / 1.0 Crawler',
       ],
       'allow_redirects' => true,
+      'cookies' => true,
       'timeout' => 10,
       'verify' => true, // Verify SSL certificates
     ]);
