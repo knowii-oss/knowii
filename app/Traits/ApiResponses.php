@@ -120,7 +120,7 @@ trait ApiResponses
    * @param array|null $metadata
    * @return JsonResponse
    */
-  final public static function technicalIssue(string $message, array $errorDetails, ?array $metadata = null): JsonResponse
+  final public static function technicalIssue(string $message = "Internal Server Error", array $errorDetails = [], ?array $metadata = null): JsonResponse
   {
     $knowiiResponse = new KnowiiApiResponse(KnowiiApiResponseCategory::Technical, KnowiiApiResponseType::InternalError, $message, $metadata, null, $errorDetails);
     return response()->json($knowiiResponse->jsonSerialize(), Response::HTTP_INTERNAL_SERVER_ERROR);
