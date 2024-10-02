@@ -1,5 +1,5 @@
 import AppLayout from '@/Layouts/AppLayout';
-import { Community, CommunityPermissions, CommunityResourceCollection, RESOURCE_COLLECTION_URL } from '@knowii/common';
+import { Community, CommunityPermissions, CommunityResource, CommunityResourceCollection, RESOURCE_COLLECTION_URL } from '@knowii/common';
 import { Card } from 'primereact/card';
 import classNames from 'classnames';
 import { Divider } from 'primereact/divider';
@@ -20,6 +20,7 @@ interface Props {
   community: Community;
   permissions: CommunityPermissions;
   resourceCollections: CommunityResourceCollection[];
+  recentResources: CommunityResource[];
 }
 
 export default function CommunityPage(props: Props) {

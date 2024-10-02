@@ -1,28 +1,4 @@
 import { ToastProps } from 'primereact/toast';
-import {
-  FaCoffee,
-  FaDev,
-  FaEnvelope,
-  FaFacebook,
-  FaGithub,
-  FaGitlab,
-  FaGlobe,
-  FaHackerNews,
-  FaInstagram,
-  FaLinkedin,
-  FaMastodon,
-  FaMedium,
-  FaPatreon,
-  FaProductHunt,
-  FaReddit,
-  FaStore,
-  FaTiktok,
-  FaTwitch,
-  FaYoutube,
-} from 'react-icons/fa';
-import { IconType } from 'react-icons/lib/iconBase';
-import { FaBluesky, FaHashnode, FaThreads, FaXTwitter } from 'react-icons/fa6';
-import { BsSubstack } from 'react-icons/bs';
 
 /**
  * Meta
@@ -111,8 +87,6 @@ export const MAX_LENGTH_USER_BIO = 512;
 export const MAX_LENGTH_USER_PHONE = 48;
 export const USER_PHONE_REGEX = /^[0-9-+()./ ]+$/;
 
-export const MAX_LENGTH_SLUG = 128;
-
 // Community
 export const MIN_LENGTH_COMMUNITY_NAME = 3;
 export const MAX_LENGTH_COMMUNITY_NAME = 64;
@@ -127,110 +101,3 @@ export const ALLOWED_COMMUNITY_RESOURCE_COLLECTION_NAME_CHARACTERS_REGEX = /^[a-
 
 // Community resource
 export const MAX_LENGTH_COMMUNITY_RESOURCE_DESCRIPTION = 255;
-
-export type SocialMediaLinkProperty =
-  | 'social_link_x'
-  | 'social_link_website'
-  | 'social_link_newsletter'
-  | 'social_link_mastodon'
-  | 'social_link_bluesky'
-  | 'social_link_threads_dot_net'
-  | 'social_link_linkedin'
-  | 'social_link_facebook'
-  | 'social_link_instagram'
-  | 'social_link_reddit'
-  | 'social_link_medium'
-  | 'social_link_substack'
-  | 'social_link_hackernews'
-  | 'social_link_hashnode'
-  | 'social_link_dev_dot_to'
-  | 'social_link_youtube'
-  | 'social_link_tiktok'
-  | 'social_link_twitch'
-  | 'social_link_gumroad'
-  | 'social_link_buymeacoffee'
-  | 'social_link_patreon'
-  | 'social_link_producthunt'
-  | 'social_link_github'
-  | 'social_link_gitlab';
-
-export const SOCIAL_MEDIA_LINK_PROPERTIES: SocialMediaLinkProperty[] = [
-  'social_link_x',
-  'social_link_website',
-  'social_link_newsletter',
-  'social_link_mastodon',
-  'social_link_bluesky',
-  'social_link_threads_dot_net',
-  'social_link_linkedin',
-  'social_link_facebook',
-  'social_link_instagram',
-  'social_link_reddit',
-  'social_link_medium',
-  'social_link_substack',
-  'social_link_hackernews',
-  'social_link_hashnode',
-  'social_link_dev_dot_to',
-  'social_link_youtube',
-  'social_link_tiktok',
-  'social_link_twitch',
-  'social_link_gumroad',
-  'social_link_buymeacoffee',
-  'social_link_patreon',
-  'social_link_producthunt',
-  'social_link_github',
-  'social_link_gitlab',
-];
-
-export const SOCIAL_MEDIA_LINK_NAMES: Record<SocialMediaLinkProperty, string> = {
-  social_link_x: 'X (Twitter)',
-  social_link_website: 'Website',
-  social_link_newsletter: 'Newsletter',
-  social_link_mastodon: 'Mastodon',
-  social_link_bluesky: 'Bluesky',
-  social_link_threads_dot_net: 'Threads',
-  social_link_linkedin: 'LinkedIn',
-  social_link_facebook: 'Facebook',
-  social_link_instagram: 'Instagram',
-  social_link_reddit: 'Reddit',
-  social_link_medium: 'Medium',
-  social_link_substack: 'Substack',
-  social_link_hackernews: 'Hacker News',
-  social_link_hashnode: 'Hashnode',
-  social_link_dev_dot_to: 'DEV',
-  social_link_youtube: 'YouTube',
-  social_link_tiktok: 'TikTok',
-  social_link_twitch: 'Twitch',
-  social_link_gumroad: 'Gumroad',
-  social_link_buymeacoffee: 'Buy Me a Coffee',
-  social_link_patreon: 'Patreon',
-  social_link_producthunt: 'Product Hunt',
-  social_link_github: 'GitHub',
-  social_link_gitlab: 'GitLab',
-};
-
-export const SOCIAL_MEDIA_LINK_ICONS: Record<SocialMediaLinkProperty, IconType> = {
-  social_link_x: FaXTwitter,
-  social_link_website: FaGlobe,
-  social_link_newsletter: FaEnvelope,
-  social_link_mastodon: FaMastodon,
-  social_link_bluesky: FaBluesky,
-  social_link_threads_dot_net: FaThreads,
-  social_link_linkedin: FaLinkedin,
-  social_link_facebook: FaFacebook,
-  social_link_instagram: FaInstagram,
-  social_link_reddit: FaReddit,
-  social_link_medium: FaMedium,
-  social_link_substack: BsSubstack,
-  social_link_hackernews: FaHackerNews,
-  social_link_hashnode: FaHashnode,
-  social_link_dev_dot_to: FaDev,
-  social_link_youtube: FaYoutube,
-  social_link_tiktok: FaTiktok,
-  social_link_twitch: FaTwitch,
-  social_link_gumroad: FaStore,
-  social_link_buymeacoffee: FaCoffee,
-  social_link_patreon: FaPatreon,
-  social_link_producthunt: FaProductHunt,
-  social_link_github: FaGithub,
-  social_link_gitlab: FaGitlab,
-};

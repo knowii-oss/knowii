@@ -45,6 +45,7 @@ class CommunityResource extends Model
     'resource_id',
     'community_id',
     'collection_id',
+    'resource_text_article_id',
     'curator_id',
   ];
 
