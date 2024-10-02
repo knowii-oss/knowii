@@ -21,6 +21,9 @@ return new class extends Migration
       // If the resource collection is deleted, then this is deleted as well
       $table->foreignId('collection_id')->constrained('community_resource_collections')->cascadeOnDelete();
 
+      // If the resource is a text article, then we will have a direct link to it to simplify data fetching
+      $table->foreignId('resource_text_article_id')->nullable()->constrained('resource_text_articles')->cascadeOnDelete();
+
       // If the user profile is deleted, then we keep the resource in the community, but without a link to the user profile
       $table->foreignId('curator_id')->nullable()->constrained('user_profiles')->nullOnDelete();
 

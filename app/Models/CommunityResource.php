@@ -94,20 +94,19 @@ class CommunityResource extends Model
     return $this->belongsTo(CommunityResourceCollection::class);
   }
 
+  /**
+   *  Get the text article that this corresponds to (if any)
+   */
+  final public function textArticle(): BelongsTo
+  {
+    return $this->belongsTo(ResourceTextArticle::class);
+  }
+
   // WARNING: do not delete. This is used via load(...) (e.g., TextResourceApiController and ResourceResource
   final public function curator(): BelongsTo
   {
     return $this->belongsTo(UserProfile::class, 'curator_id');
   }
-
-  final public function textArticle(): HasOneThrough
-  {
-    return $this->hasOneThrough(ResourceTextArticle::class, Resource::class,
-      'id', // id on the resources table
-      'resource_id', // id on the resource_text_articles table
-    );
-  }
-
 
   /**
    * Purge

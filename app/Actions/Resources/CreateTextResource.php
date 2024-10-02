@@ -166,6 +166,7 @@ class CreateTextResource implements CreatesTextResources
           'resource_id' => $resource->id,
           'community_id' => $community->id,
           'collection_id' => $communityResourceCollection->id,
+          'resource_text_article_id' => $resourceTextArticle->id,
           'curator_id' => $user->id,
           'is_featured' => false,
         ]);
