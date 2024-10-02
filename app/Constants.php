@@ -26,6 +26,8 @@ class Constants
   public static int $MAX_LENGTH_COMMUNITY_RESOURCE_COLLECTION_DESCRIPTION = 255;
   public static string $ALLOWED_COMMUNITY_RESOURCE_COLLECTION_NAME_CHARACTERS_REGEX = '/^[a-zA-Z0-9-@\' ]+$/';
 
+  public static int $MAX_LENGTH_COMMUNITY_RESOURCE_DESCRIPTION = 255;
+
   public static array $SOCIAL_MEDIA_LINK_PROPERTIES = [
     'social_link_x',
     'social_link_website',

@@ -125,6 +125,9 @@ export const MAX_LENGTH_COMMUNITY_RESOURCE_COLLECTION_NAME = 64;
 export const MAX_LENGTH_COMMUNITY_RESOURCE_COLLECTION_DESCRIPTION = 255;
 export const ALLOWED_COMMUNITY_RESOURCE_COLLECTION_NAME_CHARACTERS_REGEX = /^[a-zA-Z0-9-@' ]+$/;
 
+// Community resource
+export const MAX_LENGTH_COMMUNITY_RESOURCE_DESCRIPTION = 255;
+
 export type SocialMediaLinkProperty =
   | 'social_link_x'
   | 'social_link_website'
