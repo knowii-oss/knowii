@@ -7,13 +7,17 @@ use App\Exceptions\TechnicalException;
 use App\Models\Community;
 use App\Models\User;
 use Exception;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class DeleteCommunity implements DeletesCommunities
 {
   /**
    * Delete the given community.
    * @throws TechnicalException
+   * @throws ValidationException
+   * @throws AuthorizationException
    */
   final public function delete(User $user, Community $community): void
   {

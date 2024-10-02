@@ -17,7 +17,10 @@ return new class extends Migration
 
       // Capture the content of the resource
       $table->text('content')->nullable();
+
       $table->integer('word_count')->nullable();
+
+      // Reading time in minutes
       $table->integer('reading_time')->nullable();
       $table->timestamps();
     });

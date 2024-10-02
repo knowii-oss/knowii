@@ -1,8 +1,9 @@
 # TODO
 
+- Add tests for CreateTextResource
+- Add tests for TextResourceApiController
 - Need to add logs to Sail docker console
-- Bruno: add invalid tests for create text resource
-- Write tests for CreateText resource
+- Bruno: add invalid tests for create text resource (missing url field, bad url syntax, etc, etc)
 - result of successfully creating a resource through the api is a community resource object
   - it should contain the link to the resource table entry
   - it should contain the link to the specific resource table entry

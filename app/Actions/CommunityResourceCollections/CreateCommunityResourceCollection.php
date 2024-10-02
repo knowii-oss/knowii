@@ -9,9 +9,11 @@ use App\Exceptions\TechnicalException;
 use App\Models\Community;
 use App\Models\CommunityResourceCollection;
 use App\Models\User;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class CreateCommunityResourceCollection implements CreatesCommunityResourceCollections
 {
@@ -23,6 +25,8 @@ class CreateCommunityResourceCollection implements CreatesCommunityResourceColle
      * @param array $input
      * @return CommunityResourceCollection
      * @throws TechnicalException
+     * @throws AuthorizationException
+     * @throws ValidationException
      */
     final public function create(User $user, Community $community, array $input): CommunityResourceCollection
     {

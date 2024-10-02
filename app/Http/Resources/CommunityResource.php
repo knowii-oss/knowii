@@ -23,9 +23,7 @@ class CommunityResource extends JsonResource
           // The name used with whenLoaded is the name of a function on the CommunityResource model
           'curator' => UserProfileResource::make($this->whenLoaded('curator')),
           'resource' => ResourceResource::make($this->whenLoaded('resource')),
-
           'textArticle' => ResourceTextArticleResource::make($this->whenLoaded('textArticle')),
-
           'created_at' => $this->created_at,
           'updated_at' => $this->updated_at,
         ];

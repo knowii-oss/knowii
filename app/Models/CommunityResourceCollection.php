@@ -115,7 +115,7 @@ class CommunityResourceCollection extends Model
    */
   final public function containsCommunityResourcePointingToResourceWithUrl(string $url): bool
   {
-    return $this->resources()
+    return $this->communityResources()
       ->whereHas('resource', function ($query) use ($url) {
         $query->where('url', $url);
       })
