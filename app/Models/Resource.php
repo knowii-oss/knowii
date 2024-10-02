@@ -10,6 +10,7 @@ use App\Events\Resources\ResourceUpdated;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Parables\Cuid\GeneratesCuid;
 
 class Resource extends Model
@@ -81,6 +82,8 @@ class Resource extends Model
     return [
       'type' => KnowiiResourceType::class,
       'level' => KnowiiResourceLevel::class,
+      'last_captured_at' => 'datetime',
+      'last_checked_at' => 'datetime',
     ];
   }
 
@@ -107,5 +110,31 @@ class Resource extends Model
         'source' => 'name'
       ]
     ];
+  }
+
+  final public function textArticles(): HasMany
+  {
+    return $this->hasMany(ResourceTextArticle::class);
+  }
+
+  /**
+   * Find a resource by URL or create a new one if it doesn't exist.
+   *
+   * @param string $url
+   * @param array $attributes
+   * @return self
+   */
+  public static function findByUrlAndUpdateOrCreateNew(string $url, array $attributes = []): self
+  {
+    $resource = self::where('url', $url)->first();
+
+    if (!$resource) {
+      $attributes['url'] = $url;
+      $resource = self::create($attributes);
+    } else {
+      $resource->update($attributes);
+    }
+
+    return $resource;
   }
 }
