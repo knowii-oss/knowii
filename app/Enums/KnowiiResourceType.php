@@ -2,6 +2,7 @@
 
 namespace App\Enums;
 
+// WARNING: Must remain in sync with the one defined in resource.schema.ts
 enum KnowiiResourceType: string
 {
   case TextArticle = "textArticle";

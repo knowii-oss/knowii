@@ -4,10 +4,9 @@ namespace App\Http\Controllers\API;
 
 use App\Contracts\Resources\CreatesTextResources;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\CommunityResource;
+use App\Http\Resources\CommunityResourceResource;
 use App\Models\Community;
 use App\Models\CommunityResourceCollection;
-use App\Models\Resource;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Traits\ApiResponses;
@@ -51,7 +50,7 @@ class TextResourceApiController extends Controller
     ]);
 
     return self::created(
-      new CommunityResource($createdResource),
+      new CommunityResourceResource($createdResource),
       "Resource created successfully"
     );
   }

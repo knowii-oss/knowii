@@ -180,7 +180,7 @@ class CreateTextResource implements CreatesTextResources
           'resource_id' => $resource->id,
           'content' => $pageContent['content'],
           'word_count' => str_word_count(strip_tags($pageContent['content'])),
-          // FIXME should convert from Markdown to plain text before calculating
+          // TODO should convert from Markdown to plain text before calculating
           'reading_time' => ceil(str_word_count($pageContent['content'])/ 200),
         ]);
 
