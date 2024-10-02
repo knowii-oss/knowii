@@ -7,6 +7,7 @@ use App\Enums\KnowiiCommunityVisibility;
 use App\Knowii;
 use App\Models\Community;
 use App\Models\User;
+use App\Models\UserProfile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -44,13 +45,28 @@ class CreateNewUser implements CreatesNewUsers
         'email' => $input['email'],
         'password' => Hash::make($input['password']),
       ]), function (User $user) {
-        $user->profile()->create([
-          'user_id' => $user->id,
-          'name' => $user->name,
-          'username' => $user->username,
-          'email' => $user->email,
-          // Add any default values for the UserProfile here
-        ]);
+        // Try to recover the previous profile based on the email
+        $existingProfile = UserProfile::where('email', $user->email)->first();
+
+        if ($existingProfile) {
+          // Update the existing profile with the new user information
+          $existingProfile->update([
+            'user_id' => $user->id,
+            'name' => $user->name,
+            'username' => $user->username,
+          ]);
+          $user->profile()->save($existingProfile);
+        } else {
+          // Create a new profile if no existing profile found
+          $user->profile()->create([
+            'user_id' => $user->id,
+            'name' => $user->name,
+            'username' => $user->username,
+            'email' => $user->email,
+            // Add any default values for the UserProfile here
+          ]);
+        }
+
         $this->createCommunity($user);
       });
     });
