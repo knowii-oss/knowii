@@ -4,9 +4,11 @@ namespace App\Providers;
 
 use App\Actions\Communities\CreateCommunity;
 use App\Actions\Communities\DeleteCommunity;
+use App\Actions\Resources\CreateTextResource;
 use App\Actions\Users\VerifyUsernameAvailability;
 use App\Contracts\Communities\CreatesCommunities;
 use App\Contracts\Communities\DeletesCommunities;
+use App\Contracts\Resources\CreatesTextResources;
 use App\Contracts\Users\VerifiesUsernameAvailability;
 use Illuminate\Support\ServiceProvider;
 use App\Contracts\CommunityResourceCollections\CreatesCommunityResourceCollections;
@@ -33,5 +35,6 @@ class AppServiceProvider extends ServiceProvider
       app()->singleton(CreatesCommunities::class, CreateCommunity::class);
       app()->singleton(DeletesCommunities::class, DeleteCommunity::class);
       app()->singleton(CreatesCommunityResourceCollections::class, CreateCommunityResourceCollection::class);
+      app()->singleton(CreatesTextResources::class, CreateTextResource::class);
     }
 }
