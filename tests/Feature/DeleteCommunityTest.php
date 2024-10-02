@@ -18,7 +18,7 @@ test('communities can be deleted', function () {
   );
 
   $deleter = app(DeletesCommunities::class);
-  $deleter->delete($user, $community->cuid);
+  $deleter->delete($user, $community);
 
   expect($community->fresh())->toBeNull();
   expect($otherUser->fresh()->communities)->toHaveCount(0);

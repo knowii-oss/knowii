@@ -122,7 +122,7 @@ class Community extends Model
   /**
    * Determine if the given email address belongs to a user in the community.
    *
-   * @param  string  $email
+   * @param string $email
    * @return bool
    */
   final public function hasUserWithEmail(string $email): bool

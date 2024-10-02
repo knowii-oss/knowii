@@ -11,20 +11,14 @@ use Illuminate\Http\JsonResponse;
 use App\Traits\ApiResponses;
 use Illuminate\Support\Facades\Log;
 
-
 class CommunityResourceCollectionApiController extends Controller
 {
     use ApiResponses;
 
-    // FIXME should this receive the community or fetch it?
-    final public function store(Request $request, string $communityCuid): JsonResponse
+    final public function store(Request $request, Community $community): JsonResponse
     {
         Log::info('Processing API request to create a new community resource collection.');
         Log::debug("User: ", [$request->user()]);
-
-        Log::debug("Looking for the community", [$communityCuid]);
-        $community = (new Community())->whereCuid($communityCuid)->firstOrFail();
-        Log::debug("Found the community", [$community]);
 
         // Filter the input to only include the fields that are needed/accepted
         $input = $request->only(['name', 'description']);

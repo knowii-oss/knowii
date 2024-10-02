@@ -7,13 +7,13 @@ use App\Contracts\Communities\CreatesCommunities;
 use App\Enums\KnowiiCommunityVisibility;
 use App\Events\Communities\AddingCommunity;
 use App\Events\Communities\CommunityCreated;
-use App\Exceptions\BusinessException;
 use App\Exceptions\TechnicalException;
 use App\Models\Community;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class CreateCommunity implements CreatesCommunities
 {
@@ -24,7 +24,6 @@ class CreateCommunity implements CreatesCommunities
    * @param array $input
    * @return Community
    * @throws TechnicalException
-   * @throws BusinessException
    */
   final public function create(User $user, array $input): Community
   {
@@ -44,7 +43,7 @@ class CreateCommunity implements CreatesCommunities
       // Note that the CommunityResource transforms null to an empty string
       // Reference: https://laravel.com/docs/11.x/validation#a-note-on-optional-fields
       'description' => ['nullable', 'string', 'max:' . Constants::$MAX_LENGTH_COMMUNITY_DESCRIPTION],
-      'visibility' => ['required', 'string', 'in:' . KnowiiCommunityVisibility::toCommaSeparatedString()],
+      'visibility' => ['required', Rule::enum(KnowiiCommunityVisibility::class)],
     ])->validate();
 
     Log::debug('Input validated');
@@ -66,6 +65,9 @@ class CreateCommunity implements CreatesCommunities
       ]);
 
       Log::info('New community created successfully', ['community' => $retVal]);
+
+      // FIXME probably not needed because the model itself should dispatch events
+      // If verified, then remove this, and similar code in other actions
       CommunityCreated::dispatch($retVal);
 
       return $retVal;
