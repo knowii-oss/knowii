@@ -18,14 +18,12 @@ class CommunityResourceCollectionFactory extends Factory
    */
   final public function definition(): array
   {
-    $community = Community::factory()->create();
-
     return [
       'cuid' => new Cuid2(),
       'name' => $this->faker->unique()->company(),
       // The slug is generated automatically
       'description' => $this->faker->unique()->sentence(nbWords: 5),
-      'community_id' => $community->id,
+      'community_id' => Community::factory(),
     ];
   }
 }

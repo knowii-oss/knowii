@@ -8,6 +8,8 @@ use App\Events\CommunityResources\CommunityResourceUpdated;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Parables\Cuid\GeneratesCuid;
 
 class CommunityResource extends Model
@@ -25,7 +27,6 @@ class CommunityResource extends Model
    */
   protected $fillable = [
     // WARNING: When new fields are added, this list should be updated!
-    'name',
     'resource_id',
     'community_id',
     'collection_id',
@@ -65,6 +66,7 @@ class CommunityResource extends Model
   final public function casts(): array
   {
     return [
+      'is_featured' => 'boolean',
     ];
   }
 
@@ -91,6 +93,21 @@ class CommunityResource extends Model
   {
     return $this->belongsTo(CommunityResourceCollection::class);
   }
+
+  // WARNING: do not delete. This is used via load(...) (e.g., TextResourceApiController and ResourceResource
+  final public function curator(): BelongsTo
+  {
+    return $this->belongsTo(UserProfile::class, 'curator_id');
+  }
+
+  final public function textArticle(): HasOneThrough
+  {
+    return $this->hasOneThrough(ResourceTextArticle::class, Resource::class,
+      'id', // id on the resources table
+      'resource_id', // id on the resource_text_articles table
+    );
+  }
+
 
   /**
    * Purge

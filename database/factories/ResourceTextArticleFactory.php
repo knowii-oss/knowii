@@ -18,12 +18,9 @@ class ResourceTextArticleFactory extends Factory
    */
   final public function definition(): array
   {
-    // FIXME test this
-    $resource = Resource::factory()->create();
-
     return [
       'cuid' => new Cuid2(),
-      'resource_id' => $resource->id,
+      'resource_id' => Resource::factory(),
       'content' => $this->faker->paragraphs(3, true),
       'word_count' => $this->faker->numberBetween(300, 1000),
       'reading_time' => $this->faker->numberBetween(1, 10),

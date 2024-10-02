@@ -21,9 +21,6 @@ class CommunityResourceFactory extends Factory
    */
   final public function definition(): array
   {
-    // FIXME test this
-    $userProfile = UserProfile::factory()->create();
-    $resource = Resource::factory()->create();
     $community = Community::factory()->create();
     $resourceCollection = CommunityResourceCollection::factory()->create([
       'community_id' => $community->id,
@@ -31,11 +28,10 @@ class CommunityResourceFactory extends Factory
 
     return [
       'cuid' => new Cuid2(),
-      'resource_id' => $resource->id,
+      'resource_id' => Resource::factory(),
       'community_id' => $community->id,
       'collection_id' => $resourceCollection->id,
-      'curator_id' => $userProfile->id,
-
+      'curator_id' => UserProfile::factory(),
       'is_featured' => $this->faker->boolean(),
     ];
   }

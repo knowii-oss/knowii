@@ -26,9 +26,9 @@ test('resource collections can be created via the creator', function () {
 
     $creator->create($user, $community, $input);
 
-    expect($community->resourceCollections)->toHaveCount(1);
-    expect($community->resourceCollections()->latest('id')->first()->name)->toEqual('Test collection');
-    expect($community->resourceCollections()->latest('id')->first()->description)->toEqual('Awesome collection');
+    expect($community->communityResourceCollections)->toHaveCount(1);
+    expect($community->communityResourceCollections()->latest('id')->first()->name)->toEqual('Test collection');
+    expect($community->communityResourceCollections()->latest('id')->first()->description)->toEqual('Awesome collection');
 });
 
 test('creation is rejected by the creator if the name is too short', function () {
@@ -159,10 +159,10 @@ test('resource collection slug generation avoids duplicate slugs', function () {
     $creator->create($user, $community, $input1);
     $creator->create($user, $community, $input2);
 
-    expect($community->fresh()->resourceCollections)->toHaveCount(2);
+    expect($community->fresh()->communityResourceCollections)->toHaveCount(2);
 
-    $collection1 = $community->resourceCollections()->latest('id')->skip(1)->first();
-    $collection2 = $community->resourceCollections()->latest('id')->first();
+    $collection1 = $community->communityResourceCollections()->latest('id')->skip(1)->first();
+    $collection2 = $community->communityResourceCollections()->latest('id')->first();
     expect($collection1->slug)->toEqual('test');
     expect($collection2->slug)->toEqual('test-2');
 });
