@@ -2,6 +2,8 @@
 
 use App\Exceptions\BusinessException;
 use App\Exceptions\TechnicalException;
+use Illuminate\Database\Eloquent\RelationNotFoundException;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -100,9 +102,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
       // Workaround to use the ApiResponses trait
       // Reference: https://stackoverflow.com/questions/42054265/can-i-call-a-static-function-from-a-trait-outside-of-a-class
-      return (new class { use ApiResponses; })::notFoundIssue($e->getMessage());
+      // WARNING: should not include the exception message because it could expose sensitive information
+      return (new class { use ApiResponses; })::notFoundIssue();
     });
-
 
     // Convert ValidationException instances to Knowii's error representation
     $exceptions->render(function (ValidationException $e, Request $request) {
@@ -122,6 +124,25 @@ return Application::configure(basePath: dirname(__DIR__))
       }
 
       return (new class { use ApiResponses; })::authorizationIssue($e->getMessage(), null, null);
+    });
+
+    // Convert QueryException instances to Knowii's error representation
+    $exceptions->render(function (QueryException $e, Request $request) {
+      if (!$request->expectsJson()) {
+        // Default Laravel processing if not expecting a JSON response
+        return null;
+      }
+
+      return (new class { use ApiResponses; })::technicalIssue();
+    });
+
+    $exceptions->render(function (RelationNotFoundException $e, Request $request) {
+      if (!$request->expectsJson()) {
+        // Default Laravel processing if not expecting a JSON response
+        return null;
+      }
+
+      return (new class { use ApiResponses; })::technicalIssue();
     });
 
     // Convert BusinessException instances
