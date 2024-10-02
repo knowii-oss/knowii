@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\API\LoginApiController;
 use App\Http\Controllers\API\PingApiController;
+use App\Http\Controllers\API\TextResourceApiController;
 use App\Http\Controllers\API\UserApiController;
 use App\Http\Controllers\API\CommunityApiController;
 use App\Http\Controllers\API\CommunityResourceCollectionApiController;
@@ -25,5 +26,6 @@ Route::prefix('v1')->group(function (){
 
     Route::post('communities', [CommunityApiController::class, 'store']);
     Route::post('communities/{community:cuid}/resource-collections', [CommunityResourceCollectionApiController::class, 'store']);
+    Route::post('communities/{community:cuid}/resource-collections/{community_resource_collection:cuid}/text', [TextResourceApiController::class, 'store']);
   });
 });
