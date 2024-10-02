@@ -52,7 +52,7 @@ class DeleteUser implements DeletesUsers
         $ownedCommunities = $user->ownedCommunities;
 
         foreach ($ownedCommunities as $community) {
-            $this->deletesCommunities->delete($user, $community->cuid);
+            $this->deletesCommunities->delete($user, $community);
         }
     }
 }

@@ -5,7 +5,6 @@ namespace App\Actions\CommunityResourceCollections;
 use App\Constants;
 use App\Contracts\CommunityResourceCollections\CreatesCommunityResourceCollections;
 use App\Events\CommunityResourceCollections\CommunityResourceCollectionCreated;
-use App\Exceptions\BusinessException;
 use App\Exceptions\TechnicalException;
 use App\Models\Community;
 use App\Models\CommunityResourceCollection;
@@ -24,7 +23,6 @@ class CreateCommunityResourceCollection implements CreatesCommunityResourceColle
      * @param array $input
      * @return CommunityResourceCollection
      * @throws TechnicalException
-     * @throws BusinessException
      */
     final public function create(User $user, Community $community, array $input): CommunityResourceCollection
     {
@@ -35,7 +33,6 @@ class CreateCommunityResourceCollection implements CreatesCommunityResourceColle
         Log::debug('Authorizations verified');
 
         Log::debug('Validating the input');
-
         Validator::make($input, [
             // WARNING: The fields MUST also match the ones listed in CommunityResourceCollectionApiController
             'name' => ['required', 'string', 'min:'.Constants::$MIN_LENGTH_COMMUNITY_RESOURCE_COLLECTION_NAME, 'max:'.Constants::$MAX_LENGTH_COMMUNITY_RESOURCE_COLLECTION_NAME, 'regex:'.Constants::$ALLOWED_COMMUNITY_RESOURCE_COLLECTION_NAME_CHARACTERS_REGEX],
@@ -44,13 +41,12 @@ class CreateCommunityResourceCollection implements CreatesCommunityResourceColle
             // Reference: https://laravel.com/docs/11.x/validation#a-note-on-optional-fields
             'description' => ['nullable', 'string', 'max:' . Constants::$MAX_LENGTH_COMMUNITY_RESOURCE_COLLECTION_DESCRIPTION],
         ])->validate();
-
         Log::debug('Input validated');
 
         Log::debug('Saving the new community resource collection');
 
         try {
-            $collection = $community->resourceCollections()->create([
+            $collection = $community->communityResourceCollections()->create([
                 'name' => $input['name'],
                 'description' => $input['description'],
             ]);
