@@ -4,6 +4,7 @@ namespace App\Actions\Communities;
 
 use App\Models\Community;
 use App\Models\User;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 
@@ -15,6 +16,7 @@ class ValidateCommunityDeletion
    * @param User $user
    * @param Community $community
    * @return void
+   * @throws AuthorizationException
    */
   public function validate(User $user, Community $community): void
   {

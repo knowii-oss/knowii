@@ -10,10 +10,12 @@ use App\Events\Communities\CommunityCreated;
 use App\Exceptions\TechnicalException;
 use App\Models\Community;
 use App\Models\User;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class CreateCommunity implements CreatesCommunities
 {
@@ -24,6 +26,8 @@ class CreateCommunity implements CreatesCommunities
    * @param array $input
    * @return Community
    * @throws TechnicalException
+   * @throws AuthorizationException
+   * @throws ValidationException
    */
   final public function create(User $user, array $input): Community
   {
@@ -51,8 +55,6 @@ class CreateCommunity implements CreatesCommunities
     AddingCommunity::dispatch($user);
 
     Log::debug('Saving the new community');
-
-    // At this point business validations are done, so all that can happen is a technical issue
 
     $communityName = $input['name'];
 

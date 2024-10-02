@@ -47,8 +47,6 @@ class TextResourceApiController extends Controller
       // those correspond to method names on the CommunityResource model
       'resource',
       'curator',
-
-      // FIXME also load TextArticle resource
       'textArticle',
     ]);
 

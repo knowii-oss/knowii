@@ -30,6 +30,7 @@ class CommunityResource extends Model
     'resource_id',
     'community_id',
     'collection_id',
+    'resource_text_article_id',
     'curator_id',
     'is_featured',
   ];
@@ -99,7 +100,7 @@ class CommunityResource extends Model
    */
   final public function textArticle(): BelongsTo
   {
-    return $this->belongsTo(ResourceTextArticle::class);
+    return $this->belongsTo(ResourceTextArticle::class, 'resource_text_article_id');
   }
 
   // WARNING: do not delete. This is used via load(...) (e.g., TextResourceApiController and ResourceResource

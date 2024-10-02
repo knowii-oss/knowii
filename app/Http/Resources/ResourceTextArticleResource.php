@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources;
 
-use App\Models\Resource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -17,11 +16,12 @@ class ResourceTextArticleResource extends JsonResource
     {
         return [
           'cuid' => $this->cuid,
-          'name' => $this->name,
-          'slug' => $this->slug,
-          'description' => $this->description ?? '', // Ensures description is never null when returning data
 
-          // FIXME add right fields
+          'content' => $this->content ?? '', // Ensures description is never null when returning data
+          'word_count' => $this->word_count,
+          'reading_time' => $this->reading_time,
+
+          'resource' => ResourceResource::make($this->whenLoaded('resource')),
 
           'created_at' => $this->created_at,
           'updated_at' => $this->updated_at,

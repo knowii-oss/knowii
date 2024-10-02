@@ -14,6 +14,7 @@ use App\Traits\UrlCleanup;
 use App\Traits\FetchUrl;
 use App\Traits\HtmlToMarkdown;
 use Exception;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -25,6 +26,7 @@ use App\Enums\KnowiiResourceLevel;
 use GuzzleHttp\Exception\GuzzleException;
 use fivefilters\Readability\Readability;
 use fivefilters\Readability\Configuration;
+use Illuminate\Validation\ValidationException;
 
 class CreateTextResource implements CreatesTextResources
 {
@@ -40,6 +42,8 @@ class CreateTextResource implements CreatesTextResources
    * @return CommunityResource
    * @throws BusinessException
    * @throws TechnicalException
+   * @throws ValidationException
+   * @throws AuthorizationException
    */
   public function create(User $user, Community $community, CommunityResourceCollection $communityResourceCollection, array $input): CommunityResource
   {
