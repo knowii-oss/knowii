@@ -9,6 +9,7 @@ use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Parables\Cuid\GeneratesCuid;
 
 class CommunityResourceCollection extends Model
@@ -75,39 +76,19 @@ class CommunityResourceCollection extends Model
     return $this->belongsTo(Community::class);
   }
 
-  // FIXME implement methods
+  final public function resources(): HasMany {
+    return $this->hasMany(CommunityResource::class, 'collection_id');
+  }
 
-//  /**
-//   * Get all of the resources in the collection.
-//   *
-//   * @return Collection
-//   */
-//  final public function allResources()
-//  {
-//    return $this->resources;
-//  }
-
-//  /**
-//   * Determine if the given resource belongs to the community.
-//   *
-//   * @param Resource $resource
-//   * @return bool
-//   */
-//  final public function hasResource(Resource $resource): bool
-//  {
-//    return $this->resources->contains($resource);
-//  }
-
-//  /**
-//   * Purge the collection.
-//   *
-//   * @return void
-//   */
-//  final public function purge(): void
-//  {
-//    $this->resources()->delete();
-//    $this->delete();
-//  }
+  /**
+   * Purge the collection.
+   *
+   * @return void
+   */
+  final public function purge(): void
+  {
+    $this->delete();
+  }
 
   /**
    * Return the sluggable configuration array for this model.
@@ -122,5 +103,19 @@ class CommunityResourceCollection extends Model
         'source' => 'name'
       ]
     ];
+  }
+
+  /**
+   * Checks if there is already a community resource in this collection that points to a resource having the given URL
+   * @param string $url
+   * @return bool
+   */
+  final public function containsCommunityResourcePointingToResourceWithUrl(string $url): bool
+  {
+    return $this->resources()
+      ->whereHas('resource', function ($query) use ($url) {
+        $query->where('url', $url);
+      })
+      ->exists();
   }
 }

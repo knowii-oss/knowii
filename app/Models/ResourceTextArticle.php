@@ -66,7 +66,7 @@ class ResourceTextArticle extends Model
   /**
    * Get the global resource that this text article corresponds to.
    *
-   * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+   * @return BelongsTo
    */
   final public function resource(): BelongsTo
   {
@@ -81,5 +81,20 @@ class ResourceTextArticle extends Model
   final public function purge(): void
   {
     $this->delete();
+  }
+
+  /**
+   * Find a ResourceTextArticle by resource_id and update it, or create a new one if not found.
+   *
+   * @param string $resourceId
+   * @param array $attributes
+   * @return ResourceTextArticle
+   */
+  public static function findByResourceIdAndUpdateOrCreateNew(string $resourceId, array $attributes): ResourceTextArticle
+  {
+    return static::updateOrCreate(
+      ['resource_id' => $resourceId],
+      $attributes
+    );
   }
 }
