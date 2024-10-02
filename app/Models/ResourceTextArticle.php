@@ -74,6 +74,16 @@ class ResourceTextArticle extends Model
   }
 
   /**
+   * Get all of the community resources that reference this.
+   *
+   * @return HasMany
+   */
+  final public function communityResources(): HasMany
+  {
+    return $this->hasMany(CommunityResource::class);
+  }
+
+  /**
    * Purge
    *
    * @return void

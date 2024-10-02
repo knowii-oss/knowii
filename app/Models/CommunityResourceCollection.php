@@ -76,7 +76,10 @@ class CommunityResourceCollection extends Model
     return $this->belongsTo(Community::class);
   }
 
-  final public function resources(): HasMany {
+  /**
+   * Get the community resources associated with this collection
+   */
+  final public function communityResources(): HasMany {
     return $this->hasMany(CommunityResource::class, 'collection_id');
   }
 
