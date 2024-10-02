@@ -88,18 +88,21 @@ class CreateTextResource implements CreatesTextResources
       throw new BusinessException("Cannot add the same resource twice to the same resource collection");
     }
 
+    $pageHtml = null;
+
     Log::debug("Loading the page HTML");
     try {
-      $html = $this->fetchUrl($finalUrl);
+      $pageHtml = $this->fetchUrl($finalUrl);
     } catch (GuzzleException $e) {
-      throw new BusinessException("Could not fetch the resource content: " . $e->getMessage());
+      //throw new BusinessException("Could not fetch the resource content: " . $e->getMessage());
+      Log::debug("Could not fetch the resource content", [$e]);
     }
     Log::debug("Page HTML loaded");
 
     $pageContent = [
       'content' => null,
       'title' => '',
-      'abstract' => '',
+      'excerpt' => '',
       'description' => null, // TODO let users provide a description
       'ai_summary' => null, // TODO generate summary using AI
       'published_at' => null, // FIXME identify the date
@@ -107,30 +110,39 @@ class CreateTextResource implements CreatesTextResources
       'thumbnail_url' => null,
     ];
 
-    Log::debug("Extracting information from the page");
-    $readability = new Readability(new Configuration());
-    try {
-      $readability->parse($html);
+    if($pageHtml !== null) {
+      Log::debug("Trying to extract information from the page");
+      $readability = new Readability(new Configuration());
+      try {
+        $readability->parse($pageHtml);
 
-      $pageContent['content'] = $readability->getContent();
-      $pageContent['title'] = $readability->getTitle();
-      $pageContent['abstract'] = $readability->getExcerpt(); // FIXME rename abstract to excerpt (also in DB migrations)
-      $pageContent['thumbnail_url'] = $readability->getImage();
+        $pageContent['content'] = $readability->getContent();
+        if($pageContent['content'] === null) {
+          Log::debug("Could not extract the page content");
+        }
 
-      // FIXME extract author, etc
-      // for the author, will need to find a matching user profile, or create a new one
+        $pageContent['title'] = $readability->getTitle();
+        $pageContent['excerpt'] = $readability->getExcerpt();
+        $pageContent['thumbnail_url'] = $readability->getImage();
 
-    } catch (Exception $e) {
-      Log::debug("Could not extract information from the page");
+        // FIXME extract author, etc
+        // for the author, will need to find a matching user profile, or create a new one
+
+      } catch (Exception $e) {
+        Log::debug("Could not extract information from the page");
+      }
     }
 
-    try {
-      $markdown = $this->convertHtmlToMarkdown($pageContent['content']);
-      $markdown = trim($markdown);
-      $pageContent['content'] = $markdown;
-    } catch (Exception $e) {
-      Log::debug("Could not convert the page content to Markdown");
-      $pageContent['content'] = '';
+    // Only try to convert the content to Markdown if we have some content
+    if($pageContent['content'] !== null) {
+      try {
+        $markdown = $this->convertHtmlToMarkdown($pageContent['content']);
+        $markdown = trim($markdown);
+        $pageContent['content'] = $markdown;
+      } catch (Exception $e) {
+        Log::debug("Could not convert the page content to Markdown");
+        $pageContent['content'] = '';
+      }
     }
 
     $level = KnowiiResourceLevel::from($input['level']);
@@ -139,7 +151,7 @@ class CreateTextResource implements CreatesTextResources
       return DB::transaction(static function () use ($user, $community, $communityResourceCollection, $finalUrl, $level, $pageContent) {
         $resourceData = [
           'name' => $pageContent['title'],
-          'abstract' => $pageContent['abstract'], // FIXME rename abstract to excerpt (also in DB migrations)
+          'excerpt' => $pageContent['excerpt'],
           'ai_summary' => $pageContent['ai_summary'],
           'published_at' => $pageContent['published_at'],
           'language' => $pageContent['language'],
