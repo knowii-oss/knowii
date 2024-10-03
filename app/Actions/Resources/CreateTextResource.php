@@ -162,6 +162,7 @@ class CreateTextResource implements CreatesTextResources
       return DB::transaction(static function () use ($user, $community, $communityResourceCollection, $finalUrl, $level, $pageContent) {
         $resourceData = [
           'name' => $pageContent['title'],
+          'description' => $pageContent['description'],
           'excerpt' => $pageContent['excerpt'],
           'ai_summary' => $pageContent['ai_summary'],
           'published_at' => $pageContent['published_at'],
