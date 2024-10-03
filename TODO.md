@@ -1,7 +1,6 @@
 # TODO
 
-- Move KnowiiApiResponse, KnowiiApiResponseCategory, and KnowiiApiResponseType to a dedicated package -> App\Enums
-- serialized user profile should not return null for bio, location, phone, social links, etc (make sure it does not break the profile update page)
+- allow editing resource collection name/description
 - display recent resources
 - create CreateResourceDialog
   - use newTextResourceSchema in CreateResourceDialog/Form

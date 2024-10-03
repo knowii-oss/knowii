@@ -2,9 +2,9 @@
 
 namespace App\Traits;
 
-use App\KnowiiApiResponse;
-use App\KnowiiApiResponseCategory;
-use App\KnowiiApiResponseType;
+use App\Enums\KnowiiApiResponseCategory;
+use App\Enums\KnowiiApiResponseType;
+use App\Http\Controllers\API\KnowiiApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Response;

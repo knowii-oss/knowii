@@ -77,7 +77,7 @@ class CreateTextResource implements CreatesTextResources
       // We don't want to store indirect links to resources, and want to minimize the chances of ending up with duplicates
       $finalUrl = $this->getFinalUrl($cleanUrl);
     } catch (GuzzleException $e) {
-      Log::debug("Could not resolve the URL", [$e]);
+      Log::debug("Could not resolve the URL", [$e->getMessage()]);
       throw new BusinessException("Could not resolve the URL");
     }
 
@@ -125,14 +125,19 @@ class CreateTextResource implements CreatesTextResources
         $pageContent['content'] = $readability->getContent();
         if($pageContent['content'] === null) {
           Log::debug("Could not extract the page content");
+        } else {
+          Log::debug("Successfully retrieved the page content");
         }
 
         $pageContent['title'] = $readability->getTitle();
         $pageContent['excerpt'] = $readability->getExcerpt();
         $pageContent['thumbnail_url'] = $readability->getImage();
 
-        // FIXME extract author, etc
-        // for the author, will need to find a matching user profile, or create a new one
+        $author = $readability->getAuthor();
+        if($author !== null) {
+          Log::debug("Found text article author: " . $author);
+          // Emit event. Should be handled by an event handler that will find or create the corresponding user profile
+        }
 
       } catch (Exception $e) {
         Log::debug("Could not extract information from the page");

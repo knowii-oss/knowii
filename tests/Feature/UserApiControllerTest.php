@@ -1,6 +1,6 @@
 <?php
 
-use App\KnowiiApiResponseType;
+use App\Enums\KnowiiApiResponseType;
 use App\Models\User;
 use Illuminate\Http\Response;
 

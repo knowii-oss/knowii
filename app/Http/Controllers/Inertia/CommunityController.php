@@ -31,7 +31,7 @@ class CommunityController extends Controller
           ->orderBy('name')
           ->get()->toArray();
 
-        $recentResources = null;//$community->recentResources()->toArray();
+        $recentResources = $community->recentResources()->toArray();
 
         Gate::authorize('view', $community);
 
