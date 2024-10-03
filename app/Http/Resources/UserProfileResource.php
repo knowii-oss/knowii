@@ -19,6 +19,7 @@ class UserProfileResource extends JsonResource
             'name' => $this->name,
             'username' => $this->username ?? '',
             // FIXME: should the profile photo path be exposed to the client?
+            // FIXME the profile photo url does not exist (?)
             'profile_photo_path' => $this->profile_photo_path,
             'profile_photo_url' => $this->profile_photo_url,
             'bio' => $this->bio ?? '', // Ensures the returned value is never null,

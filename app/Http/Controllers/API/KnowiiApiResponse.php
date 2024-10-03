@@ -1,7 +1,9 @@
 <?php
 
-namespace App;
+namespace App\Http\Controllers\API;
 
+use App\Enums\KnowiiApiResponseCategory;
+use App\Enums\KnowiiApiResponseType;
 use Illuminate\Http\Resources\Json\JsonResource;
 use JsonSerializable;
 
