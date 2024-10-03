@@ -1,9 +1,12 @@
 import {
   COMMUNITY_API_BASE_PATH,
-  PING_API_PATH,
-  USERS_API_IS_USERNAME_AVAILABLE_PATH,
   COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH,
   COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH_PARAM_COMMUNITY,
+  COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH,
+  COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH_PARAM_COMMUNITY,
+  COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH_PARAM_RESOURCE_COLLECTION,
+  PING_API_PATH,
+  USERS_API_IS_USERNAME_AVAILABLE_PATH,
 } from '../constants';
 import { PingResponse, pingResponseSchema } from './ping-response.schema';
 import { CreateCommunityResponse, createCommunityResponseSchema } from './communities/create-community-response.schema';
@@ -15,6 +18,11 @@ import {
   CreateCommunityResourceCollectionResponse,
   createCommunityResourceCollectionResponseSchema,
 } from './community-resource-collections/create-community-resource-collection-response.schema';
+import { CreateResourceTextArticleRequest } from './resources/create-resource-text-article-request.schema';
+import {
+  CreateResourceTextArticleResponse,
+  createResourceTextArticleResponseSchema
+} from './resources/create-resource-text-article-response.schema';
 
 const defaultHeaders: Headers = new Headers({
   Accept: 'application/json',
@@ -35,10 +43,10 @@ export const knowiiApiClient = {
     },
     resourceCollections: {
       create: async (input: CreateCommunityResourceCollectionRequest): Promise<CreateCommunityResourceCollectionResponse> => {
-        const requestUrl = `${COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH.replace(
+        const requestUrl = COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH.replace(
           COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH_PARAM_COMMUNITY,
           input.communityCuid,
-        )}`;
+        );
 
         const response = await fetch(requestUrl, {
           method: 'post',
@@ -49,6 +57,26 @@ export const knowiiApiClient = {
         const responseAsJson = await response.json();
         return createCommunityResourceCollectionResponseSchema.parse(responseAsJson);
       },
+    },
+  },
+  resources: {
+    createTextArticle: async (input: CreateResourceTextArticleRequest): Promise<CreateResourceTextArticleResponse> => {
+      const requestUrl = COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH.replace(
+        COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH_PARAM_COMMUNITY,
+        input.communityCuid
+      ).replace(
+        COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH_PARAM_RESOURCE_COLLECTION,
+        input.resourceCollectionCuid
+      );
+
+      const response = await fetch(requestUrl, {
+        method: 'post',
+        headers: defaultHeaders,
+        body: JSON.stringify(input),
+      });
+
+      const responseAsJson = await response.json();
+      return createResourceTextArticleResponseSchema.parse(responseAsJson);
     },
   },
   users: {
