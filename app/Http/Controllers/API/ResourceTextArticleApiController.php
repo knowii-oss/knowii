@@ -12,7 +12,7 @@ use Illuminate\Http\JsonResponse;
 use App\Traits\ApiResponses;
 use Illuminate\Support\Facades\Log;
 
-class TextResourceApiController extends Controller
+class ResourceTextArticleApiController extends Controller
 {
   use ApiResponses;
 
@@ -26,7 +26,7 @@ class TextResourceApiController extends Controller
    */
   final public function store(Request $request, Community $community, CommunityResourceCollection $communityResourceCollection): JsonResponse
   {
-    Log::info('Processing API request to create a new resource.');
+    Log::info('Processing API request to create a new text article resource.');
     Log::debug("User: ", [$request->user()]);
 
     // Filter the input to only include the fields that are needed/accepted
