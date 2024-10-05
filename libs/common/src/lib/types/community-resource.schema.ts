@@ -4,13 +4,14 @@ import { resourceSchema } from './resource.schema';
 import { resourceTextArticleSchema } from './resource-text-article.schema';
 import { userProfileSchema } from './user.schema';
 import { communityResourceCollectionSchema } from './community-resource-collection.schema';
+import { slugSchema } from './slug.schema';
 
 export const communityResourceSchema = baseEntitySchema.merge(slugSchema).merge(
   z.object({
     is_featured: z.boolean(),
     collection: communityResourceCollectionSchema,
     resource: resourceSchema,
-    textArticle: resourceTextArticleSchema.nullable(),
+    resource_text_article: resourceTextArticleSchema.nullable(),
     curator: userProfileSchema,
   }),
 );

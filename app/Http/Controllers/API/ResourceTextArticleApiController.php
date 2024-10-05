@@ -47,6 +47,7 @@ class ResourceTextArticleApiController extends Controller
       'resource',
       'curator',
       'textArticle',
+      'collection',
     ]);
 
     return self::created(

@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { newTextResourceSchema } from '../../types/text-resource.schema';
+import { newResourceTextArticleSchema } from '../../types/resource-text-article.schema';
 
-export const createResourceTextArticleRequestSchema = newTextResourceSchema.merge(
+export const createResourceTextArticleRequestSchema = newResourceTextArticleSchema.merge(
   z.object({
     communityCuid: z.string().cuid2(),
     resourceCollectionCuid: z.string().cuid2(),
