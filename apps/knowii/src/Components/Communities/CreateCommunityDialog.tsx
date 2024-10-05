@@ -59,7 +59,7 @@ export default function CreateCommunityDialog({ visible, onHide, onCommunityCrea
       });
 
       if (response.data) {
-        const createdCommunity: Community = response.data;
+        const createdCommunity = response.data;
         onCommunityCreated(createdCommunity);
       }
       form.reset();

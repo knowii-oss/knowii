@@ -29,7 +29,7 @@ class ResourceFactory extends Factory
       'language' => 'en',
       'url' => fake()->url(),
       'thumbnail_url' => fake()->url(),
-      'type' => KnowiiResourceType::Article,
+      'type' => KnowiiResourceType::TextArticle,
       'level' => KnowiiResourceLevel::Beginner,
       'is_featured' => false,
       'view_count' => 0,
