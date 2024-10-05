@@ -3,6 +3,10 @@
 namespace App\Actions\Resources;
 
 use App\Constants;
+use App\Contracts\Resources\CreatesTextResources;
+use App\Enums\KnowiiResourceLevel;
+use App\Enums\KnowiiResourceType;
+use App\Exceptions\BusinessException;
 use App\Exceptions\TechnicalException;
 use App\Models\Community;
 use App\Models\CommunityResource;
@@ -10,23 +14,19 @@ use App\Models\CommunityResourceCollection;
 use App\Models\Resource;
 use App\Models\ResourceTextArticle;
 use App\Models\User;
-use App\Contracts\Resources\CreatesTextResources;
-use App\Traits\UrlCleanup;
 use App\Traits\FetchUrl;
 use App\Traits\HtmlToMarkdown;
+use App\Traits\UrlCleanup;
 use Exception;
+use fivefilters\Readability\Configuration;
+use fivefilters\Readability\Readability;
+use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
-use App\Exceptions\BusinessException;
-use App\Enums\KnowiiResourceType;
-use App\Enums\KnowiiResourceLevel;
-use GuzzleHttp\Exception\GuzzleException;
-use fivefilters\Readability\Readability;
-use fivefilters\Readability\Configuration;
 use Illuminate\Validation\ValidationException;
 
 class CreateTextResource implements CreatesTextResources
@@ -88,8 +88,8 @@ class CreateTextResource implements CreatesTextResources
       throw new BusinessException("The URL is not available. Cannot save it");
     }
 
-    Log::debug("Verifying is the community already has that resource");
-    if($communityResourceCollection->containsCommunityResourcePointingToResourceWithUrl($finalUrl)) {
+    Log::debug("Verifying if the community already has that resource");
+    if ($communityResourceCollection->containsCommunityResourcePointingToResourceWithUrl($finalUrl)) {
       throw new BusinessException("Cannot add the same resource twice to the same resource collection");
     }
 
@@ -116,14 +116,14 @@ class CreateTextResource implements CreatesTextResources
       'thumbnail_url' => null,
     ];
 
-    if($pageHtml !== null) {
+    if ($pageHtml !== null) {
       Log::debug("Trying to extract information from the page");
       $readability = new Readability(new Configuration());
       try {
         $readability->parse($pageHtml);
 
         $pageContent['content'] = $readability->getContent();
-        if($pageContent['content'] === null) {
+        if ($pageContent['content'] === null) {
           Log::debug("Could not extract the page content");
         } else {
           Log::debug("Successfully retrieved the page content");
@@ -134,7 +134,7 @@ class CreateTextResource implements CreatesTextResources
         $pageContent['thumbnail_url'] = $readability->getImage();
 
         $author = $readability->getAuthor();
-        if($author !== null) {
+        if ($author !== null) {
           Log::debug("Found text article author: " . $author);
           // Emit event. Should be handled by an event handler that will find or create the corresponding user profile
         }
@@ -145,7 +145,7 @@ class CreateTextResource implements CreatesTextResources
     }
 
     // Only try to convert the content to Markdown if we have some content
-    if($pageContent['content'] !== null) {
+    if ($pageContent['content'] !== null) {
       try {
         $markdown = $this->convertHtmlToMarkdown($pageContent['content']);
         $markdown = trim($markdown);
@@ -157,6 +157,34 @@ class CreateTextResource implements CreatesTextResources
     }
 
     $level = KnowiiResourceLevel::from($input['level']);
+
+    // Generate a title if one could not be found
+    if ($pageContent['title'] === null || $pageContent['title'] === '') {
+      // Try to extract title from HTML
+      if ($pageHtml !== null) {
+        preg_match('/<title>(.*?)<\/title>/i', $pageHtml, $matches);
+        if (!empty($matches[1])) {
+          $pageContent['title'] = trim($matches[1]);
+        }
+      }
+
+      // If still empty, generate from URL
+      if (empty($pageContent['title'])) {
+        $urlParts = parse_url($finalUrl);
+        $path = $urlParts['path'] ?? '';
+        $path = trim($path, '/');
+        $pathParts = explode('/', $path);
+        $lastPart = end($pathParts);
+        $title = str_replace(['-', '_'], ' ', $lastPart);
+        $title = ucwords($title);
+
+        if (empty($title)) {
+          $title = $urlParts['host'] ?? 'Untitled';
+        }
+
+        $pageContent['title'] = $title;
+      }
+    }
 
     try {
       return DB::transaction(static function () use ($user, $community, $communityResourceCollection, $finalUrl, $level, $pageContent) {
@@ -187,10 +215,11 @@ class CreateTextResource implements CreatesTextResources
           'content' => $pageContent['content'],
           'word_count' => str_word_count(strip_tags($pageContent['content'])),
           // TODO should convert from Markdown to plain text before calculating
-          'reading_time' => ceil(str_word_count($pageContent['content'])/ 200),
+          'reading_time' => ceil(str_word_count($pageContent['content']) / 200),
         ]);
 
         $communityResource = CommunityResource::create([
+          'slug' => $resource->slug,
           'resource_id' => $resource->id,
           'community_id' => $community->id,
           'collection_id' => $communityResourceCollection->id,
