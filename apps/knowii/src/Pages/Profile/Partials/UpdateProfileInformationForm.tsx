@@ -75,7 +75,6 @@ export default function UpdateProfileInformationForm(props: Props) {
 
     const usernameValidationResults = usernameSchema.safeParse(form.data.username);
     if (!usernameValidationResults.success) {
-      //console.log('The username is invalid.');
       form.setError('username', usernameValidationResults.error.errors[0].message);
       return;
     }
@@ -84,10 +83,8 @@ export default function UpdateProfileInformationForm(props: Props) {
 
     const checkResult = await checkIfUsernameIsAvailable(form.data.username, abortController.signal);
     if (!checkResult) {
-      //console.log('The username is already taken.');
       form.setError('username', 'The username is already taken.');
     } else {
-      //console.log('The username is available');
       form.clearErrors('username');
     }
 
@@ -99,8 +96,6 @@ export default function UpdateProfileInformationForm(props: Props) {
   };
 
   const checkIfUsernameIsAvailable = async (username: string, signal?: AbortSignal): Promise<boolean> => {
-    //console.log('Checking username availability');
-
     const response = await knowiiApiClient.users.isUsernameAvailable(
       {
         usernameToCheck: username,
