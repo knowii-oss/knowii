@@ -18,7 +18,7 @@ class CommunityResourceResource extends JsonResource
           'cuid' => $this->cuid,
           'slug' => $this->slug,
           'resource' => ResourceResource::make($this->whenLoaded('resource')),
-          'textArticle' => ResourceTextArticleResource::make($this->whenLoaded('textArticle')),
+          'resource_text_article' => ResourceTextArticleResource::make($this->whenLoaded('textArticle')),
           'curator' => UserProfileResource::make($this->whenLoaded('curator')),
           'collection' => CommunityResourceCollectionResource::make($this->whenLoaded('collection')),
           'is_featured' => $this->is_featured,
