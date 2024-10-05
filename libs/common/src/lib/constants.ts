@@ -43,6 +43,9 @@ export const COMMUNITY_URL = 'communities.show';
 // Resource collections
 export const RESOURCE_COLLECTION_URL = 'resource-collections.show';
 
+// Resources
+export const RESOURCE_URL = 'resources.show';
+
 // Authentication
 export const LOGIN_URL = 'login';
 export const REGISTER_URL = 'register';

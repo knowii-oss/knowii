@@ -18,13 +18,25 @@ export const resourceLevelSchema = z.enum(['beginner', 'intermediate', 'advanced
 
 export type ResourceLevel = z.infer<typeof resourceLevelSchema>;
 
-export const resourceLevelSchemaOptions: Array<{ name: string; level: ResourceLevel }> = [
-  { name: 'Beginner', level: 'beginner' },
-  { name: 'Intermediate', level: 'intermediate' },
-  { name: 'Advanced', level: 'advanced' },
-  { name: 'Expert', level: 'expert' },
-  { name: 'Unknown', level: 'unknown' },
+export const resourceLevelSchemaOptions: Array<{ name: string; level: ResourceLevel; icon: string }> = [
+  { name: 'Unknown', level: 'unknown', icon: '❓' },
+  { name: 'Beginner', level: 'beginner', icon: '🌱' },
+  { name: 'Intermediate', level: 'intermediate', icon: '🌿' },
+  { name: 'Advanced', level: 'advanced', icon: '🌳' },
+  { name: 'Expert', level: 'expert', icon: '🏆' },
 ];
+
+/**
+ * Get the icon for a given resource level
+ * @param level
+ */
+export const getIconForResourceLevel = (level: ResourceLevel): string => {
+  let retVal = resourceLevelSchemaOptions.filter((option) => option.level === level)[0].icon;
+  if (!retVal) {
+    retVal = resourceLevelSchemaOptions[0].icon;
+  }
+  return retVal;
+};
 
 export const resourceSchema = baseEntitySchema.merge(slugSchema).merge(
   z.object({

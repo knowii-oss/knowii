@@ -21,7 +21,7 @@ import {
 import { CreateResourceTextArticleRequest } from './resources/create-resource-text-article-request.schema';
 import {
   CreateResourceTextArticleResponse,
-  createResourceTextArticleResponseSchema
+  createResourceTextArticleResponseSchema,
 } from './resources/create-resource-text-article-response.schema';
 
 const defaultHeaders: Headers = new Headers({
@@ -63,11 +63,8 @@ export const knowiiApiClient = {
     createTextArticle: async (input: CreateResourceTextArticleRequest): Promise<CreateResourceTextArticleResponse> => {
       const requestUrl = COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH.replace(
         COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH_PARAM_COMMUNITY,
-        input.communityCuid
-      ).replace(
-        COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH_PARAM_RESOURCE_COLLECTION,
-        input.resourceCollectionCuid
-      );
+        input.communityCuid,
+      ).replace(COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH_PARAM_RESOURCE_COLLECTION, input.resourceCollectionCuid);
 
       const response = await fetch(requestUrl, {
         method: 'post',
@@ -76,6 +73,7 @@ export const knowiiApiClient = {
       });
 
       const responseAsJson = await response.json();
+
       return createResourceTextArticleResponseSchema.parse(responseAsJson);
     },
   },
