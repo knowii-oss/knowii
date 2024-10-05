@@ -20,6 +20,7 @@ class CommunityResourceResource extends JsonResource
           'resource' => ResourceResource::make($this->whenLoaded('resource')),
           'textArticle' => ResourceTextArticleResource::make($this->whenLoaded('textArticle')),
           'curator' => UserProfileResource::make($this->whenLoaded('curator')),
+          'collection' => CommunityResourceCollectionResource::make($this->whenLoaded('collection')),
           'is_featured' => $this->is_featured,
           'created_at' => $this->created_at,
           'updated_at' => $this->updated_at,

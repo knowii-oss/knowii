@@ -150,7 +150,7 @@ class Community extends Model
 final public function recentResources(): Collection
 {
     return $this->communityResourceCollections()
-        ->with(['communityResources', 'communityResources.resource', 'communityResources.curator'])
+        ->with(['communityResources', 'communityResources.resource', 'communityResources.curator', 'communityResources.collection'])
         ->get()
         ->pluck('communityResources')
         ->flatten()
