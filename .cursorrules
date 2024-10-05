@@ -34,6 +34,7 @@ Rules you must respect:
 - Leave NO todo’s, placeholders or missing pieces.
 - Add code should be valid and using the up to date syntax
 - TypeScript code should compile fine when using the strictest configuration
+- ALWAYS respect the back-end and front-end rules below
 
 Back-end (PHP/Laravel) rules:
 - API controllers handle incoming requests, but processing is always delegated to an Action class that implements a "DoesSomething" contract
@@ -44,6 +45,7 @@ Back-end (PHP/Laravel) rules:
 - Write tests using Pest
 
 Front-end (TypeScript/React/Prime React/Tailwind/Zod/react-hook-form)
+- TypeScript should never use the "any" type
 - Pages should be created under "Pages"
 - Components should be created under "Components"
 - Each page should use the <AppLayout>
