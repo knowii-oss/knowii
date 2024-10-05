@@ -25,10 +25,12 @@ class CommunityResourceFactory extends Factory
     $resourceCollection = CommunityResourceCollection::factory()->create([
       'community_id' => $community->id,
     ]);
+    $resource = Resource::factory()->create();
 
     return [
       'cuid' => new Cuid2(),
-      'resource_id' => Resource::factory(),
+      'slug' => $resource->slug,
+      'resource_id' => $resource->id,
       'community_id' => $community->id,
       'collection_id' => $resourceCollection->id,
       'curator_id' => UserProfile::factory(),

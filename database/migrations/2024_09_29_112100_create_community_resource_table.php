@@ -12,6 +12,9 @@ return new class extends Migration
       $table->id();
       $table->string('cuid')->unique()->index();
 
+      // WARNING: This field is a foreign key referencing the "slug" field of the resources table
+      $table->string('slug')->index();
+
       // If the global resource is deleted, then this is deleted as well
       $table->foreignId('resource_id')->constrained()->cascadeOnDelete();
 
@@ -32,6 +35,8 @@ return new class extends Migration
 
       // A given resource can only exist once within a given community and resource collection
       $table->unique(['resource_id', 'community_id', 'collection_id']);
+
+      $table->foreign('slug')->references('slug')->on('resources')->cascadeOnDelete();
     });
   }
 

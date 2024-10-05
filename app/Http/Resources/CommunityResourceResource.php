@@ -16,7 +16,7 @@ class CommunityResourceResource extends JsonResource
     {
         return [
           'cuid' => $this->cuid,
-          // The name used with whenLoaded is the name of a function on the CommunityResource model
+          'slug' => $this->slug,
           'resource' => ResourceResource::make($this->whenLoaded('resource')),
           'textArticle' => ResourceTextArticleResource::make($this->whenLoaded('textArticle')),
           'curator' => UserProfileResource::make($this->whenLoaded('curator')),
