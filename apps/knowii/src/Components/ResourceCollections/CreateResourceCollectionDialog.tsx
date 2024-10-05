@@ -21,7 +21,7 @@ import {
 import { useState } from 'react';
 import ResourceCollectionIcon from './ResourceCollectionIcon';
 
-interface CreateResourceCollectionDialogSettings {
+export interface CreateResourceCollectionDialogSettings {
   visible: boolean;
   communityCuid: string;
 }
@@ -32,14 +32,11 @@ interface CreateResourceCollectionDialogProps {
   onResourceCollectionCreated: (resourceCollection: CommunityResourceCollection) => void;
 }
 
-export default function CreateResourceCollectionDialog({
-  settings,
-  onHide,
-  onResourceCollectionCreated,
-}: CreateResourceCollectionDialogProps) {
-  const [loading, setLoading] = useState(false);
+export default function CreateResourceCollectionDialog(props: CreateResourceCollectionDialogProps) {
   const appData = useAppData();
   const toast = appData.toast;
+
+  const [loading, setLoading] = useState(false);
 
   const form = useForm<NewCommunityResourceCollection>({
     resolver: zodResolver(newCommunityResourceCollectionSchema),
@@ -57,7 +54,7 @@ export default function CreateResourceCollectionDialog({
     await sleep(MIN_ACTION_TIME);
 
     const response = await knowiiApiClient.communities.resourceCollections.create({
-      communityCuid: settings.communityCuid,
+      communityCuid: props.settings.communityCuid,
       ...data,
     });
 
@@ -68,11 +65,11 @@ export default function CreateResourceCollectionDialog({
       });
 
       if (response.data) {
-        const createdResourceCollection: CommunityResourceCollection = response.data;
-        onResourceCollectionCreated(createdResourceCollection);
+        const createdResourceCollection = response.data;
+        props.onResourceCollectionCreated(createdResourceCollection);
       }
       form.reset();
-      onHide();
+      props.onHide();
     } else {
       toast?.show({
         severity: 'error',
@@ -93,12 +90,12 @@ export default function CreateResourceCollectionDialog({
         </span>
       }
       closeOnEscape={true}
-      visible={settings.visible}
+      visible={props.settings.visible}
       className="w-full sm:w-[75vw] md:w-[60vw] lg:w-[40vw] xl:w-[30vw]"
-      onHide={onHide}
+      onHide={props.onHide}
       footer={
         <>
-          <Button severity="secondary" label="Cancel" onClick={onHide} />
+          <Button severity="secondary" label="Cancel" onClick={props.onHide} />
           <Button onClick={handleSubmit} label="Create" disabled={!form.formState.isValid || loading} className="ml-2" />
         </>
       }
