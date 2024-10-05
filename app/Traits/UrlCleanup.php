@@ -33,7 +33,7 @@ trait UrlCleanup
       'mc_cid', 'mc_eid',
 
       // Common cache-busting and versioning parameters
-      'timestamp', 'cache', 'nocache', 'v',
+      'timestamp', 'cache', 'nocache',
 
       // Referrer and source tracking
       'ref', 'referrer', 'source',
