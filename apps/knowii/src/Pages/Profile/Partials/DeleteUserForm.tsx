@@ -54,9 +54,7 @@ export default function DeleteUserForm() {
       </div>
 
       <div className="flex items-center mt-5">
-        <Button severity="danger" onClick={confirmUserDeletion}>
-          Delete Account
-        </Button>
+        <Button label="Delete Account" severity="danger" onClick={confirmUserDeletion} />
       </div>
 
       <Dialog
