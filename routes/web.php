@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Inertia\CommunityResourceCollectionController;
 use App\Http\Controllers\Inertia\CommunityController;
+use App\Http\Controllers\Inertia\CommunityResourceController;
 use App\Http\Controllers\Inertia\DashboardController;
 use App\Http\Controllers\PrivacyPolicyController;
 use App\Http\Controllers\TermsOfServiceController;
@@ -24,6 +25,9 @@ Route::middleware([
     Route::get('/dashboard', [DashboardController::class, 'show'])->name('dashboard');
     Route::get('/community/{communitySlug}', [CommunityController::class, 'show'])->name('communities.show');
     Route::get('/community/{communitySlug}/resource-collection/{resourceCollectionSlug}', [CommunityResourceCollectionController::class, 'show'])->name('resource-collections.show');
+
+    // FIXME implement
+    Route::get('/community/{communitySlug}/resource-collection/{resourceCollectionSlug}/{resourceSlug}', [CommunityResourceController::class, 'show'])->name('resources.show');
 });
 
 Route::inertia('/contact', 'Contact');
