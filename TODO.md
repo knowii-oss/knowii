@@ -1,5 +1,8 @@
 # TODO
 
+Goal 1: Be able to run Puppeteer in Sail
+Goal 2: Be able to do the same in production
+
 - Add tests for CreateTextResource
 - Improve URL analysis code in CreateTextResource
 
@@ -8,7 +11,7 @@ PDOException(code: 23502): SQLSTATE[23502]: Not null violation: 7 ERROR:  null v
 laravel.test-1  |   DETAIL:  Failing row contains (24, cc40cgs0w0woc8wsw08csokc, , null, , null, null, null, null, https://www.youtube.com, null, textArticle, beginner, f, 0, 0, 2024-10-04 12:40:01, 2024-10-04 12:40:01, 0, f, 2024-10-04 12:40:01, 2024-10-04 12:40:01)
 ```
 
-- Store the page's full HTML in addition to the markdown content
+-
 - In inertia controllers, find how to return a single property, but applying an API resource class to each returned element
   - (e.g., the array of collections)
   - Maybe using a map function?

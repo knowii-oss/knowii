@@ -98,7 +98,7 @@ class CreateTextResource implements CreatesTextResources
     Log::debug("Loading the page HTML");
     try {
       $pageHtml = $this->fetchUrl($finalUrl);
-    } catch (GuzzleException $e) {
+    } catch (Exception $e) {
       //throw new BusinessException("Could not fetch the resource content: " . $e->getMessage());
       Log::debug("Could not fetch the resource content", [$e]);
     }
