@@ -66,6 +66,18 @@ services:
         - ping
       retries: 3
       timeout: 5s
+  chrome:
+    image: 'ghcr.io/browserless/chromium'
+    ports:
+      - '${BROWSERLESS_CHROME_PORT:-3000}:3000'
+    networks:
+      - sail
+    environment:
+      # More settings: https://docs.browserless.io/docker/config
+      CONCURRENT: '${BROWSERLESS_CONCURRENT_SESSIONS:-10}'
+      TOKEN: '${BROWSERLESS_TOKEN:-FooBarBaz}'
+      TIMEOUT: '${BROWSERLESS_TIMEOUT:-30000}'
+      QUEUED: '${BROWSERLESS_MAX_QUEUE_LENGTH:-10}'
 networks:
   sail:
     driver: bridge

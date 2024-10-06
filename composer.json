@@ -24,7 +24,8 @@
     "tartanlegrand/laravel-openapi": "^2.0",
     "taylornetwork/laravel-username-generator": "^2.8",
     "tightenco/ziggy": "^2.0",
-    "visus/cuid2": "^4.1"
+    "visus/cuid2": "^4.1",
+    "zoon/puphpeteer": "^2.1"
   },
   "require-dev": {
     "fakerphp/faker": "^1.23",

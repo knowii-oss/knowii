@@ -4,6 +4,8 @@ namespace App\Traits;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use http\Exception\RuntimeException;
+use Nesk\Puphpeteer\Puppeteer;
 
 trait FetchUrl
 {
@@ -14,11 +16,36 @@ trait FetchUrl
    * @return string
    * @throws GuzzleException
    */
-  final public function fetchUrl(string $url): string
+  final public function fetchUrlWithGuzzle(string $url): string
   {
     $client = $this->getClient();
     $response = $client->get($url);
     return (string) $response->getBody();
+  }
+
+  /**
+   * Fetch the content of a URL using Puppeteer.
+   *
+   * @param string $url
+   * @return string
+   */
+  final public function fetchUrl(string $url): string
+  {
+    // FIXME replace by curl calls?
+    $puppeteer = new Puppeteer;
+    $browser = $puppeteer->connect([
+      'browserWSEndpoint' => env('BROWSERLESS_WS_ENDPOINT').'?token='.env('BROWSERLESS_TOKEN').'&launch={"headless":false,"stealth":true,"timeout":5000}',
+    ]);
+
+    try {
+      $page = $browser->newPage();
+      $page->goto($url, ['waitUntil' => 'networkidle0']);
+      $html = $page->content();
+    } finally {
+      $browser->close();
+    }
+
+    return $html;
   }
 
   /**
@@ -73,6 +100,20 @@ trait FetchUrl
       'cookies' => true,
       'timeout' => 10,
       'verify' => true, // Verify SSL certificates
+    ]);
+  }
+
+  /**
+   * Get a configured Puppeteer browser instance.
+   *
+   * @return \Nesk\Puphpeteer\Browser
+   */
+  final public function getPuppeteerBrowser(): \Nesk\Puphpeteer\Browser
+  {
+    $puppeteer = new Puppeteer;
+    return $puppeteer->launch([
+      'headless' => true,
+      'args' => ['--no-sandbox', '--disable-setuid-sandbox'],
     ]);
   }
 }
