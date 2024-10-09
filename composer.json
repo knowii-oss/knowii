@@ -8,6 +8,7 @@
   "license": "GNU AFFERO GENERAL PUBLIC LICENSE Version 3",
   "require": {
     "php": "^8.2",
+    "ext-curl": "*",
     "bepsvpt/secure-headers": "^7.5",
     "cviebrock/eloquent-sluggable": "^11.0",
     "fivefilters/readability.php": "^3.2",
@@ -18,14 +19,14 @@
     "laravel/sanctum": "^4.0",
     "laravel/tinker": "^2.9",
     "league/html-to-markdown": "^5.1",
+    "mews/purifier": "^3.4",
     "parables/laravel-cuid2": "^1.0",
     "resend/resend-php": "^0.13.0",
     "spatie/laravel-backup": "^9.0",
     "tartanlegrand/laravel-openapi": "^2.0",
     "taylornetwork/laravel-username-generator": "^2.8",
     "tightenco/ziggy": "^2.0",
-    "visus/cuid2": "^4.1",
-    "zoon/puphpeteer": "^2.1"
+    "visus/cuid2": "^4.1"
   },
   "require-dev": {
     "fakerphp/faker": "^1.23",
