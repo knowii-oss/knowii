@@ -9,7 +9,12 @@ export const resourceTypeSchema = z.enum(['textArticle'], {
 
 export type ResourceType = z.infer<typeof resourceTypeSchema>;
 
-export const resourceTypeSchemaOptions: Array<{ name: string; type: ResourceType }> = [{ name: 'Text article', type: 'textArticle' }];
+export const resourceTypeSchemaOptions: Array<{ name: string; type: ResourceType }> = [
+  {
+    name: 'Text article',
+    type: 'textArticle',
+  },
+];
 
 // Resource level
 export const resourceLevelSchema = z.enum(['beginner', 'intermediate', 'advanced', 'expert', 'unknown'], {
@@ -45,9 +50,11 @@ export const resourceSchema = baseEntitySchema.merge(slugSchema).merge(
     excerpt: z.string().optional(),
     ai_summary: z.string().optional(),
     published_at: z.coerce.date().optional(),
+    modified_at: z.coerce.date().optional(),
     language: z.string().optional(),
     url: z.string().optional(),
-    thumbnail_url: z.string().optional(),
+    cover_image: z.string().optional(),
+    cover_image_alt: z.string().optional(),
     type: resourceTypeSchema,
     level: resourceLevelSchema,
     is_featured: z.boolean(),
