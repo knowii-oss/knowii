@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Inertia;
 
-use App\Http\Resources\CommunityResourceResource;
+use App\Http\Resources\CommunityResource;
 use App\Models\Community;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -43,7 +43,7 @@ class CommunityController extends Controller
     // WARNING: The props passed here must remain aligned with the props expected by the page
     return Jetstream::inertia()->render($request, 'Communities/Show', [
       // WARNING: The props passed here must remain aligned with the props expected by the page
-      'community' => new CommunityResourceResource($community),
+      'community' => new CommunityResource($community),
 
       'resourceCollections' => $communityResourceCollections,
       'recentResources' => $recentResources ? array_values($recentResources) : [],
