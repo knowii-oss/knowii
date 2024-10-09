@@ -1,11 +1,14 @@
 import { useRef, useState } from 'react';
 import {
+  ALLOWED_COMMUNITY_RESOURCE_NAME_CHARACTERS_REGEX,
   CommunityResource,
   CommunityResourceCollection,
   DEFAULT_TEXTAREA_ROWS,
   knowiiApiClient,
   MAX_LENGTH_COMMUNITY_RESOURCE_DESCRIPTION,
+  MAX_LENGTH_COMMUNITY_RESOURCE_NAME,
   MIN_ACTION_TIME,
+  MIN_LENGTH_COMMUNITY_RESOURCE_NAME,
   newResourceTextArticleSchema,
   ResourceLevel,
   resourceLevelSchemaOptions,
@@ -55,7 +58,8 @@ export function CreateResourceDialog(props: CreateResourceDialogProps) {
     props.settings.resourceCollection ? props.settings.resourceCollection : null,
   );
   const [resourceType, setResourceType] = useState<ResourceType>('textArticle');
-  const [resourceLevel, setResourceLevel] = useState<ResourceLevel>('unknown');
+  const [level, setLevel] = useState<ResourceLevel>('unknown');
+  const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [url, setUrl] = useState('');
 
@@ -63,14 +67,16 @@ export function CreateResourceDialog(props: CreateResourceDialogProps) {
   // - Select a collection
   // - Select a type of resource
   // - Select the resource level
+  // - Select a name for the resource
   // TODO once there is more than one type of resource, the user should select one explicitly
-  const isStepOneValid = resourceCollection && resourceType && resourceLevel;
+  const isStepOneValid = resourceCollection && resourceType && name && level;
   const isStepTwoValid =
     resourceType === 'textArticle' &&
     newResourceTextArticleSchema.safeParse({
       url,
+      name,
       description,
-      level: resourceLevel,
+      level,
     }).success;
 
   const stepperRef = useRef<StepperRefAttributes>(null);
@@ -95,11 +101,11 @@ export function CreateResourceDialog(props: CreateResourceDialogProps) {
     if (resourceType === 'textArticle') {
       const response = await knowiiApiClient.resources.createTextArticle({
         communityCuid: props.settings.communityCuid,
-        // FIXME use the right collection id
         resourceCollectionCuid: resourceCollection?.cuid,
         url,
+        name,
         description,
-        level: resourceLevel,
+        level,
       });
 
       if ('success' === response.type && !response.errors) {
@@ -136,7 +142,8 @@ export function CreateResourceDialog(props: CreateResourceDialogProps) {
   const resetForm = () => {
     setResourceCollection(null);
     setResourceType('textArticle');
-    setResourceLevel('unknown');
+    setLevel('unknown');
+    setName('');
     setDescription('');
     setUrl('');
   };
@@ -164,6 +171,24 @@ export function CreateResourceDialog(props: CreateResourceDialogProps) {
           <span>Provide the details of your new resource.</span>
           <Stepper ref={stepperRef} linear={true} orientation="horizontal">
             <StepperPanel header="Overview">
+              {/* Name */}
+              <div className="mt-4 col-span-6 sm:col-span-4">
+                <InputLabel htmlFor="resourceName">Name</InputLabel>
+                <div className="p-inputgroup mt-1">
+                  <InputText
+                    id="resourceName"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    minLength={MIN_LENGTH_COMMUNITY_RESOURCE_NAME}
+                    maxLength={MAX_LENGTH_COMMUNITY_RESOURCE_NAME}
+                    keyfilter={ALLOWED_COMMUNITY_RESOURCE_NAME_CHARACTERS_REGEX}
+                    disabled={loading}
+                    required
+                    placeholder="Choose a name for this resource"
+                  />
+                </div>
+              </div>
+
               {
                 // Collection
                 // Only shown if no specific collection was given
@@ -211,11 +236,11 @@ export function CreateResourceDialog(props: CreateResourceDialogProps) {
                 <div className="p-inputgroup mt-1">
                   <Dropdown
                     id="resourceLevel"
-                    value={resourceLevel}
+                    value={level}
                     options={resourceLevelSchemaOptions}
                     optionLabel={'name'}
                     optionValue={'level'}
-                    onChange={(e) => setResourceLevel(e.value)}
+                    onChange={(e) => setLevel(e.value)}
                     placeholder="Select Resource Level"
                     required
                     disabled={loading}
