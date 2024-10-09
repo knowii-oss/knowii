@@ -1,7 +1,7 @@
 meta {
   name: Text Resource - Create - Invalid URL
   type: http
-  seq: 15
+  seq: 14
 }
 
 post {
@@ -17,7 +17,8 @@ headers {
 
 body:json {
   {
-    "url": "https://foobarbazsorryidonotexist.com",
-    "level": "intermediate"
+    "name": "Foo",
+    "level": "intermediate",
+    "url": "https://foobarbazsorryidonotexist.com"
   }
 }
