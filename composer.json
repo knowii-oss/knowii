@@ -35,7 +35,8 @@
     "mockery/mockery": "^1.6",
     "nunomaduro/collision": "v8.4.0",
     "pestphp/pest": "v3.0.6",
-    "pestphp/pest-plugin-laravel": "v3.0.0"
+    "pestphp/pest-plugin-laravel": "v3.0.0",
+    "roave/security-advisories": "dev-latest"
   },
   "autoload": {
     "psr-4": {

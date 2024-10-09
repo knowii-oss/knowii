@@ -1,10 +1,11 @@
 # TODO
 
-- Reject YouTube links for now
-
-metadata keywords
+- Capture metadata keywords
 "article:tag" => "mastering your tools"
 --> can be repeated, so need to treat those specifically
+- Reject urls pointing to files
+- Reject YouTube links for now
+
 
 "og:site_name" => "Sébastien Dubois"
 
