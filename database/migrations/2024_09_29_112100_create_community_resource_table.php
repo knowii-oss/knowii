@@ -15,6 +15,15 @@ return new class extends Migration
       // WARNING: This field is a foreign key referencing the "slug" field of the resources table
       $table->string('slug')->index();
 
+      // This name overrides the generic platform resource name
+      // It enables each community to use a specific name for the resources they add to their collections
+      // The global resource will still their own name, either using the name given by the first community
+      // that added the resource, or an automatically generated one
+      $table->string('name')->index();
+
+      // Same with this field. This is the community-specific resource description
+      $table->string('description')->nullable();
+
       // If the global resource is deleted, then this is deleted as well
       $table->foreignId('resource_id')->constrained()->cascadeOnDelete();
 

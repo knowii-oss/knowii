@@ -16,6 +16,8 @@ class CommunityResourceResource extends JsonResource
     {
         return [
           'cuid' => $this->cuid,
+          'name' => $this->name,
+          'description' => $this->description,
           'slug' => $this->slug,
           'resource' => ResourceResource::make($this->whenLoaded('resource')),
           'resource_text_article' => ResourceTextArticleResource::make($this->whenLoaded('textArticle')),
