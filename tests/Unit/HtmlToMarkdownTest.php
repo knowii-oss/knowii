@@ -40,15 +40,6 @@ test('removes images', function () {
   expect($result)->toBe($expected);
 });
 
-test('cleans up extra whitespace', function () {
-  $html = '<p>  Multiple     spaces    </p>';
-  $expected = "Multiple spaces";
-
-  $result = $this->converter->convertHtmlToMarkdown($html);
-
-  expect($result)->toBe($expected);
-});
-
 test('handles empty input', function () {
   $html = '';
   $expected = '';

@@ -22,6 +22,7 @@ trait HtmlToMarkdown
     // Configure the converter
     $environment = new Environment([
       'strip_tags' => true,
+      'remove_nodes' => 'script style',
       'hard_break' => true,
       'preserve_comments' => false,
     ]);
