@@ -30,7 +30,7 @@ class ResourceTextArticleApiController extends Controller
     Log::debug("User: ", [$request->user()]);
 
     // Filter the input to only include the fields that are needed/accepted
-    $input = $request->only(['url', 'level']);
+    $input = $request->only(['name', 'level', 'url']);
     Log::debug("Input", [$input]);
 
     $creator = app(CreatesTextResources::class);

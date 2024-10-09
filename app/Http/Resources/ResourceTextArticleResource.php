@@ -17,7 +17,9 @@ class ResourceTextArticleResource extends JsonResource
         return [
           'cuid' => $this->cuid,
 
-          'content' => $this->content ?? '', // Ensures description is never null when returning data
+          'html' => $this->html,
+          'markdown' => $this->content, // Ensures description is never null when returning data
+
           'word_count' => $this->word_count,
           'reading_time' => $this->reading_time,
 

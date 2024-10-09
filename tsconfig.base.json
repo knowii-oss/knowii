@@ -84,6 +84,7 @@
     "resources",
     "tools",
     "tmp",
+    "vendor",
     "vitest.workspace.ts"
   ]
 }

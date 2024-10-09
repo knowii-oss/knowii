@@ -27,7 +27,8 @@ class ResourceTextArticle extends Model
   protected $fillable = [
     // WARNING: When new fields are added, this list should be updated!
     'resource_id',
-    'content',
+    'html',
+    'markdown',
     'word_count',
     'reading_time',
   ];
