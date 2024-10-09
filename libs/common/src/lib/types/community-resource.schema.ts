@@ -8,6 +8,8 @@ import { slugSchema } from './slug.schema';
 
 export const communityResourceSchema = baseEntitySchema.merge(slugSchema).merge(
   z.object({
+    name: z.string(),
+    description: z.string().optional(),
     is_featured: z.boolean(),
     collection: communityResourceCollectionSchema,
     resource: resourceSchema,
