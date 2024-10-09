@@ -16,6 +16,7 @@ use App\Models\ResourceTextArticle;
 use App\Models\User;
 use App\Traits\FetchUrl;
 use App\Traits\HtmlToMarkdown;
+use App\Traits\ProcessHtml;
 use App\Traits\UrlCleanup;
 use Exception;
 use fivefilters\Readability\Configuration;
@@ -31,7 +32,7 @@ use Illuminate\Validation\ValidationException;
 
 class CreateTextResource implements CreatesTextResources
 {
-  use UrlCleanup, FetchUrl, HtmlToMarkdown;
+  use UrlCleanup, FetchUrl, HtmlToMarkdown, ProcessHtml;
 
   /**
    * Create a new resource.
@@ -56,147 +57,164 @@ class CreateTextResource implements CreatesTextResources
 
     Log::debug('Validating the input');
     Validator::make($input, [
-        'url' => ['required', 'url'],
-        'level' => ['required', Rule::enum(KnowiiResourceLevel::class)],
+        'name' => ['required', 'string', 'min: ' . Constants::$MIN_LENGTH_COMMUNITY_RESOURCE_NAME, 'max: ' . Constants::$MAX_LENGTH_COMMUNITY_RESOURCE_NAME, 'regex: ' . Constants::$ALLOWED_COMMUNITY_RESOURCE_NAME_CHARACTERS_REGEX],
+
         // Nullable allows empty strings to be passed in
         // Note that the CommunityResource transforms null to an empty string
         // Reference: https://laravel.com/docs/11.x/validation#a-note-on-optional-fields
         'description' => ['nullable', 'string', 'max:' . Constants::$MAX_LENGTH_COMMUNITY_RESOURCE_DESCRIPTION],
+        'url' => ['required', 'url'],
+        'level' => ['required', Rule::enum(KnowiiResourceLevel::class)],
       ]
     )->validate();
     Log::debug('Input validated');
 
-    $url = $input['url'];
+    $name = $input['name'];
+    $description = $input['description'] ?? null;
+    $level = KnowiiResourceLevel::from($input['level']);
 
     Log::debug("Cleaning up the URL");
-    $cleanUrl = $this->cleanupUrl($url);
+    $url = $this->cleanupUrl($input['url']);
 
     // FIXME this part is way too slow. Should use curl instead
     try {
       // Follow redirects if needed to identify the actual resource URL
       // We don't want to store indirect links to resources, and want to minimize the chances of ending up with duplicates
-      $finalUrl = $this->getFinalUrl($cleanUrl);
+      $url = $this->getFinalUrl($url);
     } catch (GuzzleException $e) {
       Log::debug("Could not resolve the URL", [$e->getMessage()]);
       throw new BusinessException("Could not resolve the URL");
     }
 
-    Log::debug("URL to create a text resource for: ", [$finalUrl]);
+    Log::debug("URL to create a text resource for: ", [$url]);
 
     Log::debug("Checking if the URL is actually available");
-    if (false === $this->isUrlAvailable($finalUrl)) {
+    if (false === $this->isUrlAvailable($url)) {
       throw new BusinessException("The URL is not available. Cannot save it");
     }
 
     Log::debug("Verifying if the community already has that resource");
-    if ($communityResourceCollection->containsCommunityResourcePointingToResourceWithUrl($finalUrl)) {
+    if ($communityResourceCollection->containsCommunityResourcePointingToResourceWithUrl($url)) {
       throw new BusinessException("Cannot add the same resource twice to the same resource collection");
     }
 
-    $pageHtml = null;
+    $pageContent = [
+      'html' => null,
+      'readable_content' => null,
+      'markdown' => null,
+      'title' => null,
+      'description' =>  null,
+      'excerpt' => '',
+      'ai_summary' => null, // TODO generate summary using AI
+      'published_at' => null,
+      'modified_at' => null,
+      'language' => null, // FIXME identify the language
+      'cover_image' => null,
+      'cover_image_alt' => null,
+      // TODO add keywords, og metadata, etc
+    ];
 
     Log::debug("Loading the page HTML");
     try {
-      $pageHtml = $this->fetchUrl($finalUrl);
+      $pageContent['html'] = $this->fetchUrl($url);
     } catch (Exception $e) {
-      //throw new BusinessException("Could not fetch the resource content: " . $e->getMessage());
-      Log::debug("Could not fetch the resource content", [$e]);
+      Log::debug("Could not fetch the page", [$e]);
     }
-    Log::debug("Page HTML loaded");
+
+    if ($pageContent['html'] !== null) {
+      Log::debug("Extracting page metadata");
+
+      $ogType = $this->getHtmlOgType($pageContent['html']);
+      if($ogType !== null && $ogType !== 'article') {
+        throw new BusinessException("The URL does not point to an article");
+      }
+
+      $pageContent['description'] = $this->getHtmlPageDescription($pageContent['html']);
+      $pageContent['title'] = $this->getHtmlPageTitle($pageContent['html']);
+
+      // If title is still empty, generate it from the URL
+      if (empty($pageContent['title'])) {
+        $urlParts = parse_url($url);
+        $path = $urlParts['path'] ?? '';
+        $path = trim($path, '/');
+        $pathParts = explode('/', $path);
+        $lastPart = end($pathParts);
+        $inferredTitle = str_replace(['-', '_'], ' ', $lastPart);
+        $inferredTitle = ucwords($inferredTitle);
+
+        if (empty($inferredTitle)) {
+          $pageContent['title'] = $inferredTitle;
+        }
+      }
+
+      $pageContent['published_at'] = $this->getHtmlPublishedTime($pageContent['html']);
+      $pageContent['modified_at'] = $this->getHtmlModifiedTime($pageContent['html']);
+
+      $pageContent['cover_image'] = $this->getHtmlCoverImage($pageContent['html']);
+      $pageContent['cover_image_alt'] = $this->getHtmlCoverImageAlt($pageContent['html']);
+
+      $pageContent['language'] = $this->getHtmlLanguage($pageContent['html']);
+
+      // TODO continue here
 
 
-    $pageContent = [
-      'content' => null,
-      'title' => '',
-      'description' => $input['description'] ?? null, // Either use the provided description, or set to null
-      'excerpt' => '',
-      'ai_summary' => null, // TODO generate summary using AI
-      'published_at' => null, // FIXME identify the date
-      'language' => null, // FIXME identify the language
-      'thumbnail_url' => null,
-    ];
 
-    if ($pageHtml !== null) {
-      Log::debug("Trying to extract information from the page");
+
+      Log::debug("Trying to extract readable content from the page");
       $readability = new Readability(new Configuration());
       try {
-        $readability->parse($pageHtml);
+        $readability->parse($pageContent['html']);
 
-        $pageContent['content'] = $readability->getContent();
-        if ($pageContent['content'] === null) {
+        $pageContent['readable_content'] = $readability->getContent();
+        if ($pageContent['readable_content'] === null) {
           Log::debug("Could not extract the page content");
         } else {
           Log::debug("Successfully retrieved the page content");
         }
 
-        $pageContent['title'] = $readability->getTitle();
+        // FIXME stop extracting this here
         $pageContent['excerpt'] = $readability->getExcerpt();
-        $pageContent['thumbnail_url'] = $readability->getImage();
 
         $author = $readability->getAuthor();
         if ($author !== null) {
           Log::debug("Found text article author: " . $author);
           // Emit event. Should be handled by an event handler that will find or create the corresponding user profile
         }
-
       } catch (Exception $e) {
-        Log::debug("Could not extract information from the page");
+        Log::debug("Could not extract information from the page", [$e]);
       }
     }
 
-    // Only try to convert the content to Markdown if we have some content
-    if ($pageContent['content'] !== null) {
+    // Only try to convert the content to Markdown if we have found some
+    if ($pageContent['readable_content'] !== null) {
       try {
-        $markdown = $this->convertHtmlToMarkdown($pageContent['content']);
+        $markdown = $this->convertHtmlToMarkdown($pageContent['readable_content']);
         $markdown = trim($markdown);
-        $pageContent['content'] = $markdown;
+        $pageContent['markdown'] = $markdown;
       } catch (Exception $e) {
-        Log::debug("Could not convert the page content to Markdown");
-        $pageContent['content'] = '';
-      }
-    }
-
-    $level = KnowiiResourceLevel::from($input['level']);
-
-    // Generate a title if one could not be found
-    if ($pageContent['title'] === null || $pageContent['title'] === '') {
-      // Try to extract title from HTML
-      if ($pageHtml !== null) {
-        preg_match('/<title>(.*?)<\/title>/i', $pageHtml, $matches);
-        if (!empty($matches[1])) {
-          $pageContent['title'] = trim($matches[1]);
-        }
-      }
-
-      // If still empty, generate from URL
-      if (empty($pageContent['title'])) {
-        $urlParts = parse_url($finalUrl);
-        $path = $urlParts['path'] ?? '';
-        $path = trim($path, '/');
-        $pathParts = explode('/', $path);
-        $lastPart = end($pathParts);
-        $title = str_replace(['-', '_'], ' ', $lastPart);
-        $title = ucwords($title);
-
-        if (empty($title)) {
-          $title = $urlParts['host'] ?? 'Untitled';
-        }
-
-        $pageContent['title'] = $title;
+        Log::debug("Could not convert the page's readable content to Markdown");
+        $pageContent['markdown'] = null;
       }
     }
 
     try {
-      return DB::transaction(static function () use ($user, $community, $communityResourceCollection, $finalUrl, $level, $pageContent) {
+
+
+      // FIXME delete this
+      dd($pageContent);
+
+      return DB::transaction(static function () use ($user, $community, $communityResourceCollection, $url, $level, $name, $description, $pageContent) {
         $resourceData = [
-          'name' => $pageContent['title'],
-          'description' => $pageContent['description'],
+          'name' => $pageContent['title'] ?? $name, // title identified by parsing the page, or user-provided one otherwise
+          'description' => $pageContent['description'] ?? $description,
           'excerpt' => $pageContent['excerpt'],
           'ai_summary' => $pageContent['ai_summary'],
           'published_at' => $pageContent['published_at'],
+          'modified_at' => $pageContent['modified_at'],
           'language' => $pageContent['language'],
-          'url' => $finalUrl,
-          'thumbnail_url' => $pageContent['thumbnail_url'],
+          'url' => $url,
+          'cover_image' => $pageContent['cover_image'],
+          'cover_image_alt' => $pageContent['cover_image_alt'],
           'type' => KnowiiResourceType::TextArticle->value,
           'level' => $level->value,
           'is_featured' => false,
@@ -208,18 +226,20 @@ class CreateTextResource implements CreatesTextResources
           'is_unavailable' => false,
         ];
 
-        $resource = Resource::findByUrlAndUpdateOrCreateNew($finalUrl, $resourceData);
+        $resource = Resource::findByUrlAndUpdateOrCreateNew($url, $resourceData);
 
         $resourceTextArticle = ResourceTextArticle::findByResourceIdAndUpdateOrCreateNew($resource->id, [
           'resource_id' => $resource->id,
-          'content' => $pageContent['content'],
+          'html' => $pageContent['html'],
+          'markdown' => $pageContent['markdown'],
           'word_count' => str_word_count(strip_tags($pageContent['content'])),
-          // TODO should convert from Markdown to plain text before calculating
           'reading_time' => ceil(str_word_count($pageContent['content']) / 200),
         ]);
 
         $communityResource = CommunityResource::create([
           'slug' => $resource->slug,
+          'name' => $name, // user-provided name for this specific community resource
+          'description' => $description, // user-provided description for this specific community resource
           'resource_id' => $resource->id,
           'community_id' => $community->id,
           'collection_id' => $communityResourceCollection->id,
