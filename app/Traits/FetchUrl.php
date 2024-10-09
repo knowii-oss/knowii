@@ -2,50 +2,53 @@
 
 namespace App\Traits;
 
+use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
-use http\Exception\RuntimeException;
-use Nesk\Puphpeteer\Puppeteer;
+use Illuminate\Support\Facades\Log;
 
 trait FetchUrl
 {
   /**
-   * Fetch the content of a URL.
+   * Fetch the content of a URL using Browserless.
    *
    * @param string $url
    * @return string
-   * @throws GuzzleException
-   */
-  final public function fetchUrlWithGuzzle(string $url): string
-  {
-    $client = $this->getClient();
-    $response = $client->get($url);
-    return (string) $response->getBody();
-  }
-
-  /**
-   * Fetch the content of a URL using Puppeteer.
-   *
-   * @param string $url
-   * @return string
+   * @throws Exception
    */
   final public function fetchUrl(string $url): string
   {
-    // FIXME replace by curl calls?
-    $puppeteer = new Puppeteer;
-    $browser = $puppeteer->connect([
-      'browserWSEndpoint' => env('BROWSERLESS_WS_ENDPOINT').'?token='.env('BROWSERLESS_TOKEN').'&launch={"headless":false,"stealth":true,"timeout":5000}',
-    ]);
-
     try {
-      $page = $browser->newPage();
-      $page->goto($url, ['waitUntil' => 'networkidle0']);
-      $html = $page->content();
-    } finally {
-      $browser->close();
-    }
+      $client = $this->getClient();
 
-    return $html;
+      // References
+      // https://docs.browserless.io/http-apis/content
+      // Alternative: https://docs.browserless.io/http-apis/scrape
+      $response = $client->post(env('BROWSERLESS_URL') . "/content?token=" . env("BROWSERLESS_TOKEN"), [
+        'json' => [
+          "url" => $url,
+          "bestAttempt" => true,
+          "gotoOptions" => [
+            "timeout" => 10000,
+            "waitUntil" => "networkidle2",
+          ]
+        ],
+      ]);
+
+      // With /scrape:
+      // "element": [{ "selector": "html" }],
+
+      $html = $response->getBody()->getContents();
+
+      if($html === "" || $response->getStatusCode() !== 200) {
+        throw new Exception("Failed to fetch the page");
+      }
+
+      return $html;
+    } catch (GuzzleException $e) {
+      Log::debug("Error while loading the page: ", [$e]);
+      throw new Exception("Failed to fetch the page", 0, $e);
+    }
   }
 
   /**
@@ -98,22 +101,8 @@ trait FetchUrl
       ],
       'allow_redirects' => true,
       'cookies' => true,
-      'timeout' => 10,
-      'verify' => true, // Verify SSL certificates
-    ]);
-  }
-
-  /**
-   * Get a configured Puppeteer browser instance.
-   *
-   * @return \Nesk\Puphpeteer\Browser
-   */
-  final public function getPuppeteerBrowser(): \Nesk\Puphpeteer\Browser
-  {
-    $puppeteer = new Puppeteer;
-    return $puppeteer->launch([
-      'headless' => true,
-      'args' => ['--no-sandbox', '--disable-setuid-sandbox'],
+      'timeout' => 10, // seconds
+      'verify' => false, // Ignore SSL certificates
     ]);
   }
 }
