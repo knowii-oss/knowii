@@ -1,8 +1,19 @@
 # TODO
 
-Goal 1: Be able to run Puppeteer in Sail
-Goal 2: Be able to do the same in production
+- Reject YouTube links for now
 
+metadata keywords
+"article:tag" => "mastering your tools"
+--> can be repeated, so need to treat those specifically
+
+"og:site_name" => "Sébastien Dubois"
+
+"article:publisher" => "https://www.facebook.com/dSebastienBE/"
+"article:author" => "https://www.facebook.com/trankill"
+article:author - profile array - Writers of the article.
+
+- Add tests for ProcessHtml
+- Add Browserless in production
 - Add tests for CreateTextResource
 - Improve URL analysis code in CreateTextResource
 
@@ -11,7 +22,8 @@ PDOException(code: 23502): SQLSTATE[23502]: Not null violation: 7 ERROR:  null v
 laravel.test-1  |   DETAIL:  Failing row contains (24, cc40cgs0w0woc8wsw08csokc, , null, , null, null, null, null, https://www.youtube.com, null, textArticle, beginner, f, 0, 0, 2024-10-04 12:40:01, 2024-10-04 12:40:01, 0, f, 2024-10-04 12:40:01, 2024-10-04 12:40:01)
 ```
 
--
+- If error while saving resource, CreateResourceDialog should stop the loading spinner
+  - should be handled in knowii-api-client.ts
 - In inertia controllers, find how to return a single property, but applying an API resource class to each returned element
   - (e.g., the array of collections)
   - Maybe using a map function?
@@ -28,6 +40,8 @@ laravel.test-1  |   DETAIL:  Failing row contains (24, cc40cgs0w0woc8wsw08csokc,
 - Add test, deleting a user does not remove the user profile
 - Allow changing the level of a resource
 - Allow changing the description of a resource
+- Improve HTML to Markdown conversion: https://github.com/thephpleague/html-to-markdown
+- Purify the loaded HTML when fetching resources: https://github.com/mewebstudio/Purifier
 - HasCommunities: roles, permissions, etc
 - Community permissions
   - createPublicCommunity

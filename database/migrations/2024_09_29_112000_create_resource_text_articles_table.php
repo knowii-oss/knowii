@@ -15,8 +15,11 @@ return new class extends Migration
       // If the global resource is deleted, then this is deleted as well
       $table->foreignId('resource_id')->constrained()->cascadeOnDelete();
 
-      // Capture the content of the resource
-      $table->text('content')->nullable();
+      // Content converted to Markdown
+      $table->text('markdown')->nullable();
+
+      // Capture the html of the page
+      $table->text('html')->nullable();
 
       $table->integer('word_count')->nullable();
 
