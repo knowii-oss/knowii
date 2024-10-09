@@ -38,9 +38,11 @@ class Resource extends Model
     'description',
     'ai_summary',
     'published_at',
+    'modified_at',
     'language',
     'url',
-    'thumbnail_url',
+    'cover_image',
+    'cover_image_alt',
     'type',
     'level',
     'is_featured',
@@ -82,6 +84,8 @@ class Resource extends Model
     return [
       'type' => KnowiiResourceType::class,
       'level' => KnowiiResourceLevel::class,
+      'published_at' => 'datetime',
+      'modified_at' => 'datetime',
       'last_captured_at' => 'datetime',
       'last_checked_at' => 'datetime',
     ];
