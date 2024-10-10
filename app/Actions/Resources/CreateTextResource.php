@@ -133,9 +133,9 @@ class CreateTextResource implements CreatesTextResources
       'published_at' => null,
       'modified_at' => null,
       'language' => null, // FIXME identify the language
-      'cover_image' => null,
+      'cover_image_url' => null,
       'cover_image_alt' => null,
-      // TODO add keywords, og metadata, etc
+      'cover_image_base64' => null,
     ];
 
     Log::debug("Loading the page HTML");
@@ -169,15 +169,21 @@ class CreateTextResource implements CreatesTextResources
       $pageContent['published_at'] = $this->getHtmlPublishedTime($pageContent['html']);
       $pageContent['modified_at'] = $this->getHtmlModifiedTime($pageContent['html']);
 
-      $pageContent['cover_image'] = $this->getHtmlCoverImage($pageContent['html']);
+      $pageContent['cover_image_url'] = $this->getHtmlCoverImage($pageContent['html']);
       $pageContent['cover_image_alt'] = $this->getHtmlCoverImageAlt($pageContent['html']);
 
       $pageContent['language'] = $this->getHtmlLanguage($pageContent['html']);
 
       $pageContent['keywords'] = $this->getHtmlKeywords($pageContent['html']);
 
-      // TODO continue here
-
+      if(!empty($pageContent['cover_image_url'] && $this->isUrlAvailableAndIsAnImage($pageContent['cover_image_url']))) {
+        try {
+          $coverImageAsBase64 = $this->loadImageAsBase64($pageContent['cover_image_url']);
+          $pageContent['cover_image_base64'] = $coverImageAsBase64;
+        } catch (Exception $e) {
+          Log::debug("Could not fetch the cover image", [$e]);
+        }
+      }
 
       Log::debug("Trying to extract readable content from the page");
       $readability = new Readability(new Configuration());
@@ -229,8 +235,9 @@ class CreateTextResource implements CreatesTextResources
           'modified_at' => $pageContent['modified_at'],
           'language' => $pageContent['language'],
           'url' => $url,
-          'cover_image' => $pageContent['cover_image'],
+          'cover_image_url' => $pageContent['cover_image_url'],
           'cover_image_alt' => $pageContent['cover_image_alt'],
+          'cover_image_base64' => $pageContent['cover_image_base64'],
           'type' => KnowiiResourceType::TextArticle->value,
           'level' => $level->value,
           'is_featured' => false,

@@ -73,6 +73,13 @@ export default function ResourcePage(props: Props) {
       {/*{props.resource.resource_text_article?.markdown && (*/}
       {/*  <Markdown>{props.resource.resource_text_article.markdown}</Markdown>*/}
       {/*)}*/}
+      {/*      {props.resource.resource.cover_image_base64 && (*/}
+      {/*    <img*/}
+      {/*      src={`data:image/jpeg;base64,${props.resource.resource.cover_image_base64}`}*/}
+      {/*      alt="Resource Cover"*/}
+      {/*      className="max-w-full h-auto rounded-lg shadow-md"*/}
+      {/*    />*/}
+      {/*)}*/}
     </AppLayout>
   );
 }

@@ -109,6 +109,61 @@ trait FetchUrl
   }
 
   /**
+ * Check if the given URL is available and points to an image.
+ *
+ * @param string $url The URL to check
+ * @return bool True if the URL is available and points to an image, false otherwise
+ */
+final public function isUrlAvailableAndIsAnImage(string $url): bool
+{
+    $client = $this->getClient();
+    try {
+        $response = $client->head($url);
+        $statusCode = $response->getStatusCode();
+        $contentType = $response->getHeaderLine('Content-Type');
+
+        return $statusCode >= 200 && $statusCode < 300 && str_starts_with($contentType, 'image/');
+    } catch (\RuntimeException | GuzzleException $e) {
+        return false;
+    }
+}
+
+  /**
+ * Load an image from a URL and return it as a base64 encoded string.
+ *
+ * @param string $url The URL of the image file
+ * @return string Base64 encoded image data
+ * @throws Exception If the image cannot be loaded or encoded
+ */
+final public function loadImageAsBase64(string $url): string
+{
+    $client = $this->getClient();
+
+    try {
+        $response = $client->get($url);
+
+        if ($response->getStatusCode() !== 200) {
+            throw new Exception("Failed to fetch the image. Status code: " . $response->getStatusCode());
+        }
+
+        $contentType = $response->getHeaderLine('Content-Type');
+        if (!str_starts_with($contentType, 'image/')) {
+            throw new Exception("The URL does not point to an image file. Content-Type: " . $contentType);
+        }
+
+        $imageData = $response->getBody()->getContents();
+        $base64Image = base64_encode($imageData);
+
+        if ($base64Image === false) {
+            throw new Exception("Failed to encode the image data to base64");
+        }
+
+        return $base64Image;
+    } catch (GuzzleException $e) {
+        Log::error("Error while loading the image: " . $e->getMessage());
+        throw new Exception("Failed to fetch the image", 0, $e);
+    }
+}/**
    * Get a configured Guzzle client.
    *
    * @return Client
@@ -125,4 +180,5 @@ trait FetchUrl
       'verify' => false, // Ignore SSL certificates
     ]);
   }
+
 }
