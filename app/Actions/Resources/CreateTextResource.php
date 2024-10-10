@@ -69,6 +69,29 @@ class CreateTextResource implements CreatesTextResources
     )->validate();
     Log::debug('Input validated');
 
+    Log::debug('Verifying that the link does belong to a blacklisted domain');
+
+    // TODO extract this list to a configuration file
+    $unsupportedDomains = [
+      'youtube.com', 'youtu.be', 'netflix.com', 'tiktok.com', 'vm.tiktok.com', 'twitch.tv',
+      'vimeo.com', 'dailymotion.com', 'dai.ly', 'hulu.com', 'disneyplus.com', 'amazon.com',
+      'primevideo.com', 'hbomax.com', 'peacocktv.com', 'paramountplus.com', 'tv.apple.com',
+      'crunchyroll.com', 'bilibili.com', 'b23.tv', 'vevo.com', 'metacafe.com', 'veoh.com',
+      'video.ibm.com', 'itemfix.com', 'vudu.com', 'flickr.com', 'facebook.com', 'instagram.com',
+      'twitter.com', 'linkedin.com', 'snapchat.com', 'vine.co', 'rumble.com', 'wistia.com',
+      'viki.com', '9gag.com', 'funnyordie.com', 'collegehumor.com', 'ted.com', 'udemy.com',
+      'coursera.org', 'edx.org', 'khanacademy.org', 'skillshare.com', 'masterclass.com',
+      'crackle.com', 'pluto.tv', 'tubitv.com', 'plex.tv', 'odysee.com'
+    ];
+
+    $parsedUrl = parse_url($input['url']);
+    $host = $parsedUrl['host'] ?? '';
+    $domain = preg_replace('/^www\./', '', $host);
+
+    if (in_array($domain, $unsupportedDomains)) {
+      throw new BusinessException("The URL points to a video or streaming platform. It is not a text article");
+    }
+
     $name = $input['name'];
     $description = $input['description'] ?? null;
     $level = KnowiiResourceLevel::from($input['level']);
@@ -76,21 +99,21 @@ class CreateTextResource implements CreatesTextResources
     Log::debug("Cleaning up the URL");
     $url = $this->cleanupUrl($input['url']);
 
-    // FIXME this part is way too slow. Should use curl instead
+    // FIXME this part is way too slow. Should force Guzzle to use curl
     try {
       // Follow redirects if needed to identify the actual resource URL
       // We don't want to store indirect links to resources, and want to minimize the chances of ending up with duplicates
-      $url = $this->getFinalUrl($url);
+      $url = $this->getFinalUrlAfterRedirects($url);
     } catch (GuzzleException $e) {
       Log::debug("Could not resolve the URL", [$e->getMessage()]);
-      throw new BusinessException("Could not resolve the URL");
+      throw new BusinessException("Could not resolve the URL. Please, verify the link and try again");
     }
 
     Log::debug("URL to create a text resource for: ", [$url]);
 
     Log::debug("Checking if the URL is actually available");
     if (false === $this->isUrlAvailable($url)) {
-      throw new BusinessException("The URL is not available. Cannot save it");
+      throw new BusinessException("The page is not available. Cannot save it");
     }
 
     Log::debug("Verifying if the community already has that resource");
@@ -103,7 +126,7 @@ class CreateTextResource implements CreatesTextResources
       'readable_content' => null,
       'markdown' => null,
       'title' => null,
-      'description' =>  null,
+      'description' => null,
       'excerpt' => '',
       'keywords' => [],
       'ai_summary' => null, // TODO generate summary using AI
@@ -124,11 +147,6 @@ class CreateTextResource implements CreatesTextResources
 
     if ($pageContent['html'] !== null) {
       Log::debug("Extracting page metadata");
-
-      $ogType = $this->getHtmlOgType($pageContent['html']);
-      if($ogType !== null && $ogType !== 'article') {
-        throw new BusinessException("The URL does not point to an article");
-      }
 
       $pageContent['description'] = $this->getHtmlPageDescription($pageContent['html']);
       $pageContent['title'] = $this->getHtmlPageTitle($pageContent['html']);
@@ -161,8 +179,6 @@ class CreateTextResource implements CreatesTextResources
       // TODO continue here
 
 
-
-
       Log::debug("Trying to extract readable content from the page");
       $readability = new Readability(new Configuration());
       try {
@@ -190,6 +206,7 @@ class CreateTextResource implements CreatesTextResources
 
     // Only try to convert the content to Markdown if we have found some
     if ($pageContent['readable_content'] !== null) {
+      Log::debug("Trying to convert the readable content to Markdown");
       try {
         $markdown = $this->convertHtmlToMarkdown($pageContent['readable_content']);
         $markdown = trim($markdown);
@@ -201,11 +218,6 @@ class CreateTextResource implements CreatesTextResources
     }
 
     try {
-
-
-      // FIXME delete this
-      dd($pageContent);
-
       return DB::transaction(static function () use ($user, $community, $communityResourceCollection, $url, $level, $name, $description, $pageContent) {
         $resourceData = [
           'name' => $pageContent['title'] ?? $name, // title identified by parsing the page, or user-provided one otherwise
@@ -232,12 +244,25 @@ class CreateTextResource implements CreatesTextResources
 
         $resource = Resource::findByUrlAndUpdateOrCreateNew($url, $resourceData);
 
+        $wordCount = null;
+        $readingTime = null;
+
+        if ($pageContent['markdown'] !== null) {
+          $wordCount = str_word_count(strip_tags($pageContent['markdown']));
+          $readingTime = ceil(str_word_count($pageContent['markdown']) / 200);
+        }
+
+        if ($wordCount == null && $pageContent['html'] !== null) {
+          $wordCount = str_word_count(strip_tags($pageContent['html']));
+          $readingTime = ceil(str_word_count($pageContent['html']) / 200);
+        }
+
         $resourceTextArticle = ResourceTextArticle::findByResourceIdAndUpdateOrCreateNew($resource->id, [
           'resource_id' => $resource->id,
           'html' => $pageContent['html'],
           'markdown' => $pageContent['markdown'],
-          'word_count' => str_word_count(strip_tags($pageContent['content'])),
-          'reading_time' => ceil(str_word_count($pageContent['content']) / 200),
+          'word_count' => $wordCount,
+          'reading_time' => $readingTime,
         ]);
 
         $communityResource = CommunityResource::create([
