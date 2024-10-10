@@ -52,7 +52,7 @@ export default function ResourcePage(props: Props) {
       ),
     },
     {
-      label: props.resource.resource.name,
+      label: props.resource.name ? props.resource.name : props.resource.resource.name,
       template: (item) => (
         <span className="flex items-center gap-2">
           <ResourceIcon />
@@ -69,6 +69,10 @@ export default function ResourcePage(props: Props) {
       breadcrumbHome={breadcrumbHome}
     >
       Coming soon...
+      {/*<h2>{props.resource.resource.name}</h2>*/}
+      {/*{props.resource.resource_text_article?.markdown && (*/}
+      {/*  <Markdown>{props.resource.resource_text_article.markdown}</Markdown>*/}
+      {/*)}*/}
     </AppLayout>
   );
 }

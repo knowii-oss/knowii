@@ -166,7 +166,7 @@ export default function CommunityPage(props: Props) {
                     >
                       <h4 className="font-semibold text-base">
                         {getIconForResourceLevel(recentResource.resource.level) + ' '}
-                        {recentResource.resource.name}
+                        {recentResource.name ? recentResource.name : recentResource.resource.name}
                       </h4>
                       <div className="flex flex-row justify-end items-center text-xs text-gray-500">
                         {/*<Button size="small" className="mr-2 p-[2px]" link={true}>*/}
@@ -200,7 +200,7 @@ export default function CommunityPage(props: Props) {
                         });
                       }}
                     >
-                      {recentResource.resource.description}
+                      {recentResource.description ? recentResource.description : recentResource.resource.description}
                     </p>
                     <div className="flex justify-end mt-2 gap-2">
                       <div
