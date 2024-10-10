@@ -72,7 +72,7 @@ export default function AppLayout(props: Props) {
               <Divider className="" />
               <ul id="main-menu" className="w-full flex flex-col gap-4">
                 <li className="main-menu-entry">
-                  <Link href={route(DASHBOARD_URL)}>
+                  <Link href={route(DASHBOARD_URL)} preserveState={true}>
                     <FaHome />
                     Dashboard
                   </Link>
@@ -101,7 +101,7 @@ export default function AppLayout(props: Props) {
               <div className="flex flex-col h-full justify-between">
                 <ul id="user-menu" className="w-full flex flex-col gap-4">
                   <li className="user-menu-entry">
-                    <Link className="flex flex-row gap-4 items-center h-full w-full" href={route(USER_PROFILE_URL)}>
+                    <Link href={route(USER_PROFILE_URL)} preserveState={true} className="flex flex-row gap-4 items-center h-full w-full">
                       <FaUser className="text-primary-500 w-12 h-12" />
                       <span className="font-bold text-primary-500">Edit profile</span>
                     </Link>

@@ -26,7 +26,7 @@ export default function ResourcePage(props: Props) {
     {
       label: props.community.name,
       template: (item) => (
-        <Link href={route(COMMUNITY_URL, { communitySlug: props.community.slug })}>
+        <Link href={route(COMMUNITY_URL, { communitySlug: props.community.slug })} preserveState={true}>
           <span className="flex items-center gap-2">
             <CommunityIcon />
             {item.label}
@@ -42,6 +42,7 @@ export default function ResourcePage(props: Props) {
             communitySlug: props.community.slug,
             resourceCollectionSlug: props.resourceCollection.slug,
           })}
+          preserveState={true}
         >
           <span className="flex items-center gap-2">
             <ResourceCollectionIcon />

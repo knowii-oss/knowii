@@ -30,7 +30,7 @@ const CommunityResourceCollectionBox: React.FC<Props> = ({ resourceCollection, c
   );
 
   const boxContent = link ? (
-    <Link href={link} onClick={handleClick} className="block h-full">
+    <Link href={link} preserveState={true} onClick={handleClick} className="block h-full">
       {content}
     </Link>
   ) : (

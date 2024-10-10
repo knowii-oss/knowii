@@ -159,7 +159,9 @@ export default function CommunityPage(props: Props) {
                           resourceCollectionSlug: recentResource.collection.slug,
                           resourceSlug: recentResource.slug,
                         });
-                        router.visit(resourcePageLink);
+                        router.visit(resourcePageLink, {
+                          preserveState: true,
+                        });
                       }}
                     >
                       <h4 className="font-semibold text-base">
@@ -193,7 +195,9 @@ export default function CommunityPage(props: Props) {
                           resourceCollectionSlug: recentResource.collection.slug,
                           resourceSlug: recentResource.slug,
                         });
-                        router.visit(resourcePageLink);
+                        router.visit(resourcePageLink, {
+                          preserveState: true,
+                        });
                       }}
                     >
                       {recentResource.resource.description}
@@ -208,7 +212,9 @@ export default function CommunityPage(props: Props) {
                             resourceCollectionSlug: recentResource.collection.slug,
                             resourceSlug: recentResource.slug,
                           });
-                          router.visit(resourcePageLink);
+                          router.visit(resourcePageLink, {
+                            preserveState: true,
+                          });
                         }}
                       ></div>
                       {recentResource.resource.type === 'textArticle' && (

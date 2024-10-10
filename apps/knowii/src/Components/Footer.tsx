@@ -46,7 +46,7 @@ export default function Footer() {
             </a>
           </li>
           <li>
-            <Link className="hover:text-primary-500" href={CONTACT_URL}>
+            <Link className="hover:text-primary-500" href={CONTACT_URL} preserveState={true}>
               Contact us
             </Link>
           </li>
@@ -57,12 +57,12 @@ export default function Footer() {
         <div className="mb-1 md:mb-3 text-xl font-bold mt-1 md:mt-4 w-full">Legal</div>
         <ul className="text-sm w-full">
           <li>
-            <Link className="hover:text-primary-500" href={route(TERMS_OF_SERVICE_URL)}>
+            <Link className="hover:text-primary-500" href={route(TERMS_OF_SERVICE_URL)} preserveState={true}>
               Terms of service
             </Link>
           </li>
           <li>
-            <Link className="hover:text-primary-500" href={route(PRIVACY_POLICY_URL)}>
+            <Link className="hover:text-primary-500" href={route(PRIVACY_POLICY_URL)} preserveState={true}>
               Privacy policy
             </Link>
           </li>
