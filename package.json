@@ -56,7 +56,7 @@
   "dependencies": {
     "@hookform/resolvers": "3.9.0",
     "classnames": "2.5.1",
-    "date-fns": "3.6.0",
+    "date-fns": "4.1.0",
     "immer": "10.1.1",
     "primereact": "10.8.2",
     "react": "18.3.1",
