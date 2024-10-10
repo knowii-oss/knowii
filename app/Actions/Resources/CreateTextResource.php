@@ -47,7 +47,7 @@ class CreateTextResource implements CreatesTextResources
    * @throws ValidationException
    * @throws AuthorizationException
    */
-  public function create(User $user, Community $community, CommunityResourceCollection $communityResourceCollection, array $input): CommunityResource
+  final public function create(User $user, Community $community, CommunityResourceCollection $communityResourceCollection, array $input): CommunityResource
   {
     Log::info('Processing request to create a new text resource');
 

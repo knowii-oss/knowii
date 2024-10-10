@@ -33,8 +33,8 @@ return new class extends Migration
       // When Knowii last captured the contents of the resource
       $table->timestamp('last_captured_at')->nullable()->index();
       $table->timestamp('last_checked_at')->nullable()->index();
-      $table->integer('check_failures_count')->default(0);
-      $table->boolean('is_unavailable')->default(false)->index();
+      $table->integer('check_failures_count')->nullable()->default(0);
+      $table->boolean('is_unavailable')->nullable()->default(false)->index();
       $table->timestamps();
     });
   }
