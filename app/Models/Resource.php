@@ -35,6 +35,7 @@ class Resource extends Model
     'name',
     'slug',
     'excerpt',
+    'keywords',
     'description',
     'ai_summary',
     'published_at',
@@ -82,6 +83,7 @@ class Resource extends Model
   final public function casts(): array
   {
     return [
+      'keywords' => 'array', // Stored as JSONB and casted to array
       'type' => KnowiiResourceType::class,
       'level' => KnowiiResourceLevel::class,
       'published_at' => 'datetime',

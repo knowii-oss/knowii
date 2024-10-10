@@ -48,6 +48,7 @@ export const resourceSchema = baseEntitySchema.merge(slugSchema).merge(
     name: z.string(),
     description: z.string().optional(),
     excerpt: z.string().optional(),
+    keywords: z.array(z.string()),
     ai_summary: z.string().optional(),
     published_at: z.coerce.date().optional(),
     modified_at: z.coerce.date().optional(),

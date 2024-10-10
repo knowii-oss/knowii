@@ -21,7 +21,7 @@ class ResourceTextArticleFactory extends Factory
     return [
       'cuid' => new Cuid2(),
       'resource_id' => Resource::factory(),
-      'content' => $this->faker->paragraphs(3, true),
+      'html' => $this->faker->randomHtml(),
       'word_count' => $this->faker->numberBetween(300, 1000),
       'reading_time' => $this->faker->numberBetween(1, 10),
     ];
