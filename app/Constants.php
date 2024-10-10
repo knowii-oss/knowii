@@ -57,4 +57,8 @@ class Constants
     'social_link_github',
     'social_link_gitlab',
   ];
+
+  // Technical
+  public static string $BROWSERLESS_CONTENT_API_PATH = '/content';
+  public static string $BROWSERLESS_TOKEN_API_PARAMETER = 'token';
 }

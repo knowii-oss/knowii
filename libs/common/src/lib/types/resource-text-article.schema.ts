@@ -28,7 +28,8 @@ export const newResourceTextArticleSchema = urlSchema.merge(
       .max(MAX_LENGTH_COMMUNITY_RESOURCE_DESCRIPTION, {
         message: `Your description is too long (maximum ${MAX_LENGTH_COMMUNITY_RESOURCE_DESCRIPTION} characters)`,
       })
-      .optional(),
+      .optional()
+      .nullable(),
     level: resourceLevelSchema,
   }),
 );
@@ -37,10 +38,10 @@ export type NewResourceTextArticle = z.infer<typeof newResourceTextArticleSchema
 
 export const resourceTextArticleSchema = baseEntitySchema.merge(
   z.object({
-    html: z.string().optional(),
-    markdown: z.string().optional(),
-    word_count: z.number().int().optional(),
-    reading_time: z.number().int().optional(),
+    html: z.string().nullable(),
+    markdown: z.string().nullable(),
+    word_count: z.number().int().nullable(),
+    reading_time: z.number().int().nullable(),
   }),
 );
 

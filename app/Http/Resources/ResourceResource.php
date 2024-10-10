@@ -23,9 +23,11 @@ class ResourceResource extends JsonResource
           'description' => $this->description ?? '', // Ensures the returned value is never null
           'ai_summary' => $this->ai_summary ?? '', // Ensures the returned value is never null
           'published_at' => $this->published_at,
+          'modified_at' => $this->modified_at,
           'language' => $this->language ?? '', // Ensures the returned value is never null
           'url' => $this->url ?? '', // Ensures the returned value is never null
-          'thumbnail_url' => $this->thumbnail_url ?? '', // Ensures the returned value is never null
+          'cover_image' => $this->cover_image,
+          'cover_image_alt' => $this->cover_image_alt, // Ensures the returned value is never null
           'type' => $this->type->value,
           'level' => $this->level->value,
           'is_featured' => $this->is_featured,
