@@ -22,9 +22,10 @@ return new class extends Migration
       $table->timestamp('published_at')->nullable()->index();
       $table->timestamp('modified_at')->nullable()->index();
       $table->string('language', 5)->nullable();
-      $table->string('url')->nullable()->unique()->index();
-      $table->string('cover_image')->nullable();
+      $table->text('url')->nullable()->unique()->index();
+      $table->string('cover_image_url')->nullable();
       $table->string('cover_image_alt')->nullable();
+      $table->longText('cover_image_base64')->nullable();
       $table->enum('type', KnowiiResourceType::toStringArray())->index();
       $table->enum('level', KnowiiResourceLevel::toStringArray())->index();
       $table->boolean('is_featured')->default(false)->index();

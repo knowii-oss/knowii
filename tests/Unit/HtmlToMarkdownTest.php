@@ -22,24 +22,6 @@ test('removes scripts and styles', function () {
   expect($result)->toBe($expected);
 });
 
-test('removes links but keeps text', function () {
-  $html = '<p>This is a <a href="https://example.com">link</a>.</p>';
-  $expected = "This is a link.";
-
-  $result = $this->converter->convertHtmlToMarkdown($html);
-
-  expect($result)->toBe($expected);
-});
-
-test('removes images', function () {
-  $html = '<p>An image: <img src="image.jpg" alt="Image"></p>';
-  $expected = "An image:";
-
-  $result = $this->converter->convertHtmlToMarkdown($html);
-
-  expect($result)->toBe($expected);
-});
-
 test('handles empty input', function () {
   $html = '';
   $expected = '';

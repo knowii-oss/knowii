@@ -26,8 +26,9 @@ class ResourceResource extends JsonResource
           'modified_at' => $this->modified_at,
           'language' => $this->language ?? '', // Ensures the returned value is never null
           'url' => $this->url ?? '', // Ensures the returned value is never null
-          'cover_image' => $this->cover_image,
+          'cover_image_url' => $this->cover_image_url,
           'cover_image_alt' => $this->cover_image_alt, // Ensures the returned value is never null
+          'cover_image_base64' => $this->cover_image_base64,
           'type' => $this->type->value,
           'level' => $this->level->value,
           'is_featured' => $this->is_featured,
