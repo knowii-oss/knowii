@@ -52,7 +52,7 @@
   },
   "scripts": {
     "db:clean": [
-      "sail php artisan migrate:fresh"
+      "sail php artisan migrate:fresh --seed"
     ],
     "sail:cache:clean": [
       "sail artisan cache:clear && sail artisan route:clear && sail artisan config:clear && sail artisan view:clear"
