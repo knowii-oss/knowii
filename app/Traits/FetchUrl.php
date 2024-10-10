@@ -2,6 +2,8 @@
 
 namespace App\Traits;
 
+use App\Constants;
+use App\Exceptions\TechnicalException;
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
@@ -18,19 +20,37 @@ trait FetchUrl
    */
   final public function fetchUrl(string $url): string
   {
+    $client = $this->getClient();
+
     try {
-      $client = $this->getClient();
 
       // References
       // https://docs.browserless.io/http-apis/content
       // Alternative: https://docs.browserless.io/http-apis/scrape
-      $response = $client->post(env('BROWSERLESS_URL') . "/content?token=" . env("BROWSERLESS_TOKEN"), [
+      $browserlessUrl = env('BROWSERLESS_URL');
+      $browserlessToken = env('BROWSERLESS_TOKEN');
+
+      if (empty($browserlessUrl) || empty($browserlessToken)) {
+        throw new TechnicalException('Browserless URL or token is not configured correctly.');
+      }
+
+      $browserlessUrl .= Constants::$BROWSERLESS_CONTENT_API_PATH . "?" . Constants::$BROWSERLESS_TOKEN_API_PARAMETER . "=" . $browserlessToken;
+
+      $response = $client->post($browserlessUrl, [
         'json' => [
           "url" => $url,
           "bestAttempt" => true,
+
+          // Accelerate loading by skipping some resources
+          // Reference
+          // https://docs.browserless.io/http-apis/content#rejecting-undesired-requests
+          "rejectRequestPattern" => ["/^.*\\.(css|jpg|jpeg|png|gif|svg|woff|woff2|ttf|eot|webp|avif|apng)$/i"],
+          "rejectResourceTypes" => ["stylesheet", "font", "image"],
+
           "gotoOptions" => [
             "timeout" => 10000,
             "waitUntil" => "networkidle2",
+            "referer" => env('APP_URL'), // announce ourselves
           ]
         ],
       ]);
@@ -40,7 +60,7 @@ trait FetchUrl
 
       $html = $response->getBody()->getContents();
 
-      if($html === "" || $response->getStatusCode() !== 200) {
+      if ($html === "" || $response->getStatusCode() !== 200) {
         throw new Exception("Failed to fetch the page");
       }
 
@@ -58,7 +78,7 @@ trait FetchUrl
    * @return string
    * @throws GuzzleException
    */
-  final public function getFinalUrl(string $url): string
+  final public function getFinalUrlAfterRedirects(string $url): string
   {
     $client = $this->getClient();
     $response = $client->get($url, ['allow_redirects' => ['track_redirects' => true]]);
