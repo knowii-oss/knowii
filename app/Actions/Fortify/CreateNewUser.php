@@ -79,16 +79,16 @@ class CreateNewUser implements CreatesNewUsers
   {
     $communityName = $user->name;
     if ($user->name[-1] === 's') {
-      $communityName .= "' Personal space";
+      $communityName .= "' Space";
     } else {
-      $communityName .= "'s Personal space";
+      $communityName .= "'s Space";
     }
 
     $user->ownedCommunities()->save(Community::forceCreate([
       'owner_id' => $user->id,
       'name' => $communityName,
       // The slug is generated automatically
-      'description' => $user->name . "'s Personal space",
+      'description' => $user->name . "'s Space",
       'visibility' => KnowiiCommunityVisibility::Personal,
     ]));
   }
