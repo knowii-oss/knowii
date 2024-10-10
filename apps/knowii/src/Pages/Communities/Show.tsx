@@ -141,7 +141,7 @@ export default function CommunityPage(props: Props) {
               </div>
             }
             subTitle={<Divider className="p-0 m-0" />}
-            className="p-0"
+            className="p-0 overflow-hidden"
           >
             {recentResources.length > 0 ? (
               <div className="flex flex-col gap-5">
@@ -217,7 +217,7 @@ export default function CommunityPage(props: Props) {
                           });
                         }}
                       ></div>
-                      {recentResource.resource.type === 'textArticle' && (
+                      {recentResource.resource.type === 'textArticle' && recentResource.resource.url && (
                         <a href={recentResource.resource.url} target="_blank" rel="noreferrer">
                           <Button severity="secondary" size="small" className="py-[6px] px-2">
                             <FaExternalLinkAlt />
@@ -252,12 +252,12 @@ export default function CommunityPage(props: Props) {
               </div>
             }
             subTitle={<Divider className="p-0 m-0" />}
-            className=""
+            className="overflow-hidden"
           >
             {resourceCollections.length > 0 ? (
               <CardGroup>
-                {resourceCollections.map((collection) => (
-                  <li className="w-full sm:w-auto" key={collection.cuid}>
+                {resourceCollections.map((collection) => (<>
+                  <li className="w-full md:w-auto" key={collection.cuid}>
                     <CommunityResourceCollectionBox
                       key={collection.cuid}
                       resourceCollection={collection}
@@ -267,6 +267,67 @@ export default function CommunityPage(props: Props) {
                       })}
                     />
                   </li>
+                  <li className="w-full md:w-auto" key={collection.cuid}>
+                    <CommunityResourceCollectionBox
+                      key={collection.cuid}
+                      resourceCollection={collection}
+                      link={route(RESOURCE_COLLECTION_URL, {
+                        communitySlug: props.community.slug,
+                        resourceCollectionSlug: collection.slug,
+                      })}
+                    />
+                  </li>
+                  <li className="w-full md:w-auto" key={collection.cuid}>
+                    <CommunityResourceCollectionBox
+                      key={collection.cuid}
+                      resourceCollection={collection}
+                      link={route(RESOURCE_COLLECTION_URL, {
+                        communitySlug: props.community.slug,
+                        resourceCollectionSlug: collection.slug,
+                      })}
+                    />
+                  </li>
+                  <li className="w-full md:w-auto" key={collection.cuid}>
+                    <CommunityResourceCollectionBox
+                      key={collection.cuid}
+                      resourceCollection={collection}
+                      link={route(RESOURCE_COLLECTION_URL, {
+                        communitySlug: props.community.slug,
+                        resourceCollectionSlug: collection.slug,
+                      })}
+                    />
+                  </li>
+                  <li className="w-full md:w-auto" key={collection.cuid}>
+                    <CommunityResourceCollectionBox
+                      key={collection.cuid}
+                      resourceCollection={collection}
+                      link={route(RESOURCE_COLLECTION_URL, {
+                        communitySlug: props.community.slug,
+                        resourceCollectionSlug: collection.slug,
+                      })}
+                    />
+                  </li>
+                  <li className="w-full md:w-auto" key={collection.cuid}>
+                    <CommunityResourceCollectionBox
+                      key={collection.cuid}
+                      resourceCollection={collection}
+                      link={route(RESOURCE_COLLECTION_URL, {
+                        communitySlug: props.community.slug,
+                        resourceCollectionSlug: collection.slug,
+                      })}
+                    />
+                  </li>
+                  <li className="w-full md:w-auto" key={collection.cuid}>
+                    <CommunityResourceCollectionBox
+                      key={collection.cuid}
+                      resourceCollection={collection}
+                      link={route(RESOURCE_COLLECTION_URL, {
+                        communitySlug: props.community.slug,
+                        resourceCollectionSlug: collection.slug,
+                      })}
+                    />
+                  </li>
+                  </>
                 ))}
               </CardGroup>
             ) : (

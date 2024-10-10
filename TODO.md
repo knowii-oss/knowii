@@ -10,6 +10,7 @@
 - Add tests for ProcessHtml
 - Add Browserless in production
   - Try to use /active (Returns a simple "204" HTTP code, with no response, indicating that the service itself is up and running. Useful for liveliness probes or other external checks): https://docs.browserless.io/open-api#:~:text=/active,other%20external%20checks.
+- TODO show both the community specific name/description and the resource generic one
 - Add tests for CreateTextResource
 - In inertia controllers
   - find how to return a single collection property, but applying an API resource class to each returned element

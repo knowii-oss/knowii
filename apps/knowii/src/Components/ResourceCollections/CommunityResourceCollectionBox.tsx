@@ -40,7 +40,7 @@ const CommunityResourceCollectionBox: React.FC<Props> = ({ resourceCollection, c
   );
 
   return (
-    <div className="w-full sm:w-96 h-20 shadow-sm hover:shadow-md border border-gray-200 hover:border-primary-500 cursor-pointer rounded-md overflow-hidden transition-all duration-200">
+    <div className="w-full min-w-full md:w-72 lg:w-96 h-20 shadow-sm hover:shadow-md border border-gray-200 hover:border-primary-500 cursor-pointer rounded-md overflow-hidden transition-all duration-200">
       {boxContent}
     </div>
   );
