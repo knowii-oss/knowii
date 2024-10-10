@@ -17,6 +17,7 @@ import {
   USER_PHONE_REGEX,
   UserProfile,
   USER_PROFILE_BIO_TEXTAREA_ROWS,
+  EMAIL_VERIFICATION_URL,
 } from '@knowii/common';
 import { Link, useForm } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
@@ -230,7 +231,7 @@ export default function UpdateProfileInformationForm(props: Props) {
             <p className="text-sm mt-2">
               <span className="text-red">Your email address is unverified.&nbsp;</span>
               <Link
-                href={route('verification.send')}
+                href={route(EMAIL_VERIFICATION_URL)}
                 method="post"
                 as="button"
                 className="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"

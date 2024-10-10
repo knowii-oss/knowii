@@ -54,7 +54,13 @@ export default function CommunityBox(props: Props) {
     </div>
   ) : (
     <div className="w-full sm:w-[450px] h-[250px] rounded-lg hover:outline hover:outline-primary-500 hover:outline-offset-2 hover:rounded-md shadow-lg overflow-hidden flex-shrink-0">
-      {props.link ? <Link href={props.link}>{normalModeCard}</Link> : normalModeCard}
+      {props.link ? (
+        <Link href={props.link} preserveState={true}>
+          {normalModeCard}
+        </Link>
+      ) : (
+        normalModeCard
+      )}
     </div>
   );
 }

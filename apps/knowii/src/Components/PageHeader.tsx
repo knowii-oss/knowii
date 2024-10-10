@@ -53,7 +53,7 @@ export default function PageHeader(props: PropsWithChildren<Props>) {
 
       <nav className="flex flex-row flex-wrap gap-4 mt-6 md:mt-0 justify-center">
         {props.showDashboardButton && (
-          <Link href={route(DASHBOARD_URL)} className="">
+          <Link href={route(DASHBOARD_URL)} preserveState={true}>
             <Button label="Dashboard" className={classNames('font-mono font-bold', { 'min-w-48 min-h-16': !props.compact })} />
           </Link>
         )}
