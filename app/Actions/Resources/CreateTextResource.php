@@ -105,6 +105,7 @@ class CreateTextResource implements CreatesTextResources
       'title' => null,
       'description' =>  null,
       'excerpt' => '',
+      'keywords' => [],
       'ai_summary' => null, // TODO generate summary using AI
       'published_at' => null,
       'modified_at' => null,
@@ -154,6 +155,8 @@ class CreateTextResource implements CreatesTextResources
       $pageContent['cover_image_alt'] = $this->getHtmlCoverImageAlt($pageContent['html']);
 
       $pageContent['language'] = $this->getHtmlLanguage($pageContent['html']);
+
+      $pageContent['keywords'] = $this->getHtmlKeywords($pageContent['html']);
 
       // TODO continue here
 
@@ -208,6 +211,7 @@ class CreateTextResource implements CreatesTextResources
           'name' => $pageContent['title'] ?? $name, // title identified by parsing the page, or user-provided one otherwise
           'description' => $pageContent['description'] ?? $description,
           'excerpt' => $pageContent['excerpt'],
+          'keywords' => $pageContent['keywords'],
           'ai_summary' => $pageContent['ai_summary'],
           'published_at' => $pageContent['published_at'],
           'modified_at' => $pageContent['modified_at'],

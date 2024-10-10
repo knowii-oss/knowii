@@ -52,6 +52,7 @@ Front-end (TypeScript/React/Prime React/Tailwind/Zod/react-hook-form)
 - Forms must be implementing using react-hook-form, and use the Knowii API client, which makes calls to the API exposed by the back-end
 - API url paths must be added to constants.ts in the common library
 - Data retrieval must be implemented using Knowii API client (which should be extended to support new operations if needed)
+- Links should use the Link component of Inertia.js. Links should include `preserveState={true}` if they change the URL without reloading the page. Same for programmatic navigation using `.visit(...)`
 
 Laravel rules:
 - Kernel.php no longer exists. Use app.php instead

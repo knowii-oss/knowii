@@ -251,4 +251,33 @@ trait ProcessHtml
 
     return $retVal;
   }
+
+  final public function getHtmlKeywords(string $html): array
+  {
+    $retVal = [];
+    $metaArray = $this->getHtmlPageMeta($html);
+
+    // Process keywords meta tag
+    if (!empty($metaArray['keywords'])) {
+        $keywords = explode(',', $metaArray['keywords']);
+        foreach ($keywords as $keyword) {
+            $keyword = trim(strtolower($keyword));
+            if (!empty($keyword) && !in_array($keyword, $retVal) && strlen($keyword) <= 100) {
+                $retVal[] = $keyword;
+            }
+        }
+    }
+
+    // Process article:tag meta tags (if present)
+    if (preg_match_all('/<meta\s+(?:[^>]*?\s+)?property=(["\'])article:tag\1\s+content=(["\'])(.*?)\2[^>]*>/i', $html, $matches, PREG_SET_ORDER)) {
+        foreach ($matches as $match) {
+            $tag = trim(strtolower($match[3]));
+            if (!empty($tag) && !in_array($tag, $retVal)) {
+                $retVal[] = $tag;
+            }
+        }
+    }
+
+    return $retVal;
+  }
 }

@@ -17,6 +17,7 @@ return new class extends Migration
       $table->string('slug')->unique()->index();
       $table->text('description')->nullable();
       $table->text('excerpt')->nullable();
+      $table->jsonb('keywords');
       $table->text('ai_summary')->nullable();
       $table->timestamp('published_at')->nullable()->index();
       $table->timestamp('modified_at')->nullable()->index();
