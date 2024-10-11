@@ -290,18 +290,19 @@ If possible, add a `GITHUB_TOKEN` variable to your environment, so that the rele
 
 To release a new version, follow these steps:
 
-- Checkout the main repository (not a fork)
-- Checkout the main branch: `git checkout main`
-- Install the dependencies
-- Make sure you have the latest changes: `git fetch && git pull`
-- Run one of the release scripts: `npm run release` or `npm run release:patch` or `npm run release:minor` or `npm run release:major`
-- This will update the changelog, the version in package.json, tag, and push everything to the repository
+- Go to the "Release" action page of the project on GitHub: https://github.com/knowii-oss/knowii/actions
+- Click on the "Run workflow" button
+- Leave the default branch (main) as is, and click on the "Run workflow" button
+
+Once completed, the release should be available on GitHub: https://github.com/knowii-oss/knowii/releases
 
 ## Deploying a new version to production
 
 To deploy to production, all you have to do is merge changes into the `production` branch. To do so, run the following command: `npm run deploy`.
 
 This will checkout the main branch, make sure it is up to date, switch to the production branch, merge the main branch into the production branch, push the changes to the production branch, and then switch back to the main branch.
+If there were major changes in the dependencies, then you might want to run `composer install` and `npm install` or `npm run install:linux` locally on the main branch.
+
 Once this is done, the changes will be automatically deployed to production. This is handled by Laravel Forge.
 
 ## Submission guidelines
