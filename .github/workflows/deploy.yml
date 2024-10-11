@@ -1,5 +1,7 @@
 name: Deploy
 
+concurrency: production
+
 # Manual workflow
 on: workflow_dispatch
 
@@ -15,23 +17,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          # Fetch all history for all tags and branches
           fetch-depth: 0
+          # Checkout the main branch
+          ref: main
 
-      # Cache node_modules
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 21
-          cache: 'npm'
-      - run: |
-          git config user.name "${GITHUB_ACTOR}"
-          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
-      - run: npm ci --legacy-peer-deps
       # Create and switch to a new branch based on the existing production branch before the deployment
       # This is necessary because the production branch is protected
       - run: |
-          git checkout -b deploy-${GITHUB_SHA} origin/production
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          git checkout main
+          git fetch origin
+          git switch --create deploy-${GITHUB_SHA} origin/production
           git push --set-upstream origin deploy-${GITHUB_SHA}
-          NX_NO_CLOUD=true && git rebase origin/main && git push
+          git pull
+          NX_NO_CLOUD=true && git rebase origin/main
+          git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

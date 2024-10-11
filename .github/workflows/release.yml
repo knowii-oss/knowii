@@ -1,5 +1,7 @@
 name: Release
 
+concurrency: release
+
 # Manual workflow
 on: workflow_dispatch
 
@@ -15,6 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          # Fetch all history for all tags and branches
           fetch-depth: 0
 
       # Cache node_modules
@@ -29,7 +32,7 @@ jobs:
       # Create and switch to a new branch before the release
       # This is necessary because the main branch is protected
       - run: |
-          git checkout -b release-${GITHUB_SHA}
+          git switch --create release-${GITHUB_SHA}
           git push --set-upstream origin release-${GITHUB_SHA}
       - uses: nrwl/nx-set-shas@v4
       - run: NX_NO_CLOUD=true && npm run release
