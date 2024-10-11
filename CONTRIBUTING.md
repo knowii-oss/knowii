@@ -298,12 +298,9 @@ Once completed, the release should be available on GitHub: https://github.com/kn
 
 ## Deploying a new version to production
 
-To deploy to production, all you have to do is merge changes into the `production` branch. To do so, run the following command: `npm run deploy`.
+To deploy to production, all you have to do is merge changes into the `production` branch. To do so, run the "Deploy" action on GitHub.
 
-This will checkout the main branch, make sure it is up to date, switch to the production branch, merge the main branch into the production branch, push the changes to the production branch, and then switch back to the main branch.
-If there were major changes in the dependencies, then you might want to run `composer install` and `npm install` or `npm run install:linux` locally on the main branch.
-
-Once this is done, the changes will be automatically deployed to production. This is handled by Laravel Forge.
+This will create a PR that, once merged, will trigger a deployment to production. The deployment itself is handled by Laravel Forge.
 
 ## Submission guidelines
 

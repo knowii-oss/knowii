@@ -33,7 +33,6 @@
     "lint:knowii": "nx lint knowii",
     "lint:common": "nx lint common",
     "prepare": "husky || true",
-    "deploy": "git checkout main && git pull && git switch production && git rebase origin/main && git push && git checkout main",
     "release": "release-it",
     "release:final": "release",
     "release:alpha": "release-it --preRelease=alpha",
