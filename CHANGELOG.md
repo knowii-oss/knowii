@@ -1,6 +1,6 @@
 
 
-# 0.11.0 (2024-10-11)
+# 0.12.0 (2024-10-11)
 
 
 ### Bug Fixes
@@ -22,6 +22,7 @@
 * **all:** fixed username generation (ended with - for conflicts before) ([1265568](https://github.com/DeveloPassion/knowii/commit/1265568279b1db16f4c307f84056b47f4c18db84))
 * **all:** fixed verify mail page links ([1fdd0bf](https://github.com/DeveloPassion/knowii/commit/1fdd0bf6d1396337d4f478e8938ea8ae8d0ca7fa)), closes [#735](https://github.com/DeveloPassion/knowii/issues/735)
 * **all:** implemented re-attach of user profiles (wip for [#921](https://github.com/DeveloPassion/knowii/issues/921)) ([761c460](https://github.com/DeveloPassion/knowii/commit/761c460893555365be14f3e775dd0419fe9f83b2))
+* **all:** remove test duplicate resource collection entries display ([0532bd0](https://github.com/DeveloPassion/knowii/commit/0532bd0c99165e33b21cb7857acbf4e87edad0fa))
 * **all:** removed the removal of the v parameter because it breaks adding yt links ([f92f452](https://github.com/DeveloPassion/knowii/commit/f92f4521c8b90651858dad43c6c030f9c57d8add))
 * **all:** switched back to Pino and fixed the issue ([c929451](https://github.com/DeveloPassion/knowii/commit/c929451829d620c25a29b8f5d719dc0309d183d2)), closes [#623](https://github.com/DeveloPassion/knowii/issues/623)
 * **all:** used the correct API resource when serializing communities ([441ec14](https://github.com/DeveloPassion/knowii/commit/441ec14ec1354ae80d878cb08a3530bcb76f1561))
@@ -103,6 +104,7 @@
 * **auth:** added support for FB and Twitter ([b3cca94](https://github.com/DeveloPassion/knowii/commit/b3cca9433d630154f34c8edf6e4851ea23c4fdc8))
 * **auth:** implemented means to retrieve the internal user id as part of the supabase session ([5f8969d](https://github.com/DeveloPassion/knowii/commit/5f8969db7b6c2d294be69b605a28989c0498d513))
 * **auth:** implemented verify email page. Closes [#673](https://github.com/DeveloPassion/knowii/issues/673) ([4d9087f](https://github.com/DeveloPassion/knowii/commit/4d9087f8ab8c946fa36efb179622329e2ce498d5))
+* **build:** added deployment github workflow ([35f81be](https://github.com/DeveloPassion/knowii/commit/35f81bec96c1dc39430a49186181cb7f03f1fe65))
 * **code:** added API endpoint to check for community slug availability ([a58072e](https://github.com/DeveloPassion/knowii/commit/a58072ede829329a582ad69bdf810e00f6a4519f))
 * **code:** added utility function to create slugs ([5417bd0](https://github.com/DeveloPassion/knowii/commit/5417bd0332f2686fc593180f6f91319092bf0e32))
 * **code:** added zustand for state management together with a first example ([274171f](https://github.com/DeveloPassion/knowii/commit/274171f5ef6d5712035d75d03f94f334b0b58b74)), closes [#538](https://github.com/DeveloPassion/knowii/issues/538) [#538](https://github.com/DeveloPassion/knowii/issues/538)
@@ -154,7 +156,7 @@
 
 * **deps:** reverted update of supabase auth-helpers as those break sign up ([ae06319](https://github.com/DeveloPassion/knowii/commit/ae063191d0ed4db0fa83b743ea582fea5f76c93f)), closes [#533](https://github.com/DeveloPassion/knowii/issues/533)
 
-# 0.11.0 (2024-10-11)
+# 0.12.0 (2024-10-11)
 
 
 ### Bug Fixes
@@ -176,6 +178,7 @@
 * **all:** fixed username generation (ended with - for conflicts before) ([1265568](https://github.com/DeveloPassion/knowii/commit/1265568279b1db16f4c307f84056b47f4c18db84))
 * **all:** fixed verify mail page links ([1fdd0bf](https://github.com/DeveloPassion/knowii/commit/1fdd0bf6d1396337d4f478e8938ea8ae8d0ca7fa)), closes [#735](https://github.com/DeveloPassion/knowii/issues/735)
 * **all:** implemented re-attach of user profiles (wip for [#921](https://github.com/DeveloPassion/knowii/issues/921)) ([761c460](https://github.com/DeveloPassion/knowii/commit/761c460893555365be14f3e775dd0419fe9f83b2))
+* **all:** remove test duplicate resource collection entries display ([0532bd0](https://github.com/DeveloPassion/knowii/commit/0532bd0c99165e33b21cb7857acbf4e87edad0fa))
 * **all:** removed the removal of the v parameter because it breaks adding yt links ([f92f452](https://github.com/DeveloPassion/knowii/commit/f92f4521c8b90651858dad43c6c030f9c57d8add))
 * **all:** switched back to Pino and fixed the issue ([c929451](https://github.com/DeveloPassion/knowii/commit/c929451829d620c25a29b8f5d719dc0309d183d2)), closes [#623](https://github.com/DeveloPassion/knowii/issues/623)
 * **all:** used the correct API resource when serializing communities ([441ec14](https://github.com/DeveloPassion/knowii/commit/441ec14ec1354ae80d878cb08a3530bcb76f1561))
@@ -257,6 +260,7 @@
 * **auth:** added support for FB and Twitter ([b3cca94](https://github.com/DeveloPassion/knowii/commit/b3cca9433d630154f34c8edf6e4851ea23c4fdc8))
 * **auth:** implemented means to retrieve the internal user id as part of the supabase session ([5f8969d](https://github.com/DeveloPassion/knowii/commit/5f8969db7b6c2d294be69b605a28989c0498d513))
 * **auth:** implemented verify email page. Closes [#673](https://github.com/DeveloPassion/knowii/issues/673) ([4d9087f](https://github.com/DeveloPassion/knowii/commit/4d9087f8ab8c946fa36efb179622329e2ce498d5))
+* **build:** added deployment github workflow ([35f81be](https://github.com/DeveloPassion/knowii/commit/35f81bec96c1dc39430a49186181cb7f03f1fe65))
 * **code:** added API endpoint to check for community slug availability ([a58072e](https://github.com/DeveloPassion/knowii/commit/a58072ede829329a582ad69bdf810e00f6a4519f))
 * **code:** added utility function to create slugs ([5417bd0](https://github.com/DeveloPassion/knowii/commit/5417bd0332f2686fc593180f6f91319092bf0e32))
 * **code:** added zustand for state management together with a first example ([274171f](https://github.com/DeveloPassion/knowii/commit/274171f5ef6d5712035d75d03f94f334b0b58b74)), closes [#538](https://github.com/DeveloPassion/knowii/issues/538) [#538](https://github.com/DeveloPassion/knowii/issues/538)
