@@ -16,13 +16,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          # Fetch all history for all tags and branches
-          fetch-depth: 0
 
       # Create and merge a PR for this deployment
       # This is a workaround for the production branch protection
-      # Reference: https://github.com/krlmlr/pr-bots/blob/main/.github/workflows/write-file-branch-merge.yaml
+      # References:
+      # https://github.com/krlmlr/pr-bots/blob/main/.github/workflows/write-file-branch-merge.yaml
+      # https://cli.github.com/manual/gh_pr_create
       - run: |
           gh pr create --title "Deploy ${GITHUB_SHA}" --body "This is a Deployment PR" --base production --head main
         shell: bash
