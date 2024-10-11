@@ -1,6 +1,6 @@
 
 
-# 0.10.0 (2024-10-11)
+# 0.11.0 (2024-10-11)
 
 
 ### Bug Fixes
@@ -60,6 +60,7 @@
 * **all:** added logging utility ([b2bfbd6](https://github.com/DeveloPassion/knowii/commit/b2bfbd6b3b708c87877ebee46ce1cceceb875f0b)), closes [#265](https://github.com/DeveloPassion/knowii/issues/265)
 * **all:** added name and description to community resources ([667e09c](https://github.com/DeveloPassion/knowii/commit/667e09c4fc3478862a1eb9624e3f52bac7d0c684))
 * **all:** added new app skeleton ([e817b1f](https://github.com/DeveloPassion/knowii/commit/e817b1f8607e069180b00f9ffe1f614b2cc8a692))
+* **all:** added self hosting guide and browserless production setup scripts ([555fc7c](https://github.com/DeveloPassion/knowii/commit/555fc7c725feea0c6cc8a161071b7da898e15222))
 * **all:** added slug to communities ([d87a36d](https://github.com/DeveloPassion/knowii/commit/d87a36dc5fa713546ea56f13c20bbaf56587df4a))
 * **all:** added social media links to user profiles ([ff2a971](https://github.com/DeveloPassion/knowii/commit/ff2a971d845c549198f8e8a36797c5e1ec0b8af5)), closes [#836](https://github.com/DeveloPassion/knowii/issues/836)
 * **all:** added social media links to user profiles ([980f8c0](https://github.com/DeveloPassion/knowii/commit/980f8c0b2834727b0aa751782589e545f606ded8))
@@ -153,7 +154,7 @@
 
 * **deps:** reverted update of supabase auth-helpers as those break sign up ([ae06319](https://github.com/DeveloPassion/knowii/commit/ae063191d0ed4db0fa83b743ea582fea5f76c93f)), closes [#533](https://github.com/DeveloPassion/knowii/issues/533)
 
-# 0.10.0 (2024-10-11)
+# 0.11.0 (2024-10-11)
 
 
 ### Bug Fixes
@@ -213,6 +214,7 @@
 * **all:** added logging utility ([b2bfbd6](https://github.com/DeveloPassion/knowii/commit/b2bfbd6b3b708c87877ebee46ce1cceceb875f0b)), closes [#265](https://github.com/DeveloPassion/knowii/issues/265)
 * **all:** added name and description to community resources ([667e09c](https://github.com/DeveloPassion/knowii/commit/667e09c4fc3478862a1eb9624e3f52bac7d0c684))
 * **all:** added new app skeleton ([e817b1f](https://github.com/DeveloPassion/knowii/commit/e817b1f8607e069180b00f9ffe1f614b2cc8a692))
+* **all:** added self hosting guide and browserless production setup scripts ([555fc7c](https://github.com/DeveloPassion/knowii/commit/555fc7c725feea0c6cc8a161071b7da898e15222))
 * **all:** added slug to communities ([d87a36d](https://github.com/DeveloPassion/knowii/commit/d87a36dc5fa713546ea56f13c20bbaf56587df4a))
 * **all:** added social media links to user profiles ([ff2a971](https://github.com/DeveloPassion/knowii/commit/ff2a971d845c549198f8e8a36797c5e1ec0b8af5)), closes [#836](https://github.com/DeveloPassion/knowii/issues/836)
 * **all:** added social media links to user profiles ([980f8c0](https://github.com/DeveloPassion/knowii/commit/980f8c0b2834727b0aa751782589e545f606ded8))
