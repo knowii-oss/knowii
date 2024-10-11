@@ -111,6 +111,8 @@ trait FetchUrl
       $response = $client->head($url);
       $statusCode = $response->getStatusCode();
 
+      Log::debug("URL status: " . $statusCode . " for " . $url);
+
       return $statusCode >= 200 && $statusCode < 300;
     } catch (\RuntimeException $e) {
       return false;
