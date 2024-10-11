@@ -40,6 +40,10 @@ trait FetchUrl
         'json' => [
           "url" => $url,
           "bestAttempt" => true,
+          "blockAds" => true,
+          "launch" => [
+            "stealth" => true,
+          ],
 
           // Accelerate loading by skipping some resources
           // Reference
