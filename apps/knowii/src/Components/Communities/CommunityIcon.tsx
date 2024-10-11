@@ -17,10 +17,10 @@ const CommunityIcon = (props: Props) => {
         color = 'text-primary-500';
         break;
       case 'personal':
-        color = 'text-gray-500';
+        color = 'text-yellow-500';
         break;
       default:
-        color = 'text-gray-500';
+        color = '';
     }
   }
 
