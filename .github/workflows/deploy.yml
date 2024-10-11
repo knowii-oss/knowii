@@ -40,7 +40,7 @@ jobs:
       # This is a workaround for the production branch protection
       # Reference: https://github.com/krlmlr/pr-bots/blob/main/.github/workflows/write-file-branch-merge.yaml
       - run: |
-          gh pr create --title "Deploy ${GITHUB_SHA}" --body "This is a Deployment PR" --base main --head deploy-${GITHUB_SHA}
+          gh pr create --title "Deploy ${GITHUB_SHA}" --body "This is a Deployment PR" --base production --head deploy-${GITHUB_SHA}
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
