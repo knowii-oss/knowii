@@ -29,6 +29,7 @@ jobs:
       # Create and switch to a new branch before the deployment
       # This is necessary because the production branch is protected
       - run: |
+          git checkout production
           git checkout -b deploy-${GITHUB_SHA}
           git push --set-upstream origin deploy-${GITHUB_SHA}
       - uses: nrwl/nx-set-shas@v4
@@ -53,7 +54,7 @@ jobs:
 
       # Clean up the temporary deployment branch
       - run: |
-          git checkout main
+          git checkout production
           git branch -D deploy-${GITHUB_SHA}
           git push origin --delete deploy-${GITHUB_SHA}
         shell: bash
