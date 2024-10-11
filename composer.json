@@ -52,13 +52,13 @@
   },
   "scripts": {
     "db:clean": [
-      "sail php artisan migrate:fresh --seed"
+      "sail php artisan migrate:fresh --seed --force"
     ],
     "sail:cache:clean": [
       "sail artisan cache:clear && sail artisan route:clear && sail artisan config:clear && sail artisan view:clear"
     ],
     "sail:clean": [
-      "sail down --volumes && sail build --no-cache && sail up -d && sail artisan migrate --force"
+      "sail down --volumes && sail build --no-cache && sail up -d && composer db:clean"
     ],
     "serve": [
       "composer start"
