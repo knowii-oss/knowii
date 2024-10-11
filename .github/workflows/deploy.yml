@@ -1,4 +1,4 @@
-name: Release
+name: Deploy
 
 # Manual workflow
 on: workflow_dispatch
@@ -26,21 +26,21 @@ jobs:
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
       - run: npm ci --legacy-peer-deps
-      # Create and switch to a new branch before the release
-      # This is necessary because the main branch is protected
+      # Create and switch to a new branch before the deployment
+      # This is necessary because the production branch is protected
       - run: |
-          git checkout -b release-${GITHUB_SHA}
-          git push --set-upstream origin release-${GITHUB_SHA}
+          git checkout -b deploy-${GITHUB_SHA}
+          git push --set-upstream origin deploy-${GITHUB_SHA}
       - uses: nrwl/nx-set-shas@v4
-      - run: NX_NO_CLOUD=true && npm run release
+      - run: NX_NO_CLOUD=true && git rebase origin/main && git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Create and merge a PR for the release
-      # This is a workaround for the main branch protection
+      # Create and merge a PR for the deployment
+      # This is a workaround for the production branch protection
       # Reference: https://github.com/krlmlr/pr-bots/blob/main/.github/workflows/write-file-branch-merge.yaml
       - run: |
-          gh pr create --title "Release ${GITHUB_SHA}" --body "This is a Release PR" --base main --head release-${GITHUB_SHA}
+          gh pr create --title "Deploy ${GITHUB_SHA}" --body "This is a Deployment PR" --base main --head deploy-${GITHUB_SHA}
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -51,11 +51,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Clean up the temporary release branch
+      # Clean up the temporary deployment branch
       - run: |
           git checkout main
-          git branch -D release-${GITHUB_SHA}
-          git push origin --delete release-${GITHUB_SHA}
+          git branch -D deploy-${GITHUB_SHA}
+          git push origin --delete deploy-${GITHUB_SHA}
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
