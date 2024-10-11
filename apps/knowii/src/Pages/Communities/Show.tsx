@@ -40,7 +40,7 @@ export default function CommunityPage(props: Props) {
       label: props.community.name,
       template: (item) => (
         <span className="flex items-center gap-2">
-          <CommunityIcon />
+          <CommunityIcon visibility={props.community.visibility} />
           {item.label}
         </span>
       ),
@@ -257,18 +257,16 @@ export default function CommunityPage(props: Props) {
             {resourceCollections.length > 0 ? (
               <CardGroup>
                 {resourceCollections.map((collection) => (
-                  <>
-                    <li className="w-full md:w-auto" key={collection.cuid}>
-                      <CommunityResourceCollectionBox
-                        key={collection.cuid}
-                        resourceCollection={collection}
-                        link={route(RESOURCE_COLLECTION_URL, {
-                          communitySlug: props.community.slug,
-                          resourceCollectionSlug: collection.slug,
-                        })}
-                      />
-                    </li>
-                  </>
+                  <li className="w-full md:w-auto" key={collection.cuid}>
+                    <CommunityResourceCollectionBox
+                      key={collection.cuid}
+                      resourceCollection={collection}
+                      link={route(RESOURCE_COLLECTION_URL, {
+                        communitySlug: props.community.slug,
+                        resourceCollectionSlug: collection.slug,
+                      })}
+                    />
+                  </li>
                 ))}
               </CardGroup>
             ) : (

@@ -79,7 +79,7 @@ export default function CreateCommunityDialog({ visible, onHide, onCommunityCrea
     <Dialog
       header={
         <span className="flex items-center gap-2">
-          <CommunityIcon />
+          <CommunityIcon visibility={null} />
           New community
         </span>
       }
