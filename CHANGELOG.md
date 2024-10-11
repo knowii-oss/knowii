@@ -1,6 +1,6 @@
 
 
-# 0.20.0 (2024-10-11)
+# 0.21.0 (2024-10-11)
 
 
 ### Bug Fixes
@@ -158,7 +158,7 @@
 
 * **deps:** reverted update of supabase auth-helpers as those break sign up ([ae06319](https://github.com/DeveloPassion/knowii/commit/ae063191d0ed4db0fa83b743ea582fea5f76c93f)), closes [#533](https://github.com/DeveloPassion/knowii/issues/533)
 
-# 0.20.0 (2024-10-11)
+# 0.21.0 (2024-10-11)
 
 
 ### Bug Fixes
