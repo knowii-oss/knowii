@@ -1,6 +1,5 @@
 import { DateTime } from '../date-time.intf';
 import { Nullable } from '../nullable.intf';
-import { Community } from '../community.schema';
 import { CurrentUser, UserProfile } from '../user.schema';
 
 export interface Auth {
@@ -20,7 +19,6 @@ export type InertiaSharedProps<T = NonNullable<unknown>> = T & {
     hasEmailVerification: boolean;
   };
   auth: Auth;
-  communities: Community[];
   // FIXME improve types
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   errorBags: any;

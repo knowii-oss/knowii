@@ -42,12 +42,6 @@ class HandleInertiaRequests extends Middleware
       // Add the user profile
       $userProfile = $request->user()->profile;
       $retVal['userProfile'] = $userProfile;
-
-      // Add the communities of the user
-      $allCommunities = $request->user()->allCommunities();
-      $retVal['communities'] = $allCommunities->values();
-    } else {
-      $retVal['communities'] = [];
     }
 
     return $retVal;

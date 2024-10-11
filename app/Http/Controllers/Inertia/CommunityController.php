@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Inertia;
 
 use App\Http\Resources\CommunityResource;
+use App\Http\Resources\CommunityResourceCollectionResource;
+use App\Http\Resources\CommunityResourceResource;
 use App\Models\Community;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -29,10 +31,10 @@ class CommunityController extends Controller
 
     $communityResourceCollections = $community->communityResourceCollections()
       ->orderBy('name')
-      ->get()->toArray();
+      ->get();
 
     // WARNING: this is an associative array. This needs to be converted using array_values
-    $recentResources = $community->recentResources()->toArray();
+    $recentResources = $community->recentResources();
 
     Gate::authorize('view', $community);
 
@@ -45,8 +47,8 @@ class CommunityController extends Controller
       // WARNING: The props passed here must remain aligned with the props expected by the page
       'community' => new CommunityResource($community),
 
-      'resourceCollections' => $communityResourceCollections,
-      'recentResources' => $recentResources ? array_values($recentResources) : [],
+      'resourceCollections' => CommunityResourceCollectionResource::collection($communityResourceCollections),
+      'recentResources' => CommunityResourceResource::collection($recentResources),
 
       // WARNING: The props passed here must remain aligned with the props defined in community.schema.ts
       'permissions' => [
