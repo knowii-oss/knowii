@@ -1,6 +1,6 @@
 
 
-# 0.13.0 (2024-10-11)
+# 0.14.0 (2024-10-11)
 
 
 ### Bug Fixes
@@ -28,6 +28,7 @@
 * **all:** used the correct API resource when serializing communities ([441ec14](https://github.com/DeveloPassion/knowii/commit/441ec14ec1354ae80d878cb08a3530bcb76f1561))
 * **api:** added missing resource and used the right one ([29d6eeb](https://github.com/DeveloPassion/knowii/commit/29d6eeb3c02f7f73ceb6583fbcf718ebfb622e8a))
 * **api:** fixed issue with associating text articles to community resources ([1d3cac7](https://github.com/DeveloPassion/knowii/commit/1d3cac7e8cc4af79b5925fcf78f3836aa5778488))
+* **build:** fixed target for the deployment PR ([775fabd](https://github.com/DeveloPassion/knowii/commit/775fabdd42251cf71ad4246caedea09012f1d890))
 * **build:** reverted laravel-vite-plugin update as it breaks the manifest gen ([f950c92](https://github.com/DeveloPassion/knowii/commit/f950c92f65eca441b22c1c41fd5d1f5b6351dd5f))
 * **code:** adapt page height ([a47e2ad](https://github.com/DeveloPassion/knowii/commit/a47e2adfbd671b06be7ec4b7d81f9b4efe955b73)), closes [#266](https://github.com/DeveloPassion/knowii/issues/266)
 * **code:** fixed community creation bug with the slug generation ([d5284f7](https://github.com/DeveloPassion/knowii/commit/d5284f75270d2a87ad1ee5bb8520e2da13bca3e4))
@@ -157,7 +158,7 @@
 
 * **deps:** reverted update of supabase auth-helpers as those break sign up ([ae06319](https://github.com/DeveloPassion/knowii/commit/ae063191d0ed4db0fa83b743ea582fea5f76c93f)), closes [#533](https://github.com/DeveloPassion/knowii/issues/533)
 
-# 0.13.0 (2024-10-11)
+# 0.14.0 (2024-10-11)
 
 
 ### Bug Fixes
@@ -185,6 +186,7 @@
 * **all:** used the correct API resource when serializing communities ([441ec14](https://github.com/DeveloPassion/knowii/commit/441ec14ec1354ae80d878cb08a3530bcb76f1561))
 * **api:** added missing resource and used the right one ([29d6eeb](https://github.com/DeveloPassion/knowii/commit/29d6eeb3c02f7f73ceb6583fbcf718ebfb622e8a))
 * **api:** fixed issue with associating text articles to community resources ([1d3cac7](https://github.com/DeveloPassion/knowii/commit/1d3cac7e8cc4af79b5925fcf78f3836aa5778488))
+* **build:** fixed target for the deployment PR ([775fabd](https://github.com/DeveloPassion/knowii/commit/775fabdd42251cf71ad4246caedea09012f1d890))
 * **build:** reverted laravel-vite-plugin update as it breaks the manifest gen ([f950c92](https://github.com/DeveloPassion/knowii/commit/f950c92f65eca441b22c1c41fd5d1f5b6351dd5f))
 * **code:** adapt page height ([a47e2ad](https://github.com/DeveloPassion/knowii/commit/a47e2adfbd671b06be7ec4b7d81f9b4efe955b73)), closes [#266](https://github.com/DeveloPassion/knowii/issues/266)
 * **code:** fixed community creation bug with the slug generation ([d5284f7](https://github.com/DeveloPassion/knowii/commit/d5284f75270d2a87ad1ee5bb8520e2da13bca3e4))
