@@ -1,5 +1,6 @@
 # TODO
 
+- Add tests for keyword extraction
 - Add reset button to createResourceDialog form
 - If error while saving resource, CreateResourceDialog should stop the loading spinner
   - should be handled in knowii-api-client.ts
