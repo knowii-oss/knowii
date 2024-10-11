@@ -26,18 +26,16 @@ jobs:
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
       - run: npm ci --legacy-peer-deps
-      # Create and switch to a new branch before the deployment
+      # Create and switch to a new branch based on the existing production branch before the deployment
       # This is necessary because the production branch is protected
       - run: |
-          git checkout production
-          git checkout -b deploy-${GITHUB_SHA}
+          git checkout -b deploy-${GITHUB_SHA} origin/production
           git push --set-upstream origin deploy-${GITHUB_SHA}
-      - uses: nrwl/nx-set-shas@v4
-      - run: NX_NO_CLOUD=true && git rebase origin/main && git push
+          NX_NO_CLOUD=true && git rebase origin/main && git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Create and merge a PR for the deployment
+      # Create and merge a PR for this deployment
       # This is a workaround for the production branch protection
       # Reference: https://github.com/krlmlr/pr-bots/blob/main/.github/workflows/write-file-branch-merge.yaml
       - run: |
@@ -54,7 +52,7 @@ jobs:
 
       # Clean up the temporary deployment branch
       - run: |
-          git checkout production
+          git checkout main
           git branch -D deploy-${GITHUB_SHA}
           git push origin --delete deploy-${GITHUB_SHA}
         shell: bash
