@@ -1,6 +1,6 @@
 
 
-# 0.23.0 (2024-10-11)
+# 0.24.0 (2024-10-11)
 
 
 ### Bug Fixes
@@ -118,6 +118,7 @@
 * **code:** updated to pgsql 17 ([0855a30](https://github.com/DeveloPassion/knowii/commit/0855a30c8dbe9ab97fffb971992f94234e1f2a08))
 * **code:** vary the logging levels per environment ([db61c01](https://github.com/DeveloPassion/knowii/commit/db61c01f24db75ad744a842bf9844fbde3db692d)), closes [#524](https://github.com/DeveloPassion/knowii/issues/524)
 * **qa:** improved logging details (subcategory + detailed context logging) ([275c3b6](https://github.com/DeveloPassion/knowii/commit/275c3b6e78b02c129fa4ed634a1c5d607b18727e))
+* **release:** added possibility to specify the release type' ([ba87f24](https://github.com/DeveloPassion/knowii/commit/ba87f24c2f50157c4d23206cb280ba99635e160e)), closes [#959](https://github.com/DeveloPassion/knowii/issues/959)
 * **sec:** added http security headers ([7e8e766](https://github.com/DeveloPassion/knowii/commit/7e8e766f3f17cdc6df58b46471afab98393dc8a4))
 * **ui:** added a compact mode to the page header ([7bd7a2a](https://github.com/DeveloPassion/knowii/commit/7bd7a2a53c34cef9d8706ab192c1393da1def8ae))
 * **ui:** added a page content wrapper ([a535e03](https://github.com/DeveloPassion/knowii/commit/a535e0319620a00b0f8e300b4b739a6b2d357690))
@@ -125,6 +126,7 @@
 * **ui:** added community resource collection creation dialog ([412a58d](https://github.com/DeveloPassion/knowii/commit/412a58de010ba806da2ef5c97da51901e22400a2))
 * **ui:** added contact page. Closes [#688](https://github.com/DeveloPassion/knowii/issues/688) ([7e6678f](https://github.com/DeveloPassion/knowii/commit/7e6678f9a41fa18704173201393a8caca5e0a4e3))
 * **ui:** added delete user account in user profile. Closes [#298](https://github.com/DeveloPassion/knowii/issues/298) ([37dfbd8](https://github.com/DeveloPassion/knowii/commit/37dfbd86f06ea06ca293dbe45e64ff5913f1d0b7))
+* **ui:** added filtering on the dashboard ([919b417](https://github.com/DeveloPassion/knowii/commit/919b417d85f22bac84f3051080a35bde6bd68dde))
 * **ui:** added footer for desktop ([98f77d0](https://github.com/DeveloPassion/knowii/commit/98f77d0daae89422e43a4d48f44bc3b0c747629e))
 * **ui:** added personal field to community creation form ([945df99](https://github.com/DeveloPassion/knowii/commit/945df991471822bfaa971dde8d6cbb4ad827d4ce))
 * **ui:** added possibility to create resources ([6eb5d69](https://github.com/DeveloPassion/knowii/commit/6eb5d696621af96c73b6956e0c7ca2a33f22859c))
@@ -159,7 +161,7 @@
 
 * **deps:** reverted update of supabase auth-helpers as those break sign up ([ae06319](https://github.com/DeveloPassion/knowii/commit/ae063191d0ed4db0fa83b743ea582fea5f76c93f)), closes [#533](https://github.com/DeveloPassion/knowii/issues/533)
 
-# 0.23.0 (2024-10-11)
+# 0.24.0 (2024-10-11)
 
 
 ### Bug Fixes
@@ -277,6 +279,7 @@
 * **code:** updated to pgsql 17 ([0855a30](https://github.com/DeveloPassion/knowii/commit/0855a30c8dbe9ab97fffb971992f94234e1f2a08))
 * **code:** vary the logging levels per environment ([db61c01](https://github.com/DeveloPassion/knowii/commit/db61c01f24db75ad744a842bf9844fbde3db692d)), closes [#524](https://github.com/DeveloPassion/knowii/issues/524)
 * **qa:** improved logging details (subcategory + detailed context logging) ([275c3b6](https://github.com/DeveloPassion/knowii/commit/275c3b6e78b02c129fa4ed634a1c5d607b18727e))
+* **release:** added possibility to specify the release type' ([ba87f24](https://github.com/DeveloPassion/knowii/commit/ba87f24c2f50157c4d23206cb280ba99635e160e)), closes [#959](https://github.com/DeveloPassion/knowii/issues/959)
 * **sec:** added http security headers ([7e8e766](https://github.com/DeveloPassion/knowii/commit/7e8e766f3f17cdc6df58b46471afab98393dc8a4))
 * **ui:** added a compact mode to the page header ([7bd7a2a](https://github.com/DeveloPassion/knowii/commit/7bd7a2a53c34cef9d8706ab192c1393da1def8ae))
 * **ui:** added a page content wrapper ([a535e03](https://github.com/DeveloPassion/knowii/commit/a535e0319620a00b0f8e300b4b739a6b2d357690))
@@ -284,6 +287,7 @@
 * **ui:** added community resource collection creation dialog ([412a58d](https://github.com/DeveloPassion/knowii/commit/412a58de010ba806da2ef5c97da51901e22400a2))
 * **ui:** added contact page. Closes [#688](https://github.com/DeveloPassion/knowii/issues/688) ([7e6678f](https://github.com/DeveloPassion/knowii/commit/7e6678f9a41fa18704173201393a8caca5e0a4e3))
 * **ui:** added delete user account in user profile. Closes [#298](https://github.com/DeveloPassion/knowii/issues/298) ([37dfbd8](https://github.com/DeveloPassion/knowii/commit/37dfbd86f06ea06ca293dbe45e64ff5913f1d0b7))
+* **ui:** added filtering on the dashboard ([919b417](https://github.com/DeveloPassion/knowii/commit/919b417d85f22bac84f3051080a35bde6bd68dde))
 * **ui:** added footer for desktop ([98f77d0](https://github.com/DeveloPassion/knowii/commit/98f77d0daae89422e43a4d48f44bc3b0c747629e))
 * **ui:** added personal field to community creation form ([945df99](https://github.com/DeveloPassion/knowii/commit/945df991471822bfaa971dde8d6cbb4ad827d4ce))
 * **ui:** added possibility to create resources ([6eb5d69](https://github.com/DeveloPassion/knowii/commit/6eb5d696621af96c73b6956e0c7ca2a33f22859c))
