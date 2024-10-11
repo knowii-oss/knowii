@@ -1,6 +1,6 @@
 
 
-# 0.21.0 (2024-10-11)
+# 0.22.0 (2024-10-11)
 
 
 ### Bug Fixes
@@ -140,6 +140,7 @@
 * **ui:** implemented based menu styling. Closes [#683](https://github.com/DeveloPassion/knowii/issues/683) ([cc231de](https://github.com/DeveloPassion/knowii/commit/cc231de0f5d945da04241afccca5a95b14d75b08))
 * **ui:** implemented logout from other sessions in user profile ([fe75195](https://github.com/DeveloPassion/knowii/commit/fe7519525eb296e66e24da952fe90b2d6af1422c))
 * **ui:** improved app layout and app header ([4d974c2](https://github.com/DeveloPassion/knowii/commit/4d974c2c887a14847826b0522e0d72534e475642))
+* **ui:** improved display of communities. displayed visibility level ([ea737bf](https://github.com/DeveloPassion/knowii/commit/ea737bf3c70f3fb346ad3cca21205a1e71678f12))
 * **ui:** improved login page ([cff9def](https://github.com/DeveloPassion/knowii/commit/cff9defbc08b26998cb2be8308ad1fb18a45721a))
 * **ui:** improved page header display and added main nav menu (wip) ([497c1d5](https://github.com/DeveloPassion/knowii/commit/497c1d5983da27175153bb35baf2f51993ea88d7))
 * **ui:** improved password fields for signup, registration, etc ([0a87b98](https://github.com/DeveloPassion/knowii/commit/0a87b9859ee2e36dc89e9b2c6863addfcf850bd4))
@@ -158,7 +159,7 @@
 
 * **deps:** reverted update of supabase auth-helpers as those break sign up ([ae06319](https://github.com/DeveloPassion/knowii/commit/ae063191d0ed4db0fa83b743ea582fea5f76c93f)), closes [#533](https://github.com/DeveloPassion/knowii/issues/533)
 
-# 0.21.0 (2024-10-11)
+# 0.22.0 (2024-10-11)
 
 
 ### Bug Fixes
@@ -298,6 +299,7 @@
 * **ui:** implemented based menu styling. Closes [#683](https://github.com/DeveloPassion/knowii/issues/683) ([cc231de](https://github.com/DeveloPassion/knowii/commit/cc231de0f5d945da04241afccca5a95b14d75b08))
 * **ui:** implemented logout from other sessions in user profile ([fe75195](https://github.com/DeveloPassion/knowii/commit/fe7519525eb296e66e24da952fe90b2d6af1422c))
 * **ui:** improved app layout and app header ([4d974c2](https://github.com/DeveloPassion/knowii/commit/4d974c2c887a14847826b0522e0d72534e475642))
+* **ui:** improved display of communities. displayed visibility level ([ea737bf](https://github.com/DeveloPassion/knowii/commit/ea737bf3c70f3fb346ad3cca21205a1e71678f12))
 * **ui:** improved login page ([cff9def](https://github.com/DeveloPassion/knowii/commit/cff9defbc08b26998cb2be8308ad1fb18a45721a))
 * **ui:** improved page header display and added main nav menu (wip) ([497c1d5](https://github.com/DeveloPassion/knowii/commit/497c1d5983da27175153bb35baf2f51993ea88d7))
 * **ui:** improved password fields for signup, registration, etc ([0a87b98](https://github.com/DeveloPassion/knowii/commit/0a87b9859ee2e36dc89e9b2c6863addfcf850bd4))
