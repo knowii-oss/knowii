@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id();
             $table->string('cuid')->unique()->index();
             $table->foreignId('community_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('user_id');
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->enum('role', KnowiiCommunityMemberRole::toStringArray());
             $table->timestamps();
 
