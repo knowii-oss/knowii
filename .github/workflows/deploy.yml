@@ -21,6 +21,9 @@ jobs:
           fetch-depth: 0
 
       # Merge main into the production branch to synchronize production, and trigger the deployment
+      # WARN: We don't just try to merge the PR like we do with releases because it breaks the commit history
+      # References:
+      # https://stackoverflow.com/questions/60597400/how-to-do-a-fast-forward-merge-on-github
       - run: |
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
