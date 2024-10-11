@@ -40,9 +40,16 @@ trait FetchUrl
         'json' => [
           "url" => $url,
           "bestAttempt" => true,
+          // Block ads
+          // Reference: https://docs.browserless.io/chrome-flags#blocking-ads
           "blockAds" => true,
           "launch" => [
+            // Use the stealth mode
+            // Reference: https://docs.browserless.io/chrome-flags#stealth-mode
             "stealth" => true,
+            // Disable the headless mode to avoid some detections
+            // Reference: https://docs.browserless.io/chrome-flags#headful-mode
+            "headless" => false,
           ],
 
           // Accelerate loading by skipping some resources
