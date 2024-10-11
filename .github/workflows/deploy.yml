@@ -19,44 +19,18 @@ jobs:
         with:
           # Fetch all history for all tags and branches
           fetch-depth: 0
-          # Checkout the main branch
-          ref: main
-
-      # Create and switch to a new branch based on the existing production branch before the deployment
-      # This is necessary because the production branch is protected
-      - run: |
-          git config user.name "${GITHUB_ACTOR}"
-          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
-          git checkout main
-          git fetch origin
-          git switch --create deploy-${GITHUB_SHA} origin/production
-          git push --set-upstream origin deploy-${GITHUB_SHA}
-          git pull
-          NX_NO_CLOUD=true && git rebase origin/main
-          git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Create and merge a PR for this deployment
       # This is a workaround for the production branch protection
       # Reference: https://github.com/krlmlr/pr-bots/blob/main/.github/workflows/write-file-branch-merge.yaml
       - run: |
-          gh pr create --title "Deploy ${GITHUB_SHA}" --body "This is a Deployment PR" --base production --head deploy-${GITHUB_SHA}
+          gh pr create --title "Deploy ${GITHUB_SHA}" --body "This is a Deployment PR" --base production --head main
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: |
           pr_number=$(gh pr list --state open --limit 1 --json number --jq '.[0].number')
           gh pr merge $pr_number --rebase
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Clean up the temporary deployment branch
-      - run: |
-          git checkout main
-          git branch -D deploy-${GITHUB_SHA}
-          git push origin --delete deploy-${GITHUB_SHA}
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
