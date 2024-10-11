@@ -16,18 +16,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Fetch all history for all tags and branches
+          fetch-depth: 0
 
-      # Create and merge a PR for this deployment
-      # This is a workaround for the production branch protection
-      # Reference: https://github.com/krlmlr/pr-bots/blob/main/.github/workflows/write-file-branch-merge.yaml
+      # Merge main into the production branch to synchronize production, and trigger the deployment
       - run: |
-          gh pr create --title "Deploy ${GITHUB_SHA}" --body "This is a Deployment PR" --repo knowii-oss/knowii --base production --head main
-        shell: bash
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          gh pr create --title "Deploy ${GITHUB_SHA}" --body "This is a Deployment PR" --base production --head main
+          git switch main
+          git pull
+          git switch production
+          git rebase origin/main
+          git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - run: |
-          pr_number=$(gh pr list --state open --limit 1 --json number --jq '.[0].number')
-          gh pr merge $pr_number --rebase
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NX_NO_CLOUD: true
