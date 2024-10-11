@@ -28,7 +28,7 @@ export default function ResourcePage(props: Props) {
       template: (item) => (
         <Link href={route(COMMUNITY_URL, { communitySlug: props.community.slug })} preserveState={true}>
           <span className="flex items-center gap-2">
-            <CommunityIcon />
+            <CommunityIcon visibility={props.community.visibility} />
             {item.label}
           </span>
         </Link>

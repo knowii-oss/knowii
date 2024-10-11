@@ -21,7 +21,7 @@ export default function CommunityBox(props: Props) {
     <Card
       title={
         <span className="text-[1.2rem] text-primary-500 leading-none flex items-center gap-2">
-          <CommunityIcon />
+          <CommunityIcon visibility={props.community.visibility} />
           {props.community.name}
         </span>
       }
