@@ -20,6 +20,10 @@ To use the API using cookies, you first need to call the login endpoint at `/api
 To use the API using tokens, you need to generate an API token, either through the Web interface, or by calling the `/api/v1/login` endpoint, adding `includeToken: true` to the body of your request. If you do that, then you'll get a token back in the `data.token` field of the response. Tokens generating using the login endpoint are valid for 12 hours. Those generated through the Web interface may be valid for much longer.
 Once you have a token, you can call other API endpoints and add the `Authorization` header with `Bearer <your token>` as the value.
 
+## Hosting your own instance
+
+Check out the [self-hosting guide](SELF_HOSTING.md) to know how to host your own instance of Knowii.
+
 ## License
 
 Knowii is licensed under the terms of the AGPL [open source license](LICENSE).
