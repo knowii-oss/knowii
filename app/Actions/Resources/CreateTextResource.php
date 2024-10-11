@@ -111,10 +111,10 @@ class CreateTextResource implements CreatesTextResources
 
     Log::debug("URL to create a text resource for: ", [$url]);
 
-    Log::debug("Checking if the URL is actually available");
-    if (false === $this->isUrlAvailable($url)) {
-      throw new BusinessException("The page is not available. Cannot save it");
-    }
+    //Log::debug("Checking if the URL is actually available");
+    //if (false === $this->isUrlAvailable($url)) {
+    //  throw new BusinessException("The page is not available. Cannot save it");
+    //}
 
     Log::debug("Verifying if the community already has that resource");
     if ($communityResourceCollection->containsCommunityResourcePointingToResourceWithUrl($url)) {
