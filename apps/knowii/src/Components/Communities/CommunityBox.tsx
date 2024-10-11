@@ -1,6 +1,6 @@
 import { Divider } from 'primereact/divider';
 import { Card } from 'primereact/card';
-import { Community } from '@knowii/common';
+import { Community, communityVisibilityOptions } from '@knowii/common';
 import { FaPlus } from 'react-icons/fa';
 import { Link } from '@inertiajs/react';
 import CommunityIcon from './CommunityIcon';
@@ -17,6 +17,10 @@ interface Props {
 }
 
 export default function CommunityBox(props: Props) {
+  const visibilityLabel = props.community?.visibility
+    ? communityVisibilityOptions.find((v) => v.visibility === props.community?.visibility)?.name
+    : '';
+
   const normalModeCard = props.community && (
     <Card
       title={
@@ -26,7 +30,7 @@ export default function CommunityBox(props: Props) {
         </span>
       }
       subTitle={<Divider className="p-0 m-0" />}
-      className="h-[250px]"
+      className="h-[250px] relative"
       onClick={
         props.clickHandler
           ? props.clickHandler
@@ -35,6 +39,7 @@ export default function CommunityBox(props: Props) {
       }
     >
       <p className="text-sm text-gray-800 text-ellipsis line-clamp-4 md:line-clamp-5 min-h-6">{props.community.description}</p>
+      <span className="absolute bottom-2 right-4 text-xs text-gray-600 font-bold">{visibilityLabel}</span>
     </Card>
   );
 
