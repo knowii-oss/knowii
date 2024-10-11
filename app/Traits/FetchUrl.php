@@ -45,7 +45,7 @@ trait FetchUrl
           // Reference
           // https://docs.browserless.io/http-apis/content#rejecting-undesired-requests
           "rejectRequestPattern" => ["/^.*\\.(css|jpg|jpeg|png|gif|svg|woff|woff2|ttf|eot|webp|avif|apng)$/i"],
-          "rejectResourceTypes" => ["stylesheet", "font", "image"],
+          "rejectResourceTypes" => ["stylesheet", "font", "image", "media"],
 
           "gotoOptions" => [
             "timeout" => 10000,
