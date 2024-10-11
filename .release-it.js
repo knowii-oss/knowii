@@ -44,7 +44,6 @@ const releaseItConfig = {
   plugins: {
     '@release-it/conventional-changelog': {
       preset: 'angular',
-      infile: 'CHANGELOG.md',
     },
   },
 };
