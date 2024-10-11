@@ -2,8 +2,18 @@ name: Release
 
 concurrency: release
 
-# Manual workflow
-on: workflow_dispatch
+# Manual workflow with optional release type input
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Release type (patch, minor, major)'
+        required: false
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 permissions:
   actions: read
@@ -35,7 +45,13 @@ jobs:
           git switch --create release-${GITHUB_SHA}
           git push --set-upstream origin release-${GITHUB_SHA}
       - uses: nrwl/nx-set-shas@v4
-      - run: NX_NO_CLOUD=true && npm run release
+      - name: Run release
+        run: |
+          if [ -n "${{ github.event.inputs.release_type }}" ]; then
+            NX_NO_CLOUD=true && npm run release ${{ github.event.inputs.release_type }}
+          else
+            NX_NO_CLOUD=true && npm run release
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
