@@ -113,10 +113,18 @@ trait FetchUrl
 
       Log::debug("URL status: " . $statusCode . " for " . $url);
 
+      if($statusCode === 405) {
+        // Some servers do not support HEAD requests
+        $response = $client->get($url);
+        $statusCode = $response->getStatusCode();
+      }
+
       return $statusCode >= 200 && $statusCode < 300;
     } catch (\RuntimeException $e) {
+      Log::debug("Error while checking the URL: " . $e->getMessage());
       return false;
     } catch (GuzzleException $e) {
+      Log::debug("Error while checking the URL: " . $e->getMessage());
       return false;
     }
   }
