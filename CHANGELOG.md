@@ -1,6 +1,6 @@
 
 
-# 0.12.0 (2024-10-11)
+# 0.13.0 (2024-10-11)
 
 
 ### Bug Fixes
@@ -134,6 +134,7 @@
 * **ui:** added waitlist to the welcome page ([c4378b3](https://github.com/DeveloPassion/knowii/commit/c4378b32940fe11eafc435535edbf62a3685e827)), closes [#714](https://github.com/DeveloPassion/knowii/issues/714)
 * **ui:** automatically load communities when the user is logged in ([2e6cc7d](https://github.com/DeveloPassion/knowii/commit/2e6cc7dfdffebf7a4cf39e17e384eb25a40bec3b))
 * **ui:** displayed existing resource collections ([6695b17](https://github.com/DeveloPassion/knowii/commit/6695b1749e62ef0efe399206cc9debeb49abfcd3))
+* **ui:** distinguish community type by changing icon color ([022f892](https://github.com/DeveloPassion/knowii/commit/022f892847161fea2047ed23510debb79c1bda8a))
 * **ui:** implemented base addcommunity ([0d4990f](https://github.com/DeveloPassion/knowii/commit/0d4990f6118f9e7dc7a33d6b4f0ab6729d64e15d))
 * **ui:** implemented based menu styling. Closes [#683](https://github.com/DeveloPassion/knowii/issues/683) ([cc231de](https://github.com/DeveloPassion/knowii/commit/cc231de0f5d945da04241afccca5a95b14d75b08))
 * **ui:** implemented logout from other sessions in user profile ([fe75195](https://github.com/DeveloPassion/knowii/commit/fe7519525eb296e66e24da952fe90b2d6af1422c))
@@ -156,7 +157,7 @@
 
 * **deps:** reverted update of supabase auth-helpers as those break sign up ([ae06319](https://github.com/DeveloPassion/knowii/commit/ae063191d0ed4db0fa83b743ea582fea5f76c93f)), closes [#533](https://github.com/DeveloPassion/knowii/issues/533)
 
-# 0.12.0 (2024-10-11)
+# 0.13.0 (2024-10-11)
 
 
 ### Bug Fixes
@@ -290,6 +291,7 @@
 * **ui:** added waitlist to the welcome page ([c4378b3](https://github.com/DeveloPassion/knowii/commit/c4378b32940fe11eafc435535edbf62a3685e827)), closes [#714](https://github.com/DeveloPassion/knowii/issues/714)
 * **ui:** automatically load communities when the user is logged in ([2e6cc7d](https://github.com/DeveloPassion/knowii/commit/2e6cc7dfdffebf7a4cf39e17e384eb25a40bec3b))
 * **ui:** displayed existing resource collections ([6695b17](https://github.com/DeveloPassion/knowii/commit/6695b1749e62ef0efe399206cc9debeb49abfcd3))
+* **ui:** distinguish community type by changing icon color ([022f892](https://github.com/DeveloPassion/knowii/commit/022f892847161fea2047ed23510debb79c1bda8a))
 * **ui:** implemented base addcommunity ([0d4990f](https://github.com/DeveloPassion/knowii/commit/0d4990f6118f9e7dc7a33d6b4f0ab6729d64e15d))
 * **ui:** implemented based menu styling. Closes [#683](https://github.com/DeveloPassion/knowii/issues/683) ([cc231de](https://github.com/DeveloPassion/knowii/commit/cc231de0f5d945da04241afccca5a95b14d75b08))
 * **ui:** implemented logout from other sessions in user profile ([fe75195](https://github.com/DeveloPassion/knowii/commit/fe7519525eb296e66e24da952fe90b2d6af1422c))
