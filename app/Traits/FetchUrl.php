@@ -108,13 +108,18 @@ trait FetchUrl
   {
     $client = $this->getClient();
     try {
-      $response = $client->head($url);
+      $response = $client->head($url, [
+        // Don't throw exceptions on 4xx and 5xx status codes
+        // Reference: https://docs.guzzlephp.org/en/stable/request-options.html#http-errors
+        'http_errors' => false,
+      ]);
       $statusCode = $response->getStatusCode();
 
       Log::debug("URL status: " . $statusCode . " for " . $url);
 
+      // Some servers do not support HEAD requests
       if($statusCode === 405) {
-        // Some servers do not support HEAD requests
+        Log::debug("HEAD requests not allowed. Trying a GET request: " . $statusCode . " for " . $url);
         $response = $client->get($url);
         $statusCode = $response->getStatusCode();
       }
