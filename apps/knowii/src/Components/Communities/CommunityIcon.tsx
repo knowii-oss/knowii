@@ -14,7 +14,7 @@ const CommunityIcon = (props: Props) => {
         color = 'text-green-500';
         break;
       case 'private':
-        color = 'text-red-500';
+        color = 'text-primary-500';
         break;
       case 'personal':
         color = 'text-gray-500';
