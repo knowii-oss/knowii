@@ -43,6 +43,8 @@ const releaseItConfig = {
   },
   plugins: {
     '@release-it/conventional-changelog': {
+      infile: 'CHANGELOG.md',
+      header: '# Changelog',
       preset: {
         name: 'angular',
         types: [
@@ -52,15 +54,13 @@ const releaseItConfig = {
           { type: 'style', section: 'Styles' },
           { type: 'refactor', section: 'Refactor' },
           { type: 'perf', section: 'Performance' },
-          { type: 'test', section: 'Tests' },
+          { type: 'test', hidden: true },
           { type: 'build', section: 'Build System' },
           { type: 'ci', section: 'CI' },
-          { type: 'chore', section: 'Chores' },
+          { type: 'chore', hidden: true },
           { type: 'revert', section: 'Reverts' },
         ],
       },
-      header: '# Changelog',
-      infile: 'CHANGELOG.md',
     },
   },
 };
