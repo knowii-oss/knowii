@@ -5,7 +5,6 @@ const releaseItConfig = {
   verbose: false,
   'disable-metrics': true,
   git: {
-    changelog: 'npm run generate:changelog-recent',
     requireCleanWorkingDir: true,
     addUntrackedFiles: false,
     requireBranch: false,
