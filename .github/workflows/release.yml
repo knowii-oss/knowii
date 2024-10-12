@@ -18,6 +18,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           # Fetch all history for all tags and branches
+          # This is necessary to calculate the version bump
+          # Reference: https://github.com/release-it/conventional-changelog?tab=readme-ov-file#github-actions
           fetch-depth: 0
 
       # Cache node_modules

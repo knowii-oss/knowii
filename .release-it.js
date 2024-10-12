@@ -37,14 +37,30 @@ const releaseItConfig = {
   },
   hooks: {
     'before:init': [],
-    'after:bump': ['npm run generate:changelog'],
+    'after:bump': [],
     'after:git:release': [],
     'after:release': 'echo Successfully released ${name} v${version} to ${repo.repository}.',
   },
   plugins: {
     '@release-it/conventional-changelog': {
-      infile: "CHANGELOG.md",
-      preset: 'angular',
+      preset: {
+        name: 'knowii',
+        types: [
+          { type: 'feat', section: 'Features' },
+          { type: 'fix', section: 'Bug Fixes' },
+          { type: 'docs', section: 'Documentation' },
+          { type: 'style', section: 'Styles' },
+          { type: 'refactor', section: 'Refactor' },
+          { type: 'perf', section: 'Performance' },
+          { type: 'test', section: 'Tests' },
+          { type: 'build', section: 'Build System' },
+          { type: 'ci', section: 'CI' },
+          { type: 'chore', section: 'Chores' },
+          { type: 'revert', section: 'Reverts' },
+        ],
+      },
+      header: '# Changelog',
+      infile: 'CHANGELOG.md',
     },
   },
 };
