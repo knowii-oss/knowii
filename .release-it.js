@@ -5,6 +5,7 @@ const releaseItConfig = {
   verbose: false,
   'disable-metrics': true,
   git: {
+    changelog: '',
     requireCleanWorkingDir: true,
     addUntrackedFiles: false,
     requireBranch: false,
@@ -22,6 +23,8 @@ const releaseItConfig = {
     pushRepo: 'origin',
   },
   github: {
+    changelog:
+      'npx auto-changelog --stdout --commit-limit false -u --template https://raw.githubusercontent.com/release-it/release-it/main/templates/changelog-compact.hbs',
     release: true,
     releaseName: 'Release ${version}',
     releaseNotes: null,
@@ -36,31 +39,9 @@ const releaseItConfig = {
   },
   hooks: {
     'before:init': [],
-    'after:bump': [],
+    'after:bump': ['npx auto-changelog -p'],
     'after:git:release': [],
     'after:release': 'echo Successfully released ${name} v${version} to ${repo.repository}.',
-  },
-  plugins: {
-    '@release-it/conventional-changelog': {
-      infile: 'CHANGELOG.md',
-      header: '# Changelog',
-      preset: {
-        name: 'angular',
-        types: [
-          { type: 'feat', section: 'Features' },
-          { type: 'fix', section: 'Bug Fixes' },
-          { type: 'docs', section: 'Documentation' },
-          { type: 'style', section: 'Styles' },
-          { type: 'refactor', section: 'Refactor' },
-          { type: 'perf', section: 'Performance' },
-          { type: 'test', hidden: true },
-          { type: 'build', section: 'Build System' },
-          { type: 'ci', section: 'CI' },
-          { type: 'chore', hidden: true },
-          { type: 'revert', section: 'Reverts' },
-        ],
-      },
-    },
   },
 };
 
