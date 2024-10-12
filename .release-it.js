@@ -44,7 +44,7 @@ const releaseItConfig = {
   plugins: {
     '@release-it/conventional-changelog': {
       preset: {
-        name: 'knowii',
+        name: 'angular',
         types: [
           { type: 'feat', section: 'Features' },
           { type: 'fix', section: 'Bug Fixes' },
