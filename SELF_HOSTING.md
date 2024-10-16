@@ -21,6 +21,31 @@ You also need to install some packages:
 
 - `sudo apt install libzip-dev php-zip`
 
+## Domain and DNS configuration
+
+If you're using your own domain, you need to configure it to point to your server.
+
+At the DNS level, you need:
+
+- An A record pointing to the IP address of your server
+- A CNAME record called `www` pointing to the domain name (without the `www`)
+- A CNAME record called `ws` pointing to the domain name (for WebSockets)
+
+You also need a valid TLS certificate for your domain. You can use Let's Encrypt to get a free SSL certificate. If you're using Laravel Forge, you can use the Let's Encrypt integration to get a free SSL certificate, or create a CSR and use it with CloudFlare's SSL/TLS Origin Server "Create Certificate" feature, which will ensure that your certificate is always valid.
+
+WARNING: Note that the TLS certificate should be valid for `<YOUR_DOMAIN>` and `*.<YOUR_DOMAIN>` so that it works for `www`, `ws`, etc.
+
+Once your domain, DNS, and certificate are configured, don't forget to adapt the `.env` file accordingly.
+
+In particular:
+
+- `APP_URL` should be set to your domain name
+- `APP_PORT` should be set to `443`
+- `REVERB_HOST` should point to `ws.<YOUR_DOMAIN>`
+- `REVERB_PORT` should be set to `443`
+- `REVERB_SCHEME` should be set to `https`
+- `REVERB_ALLOWED_ORIGINS` should be set to `<YOUR_DOMAIN>`
+
 ## Database configuration
 
 You should use a dedicated database, schema and database user for Knowii. Assuming that your database is called `knowii` and that your database user is called `knowiipro`
@@ -53,6 +78,12 @@ Don't forget to:
 - Set a different value for `APP_KEY` using `php artisan key:generate`
 - Set correct values for `APP_ENV`, `APP_URL`, `DB_*`, `MAIL_*`, `REDIS_*`, `BROWSERLESS_*`
 - The `SANCTUM_STATEFUL_DOMAINS` variable should be empty in production: `SANCTUM_STATEFUL_DOMAINS=`, otherwise the front-end API calls will be broken
+
+For WebSockets to work (securely), don't forget to modify:
+
+- `REVERB_APP_ID`: set to a unique value
+- `REVERB_APP_KEY`: set to a unique value
+- `REVERB_APP_SECRET`: set to a unique value
 
 ## Browserless
 

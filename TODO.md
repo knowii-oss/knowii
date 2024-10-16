@@ -1,5 +1,12 @@
 # TODO
 
+- channels.php
+- Add documentation for WebSockets
+  - Self-hosting
+    - Recommend using WSS
+    - Recommend associating with `ws` subdomain
+    - Point to useful resources
+      - https://medium.com/@martio-appcadabra/how-to-use-reverb-with-laravel-sail-aa7c8450a76c
 - Add tests for keyword extraction
 - Add reset button to createResourceDialog form
 - If error while saving resource, CreateResourceDialog should stop the loading spinner
