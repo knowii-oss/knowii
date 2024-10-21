@@ -1,6 +1,6 @@
 import AppLayout from '@/Layouts/AppLayout';
-import { Community, CommunityPermissions, CommunityResourceCollection, COMMUNITY_URL } from '@knowii/common';
-import { Link } from '@inertiajs/react';
+import { Community, CommunityPermissions, CommunityResourceCollection, COMMUNITY_URL, useSocket, DASHBOARD_URL } from '@knowii/common';
+import { Link, router } from '@inertiajs/react';
 import { MenuItem } from 'primereact/menuitem';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
@@ -13,6 +13,20 @@ interface Props {
 }
 
 export default function ResourceCollectionPage(props: Props) {
+  useSocket({
+    channel: {
+      type: 'community',
+      communityCuid: props.community.cuid,
+    },
+    event: 'community.deleted',
+    callback: (_event, _deletedCommunity) => {
+      // The current community has been deleted. Can't stay here anymore
+      router.visit(route(DASHBOARD_URL), {
+        preserveState: false,
+      });
+    },
+  });
+
   const breadcrumbItems: MenuItem[] = [
     {
       label: props.community.name,

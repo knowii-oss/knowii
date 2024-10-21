@@ -11,9 +11,11 @@ import {
   CommunityPermissions,
   CommunityResource,
   CommunityResourceCollection,
+  DASHBOARD_URL,
   getIconForResourceLevel,
   RESOURCE_COLLECTION_URL,
   RESOURCE_URL,
+  useSocket,
 } from '@knowii/common';
 import CommunityResourceCollectionDialog, {
   CreateResourceCollectionDialogSettings,
@@ -37,6 +39,20 @@ interface Props {
 }
 
 export default function CommunityPage(props: Props) {
+  useSocket({
+    channel: {
+      type: 'community',
+      communityCuid: props.community.cuid,
+    },
+    event: 'community.deleted',
+    callback: (_event, _deletedCommunity) => {
+      // The current community has been deleted. Can't stay here anymore
+      router.visit(route(DASHBOARD_URL), {
+        preserveState: false,
+      });
+    },
+  });
+
   const breadcrumbItems: MenuItem[] = [
     {
       label: props.community.name,
