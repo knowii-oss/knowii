@@ -7,6 +7,7 @@ import { MenuItem } from 'primereact/menuitem';
 import AppLayout from '@/Layouts/AppLayout';
 import {
   Community,
+  COMMUNITY_SETTINGS_URL,
   CommunityPermissions,
   CommunityResource,
   CommunityResourceCollection,
@@ -25,7 +26,8 @@ import ResourceIcon from '@/Components/Resources/ResourceIcon';
 import ResourceCollectionIcon from '@/Components/ResourceCollections/ResourceCollectionIcon';
 import CommunityMembersIcon from '@/Components/Communities/CommunityMembersIcon';
 import { CreateResourceDialog, CreateResourceDialogSettings } from '@/Components/Resources/CreateResourceDialog';
-import { router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
+import { FaGear } from 'react-icons/fa6';
 
 interface Props {
   community: Community;
@@ -105,7 +107,23 @@ export default function CommunityPage(props: Props) {
   };
 
   return (
-    <AppLayout browserPageTitle={props.community.name} breadcrumbItems={breadcrumbItems} breadcrumbHome={breadcrumbHome}>
+    <AppLayout
+      browserPageTitle={props.community.name}
+      breadcrumbItems={breadcrumbItems}
+      breadcrumbHome={breadcrumbHome}
+      pageActions={
+        props.permissions.canManageCommunity ? (
+          <Link
+            href={route(COMMUNITY_SETTINGS_URL, { communitySlug: props.community.slug })}
+            preserveState={true}
+            className="flex items-center gap-2 text-white hover:text-primary-500 transition-colors duration-200"
+          >
+            <FaGear />
+            <span className="">Settings</span>
+          </Link>
+        ) : null
+      }
+    >
       <div className="flex flex-col md:flex-row gap-6">
         {/* First Column */}
         <div className="md:w-2/5 flex flex-col gap-6">
