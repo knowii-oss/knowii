@@ -2,7 +2,6 @@
 
 namespace App\Events\Resources\TextArticles;
 
-use App\Models\Resource;
 use App\Models\ResourceTextArticle;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Foundation\Events\Dispatchable;

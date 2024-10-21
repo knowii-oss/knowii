@@ -16,7 +16,6 @@ class CommunityPolicy
    */
   public function viewAny(User $user): bool
   {
-    // TODO allow for platform admins
     return false;
   }
 

@@ -33,6 +33,6 @@ class UserApiController extends Controller
 
     $usernameIsAvailable = $checker->verify($request->user(), $request->all());
 
-    return $this->success("Username availability check completed", null, ['isUsernameAvailable' => $usernameIsAvailable]);
+    return self::success("Username availability check completed", null, ['isUsernameAvailable' => $usernameIsAvailable]);
   }
 }

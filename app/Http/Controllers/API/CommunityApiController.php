@@ -18,7 +18,7 @@ class CommunityApiController extends Controller
   final public function store(Request $request): JsonResponse {
     Log::info('Processing API request to create a new community.');
     Log::debug("User: ", [$request->user()]);
-    
+
     // Filter the input to only include the fields that are needed/accepted
     $input = $request->only(['name', 'description', 'visibility']);
     Log::debug("Input", [$input]);

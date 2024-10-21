@@ -40,6 +40,7 @@ class ResourceTextArticle extends Model
    */
   protected $hidden = [
     'id',
+    'html',
     'resource_id',
   ];
 
