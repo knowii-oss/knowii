@@ -1,7 +1,8 @@
 # TODO
 
-- Dashboard: listen to community updated and community deleted events
 - Implement delete community API
+- Dashboard: test community deleted WSS event
+- Dashboard: listen to community updated event
 - Add fillable fields to CommunityMember pivot model?
 - Communities channel should also include update about private and personal communities IF the user is a member
 - Add channel for specific community resource collections

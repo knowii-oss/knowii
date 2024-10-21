@@ -1,7 +1,7 @@
 import AppLayout from '@/Layouts/AppLayout';
 import { useCallback, useState } from 'react';
 import CommunityBox from '@/Components/Communities/CommunityBox';
-import { Community, COMMUNITY_URL, communityVisibilityOptions, useSocket } from '@knowii/common';
+import { Community, COMMUNITY_URL, communityVisibilityOptions, Identifiable, useSocket } from '@knowii/common';
 import CardGroup from '@/Components/CardGroup';
 import { useImmer } from 'use-immer';
 import { useRoute } from 'ziggy-js';
@@ -27,6 +27,16 @@ export default function DashboardPage(props: Props) {
     event: 'community.created',
     callback: (_event, payload) => {
       handleCommunityCreated(payload);
+    },
+  });
+
+  useSocket({
+    channel: {
+      type: 'communities',
+    },
+    event: 'community.deleted',
+    callback: (_event, payload) => {
+      handleCommunityDeleted(payload);
     },
   });
 
@@ -60,6 +70,15 @@ export default function DashboardPage(props: Props) {
       if (!draft.find((community) => community.cuid === newCommunity.cuid)) {
         draft.push(newCommunity);
         draft.sort((a, b) => a.name.localeCompare(b.name));
+      }
+    });
+  };
+
+  const handleCommunityDeleted = (deletedCommunity: Identifiable) => {
+    updateCommunities((draft) => {
+      const index = draft.findIndex((community) => community.cuid === deletedCommunity.cuid);
+      if (index !== -1) {
+        draft.splice(index, 1);
       }
     });
   };
