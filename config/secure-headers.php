@@ -313,22 +313,6 @@ return [
             'self' => false,
             'origins' => [],
         ],
-
-        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy/web-share
-        'web-share' => [
-            'none' => false,
-            '*' => false,
-            'self' => true,
-            'origins' => [],
-        ],
-
-        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy/xr-spatial-tracking
-        'xr-spatial-tracking' => [
-            'none' => false,
-            '*' => false,
-            'self' => false,
-            'origins' => [],
-        ],
     ],
 
     /*
