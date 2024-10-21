@@ -88,7 +88,7 @@ class CreateTextResource implements CreatesTextResources
     $host = $parsedUrl['host'] ?? '';
     $domain = preg_replace('/^www\./', '', $host);
 
-    if (in_array($domain, $unsupportedDomains)) {
+    if (in_array($domain, $unsupportedDomains, true)) {
       throw new BusinessException("The URL points to a video or streaming platform. It is not a text article");
     }
 

@@ -1,6 +1,7 @@
 # TODO
 
 - Fix community deletion test (broken model changes)
+- Ensure that autocompletion works for Window.Echo both in the project and in the lib (if not, fix or duplicate the d.ts files)
 - Communities channel should also include update about private and personal communities IF the user is a member
 - Add channel for specific resource collections
 - Add channel for specific resources

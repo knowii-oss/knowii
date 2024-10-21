@@ -5,8 +5,6 @@ namespace App\Actions\Communities;
 use App\Constants;
 use App\Contracts\Communities\CreatesCommunities;
 use App\Enums\KnowiiCommunityVisibility;
-use App\Events\Communities\AddingCommunity;
-use App\Events\Communities\CommunityCreated;
 use App\Exceptions\TechnicalException;
 use App\Models\Community;
 use App\Models\User;
@@ -52,8 +50,6 @@ class CreateCommunity implements CreatesCommunities
 
     Log::debug('Input validated');
 
-    AddingCommunity::dispatch($user);
-
     Log::debug('Saving the new community');
 
     $communityName = $input['name'];
@@ -67,11 +63,6 @@ class CreateCommunity implements CreatesCommunities
       ]);
 
       Log::info('New community created successfully', ['community' => $retVal]);
-
-      // FIXME probably not needed because the model itself should dispatch events
-      // If verified, then remove this, and similar code in other actions
-      CommunityCreated::dispatch($retVal);
-
       return $retVal;
     } catch (\Exception $e) {
       Log::warning('Failed to create the community', ['exception' => $e]);

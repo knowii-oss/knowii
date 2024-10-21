@@ -13,6 +13,6 @@ class PingApiController extends Controller
 
   final public function ping(): JsonResponse
   {
-    return $this->success("Pong", null, null);
+    return self::success("Pong", null, null);
   }
 }

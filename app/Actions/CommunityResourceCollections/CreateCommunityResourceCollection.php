@@ -56,8 +56,6 @@ class CreateCommunityResourceCollection implements CreatesCommunityResourceColle
             ]);
 
             Log::info('New community resource collection created successfully', ['collection' => $collection]);
-            CommunityResourceCollectionCreated::dispatch($collection);
-
             return $collection;
         } catch (\Exception $e) {
             Log::warning('Failed to create the community resource collection', ['exception' => $e]);
