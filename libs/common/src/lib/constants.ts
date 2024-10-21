@@ -39,6 +39,7 @@ export const USER_PROFILE_PASSWORD_UPDATE_URL = 'user-password.update';
 
 // Communities
 export const COMMUNITY_URL = 'communities.show';
+export const COMMUNITY_SETTINGS_URL = 'communities.settings';
 
 // Resource collections
 export const RESOURCE_COLLECTION_URL = 'resource-collections.show';

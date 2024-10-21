@@ -44,6 +44,15 @@ class CommunityPolicy
   }
 
   /**
+   * Determine whether the user can manage the model.
+   */
+  final public function manage(User $user, Community $community): bool
+  {
+    return $user->ownsCommunity($community)
+      || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Admin);
+  }
+
+  /**
    * Determine whether the user can add members.
    */
   final public function addCommunityMember(User $user, Community $community): bool
@@ -80,8 +89,8 @@ class CommunityPolicy
    */
   final public function createResourceCollection(User $user, Community $community): bool
   {
-    return $user->ownsCommunity($community) 
-        || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Admin) 
+    return $user->ownsCommunity($community)
+        || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Admin)
         || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Moderator);
   }
 
@@ -90,8 +99,8 @@ class CommunityPolicy
    */
   final public function updateResourceCollection(User $user, Community $community): bool
   {
-    return $user->ownsCommunity($community) 
-        || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Admin) 
+    return $user->ownsCommunity($community)
+        || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Admin)
         || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Moderator);
   }
 
@@ -100,8 +109,8 @@ class CommunityPolicy
    */
   final public function deleteResourceCollection(User $user, Community $community): bool
   {
-    return $user->ownsCommunity($community) 
-        || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Admin) 
+    return $user->ownsCommunity($community)
+        || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Admin)
         || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Moderator);
   }
 
@@ -110,8 +119,8 @@ class CommunityPolicy
    */
   final public function createResource(User $user, Community $community): bool
   {
-    return $user->ownsCommunity($community) 
-        || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Admin) 
+    return $user->ownsCommunity($community)
+        || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Admin)
         || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Moderator);
   }
 
@@ -120,8 +129,8 @@ class CommunityPolicy
    */
   final public function updateResource(User $user, Community $community): bool
   {
-    return $user->ownsCommunity($community) 
-        || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Admin) 
+    return $user->ownsCommunity($community)
+        || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Admin)
         || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Moderator);
   }
 
@@ -130,8 +139,8 @@ class CommunityPolicy
    */
   final public function deleteResource(User $user, Community $community): bool
   {
-    return $user->ownsCommunity($community) 
-        || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Admin) 
+    return $user->ownsCommunity($community)
+        || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Admin)
         || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Moderator);
   }
 }
