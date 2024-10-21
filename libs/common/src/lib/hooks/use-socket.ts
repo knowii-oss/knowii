@@ -12,6 +12,7 @@ const COMMUNITY_CHANNEL = `community.${COMMUNITY_CHANNEL_PARAM_COMMUNITY_CUID}`;
 type Channel = { type: 'communities' } | { type: 'community'; communityCuid: string };
 
 // Define the event types
+// WARNING: those MUST match the names defined using broadcastAs on the back-end event classes
 const CommunityEvents = {
   CREATED: 'community.created',
   UPDATED: 'community.updated',

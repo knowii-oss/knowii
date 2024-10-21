@@ -26,12 +26,7 @@ export default function DashboardPage(props: Props) {
     },
     event: 'community.created',
     callback: (_event, payload) => {
-      updateCommunities((draft) => {
-        if (!draft.find((community) => community.cuid === payload.cuid)) {
-          draft.push(payload);
-          draft.sort((a, b) => a.name.localeCompare(b.name));
-        }
-      });
+      handleCommunityCreated(payload);
     },
   });
 
@@ -62,8 +57,10 @@ export default function DashboardPage(props: Props) {
 
   const handleCommunityCreated = (newCommunity: Community) => {
     updateCommunities((draft) => {
-      draft.push(newCommunity);
-      draft.sort((a, b) => a.name.localeCompare(b.name));
+      if (!draft.find((community) => community.cuid === newCommunity.cuid)) {
+        draft.push(newCommunity);
+        draft.sort((a, b) => a.name.localeCompare(b.name));
+      }
     });
   };
 
