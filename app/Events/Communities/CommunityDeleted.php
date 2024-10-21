@@ -4,6 +4,7 @@ namespace App\Events\Communities;
 
 class CommunityDeleted extends CommunityEvent
 {
+
   /**
    * The event's broadcast name.
    *
@@ -12,5 +13,19 @@ class CommunityDeleted extends CommunityEvent
   final public function broadcastAs(): string
   {
     return 'community.deleted';
+  }
+
+  /**
+   * Get the data to broadcast.
+   *
+   * @return array<string, mixed>
+   */
+  public function broadcastWith(): array
+  {
+    $retVal = [
+      "cuid" => $this->community->cuid,
+    ];
+
+    return $retVal;
   }
 }

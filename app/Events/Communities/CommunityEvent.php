@@ -11,12 +11,11 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Str;
 
 abstract class CommunityEvent implements ShouldBroadcast, ShouldDispatchAfterCommit
 {
-  use Dispatchable, InteractsWithSockets, SerializesModels;
+  use Dispatchable, InteractsWithSockets;
 
   /**
    * The community instance.
@@ -41,7 +40,7 @@ abstract class CommunityEvent implements ShouldBroadcast, ShouldDispatchAfterCom
    *
    * @return array<string, mixed>
    */
-  final public function broadcastWith(): array
+  public function broadcastWith(): array
   {
     return (new CommunityResource($this->community))->toArray(request());
   }

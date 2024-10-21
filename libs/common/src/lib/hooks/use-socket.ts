@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Community } from '../types/community.schema';
 import { CommunityResourceCollection } from '../types/community-resource-collection.schema';
 import { CommunityResource } from '../types/community-resource.schema';
+import { Identifiable } from '../types/identifiable.schema';
 
 const COMMUNITIES_CHANNEL = 'communities';
 const COMMUNITY_CHANNEL_PARAM_COMMUNITY_CUID = '{communityCuid}';
@@ -41,13 +42,13 @@ type AllEvents = CommunitiesChannelEvent | CommunityChannelEvent;
 // Map events to their payload types
 type EventPayloadMap = {
   // All community events apart from 'community.deleted' have a payload of type Community
-  [K in CommunityEvent]: K extends typeof CommunityEvents.DELETED ? void : Community;
+  [K in CommunityEvent]: K extends typeof CommunityEvents.DELETED ? Identifiable : Community;
 } & {
   // All resource collection events apart from 'community.resource_collection.deleted' have a payload of type CommunityResourceCollection
-  [K in ResourceCollectionEvent]: K extends typeof ResourceCollectionEvents.DELETED ? void : CommunityResourceCollection;
+  [K in ResourceCollectionEvent]: K extends typeof ResourceCollectionEvents.DELETED ? Identifiable : CommunityResourceCollection;
 } & {
   // All resource events apart from 'community.resource.deleted' have a payload of type CommunityResource
-  [K in ResourceEvent]: K extends typeof ResourceEvents.DELETED ? void : CommunityResource;
+  [K in ResourceEvent]: K extends typeof ResourceEvents.DELETED ? Identifiable : CommunityResource;
 };
 
 // Define the hook options with improved type safety
