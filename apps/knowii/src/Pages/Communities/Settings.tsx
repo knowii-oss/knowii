@@ -5,6 +5,7 @@ import { breadcrumbHome } from '@/Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
 import { Link } from '@inertiajs/react';
 import { FaGear } from 'react-icons/fa6';
+import DeleteCommunityForm from '@/Pages/Communities/Partials/DeleteCommunityForm';
 
 interface Props {
   community: Community;
@@ -37,7 +38,9 @@ export default function CommunitySettingsPage(props: Props) {
 
   return (
     <AppLayout browserPageTitle={`${props.community.name} - Settings`} breadcrumbItems={breadcrumbItems} breadcrumbHome={breadcrumbHome}>
-      <div className="flex flex-col md:flex-row gap-6">Coming soon...</div>
+      {props.permissions.canDeleteCommunity && (
+        <DeleteCommunityForm communityCuid={props.community.cuid} communityName={props.community.name} />
+      )}
     </AppLayout>
   );
 }
