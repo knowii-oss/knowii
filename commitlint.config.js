@@ -10,7 +10,7 @@ module.exports = {
     'scope-enum': [
       2,
       'always',
-      ['all', 'a11y', 'code', 'deps', 'docs', 'i18n', 'qa', 'release', 'sec', 'ui', 'ux', 'auth', 'blog', 'api', 'build'],
+      ['all', 'a11y', 'code', 'deps', 'docs', 'i18n', 'qa', 'release', 'sec', 'ui', 'ux', 'auth', 'blog', 'api', 'websockets', 'build'],
     ],
     'scope-case': [2, 'always', 'lowerCase'],
   },
