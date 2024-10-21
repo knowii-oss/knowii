@@ -1,10 +1,15 @@
 # TODO
 
-- Implement delete community API
-- Dashboard: test community deleted WSS event
-- Dashboard: listen to community updated event
+- Community page & resource collection page & resource page
+  - Listen to resource collection created && resource collection updated && resource collection deleted WS events
+- Implement delete resource collection API
+- Implement delete resource API
+- Update knowii-api-client to handle delete resource collections and resources
+- Implement update community API
+- Implement update community UI
+- Dashboard page & Community page & resource collection page & resource page & community settings page
+  - Listen to community updated event, and adapt UI accordingly (breadcrumb, etc)
 - Add fillable fields to CommunityMember pivot model?
-- Communities channel should also include update about private and personal communities IF the user is a member
 - Add channel for specific community resource collections
 - Add channel for specific community resources
   - Also emit on those
