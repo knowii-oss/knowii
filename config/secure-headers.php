@@ -178,27 +178,11 @@ return [
             'origins' => [],
         ],
 
-        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy/ambient-light-sensor
-        'ambient-light-sensor' => [
-            'none' => false,
-            '*' => false,
-            'self' => true,
-            'origins' => [],
-        ],
-
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy/autoplay
         'autoplay' => [
             'none' => false,
             '*' => false,
             'self' => true,
-            'origins' => [],
-        ],
-
-        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy/battery
-        'battery' => [
-            'none' => false,
-            '*' => false,
-            'self' => false,
             'origins' => [],
         ],
 
@@ -226,35 +210,11 @@ return [
             'origins' => [],
         ],
 
-        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy/document-domain
-        'document-domain' => [
-            'none' => false,
-            '*' => true,
-            'self' => false,
-            'origins' => [],
-        ],
-
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy/encrypted-media
         'encrypted-media' => [
             'none' => false,
             '*' => false,
             'self' => true,
-            'origins' => [],
-        ],
-
-        // https://wicg.github.io/page-lifecycle/#execution-while-not-rendered
-        'execution-while-not-rendered' => [
-            'none' => false,
-            '*' => true,
-            'self' => false,
-            'origins' => [],
-        ],
-
-        // https://wicg.github.io/page-lifecycle/#execution-while-out-of-viewport
-        'execution-while-out-of-viewport' => [
-            'none' => false,
-            '*' => true,
-            'self' => false,
             'origins' => [],
         ],
 
@@ -303,14 +263,6 @@ return [
             'none' => false,
             '*' => false,
             'self' => false,
-            'origins' => [],
-        ],
-
-        // https://drafts.csswg.org/css-nav-1/
-        'navigation-override' => [
-            'none' => false,
-            '*' => false,
-            'self' => true,
             'origins' => [],
         ],
 
