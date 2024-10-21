@@ -326,7 +326,8 @@ In addition, all events apart from the delete event should also use the followin
 
 The `SerializesModels` trait does not work with delete events because of the way it works. It serializes only the id of the model, and tries to restore it when processing the event, which of course fails because the model has already been deleted by that point.
 
-References: 
+References:
+
 - https://ryanc.co/posts/understanding-laravels-serializesmodels
 - https://stackoverflow.com/questions/51065034/how-to-fire-laravel-5-6-event-when-model-is-deleted
 
