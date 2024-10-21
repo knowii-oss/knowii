@@ -34,23 +34,12 @@ trait FetchUrl
         throw new TechnicalException('Browserless URL or token is not configured correctly.');
       }
 
-      $browserlessUrl .= Constants::$BROWSERLESS_CONTENT_API_PATH . "?" . Constants::$BROWSERLESS_TOKEN_API_PARAMETER . "=" . $browserlessToken;
+      $browserlessUrl .= Constants::$BROWSERLESS_CONTENT_API_PATH . "?" . Constants::$BROWSERLESS_TOKEN_API_PARAMETER . "=" . $browserlessToken . "&blockAds=true&launch=%7B%20%22stealth%22%3A%20true%2C%20%22headless%22%3A%20false%20%7D";
 
       $response = $client->post($browserlessUrl, [
         'json' => [
           "url" => $url,
           "bestAttempt" => true,
-          // Block ads
-          // Reference: https://docs.browserless.io/chrome-flags#blocking-ads
-          "blockAds" => true,
-          "launch" => [
-            // Use the stealth mode
-            // Reference: https://docs.browserless.io/chrome-flags#stealth-mode
-            "stealth" => true,
-            // Disable the headless mode to avoid some detections
-            // Reference: https://docs.browserless.io/chrome-flags#headful-mode
-            "headless" => false,
-          ],
 
           // Accelerate loading by skipping some resources
           // Reference
