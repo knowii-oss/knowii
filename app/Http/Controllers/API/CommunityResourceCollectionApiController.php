@@ -28,7 +28,7 @@ class CommunityResourceCollectionApiController extends Controller
         $createdItem = $creator->create($request->user(), $community, $input);
 
         return self::created(
-            new CommunityResourceCollectionResource($createdItem),
+            new CommunityResourceCollectionResource($createdItem, true),
             "Resource collection created successfully"
         );
     }

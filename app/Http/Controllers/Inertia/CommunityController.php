@@ -45,10 +45,10 @@ class CommunityController extends Controller
     // WARNING: The props passed here must remain aligned with the props expected by the page
     return Jetstream::inertia()->render($request, 'Communities/Show', [
       // WARNING: The props passed here must remain aligned with the props expected by the page
-      'community' => new CommunityResource($community),
+      'community' => new CommunityResource($community, true),
 
-      'resourceCollections' => CommunityResourceCollectionResource::collection($communityResourceCollections),
-      'recentResources' => CommunityResourceResource::collection($recentResources),
+      'resourceCollections' => CommunityResourceCollectionResource::collection($communityResourceCollections), // FIXME handle passing serializeLargeFields
+      'recentResources' => CommunityResourceResource::collection($recentResources), // // FIXME handle passing serializeLargeFields
 
       // WARNING: The props passed here must remain aligned with the props defined in community.schema.ts
       'permissions' => [
