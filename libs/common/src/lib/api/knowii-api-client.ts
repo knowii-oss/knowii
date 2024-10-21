@@ -1,5 +1,7 @@
 import {
   COMMUNITY_API_BASE_PATH,
+  COMMUNITY_API_PATH,
+  COMMUNITY_API_PATH_PARAM_COMMUNITY,
   COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH,
   COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH_PARAM_COMMUNITY,
   COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH,
@@ -23,6 +25,8 @@ import {
   CreateResourceTextArticleResponse,
   createResourceTextArticleResponseSchema,
 } from './resources/create-resource-text-article-response.schema';
+import { DeleteRequest } from './delete-request.schema';
+import { HttpStatus } from '../types/http-status.intf';
 
 const defaultHeaders: Headers = new Headers({
   Accept: 'application/json',
@@ -40,6 +44,16 @@ export const knowiiApiClient = {
 
       const responseAsJson = await response.json();
       return createCommunityResponseSchema.parse(responseAsJson);
+    },
+    delete: async (input: DeleteRequest): Promise<boolean> => {
+      const requestUrl = COMMUNITY_API_PATH.replace(COMMUNITY_API_PATH_PARAM_COMMUNITY, input.cuid);
+
+      const response = await fetch(requestUrl, {
+        method: 'delete',
+        headers: defaultHeaders,
+      });
+
+      return response.status === HttpStatus.NO_CONTENT;
     },
     resourceCollections: {
       create: async (input: CreateCommunityResourceCollectionRequest): Promise<CreateCommunityResourceCollectionResponse> => {
