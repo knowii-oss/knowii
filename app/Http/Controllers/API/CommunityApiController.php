@@ -25,6 +25,6 @@ class CommunityApiController extends Controller
 
     $creator = app(CreatesCommunities::class);
     $createdItem = $creator->create($request->user(), $input);
-    return self::created(new CommunityResource($createdItem), "Community created successfully");
+    return self::created(new CommunityResource($createdItem, true), "Community created successfully");
   }
 }

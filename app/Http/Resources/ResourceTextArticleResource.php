@@ -3,30 +3,31 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
 
-class ResourceTextArticleResource extends JsonResource
+class ResourceTextArticleResource extends AbstractKnowiiJsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
-    final public function toArray(Request $request): array
-    {
-        return [
-          'cuid' => $this->cuid,
 
-          'html' => $this->html,
-          'markdown' => $this->markdown, // Ensures description is never null when returning data
+  /**
+   * Transform the resource into an array.
+   *
+   * @return array<string, mixed>
+   */
+  final public function toArray(Request $request): array
+  {
+    return [
+      'cuid' => $this->cuid,
 
-          'word_count' => $this->word_count,
-          'reading_time' => $this->reading_time,
+      // the 'html' field is not exposed
 
-          'resource' => ResourceResource::make($this->whenLoaded('resource')),
+      'markdown' => $this->serializeLargeFields ? $this->markdown: null,
 
-          'created_at' => $this->created_at,
-          'updated_at' => $this->updated_at,
-        ];
-    }
+      'word_count' => $this->word_count,
+      'reading_time' => $this->reading_time,
+
+      'resource' => $this->whenLoaded('resource')? new ResourceResource($this->whenLoaded('resource'), $this->serializeLargeFields): null,
+
+      'created_at' => $this->created_at,
+      'updated_at' => $this->updated_at,
+    ];
+  }
 }

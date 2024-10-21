@@ -35,7 +35,7 @@ class DashboardController extends Controller
 
     // WARNING: The props passed here must remain aligned with the props expected by the page
     return Jetstream::inertia()->render($request, 'Dashboard', [
-      'communities' => CommunityResource::collection($communities),
+      'communities' => CommunityResource::collection($communities), // FIXME handle passing serializeLargeFields
     ]);
   }
 }

@@ -51,7 +51,7 @@ class ResourceTextArticleApiController extends Controller
     ]);
 
     return self::created(
-      new CommunityResourceResource($createdResource),
+      new CommunityResourceResource($createdResource, true),
       "Resource created successfully"
     );
   }

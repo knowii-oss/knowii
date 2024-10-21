@@ -38,8 +38,8 @@ class CommunityResourceCollectionController extends Controller
     // WARNING: The props passed here must remain aligned with the props expected by the page
     return Jetstream::inertia()->render($request, 'ResourceCollections/Show', [
       // WARNING: The props passed here must remain aligned with the props expected by the page
-      'community' => new CommunityResource($community),
-      'resourceCollection' => new CommunityResourceCollectionResource($resourceCollection),
+      'community' => new CommunityResource($community, true),
+      'resourceCollection' => new CommunityResourceCollectionResource($resourceCollection, true),
 
       // WARNING: The props passed here must remain aligned with the props defined in community.schema.ts
       'permissions' => [
