@@ -1,5 +1,6 @@
 # TODO
 
+- Fix community deletion test (broken model changes)
 - Communities channel should also include update about private and personal communities IF the user is a member
 - Add channel for specific resource collections
 - Add channel for specific resources

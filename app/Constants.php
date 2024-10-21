@@ -58,6 +58,11 @@ class Constants
     'social_link_gitlab',
   ];
 
+  // WebSockets
+  public static string $WS_CHANNEL_COMMUNITIES = 'communities';
+  public static string $WS_CHANNEL_COMMUNITIES_COMMUNITY_PARAM_COMMUNITY_CUID = '{communityCuid}';
+  public static string $WS_CHANNEL_COMMUNITY = 'community.{communityCuid}';
+
   // Technical
   public static string $BROWSERLESS_CONTENT_API_PATH = '/content';
   public static string $BROWSERLESS_TOKEN_API_PARAMETER = 'token';
