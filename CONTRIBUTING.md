@@ -327,6 +327,9 @@ Example `broadcastWith` implementation:
   }
 ```
 
+Notice that we reuse HTTP Resource classes to serialize the model in the exact same way as through the API. This ensures that the client can handle the event data in the same way as the API data.
+Although, the HTTP Resource classes support serializing large fields or not. Always consider the size of the payloads you're sending through WebSockets and the number of potential connected clients (msg size \* number of clients). The maximum WebSocket message size is governed by the `REVERB_APP_MAX_MESSAGE_SIZE` environment variable. In general, keep messages small and avoid sending large fields.
+
 Example of `broadcastAs` implementation:
 
 ```php
