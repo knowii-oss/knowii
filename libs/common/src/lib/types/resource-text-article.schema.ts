@@ -38,7 +38,6 @@ export type NewResourceTextArticle = z.infer<typeof newResourceTextArticleSchema
 
 export const resourceTextArticleSchema = baseEntitySchema.merge(
   z.object({
-    html: z.string().nullable(),
     markdown: z.string().nullable(),
     word_count: z.number().int().nullable(),
     reading_time: z.number().int().nullable(),
