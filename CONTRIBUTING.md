@@ -278,6 +278,150 @@ We create slugs for the different concepts using the following library: https://
 Take a look at the `Community` model and `CreateCommunity` to see how it's used. Basically, the `slug` field need to exist on the model, the model must use certain traits, implement a function, and the library derives the slug automatically based on some other field. For instance, we use the "name" field for communities.
 The library ensures that slugs are unique, which is key.
 
+### WebSockets and Events
+
+#### Design
+
+Knowii also includes WebSockets support for first-party use (i.e., for itself). The WebSockets API is used to avoid having to fetch/poll data through the RESTful API. When entities are created/updated/deleted, and at other occasions, events will be pushed to clients using WebSockets. Specific pages, such as the Dashboard, will listen to those events, and will be able to update the UI. This is nice because the UI is thus able to discover everything that has changed since it loaded, and to adapt accordingly.
+
+Technically, Knowii uses:
+
+- Laravel Reverb on the back-end (which uses the Pusher protocol)
+- Laravel Echo on the front-end to connect, and listen to events
+- An event queue stored in the database (not in Redis for now) and a worker to process that queue, and dispatch the events
+
+For local development, Sail has been configured to run the WebSockets server (Laravel Reverb), and the worker.
+
+#### Event classes
+
+Events that can be dispatched and processed within Knowii (with or without WebSockets) should be created in the `App\Events` directory. They should be named after the entity they relate to, and the event they represent (e.g., `CommunityCreated`). They should also be organized per entity in subdirectories. At the time of writing, we have:
+
+- `App\Events\Communities\CommunityCreated`
+- `App\Events\Communities\CommunityUpdated`
+- `App\Events\Communities\CommunityDeleted`
+- `App\Events\CommunityResourceCollections\CommunityResourceCollectionCreated`
+- `App\Events\CommunityResourceCollections\CommunityResourceCollectionUpdated`
+- `App\Events\CommunityResourceCollections\CommunityResourceCollectionDeleted`
+- ...
+
+Each event class should:
+
+- implement `ShouldBroadcast`
+- if relevant, implement `ShouldDispatchAfterCommit` (to ensure that the event is dispatched after the transaction is committed)
+- use the following traits: `use Dispatchable, InteractsWithSockets, SerializesModels;`
+- implement `broadcastWith` and use an HTTP Resource class to serialize the model in the exact same way as through the API
+- implement `broadcastAs` to define the event name. Use the following form for event names: `<lowercase_model_name or logical_group_name>.<lower_case_event_name>` (e.g., `community.created`)
+- implement `broadcastOn` to define the channel(s) the event should be broadcast on (respecting the naming conventions listed below)
+
+Example `broadcastWith` implementation:
+
+```php
+/**
+* Get the data to broadcast.
+*
+* @return array<string, mixed>
+  */
+  final public function broadcastWith(): array
+  {
+  return (new CommunityResource($this->community))->toArray(request());
+  }
+```
+
+Example of `broadcastAs` implementation:
+
+```php
+/**
+ * The event's broadcast name.
+ *
+ * @return string
+ */
+final public function broadcastAs(): string
+{
+  return 'community.created';
+}
+```
+
+Example of `broadcastOn` implementation:
+
+```php
+final public function broadcastOn(): array
+{
+  // Emit events to the community channel
+  $retVal = [
+    new PrivateChannel(Str::of(Constants::$WS_CHANNEL_COMMUNITY)->replace(Constants::$WS_CHANNEL_COMMUNITIES_COMMUNITY_PARAM_COMMUNITY_CUID, $this->community->cuid)),
+  ];
+
+  // Emit events about public communities to the public channel
+  if (KnowiiCommunityVisibility::Public === $this->community->visibility) {
+    $retVal[] = new PrivateChannel(Constants::$WS_CHANNEL_COMMUNITIES);
+  }
+
+  return $retVal;
+}
+```
+
+Note how the `broadcastOn` method emits events to the community channel, and to the public channel if and only if the community is public. This is a good practice to ensure that the events are dispatched to the right clients, and it is actually critical for security reasons.
+
+Check out the CommunityEvent abstract class for a complete example.
+
+Note that all those event classes can serve other purposes as well (e.g., sending mails, notifications, etc).
+
+#### Event dispatching
+
+The main events about models (e.g., created, updated, deleted) should be dispatched by Laravel itself. This can be achieved by mapping the event classes with the events in the `$dispatchesEvents` property of the model.
+
+For instance, in the `Community` model, we have:
+
+```php
+/**
+ * The event map for the model.
+ *
+ * @var array<string, class-string>
+ */
+protected $dispatchesEvents = [
+  'created' => CommunityCreated::class,
+  'updated' => CommunityUpdated::class,
+  'deleted' => CommunityDeleted::class,
+];
+```
+
+Other events can be dispatched manually using the `::dispatch` method of event classes (e.g., `NoSpaceLeft::dispatch($user)`, preferably from action classes.
+
+#### Channels
+
+The channels listed in `broadcastOn` should all be defined in `channels.php`. And the channel names should be defined as constants in `Constants.php`:
+
+```php
+// WebSockets
+public static string $WS_CHANNEL_COMMUNITIES = 'communities';
+public static string $WS_CHANNEL_COMMUNITIES_COMMUNITY_PARAM_COMMUNITY_CUID = '{communityCuid}';
+public static string $WS_CHANNEL_COMMUNITY = 'community.{communityCuid}';
+```
+
+Notice that for cases where the channel name includes variables, we also create constants for the variables, so that we can easily replace them with actual values using a simple search/replace operation.
+
+Example of channel definitions in `channels.php`:
+
+```php
+Broadcast::channel(Constants::$WS_CHANNEL_COMMUNITIES, static function (User $user) {
+  // This is a public channel sharing events about public communities
+  return true;
+});
+
+Broadcast::channel(Constants::$WS_CHANNEL_COMMUNITY, static function (User $user, string $communityCuid) {
+  // This is a private channel reserved to community members
+  $community = Community::whereCuid($communityCuid)->firstOrFail();
+  $retVal = $user->allCommunities()->contains($community);
+
+  return $retVal;
+});
+```
+
+#### Client-side
+
+On the client-side, we have abstracted Laravel Echo behind a React hook called `useSocket`. This hook makes it easy to listen to channels/events, and to handle incoming events.
+You can find examples of how to use this hook in the `Dashboard` page.
+
 ### Configuration
 
 #### Fortify
