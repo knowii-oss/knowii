@@ -26,6 +26,7 @@ class ResourceTextArticle extends Model
    */
   protected $fillable = [
     // WARNING: When new fields are added, this list should be updated!
+    'cuid',
     'resource_id',
     'html',
     'markdown',

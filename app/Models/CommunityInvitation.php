@@ -19,6 +19,7 @@ class CommunityInvitation extends KnowiiCommunityInvitation
      * @var array<int, string>
      */
     protected $fillable = [
+        'cuid',
         'email',
         'role',
     ];

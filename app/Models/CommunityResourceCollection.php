@@ -31,6 +31,7 @@ class CommunityResourceCollection extends Model
    */
   protected $fillable = [
     // WARNING: When new fields are added, this list should be updated!
+    'cuid',
     'name',
     'slug',
     'description',
