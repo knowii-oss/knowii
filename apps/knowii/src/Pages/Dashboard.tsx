@@ -20,6 +20,24 @@ interface Props {
 export default function DashboardPage(props: Props) {
   const route = useRoute();
 
+  const handleCommunityCreated = (newCommunity: Community) => {
+    updateCommunities((draft) => {
+      if (!draft.find((community) => community.cuid === newCommunity.cuid)) {
+        draft.push(newCommunity);
+        draft.sort((a, b) => a.name.localeCompare(b.name));
+      }
+    });
+  };
+
+  const handleCommunityDeleted = (deletedCommunity: Identifiable) => {
+    updateCommunities((draft) => {
+      const index = draft.findIndex((community) => community.cuid === deletedCommunity.cuid);
+      if (index !== -1) {
+        draft.splice(index, 1);
+      }
+    });
+  };
+
   useSocket({
     channel: {
       type: 'communities',
@@ -63,24 +81,6 @@ export default function DashboardPage(props: Props) {
 
   const closeCreateCommunityModal = () => {
     setCreatingCommunity(false);
-  };
-
-  const handleCommunityCreated = (newCommunity: Community) => {
-    updateCommunities((draft) => {
-      if (!draft.find((community) => community.cuid === newCommunity.cuid)) {
-        draft.push(newCommunity);
-        draft.sort((a, b) => a.name.localeCompare(b.name));
-      }
-    });
-  };
-
-  const handleCommunityDeleted = (deletedCommunity: Identifiable) => {
-    updateCommunities((draft) => {
-      const index = draft.findIndex((community) => community.cuid === deletedCommunity.cuid);
-      if (index !== -1) {
-        draft.splice(index, 1);
-      }
-    });
   };
 
   const filteredCommunities = useCallback(() => {

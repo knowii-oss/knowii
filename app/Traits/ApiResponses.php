@@ -27,6 +27,15 @@ trait ApiResponses
   }
 
   /**
+   * Deleted entity
+   * @return Response
+   */
+  final public static function deleted(): Response
+  {
+    return response()->noContent();
+  }
+
+  /**
    * Success
    * @param string $message
    * @param array|null $metadata

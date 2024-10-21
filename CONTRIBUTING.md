@@ -304,11 +304,34 @@ Events that can be dispatched and processed within Knowii (with or without WebSo
 - `App\Events\CommunityResourceCollections\CommunityResourceCollectionDeleted`
 - ...
 
-Each event class should:
+https://ryanc.co/posts/understanding-laravels-serializesmodels
 
-- implement `ShouldBroadcast`
-- if relevant, implement `ShouldDispatchAfterCommit` (to ensure that the event is dispatched after the transaction is committed)
-- use the following traits: `use Dispatchable, InteractsWithSockets, SerializesModels;`
+All event classes that send WebSocket events should...
+
+Implement the following:
+
+- `ShouldBroadcast`
+- if relevant, implement `ShouldDispatchAfterCommit`, to ensure that the event is dispatched after the transaction is committed
+
+The first enables broadcasting through WebSockets, and the second ensures that events are only broadcast after the commit has been completed.
+
+Use the following traits:
+
+- `Dispatchable`
+- `InteractsWithSockets`
+
+In addition, all events apart from the delete event should also use the following trait:
+
+- `SerializesModels`
+
+The `SerializesModels` trait does not work with delete events because of the way it works. It serializes only the id of the model, and tries to restore it when processing the event, which of course fails because the model has already been deleted by that point.
+
+References: 
+- https://ryanc.co/posts/understanding-laravels-serializesmodels
+- https://stackoverflow.com/questions/51065034/how-to-fire-laravel-5-6-event-when-model-is-deleted
+
+In addition, each event class should:
+
 - implement `broadcastWith` and use an HTTP Resource class to serialize the model in the exact same way as through the API
 - implement `broadcastAs` to define the event name. Use the following form for event names: `<lowercase_model_name or logical_group_name>.<lower_case_event_name>` (e.g., `community.created`)
 - implement `broadcastOn` to define the channel(s) the event should be broadcast on (respecting the naming conventions listed below)
@@ -389,30 +412,6 @@ protected $dispatchesEvents = [
 ```
 
 Other events can be dispatched manually using the `::dispatch` method of event classes (e.g., `NoSpaceLeft::dispatch($user)`, preferably from action classes.
-
-### Event classes
-
-All event classes that send WebSocket events should...
-
-Implement the following:
-
-- `ShouldBroadcast`
-- `ShouldDispatchAfterCommit`
-
-The first enables broadcasting through WebSockets, and the second ensures that events are only broadcast after the commit has been completed.
-
-Use the following traits:
-
-- `Dispatchable`
-- `InteractsWithSockets`
-
-In addition, all events apart from the delete event should also use the following trait:
-
-- `SerializesModels`
-
-The `SerializesModels` trait does not work with delete events because of the way it works. It serializes only the id of the model, and tries to restore it when processing the event, which of course fails because the model has already been deleted by that point.
-
-Reference: https://stackoverflow.com/questions/51065034/how-to-fire-laravel-5-6-event-when-model-is-deleted
 
 #### Channels
 
