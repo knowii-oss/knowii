@@ -25,6 +25,8 @@ Route::prefix('v1')->group(function (){
     Route::post('users/is-username-available', [UserApiController::class, 'isUsernameAvailable']);
 
     Route::post('communities', [CommunityApiController::class, 'store']);
+    Route::delete('communities/{community:cuid}', [CommunityApiController::class, 'destroy']);
+
     Route::post('communities/{community:cuid}/resource-collections', [CommunityResourceCollectionApiController::class, 'store']);
     Route::post('communities/{community:cuid}/resource-collections/{community_resource_collection:cuid}/text-articles', [ResourceTextArticleApiController::class, 'store']);
   });

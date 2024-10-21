@@ -31,3 +31,19 @@ test('communities can be created via the API', function () {
   expect($user->ownedCommunities()->latest('id')->first()->description)->toEqual('Awesome community');
   expect($user->ownedCommunities()->latest('id')->first()->visibility)->toEqual(KnowiiCommunityVisibility::Public);
 });
+
+test('communities can be deleted via the API', function () {
+  $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
+
+  $requestUrl = 'api/v1/communities/' . $user->ownedCommunities()->latest('id')->first()->cuid;
+
+  // TODO stop hardcoding URLs in tests
+  $response = $this->delete($requestUrl, [
+    'Accept' => 'application/json',
+  ]);
+
+  $response->assertStatus(Response::HTTP_NO_CONTENT);
+
+  expect($user->ownedCommunities)->toHaveCount(0);
+});
+
