@@ -1,5 +1,6 @@
 # TODO
 
+- Dashboard: listen to community updated and community deleted events
 - Implement delete community API
 - Add fillable fields to CommunityMember pivot model?
 - Communities channel should also include update about private and personal communities IF the user is a member
@@ -7,7 +8,6 @@
 - Add channel for specific community resources
   - Also emit on those
 - ->dontBroadcastToCurrentUser();
-- Dashboard: listen to community updated and community deleted events
 - Add reset button to createResourceDialog form
 - If error while saving resource, CreateResourceDialog should stop the loading spinner
   - should be handled in knowii-api-client.ts
