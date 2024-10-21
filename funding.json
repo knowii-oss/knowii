@@ -1,0 +1,81 @@
+{
+  "version": "v1.0.0",
+  "entity": {
+    "type": "organisation",
+    "role": "owner",
+    "name": "DeveloPassion",
+    "email": "sebastien@developassion.be",
+    "phone": "+32 478 40 29 93",
+    "description": "A software development company of 1 person based in Belgium",
+    "webpageUrl": {
+      "url": "https://www.developassion.be",
+      "wellKnown": ""
+    }
+  },
+  "projects": [
+    {
+      "guid": "knowii-oss-knowii",
+      "name": "knowii",
+      "description": "An open source community knowledge management platform",
+      "webpageUrl": {
+        "url": "https://github.com/knowii-oss/knowii",
+        "wellKnown": ""
+      },
+      "repositoryUrl": {
+        "url": "https://github.com/knowii-oss/knowii",
+        "wellKnown": ""
+      },
+      "licenses": ["spdx:AGPL-3.0"],
+      "tags": [
+        "community",
+        "curation",
+        "knowledge",
+        "knowledge-management",
+        "information-management",
+        "sharing-information",
+        "sharing-platform",
+        "content-curation",
+        "sharing-is-caring"
+      ]
+    }
+  ],
+  "funding": {
+    "channels": [
+      {
+        "guid": "developassion-bank",
+        "type": "bank",
+        "address": "Please e-mail me for details",
+        "description": "Support DeveloPassion via bank transfer"
+      },
+      {
+        "guid": "developassion-paypal",
+        "type": "gateway",
+        "address": "https://paypal.me/developassion",
+        "description": "Support DeveloPassion via PayPal"
+      }
+    ],
+    "plans": [
+      {
+        "guid": "developer-plan",
+        "status": "active",
+        "name": "Developer compensation",
+        "description": "Cover the time spent developing Knowii (part-time)",
+        "amount": 2500,
+        "currency": "EUR",
+        "frequency": "monthly",
+        "channels": ["developassion-bank", "developassion-paypal"]
+      },
+      {
+        "guid": "angel-plan",
+        "status": "active",
+        "name": "Goodwill plan",
+        "description": "Pay anything you wish to show your goodwill for the project.",
+        "amount": 0,
+        "currency": "EUR",
+        "frequency": "one-time",
+        "channels": ["developassion-paypal"]
+      }
+    ],
+    "history": []
+  }
+}
