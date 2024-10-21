@@ -3,13 +3,12 @@
 namespace App\Events\Resources;
 
 use App\Models\Resource;
-use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 
-abstract class ResourceEvent
+abstract class ResourceEvent implements ShouldDispatchAfterCommit
 {
-  use Dispatchable, InteractsWithSockets, SerializesModels;
+  use Dispatchable;
 
   /**
    * The resource instance.

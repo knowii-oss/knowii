@@ -13,12 +13,11 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Str;
 
 abstract class CommunityResourceEvent implements ShouldBroadcast, ShouldDispatchAfterCommit
 {
-  use Dispatchable, InteractsWithSockets, SerializesModels;
+  use Dispatchable, InteractsWithSockets;
 
   /**
    * The community resource instance.
@@ -43,7 +42,7 @@ abstract class CommunityResourceEvent implements ShouldBroadcast, ShouldDispatch
    *
    * @return array<string, mixed>
    */
-  final public function broadcastWith(): array
+  public function broadcastWith(): array
   {
 
     // Disable wrapping for the data we return to the frontend from this controller
@@ -57,9 +56,7 @@ abstract class CommunityResourceEvent implements ShouldBroadcast, ShouldDispatch
       'collection',
     ]);
 
-    $loadedResourceDayAsArray = (new CommunityResourceResource($this->communityResource, false))->toArray(request());
-
-    return $loadedResourceDayAsArray;
+    return (new CommunityResourceResource($this->communityResource, false))->toArray(request());
 
     //return [
     //  'cuid' => $this->communityResource->cuid,

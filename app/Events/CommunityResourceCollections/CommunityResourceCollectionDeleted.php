@@ -13,4 +13,18 @@ class CommunityResourceCollectionDeleted extends CommunityResourceCollectionEven
   {
     return 'community.resource_collection.deleted';
   }
+
+  /**
+   * Get the data to broadcast.
+   *
+   * @return array<string, mixed>
+   */
+  public function broadcastWith(): array
+  {
+    $retVal = [
+      "cuid" => $this->communityResourceCollection->cuid,
+    ];
+
+    return $retVal;
+  }
 }

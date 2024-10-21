@@ -1,14 +1,12 @@
 # TODO
 
-- Fix community deletion test (broken model changes)
+- Implement delete community API
 - Add fillable fields to CommunityMember pivot model?
-- Ensure that autocompletion works for Window.Echo both in the project and in the lib (if not, fix or duplicate the d.ts files)
 - Communities channel should also include update about private and personal communities IF the user is a member
-- Add channel for specific resource collections
-- Add channel for specific resources
+- Add channel for specific community resource collections
+- Add channel for specific community resources
   - Also emit on those
 - ->dontBroadcastToCurrentUser();
-- Issue: many event subscriptions made and cancelled
 - Dashboard: listen to community updated and community deleted events
 - Add reset button to createResourceDialog form
 - If error while saving resource, CreateResourceDialog should stop the loading spinner

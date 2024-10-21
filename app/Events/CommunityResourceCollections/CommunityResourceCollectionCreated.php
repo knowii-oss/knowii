@@ -2,8 +2,12 @@
 
 namespace App\Events\CommunityResourceCollections;
 
+use Illuminate\Queue\SerializesModels;
+
 class CommunityResourceCollectionCreated extends CommunityResourceCollectionEvent
 {
+  use SerializesModels;
+
   /**
    * The event's broadcast name.
    *
