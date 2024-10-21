@@ -13,7 +13,7 @@ export default function PageTitle(props: Props) {
   return props.pageTitle ? (
     <h1 className="text-white text-2xl sm:text-3xl font-bold tracking-wide uppercase shadow-sm">{props.pageTitle}</h1>
   ) : props.breadcrumbItems ? (
-    <div className="w-full flex flex-row items-center justify-between">
+    <div className="w-full flex flex-col sm:flex-row gap-2 items-center justify-between">
       <BreadCrumb
         model={props.breadcrumbItems}
         home={props.home}
