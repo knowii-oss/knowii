@@ -60,7 +60,7 @@ class Constants
 
   // WebSockets
   public static string $WS_CHANNEL_COMMUNITIES = 'communities';
-  public static string $WS_CHANNEL_COMMUNITIES_COMMUNITY_PARAM_COMMUNITY_CUID = '{communityCuid}';
+  public static string $WS_CHANNEL_COMMUNITY_PARAM_COMMUNITY_CUID = '{communityCuid}';
   public static string $WS_CHANNEL_COMMUNITY = 'community.{communityCuid}';
 
   // Technical

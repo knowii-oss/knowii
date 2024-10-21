@@ -10,9 +10,7 @@
 - Dashboard page & Community page & resource collection page & resource page & community settings page
   - Listen to community updated event, and adapt UI accordingly (breadcrumb, etc)
 - Add fillable fields to CommunityMember pivot model?
-- Add channel for specific community resource collections
-- Add channel for specific community resources
-  - Also emit on those
+- Add channel for specific community resource collections and also emit on that one (community resource collection and community resource events)
 - ->dontBroadcastToCurrentUser();
 - Add reset button to createResourceDialog form
 - If error while saving resource, CreateResourceDialog should stop the loading spinner

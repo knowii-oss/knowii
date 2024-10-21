@@ -32,30 +32,4 @@ abstract class ResourceTextArticleEvent implements ShouldDispatchAfterCommit
   {
     $this->resourceTextArticle = $resourceTextArticle;
   }
-
-  /**
-   * Get the data to broadcast.
-   *
-   * @return array<string, mixed>
-   */
-  public function broadcastWith(): array
-  {
-    return (new ResourceTextArticleResource($this->resourceTextArticle))->toArray(request());
-  }
-
-  final public function broadcastOn(): array
-  {
-    // Emit events to the community channel
-    $retVal = [
-      new PrivateChannel(Str::of(Constants::$WS_CHANNEL_COMMUNITY)->replace(Constants::$WS_CHANNEL_COMMUNITIES_COMMUNITY_PARAM_COMMUNITY_CUID, $this->community->cuid)),
-    ];
-
-    // Emit events about public communities to the public channel
-    if (KnowiiCommunityVisibility::Public === $this->community->visibility) {
-      $retVal[] = new PrivateChannel(Constants::$WS_CHANNEL_COMMUNITIES);
-    }
-
-    return $retVal;
-  }
-
 }
