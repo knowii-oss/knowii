@@ -10,6 +10,7 @@ export * from './api/knowii-api-client';
 export * from './contexts/app-context';
 
 export * from './hooks/use-debounce.hook.fn';
+export * from './hooks/use-socket';
 export * from './hooks/use-typed-page.hook.fn';
 
 export * from './types/base-entity.schema';
