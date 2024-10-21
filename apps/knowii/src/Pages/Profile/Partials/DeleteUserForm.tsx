@@ -49,7 +49,7 @@ export default function DeleteUserForm() {
   return (
     <ActionSection title={'Delete Account'} description={'Permanently delete your account.'}>
       <div className="max-w-xl text-sm text-gray-600">
-        Once your account is deleted, your own communities, resources, and interactions will all be be permanently removed. Only your public
+        Once your account is deleted, your own communities, resources, and interactions will all be permanently removed. Only your public
         profile will remain. If you create a new user account later, you will be able to re-claim your profile, but not the account data.
       </div>
 
