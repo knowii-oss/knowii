@@ -67,7 +67,7 @@ abstract class CommunityResourceEvent implements ShouldBroadcast, ShouldDispatch
   {
     // Emit events to the community channel
     $retVal = [
-      new PrivateChannel(Str::of(Constants::$WS_CHANNEL_COMMUNITY)->replace(Constants::$WS_CHANNEL_COMMUNITIES_COMMUNITY_PARAM_COMMUNITY_CUID, $this->communityResource->community->cuid)),
+      new PrivateChannel(Str::of(Constants::$WS_CHANNEL_COMMUNITY)->replace(Constants::$WS_CHANNEL_COMMUNITY_PARAM_COMMUNITY_CUID, $this->communityResource->community->cuid)),
     ];
 
     // Emit events about public communities to the public channel
