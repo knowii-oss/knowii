@@ -1,36 +1,23 @@
 # TODO
 
-- channels.php
-- Add documentation for WebSockets
-  - Self-hosting
-    - Recommend using WSS
-    - Recommend associating with `ws` subdomain
-    - Point to useful resources
-      - https://medium.com/@martio-appcadabra/how-to-use-reverb-with-laravel-sail-aa7c8450a76c
-- Add tests for keyword extraction
+- Communities channel should also include update about private and personal communities IF the user is a member
+- Add channel for specific resource collections
+- Add channel for specific resources
+  - Also emit on those
+- ->dontBroadcastToCurrentUser();
+- Issue: many event subscriptions made and cancelled
+- Dashboard: listen to community updated and community deleted events
 - Add reset button to createResourceDialog form
 - If error while saving resource, CreateResourceDialog should stop the loading spinner
   - should be handled in knowii-api-client.ts
   - Fix knowii-api-client: should not try to parse directly, or at least should not EXPLODE if the response does not have the hoped structure
-- CreateTextResource
-  - Delay page loading. First only use the provided data, and trigger batch job doing the rest
-- Reject urls pointing to files (audio, video, etc)
-- Add tests for ProcessHtml
-- Add Browserless in production
-  - Try to use /active (Returns a simple "204" HTTP code, with no response, indicating that the service itself is up and running. Useful for liveliness probes or other external checks): https://docs.browserless.io/open-api#:~:text=/active,other%20external%20checks.
+- CreateTextResource: reject urls pointing to files (audio, video, etc)
 - TODO show both the community specific name/description and the resource generic one
-- Add tests for CreateTextResource
 - Implement ResourcePage page
-- Add support for voting on resources
-- Add support for starring resources
 - Test CreateResourceDialog within the resource collection screen, where the specific collection can directly be provided and ensure that the collection field is not displayed
 - Add form validation to CreateResourceDialog
-- Add tests for TextResourceApiController
-- Add test, deleting a user does not remove the user profile
 - Allow changing the level of a resource
 - Allow changing the description of a resource
-- Improve HTML to Markdown conversion: https://github.com/thephpleague/html-to-markdown
-- Purify the loaded HTML when fetching resources: https://github.com/mewebstudio/Purifier
 - Add community details link to the community homepage
   - Include base details for anyone to see if community is public or user is member
   - What to include?
@@ -45,28 +32,10 @@
 - Add community name availability check
 - Show total resources count on resource card
 - Select and show resource type icon on each resource card and on the resource details page
-- Cascade delete of community invitations and resource collections and resources upon account deletion
-- UI
-  - Use scrollpanel for the community description: React ScrollPanel Component (primereact.org)
-  - Add tw-merge
-  - Configure prime react to use twMerge
-    - import { twMerge } from 'tailwind-merge';
-      ptOptions: { mergeSections: true, mergeProps: true, classNameMergeFunction: twMerge }
-  - Stop using classnames: tailwind-merge - npm (npmjs.com)
-    - use either twMerge (when a merge with styles conflict resolution is needed)
-    - or twJoin (when no conflict resolution is needed)
-  - Document this (contributing)
-  - Add to .cursorrules
-- Comments table: https://github.com/Lakshan-Madushanka/laravel-comments
 - Facts table for user profiles
   - Verified: boolean
-- Voice recording resource type
-- Implement deletion of personal communities
 - Request to join a community vs RBAC + add to features
   - What happens to created resources once a user does not have access to the community anymore?
-- Persons list resource type
-  - Search and add user profiles
-  - Edit to add/remove people from the lists
 - Community chat
 - Community gallery
 - Share content on social media
@@ -76,29 +45,6 @@
   - https://www.npmjs.com/package/node-html-markdown?activeTab=code
   - https://github.com/mixmark-io/turndown
   - https://github.com/crosstype/node-html-markdown
-- HasCommunities: roles, permissions, etc
-- Community permissions
-  - createPublicCommunity
-  - createPrivateCommunity
-  - createPersonalCommunity
-  - viewPersonalCommunity
-  - discoverPublicCommunities
-  - discoverPrivateCommunities
-  - viewPublicCommunity
-  - viewPrivateCommunity
-  - viewPersonalCommunity
-  - joinPublicCommunity
-  - joinPrivateCommunity
-  - joinPersonalCommunity
-  - inviteNewCommunityMember
-  - manageCommunityMembers
-  - manageCommunitySettings
-  - deleteCommunity
-  - ...
-- CommunityController
-  - Add members
-- Create ContentBox taking e.g., upcoming events, members, new resources, etc.
-  - Should have inputs to pass a canAdd boolean, a onAdd function, and children
 - Add and configure the following plugins for ReactMarkdown: remark-gfm, remark-toc, remark-mdx, remark-frontmatter
 - add "profile" to UserResource?
 
@@ -108,3 +54,5 @@
 
 - Check out Locale package: https://github.com/macmotp/locale
 - Switch to autocomplete for resource collection selection in CreateResourceDialog (might be many collections)
+- Improve PHP Constants.php to use const string NAME = 'value';
+  - Reference: https://php.watch/versions/8.3/typed-constants

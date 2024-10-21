@@ -81,9 +81,9 @@ Don't forget to:
 
 For WebSockets to work (securely), don't forget to modify:
 
-- `REVERB_APP_ID`: set to a unique value
-- `REVERB_APP_KEY`: set to a unique value
-- `REVERB_APP_SECRET`: set to a unique value
+- `REVERB_APP_ID`: set to a unique, secure, and random value
+- `REVERB_APP_KEY`: set to a unique value. You can prefix-it by `knowii-your-own-instance-name`)
+- `REVERB_APP_SECRET`: set to a unique, secure, and random value
 
 ## Browserless
 

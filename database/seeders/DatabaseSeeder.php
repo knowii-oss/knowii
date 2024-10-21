@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
     final public function run(): void
     {
         $user = User::factory()->withUserProfile()->withPersonalCommunity()->create([
-            'name' => 'Sébatien Dubois',
+            'name' => 'Sébastien Dubois',
             'email' => 'sebastien@developassion.be',
             'password' => Hash::make('foo'),
         ]);
