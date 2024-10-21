@@ -63,24 +63,6 @@ export const DESTROY_OTHER_BROWSER_SESSIONS_URL = 'other-browser-sessions.destro
 export const DELETE_USER_URL = 'current-user.destroy';
 
 /**
- * API
- */
-export const API_BASE_PATH = '/api/v1';
-export const PING_API_PATH = `${API_BASE_PATH}/ping`;
-
-// Users
-export const USERS_API_BASE_PATH = `${API_BASE_PATH}/users`;
-export const USERS_API_IS_USERNAME_AVAILABLE_PATH = `${USERS_API_BASE_PATH}/is-username-available`;
-
-// Communities
-export const COMMUNITY_API_BASE_PATH = `${API_BASE_PATH}/communities`;
-export const COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH_PARAM_COMMUNITY = '{communityCuid}';
-export const COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH = `${API_BASE_PATH}/communities/${COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH_PARAM_COMMUNITY}/resource-collections`;
-export const COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH_PARAM_COMMUNITY = '{communityCuid}';
-export const COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH_PARAM_RESOURCE_COLLECTION = '{resourceCollectionCuid}';
-export const COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH = `${COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH}/${COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH_PARAM_RESOURCE_COLLECTION}/text-articles`;
-
-/**
  * Regexes and other constants
  * WARNING: Those MUST remain aligned with those defined in Constants.php on the back-end
  */
@@ -111,3 +93,21 @@ export const MAX_LENGTH_COMMUNITY_RESOURCE_NAME = 64;
 export const ALLOWED_COMMUNITY_RESOURCE_NAME_CHARACTERS_REGEX = /^[a-zA-Z0-9-@,' ]+$/;
 
 export const MAX_LENGTH_COMMUNITY_RESOURCE_DESCRIPTION = 255;
+
+/**
+ * API
+ */
+export const API_BASE_PATH = '/api/v1';
+export const PING_API_PATH = `${API_BASE_PATH}/ping`;
+
+// Users
+export const USERS_API_BASE_PATH = `${API_BASE_PATH}/users`;
+export const USERS_API_IS_USERNAME_AVAILABLE_PATH = `${USERS_API_BASE_PATH}/is-username-available`;
+
+// Communities
+export const COMMUNITY_API_BASE_PATH = `${API_BASE_PATH}/communities`;
+export const COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH_PARAM_COMMUNITY = '{communityCuid}';
+export const COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH = `${API_BASE_PATH}/communities/${COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH_PARAM_COMMUNITY}/resource-collections`;
+export const COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH_PARAM_COMMUNITY = '{communityCuid}';
+export const COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH_PARAM_RESOURCE_COLLECTION = '{resourceCollectionCuid}';
+export const COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH = `${COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH}/${COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH_PARAM_RESOURCE_COLLECTION}/text-articles`;
