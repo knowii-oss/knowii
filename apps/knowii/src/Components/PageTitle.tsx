@@ -1,21 +1,23 @@
 import { BreadCrumb } from 'primereact/breadcrumb';
 import { MenuItem } from 'primereact/menuitem';
+import { ReactElement } from 'react';
 
 interface Props {
   pageTitle?: string;
   breadcrumbItems?: MenuItem[];
   home?: MenuItem;
+  pageActions?: ReactElement | null;
 }
 
 export default function PageTitle(props: Props) {
   return props.pageTitle ? (
     <h1 className="text-white text-2xl sm:text-3xl font-bold tracking-wide uppercase shadow-sm">{props.pageTitle}</h1>
   ) : props.breadcrumbItems ? (
-    <div className="w-full">
+    <div className="w-full flex flex-row items-center justify-between">
       <BreadCrumb
         model={props.breadcrumbItems}
         home={props.home}
-        className="bg-gradient-to-r from-gray-700 via-gray-500 to-gray-700 rounded-none bg-red-500"
+        className="bg-black"
         pt={{
           root: { className: 'border-none p-0' },
           label: { className: 'text-white font-bold text-sm sm:text-base' },
@@ -25,6 +27,7 @@ export default function PageTitle(props: Props) {
           action: { className: '' },
         }}
       />
+      {props.pageActions}
     </div>
   ) : (
     <p className="text-white text-sm sm:text-base">WRONG Props given to the PageTitle component</p>

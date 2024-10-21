@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useRef, useState } from 'react';
+import { ReactElement, ReactNode, useEffect, useRef, useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { DASHBOARD_URL, DEFAULT_TOAST_POSITION, LOGOUT_URL, useAppData, USER_PROFILE_URL, useTypedPage } from '@knowii/common';
 import { useRoute } from 'ziggy-js';
@@ -22,6 +22,7 @@ interface Props {
   pageTitle?: string;
   breadcrumbItems?: MenuItem[];
   breadcrumbHome?: MenuItem;
+  pageActions?: ReactElement | null;
   children: ReactNode;
 }
 
@@ -130,7 +131,12 @@ export default function AppLayout(props: Props) {
 
         <div className="bg-gradient-to-r from-gray-700 via-gray-500 to-gray-700">
           <div className="px-4 py-3 mx-auto sm:px-6 lg:px-8 flex justify-center">
-            <PageTitle pageTitle={props.pageTitle} breadcrumbItems={props.breadcrumbItems} home={props.breadcrumbHome} />
+            <PageTitle
+              pageTitle={props.pageTitle}
+              breadcrumbItems={props.breadcrumbItems}
+              home={props.breadcrumbHome}
+              pageActions={props.pageActions}
+            />
           </div>
         </div>
 
