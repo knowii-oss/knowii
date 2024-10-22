@@ -2,7 +2,6 @@
 
 namespace App\Actions\CommunityResourceCollections;
 
-use App\Models\Community;
 use App\Models\CommunityResourceCollection;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;

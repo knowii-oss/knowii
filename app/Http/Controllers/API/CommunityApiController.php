@@ -37,8 +37,8 @@ class CommunityApiController extends Controller
     Log::info('Processing API request to delete a community.');
     Log::debug("User: ", [$request->user()]);
 
-    $deletor = app(DeletesCommunities::class);
-    $deletor->delete($request->user(), $community);
+    $deleter = app(DeletesCommunities::class);
+    $deleter->delete($request->user(), $community);
 
     return self::deleted();
   }
