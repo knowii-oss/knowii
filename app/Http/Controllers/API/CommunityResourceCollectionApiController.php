@@ -40,7 +40,7 @@ class CommunityResourceCollectionApiController extends Controller
   {
     Log::info('Processing API request to delete a resource collection.');
     Log::debug("User: ", [$request->user()]);
-    
+
     $deleter = app(DeletesCommunityResourceCollections::class);
     $deleter->delete($request->user(), $communityResourceCollection);
 

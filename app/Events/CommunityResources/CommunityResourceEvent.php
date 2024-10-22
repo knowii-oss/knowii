@@ -57,17 +57,15 @@ abstract class CommunityResourceEvent implements ShouldBroadcast, ShouldDispatch
     ]);
 
     return (new CommunityResourceResource($this->communityResource, false))->toArray(request());
-
-    //return [
-    //  'cuid' => $this->communityResource->cuid,
-    //];
   }
 
   final public function broadcastOn(): array
   {
-    // Emit events to the community channel
     $retVal = [
+      // Emit to the community channel
       new PrivateChannel(Str::of(Constants::$WS_CHANNEL_COMMUNITY)->replace(Constants::$WS_CHANNEL_COMMUNITY_PARAM_COMMUNITY_CUID, $this->communityResource->community->cuid)),
+      // Emit to the resource collection channel
+      new PrivateChannel(Str::of(Constants::$WS_CHANNEL_COMMUNITY_RESOURCE_COLLECTION)->replace(Constants::$WS_CHANNEL_COMMUNITY_RESOURCE_COLLECTION_PARAM_COMMUNITY_CUID, $this->communityResource->community->cuid)->replace(Constants::$WS_CHANNEL_COMMUNITY_RESOURCE_COLLECTION_PARAM_RESOURCE_COLLECTION_CUID, $this->communityResource->collection->cuid)),
     ];
 
     // Emit events about public communities to the public channel
