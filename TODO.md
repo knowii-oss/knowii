@@ -1,9 +1,9 @@
 # TODO
 
-- Update knowii-api-client to handle delete resource collections and resources
 - Add Settings screen for resource collections
-- Implement delete resource API
+- Implement delete community resource API
 
+  - Update knowii-api-client to handle delete resources
   - React (WS event) on community page, resource collection page, resource page
 
 - Community page & resource collection page & resource page
