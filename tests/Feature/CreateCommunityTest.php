@@ -4,10 +4,7 @@ use App\Actions\Communities\CreateCommunity;
 use App\Constants;
 use App\Enums\KnowiiCommunityVisibility;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
-
-uses(RefreshDatabase::class);
 
 test('communities can be created via the creator', function () {
     $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());

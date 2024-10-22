@@ -2,10 +2,7 @@
 
 use App\Enums\KnowiiCommunityVisibility;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Response;
-
-uses(RefreshDatabase::class);
 
 test('communities can be created via the API', function () {
   $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
@@ -46,4 +43,3 @@ test('communities can be deleted via the API', function () {
 
   expect($user->ownedCommunities)->toHaveCount(0);
 });
-

@@ -6,9 +6,6 @@ use App\Actions\CommunityResourceCollections\CreateCommunityResourceCollection;
 use App\Models\User;
 use App\Constants;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 test('resource collections can be created via the creator', function () {
     $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());

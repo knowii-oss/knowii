@@ -1,11 +1,8 @@
 <?php
 
-use App\Enums\KnowiiCommunityVisibility;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Response;
 
-uses(RefreshDatabase::class);
 
 test('resource collections can be created via the API', function () {
   $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
