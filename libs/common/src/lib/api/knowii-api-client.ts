@@ -4,6 +4,9 @@ import {
   COMMUNITY_API_PATH_PARAM_COMMUNITY,
   COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH,
   COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH_PARAM_COMMUNITY,
+  COMMUNITY_RESOURCE_COLLECTION_API_PATH,
+  COMMUNITY_RESOURCE_COLLECTION_API_PATH_PARAM_COMMUNITY,
+  COMMUNITY_RESOURCE_COLLECTION_API_PATH_PARAM_RESOURCE_COLLECTION,
   COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH,
   COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH_PARAM_COMMUNITY,
   COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH_PARAM_RESOURCE_COLLECTION,
@@ -25,8 +28,9 @@ import {
   CreateResourceTextArticleResponse,
   createResourceTextArticleResponseSchema,
 } from './resources/create-resource-text-article-response.schema';
-import { DeleteRequest } from './delete-request.schema';
 import { HttpStatus } from '../types/http-status.intf';
+import { DeleteResourceCollectionRequest } from './community-resource-collections/delete-community-resource-collection-request.schema';
+import { DeleteCommunityRequest } from './communities/delete-community-request.schema';
 
 const defaultHeaders: Headers = new Headers({
   Accept: 'application/json',
@@ -45,8 +49,8 @@ export const knowiiApiClient = {
       const responseAsJson = await response.json();
       return createCommunityResponseSchema.parse(responseAsJson);
     },
-    delete: async (input: DeleteRequest): Promise<boolean> => {
-      const requestUrl = COMMUNITY_API_PATH.replace(COMMUNITY_API_PATH_PARAM_COMMUNITY, input.cuid);
+    delete: async (input: DeleteCommunityRequest): Promise<boolean> => {
+      const requestUrl = COMMUNITY_API_PATH.replace(COMMUNITY_API_PATH_PARAM_COMMUNITY, input.community.cuid);
 
       const response = await fetch(requestUrl, {
         method: 'delete',
@@ -70,6 +74,19 @@ export const knowiiApiClient = {
 
         const responseAsJson = await response.json();
         return createCommunityResourceCollectionResponseSchema.parse(responseAsJson);
+      },
+      delete: async (input: DeleteResourceCollectionRequest): Promise<boolean> => {
+        const requestUrl = COMMUNITY_RESOURCE_COLLECTION_API_PATH.replace(
+          COMMUNITY_RESOURCE_COLLECTION_API_PATH_PARAM_COMMUNITY,
+          input.community.cuid,
+        ).replace(COMMUNITY_RESOURCE_COLLECTION_API_PATH_PARAM_RESOURCE_COLLECTION, input.resourceCollection.cuid);
+
+        const response = await fetch(requestUrl, {
+          method: 'delete',
+          headers: defaultHeaders,
+        });
+
+        return response.status === HttpStatus.NO_CONTENT;
       },
     },
   },

@@ -40,7 +40,9 @@ export default function DeleteCommunityForm(props: Props) {
     setLoading(true);
 
     const succeeded = await knowiiApiClient.communities.delete({
-      cuid: props.communityCuid,
+      community: {
+        cuid: props.communityCuid,
+      },
     });
 
     if (succeeded) {
