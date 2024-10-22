@@ -27,6 +27,21 @@ export default function ResourceCollectionPage(props: Props) {
     },
   });
 
+  useSocket({
+    channel: {
+      type: 'resourceCollection',
+      communityCuid: props.community.cuid,
+      resourceCollectionCuid: props.resourceCollection.cuid,
+    },
+    event: 'community.resource_collection.deleted',
+    callback: (_event, _deletedResourceCollection) => {
+      // The current resource collection has been deleted. Can't stay here anymore
+      router.visit(route(COMMUNITY_URL, { communitySlug: props.community.slug }), {
+        preserveState: false,
+      });
+    },
+  });
+
   const breadcrumbItems: MenuItem[] = [
     {
       label: props.community.name,

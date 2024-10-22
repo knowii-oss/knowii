@@ -21,7 +21,7 @@ export default function DashboardPage(props: Props) {
   const route = useRoute();
 
   const handleCommunityCreated = (newCommunity: Community) => {
-    updateCommunities((draft) => {
+    setCommunities((draft) => {
       if (!draft.find((community) => community.cuid === newCommunity.cuid)) {
         draft.push(newCommunity);
         draft.sort((a, b) => a.name.localeCompare(b.name));
@@ -30,7 +30,7 @@ export default function DashboardPage(props: Props) {
   };
 
   const handleCommunityDeleted = (deletedCommunity: Identifiable) => {
-    updateCommunities((draft) => {
+    setCommunities((draft) => {
       const index = draft.findIndex((community) => community.cuid === deletedCommunity.cuid);
       if (index !== -1) {
         draft.splice(index, 1);
@@ -71,7 +71,7 @@ export default function DashboardPage(props: Props) {
   ];
 
   const [creatingCommunity, setCreatingCommunity] = useState(false);
-  const [communities, updateCommunities] = useImmer<Community[]>(props.communities);
+  const [communities, setCommunities] = useImmer<Community[]>(props.communities);
   const [searchTerm, setSearchTerm] = useState('');
   const [visibilityFilter, setVisibilityFilter] = useState('');
 
