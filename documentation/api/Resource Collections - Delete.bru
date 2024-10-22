@@ -1,0 +1,24 @@
+meta {
+  name: Resource Collections - Delete
+  type: http
+  seq: 19
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/resource-collections/z40cggggsksggkgskkwocock
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "foo",
+    "description": "bar",
+    "visibility": "public"
+  }
+}
