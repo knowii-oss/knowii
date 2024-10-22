@@ -49,4 +49,9 @@ class CommunityMember extends Pivot
       'role' => KnowiiCommunityMemberRole::class,
     ];
   }
+
+  final public function getRouteKeyName(): string
+  {
+    return 'cuid';
+  }
 }

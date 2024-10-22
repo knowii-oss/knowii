@@ -111,4 +111,9 @@ class ResourceTextArticle extends Model
       $attributes
     );
   }
+
+  final public function getRouteKeyName(): string
+  {
+    return 'cuid';
+  }
 }

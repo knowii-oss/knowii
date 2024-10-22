@@ -13,36 +13,41 @@ class CommunityInvitation extends KnowiiCommunityInvitation
   // Reference: https://github.com/Parables/laravel-cuid2
   use GeneratesCuid;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'cuid',
-        'email',
-        'role',
-    ];
+  /**
+   * The attributes that are mass assignable.
+   *
+   * @var array<int, string>
+   */
+  protected $fillable = [
+    'cuid',
+    'email',
+    'role',
+  ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
-    protected $hidden = [
-      'id',
-      'community_id',
-    ];
+  /**
+   * The attributes that should be hidden for serialization.
+   *
+   * @var array<int, string>
+   */
+  protected $hidden = [
+    'id',
+    'community_id',
+  ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    final public function casts(): array
-    {
-      return [
-        'role' => KnowiiCommunityMemberRole::class,
-      ];
-    }
+  /**
+   * Get the attributes that should be cast.
+   *
+   * @return array<string, string>
+   */
+  final public function casts(): array
+  {
+    return [
+      'role' => KnowiiCommunityMemberRole::class,
+    ];
+  }
+
+  final public function getRouteKeyName(): string
+  {
+    return 'cuid';
+  }
 }

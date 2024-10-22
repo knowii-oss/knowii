@@ -80,7 +80,8 @@ class CommunityResourceCollection extends Model
   /**
    * Get the community resources associated with this collection
    */
-  final public function communityResources(): HasMany {
+  final public function communityResources(): HasMany
+  {
     return $this->hasMany(CommunityResource::class, 'collection_id');
   }
 
@@ -121,5 +122,10 @@ class CommunityResourceCollection extends Model
         $query->where('url', $url);
       })
       ->exists();
+  }
+
+  final public function getRouteKeyName(): string
+  {
+    return 'cuid';
   }
 }
