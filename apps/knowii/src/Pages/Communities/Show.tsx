@@ -13,6 +13,7 @@ import {
   CommunityResourceCollection,
   DASHBOARD_URL,
   getIconForResourceLevel,
+  Identifiable,
   RESOURCE_COLLECTION_URL,
   RESOURCE_URL,
   useSocket,
@@ -30,6 +31,7 @@ import CommunityMembersIcon from '@/Components/Communities/CommunityMembersIcon'
 import { CreateResourceDialog, CreateResourceDialogSettings } from '@/Components/Resources/CreateResourceDialog';
 import { Link, router } from '@inertiajs/react';
 import { FaGear } from 'react-icons/fa6';
+import { useImmer } from 'use-immer';
 
 interface Props {
   community: Community;
@@ -53,6 +55,28 @@ export default function CommunityPage(props: Props) {
     },
   });
 
+  useSocket({
+    channel: {
+      type: 'community',
+      communityCuid: props.community.cuid,
+    },
+    event: 'community.resource_collection.created',
+    callback: (_event, newResourceCollection) => {
+      handleResourceCollectionCreated(newResourceCollection);
+    },
+  });
+
+  useSocket({
+    channel: {
+      type: 'community',
+      communityCuid: props.community.cuid,
+    },
+    event: 'community.resource_collection.deleted',
+    callback: (_event, deletedResourceCollection) => {
+      handleResourceCollectionDeleted(deletedResourceCollection);
+    },
+  });
+
   const breadcrumbItems: MenuItem[] = [
     {
       label: props.community.name,
@@ -69,7 +93,7 @@ export default function CommunityPage(props: Props) {
     visible: false,
     communityCuid: '',
   });
-  const [resourceCollections, setResourceCollections] = useState<CommunityResourceCollection[]>(props.resourceCollections);
+  const [resourceCollections, setResourceCollections] = useImmer<CommunityResourceCollection[]>(props.resourceCollections);
 
   const openResourceCollectionDialog = (communityCuid: string) => {
     setResourceCollectionDialogSettings({
@@ -86,12 +110,27 @@ export default function CommunityPage(props: Props) {
   };
 
   const handleResourceCollectionCreated = (newResourceCollection: CommunityResourceCollection) => {
-    setResourceCollections((prevCollections) => [...prevCollections, newResourceCollection]);
-    setCreateResourceDialogSettings((prevSettings) => ({
-      ...prevSettings,
-      // Make sure the new resource collection is available for creating resources
-      resourceCollections,
-    }));
+    setResourceCollections((draft) => {
+      if (!draft.find((resourceCollection) => resourceCollection.cuid === newResourceCollection.cuid)) {
+        draft.push(newResourceCollection);
+        draft.sort((a, b) => a.name.localeCompare(b.name));
+
+        setCreateResourceDialogSettings((prevSettings) => ({
+          ...prevSettings,
+          // Make sure the new resource collection is available for creating resources
+          resourceCollections,
+        }));
+      }
+    });
+  };
+
+  const handleResourceCollectionDeleted = (deletedResourceCollection: Identifiable) => {
+    setResourceCollections((draft) => {
+      const index = draft.findIndex((resourceCollection) => resourceCollection.cuid === deletedResourceCollection.cuid);
+      if (index !== -1) {
+        draft.splice(index, 1);
+      }
+    });
   };
 
   const [createResourceDialogSettings, setCreateResourceDialogSettings] = useState<CreateResourceDialogSettings>({
