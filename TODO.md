@@ -1,8 +1,9 @@
 # TODO
 
+- Implement delete resource collection API
+
 - Community page & resource collection page & resource page
   - Listen to resource collection created && resource collection updated && resource collection deleted WS events
-- Implement delete resource collection API
 - Implement delete resource API
 - Update knowii-api-client to handle delete resource collections and resources
 - Implement update community API
@@ -10,8 +11,6 @@
 - Dashboard page & Community page & resource collection page & resource page & community settings page
   - Listen to community updated event, and adapt UI accordingly (breadcrumb, etc)
 - Add fillable fields to CommunityMember pivot model?
-- Add channel for specific community resource collections and also emit on that one (community resource collection and community resource events)
-- ->dontBroadcastToCurrentUser();
 - Add reset button to createResourceDialog form
 - If error while saving resource, CreateResourceDialog should stop the loading spinner
   - should be handled in knowii-api-client.ts
