@@ -77,4 +77,9 @@ class UserProfile extends Authenticatable implements MustVerifyEmail
     return [
     ];
   }
+
+  final public function getRouteKeyName(): string
+  {
+    return 'cuid';
+  }
 }

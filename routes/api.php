@@ -14,7 +14,7 @@ Route::get('/user', static function (Request $request) {
   return $request->user();
 })->middleware('auth:sanctum');
 
-Route::prefix('v1')->group(function (){
+Route::prefix('v1')->group(function () {
   // Auth
   Route::post('auth/login', [LoginApiController::class, 'login']);
 
@@ -25,9 +25,10 @@ Route::prefix('v1')->group(function (){
     Route::post('users/is-username-available', [UserApiController::class, 'isUsernameAvailable']);
 
     Route::post('communities', [CommunityApiController::class, 'store']);
-    Route::delete('communities/{community:cuid}', [CommunityApiController::class, 'destroy']);
+    Route::delete('communities/{community}', [CommunityApiController::class, 'destroy']);
 
-    Route::post('communities/{community:cuid}/resource-collections', [CommunityResourceCollectionApiController::class, 'store']);
-    Route::post('communities/{community:cuid}/resource-collections/{community_resource_collection:cuid}/text-articles', [ResourceTextArticleApiController::class, 'store']);
+    Route::post('communities/{community}/resource-collections', [CommunityResourceCollectionApiController::class, 'store']);
+    Route::delete('communities/{community}/resource-collections/{communityResourceCollection}', [CommunityResourceCollectionApiController::class, 'destroy']);
+    Route::post('communities/{community}/resource-collections/{communityResourceCollection}/text-articles', [ResourceTextArticleApiController::class, 'store']);
   });
 });

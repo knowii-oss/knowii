@@ -205,4 +205,8 @@ final public function recentResources(): Collection
       ]
     ];
   }
+
+  final public function getRouteKeyName(): string {
+    return 'cuid';
+  }
 }

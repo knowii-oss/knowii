@@ -97,4 +97,9 @@ class User extends Authenticatable implements MustVerifyEmail
   {
     return $this->hasMany(Community::class, 'owner_id');
   }
+
+  final public function getRouteKeyName(): string
+  {
+    return 'cuid';
+  }
 }

@@ -123,4 +123,9 @@ class CommunityResource extends Model
   {
     $this->delete();
   }
+
+  final public function getRouteKeyName(): string
+  {
+    return 'cuid';
+  }
 }

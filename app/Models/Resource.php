@@ -145,4 +145,9 @@ class Resource extends Model
 
     return $resource;
   }
+
+  final public function getRouteKeyName(): string
+  {
+    return 'cuid';
+  }
 }
