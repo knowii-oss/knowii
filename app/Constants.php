@@ -62,6 +62,9 @@ class Constants
   public static string $WS_CHANNEL_COMMUNITIES = 'communities';
   public static string $WS_CHANNEL_COMMUNITY_PARAM_COMMUNITY_CUID = '{communityCuid}';
   public static string $WS_CHANNEL_COMMUNITY = 'community.{communityCuid}';
+  public static string $WS_CHANNEL_COMMUNITY_RESOURCE_COLLECTION_PARAM_COMMUNITY_CUID = '{communityCuid}';
+  public static string $WS_CHANNEL_COMMUNITY_RESOURCE_COLLECTION_PARAM_RESOURCE_COLLECTION_CUID = '{resourceCollectionCuid}';
+  public static string $WS_CHANNEL_COMMUNITY_RESOURCE_COLLECTION = 'community.{communityCuid}.resource_collection.{resourceCollectionCuid}';
 
   // Technical
   public static string $BROWSERLESS_CONTENT_API_PATH = '/content';

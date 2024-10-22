@@ -7,9 +7,15 @@ import { Identifiable } from '../types/identifiable.schema';
 const COMMUNITIES_CHANNEL = 'communities';
 const COMMUNITY_CHANNEL_PARAM_COMMUNITY_CUID = '{communityCuid}';
 const COMMUNITY_CHANNEL = `community.${COMMUNITY_CHANNEL_PARAM_COMMUNITY_CUID}`;
+const RESOURCE_COLLECTION_CHANNEL_PARAM_COMMUNITY_CUID = '{communityCuid}';
+const RESOURCE_COLLECTION_CHANNEL_PARAM_RESOURCE_COLLECTION_CUID = '{resourceCollectionCuid}';
+const RESOURCE_COLLECTION_CHANNEL = `community.${RESOURCE_COLLECTION_CHANNEL_PARAM_COMMUNITY_CUID}.resource_collection.${RESOURCE_COLLECTION_CHANNEL_PARAM_RESOURCE_COLLECTION_CUID}`;
 
 // Define the channel types
-type Channel = { type: 'communities' } | { type: 'community'; communityCuid: string };
+type Channel =
+  | { type: 'communities' }
+  | { type: 'community'; communityCuid: string }
+  | { type: 'resourceCollection'; communityCuid: string; resourceCollectionCuid: string };
 
 // Define the event types
 // WARNING: those MUST match the names defined using broadcastAs on the back-end event classes
@@ -37,8 +43,9 @@ type ResourceEvent = (typeof ResourceEvents)[keyof typeof ResourceEvents];
 
 type CommunitiesChannelEvent = CommunityEvent | ResourceCollectionEvent | ResourceEvent;
 type CommunityChannelEvent = Exclude<CommunityEvent, typeof CommunityEvents.CREATED> | ResourceCollectionEvent | ResourceEvent;
+type ResourceCollectionChannelEvent = Exclude<ResourceCollectionEvent, typeof ResourceCollectionEvents.CREATED> | ResourceEvent;
 
-type AllEvents = CommunitiesChannelEvent | CommunityChannelEvent;
+type AllEvents = CommunitiesChannelEvent | CommunityChannelEvent | ResourceCollectionChannelEvent;
 
 // Map events to their payload types
 type EventPayloadMap = {
@@ -69,19 +76,40 @@ const getChannelString = (channel: Channel): string => {
       return COMMUNITIES_CHANNEL;
     case 'community':
       return COMMUNITY_CHANNEL.replace(COMMUNITY_CHANNEL_PARAM_COMMUNITY_CUID, channel.communityCuid);
+    case 'resourceCollection':
+      return RESOURCE_COLLECTION_CHANNEL.replace(RESOURCE_COLLECTION_CHANNEL_PARAM_COMMUNITY_CUID, channel.communityCuid).replace(
+        RESOURCE_COLLECTION_CHANNEL_PARAM_RESOURCE_COLLECTION_CUID,
+        channel.resourceCollectionCuid,
+      );
   }
 };
 
 // Get all events for a channel type
-const getAllEvents = (channelType: Channel['type']): AllEvents[] => {
+const getAllEventsForChannelType = (channelType: Channel['type']): AllEvents[] => {
   const allEvents = [...Object.values(CommunityEvents), ...Object.values(ResourceCollectionEvents), ...Object.values(ResourceEvents)];
+  const resourceCollectionEvents = [
+    ...Object.values(ResourceCollectionEvents).filter((event) => event !== ResourceCollectionEvents.CREATED),
+    ...Object.values(ResourceEvents),
+  ];
 
-  return channelType === 'communities' ? allEvents : allEvents.filter((event) => event !== CommunityEvents.CREATED);
+  if (channelType === 'communities') {
+    return allEvents;
+  }
+
+  if (channelType === 'community') {
+    return allEvents.filter((event) => event !== CommunityEvents.CREATED);
+  }
+
+  return resourceCollectionEvents;
 };
 
 export const useSocket = <
   ChannelType extends Channel,
-  EventType extends ChannelType['type'] extends 'communities' ? CommunitiesChannelEvent : CommunityChannelEvent,
+  EventType extends ChannelType['type'] extends 'communities'
+    ? CommunitiesChannelEvent
+    : ChannelType['type'] extends 'community'
+    ? CommunityChannelEvent
+    : ResourceCollectionChannelEvent,
 >(
   options: UseSocketOptions<ChannelType, EventType>,
 ) => {
@@ -96,7 +124,7 @@ export const useSocket = <
     };
 
     if (options.event === 'all') {
-      getAllEvents(options.channel.type).forEach(listenToEvent);
+      getAllEventsForChannelType(options.channel.type).forEach(listenToEvent);
     } else if (Array.isArray(options.event)) {
       options.event.forEach(listenToEvent);
     } else {
