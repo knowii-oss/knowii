@@ -9,7 +9,7 @@
   "require": {
     "php": "^8.2",
     "ext-curl": "*",
-    "bepsvpt/secure-headers": "^7.5",
+    "bepsvpt/secure-headers": "^8.0",
     "cviebrock/eloquent-sluggable": "^11.0",
     "fivefilters/readability.php": "^3.2",
     "guzzlehttp/guzzle": "^7.9",
