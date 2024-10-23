@@ -1,0 +1,741 @@
+{
+  "../../node_modules/primereact/resources/themes/lara-light-pink/fonts/InterVariable-Italic.woff2": {
+    "file": "assets/InterVariable-Italic-d6KXgdvN.woff2",
+    "src": "../../node_modules/primereact/resources/themes/lara-light-pink/fonts/InterVariable-Italic.woff2"
+  },
+  "../../node_modules/primereact/resources/themes/lara-light-pink/fonts/InterVariable.woff2": {
+    "file": "assets/InterVariable-CWi-zmRD.woff2",
+    "src": "../../node_modules/primereact/resources/themes/lara-light-pink/fonts/InterVariable.woff2"
+  },
+  "_ActionSection-DMlIrxY6.js": {
+    "file": "assets/ActionSection-DMlIrxY6.js",
+    "name": "ActionSection",
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_SectionTitle-eOd47Bov.js"
+    ]
+  },
+  "_AppLayout-BNGr6Rg-.js": {
+    "file": "assets/AppLayout-BNGr6Rg-.js",
+    "name": "AppLayout",
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_use-typed-page.hook.fn-CUTjfaEX.js",
+      "_index.esm-lFZCsp_Y.js",
+      "_button.esm-DLO6rHTE.js",
+      "_csstransition.esm-B-JzYHP3.js",
+      "_index.esm-BXDceRiS.js",
+      "_PageWrapper-DH6FnHJ2.js",
+      "_Footer-C3wVLSTL.js",
+      "_index.esm-DUdtWSd5.js"
+    ]
+  },
+  "_ApplicationName-D_3Z2mj4.js": {
+    "file": "assets/ApplicationName-D_3Z2mj4.js",
+    "name": "ApplicationName",
+    "imports": [
+      "apps/knowii/src/main.tsx"
+    ]
+  },
+  "_AuthenticationCard-CoZ8I7sX.js": {
+    "file": "assets/AuthenticationCard-CoZ8I7sX.js",
+    "name": "AuthenticationCard",
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_ApplicationName-D_3Z2mj4.js"
+    ]
+  },
+  "_BreadcrumbHome-CNAGPSvp.js": {
+    "file": "assets/BreadcrumbHome-CNAGPSvp.js",
+    "name": "BreadcrumbHome",
+    "imports": [
+      "apps/knowii/src/main.tsx"
+    ]
+  },
+  "_CommunityIcon-Bs4AK21Y.js": {
+    "file": "assets/CommunityIcon-Bs4AK21Y.js",
+    "name": "CommunityIcon",
+    "imports": [
+      "apps/knowii/src/main.tsx"
+    ]
+  },
+  "_Footer-C3wVLSTL.js": {
+    "file": "assets/Footer-C3wVLSTL.js",
+    "name": "Footer",
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_button.esm-DLO6rHTE.js",
+      "_ApplicationName-D_3Z2mj4.js"
+    ]
+  },
+  "_FooterGuest-CoFcBW3Q.js": {
+    "file": "assets/FooterGuest-CoFcBW3Q.js",
+    "name": "FooterGuest",
+    "imports": [
+      "apps/knowii/src/main.tsx"
+    ]
+  },
+  "_FormSection-Bi5-Ql2c.js": {
+    "file": "assets/FormSection-Bi5-Ql2c.js",
+    "name": "FormSection",
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_index-uNrI0wzO.js",
+      "_SectionTitle-eOd47Bov.js"
+    ]
+  },
+  "_InputLabel-BAhNBHcT.js": {
+    "file": "assets/InputLabel-BAhNBHcT.js",
+    "name": "InputLabel",
+    "imports": [
+      "apps/knowii/src/main.tsx"
+    ]
+  },
+  "_PageWrapper-DH6FnHJ2.js": {
+    "file": "assets/PageWrapper-DH6FnHJ2.js",
+    "name": "PageWrapper",
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_index.esm-lFZCsp_Y.js",
+      "_button.esm-DLO6rHTE.js",
+      "_index-uNrI0wzO.js",
+      "_ApplicationName-D_3Z2mj4.js"
+    ]
+  },
+  "_ResourceCollectionIcon-BuJF3a4R.js": {
+    "file": "assets/ResourceCollectionIcon-BuJF3a4R.js",
+    "name": "ResourceCollectionIcon",
+    "imports": [
+      "apps/knowii/src/main.tsx"
+    ]
+  },
+  "_ResourceIcon-CmuobJ1y.js": {
+    "file": "assets/ResourceIcon-CmuobJ1y.js",
+    "name": "ResourceIcon",
+    "imports": [
+      "apps/knowii/src/main.tsx"
+    ]
+  },
+  "_SectionTitle-eOd47Bov.js": {
+    "file": "assets/SectionTitle-eOd47Bov.js",
+    "name": "SectionTitle",
+    "imports": [
+      "apps/knowii/src/main.tsx"
+    ]
+  },
+  "_button.esm-DLO6rHTE.js": {
+    "file": "assets/button.esm-DLO6rHTE.js",
+    "name": "button.esm",
+    "imports": [
+      "apps/knowii/src/main.tsx"
+    ]
+  },
+  "_checkbox.esm-CtbkpVbJ.js": {
+    "file": "assets/checkbox.esm-CtbkpVbJ.js",
+    "name": "checkbox.esm",
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_button.esm-DLO6rHTE.js",
+      "_index.esm-DUdtWSd5.js"
+    ]
+  },
+  "_csstransition.esm-B-JzYHP3.js": {
+    "file": "assets/csstransition.esm-B-JzYHP3.js",
+    "name": "csstransition.esm",
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_button.esm-DLO6rHTE.js"
+    ]
+  },
+  "_dialog.esm-DFxs3N1W.js": {
+    "file": "assets/dialog.esm-DFxs3N1W.js",
+    "name": "dialog.esm",
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_button.esm-DLO6rHTE.js",
+      "_csstransition.esm-B-JzYHP3.js",
+      "_index.esm-BXDceRiS.js"
+    ]
+  },
+  "_index-DuN6WFSC.js": {
+    "file": "assets/index-DuN6WFSC.js",
+    "name": "index",
+    "imports": [
+      "apps/knowii/src/main.tsx"
+    ]
+  },
+  "_index-uNrI0wzO.js": {
+    "file": "assets/index-uNrI0wzO.js",
+    "name": "index",
+    "imports": [
+      "apps/knowii/src/main.tsx"
+    ]
+  },
+  "_index.esm-BXDceRiS.js": {
+    "file": "assets/index.esm-BXDceRiS.js",
+    "name": "index.esm",
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_button.esm-DLO6rHTE.js"
+    ]
+  },
+  "_index.esm-DUdtWSd5.js": {
+    "file": "assets/index.esm-DUdtWSd5.js",
+    "name": "index.esm",
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_button.esm-DLO6rHTE.js"
+    ]
+  },
+  "_index.esm-lFZCsp_Y.js": {
+    "file": "assets/index.esm-lFZCsp_Y.js",
+    "name": "index.esm"
+  },
+  "_inputtext.esm-BCTqE4oy.js": {
+    "file": "assets/inputtext.esm-BCTqE4oy.js",
+    "name": "inputtext.esm",
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_button.esm-DLO6rHTE.js"
+    ]
+  },
+  "_inputtextarea.esm-BWMDRlGc.js": {
+    "file": "assets/inputtextarea.esm-BWMDRlGc.js",
+    "name": "inputtextarea.esm",
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_button.esm-DLO6rHTE.js",
+      "_inputtext.esm-BCTqE4oy.js"
+    ]
+  },
+  "_overlayservice.esm-BBAit-Jm.js": {
+    "file": "assets/overlayservice.esm-BBAit-Jm.js",
+    "name": "overlayservice.esm",
+    "imports": [
+      "apps/knowii/src/main.tsx"
+    ]
+  },
+  "_password.esm-DbZJv4QA.js": {
+    "file": "assets/password.esm-DbZJv4QA.js",
+    "name": "password.esm",
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_button.esm-DLO6rHTE.js",
+      "_csstransition.esm-B-JzYHP3.js",
+      "_inputtext.esm-BCTqE4oy.js",
+      "_overlayservice.esm-BBAit-Jm.js"
+    ]
+  },
+  "_progressspinner.esm-Byt4FqZl.js": {
+    "file": "assets/progressspinner.esm-Byt4FqZl.js",
+    "name": "progressspinner.esm",
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_button.esm-DLO6rHTE.js"
+    ]
+  },
+  "_use-immer.module-YNAvmM5U.js": {
+    "file": "assets/use-immer.module-YNAvmM5U.js",
+    "name": "use-immer.module",
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_button.esm-DLO6rHTE.js",
+      "_index-uNrI0wzO.js",
+      "_index.esm-BXDceRiS.js",
+      "_overlayservice.esm-BBAit-Jm.js",
+      "_csstransition.esm-B-JzYHP3.js",
+      "_index.esm-DUdtWSd5.js"
+    ]
+  },
+  "_use-typed-page.hook.fn-CUTjfaEX.js": {
+    "file": "assets/use-typed-page.hook.fn-CUTjfaEX.js",
+    "name": "use-typed-page.hook.fn",
+    "imports": [
+      "apps/knowii/src/main.tsx"
+    ]
+  },
+  "apps/knowii/src/Pages/Auth/ConfirmPassword.tsx": {
+    "file": "assets/ConfirmPassword-Bw7pZUIM.js",
+    "name": "ConfirmPassword",
+    "src": "apps/knowii/src/Pages/Auth/ConfirmPassword.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_FooterGuest-CoFcBW3Q.js",
+      "_index.esm-lFZCsp_Y.js",
+      "_AuthenticationCard-CoZ8I7sX.js",
+      "_InputLabel-BAhNBHcT.js",
+      "_inputtext.esm-BCTqE4oy.js",
+      "_button.esm-DLO6rHTE.js",
+      "_index-uNrI0wzO.js",
+      "_password.esm-DbZJv4QA.js",
+      "_ApplicationName-D_3Z2mj4.js",
+      "_csstransition.esm-B-JzYHP3.js",
+      "_overlayservice.esm-BBAit-Jm.js"
+    ]
+  },
+  "apps/knowii/src/Pages/Auth/ForgotPassword.tsx": {
+    "file": "assets/ForgotPassword-DY46P16A.js",
+    "name": "ForgotPassword",
+    "src": "apps/knowii/src/Pages/Auth/ForgotPassword.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_FooterGuest-CoFcBW3Q.js",
+      "_index.esm-lFZCsp_Y.js",
+      "_AuthenticationCard-CoZ8I7sX.js",
+      "_InputLabel-BAhNBHcT.js",
+      "_inputtext.esm-BCTqE4oy.js",
+      "_button.esm-DLO6rHTE.js",
+      "_index-uNrI0wzO.js",
+      "_ApplicationName-D_3Z2mj4.js"
+    ]
+  },
+  "apps/knowii/src/Pages/Auth/Login.tsx": {
+    "file": "assets/Login-DjILtusX.js",
+    "name": "Login",
+    "src": "apps/knowii/src/Pages/Auth/Login.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_index-uNrI0wzO.js",
+      "_AuthenticationCard-CoZ8I7sX.js",
+      "_InputLabel-BAhNBHcT.js",
+      "_inputtext.esm-BCTqE4oy.js",
+      "_index.esm-lFZCsp_Y.js",
+      "_button.esm-DLO6rHTE.js",
+      "_checkbox.esm-CtbkpVbJ.js",
+      "_FooterGuest-CoFcBW3Q.js",
+      "_password.esm-DbZJv4QA.js",
+      "_ApplicationName-D_3Z2mj4.js",
+      "_index.esm-DUdtWSd5.js",
+      "_csstransition.esm-B-JzYHP3.js",
+      "_overlayservice.esm-BBAit-Jm.js"
+    ]
+  },
+  "apps/knowii/src/Pages/Auth/Register.tsx": {
+    "file": "assets/Register-Dqw0vWdW.js",
+    "name": "Register",
+    "src": "apps/knowii/src/Pages/Auth/Register.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_FooterGuest-CoFcBW3Q.js",
+      "_AuthenticationCard-CoZ8I7sX.js",
+      "_use-typed-page.hook.fn-CUTjfaEX.js",
+      "_index.esm-lFZCsp_Y.js",
+      "_InputLabel-BAhNBHcT.js",
+      "_inputtext.esm-BCTqE4oy.js",
+      "_checkbox.esm-CtbkpVbJ.js",
+      "_button.esm-DLO6rHTE.js",
+      "_index-uNrI0wzO.js",
+      "_password.esm-DbZJv4QA.js",
+      "_ApplicationName-D_3Z2mj4.js",
+      "_index.esm-DUdtWSd5.js",
+      "_csstransition.esm-B-JzYHP3.js",
+      "_overlayservice.esm-BBAit-Jm.js"
+    ]
+  },
+  "apps/knowii/src/Pages/Auth/ResetPassword.tsx": {
+    "file": "assets/ResetPassword-BHGVvWbC.js",
+    "name": "ResetPassword",
+    "src": "apps/knowii/src/Pages/Auth/ResetPassword.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_FooterGuest-CoFcBW3Q.js",
+      "_AuthenticationCard-CoZ8I7sX.js",
+      "_index.esm-lFZCsp_Y.js",
+      "_InputLabel-BAhNBHcT.js",
+      "_inputtext.esm-BCTqE4oy.js",
+      "_button.esm-DLO6rHTE.js",
+      "_index-uNrI0wzO.js",
+      "_password.esm-DbZJv4QA.js",
+      "_ApplicationName-D_3Z2mj4.js",
+      "_csstransition.esm-B-JzYHP3.js",
+      "_overlayservice.esm-BBAit-Jm.js"
+    ]
+  },
+  "apps/knowii/src/Pages/Auth/VerifyEmail.tsx": {
+    "file": "assets/VerifyEmail-Cwcx7xvX.js",
+    "name": "VerifyEmail",
+    "src": "apps/knowii/src/Pages/Auth/VerifyEmail.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_index-uNrI0wzO.js",
+      "_AuthenticationCard-CoZ8I7sX.js",
+      "_index.esm-lFZCsp_Y.js",
+      "_button.esm-DLO6rHTE.js",
+      "_FooterGuest-CoFcBW3Q.js",
+      "_ApplicationName-D_3Z2mj4.js"
+    ]
+  },
+  "apps/knowii/src/Pages/Communities/Partials/DeleteCommunityForm.tsx": {
+    "file": "assets/DeleteCommunityForm-CHzubyXo.js",
+    "name": "DeleteCommunityForm",
+    "src": "apps/knowii/src/Pages/Communities/Partials/DeleteCommunityForm.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_button.esm-DLO6rHTE.js",
+      "_inputtext.esm-BCTqE4oy.js",
+      "_ActionSection-DMlIrxY6.js",
+      "_dialog.esm-DFxs3N1W.js",
+      "_progressspinner.esm-Byt4FqZl.js",
+      "_SectionTitle-eOd47Bov.js",
+      "_csstransition.esm-B-JzYHP3.js",
+      "_index.esm-BXDceRiS.js"
+    ]
+  },
+  "apps/knowii/src/Pages/Communities/Settings.tsx": {
+    "file": "assets/Settings-jBF4b3DA.js",
+    "name": "Settings",
+    "src": "apps/knowii/src/Pages/Communities/Settings.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_AppLayout-BNGr6Rg-.js",
+      "_CommunityIcon-Bs4AK21Y.js",
+      "_BreadcrumbHome-CNAGPSvp.js",
+      "apps/knowii/src/Pages/Communities/Partials/DeleteCommunityForm.tsx",
+      "_use-typed-page.hook.fn-CUTjfaEX.js",
+      "_index.esm-lFZCsp_Y.js",
+      "_button.esm-DLO6rHTE.js",
+      "_csstransition.esm-B-JzYHP3.js",
+      "_index.esm-BXDceRiS.js",
+      "_PageWrapper-DH6FnHJ2.js",
+      "_index-uNrI0wzO.js",
+      "_ApplicationName-D_3Z2mj4.js",
+      "_Footer-C3wVLSTL.js",
+      "_index.esm-DUdtWSd5.js",
+      "_inputtext.esm-BCTqE4oy.js",
+      "_ActionSection-DMlIrxY6.js",
+      "_SectionTitle-eOd47Bov.js",
+      "_dialog.esm-DFxs3N1W.js",
+      "_progressspinner.esm-Byt4FqZl.js"
+    ]
+  },
+  "apps/knowii/src/Pages/Communities/Show.tsx": {
+    "file": "assets/Show-Tf5nJ-P0.js",
+    "name": "Show",
+    "src": "apps/knowii/src/Pages/Communities/Show.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_use-immer.module-YNAvmM5U.js",
+      "_AppLayout-BNGr6Rg-.js",
+      "_button.esm-DLO6rHTE.js",
+      "_CommunityIcon-Bs4AK21Y.js",
+      "_dialog.esm-DFxs3N1W.js",
+      "_inputtext.esm-BCTqE4oy.js",
+      "_inputtextarea.esm-BWMDRlGc.js",
+      "_progressspinner.esm-Byt4FqZl.js",
+      "_InputLabel-BAhNBHcT.js",
+      "_ResourceCollectionIcon-BuJF3a4R.js",
+      "_BreadcrumbHome-CNAGPSvp.js",
+      "_ResourceIcon-CmuobJ1y.js",
+      "_csstransition.esm-B-JzYHP3.js",
+      "_index-uNrI0wzO.js",
+      "_index.esm-BXDceRiS.js",
+      "_overlayservice.esm-BBAit-Jm.js",
+      "_index.esm-DUdtWSd5.js",
+      "_use-typed-page.hook.fn-CUTjfaEX.js",
+      "_index.esm-lFZCsp_Y.js",
+      "_PageWrapper-DH6FnHJ2.js",
+      "_ApplicationName-D_3Z2mj4.js",
+      "_Footer-C3wVLSTL.js"
+    ]
+  },
+  "apps/knowii/src/Pages/Contact.tsx": {
+    "file": "assets/Contact-BJLfcros.js",
+    "name": "Contact",
+    "src": "apps/knowii/src/Pages/Contact.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_PageWrapper-DH6FnHJ2.js",
+      "_FooterGuest-CoFcBW3Q.js",
+      "_index.esm-lFZCsp_Y.js",
+      "_button.esm-DLO6rHTE.js",
+      "_index-uNrI0wzO.js",
+      "_ApplicationName-D_3Z2mj4.js"
+    ]
+  },
+  "apps/knowii/src/Pages/Dashboard.tsx": {
+    "file": "assets/Dashboard-58TjE15X.js",
+    "name": "Dashboard",
+    "src": "apps/knowii/src/Pages/Dashboard.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_AppLayout-BNGr6Rg-.js",
+      "_use-immer.module-YNAvmM5U.js",
+      "_CommunityIcon-Bs4AK21Y.js",
+      "_index.esm-lFZCsp_Y.js",
+      "_button.esm-DLO6rHTE.js",
+      "_dialog.esm-DFxs3N1W.js",
+      "_inputtext.esm-BCTqE4oy.js",
+      "_inputtextarea.esm-BWMDRlGc.js",
+      "_progressspinner.esm-Byt4FqZl.js",
+      "_InputLabel-BAhNBHcT.js",
+      "_use-typed-page.hook.fn-CUTjfaEX.js",
+      "_csstransition.esm-B-JzYHP3.js",
+      "_index.esm-BXDceRiS.js",
+      "_PageWrapper-DH6FnHJ2.js",
+      "_index-uNrI0wzO.js",
+      "_ApplicationName-D_3Z2mj4.js",
+      "_Footer-C3wVLSTL.js",
+      "_index.esm-DUdtWSd5.js",
+      "_overlayservice.esm-BBAit-Jm.js"
+    ]
+  },
+  "apps/knowii/src/Pages/Error.tsx": {
+    "file": "assets/Error-DABJRdu8.js",
+    "name": "Error",
+    "src": "apps/knowii/src/Pages/Error.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_PageWrapper-DH6FnHJ2.js",
+      "_FooterGuest-CoFcBW3Q.js",
+      "_button.esm-DLO6rHTE.js",
+      "_index.esm-lFZCsp_Y.js",
+      "_index-uNrI0wzO.js",
+      "_ApplicationName-D_3Z2mj4.js"
+    ]
+  },
+  "apps/knowii/src/Pages/PrivacyPolicy.tsx": {
+    "file": "assets/PrivacyPolicy-BXa5KtlW.js",
+    "name": "PrivacyPolicy",
+    "src": "apps/knowii/src/Pages/PrivacyPolicy.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_PageWrapper-DH6FnHJ2.js",
+      "_FooterGuest-CoFcBW3Q.js",
+      "_index-DuN6WFSC.js",
+      "_index.esm-lFZCsp_Y.js",
+      "_button.esm-DLO6rHTE.js",
+      "_index-uNrI0wzO.js",
+      "_ApplicationName-D_3Z2mj4.js"
+    ]
+  },
+  "apps/knowii/src/Pages/Profile/Partials/DeleteUserForm.tsx": {
+    "file": "assets/DeleteUserForm-095vGxrV.js",
+    "name": "DeleteUserForm",
+    "src": "apps/knowii/src/Pages/Profile/Partials/DeleteUserForm.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_index.esm-lFZCsp_Y.js",
+      "_button.esm-DLO6rHTE.js",
+      "_inputtext.esm-BCTqE4oy.js",
+      "_ActionSection-DMlIrxY6.js",
+      "_dialog.esm-DFxs3N1W.js",
+      "_SectionTitle-eOd47Bov.js",
+      "_csstransition.esm-B-JzYHP3.js",
+      "_index.esm-BXDceRiS.js"
+    ]
+  },
+  "apps/knowii/src/Pages/Profile/Partials/LogoutOtherBrowserSessionsForm.tsx": {
+    "file": "assets/LogoutOtherBrowserSessionsForm-BPz803Xx.js",
+    "name": "LogoutOtherBrowserSessionsForm",
+    "src": "apps/knowii/src/Pages/Profile/Partials/LogoutOtherBrowserSessionsForm.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_index.esm-lFZCsp_Y.js",
+      "_ActionSection-DMlIrxY6.js",
+      "_button.esm-DLO6rHTE.js",
+      "_dialog.esm-DFxs3N1W.js",
+      "_inputtext.esm-BCTqE4oy.js",
+      "_SectionTitle-eOd47Bov.js",
+      "_csstransition.esm-B-JzYHP3.js",
+      "_index.esm-BXDceRiS.js"
+    ]
+  },
+  "apps/knowii/src/Pages/Profile/Partials/UpdatePasswordForm.tsx": {
+    "file": "assets/UpdatePasswordForm-C3Syf9lO.js",
+    "name": "UpdatePasswordForm",
+    "src": "apps/knowii/src/Pages/Profile/Partials/UpdatePasswordForm.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_index.esm-lFZCsp_Y.js",
+      "_button.esm-DLO6rHTE.js",
+      "_FormSection-Bi5-Ql2c.js",
+      "_index-uNrI0wzO.js",
+      "_InputLabel-BAhNBHcT.js",
+      "_inputtext.esm-BCTqE4oy.js",
+      "_SectionTitle-eOd47Bov.js"
+    ]
+  },
+  "apps/knowii/src/Pages/Profile/Partials/UpdateProfileInformationForm.tsx": {
+    "file": "assets/UpdateProfileInformationForm--JEOVUwI.js",
+    "name": "UpdateProfileInformationForm",
+    "src": "apps/knowii/src/Pages/Profile/Partials/UpdateProfileInformationForm.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_use-typed-page.hook.fn-CUTjfaEX.js",
+      "_inputtextarea.esm-BWMDRlGc.js",
+      "_index.esm-lFZCsp_Y.js",
+      "_button.esm-DLO6rHTE.js",
+      "_FormSection-Bi5-Ql2c.js",
+      "_index-uNrI0wzO.js",
+      "_InputLabel-BAhNBHcT.js",
+      "_inputtext.esm-BCTqE4oy.js",
+      "_csstransition.esm-B-JzYHP3.js",
+      "_SectionTitle-eOd47Bov.js"
+    ]
+  },
+  "apps/knowii/src/Pages/Profile/Show.tsx": {
+    "file": "assets/Show-B3ZFPfSe.js",
+    "name": "Show",
+    "src": "apps/knowii/src/Pages/Profile/Show.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_AppLayout-BNGr6Rg-.js",
+      "_use-typed-page.hook.fn-CUTjfaEX.js",
+      "apps/knowii/src/Pages/Profile/Partials/UpdateProfileInformationForm.tsx",
+      "apps/knowii/src/Pages/Profile/Partials/UpdatePasswordForm.tsx",
+      "apps/knowii/src/Pages/Profile/Partials/LogoutOtherBrowserSessionsForm.tsx",
+      "apps/knowii/src/Pages/Profile/Partials/DeleteUserForm.tsx",
+      "_BreadcrumbHome-CNAGPSvp.js",
+      "_index.esm-lFZCsp_Y.js",
+      "_button.esm-DLO6rHTE.js",
+      "_csstransition.esm-B-JzYHP3.js",
+      "_index.esm-BXDceRiS.js",
+      "_PageWrapper-DH6FnHJ2.js",
+      "_index-uNrI0wzO.js",
+      "_ApplicationName-D_3Z2mj4.js",
+      "_Footer-C3wVLSTL.js",
+      "_index.esm-DUdtWSd5.js",
+      "_inputtextarea.esm-BWMDRlGc.js",
+      "_inputtext.esm-BCTqE4oy.js",
+      "_FormSection-Bi5-Ql2c.js",
+      "_SectionTitle-eOd47Bov.js",
+      "_InputLabel-BAhNBHcT.js",
+      "_ActionSection-DMlIrxY6.js",
+      "_dialog.esm-DFxs3N1W.js"
+    ]
+  },
+  "apps/knowii/src/Pages/ResourceCollections/Show.tsx": {
+    "file": "assets/Show-j4eLrOXy.js",
+    "name": "Show",
+    "src": "apps/knowii/src/Pages/ResourceCollections/Show.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_AppLayout-BNGr6Rg-.js",
+      "_CommunityIcon-Bs4AK21Y.js",
+      "_BreadcrumbHome-CNAGPSvp.js",
+      "_ResourceCollectionIcon-BuJF3a4R.js",
+      "_use-typed-page.hook.fn-CUTjfaEX.js",
+      "_index.esm-lFZCsp_Y.js",
+      "_button.esm-DLO6rHTE.js",
+      "_csstransition.esm-B-JzYHP3.js",
+      "_index.esm-BXDceRiS.js",
+      "_PageWrapper-DH6FnHJ2.js",
+      "_index-uNrI0wzO.js",
+      "_ApplicationName-D_3Z2mj4.js",
+      "_Footer-C3wVLSTL.js",
+      "_index.esm-DUdtWSd5.js"
+    ]
+  },
+  "apps/knowii/src/Pages/Resources/Show.tsx": {
+    "file": "assets/Show-Cv5SocLe.js",
+    "name": "Show",
+    "src": "apps/knowii/src/Pages/Resources/Show.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_AppLayout-BNGr6Rg-.js",
+      "_CommunityIcon-Bs4AK21Y.js",
+      "_BreadcrumbHome-CNAGPSvp.js",
+      "_ResourceCollectionIcon-BuJF3a4R.js",
+      "_ResourceIcon-CmuobJ1y.js",
+      "_use-typed-page.hook.fn-CUTjfaEX.js",
+      "_index.esm-lFZCsp_Y.js",
+      "_button.esm-DLO6rHTE.js",
+      "_csstransition.esm-B-JzYHP3.js",
+      "_index.esm-BXDceRiS.js",
+      "_PageWrapper-DH6FnHJ2.js",
+      "_index-uNrI0wzO.js",
+      "_ApplicationName-D_3Z2mj4.js",
+      "_Footer-C3wVLSTL.js",
+      "_index.esm-DUdtWSd5.js"
+    ]
+  },
+  "apps/knowii/src/Pages/TermsOfService.tsx": {
+    "file": "assets/TermsOfService-BIlKQw1V.js",
+    "name": "TermsOfService",
+    "src": "apps/knowii/src/Pages/TermsOfService.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_PageWrapper-DH6FnHJ2.js",
+      "_FooterGuest-CoFcBW3Q.js",
+      "_index-DuN6WFSC.js",
+      "_index.esm-lFZCsp_Y.js",
+      "_button.esm-DLO6rHTE.js",
+      "_index-uNrI0wzO.js",
+      "_ApplicationName-D_3Z2mj4.js"
+    ]
+  },
+  "apps/knowii/src/Pages/Welcome.tsx": {
+    "file": "assets/Welcome-Cw62fyXP.js",
+    "name": "Welcome",
+    "src": "apps/knowii/src/Pages/Welcome.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "apps/knowii/src/main.tsx",
+      "_use-typed-page.hook.fn-CUTjfaEX.js",
+      "_PageWrapper-DH6FnHJ2.js",
+      "_Footer-C3wVLSTL.js",
+      "_index.esm-lFZCsp_Y.js",
+      "_button.esm-DLO6rHTE.js",
+      "_index-uNrI0wzO.js",
+      "_ApplicationName-D_3Z2mj4.js"
+    ]
+  },
+  "apps/knowii/src/main.tsx": {
+    "file": "assets/main-Cm6Qirkw.js",
+    "name": "main",
+    "src": "apps/knowii/src/main.tsx",
+    "isEntry": true,
+    "dynamicImports": [
+      "apps/knowii/src/Pages/Auth/ConfirmPassword.tsx",
+      "apps/knowii/src/Pages/Auth/ForgotPassword.tsx",
+      "apps/knowii/src/Pages/Auth/Login.tsx",
+      "apps/knowii/src/Pages/Auth/Register.tsx",
+      "apps/knowii/src/Pages/Auth/ResetPassword.tsx",
+      "apps/knowii/src/Pages/Auth/VerifyEmail.tsx",
+      "apps/knowii/src/Pages/Communities/Partials/DeleteCommunityForm.tsx",
+      "apps/knowii/src/Pages/Communities/Settings.tsx",
+      "apps/knowii/src/Pages/Communities/Show.tsx",
+      "apps/knowii/src/Pages/Contact.tsx",
+      "apps/knowii/src/Pages/Dashboard.tsx",
+      "apps/knowii/src/Pages/Error.tsx",
+      "apps/knowii/src/Pages/PrivacyPolicy.tsx",
+      "apps/knowii/src/Pages/Profile/Partials/DeleteUserForm.tsx",
+      "apps/knowii/src/Pages/Profile/Partials/LogoutOtherBrowserSessionsForm.tsx",
+      "apps/knowii/src/Pages/Profile/Partials/UpdatePasswordForm.tsx",
+      "apps/knowii/src/Pages/Profile/Partials/UpdateProfileInformationForm.tsx",
+      "apps/knowii/src/Pages/Profile/Show.tsx",
+      "apps/knowii/src/Pages/ResourceCollections/Show.tsx",
+      "apps/knowii/src/Pages/Resources/Show.tsx",
+      "apps/knowii/src/Pages/TermsOfService.tsx",
+      "apps/knowii/src/Pages/Welcome.tsx"
+    ],
+    "css": [
+      "assets/main-95_RGqUf.css"
+    ],
+    "assets": [
+      "assets/InterVariable-CWi-zmRD.woff2",
+      "assets/InterVariable-Italic-d6KXgdvN.woff2"
+    ]
+  }
+}
