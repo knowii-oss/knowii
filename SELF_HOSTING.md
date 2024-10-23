@@ -109,6 +109,16 @@ If you need to change the browserless container settings, then you should:
 - Change your `.env` file
 - Run the `./browserless-create-service.sh` script again.
 
+## Queue worker
+
+Knowii relies on queue workers to process queued jobs. For instance, whenever a WebSocket event needs to be sent, a job will be queued. Without queue workers, those events will never be delivered.
+
+Example configuration:
+
+- Connection: database
+- Queue: default
+- Command: `php artisan queue:work --queue=default --sleep=3 --tries=3`
+
 ## Laravel Forge
 
 This section will be useful (or serve as reference) if you use Laravel Forge to manage your self-hosted server.
