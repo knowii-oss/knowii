@@ -40,6 +40,8 @@ Necessary environment keys for development:
 
 - `RESEND_KEY`: for sending emails
 
+When new environment variables are exposed to the front-end via `VITE_` in the env file, those should be added to `vite.env.d.ts`.
+
 ### Docker usage
 
 During development, we use Laravel Sail with Docker and docker-compose.
