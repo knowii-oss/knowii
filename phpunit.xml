@@ -28,5 +28,7 @@
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
+        <env name="BROADCAST_DRIVER" value="log"/>
+        <env name="BROADCAST_CONNECTION" value="log"/>
     </php>
 </phpunit>
