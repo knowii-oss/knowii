@@ -5,11 +5,11 @@
     "role": "owner",
     "name": "DeveloPassion",
     "email": "sebastien@developassion.be",
-    "phone": "+32 478 40 29 93",
+    "phone": "32478402993",
     "description": "A software development company of 1 person based in Belgium",
     "webpageUrl": {
       "url": "https://www.developassion.be",
-      "wellKnown": ""
+      "wellKnown": "https://www.developassion.be/.well-known/funding-manifest-urls"
     }
   },
   "projects": [
@@ -18,12 +18,10 @@
       "name": "knowii",
       "description": "An open source community knowledge management platform",
       "webpageUrl": {
-        "url": "https://github.com/knowii-oss/knowii",
-        "wellKnown": ""
+        "url": "https://github.com/knowii-oss/knowii"
       },
       "repositoryUrl": {
-        "url": "https://github.com/knowii-oss/knowii",
-        "wellKnown": ""
+        "url": "https://github.com/knowii-oss/knowii"
       },
       "licenses": ["spdx:AGPL-3.0"],
       "tags": [
@@ -49,7 +47,7 @@
       },
       {
         "guid": "developassion-paypal",
-        "type": "gateway",
+        "type": "payment-provider",
         "address": "https://paypal.me/developassion",
         "description": "Support DeveloPassion via PayPal"
       }
