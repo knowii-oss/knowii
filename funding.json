@@ -8,8 +8,8 @@
     "phone": "32478402993",
     "description": "A software development company of 1 person based in Belgium",
     "webpageUrl": {
-      "url": "https://www.developassion.be",
-      "wellKnown": "https://www.developassion.be/.well-known/funding-manifest-urls"
+      "url": "https://github.com/knowii-oss/knowii",
+      "wellKnown": ""
     }
   },
   "projects": [
@@ -18,10 +18,12 @@
       "name": "knowii",
       "description": "An open source community knowledge management platform",
       "webpageUrl": {
-        "url": "https://github.com/knowii-oss/knowii"
+        "url": "https://github.com/knowii-oss/knowii",
+        "wellKnown": ""
       },
       "repositoryUrl": {
-        "url": "https://github.com/knowii-oss/knowii"
+        "url": "https://github.com/knowii-oss/knowii",
+        "wellKnown": "https://github.com/knowii-oss/knowii/edit/main/funding.json"
       },
       "licenses": ["spdx:AGPL-3.0"],
       "tags": [
