@@ -141,3 +141,59 @@ if [ -f artisan ]; then
     $FORGE_PHP artisan migrate --force
 fi
 ```
+
+### WebSockets
+
+The centrally hosted Knowii production environment uses Laravel Forge with CloudFlare in front. TLS uses a certificate provisioned by CloudFlare (Origin Server certificate). That certificate includes `knowii.net` as CN, and `*.knowii.net` as SAN. This is supported by Laravel Forge. Unfortunately, when enabling Laravel Reverb using Laravel Forge, it doesn't understand that the certificate is also valid for Laravel Reverb and the WebSockets sub-domain (in this case `ws.knowii.net`). Because of that, when Laravel Reverb is enabled via Laravel Forge, it generates an NGINX configuration that listens on port 80 instead of port 443.
+
+If you face this issue, you need to adapt the `/etc/nginx/forge-conf/<your site>/after/reverb.conf` configuration file as follows in order to enable TLS for the WebSockets:
+
+```
+server {
+    http2 on;
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name ws.<YOUR_DOMAIN>;
+    server_tokens off;
+
+    # FORGE SSL (DO NOT REMOVE!)
+    ssl_certificate /etc/nginx/ssl/<YOUR_DOMAIN>/<certificate id>/server.crt;
+    ssl_certificate_key /etc/nginx/ssl/<YOUR_DOMAIN>/<certificate id>/server.key;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES25>    ssl_prefer_server_ciphers off;
+    ssl_dhparam /etc/nginx/dhparams.pem;
+
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-XSS-Protection "1; mode=block";
+    add_header X-Content-Type-Options "nosniff";
+
+    charset utf-8;
+
+    # FORGE CONFIG (DO NOT REMOVE!)
+    include forge-conf/<YOUR DOMAIN>/server/*;
+
+    access_log off;
+    error_log  /var/log/nginx/ws.<YOUR DOMAIN>-error.log error;
+
+    location / {
+        proxy_http_version 1.1;
+        proxy_set_header Host $http_host;
+        proxy_set_header Scheme $scheme;
+        proxy_set_header SERVER_PORT $server_port;
+        proxy_set_header REMOTE_ADDR $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+
+        proxy_pass http://0.0.0.0:4201;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}
+
+```
+
+Useful reference: https://tonymasek.com/articles/how-to-make-laravel-reverb-work-on-laravel-forge
