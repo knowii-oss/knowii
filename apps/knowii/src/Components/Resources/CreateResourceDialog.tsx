@@ -124,8 +124,8 @@ export function CreateResourceDialog(props: CreateResourceDialogProps) {
       } else {
         toast?.show({
           severity: 'error',
-          summary: 'Failed to create the resource collection',
-          detail: response.message,
+          summary: response.message ? response.message : 'Failed to create the resource collection',
+          detail: response.message ? response.message : 'Please try again later.',
         });
         // FIXME ugly workaround to force the stepper to go back to the second step
         // The problem is that at this point in time, the dialog still only contains the loading spinner

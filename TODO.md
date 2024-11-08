@@ -1,6 +1,5 @@
 # TODO
 
-- Fix knowii-api-client: should not try to parse directly, or at least should not EXPLODE if the response does not have the hoped structure
 - Add Settings screen for resource collections
 - Implement delete community resource API
 - Update knowii-api-client to handle delete resources

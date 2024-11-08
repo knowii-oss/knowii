@@ -73,8 +73,8 @@ export default function CreateResourceCollectionDialog(props: CreateResourceColl
     } else {
       toast?.show({
         severity: 'error',
-        summary: 'Failed to create the resource collection',
-        detail: response.message,
+        summary: response.message ? response.message : 'Failed to create the resource collection',
+        detail: response.message ? response.message : 'Please try again later.',
       });
     }
 

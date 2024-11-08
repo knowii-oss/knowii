@@ -40,24 +40,49 @@ const defaultHeaders: Headers = new Headers({
 export const knowiiApiClient = {
   communities: {
     create: async (input: CreateCommunityRequest): Promise<CreateCommunityResponse> => {
-      const response = await fetch(COMMUNITY_API_BASE_PATH, {
-        method: 'post',
-        headers: defaultHeaders,
-        body: JSON.stringify(input),
-      });
+      try {
+        const response = await fetch(COMMUNITY_API_BASE_PATH, {
+          method: 'post',
+          headers: defaultHeaders,
+          body: JSON.stringify(input),
+        });
 
-      const responseAsJson = await response.json();
-      return createCommunityResponseSchema.parse(responseAsJson);
+        const responseAsJson = await response.json();
+
+        const parsedResponse = createCommunityResponseSchema.safeParse(responseAsJson);
+
+        if (parsedResponse.success) {
+          return parsedResponse.data;
+        }
+
+        return {
+          message: responseAsJson.message ? responseAsJson.message : 'Failed to create the community. Please try again later.',
+          errors: parsedResponse.error.errors,
+          type: responseAsJson.type ? responseAsJson.type : 'internalError',
+          category: responseAsJson.category ? responseAsJson.category : 'technical',
+        };
+      } catch (error) {
+        return {
+          message: 'Failed to create the community. Please try again later.',
+          errors: [],
+          type: 'internalError',
+          category: 'technical',
+        };
+      }
     },
     delete: async (input: DeleteCommunityRequest): Promise<boolean> => {
       const requestUrl = COMMUNITY_API_PATH.replace(COMMUNITY_API_PATH_PARAM_COMMUNITY, input.community.cuid);
 
-      const response = await fetch(requestUrl, {
-        method: 'delete',
-        headers: defaultHeaders,
-      });
+      try {
+        const response = await fetch(requestUrl, {
+          method: 'delete',
+          headers: defaultHeaders,
+        });
 
-      return response.status === HttpStatus.NO_CONTENT;
+        return response.status === HttpStatus.NO_CONTENT;
+      } catch (error) {
+        return false;
+      }
     },
     resourceCollections: {
       create: async (input: CreateCommunityResourceCollectionRequest): Promise<CreateCommunityResourceCollectionResponse> => {
@@ -66,14 +91,35 @@ export const knowiiApiClient = {
           input.communityCuid,
         );
 
-        const response = await fetch(requestUrl, {
-          method: 'post',
-          headers: defaultHeaders,
-          body: JSON.stringify(input),
-        });
+        try {
+          const response = await fetch(requestUrl, {
+            method: 'post',
+            headers: defaultHeaders,
+            body: JSON.stringify(input),
+          });
 
-        const responseAsJson = await response.json();
-        return createCommunityResourceCollectionResponseSchema.parse(responseAsJson);
+          const responseAsJson = await response.json();
+
+          const parsedResponse = createCommunityResourceCollectionResponseSchema.safeParse(responseAsJson);
+
+          if (parsedResponse.success) {
+            return parsedResponse.data;
+          }
+
+          return {
+            message: responseAsJson.message ? responseAsJson.message : 'Failed to create the resource collection. Please try again later.',
+            errors: parsedResponse.error.errors,
+            type: responseAsJson.type ? responseAsJson.type : 'internalError',
+            category: responseAsJson.category ? responseAsJson.category : 'technical',
+          };
+        } catch (error) {
+          return {
+            message: 'Failed to create the resource collection. Please try again later.',
+            errors: [],
+            type: 'internalError',
+            category: 'technical',
+          };
+        }
       },
       delete: async (input: DeleteResourceCollectionRequest): Promise<boolean> => {
         const requestUrl = COMMUNITY_RESOURCE_COLLECTION_API_PATH.replace(
@@ -81,12 +127,16 @@ export const knowiiApiClient = {
           input.community.cuid,
         ).replace(COMMUNITY_RESOURCE_COLLECTION_API_PATH_PARAM_RESOURCE_COLLECTION, input.resourceCollection.cuid);
 
-        const response = await fetch(requestUrl, {
-          method: 'delete',
-          headers: defaultHeaders,
-        });
+        try {
+          const response = await fetch(requestUrl, {
+            method: 'delete',
+            headers: defaultHeaders,
+          });
 
-        return response.status === HttpStatus.NO_CONTENT;
+          return response.status === HttpStatus.NO_CONTENT;
+        } catch (error) {
+          return false;
+        }
       },
     },
   },
@@ -97,41 +147,79 @@ export const knowiiApiClient = {
         input.communityCuid,
       ).replace(COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH_PARAM_RESOURCE_COLLECTION, input.resourceCollectionCuid);
 
-      const response = await fetch(requestUrl, {
-        method: 'post',
-        headers: defaultHeaders,
-        body: JSON.stringify(input),
-      });
+      try {
+        const response = await fetch(requestUrl, {
+          method: 'post',
+          headers: defaultHeaders,
+          body: JSON.stringify(input),
+        });
 
-      const responseAsJson = await response.json();
+        const responseAsJson = await response.json();
 
-      return createResourceTextArticleResponseSchema.parse(responseAsJson);
+        const parsedResponse = createResourceTextArticleResponseSchema.safeParse(responseAsJson);
+
+        if (parsedResponse.success) {
+          return parsedResponse.data;
+        }
+
+        return {
+          message: responseAsJson.message ? responseAsJson.message : 'Failed to create the text article. Please try again later.',
+          errors: parsedResponse.error.errors,
+          type: responseAsJson.type ? responseAsJson.type : 'internalError',
+          category: responseAsJson.category ? responseAsJson.category : 'technical',
+        };
+      } catch (error) {
+        return {
+          message: 'Failed to create the text article. Please try again later.',
+          errors: [],
+          type: 'internalError',
+          category: 'technical',
+        };
+      }
     },
   },
   users: {
     isUsernameAvailable: async (input: IsUsernameAvailableRequest, signal?: AbortSignal): Promise<IsUsernameAvailableResponse> => {
-      const response = await fetch(USERS_API_IS_USERNAME_AVAILABLE_PATH, {
-        signal,
-        method: 'post',
-        headers: defaultHeaders,
-        body: JSON.stringify(input),
-      });
+      try {
+        const response = await fetch(USERS_API_IS_USERNAME_AVAILABLE_PATH, {
+          signal,
+          method: 'post',
+          headers: defaultHeaders,
+          body: JSON.stringify(input),
+        });
 
-      const responseAsJson = await response.json();
+        const responseAsJson = await response.json();
 
-      return isUsernameAvailableResponseSchema.parse(responseAsJson);
+        return isUsernameAvailableResponseSchema.parse(responseAsJson);
+      } catch (error) {
+        return {
+          message: 'Failed to check if the username is available. Please try again later.',
+          errors: [],
+          type: 'internalError',
+          category: 'technical',
+        };
+      }
     },
   },
   utils: {
     ping: async (): Promise<PingResponse> => {
-      const response = await fetch(PING_API_PATH, {
-        method: 'get',
-        headers: defaultHeaders,
-      });
+      try {
+        const response = await fetch(PING_API_PATH, {
+          method: 'get',
+          headers: defaultHeaders,
+        });
 
-      const responseAsJson = await response.json();
+        const responseAsJson = await response.json();
 
-      return pingResponseSchema.parse(responseAsJson);
+        return pingResponseSchema.parse(responseAsJson);
+      } catch (error) {
+        return {
+          message: 'Failed to ping the server. Please try again later.',
+          errors: [],
+          type: 'internalError',
+          category: 'technical',
+        };
+      }
     },
   },
 };
