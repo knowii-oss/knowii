@@ -55,12 +55,11 @@ export default function DeleteCommunityForm(props: Props) {
       router.visit(route(DASHBOARD_URL), {
         preserveState: false,
       });
-
-      // FIXME redirect to the dashboard
     } else {
       toast?.show({
         severity: 'error',
         summary: 'Failed to delete the community',
+        detail: 'Please try again later.',
       });
     }
 

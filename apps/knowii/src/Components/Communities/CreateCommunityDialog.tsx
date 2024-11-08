@@ -29,7 +29,7 @@ interface CreateCommunityDialogProps {
   onCommunityCreated: (community: Community) => void;
 }
 
-export default function CreateCommunityDialog({ visible, onHide, onCommunityCreated }: CreateCommunityDialogProps) {
+export default function CreateCommunityDialog(props: CreateCommunityDialogProps) {
   const [loading, setLoading] = useState(false);
   const appData = useAppData();
   const toast = appData.toast;
@@ -60,15 +60,15 @@ export default function CreateCommunityDialog({ visible, onHide, onCommunityCrea
 
       if (response.data) {
         const createdCommunity = response.data;
-        onCommunityCreated(createdCommunity);
+        props.onCommunityCreated(createdCommunity);
       }
       form.reset();
-      onHide();
+      props.onHide();
     } else {
       toast?.show({
         severity: 'error',
-        summary: 'Failed to create the community',
-        detail: response.message,
+        summary: response.message ? response.message : 'Failed to create the community',
+        detail: response.message ? response.message : 'Please try again later.',
       });
     }
 
@@ -84,12 +84,12 @@ export default function CreateCommunityDialog({ visible, onHide, onCommunityCrea
         </span>
       }
       closeOnEscape={true}
-      visible={visible}
+      visible={props.visible}
       className="w-full sm:w-[75vw] md:w-[60vw] lg:w-[40vw] xl:w-[30vw]"
-      onHide={onHide}
+      onHide={props.onHide}
       footer={
         <>
-          <Button severity="secondary" label="Cancel" onClick={onHide} />
+          <Button severity="secondary" label="Cancel" onClick={props.onHide} />
           <Button onClick={handleSubmit} label="Go ahead!" disabled={!form.formState.isValid || loading} className="ml-2" />
         </>
       }
