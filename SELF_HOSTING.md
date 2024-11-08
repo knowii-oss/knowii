@@ -28,8 +28,8 @@ If you're using your own domain, you need to configure it to point to your serve
 At the DNS level, you need:
 
 - An A record pointing to the IP address of your server
-- A CNAME record called `www` pointing to the domain name (without the `www`)
-- A CNAME record called `ws` pointing to the domain name (for WebSockets)
+- An A record called `www` pointing to the IP address of your server
+- An A record called `ws` pointing to the IP address of your server (for WebSockets)
 
 You also need a valid TLS certificate for your domain. You can use Let's Encrypt to get a free SSL certificate. If you're using Laravel Forge, you can use the Let's Encrypt integration to get a free SSL certificate, or create a CSR and use it with CloudFlare's SSL/TLS Origin Server "Create Certificate" feature, which will ensure that your certificate is always valid.
 
@@ -44,7 +44,7 @@ In particular:
 - `REVERB_HOST` should point to `ws.<YOUR_DOMAIN>`
 - `REVERB_PORT` should be set to `443`
 - `REVERB_SCHEME` should be set to `https`
-- `REVERB_ALLOWED_ORIGINS` should be set to `<YOUR_DOMAIN>`
+- `REVERB_ALLOWED_ORIGINS`
 
 ## Database configuration
 
@@ -150,9 +150,8 @@ If you face this issue, you need to adapt the `/etc/nginx/forge-conf/<your site>
 
 ```
 server {
-    http2 on;
-    listen 443 ssl;
-    listen [::]:443 ssl;
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
     server_name ws.<YOUR_DOMAIN>;
     server_tokens off;
 
@@ -186,7 +185,7 @@ server {
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "Upgrade";
 
-        proxy_pass http://0.0.0.0:4201;
+        proxy_pass http://localhost:4201;
     }
 
     location ~ /\.(?!well-known).* {

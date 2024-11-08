@@ -1,11 +1,10 @@
 # TODO
 
+- Fix knowii-api-client: should not try to parse directly, or at least should not EXPLODE if the response does not have the hoped structure
 - Add Settings screen for resource collections
 - Implement delete community resource API
-
-  - Update knowii-api-client to handle delete resources
-  - React (WS event) on community page, resource collection page, resource page
-
+- Update knowii-api-client to handle delete resources
+- React (WS event) on community page, resource collection page, resource page
 - Community page & resource collection page & resource page
   - Listen to resource collection updated WS events
 - Implement update community API
@@ -16,7 +15,6 @@
 - Add reset button to createResourceDialog form
 - If error while saving resource, CreateResourceDialog should stop the loading spinner
   - should be handled in knowii-api-client.ts
-  - Fix knowii-api-client: should not try to parse directly, or at least should not EXPLODE if the response does not have the hoped structure
 - CreateTextResource: reject urls pointing to files (audio, video, etc)
 - TODO show both the community specific name/description and the resource generic one
 - Implement ResourcePage page
