@@ -156,7 +156,7 @@ return Application::configure(basePath: dirname(__DIR__))
       return (new class { use ApiResponses; })::businessIssue($e->getMessage(), $e->getErrors(), $e->getMetadata());
     });
 
-    // Convert TechnicalException instances
+    // Convert TechnicalException instances to Internal Server Exception
     $exceptions->render(function (TechnicalException $e, Request $request) {
       if (!$request->expectsJson()) {
         // Default Laravel processing if not expecting a JSON response
@@ -164,6 +164,16 @@ return Application::configure(basePath: dirname(__DIR__))
       }
 
       return (new class { use ApiResponses; })::technicalIssue($e->getMessage(), $e->getErrors(), $e->getMetadata());
+    });
+
+    // Convert Exception instances to Internal Server Exception
+    $exceptions->render(function (Exception $e, Request $request) {
+      if (!$request->expectsJson()) {
+        // Default Laravel processing if not expecting a JSON response
+        return null;
+      }
+
+      return (new class { use ApiResponses; })::technicalIssue();
     });
 
     // Handle responses
