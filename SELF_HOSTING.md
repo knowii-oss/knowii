@@ -77,7 +77,9 @@ Don't forget to:
 
 - Set a different value for `APP_KEY` using `php artisan key:generate`
 - Set correct values for `APP_ENV`, `APP_URL`, `DB_*`, `MAIL_*`, `REDIS_*`, `BROWSERLESS_*`
-- The `SANCTUM_STATEFUL_DOMAINS` variable should be empty in production: `SANCTUM_STATEFUL_DOMAINS=`, otherwise the front-end API calls will be broken
+- Set the `SANCTUM_STATEFUL_DOMAINS` to be empty in production: `SANCTUM_STATEFUL_DOMAINS=`, otherwise the front-end API calls will be broken
+- Set `SESSION_SECURE_COOKIE` to `true`, assuming you use HTTPS
+- Set `SESSION_COOKIE` to `__Secure-knowii_session`, assuming you use HTTPS
 
 For WebSockets to work (securely), don't forget to modify:
 
