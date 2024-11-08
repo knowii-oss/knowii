@@ -450,14 +450,6 @@ return [
             // 'application/pdf',
         ],
 
-        'prefetch-src' => [
-          'self' => true,
-          'allow' => [
-            'fonts.googleapis.com',
-            'fonts.gstatic.com',
-          ],
-        ],
-
         // https://w3c.github.io/webappsec-trusted-types/dist/spec/#integration-with-content-security-policy
         'require-trusted-types-for' => [
             'script' => false,
