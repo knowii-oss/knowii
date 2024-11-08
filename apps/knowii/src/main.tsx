@@ -21,6 +21,9 @@ createInertiaApp({
         <PrimeReactProvider
           value={{
             ripple: true,
+            // Reference: https://primereact.org/configuration/#nonce
+            // WARNING: MUST remain aligned with secure-headers.php
+            nonce: 'nonce-knowii-primereact',
           }}
         >
           <AppDataProvider>

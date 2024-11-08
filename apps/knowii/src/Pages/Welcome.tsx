@@ -25,6 +25,7 @@ export default function WelcomePage(props: Props) {
     script.src = 'https://eocampaign1.com/form/ab92cdda-764d-11ef-9338-89ce4ce1395d.js';
     script.async = true;
     script.setAttribute('data-form', 'ab92cdda-764d-11ef-9338-89ce4ce1395d');
+    script.nonce = 'nonce-knowii-waitlist';
 
     document.getElementById('waitlist-container')?.appendChild(script);
 

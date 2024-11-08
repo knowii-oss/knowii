@@ -34,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
       \App\Http\Middleware\HandleInertiaRequests::class,
       \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
       \Bepsvpt\SecureHeaders\SecureHeadersMiddleware::class,
+      \App\Http\Middleware\AddViteContentSecurityPolicyNonce::class,
     ]);
 
     $middleware->api([
