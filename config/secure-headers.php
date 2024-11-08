@@ -335,35 +335,54 @@ return [
             // uri
         ],
 
-        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/block-all-mixed-content
-        'block-all-mixed-content' => false,
-
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/upgrade-insecure-requests
         'upgrade-insecure-requests' => false,
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/base-uri
         'base-uri' => [
-            //
+            'self' => true,
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/child-src
         'child-src' => [
-            //
+          'self' => true,
+          'schemes' => [
+            'blob:',
+            'data:',
+          ],
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/connect-src
         'connect-src' => [
-            //
+          'self' => true,
+          'schemes' => [
+            'blob:',
+            'data:',
+            'ws:',
+            'wss:',
+          ],
+          'allow' => [
+            'https://eocampaign1.com/form/ab92cdda-764d-11ef-9338-89ce4ce1395d',
+          ],
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/default-src
         'default-src' => [
-            //
+            'self' => true,
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/font-src
         'font-src' => [
-            //
+          'self' => true,
+          'allow' => [
+            'fonts.googleapis.com',
+            'fonts.gstatic.com',
+          ],
+          'schemes' => [
+            'data:',
+            'http:',
+            'https:',
+          ],
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/form-action
@@ -378,22 +397,42 @@ return [
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/frame-src
         'frame-src' => [
-            //
+          'self' => true,
+          'allow' => [
+            'https://www.google.com/recaptcha/',
+            'https://www.gstatic.com/recaptcha/',
+          ],
+          'schemes' => [
+            'https:',
+          ],
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/img-src
         'img-src' => [
-            //
+            'self' => true,
+            'schemes' => [
+              'data:',
+              'http:',
+              'https:',
+            ],
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/manifest-src
         'manifest-src' => [
-            //
+          'self' => true,
+          'schemes' => [
+            'http:',
+            'https:',
+          ],
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/media-src
         'media-src' => [
-            //
+          'self' => true,
+          'schemes' => [
+            'http:',
+            'https:',
+          ],
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/navigate-to
@@ -411,9 +450,12 @@ return [
             // 'application/pdf',
         ],
 
-        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/prefetch-src
         'prefetch-src' => [
-            //
+          'self' => true,
+          'allow' => [
+            'fonts.googleapis.com',
+            'fonts.gstatic.com',
+          ],
         ],
 
         // https://w3c.github.io/webappsec-trusted-types/dist/spec/#integration-with-content-security-policy
@@ -442,17 +484,15 @@ return [
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/script-src
         'script-src' => [
             'none' => false,
-            'self' => false,
             'report-sample' => false,
-            'allow' => [
-                // 'url',
-            ],
-            'schemes' => [
-                // 'data:',
-                // 'https:',
-            ],
 
-            /* followings are only work for `script` and `style` related directives */
+            // Fallback for older browsers
+            'allow' => [
+              'blue-bar-dsebastien-19fd.developassion.workers.dev',
+              'eocampaign1.com',
+              'https://www.google.com/recaptcha/',
+              'https://www.gstatic.com/recaptcha/',
+            ],
 
             'unsafe-inline' => false,
             'unsafe-eval' => false,
@@ -463,7 +503,11 @@ return [
             // Enable `strict-dynamic` will *ignore* `self`, `unsafe-inline`,
             // `allow` and `schemes`. You can find more information from:
             // https://www.w3.org/TR/CSP3/#strict-dynamic-usage
-            'strict-dynamic' => false,
+            'strict-dynamic' => true,
+
+            'nonces' => [
+              'nonce-knowii-waitlist',
+            ],
 
             'hashes' => [
                 'sha256' => [
@@ -492,7 +536,14 @@ return [
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/style-src
         'style-src' => [
-            //
+            'self' => true,
+            'unsafe-inline' => true,
+            'schemes' => [
+              'https:',
+            ],
+            'nonces' => [
+              'nonce-knowii-primereact',
+            ],
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/style-src-attr

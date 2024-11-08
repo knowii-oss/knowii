@@ -1,3 +1,5 @@
+@inject('headers', 'Bepsvpt\SecureHeaders\SecureHeaders')
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -21,6 +23,7 @@
     data-domain="knowii.net"
     data-api="https://blue-bar-dsebastien-19fd.developassion.workers.dev/api/v1/event"
     src="https://blue-bar-dsebastien-19fd.developassion.workers.dev/content/script.js"
+    nonce="{{ csp_nonce('script') }}"
   ></script>
 
   <link href="/icons/favicon.ico" rel="shortcut icon" />
@@ -30,7 +33,7 @@
   <!-- Safari Pinned Tab Icon: https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/pinnedTabs/pinnedTabs.html -->
   <link color="#37404c" href="/icons/favicon.svg" rel="mask-icon" />
 
-  <script id="site-microdata-script" type="application/ld+json">
+  <script id="site-microdata-script" type="application/ld+json" nonce="{{ csp_nonce('script') }}">
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
@@ -76,7 +79,7 @@
   <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
   <!-- Scripts -->
-  @routes
+  @routes(nonce: csp_nonce('script'))
   @viteReactRefresh
 
   {{
