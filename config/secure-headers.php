@@ -362,6 +362,7 @@ return [
             'wss:',
           ],
           'allow' => [
+            'https://blue-bar-dsebastien-19fd.developassion.workers.dev/api/v1/event',
             'https://eocampaign1.com/form/ab92cdda-764d-11ef-9338-89ce4ce1395d',
           ],
         ],
