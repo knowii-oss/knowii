@@ -56,6 +56,8 @@ jobs:
           php -r "file_exists('.env') || copy('.env.example', '.env');"
       - name: Install back-end dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+      - name: Audit PHP dependencies security
+        run: composer audit
       - name: Generate Laravel key
         run: php artisan key:generate
       - name: Configure FS permissions
