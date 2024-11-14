@@ -7,19 +7,19 @@ use App\Models\Community;
 use App\Models\User;
 
 test('communities can be deleted', function () {
-  $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
+    $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
-  $user->ownedCommunities()->save($community = Community::factory()->make([
-    'visibility' => KnowiiCommunityVisibility::Public,
-  ]));
+    $user->ownedCommunities()->save($community = Community::factory()->make([
+        'visibility' => KnowiiCommunityVisibility::Public,
+    ]));
 
-  $community->users()->attach(
-    $otherUser = User::factory()->create(), ['role' => KnowiiCommunityMemberRole::Member]
-  );
+    $community->users()->attach(
+        $otherUser = User::factory()->create(), ['role' => KnowiiCommunityMemberRole::Member]
+    );
 
-  $deleter = app(DeletesCommunities::class);
-  $deleter->delete($user, $community);
+    $deleter = app(DeletesCommunities::class);
+    $deleter->delete($user, $community);
 
-  expect($community->fresh())->toBeNull();
-  expect($otherUser->fresh()->communities)->toHaveCount(0);
+    expect($community->fresh())->toBeNull();
+    expect($otherUser->fresh()->communities)->toHaveCount(0);
 });

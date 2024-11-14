@@ -11,15 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-      Schema::create('community_resource_collections', static function (Blueprint $table) {
-        $table->id();
-        $table->string('cuid')->unique()->index();
-        $table->foreignId('community_id')->constrained()->cascadeOnDelete();
-        $table->string('name')->index();
-        $table->string('slug')->unique()->index();
-        $table->string('description')->nullable();
-        $table->timestamps();
-      });
+        Schema::create('community_resource_collections', static function (Blueprint $table) {
+            $table->id();
+            $table->string('cuid')->unique()->index();
+            $table->foreignId('community_id')->constrained()->cascadeOnDelete();
+            $table->string('name')->index();
+            $table->string('slug')->unique()->index();
+            $table->string('description')->nullable();
+            $table->timestamps();
+        });
     }
 
     /**
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-      Schema::dropIfExists('community_resource_collections');
+        Schema::dropIfExists('community_resource_collections');
     }
 };

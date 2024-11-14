@@ -14,16 +14,17 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class AddViteContentSecurityPolicyNonce
 {
-  /**
-   * Handle an incoming request.
-   *
-   * @param \Closure(Request): (Response) $next
-   * @throws \Exception
-   */
-  final public function handle(Request $request, Closure $next): Response
-  {
-    Vite::useCspNonce(SecureHeaders::nonce('script'));
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Closure(Request): (Response)  $next
+     *
+     * @throws \Exception
+     */
+    final public function handle(Request $request, Closure $next): Response
+    {
+        Vite::useCspNonce(SecureHeaders::nonce('script'));
 
-    return $next($request);
-  }
+        return $next($request);
+    }
 }

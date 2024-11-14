@@ -8,23 +8,20 @@ use Illuminate\Foundation\Events\Dispatchable;
 
 abstract class ResourceEvent implements ShouldDispatchAfterCommit
 {
-  use Dispatchable;
+    use Dispatchable;
 
-  /**
-   * The resource instance.
-   *
-   * @var Resource
-   */
-  public Resource $resource;
+    /**
+     * The resource instance.
+     */
+    public Resource $resource;
 
-  /**
-   * Create a new event instance.
-   *
-   * @param Resource $resource
-   * @return void
-   */
-  public function __construct(Resource $resource)
-  {
-    $this->resource = $resource;
-  }
+    /**
+     * Create a new event instance.
+     *
+     * @return void
+     */
+    public function __construct(Resource $resource)
+    {
+        $this->resource = $resource;
+    }
 }

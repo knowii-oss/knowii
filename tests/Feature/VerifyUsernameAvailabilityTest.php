@@ -8,58 +8,58 @@ test('usernames availability can be verified', function () {
     $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
     $input = [
-      'usernameToCheck' => 'foo',
+        'usernameToCheck' => 'foo',
     ];
 
-    $checker = new VerifyUsernameAvailability();
+    $checker = new VerifyUsernameAvailability;
     $result = $checker->verify($user, $input);
 
     expect($result)->toBeTrue();
 });
 
 test('username availability check rejects invalid input', function () {
-  $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
+    $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
-  $input = [
-    'foo' => 'bar',
-  ];
+    $input = [
+        'foo' => 'bar',
+    ];
 
-  $this->expectException(ValidationException::class);
+    $this->expectException(ValidationException::class);
 
-  $checker = new VerifyUsernameAvailability();
-  $checker->verify($user, $input);
+    $checker = new VerifyUsernameAvailability;
+    $checker->verify($user, $input);
 });
 
 test('username availability check returns false is the username is already taken', function () {
-  $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
+    $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
-  User::factory()->withUserProfile()->withPersonalCommunity()->create([
-    'username' => 'foo',
-  ]);
+    User::factory()->withUserProfile()->withPersonalCommunity()->create([
+        'username' => 'foo',
+    ]);
 
-  $input = [
-    'usernameToCheck' => 'foo',
-  ];
+    $input = [
+        'usernameToCheck' => 'foo',
+    ];
 
-  $checker = new VerifyUsernameAvailability();
-  $result = $checker->verify($user, $input);
+    $checker = new VerifyUsernameAvailability;
+    $result = $checker->verify($user, $input);
 
-  expect($result)->toBeFalse();
+    expect($result)->toBeFalse();
 });
 
 test('username availability check is case insensitive', function () {
-  $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
+    $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
-  User::factory()->withUserProfile()->withPersonalCommunity()->create([
-    'username' => 'FOOBaR',
-  ]);
+    User::factory()->withUserProfile()->withPersonalCommunity()->create([
+        'username' => 'FOOBaR',
+    ]);
 
-  $input = [
-    'usernameToCheck' => 'foObar',
-  ];
+    $input = [
+        'usernameToCheck' => 'foObar',
+    ];
 
-  $checker = new VerifyUsernameAvailability();
-  $result = $checker->verify($user, $input);
+    $checker = new VerifyUsernameAvailability;
+    $result = $checker->verify($user, $input);
 
-  expect($result)->toBeFalse();
+    expect($result)->toBeFalse();
 });

@@ -6,5 +6,5 @@ use Illuminate\Queue\SerializesModels;
 
 class ResourceUpdated extends ResourceEvent
 {
-  use SerializesModels;
+    use SerializesModels;
 }

@@ -345,26 +345,26 @@ return [
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/child-src
         'child-src' => [
-          'self' => true,
-          'schemes' => [
-            'blob:',
-            'data:',
-          ],
+            'self' => true,
+            'schemes' => [
+                'blob:',
+                'data:',
+            ],
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/connect-src
         'connect-src' => [
-          'self' => true,
-          'schemes' => [
-            'blob:',
-            'data:',
-            'ws:',
-            'wss:',
-          ],
-          'allow' => [
-            'https://blue-bar-dsebastien-19fd.developassion.workers.dev/api/v1/event',
-            'https://eocampaign1.com/form/ab92cdda-764d-11ef-9338-89ce4ce1395d',
-          ],
+            'self' => true,
+            'schemes' => [
+                'blob:',
+                'data:',
+                'ws:',
+                'wss:',
+            ],
+            'allow' => [
+                'https://blue-bar-dsebastien-19fd.developassion.workers.dev/api/v1/event',
+                'https://eocampaign1.com/form/ab92cdda-764d-11ef-9338-89ce4ce1395d',
+            ],
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/default-src
@@ -374,16 +374,16 @@ return [
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/font-src
         'font-src' => [
-          'self' => true,
-          'allow' => [
-            'fonts.googleapis.com',
-            'fonts.gstatic.com',
-          ],
-          'schemes' => [
-            'data:',
-            'http:',
-            'https:',
-          ],
+            'self' => true,
+            'allow' => [
+                'fonts.googleapis.com',
+                'fonts.gstatic.com',
+            ],
+            'schemes' => [
+                'data:',
+                'http:',
+                'https:',
+            ],
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/form-action
@@ -398,42 +398,42 @@ return [
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/frame-src
         'frame-src' => [
-          'self' => true,
-          'allow' => [
-            'https://www.google.com/recaptcha/',
-            'https://www.gstatic.com/recaptcha/',
-          ],
-          'schemes' => [
-            'https:',
-          ],
+            'self' => true,
+            'allow' => [
+                'https://www.google.com/recaptcha/',
+                'https://www.gstatic.com/recaptcha/',
+            ],
+            'schemes' => [
+                'https:',
+            ],
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/img-src
         'img-src' => [
             'self' => true,
             'schemes' => [
-              'data:',
-              'http:',
-              'https:',
+                'data:',
+                'http:',
+                'https:',
             ],
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/manifest-src
         'manifest-src' => [
-          'self' => true,
-          'schemes' => [
-            'http:',
-            'https:',
-          ],
+            'self' => true,
+            'schemes' => [
+                'http:',
+                'https:',
+            ],
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/media-src
         'media-src' => [
-          'self' => true,
-          'schemes' => [
-            'http:',
-            'https:',
-          ],
+            'self' => true,
+            'schemes' => [
+                'http:',
+                'https:',
+            ],
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/navigate-to
@@ -481,10 +481,10 @@ return [
 
             // Fallback for older browsers
             'allow' => [
-              'blue-bar-dsebastien-19fd.developassion.workers.dev',
-              'eocampaign1.com',
-              'https://www.google.com/recaptcha/',
-              'https://www.gstatic.com/recaptcha/',
+                'blue-bar-dsebastien-19fd.developassion.workers.dev',
+                'eocampaign1.com',
+                'https://www.google.com/recaptcha/',
+                'https://www.gstatic.com/recaptcha/',
             ],
 
             'unsafe-inline' => false,
@@ -499,7 +499,7 @@ return [
             'strict-dynamic' => true,
 
             'nonces' => [
-              'nonce-knowii-waitlist',
+                'nonce-knowii-waitlist',
             ],
 
             'hashes' => [
@@ -532,10 +532,10 @@ return [
             'self' => true,
             'unsafe-inline' => true,
             'schemes' => [
-              'https:',
+                'https:',
             ],
             'nonces' => [
-              'nonce-knowii-primereact',
+                'nonce-knowii-primereact',
             ],
         ],
 

@@ -6,15 +6,13 @@ use Illuminate\Queue\SerializesModels;
 
 class CommunityUpdated extends CommunityEvent
 {
-  use SerializesModels;
+    use SerializesModels;
 
-  /**
-   * The event's broadcast name.
-   *
-   * @return string
-   */
-  final public function broadcastAs(): string
-  {
-    return 'community.updated';
-  }
+    /**
+     * The event's broadcast name.
+     */
+    final public function broadcastAs(): string
+    {
+        return 'community.updated';
+    }
 }

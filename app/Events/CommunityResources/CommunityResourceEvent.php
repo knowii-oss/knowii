@@ -17,62 +17,59 @@ use Illuminate\Support\Str;
 
 abstract class CommunityResourceEvent implements ShouldBroadcast, ShouldDispatchAfterCommit
 {
-  use Dispatchable, InteractsWithSockets;
+    use Dispatchable, InteractsWithSockets;
 
-  /**
-   * The community resource instance.
-   *
-   * @var CommunityResource
-   */
-  public CommunityResource $communityResource;
+    /**
+     * The community resource instance.
+     */
+    public CommunityResource $communityResource;
 
-  /**
-   * Create a new event instance.
-   *
-   * @param CommunityResource $communityResource
-   * @return void
-   */
-  public function __construct(CommunityResource $communityResource)
-  {
-    $this->communityResource = $communityResource;
-  }
-
-  /**
-   * Get the data to broadcast.
-   *
-   * @return array<string, mixed>
-   */
-  public function broadcastWith(): array
-  {
-
-    // Disable wrapping for the data we return to the frontend from this controller
-    // This lets us use the API Resources classes without the wrapping that is normally applied
-    JsonResource::withoutWrapping();
-
-    $this->communityResource->load([
-      'resource',
-      'curator',
-      'textArticle',
-      'collection',
-    ]);
-
-    return (new CommunityResourceResource($this->communityResource, false))->toArray(request());
-  }
-
-  final public function broadcastOn(): array
-  {
-    $retVal = [
-      // Emit to the community channel
-      new PrivateChannel(Str::of(Constants::$WS_CHANNEL_COMMUNITY)->replace(Constants::$WS_CHANNEL_COMMUNITY_PARAM_COMMUNITY_CUID, $this->communityResource->community->cuid)),
-      // Emit to the resource collection channel
-      new PrivateChannel(Str::of(Constants::$WS_CHANNEL_COMMUNITY_RESOURCE_COLLECTION)->replace(Constants::$WS_CHANNEL_COMMUNITY_RESOURCE_COLLECTION_PARAM_COMMUNITY_CUID, $this->communityResource->community->cuid)->replace(Constants::$WS_CHANNEL_COMMUNITY_RESOURCE_COLLECTION_PARAM_RESOURCE_COLLECTION_CUID, $this->communityResource->collection->cuid)),
-    ];
-
-    // Emit events about public communities to the public channel
-    if (KnowiiCommunityVisibility::Public === $this->communityResource->community->visibility) {
-      $retVal[] = new Channel(Constants::$WS_CHANNEL_COMMUNITIES);
+    /**
+     * Create a new event instance.
+     *
+     * @return void
+     */
+    public function __construct(CommunityResource $communityResource)
+    {
+        $this->communityResource = $communityResource;
     }
 
-    return $retVal;
-  }
+    /**
+     * Get the data to broadcast.
+     *
+     * @return array<string, mixed>
+     */
+    public function broadcastWith(): array
+    {
+
+        // Disable wrapping for the data we return to the frontend from this controller
+        // This lets us use the API Resources classes without the wrapping that is normally applied
+        JsonResource::withoutWrapping();
+
+        $this->communityResource->load([
+            'resource',
+            'curator',
+            'textArticle',
+            'collection',
+        ]);
+
+        return (new CommunityResourceResource($this->communityResource, false))->toArray(request());
+    }
+
+    final public function broadcastOn(): array
+    {
+        $retVal = [
+            // Emit to the community channel
+            new PrivateChannel(Str::of(Constants::$WS_CHANNEL_COMMUNITY)->replace(Constants::$WS_CHANNEL_COMMUNITY_PARAM_COMMUNITY_CUID, $this->communityResource->community->cuid)),
+            // Emit to the resource collection channel
+            new PrivateChannel(Str::of(Constants::$WS_CHANNEL_COMMUNITY_RESOURCE_COLLECTION)->replace(Constants::$WS_CHANNEL_COMMUNITY_RESOURCE_COLLECTION_PARAM_COMMUNITY_CUID, $this->communityResource->community->cuid)->replace(Constants::$WS_CHANNEL_COMMUNITY_RESOURCE_COLLECTION_PARAM_RESOURCE_COLLECTION_CUID, $this->communityResource->collection->cuid)),
+        ];
+
+        // Emit events about public communities to the public channel
+        if ($this->communityResource->community->visibility === KnowiiCommunityVisibility::Public) {
+            $retVal[] = new Channel(Constants::$WS_CHANNEL_COMMUNITIES);
+        }
+
+        return $retVal;
+    }
 }

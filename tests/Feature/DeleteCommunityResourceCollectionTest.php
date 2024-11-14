@@ -1,10 +1,6 @@
 <?php
 
-use App\Contracts\Communities\DeletesCommunities;
 use App\Contracts\CommunityResourceCollections\DeletesCommunityResourceCollections;
-use App\Enums\KnowiiCommunityMemberRole;
-use App\Enums\KnowiiCommunityVisibility;
-use App\Models\Community;
 use App\Models\User;
 
 test('resource collections can be deleted', function () {

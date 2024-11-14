@@ -10,22 +10,22 @@ use Illuminate\Support\Facades\Broadcast;
 //});
 
 Broadcast::channel(Constants::$WS_CHANNEL_COMMUNITIES, static function (User $user) {
-  // This is a public channel sharing events about public communities
-  return true;
+    // This is a public channel sharing events about public communities
+    return true;
 });
 
 Broadcast::channel(Constants::$WS_CHANNEL_COMMUNITY, static function (User $user, string $communityCuid) {
-  // This is a private channel reserved to community members
-  $community = Community::whereCuid($communityCuid)->firstOrFail();
-  $retVal = $user->allCommunities()->contains($community);
+    // This is a private channel reserved to community members
+    $community = Community::whereCuid($communityCuid)->firstOrFail();
+    $retVal = $user->allCommunities()->contains($community);
 
-  return $retVal;
+    return $retVal;
 });
 
 Broadcast::channel(Constants::$WS_CHANNEL_COMMUNITY_RESOURCE_COLLECTION, static function (User $user, string $communityCuid, string $resourceCollectionCuid) {
-  // This is a private channel reserved to community members
-  $community = Community::whereCuid($communityCuid)->firstOrFail();
-  $retVal = $user->allCommunities()->contains($community);
+    // This is a private channel reserved to community members
+    $community = Community::whereCuid($communityCuid)->firstOrFail();
+    $retVal = $user->allCommunities()->contains($community);
 
-  return $retVal;
+    return $retVal;
 });

@@ -3,23 +3,22 @@
 namespace Tests\Feature;
 
 use App\Actions\CommunityResourceCollections\CreateCommunityResourceCollection;
-use App\Models\User;
 use App\Constants;
+use App\Models\User;
 use Illuminate\Validation\ValidationException;
 
 test('resource collections can be created via the creator', function () {
     $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
-
     expect($user->ownedCommunities)->toHaveCount(1);
     $community = $user->ownedCommunities()->first();
 
     $input = [
-      'name' => 'Test collection',
-      'description' => 'Awesome collection',
+        'name' => 'Test collection',
+        'description' => 'Awesome collection',
     ];
 
-    $creator = new CreateCommunityResourceCollection();
+    $creator = new CreateCommunityResourceCollection;
 
     $creator->create($user, $community, $input);
 
@@ -35,11 +34,11 @@ test('creation is rejected by the creator if the name is too short', function ()
     $community = $user->ownedCommunities()->first();
 
     $input = [
-      'name' => 'a',
-      'description' => 'Awesome collection',
+        'name' => 'a',
+        'description' => 'Awesome collection',
     ];
 
-    $creator = new CreateCommunityResourceCollection();
+    $creator = new CreateCommunityResourceCollection;
 
     $this->expectException(ValidationException::class);
 
@@ -53,11 +52,11 @@ test('creation is rejected by the creator if the name is too long', function () 
     $community = $user->ownedCommunities()->first();
 
     $input = [
-      'name' => str_repeat('a', Constants::$MAX_LENGTH_COMMUNITY_RESOURCE_COLLECTION_NAME+1),
-      'description' => 'Awesome collection',
+        'name' => str_repeat('a', Constants::$MAX_LENGTH_COMMUNITY_RESOURCE_COLLECTION_NAME + 1),
+        'description' => 'Awesome collection',
     ];
 
-    $creator = new CreateCommunityResourceCollection();
+    $creator = new CreateCommunityResourceCollection;
 
     $this->expectException(ValidationException::class);
 
@@ -71,11 +70,11 @@ test('creation is rejected by the creator if the name contains forbidden charact
     $community = $user->ownedCommunities()->first();
 
     $input = [
-      'name' => 'foo ##!}{',
-      'description' => 'Awesome collection',
+        'name' => 'foo ##!}{',
+        'description' => 'Awesome collection',
     ];
 
-    $creator = new CreateCommunityResourceCollection();
+    $creator = new CreateCommunityResourceCollection;
 
     $this->expectException(ValidationException::class);
 
@@ -89,11 +88,11 @@ test('creation is rejected by the creator if the description is too long', funct
     $community = $user->ownedCommunities()->first();
 
     $input = [
-      'name' => 'foo',
-      'description' => str_repeat('a', Constants::$MAX_LENGTH_COMMUNITY_RESOURCE_COLLECTION_DESCRIPTION+1),
+        'name' => 'foo',
+        'description' => str_repeat('a', Constants::$MAX_LENGTH_COMMUNITY_RESOURCE_COLLECTION_DESCRIPTION + 1),
     ];
 
-    $creator = new CreateCommunityResourceCollection();
+    $creator = new CreateCommunityResourceCollection;
 
     $this->expectException(ValidationException::class);
 
@@ -107,10 +106,10 @@ test('creation is rejected by the creator if the name is missing', function () {
     $community = $user->ownedCommunities()->first();
 
     $input = [
-      'description' => 'Awesome collection',
+        'description' => 'Awesome collection',
     ];
 
-    $creator = new CreateCommunityResourceCollection();
+    $creator = new CreateCommunityResourceCollection;
 
     $this->expectException(ValidationException::class);
 
@@ -124,11 +123,11 @@ test('creation is rejected by the creator if the name is empty', function () {
     $community = $user->ownedCommunities()->first();
 
     $input = [
-      'name' => '',
-      'description' => 'Awesome collection',
+        'name' => '',
+        'description' => 'Awesome collection',
     ];
 
-    $creator = new CreateCommunityResourceCollection();
+    $creator = new CreateCommunityResourceCollection;
 
     $this->expectException(ValidationException::class);
 
@@ -142,16 +141,16 @@ test('resource collection slug generation avoids duplicate slugs', function () {
     $community = $user->ownedCommunities()->first();
 
     $input1 = [
-      'name' => 'Test',
-      'description' => 'Awesome collection',
+        'name' => 'Test',
+        'description' => 'Awesome collection',
     ];
 
     $input2 = [
         'name' => 'Test',
         'description' => 'Awesome collection',
-      ];
+    ];
 
-    $creator = new CreateCommunityResourceCollection();
+    $creator = new CreateCommunityResourceCollection;
 
     $creator->create($user, $community, $input1);
     $creator->create($user, $community, $input2);

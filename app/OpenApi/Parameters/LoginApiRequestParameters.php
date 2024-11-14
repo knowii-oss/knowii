@@ -8,17 +8,17 @@ use Vyuldashev\LaravelOpenApi\Factories\ParametersFactory;
 
 class LoginApiRequestParameters extends ParametersFactory
 {
-  /**
-   * @return Parameter[]
-   */
-  public function build(): array
-  {
-    return [
-      Parameter::header()
-        ->name('Accept')
-        ->description('MUST request a JSON response')
-        ->required(true)
-        ->schema(Schema::string()->default('application/json')),
-    ];
-  }
+    /**
+     * @return Parameter[]
+     */
+    public function build(): array
+    {
+        return [
+            Parameter::header()
+                ->name('Accept')
+                ->description('MUST request a JSON response')
+                ->required(true)
+                ->schema(Schema::string()->default('application/json')),
+        ];
+    }
 }

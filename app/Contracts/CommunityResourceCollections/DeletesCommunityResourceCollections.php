@@ -10,5 +10,5 @@ use App\Models\User;
  */
 class DeletesCommunityResourceCollections
 {
-  //
+    //
 }
