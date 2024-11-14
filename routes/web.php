@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\Inertia\CommunityResourceCollectionController;
 use App\Http\Controllers\Inertia\CommunityController;
+use App\Http\Controllers\Inertia\CommunityResourceCollectionController;
 use App\Http\Controllers\Inertia\CommunityResourceController;
 use App\Http\Controllers\Inertia\DashboardController;
 use App\Http\Controllers\PrivacyPolicyController;

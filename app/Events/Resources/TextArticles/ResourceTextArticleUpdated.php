@@ -6,5 +6,5 @@ use Illuminate\Queue\SerializesModels;
 
 class ResourceTextArticleUpdated extends ResourceTextArticleEvent
 {
-  use SerializesModels;
+    use SerializesModels;
 }

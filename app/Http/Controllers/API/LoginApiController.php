@@ -16,53 +16,50 @@ use Vyuldashev\LaravelOpenApi\Attributes as OpenApi;
 #[OpenApi\PathItem]
 class LoginApiController extends Controller
 {
+    use ApiResponses;
 
-  use ApiResponses;
-
-  /**
-   * Log in through the API
-   * @param Request $request
-   * @return JsonResponse
-   */
-  #[OpenApi\Operation(tags: ['auth'], method: 'post')]
-  #[OpenApi\Parameters(factory: LoginApiRequestParameters::class)]
-  #[OpenApi\RequestBody(factory: LoginApiRequestBody::class)]
-  #[OpenApi\Response(factory: LoginApiResponse::class)]
-  final public function login(Request $request): JsonResponse
-  {
-    $credentials = $request->validate([
-      'email' => ['required', 'email'],
-      'password' => ['required'],
-    ]);
-
-    if (Auth::attempt($credentials)) {
-      $user = Auth::user();
-
-      if (!$user) {
-        return self::authenticationIssue('We could not authenticate your credentials. Please try again later.');
-      }
-
-      Log::info('Authenticated successfully: ' . $user->email);
-
-      // Initialize the session
-      session()->regenerate();
-
-      // If the client has re
-      if ($request->has("includeToken") && $request->get("includeToken")) {
-        Log::info("Including token in response");
-        $tokenValidUntil = now()->addHours(12);
-        Log::info("Token valid until: " . $tokenValidUntil);
-        $token = $user->createToken('api', [], $tokenValidUntil)->plainTextToken;
-
-        return self::success("Welcome to Knowii's API 🎉", null, [
-          'token' => $token,
-          'tokenValidUntil' => $tokenValidUntil,
+    /**
+     * Log in through the API
+     */
+    #[OpenApi\Operation(tags: ['auth'], method: 'post')]
+    #[OpenApi\Parameters(factory: LoginApiRequestParameters::class)]
+    #[OpenApi\RequestBody(factory: LoginApiRequestBody::class)]
+    #[OpenApi\Response(factory: LoginApiResponse::class)]
+    final public function login(Request $request): JsonResponse
+    {
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
         ]);
-      }
 
-      return self::success("Welcome to Knowii's API 🎉", null, null);
+        if (Auth::attempt($credentials)) {
+            $user = Auth::user();
+
+            if (! $user) {
+                return self::authenticationIssue('We could not authenticate your credentials. Please try again later.');
+            }
+
+            Log::info('Authenticated successfully: '.$user->email);
+
+            // Initialize the session
+            session()->regenerate();
+
+            // If the client has re
+            if ($request->has('includeToken') && $request->get('includeToken')) {
+                Log::info('Including token in response');
+                $tokenValidUntil = now()->addHours(12);
+                Log::info('Token valid until: '.$tokenValidUntil);
+                $token = $user->createToken('api', [], $tokenValidUntil)->plainTextToken;
+
+                return self::success("Welcome to Knowii's API 🎉", null, [
+                    'token' => $token,
+                    'tokenValidUntil' => $tokenValidUntil,
+                ]);
+            }
+
+            return self::success("Welcome to Knowii's API 🎉", null, null);
+        }
+
+        return self::authenticationIssue('The provided credentials do not match our records.');
     }
-
-    return self::authenticationIssue('The provided credentials do not match our records.');
-  }
 }

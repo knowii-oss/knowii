@@ -22,10 +22,10 @@ return [
             ],
 
             'tags' => [
-                 [
+                [
                     'name' => 'auth',
                     'description' => 'Authentication',
-                 ],
+                ],
 
             ],
 

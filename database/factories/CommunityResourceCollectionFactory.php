@@ -11,19 +11,19 @@ use Visus\Cuid2\Cuid2;
  */
 class CommunityResourceCollectionFactory extends Factory
 {
-  /**
-   * Define the model's default state.
-   *
-   * @return array<string, mixed>
-   */
-  final public function definition(): array
-  {
-    return [
-      'cuid' => new Cuid2(),
-      'name' => $this->faker->unique()->company(),
-      // The slug is generated automatically
-      'description' => $this->faker->unique()->sentence(nbWords: 5),
-      'community_id' => Community::factory(),
-    ];
-  }
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
+    final public function definition(): array
+    {
+        return [
+            'cuid' => new Cuid2,
+            'name' => $this->faker->unique()->company(),
+            // The slug is generated automatically
+            'description' => $this->faker->unique()->sentence(nbWords: 5),
+            'community_id' => Community::factory(),
+        ];
+    }
 }

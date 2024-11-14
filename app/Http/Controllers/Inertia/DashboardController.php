@@ -12,30 +12,27 @@ use Laravel\Jetstream\RedirectsActions;
 
 class DashboardController extends Controller
 {
-  use RedirectsActions;
+    use RedirectsActions;
 
-  /**
-   * Show the community management screen.
-   *
-   * @param Request $request
-   * @return Response
-   */
-  final public function show(Request $request): Response
-  {
+    /**
+     * Show the community management screen.
+     */
+    final public function show(Request $request): Response
+    {
 
-    $communities = [];
-    if($request->user()) {
-      // Add the communities of the user
-      $communities = $request->user()->allCommunities();
+        $communities = [];
+        if ($request->user()) {
+            // Add the communities of the user
+            $communities = $request->user()->allCommunities();
+        }
+
+        // Disable wrapping for the data we return to the frontend from this controller
+        // This lets us use the API Resources classes without the wrapping that is normally applied
+        JsonResource::withoutWrapping();
+
+        // WARNING: The props passed here must remain aligned with the props expected by the page
+        return Jetstream::inertia()->render($request, 'Dashboard', [
+            'communities' => CommunityResource::collection($communities), // FIXME handle passing serializeLargeFields
+        ]);
     }
-
-    // Disable wrapping for the data we return to the frontend from this controller
-    // This lets us use the API Resources classes without the wrapping that is normally applied
-    JsonResource::withoutWrapping();
-
-    // WARNING: The props passed here must remain aligned with the props expected by the page
-    return Jetstream::inertia()->render($request, 'Dashboard', [
-      'communities' => CommunityResource::collection($communities), // FIXME handle passing serializeLargeFields
-    ]);
-  }
 }

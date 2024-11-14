@@ -5,24 +5,22 @@ namespace App\Actions;
 use App\Contracts\Communities\DeletesCommunities;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Laravel\Jetstream\Contracts\DeletesUsers;
 use Illuminate\Support\Facades\Log;
+use Laravel\Jetstream\Contracts\DeletesUsers;
 
 class DeleteUser implements DeletesUsers
 {
     /**
      * Create a new action instance.
      */
-    public function __construct(private readonly DeletesCommunities $deletesCommunities)
-    {
-    }
+    public function __construct(private readonly DeletesCommunities $deletesCommunities) {}
 
     /**
      * Delete the given user.
      */
     final public function delete(User $user): void
     {
-        Log::info("Deleting user", ['user' => $user]);
+        Log::info('Deleting user', ['user' => $user]);
         DB::transaction(function () use ($user) {
             // Remove the user's communities and associated elements
             $this->deleteCommunities($user);
@@ -37,7 +35,7 @@ class DeleteUser implements DeletesUsers
             // Remove the user account
             $user->delete();
         });
-        Log::info("User deleted", ['user' => $user]);
+        Log::info('User deleted', ['user' => $user]);
     }
 
     /**

@@ -27,40 +27,39 @@ test('correct password must be provided before account can be deleted', function
     return ! Features::hasAccountDeletionFeatures();
 }, 'Account deletion is not enabled.');
 
-
 test('deleting a user account removes the user id from the user profile', function () {
-  $this->actingAs($user = User::factory()->withUserProfile()->create());
+    $this->actingAs($user = User::factory()->withUserProfile()->create());
 
-  $userProfile = $user->profile;
+    $userProfile = $user->profile;
 
-  expect($userProfile->user_id)->not->toBeNull();
+    expect($userProfile->user_id)->not->toBeNull();
 
-  $this->delete('/user', [
-    'password' => 'password',
-  ]);
+    $this->delete('/user', [
+        'password' => 'password',
+    ]);
 
-  expect($userProfile->fresh()->user_id)->toBeNull();
+    expect($userProfile->fresh()->user_id)->toBeNull();
 });
 
 test('deleting a user account does not remove the username and email from the user profile', function () {
-  $this->actingAs($user = User::factory()->withUserProfile()->create());
+    $this->actingAs($user = User::factory()->withUserProfile()->create());
 
-  $userProfile = $user->profile;
+    $userProfile = $user->profile;
 
-  $initialUsername = $userProfile->username;
-  $initialEmail = $userProfile->email;
+    $initialUsername = $userProfile->username;
+    $initialEmail = $userProfile->email;
 
-  expect($userProfile->username)->not->toBeNull();
-  expect($userProfile->email)->not->toBeNull();
+    expect($userProfile->username)->not->toBeNull();
+    expect($userProfile->email)->not->toBeNull();
 
-  $this->delete('/user', [
-    'password' => 'password',
-  ]);
+    $this->delete('/user', [
+        'password' => 'password',
+    ]);
 
-  $freshUserProfile = $userProfile->fresh();
+    $freshUserProfile = $userProfile->fresh();
 
-  expect($freshUserProfile->username)->not->toBeNull();
-  expect($freshUserProfile->username)->toBe($initialUsername);
-  expect($freshUserProfile->email)->not->toBeNull();
-  expect($freshUserProfile->email)->toBe($initialEmail);
+    expect($freshUserProfile->username)->not->toBeNull();
+    expect($freshUserProfile->username)->toBe($initialUsername);
+    expect($freshUserProfile->email)->not->toBeNull();
+    expect($freshUserProfile->email)->toBe($initialEmail);
 });

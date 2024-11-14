@@ -2,21 +2,15 @@
 
 namespace App\Contracts\Resources;
 
-use App\Models\CommunityResource;
-use App\Models\User;
 use App\Models\Community;
+use App\Models\CommunityResource;
 use App\Models\CommunityResourceCollection;
+use App\Models\User;
 
 interface CreatesTextResources
 {
-  /**
-   * Create a new resource.
-   *
-   * @param  User  $user
-   * @param  Community  $community
-   * @param  CommunityResourceCollection  $communityResourceCollection
-   * @param  array  $input
-   * @return CommunityResource
-   */
-  public function create(User $user, Community $community, CommunityResourceCollection $communityResourceCollection, array $input): CommunityResource;
+    /**
+     * Create a new resource.
+     */
+    public function create(User $user, Community $community, CommunityResourceCollection $communityResourceCollection, array $input): CommunityResource;
 }

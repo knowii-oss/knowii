@@ -4,7 +4,6 @@ namespace App\Actions\CommunityResourceCollections;
 
 use App\Constants;
 use App\Contracts\CommunityResourceCollections\CreatesCommunityResourceCollections;
-use App\Events\CommunityResourceCollections\CommunityResourceCollectionCreated;
 use App\Exceptions\TechnicalException;
 use App\Models\Community;
 use App\Models\CommunityResourceCollection;
@@ -20,10 +19,6 @@ class CreateCommunityResourceCollection implements CreatesCommunityResourceColle
     /**
      * Validate and create a new resource collection for the given community.
      *
-     * @param User $user
-     * @param Community $community
-     * @param array $input
-     * @return CommunityResourceCollection
      * @throws TechnicalException
      * @throws AuthorizationException
      * @throws ValidationException
@@ -43,7 +38,7 @@ class CreateCommunityResourceCollection implements CreatesCommunityResourceColle
             // Nullable allows empty strings to be passed in
             // Note that the CommunityResource transforms null to an empty string
             // Reference: https://laravel.com/docs/11.x/validation#a-note-on-optional-fields
-            'description' => ['nullable', 'string', 'max:' . Constants::$MAX_LENGTH_COMMUNITY_RESOURCE_COLLECTION_DESCRIPTION],
+            'description' => ['nullable', 'string', 'max:'.Constants::$MAX_LENGTH_COMMUNITY_RESOURCE_COLLECTION_DESCRIPTION],
         ])->validate();
         Log::debug('Input validated');
 
@@ -56,6 +51,7 @@ class CreateCommunityResourceCollection implements CreatesCommunityResourceColle
             ]);
 
             Log::info('New community resource collection created successfully', ['collection' => $collection]);
+
             return $collection;
         } catch (\Exception $e) {
             Log::warning('Failed to create the community resource collection', ['exception' => $e]);

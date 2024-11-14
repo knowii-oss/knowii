@@ -10,5 +10,5 @@ use Illuminate\Foundation\Auth\User;
  */
 interface VerifiesUsernameAvailability
 {
-  //
+    //
 }

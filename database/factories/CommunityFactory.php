@@ -20,7 +20,7 @@ class CommunityFactory extends Factory
     final public function definition(): array
     {
         return [
-            'cuid' => new Cuid2(),
+            'cuid' => new Cuid2,
             'name' => $this->faker->unique()->company(),
             // The slug is generated automatically
             'description' => $this->faker->unique()->sentence(nbWords: 5),

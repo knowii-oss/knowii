@@ -6,36 +6,36 @@ use App\Traits\HtmlToMarkdown;
 
 class HtmlToMarkdownTest
 {
-  use HtmlToMarkdown;
+    use HtmlToMarkdown;
 }
 
 beforeEach(function () {
-  $this->converter = new HtmlToMarkdownTest();
+    $this->converter = new HtmlToMarkdownTest;
 });
 
 test('removes scripts and styles', function () {
-  $html = '<script>alert("Hello");</script><style>.class{color:red;}</style><p>Content</p>';
-  $expected = "Content";
+    $html = '<script>alert("Hello");</script><style>.class{color:red;}</style><p>Content</p>';
+    $expected = 'Content';
 
-  $result = $this->converter->convertHtmlToMarkdown($html);
+    $result = $this->converter->convertHtmlToMarkdown($html);
 
-  expect($result)->toBe($expected);
+    expect($result)->toBe($expected);
 });
 
 test('handles empty input', function () {
-  $html = '';
-  $expected = '';
+    $html = '';
+    $expected = '';
 
-  $result = $this->converter->convertHtmlToMarkdown($html);
+    $result = $this->converter->convertHtmlToMarkdown($html);
 
-  expect($result)->toBe($expected);
+    expect($result)->toBe($expected);
 });
 
 test('handles input with only whitespace', function () {
-  $html = "  \n  \t  ";
-  $expected = '';
+    $html = "  \n  \t  ";
+    $expected = '';
 
-  $result = $this->converter->convertHtmlToMarkdown($html);
+    $result = $this->converter->convertHtmlToMarkdown($html);
 
-  expect($result)->toBe($expected);
+    expect($result)->toBe($expected);
 });

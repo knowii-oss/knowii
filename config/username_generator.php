@@ -135,7 +135,7 @@ return [
      * Loaded drivers for converting to a username
      */
     'drivers' => [
-        'name'  => NameDriver::class,
+        'name' => NameDriver::class,
         'email' => EmailDriver::class,
     ],
 
@@ -144,7 +144,7 @@ return [
      */
     'dictionary' => [
         'adjectives' => [],
-        'nouns'      => [],
+        'nouns' => [],
     ],
 
 ];

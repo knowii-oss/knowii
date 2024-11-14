@@ -8,23 +8,21 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CommunityInvitation extends Model
 {
-  /**
-   * The attributes that are mass assignable.
-   *
-   * @var array
-   */
-  protected $fillable = [
-    'email',
-    'role',
-  ];
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'email',
+        'role',
+    ];
 
-  /**
-   * Get the community that the invitation belongs to.
-   *
-   * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-   */
-  public function community(): BelongsTo
-  {
-    return $this->belongsTo(Community::class);
-  }
+    /**
+     * Get the community that the invitation belongs to.
+     */
+    public function community(): BelongsTo
+    {
+        return $this->belongsTo(Community::class);
+    }
 }

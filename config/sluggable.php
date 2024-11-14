@@ -19,7 +19,6 @@ return [
      *
      * Defaults to null, which uses the toString() method on your model.
      */
-
     'source' => '$model->name',
 
     /**
@@ -27,7 +26,6 @@ return [
      * no length restrictions are enforced.  Set it to a positive integer if you
      * want to make sure your slugs aren't too long.
      */
-
     'maxLength' => Constants::$MAX_LENGTH_SLUG,
 
     /**
@@ -42,7 +40,6 @@ return [
      *
      *   "my source string" -> "my-source-st"
      */
-
     'maxLengthKeepWords' => true,
 
     /**
@@ -60,13 +57,11 @@ return [
      *
      *    'method' => array('Str','slug'),
      */
-
     'method' => null,
 
     /**
      * Separator to use when generating slugs.  Defaults to a hyphen.
      */
-
     'separator' => '-',
 
     /**
@@ -78,7 +73,6 @@ return [
      *     my-slug-1
      *     my-slug-2
      */
-
     'unique' => true,
 
     /**
@@ -89,7 +83,6 @@ return [
      * "similar" slugs.  The closure should return the new unique
      * suffix to append to the slug.
      */
-
     'uniqueSuffix' => null,
 
     /**
@@ -109,7 +102,6 @@ return [
      * If set to "false", then a new slug could duplicate one that exists on a trashed model.
      * If set to "true", then uniqueness is enforced across trashed and existing models.
      */
-
     'includeTrashed' => true,
 
     /**
@@ -135,7 +127,6 @@ return [
      *
      * and continue from there.
      */
-
     'reserved' => null,
 
     /**
@@ -148,7 +139,6 @@ return [
      * is probably not a good idea from an SEO point of view.
      * Only set this to true if you understand the possible consequences.
      */
-
     'onUpdate' => false,
 
     /**
