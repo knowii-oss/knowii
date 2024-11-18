@@ -178,11 +178,26 @@ return [
             'origins' => [],
         ],
 
+        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy/ambient-light-sensor
+        'ambient-light-sensor' => [
+            'none' => false,
+            '*' => false,
+            'self' => false,
+            'origins' => [],
+        ],
+
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy/autoplay
         'autoplay' => [
             'none' => false,
             '*' => false,
             'self' => true,
+            'origins' => [],
+        ],
+
+        'battery' => [
+            'none' => false,
+            '*' => false,
+            'self' => false,
             'origins' => [],
         ],
 
@@ -194,11 +209,32 @@ return [
             'origins' => [],
         ],
 
+        'clipboard-read' => [
+            'none' => false,
+            '*' => false,
+            'self' => true,
+            'origins' => [],
+        ],
+
+        'clipboard-write' => [
+            'none' => false,
+            '*' => false,
+            'self' => true,
+            'origins' => [],
+        ],
+
+        'conversion-measurement' => [
+            'none' => false,
+            '*' => false,
+            'self' => false,
+            'origins' => [],
+        ],
+
         // https://www.chromestatus.com/feature/5690888397258752
         'cross-origin-isolated' => [
             'none' => false,
             '*' => false,
-            'self' => true,
+            'self' => false,
             'origins' => [],
         ],
 
@@ -206,7 +242,14 @@ return [
         'display-capture' => [
             'none' => false,
             '*' => false,
-            'self' => true,
+            'self' => false,
+            'origins' => [],
+        ],
+
+        'document-domain' => [
+            'none' => false,
+            '*' => false,
+            'self' => false,
             'origins' => [],
         ],
 
@@ -214,7 +257,28 @@ return [
         'encrypted-media' => [
             'none' => false,
             '*' => false,
-            'self' => true,
+            'self' => false,
+            'origins' => [],
+        ],
+
+        'execution-while-not-rendered' => [
+            'none' => false,
+            '*' => false,
+            'self' => false,
+            'origins' => [],
+        ],
+
+        'execution-while-out-of-viewport' => [
+            'none' => false,
+            '*' => false,
+            'self' => false,
+            'origins' => [],
+        ],
+
+        'focus-without-user-activation' => [
+            'none' => false,
+            '*' => false,
+            'self' => false,
             'origins' => [],
         ],
 
@@ -223,6 +287,13 @@ return [
             'none' => false,
             '*' => false,
             'self' => true,
+            'origins' => [],
+        ],
+
+        'gamepad' => [
+            'none' => false,
+            '*' => false,
+            'self' => false,
             'origins' => [],
         ],
 
@@ -236,6 +307,34 @@ return [
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy/gyroscope
         'gyroscope' => [
+            'none' => false,
+            '*' => false,
+            'self' => false,
+            'origins' => [],
+        ],
+
+        'hid' => [
+            'none' => false,
+            '*' => false,
+            'self' => false,
+            'origins' => [],
+        ],
+
+        'idle-detection' => [
+            'none' => false,
+            '*' => false,
+            'self' => false,
+            'origins' => [],
+        ],
+
+        'interest-cohort' => [
+            'none' => false,
+            '*' => false,
+            'self' => false,
+            'origins' => [],
+        ],
+
+        'keyboard-map' => [
             'none' => false,
             '*' => false,
             'self' => false,
@@ -266,6 +365,13 @@ return [
             'origins' => [],
         ],
 
+        'navigation-override' => [
+            'none' => false,
+            '*' => false,
+            'self' => false,
+            'origins' => [],
+        ],
+
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy/payment
         'payment' => [
             'none' => false,
@@ -277,8 +383,8 @@ return [
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy/picture-in-picture
         'picture-in-picture' => [
             'none' => false,
-            '*' => true,
-            'self' => false,
+            '*' => false,
+            'self' => true,
             'origins' => [],
         ],
 
@@ -286,7 +392,14 @@ return [
         'publickey-credentials-get' => [
             'none' => false,
             '*' => false,
-            'self' => true,
+            'self' => false,
+            'origins' => [],
+        ],
+
+        'serial' => [
+            'none' => false,
+            '*' => false,
+            'self' => false,
             'origins' => [],
         ],
 
@@ -294,20 +407,79 @@ return [
         'screen-wake-lock' => [
             'none' => false,
             '*' => false,
-            'self' => true,
+            'self' => false,
+            'origins' => [],
+        ],
+
+        'speaker-selection' => [
+            'none' => false,
+            '*' => false,
+            'self' => false,
+            'origins' => [],
+        ],
+
+        'sync-script' => [
+            'none' => false,
+            '*' => false,
+            'self' => false,
             'origins' => [],
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy/sync-xhr
         'sync-xhr' => [
             'none' => false,
-            '*' => true,
+            '*' => false,
+            'self' => false,
+            'origins' => [],
+        ],
+
+        'trust-token-redemption' => [
+            'none' => false,
+            '*' => false,
+            'self' => false,
+            'origins' => [],
+        ],
+
+        'unload' => [
+            'none' => false,
+            '*' => false,
             'self' => false,
             'origins' => [],
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy/usb
         'usb' => [
+            'none' => false,
+            '*' => false,
+            'self' => false,
+            'origins' => [],
+        ],
+
+        // https://github.com/w3c/webappsec-permissions-policy/blob/main/policies/vertical_scroll.md
+        'vertical-scroll' => [
+            'none' => false,
+            '*' => false,
+            'self' => true,
+            'origins' => [],
+        ],
+
+        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy/web-share
+        'web-share' => [
+            'none' => false,
+            '*' => false,
+            'self' => true,
+            'origins' => [],
+        ],
+
+        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy/window-management
+        'window-management' => [
+            'none' => false,
+            '*' => false,
+            'self' => false,
+            'origins' => [],
+        ],
+
+        'xr-spatial-tracking' => [
             'none' => false,
             '*' => false,
             'self' => false,
