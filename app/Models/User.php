@@ -16,6 +16,7 @@ use TaylorNetwork\UsernameGenerator\GeneratesUsernames;
 class User extends Authenticatable implements MustVerifyEmail
 {
     use FindSimilarUsernames;
+
     // Automatically generate cuid2 for the model
     // Reference: https://github.com/Parables/laravel-cuid2
     use GeneratesCuid;
@@ -24,7 +25,6 @@ class User extends Authenticatable implements MustVerifyEmail
     use HasCommunities;
     use HasFactory;
     use Notifiable;
-
     use TwoFactorAuthenticatable;
 
     /**
