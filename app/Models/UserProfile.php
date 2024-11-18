@@ -17,7 +17,6 @@ class UserProfile extends Authenticatable implements MustVerifyEmail
     use GeneratesCuid;
     use HasFactory;
     use HasProfilePhoto;
-
     use Notifiable;
 
     /**

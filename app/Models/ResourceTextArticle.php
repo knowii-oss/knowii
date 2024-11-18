@@ -16,7 +16,6 @@ class ResourceTextArticle extends Model
     // Automatically generate cuid2 for the model
     // Reference: https://github.com/Parables/laravel-cuid2
     use GeneratesCuid;
-
     use HasFactory;
 
     /**
