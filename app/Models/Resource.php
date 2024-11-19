@@ -45,6 +45,42 @@ use Parables\Cuid\GeneratesCuid;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read Collection<int, ResourceTextArticle> $textArticles
+ * @property-read int|null $text_articles_count
+ *
+ * @method static \Database\Factories\ResourceFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource findSimilarSlugs(string $attribute, array $config, string $slug)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereAiSummary($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereCheckFailuresCount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereCoverImageAlt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereCoverImageBase64($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereCoverImageUrl($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereCuid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereExcerpt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereIsFeatured($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereIsUnavailable($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereKeywords($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereLanguage($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereLastCapturedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereLastCheckedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereLevel($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereModifiedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource wherePublishedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereShareCount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereSlug($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereUrl($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereViewCount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
+ *
+ * @mixin \Eloquent
  */
 class Resource extends Model
 {

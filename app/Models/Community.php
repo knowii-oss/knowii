@@ -29,6 +29,31 @@ use Parables\Cuid\GeneratesCuid;
  * @property Carbon $updated_at
  * @property-read Collection<int, CommunityResourceCollection> $communityResourceCollections
  * @property-read Collection<int, User> $users
+ * @property int $owner_id
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CommunityInvitation> $communityInvitations
+ * @property-read int|null $community_invitations_count
+ * @property-read int|null $community_resource_collections_count
+ * @property-read \App\Models\User $owner
+ * @property-read \App\Models\CommunityMember|null $communityMember
+ * @property-read int|null $users_count
+ *
+ * @method static \Database\Factories\CommunityFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Community findSimilarSlugs(string $attribute, array $config, string $slug)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Community newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Community newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Community query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Community whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Community whereCuid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Community whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Community whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Community whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Community whereOwnerId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Community whereSlug($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Community whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Community whereVisibility($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Community withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
+ *
+ * @mixin \Eloquent
  */
 class Community extends Model
 {

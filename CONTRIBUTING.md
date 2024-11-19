@@ -578,10 +578,13 @@ Workflow and commands:
   - `git push -u origin feature/<name>`
 - work on your feature branch
   - checkout the branch: `git checkout feature/<name>`
-  - make changes: `git add ...` then `git commit -m '...'`
+  - make changes
+  - if you have made changes to model classes, then make sure to update the PHPdoc manually
+  - if you have made changes to database migrations, then make sure to update the PHPdoc: `npm run generate-phpdoc`
+  - ensure that the code is formatted correctly: `npm run format`
+  - ensure that the code quality is maintained: `npm run lint`
   - regularly commit the changes: `git commit -a -m 'refactor(core): made it great again'`
-- ensure that the code is formatted correctly: `npm run format`
-- ensure that the code quality is maintained: `npm run lint`
+- if needed, rebase your commits for a clearer change history
 - push the changes to your fork's corresponding feature branch: `git push`
 - update your fork/feature branch with upstream changes
   - first fetch the changes: `git fetch upstream`
