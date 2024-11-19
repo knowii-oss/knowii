@@ -23,6 +23,9 @@ trait ProcessHtml
         return Purifier::clean($html);
     }
 
+    /**
+     * @return array<string,string>
+     */
     final public function getHtmlPageMeta(string $html): array
     {
         $metaArray = [];
@@ -248,6 +251,9 @@ trait ProcessHtml
         return $retVal;
     }
 
+    /**
+     * @return list<string>
+     */
     final public function getHtmlKeywords(string $html): array
     {
         $retVal = [];

@@ -7,6 +7,7 @@ use App\Events\CommunityResourceCollections\CommunityResourceCollectionDeleted;
 use App\Events\CommunityResourceCollections\CommunityResourceCollectionUpdated;
 use Carbon\Carbon;
 use Cviebrock\EloquentSluggable\Sluggable;
+use Database\Factories\CommunityResourceCollectionFactory;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -30,7 +31,7 @@ use Parables\Cuid\GeneratesCuid;
  * @property-read int|null $community_resources_count
  *
  * @method static \Database\Factories\CommunityResourceCollectionFactory factory($count = null, $state = [])
- * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResourceCollection findSimilarSlugs(string $attribute, array $config, string $slug)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResourceCollection findSimilarSlugs(string $attribute, array<mixed> $config, string $slug)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResourceCollection newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResourceCollection newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResourceCollection query()
@@ -42,7 +43,7 @@ use Parables\Cuid\GeneratesCuid;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResourceCollection whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResourceCollection whereSlug($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResourceCollection whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResourceCollection withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResourceCollection withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array<mixed> $config, string $slug)
  *
  * @mixin \Eloquent
  */
@@ -51,6 +52,8 @@ class CommunityResourceCollection extends Model
     // Automatically generate cuid2 for the model
     // Reference: https://github.com/Parables/laravel-cuid2
     use GeneratesCuid;
+
+    /** @use HasFactory<CommunityResourceCollectionFactory> */
     use HasFactory;
 
     // Automatically generate slugs

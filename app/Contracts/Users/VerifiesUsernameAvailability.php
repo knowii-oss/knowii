@@ -2,13 +2,12 @@
 
 namespace App\Contracts\Users;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Foundation\Auth\User;
+use App\Models\User;
 
-/**
- * @method Model verify(User $user, array $input)
- */
 interface VerifiesUsernameAvailability
 {
-    //
+    /**
+     * @param  array<string,string>  $input
+     */
+    public function verify(User $user, array $input): bool;
 }

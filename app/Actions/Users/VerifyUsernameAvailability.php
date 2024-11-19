@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class VerifyUsernameAvailability implements VerifiesUsernameAvailability
 {
@@ -17,7 +18,7 @@ class VerifyUsernameAvailability implements VerifiesUsernameAvailability
      *
      * @return bool true if available
      *
-     * @throws TechnicalException
+     * @throws TechnicalException|ValidationException
      */
     final public function verify(User $user, array $input): bool
     {

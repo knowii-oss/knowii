@@ -6,6 +6,7 @@ use App\Events\CommunityResources\CommunityResourceCreated;
 use App\Events\CommunityResources\CommunityResourceDeleted;
 use App\Events\CommunityResources\CommunityResourceUpdated;
 use Carbon\Carbon;
+use Database\Factories\CommunityResourceFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -58,6 +59,8 @@ class CommunityResource extends Model
     // Automatically generate cuid2 for the model
     // Reference: https://github.com/Parables/laravel-cuid2
     use GeneratesCuid;
+
+    /** @use HasFactory<CommunityResourceFactory> */
     use HasFactory;
 
     /**

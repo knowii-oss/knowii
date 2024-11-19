@@ -3,13 +3,13 @@
 namespace App\Contracts\CommunityResourceCollections;
 
 use App\Models\Community;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Foundation\Auth\User;
+use App\Models\CommunityResourceCollection;
+use App\Models\User;
 
-/**
- * @method Model create(User $user, Community $community, array $input)
- */
 interface CreatesCommunityResourceCollections
 {
-    //
+    /**
+     * @param  array<mixed>  $input
+     */
+    public function create(User $user, Community $community, array $input): CommunityResourceCollection;
 }

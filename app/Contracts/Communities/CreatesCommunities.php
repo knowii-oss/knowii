@@ -2,13 +2,13 @@
 
 namespace App\Contracts\Communities;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Foundation\Auth\User;
+use App\Models\Community;
+use App\Models\User;
 
-/**
- * @method Model create(User $user, array $input)
- */
 interface CreatesCommunities
 {
-    //
+    /**
+     * @param  array<mixed>  $input
+     */
+    public function create(User $user, array $input): Community;
 }

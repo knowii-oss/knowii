@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\HasCommunities;
 use Carbon\Carbon;
+use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -72,7 +73,10 @@ class User extends Authenticatable implements MustVerifyEmail
     use GeneratesUsernames;
     use HasApiTokens;
     use HasCommunities;
+
+    /** @use HasFactory<UserFactory> */
     use HasFactory;
+
     use Notifiable;
     use TwoFactorAuthenticatable;
 

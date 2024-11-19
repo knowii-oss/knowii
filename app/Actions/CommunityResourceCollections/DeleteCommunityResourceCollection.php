@@ -2,7 +2,7 @@
 
 namespace App\Actions\CommunityResourceCollections;
 
-use App\Contracts\Communities\DeletesCommunities;
+use App\Contracts\CommunityResourceCollections\DeletesCommunityResourceCollections;
 use App\Exceptions\TechnicalException;
 use App\Models\CommunityResourceCollection;
 use App\Models\User;
@@ -11,7 +11,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
-class DeleteCommunityResourceCollection implements DeletesCommunities
+class DeleteCommunityResourceCollection implements DeletesCommunityResourceCollections
 {
     /**
      * Delete the given resource collection.

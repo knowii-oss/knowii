@@ -11,6 +11,8 @@ interface CreatesTextResources
 {
     /**
      * Create a new resource.
+     *
+     * @param  array<mixed>  $input
      */
     public function create(User $user, Community $community, CommunityResourceCollection $communityResourceCollection, array $input): CommunityResource;
 }

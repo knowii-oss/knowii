@@ -13,6 +13,9 @@ enum KnowiiCommunityMemberRole: string
         return implode(',', array_column(self::cases(), 'value'));
     }
 
+    /**
+     * @return list<string>
+     */
     public static function toStringArray(): array
     {
         return array_column(self::cases(), 'value');
