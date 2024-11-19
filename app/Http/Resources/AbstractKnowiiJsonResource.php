@@ -4,9 +4,12 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @property bool $serializeLargeFields
+ */
 class AbstractKnowiiJsonResource extends JsonResource
 {
-    protected $serializeLargeFields;
+    protected bool $serializeLargeFields;
 
     public function __construct($resource, bool $serializeLargeFields = false)
     {

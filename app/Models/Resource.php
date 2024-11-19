@@ -7,12 +7,45 @@ use App\Enums\KnowiiResourceType;
 use App\Events\Resources\ResourceCreated;
 use App\Events\Resources\ResourceDeleted;
 use App\Events\Resources\ResourceUpdated;
+use Carbon\Carbon;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 use Parables\Cuid\GeneratesCuid;
 
+/**
+ * App\Models\Resource
+ *
+ * @property int $id
+ * @property string $cuid
+ * @property string $name
+ * @property string $slug
+ * @property string|null $description
+ * @property string|null $excerpt
+ * @property array<string,string> $keywords // FIXME invalid type?
+ * @property string|null $ai_summary
+ * @property Carbon|null $published_at
+ * @property Carbon|null $modified_at
+ * @property string|null $language
+ * @property string|null $url
+ * @property string|null $cover_image_url
+ * @property string|null $cover_image_alt
+ * @property string|null $cover_image_base64
+ * @property KnowiiResourceType $type
+ * @property KnowiiResourceLevel $level
+ * @property bool $is_featured
+ * @property int $view_count
+ * @property int $share_count
+ * @property Carbon|null $last_captured_at
+ * @property Carbon|null $last_checked_at
+ * @property int|null $check_failures_count
+ * @property bool|null $is_unavailable
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ * @property-read Collection<int, ResourceTextArticle> $textArticles
+ */
 class Resource extends Model
 {
     // Automatically generate cuid2 for the model
@@ -116,6 +149,9 @@ class Resource extends Model
         ];
     }
 
+    /**
+     * @return HasMany<ResourceTextArticle, covariant $this>
+     */
     final public function textArticles(): HasMany
     {
         return $this->hasMany(ResourceTextArticle::class);

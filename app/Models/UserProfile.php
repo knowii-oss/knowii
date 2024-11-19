@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Constants;
+use Carbon\Carbon;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -10,6 +11,46 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Parables\Cuid\GeneratesCuid;
 
+/**
+ * App\Models\UserProfile
+ *
+ * @property int $id
+ * @property string $cuid
+ * @property int|null $user_id
+ * @property string|null $username
+ * @property string $name
+ * @property string|null $email
+ * @property string|null $profile_photo_path
+ * @property string|null $bio
+ * @property string|null $location
+ * @property string|null $phone
+ * @property string|null $social_link_website
+ * @property string|null $social_link_newsletter
+ * @property string|null $social_link_x
+ * @property string|null $social_link_mastodon
+ * @property string|null $social_link_bluesky
+ * @property string|null $social_link_threads_dot_net
+ * @property string|null $social_link_linkedin
+ * @property string|null $social_link_facebook
+ * @property string|null $social_link_instagram
+ * @property string|null $social_link_reddit
+ * @property string|null $social_link_medium
+ * @property string|null $social_link_substack
+ * @property string|null $social_link_hackernews
+ * @property string|null $social_link_hashnode
+ * @property string|null $social_link_dev_dot_to
+ * @property string|null $social_link_youtube
+ * @property string|null $social_link_tiktok
+ * @property string|null $social_link_twitch
+ * @property string|null $social_link_gumroad
+ * @property string|null $social_link_buymeacoffee
+ * @property string|null $social_link_patreon
+ * @property string|null $social_link_producthunt
+ * @property string|null $social_link_github
+ * @property string|null $social_link_gitlab
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ */
 class UserProfile extends Authenticatable implements MustVerifyEmail
 {
     // Automatically generate cuid2 for the model
@@ -64,7 +105,6 @@ class UserProfile extends Authenticatable implements MustVerifyEmail
      * @var array<int, string>
      */
     protected $appends = [
-        'profile_photo_url',
     ];
 
     /**

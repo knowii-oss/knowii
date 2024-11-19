@@ -5,12 +5,27 @@ namespace App\Models;
 use App\Events\Resources\TextArticles\ResourceTextArticleCreated;
 use App\Events\Resources\TextArticles\ResourceTextArticleDeleted;
 use App\Events\Resources\TextArticles\ResourceTextArticleUpdated;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 use Parables\Cuid\GeneratesCuid;
 
+/**
+ * @property int $id
+ * @property string $cuid
+ * @property int $resource_id
+ * @property string|null $markdown
+ * @property string|null $html
+ * @property int|null $word_count
+ * @property int|null $reading_time
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ * @property \App\Models\Resource $resource
+ * @property-read Collection<int, CommunityResource> $communityResources
+ */
 class ResourceTextArticle extends Model
 {
     // Automatically generate cuid2 for the model
@@ -68,6 +83,8 @@ class ResourceTextArticle extends Model
 
     /**
      * Get the global resource that this text article corresponds to.
+     *
+     * @return BelongsTo<Resource, covariant $this>
      */
     final public function resource(): BelongsTo
     {
@@ -76,6 +93,8 @@ class ResourceTextArticle extends Model
 
     /**
      * Get all of the community resources that reference this.
+     *
+     * @return HasMany<CommunityResource, covariant $this>
      */
     final public function communityResources(): HasMany
     {

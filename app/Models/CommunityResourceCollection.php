@@ -5,13 +5,29 @@ namespace App\Models;
 use App\Events\CommunityResourceCollections\CommunityResourceCollectionCreated;
 use App\Events\CommunityResourceCollections\CommunityResourceCollectionDeleted;
 use App\Events\CommunityResourceCollections\CommunityResourceCollectionUpdated;
+use Carbon\Carbon;
 use Cviebrock\EloquentSluggable\Sluggable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Parables\Cuid\GeneratesCuid;
 
+/**
+ * App\Models\CommunityResourceCollection
+ *
+ * @property int $id
+ * @property string $cuid
+ * @property int $community_id
+ * @property string $name
+ * @property string $slug
+ * @property string $description
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ * @property Community $community
+ * @property-read Collection<int, CommunityResource> $communityResources
+ */
 class CommunityResourceCollection extends Model
 {
     // Automatically generate cuid2 for the model
@@ -70,6 +86,8 @@ class CommunityResourceCollection extends Model
 
     /**
      * Get the community that this belongs to
+     *
+     * @return BelongsTo<Community, covariant $this>
      */
     final public function community(): BelongsTo
     {
@@ -78,6 +96,8 @@ class CommunityResourceCollection extends Model
 
     /**
      * Get the community resources associated with this collection
+     *
+     * @return HasMany<CommunityResource, covariant $this>
      */
     final public function communityResources(): HasMany
     {
@@ -95,6 +115,8 @@ class CommunityResourceCollection extends Model
     /**
      * Return the sluggable configuration array for this model.
      * Reference: https://github.com/cviebrock/eloquent-sluggable
+     *
+     * @return array<string,string>
      */
     final public function sluggable(): array
     {

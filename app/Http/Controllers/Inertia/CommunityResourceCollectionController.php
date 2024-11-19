@@ -19,8 +19,6 @@ class CommunityResourceCollectionController extends Controller
 
     /**
      * Show a resource collection.
-     *
-     * @param  string  $slug
      */
     public function show(Request $request, string $communitySlug, string $resourceCollectionSlug): Response
     {

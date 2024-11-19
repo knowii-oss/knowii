@@ -13,7 +13,7 @@ use TaylorNetwork\UsernameGenerator\Generator;
 use Visus\Cuid2\Cuid2;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
+ * @extends Factory<User>
  */
 class UserFactory extends Factory
 {

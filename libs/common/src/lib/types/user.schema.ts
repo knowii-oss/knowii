@@ -19,8 +19,6 @@ export const userProfileSchema = z
   .object({
     name: z.string(),
     username: z.string().nullable(),
-    profile_photo_path: z.string().nullable(),
-    profile_photo_url: z.string(),
     bio: z.string().nullable(),
     location: z.string().nullable(),
     phone: z.string().nullable(),

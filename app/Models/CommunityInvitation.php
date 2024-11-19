@@ -4,8 +4,20 @@ namespace App\Models;
 
 use App\CommunityInvitation as KnowiiCommunityInvitation;
 use App\Enums\KnowiiCommunityMemberRole;
+use Carbon\Carbon;
 use Parables\Cuid\GeneratesCuid;
 
+/**
+ * Community invitations
+ *
+ * @property int $id
+ * @property string $cuid
+ * @property int $community_id
+ * @property string $email
+ * @property KnowiiCommunityMemberRole $role
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ */
 class CommunityInvitation extends KnowiiCommunityInvitation
 {
     // Automatically generate cuid2 for the model

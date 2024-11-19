@@ -40,7 +40,7 @@ type UpdateProfileInformationFormData = { photo: File | null } & Omit<
   CurrentUser,
   'created_at' | 'updated_at' | 'email_verified_at' | 'cuid' | 'two_factor_enabled' | 'two_factor_confirmed_at'
 > &
-  Omit<UserProfile, 'profile_photo_path' | 'profile_photo_url' | 'username'>;
+  Omit<UserProfile, 'username'>;
 
 export default function UpdateProfileInformationForm(props: Props) {
   const route = useRoute();
