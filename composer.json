@@ -30,6 +30,7 @@
     "visus/cuid2": "^4.1"
   },
   "require-dev": {
+    "barryvdh/laravel-ide-helper": "^3.2",
     "fakerphp/faker": "^1.23",
     "larastan/larastan": "^3.0",
     "laravel/pint": "^1.13",
@@ -80,12 +81,19 @@
     "format": [
       "./vendor/bin/pint"
     ],
+    "generate-phpdoc": [
+      "sail php artisan ide-helper:models --write --no-interaction",
+      "composer format"
+    ],
     "post-autoload-dump": [
       "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
       "@php artisan package:discover --ansi"
     ],
     "post-update-cmd": [
-      "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+      "@php artisan vendor:publish --tag=laravel-assets --ansi --force",
+      "Illuminate\\Foundation\\ComposerScripts::postUpdate",
+      "@php artisan ide-helper:generate",
+      "@php artisan ide-helper:meta"
     ],
     "post-root-package-install": [
       "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
@@ -98,7 +106,9 @@
   },
   "extra": {
     "laravel": {
-      "dont-discover": []
+      "dont-discover": [
+        "barryvdh/laravel-ide-helper"
+      ]
     }
   },
   "config": {

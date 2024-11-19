@@ -27,6 +27,24 @@ use Parables\Cuid\GeneratesCuid;
  * @property Carbon $updated_at
  * @property Community $community
  * @property-read Collection<int, CommunityResource> $communityResources
+ * @property-read int|null $community_resources_count
+ *
+ * @method static \Database\Factories\CommunityResourceCollectionFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResourceCollection findSimilarSlugs(string $attribute, array $config, string $slug)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResourceCollection newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResourceCollection newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResourceCollection query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResourceCollection whereCommunityId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResourceCollection whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResourceCollection whereCuid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResourceCollection whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResourceCollection whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResourceCollection whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResourceCollection whereSlug($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResourceCollection whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResourceCollection withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
+ *
+ * @mixin \Eloquent
  */
 class CommunityResourceCollection extends Model
 {

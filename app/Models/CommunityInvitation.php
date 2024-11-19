@@ -17,6 +17,20 @@ use Parables\Cuid\GeneratesCuid;
  * @property KnowiiCommunityMemberRole $role
  * @property Carbon $created_at
  * @property Carbon $updated_at
+ * @property-read \App\Models\Community $community
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityInvitation newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityInvitation newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityInvitation query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityInvitation whereCommunityId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityInvitation whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityInvitation whereCuid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityInvitation whereEmail($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityInvitation whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityInvitation whereRole($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityInvitation whereUpdatedAt($value)
+ *
+ * @mixin \Eloquent
  */
 class CommunityInvitation extends KnowiiCommunityInvitation
 {

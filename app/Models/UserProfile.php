@@ -50,6 +50,52 @@ use Parables\Cuid\GeneratesCuid;
  * @property string|null $social_link_gitlab
  * @property Carbon $created_at
  * @property Carbon $updated_at
+ * @property-read \Illuminate\Notifications\DatabaseNotificationCollection<int, \Illuminate\Notifications\DatabaseNotification> $notifications
+ * @property-read int|null $notifications_count
+ * @property-read string $profile_photo_url
+ *
+ * @method static \Database\Factories\UserProfileFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereBio($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereCuid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereEmail($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereLocation($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile wherePhone($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereProfilePhotoPath($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkBluesky($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkBuymeacoffee($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkDevDotTo($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkFacebook($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkGithub($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkGitlab($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkGumroad($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkHackernews($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkHashnode($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkInstagram($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkLinkedin($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkMastodon($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkMedium($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkNewsletter($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkPatreon($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkProducthunt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkReddit($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkSubstack($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkThreadsDotNet($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkTiktok($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkTwitch($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkWebsite($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkX($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkYoutube($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereUsername($value)
+ *
+ * @mixin \Eloquent
  */
 class UserProfile extends Authenticatable implements MustVerifyEmail
 {

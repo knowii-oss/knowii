@@ -17,6 +17,19 @@ use Parables\Cuid\GeneratesCuid;
  * @property KnowiiCommunityMemberRole $role
  * @property Carbon $created_at
  * @property Carbon $updated_at
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityMember newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityMember newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityMember query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityMember whereCommunityId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityMember whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityMember whereCuid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityMember whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityMember whereRole($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityMember whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityMember whereUserId($value)
+ *
+ * @mixin \Eloquent
  */
 class CommunityMember extends Pivot
 {

@@ -29,8 +29,29 @@ use Parables\Cuid\GeneratesCuid;
  * @property \App\Models\Community $community
  * @property \App\Models\Resource $resource
  * @property \App\Models\CommunityResourceCollection $collection
- * @property \App\Models\ResourceTextArticle|null $resourceTextArticle
  * @property \App\Models\UserProfile $curator
+ * @property int $collection_id
+ * @property-read \App\Models\ResourceTextArticle|null $textArticle
+ *
+ * @method static \Database\Factories\CommunityResourceFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereCollectionId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereCommunityId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereCuid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereCuratorId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereIsFeatured($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereResourceId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereResourceTextArticleId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereSlug($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereUpdatedAt($value)
+ *
+ * @mixin \Eloquent
  */
 class CommunityResource extends Model
 {

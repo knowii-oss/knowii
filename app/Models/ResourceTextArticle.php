@@ -25,6 +25,23 @@ use Parables\Cuid\GeneratesCuid;
  * @property Carbon $updated_at
  * @property \App\Models\Resource $resource
  * @property-read Collection<int, CommunityResource> $communityResources
+ * @property-read int|null $community_resources_count
+ *
+ * @method static \Database\Factories\ResourceTextArticleFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ResourceTextArticle newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ResourceTextArticle newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ResourceTextArticle query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ResourceTextArticle whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ResourceTextArticle whereCuid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ResourceTextArticle whereHtml($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ResourceTextArticle whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ResourceTextArticle whereMarkdown($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ResourceTextArticle whereReadingTime($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ResourceTextArticle whereResourceId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ResourceTextArticle whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ResourceTextArticle whereWordCount($value)
+ *
+ * @mixin \Eloquent
  */
 class ResourceTextArticle extends Model
 {
