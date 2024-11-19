@@ -580,6 +580,8 @@ Workflow and commands:
   - checkout the branch: `git checkout feature/<name>`
   - make changes: `git add ...` then `git commit -m '...'`
   - regularly commit the changes: `git commit -a -m 'refactor(core): made it great again'`
+- ensure that the code is formatted correctly: `npm run format`
+- ensure that the code quality is maintained: `npm run lint`
 - push the changes to your fork's corresponding feature branch: `git push`
 - update your fork/feature branch with upstream changes
   - first fetch the changes: `git fetch upstream`

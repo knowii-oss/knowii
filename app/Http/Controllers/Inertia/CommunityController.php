@@ -23,7 +23,7 @@ class CommunityController extends Controller
      */
     public function show(Request $request, string $slug): Response
     {
-        $community = (new Community)->where('slug', $slug)->firstOrFail();
+        $community = Community::where('slug', $slug)->firstOrFail();
 
         $communityResourceCollections = $community->communityResourceCollections()
             ->orderBy('name')

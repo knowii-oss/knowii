@@ -3,7 +3,8 @@
 - Carbon|null --> ?Carbon
 - Add all fields for all models
 - Add type for methods that return collections: @return Collection<Order>
-- Add script for LaraStan: ./vendor/bin/phpstan analyse --memory-limit=2G
+- Use @property-read for relationships
+- Use @property-read for id and cuid fields
 - Test policies: https://laracasts.com/discuss/channels/laravel/testing-policies
 - Add Settings screen for resource collections
 - Implement delete community resource API
