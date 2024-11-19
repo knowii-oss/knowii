@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\CommunityResource;
 use App\Models\Community;
 use App\Traits\ApiResponses;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -17,6 +18,9 @@ class CommunityApiController extends Controller
 {
     use ApiResponses;
 
+    /**
+     * @throws AuthenticationException
+     */
     final public function store(Request $request): JsonResponse
     {
         Log::info('Processing API request to create a new community.');
@@ -27,18 +31,21 @@ class CommunityApiController extends Controller
         Log::debug('Input', [$input]);
 
         $creator = app(CreatesCommunities::class);
-        $createdItem = $creator->create($request->user(), $input);
+        $createdItem = $creator->create($request->user() ?? throw new AuthenticationException('User must be authenticated'), $input);
 
         return self::created(new CommunityResource($createdItem, true), 'Community created successfully');
     }
 
+    /**
+     * @throws AuthenticationException
+     */
     final public function destroy(Request $request, Community $community): Response
     {
         Log::info('Processing API request to delete a community.');
         Log::debug('User: ', [$request->user()]);
 
         $deleter = app(DeletesCommunities::class);
-        $deleter->delete($request->user(), $community);
+        $deleter->delete($request->user() ?? throw new AuthenticationException('User must be authenticated'), $community);
 
         return self::deleted();
     }

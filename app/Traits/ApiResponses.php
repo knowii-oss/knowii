@@ -19,7 +19,7 @@ trait ApiResponses
      *
      * @param  ?array<mixed>  $metadata
      */
-    final public static function created(JsonResource $data, ?string $message = 'Success', ?array $metadata = null): JsonResponse
+    final public static function created(JsonResource $data, string $message = 'Success', ?array $metadata = null): JsonResponse
     {
         return self::success($message, $metadata, $data, Response::HTTP_CREATED);
     }
@@ -38,7 +38,7 @@ trait ApiResponses
      * @param  ?array<mixed>  $metadata
      * @param  array<mixed>|JsonResource|null  $data
      */
-    final public static function success(string $message = 'Success', ?array $metadata = null, array|JsonResource|null $data = null, ?int $statusCode = Response::HTTP_OK): JsonResponse
+    final public static function success(string $message = 'Success', ?array $metadata = null, array|JsonResource|null $data = null, int $statusCode = Response::HTTP_OK): JsonResponse
     {
         $knowiiResponse = new KnowiiApiResponse(KnowiiApiResponseCategory::Business, KnowiiApiResponseType::Success, $message, $metadata, $data, null);
 
@@ -74,7 +74,7 @@ trait ApiResponses
     /**
      * Return a not found issue response.
      */
-    final public static function notFoundIssue(?string $message = 'Not found'): JsonResponse
+    final public static function notFoundIssue(string $message = 'Not found'): JsonResponse
     {
         $knowiiResponse = new KnowiiApiResponse(KnowiiApiResponseCategory::Technical, KnowiiApiResponseType::NotFound, $message, null, null, null);
 

@@ -27,7 +27,12 @@ class UserApiController extends Controller
 
         Log::info('Input', [$request->all()]);
 
-        $usernameIsAvailable = $checker->verify($request->user(), $request->all());
+        $usernameIsAvailable = false;
+        $user = $request->user();
+
+        if ($user) {
+            $usernameIsAvailable = $checker->verify($user, $request->all());
+        }
 
         return self::success('Username availability check completed', null, ['isUsernameAvailable' => $usernameIsAvailable]);
     }

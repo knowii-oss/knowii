@@ -9,6 +9,7 @@ use App\Http\Resources\CommunityResourceCollectionResource;
 use App\Models\Community;
 use App\Models\CommunityResourceCollection;
 use App\Traits\ApiResponses;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -18,6 +19,9 @@ class CommunityResourceCollectionApiController extends Controller
 {
     use ApiResponses;
 
+    /**
+     * @throws AuthenticationException
+     */
     final public function store(Request $request, Community $community): JsonResponse
     {
         Log::info('Processing API request to create a new community resource collection.');
@@ -28,7 +32,7 @@ class CommunityResourceCollectionApiController extends Controller
         Log::debug('Input', [$input]);
 
         $creator = app(CreatesCommunityResourceCollections::class);
-        $createdItem = $creator->create($request->user(), $community, $input);
+        $createdItem = $creator->create($request->user() ?? throw new AuthenticationException('User must be authenticated'), $community, $input);
 
         return self::created(
             new CommunityResourceCollectionResource($createdItem, true),
@@ -36,13 +40,16 @@ class CommunityResourceCollectionApiController extends Controller
         );
     }
 
+    /**
+     * @throws AuthenticationException
+     */
     final public function destroy(Request $request, Community $community, CommunityResourceCollection $communityResourceCollection): Response
     {
         Log::info('Processing API request to delete a resource collection.');
         Log::debug('User: ', [$request->user()]);
 
         $deleter = app(DeletesCommunityResourceCollections::class);
-        $deleter->delete($request->user(), $communityResourceCollection);
+        $deleter->delete($request->user() ?? throw new AuthenticationException('User must be authenticated'), $communityResourceCollection);
 
         return self::deleted();
     }

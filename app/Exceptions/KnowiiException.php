@@ -24,7 +24,7 @@ abstract class KnowiiException extends Exception
      */
     public function __construct($message = 'Knowii Exception', $code = 0, ?Exception $previous = null, array $errors = [], ?array $metadata = null)
     {
-        parent::__construct($message, $code, $previous);
+        parent::__construct($message, $code ?? 0, $previous);
         $this->errors = $errors;
         $this->metadata = $metadata;
     }

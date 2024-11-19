@@ -8,6 +8,7 @@ use App\Http\Resources\CommunityResourceResource;
 use App\Models\Community;
 use App\Models\CommunityResourceCollection;
 use App\Traits\ApiResponses;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -18,6 +19,8 @@ class ResourceTextArticleApiController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     *
+     * @throws AuthenticationException
      */
     final public function store(Request $request, Community $community, CommunityResourceCollection $communityResourceCollection): JsonResponse
     {
@@ -31,7 +34,7 @@ class ResourceTextArticleApiController extends Controller
         $creator = app(CreatesTextResources::class);
 
         $createdResource = $creator->create(
-            $request->user(),
+            $request->user() ?? throw new AuthenticationException('User must be authenticated'),
             $community,
             $communityResourceCollection,
             $input
