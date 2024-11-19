@@ -1,0 +1,7 @@
+<?php
+
+return [
+
+    'url' => env('BROWSERLESS_URL', 'PLEASE DEFINE THE BROWSERLESS URL'),
+    'token' => env('BROWSERLESS_TOKEN', 'PLEASE DEFINE THE BROWSERLESS TOKEN'),
+];

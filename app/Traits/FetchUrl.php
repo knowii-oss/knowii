@@ -25,8 +25,8 @@ trait FetchUrl
             // References
             // https://docs.browserless.io/http-apis/content
             // Alternative: https://docs.browserless.io/http-apis/scrape
-            $browserlessUrl = env('BROWSERLESS_URL');
-            $browserlessToken = env('BROWSERLESS_TOKEN');
+            $browserlessUrl = config('browserless.url');
+            $browserlessToken = config('browserless.token');
 
             if (empty($browserlessUrl) || empty($browserlessToken)) {
                 throw new TechnicalException('Browserless URL or token is not configured correctly.');
@@ -48,7 +48,7 @@ trait FetchUrl
                     'gotoOptions' => [
                         'timeout' => 10000,
                         'waitUntil' => 'networkidle2',
-                        'referer' => env('APP_URL'), // announce ourselves
+                        'referer' => config('app.url'), // announce ourselves
                     ],
                 ],
             ]);
