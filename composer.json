@@ -22,7 +22,7 @@
     "league/html-to-markdown": "^5.1",
     "mews/purifier": "^3.4",
     "parables/laravel-cuid2": "^1.0",
-    "resend/resend-php": "^0.13.0",
+    "resend/resend-php": "^0.14.0",
     "spatie/laravel-backup": "^9.0",
     "tartanlegrand/laravel-openapi": "^2.0",
     "taylornetwork/laravel-username-generator": "^2.8",
