@@ -166,10 +166,6 @@ trait FetchUrl
             $imageData = $response->getBody()->getContents();
             $base64Image = base64_encode($imageData);
 
-            if ($base64Image === false) {
-                throw new Exception('Failed to encode the image data to base64');
-            }
-
             return $base64Image;
         } catch (GuzzleException $e) {
             Log::error('Error while loading the image: '.$e->getMessage());

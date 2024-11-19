@@ -41,7 +41,7 @@ class CommunityInvitation extends KnowiiCommunityInvitation
     /**
      * The attributes that are mass assignable.
      *
-     * @var array<int, string>
+     * @var list<string>
      */
     protected $fillable = [
         'cuid',
@@ -52,7 +52,7 @@ class CommunityInvitation extends KnowiiCommunityInvitation
     /**
      * The attributes that should be hidden for serialization.
      *
-     * @var array<int, string>
+     * @var list<string>
      */
     protected $hidden = [
         'id',

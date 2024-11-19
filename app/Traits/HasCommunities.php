@@ -54,10 +54,6 @@ trait HasCommunities
      */
     final public function ownsCommunity(Community $community): bool
     {
-        if (is_null($community)) {
-            return false;
-        }
-
         return $this->id == $community->owner_id;
     }
 
@@ -66,10 +62,6 @@ trait HasCommunities
      */
     final public function belongsToCommunity(Community $community): bool
     {
-        if (is_null($community)) {
-            return false;
-        }
-
         return $this->ownsCommunity($community) || $this->communities->contains(function ($t) use ($community) {
             return $t->id === $community->id;
         });

@@ -53,7 +53,7 @@ class ResourceTextArticle extends Model
     /**
      * The attributes that are mass assignable.
      *
-     * @var array<int, string>
+     * @var list<string>
      */
     protected $fillable = [
         // WARNING: When new fields are added, this list should be updated!
@@ -68,7 +68,7 @@ class ResourceTextArticle extends Model
     /**
      * The attributes that should be hidden for serialization.
      *
-     * @var array<int, string>
+     * @var list<string>
      */
     protected $hidden = [
         'id',

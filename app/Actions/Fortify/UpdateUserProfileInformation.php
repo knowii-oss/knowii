@@ -7,7 +7,6 @@ use App\Contracts\Users\VerifiesUsernameAvailability;
 use App\Exceptions\TechnicalException;
 use App\Models\User;
 use App\Models\UserProfile;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -37,10 +36,6 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         ])->validateWithBag('updateProfileInformation');
 
         $userProfile = $user->profile;
-        if (! $userProfile) {
-            // Should never happen. User profiles MUST be created along with user accounts
-            throw new TechnicalException('User profile not found');
-        }
 
         // WARNING: Profile information updates are NOT allowed until the user has verified their email address
         // This is important to avoid abuse of the system where users register using a mail they don't own to take over an unclaimed user profile, and try to modify it
@@ -54,7 +49,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
                 $this->updateUsername($user, $userProfile, $input['username']);
             }
 
-            if ($input['email'] !== $user->email && $user instanceof MustVerifyEmail) {
+            if ($input['email'] !== $user->email) {
                 $this->updateVerifiedUser($user, $userProfile, $input);
             } else {
                 $this->updatedUnverifiedUser($user, $userProfile, $input);

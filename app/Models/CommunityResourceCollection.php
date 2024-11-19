@@ -60,7 +60,7 @@ class CommunityResourceCollection extends Model
     /**
      * The attributes that are mass assignable.
      *
-     * @var array<int, string>
+     * @var list<string>
      */
     protected $fillable = [
         // WARNING: When new fields are added, this list should be updated!
@@ -73,7 +73,7 @@ class CommunityResourceCollection extends Model
     /**
      * The attributes that should be hidden for serialization.
      *
-     * @var array<int, string>
+     * @var list<string>
      */
     protected $hidden = [
         'id',
@@ -134,7 +134,7 @@ class CommunityResourceCollection extends Model
      * Return the sluggable configuration array for this model.
      * Reference: https://github.com/cviebrock/eloquent-sluggable
      *
-     * @return array<string,string>
+     * @return array<string,array<string,string>>
      */
     final public function sluggable(): array
     {
