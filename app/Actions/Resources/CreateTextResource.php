@@ -51,7 +51,8 @@ class CreateTextResource implements CreatesTextResources
         Log::debug('Authorizations verified');
 
         Log::debug('Validating the input');
-        Validator::make($input, [
+
+        $validator = Validator::make($input, [
             'name' => ['required', 'string', 'min: '.Constants::$MIN_LENGTH_COMMUNITY_RESOURCE_NAME, 'max: '.Constants::$MAX_LENGTH_COMMUNITY_RESOURCE_NAME, 'regex: '.Constants::$ALLOWED_COMMUNITY_RESOURCE_NAME_CHARACTERS_REGEX],
 
             // Nullable allows empty strings to be passed in
@@ -61,7 +62,13 @@ class CreateTextResource implements CreatesTextResources
             'url' => ['required', 'url'],
             'level' => ['required', Rule::enum(KnowiiResourceLevel::class)],
         ]
-        )->validate();
+        );
+
+        $validator->validate();
+
+        /** @var array{name: string, description: string|null, url: string, level: string} $input */
+        $input = $validator->validated();
+
         Log::debug('Input validated');
 
         Log::debug('Verifying that the link does belong to a blacklisted domain');
@@ -89,6 +96,7 @@ class CreateTextResource implements CreatesTextResources
 
         $name = $input['name'];
         $description = $input['description'] ?? null;
+
         $level = KnowiiResourceLevel::from($input['level']);
 
         Log::debug('Cleaning up the URL');

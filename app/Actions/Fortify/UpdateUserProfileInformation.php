@@ -7,6 +7,7 @@ use App\Contracts\Users\VerifiesUsernameAvailability;
 use App\Exceptions\TechnicalException;
 use App\Models\User;
 use App\Models\UserProfile;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -25,8 +26,8 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     final public function update(User $user, array $input): void
     {
         // WARNING: Those rules must remain aligned with those in CreateNewUser.php
-        Validator::make($input, [
-            'name' => ['required', 'string', 'max:'.Constants::$MAX_LENGTH_USER_NAME],
+        $validator = Validator::make($input, [
+            'name' => ['string', 'max:'.Constants::$MAX_LENGTH_USER_NAME],
             // WARNING: Those rules must remain aligned with those in VerifyUsernameAvailability.php and with the client-side usernameSchema
             'username' => ['string', 'min:'.Constants::$MIN_LENGTH_USER_USERNAME, 'max:'.Constants::$MAX_LENGTH_USER_USERNAME, 'regex:'.Constants::$ALLOWED_USER_USERNAME_CHARACTERS_REGEX],
             'email' => ['required', 'email', 'max:'.Constants::$MAX_LENGTH_USER_EMAIL, Rule::unique('users')->ignore($user->id)],
@@ -35,7 +36,12 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'location' => ['nullable', 'string', 'max:'.Constants::$MAX_LENGTH_USER_LOCATION],
             'phone' => ['nullable', 'string', 'max:'.Constants::$MAX_LENGTH_USER_PHONE, 'regex:'.Constants::$USER_PHONE_REGEX],
             ...array_fill_keys(Constants::$SOCIAL_MEDIA_LINK_PROPERTIES, ['nullable', 'string', 'max:255']),
-        ])->validateWithBag('updateProfileInformation');
+        ]);
+
+        $validator->validateWithBag('updateProfileInformation');
+
+        /** @var array{name: string|null, username: string|null, email: string, photo:UploadedFile|null, bio: string|null, location: string|null, phone: string|null} $input */
+        $input = $validator->validated();
 
         $userProfile = $user->profile;
 

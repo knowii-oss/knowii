@@ -32,14 +32,19 @@ class CreateCommunityResourceCollection implements CreatesCommunityResourceColle
         Log::debug('Authorizations verified');
 
         Log::debug('Validating the input');
-        Validator::make($input, [
+        $validator = Validator::make($input, [
             // WARNING: The fields MUST also match the ones listed in CommunityResourceCollectionApiController
             'name' => ['required', 'string', 'min:'.Constants::$MIN_LENGTH_COMMUNITY_RESOURCE_COLLECTION_NAME, 'max:'.Constants::$MAX_LENGTH_COMMUNITY_RESOURCE_COLLECTION_NAME, 'regex:'.Constants::$ALLOWED_COMMUNITY_RESOURCE_COLLECTION_NAME_CHARACTERS_REGEX],
             // Nullable allows empty strings to be passed in
             // Note that the CommunityResource transforms null to an empty string
             // Reference: https://laravel.com/docs/11.x/validation#a-note-on-optional-fields
             'description' => ['nullable', 'string', 'max:'.Constants::$MAX_LENGTH_COMMUNITY_RESOURCE_COLLECTION_DESCRIPTION],
-        ])->validate();
+        ]);
+
+        $validator->validate();
+
+        /** @var array{name: string, description: string|null} $input */
+        $input = $validator->validated();
         Log::debug('Input validated');
 
         Log::debug('Saving the new community resource collection');

@@ -191,7 +191,7 @@ More details: https://laravel.com/docs/11.x/authorization
 
 ### Error handling
 
-- Validation should be done using `Validator::make(...)->validate()` calls. This will throw a `ValidationException` if the validation fails. Such exceptions will be converted automatically to a JSON response by the global exception handlers
+- Validation should be done using `$validator = Validator::make(...)` and `$validator->validate` calls. . This will throw a `ValidationException` if the validation fails. Such exceptions will be converted automatically to a JSON response by the global exception handlers
 - Validation constraints should use constants defined in the `App\Constants` class. Those should be reflected on the front-end as well in the `constants.ts` file
 - When there are business related problems, a `BusinessException` should be thrown. This exception should be caught in the global exception handler, and converted to a JSON response as well
 - Where there are other problems (e.g., unavailable database), a `TechnicalException` should be thrown. This exception should be caught in the global exception handler, and converted to a JSON response as well
