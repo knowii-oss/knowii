@@ -3,17 +3,24 @@
 namespace App\Traits;
 
 use App\Enums\KnowiiCommunityMemberRole;
-use App\Enums\KnowiiCommunityVisibility;
 use App\Models\Community;
 use App\Models\CommunityMember;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 
+/**
+ * @property-read Collection<int, Community> $allCommunities
+ * @property-read Collection<int, Community> $ownedCommunities
+ * @property-read Collection<int, Community> $communities
+ * @property Community $personalCommunity
+ */
 trait HasCommunities
 {
     /**
      * Get all of the communities the user owns or belongs to.
+     *
+     * @return Collection<Community>
      */
     final public function allCommunities(): Collection
     {
@@ -23,32 +30,23 @@ trait HasCommunities
     /**
      * Get all of the communities the user owns.
      *
-     * @return HasMany
+     * @return HasMany<Community, covariant $this>
      */
-    final public function ownedCommunities()
+    final public function ownedCommunities(): HasMany
     {
-        return $this->hasMany(Community::class);
+        return $this->hasMany(Community::class, 'owner_id');
     }
 
     /**
      * Get all of the communities the user belongs to.
      *
-     * @return BelongsToMany
+     * @return BelongsToMany<Community, covariant $this>
      */
-    final public function communities()
+    final public function communities(): BelongsToMany
     {
         return $this->belongsToMany(Community::class, CommunityMember::class)
             ->withPivot('role')
-            ->withTimestamps()
-            ->as('communityMember');
-    }
-
-    /**
-     * Get the user's "personal" community.
-     */
-    final public function personalCommunity(): Community
-    {
-        return $this->ownedCommunities->where('visibility', KnowiiCommunityVisibility::Personal)->first();
+            ->withTimestamps();
     }
 
     /**
@@ -65,10 +63,8 @@ trait HasCommunities
 
     /**
      * Determine if the user belongs to the given community.
-     *
-     * @return bool
      */
-    final public function belongsToCommunity(Community $community)
+    final public function belongsToCommunity(Community $community): bool
     {
         if (is_null($community)) {
             return false;
@@ -92,6 +88,12 @@ trait HasCommunities
             return true;
         }
 
-        return $community->users->where('id', $this->id)->first()->communityMember->role === $role;
+        $communityMember = $community->getMemberById($this->id);
+
+        if (! $communityMember) {
+            return false;
+        }
+
+        return $communityMember->role === $role;
     }
 }

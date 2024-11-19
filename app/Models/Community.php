@@ -6,6 +6,7 @@ use App\Enums\KnowiiCommunityVisibility;
 use App\Events\Communities\CommunityCreated;
 use App\Events\Communities\CommunityDeleted;
 use App\Events\Communities\CommunityUpdated;
+use Carbon\Carbon;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -15,6 +16,20 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 use Parables\Cuid\GeneratesCuid;
 
+/**
+ * App\Models\Community
+ *
+ * @property int $id
+ * @property string $cuid
+ * @property string $name
+ * @property string $slug
+ * @property string $description
+ * @property KnowiiCommunityVisibility $visibility
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ * @property-read Collection<int, CommunityResourceCollection> $communityResourceCollections
+ * @property-read Collection<int, User> $users
+ */
 class Community extends Model
 {
     // Automatically generate cuid2 for the model
@@ -77,6 +92,8 @@ class Community extends Model
 
     /**
      * Get the owner.
+     *
+     * @return BelongsTo<User, covariant $this>
      */
     final public function owner(): BelongsTo
     {
@@ -93,12 +110,13 @@ class Community extends Model
         return $this->users->merge([$this->owner]);
     }
 
+    // FIXME should it be BelongsToMany<User or CommunityMember ?
     /**
      * Get all of the users that belong to the community.
      *
-     * @return BelongsToMany
+     * @return BelongsToMany<User, covariant $this>
      */
-    final public function users()
+    final public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, CommunityMember::class)
             ->withPivot('role')
@@ -115,6 +133,17 @@ class Community extends Model
     }
 
     /**
+     * Get a community member by their user ID.
+     */
+    final public function getMemberById(int $userId): ?CommunityMember
+    {
+        return CommunityMember::query()
+            ->where('community_id', $this->id)
+            ->where('user_id', $userId)
+            ->first();
+    }
+
+    /**
      * Determine if the given email address belongs to a user in the community.
      */
     final public function hasUserWithEmail(string $email): bool
@@ -126,6 +155,8 @@ class Community extends Model
 
     /**
      * Get all of the pending user invitations for the community.
+     *
+     * @return HasMany<CommunityResourceCollection, covariant $this>
      */
     final public function communityResourceCollections(): HasMany
     {
@@ -135,7 +166,7 @@ class Community extends Model
     /**
      * Get the 10 most recent resources across all communityResourceCollections.
      *
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return Collection<CommunityResourceCollection>
      */
     final public function recentResources(): Collection
     {
@@ -150,6 +181,8 @@ class Community extends Model
 
     /**
      * Get all of the pending user invitations for the community.
+     *
+     * @return HasMany<CommunityInvitation, covariant $this>
      */
     final public function communityInvitations(): HasMany
     {

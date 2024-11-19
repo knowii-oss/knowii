@@ -5,11 +5,33 @@ namespace App\Models;
 use App\Events\CommunityResources\CommunityResourceCreated;
 use App\Events\CommunityResources\CommunityResourceDeleted;
 use App\Events\CommunityResources\CommunityResourceUpdated;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Parables\Cuid\GeneratesCuid;
 
+/**
+ * App\Models\CommunityResourceCollection
+ *
+ * @property int $id
+ * @property string $cuid
+ * @property string $slug
+ * @property string $name
+ * @property string|null $description
+ * @property int $resource_id
+ * @property int $community_id
+ * @property int|null $resource_text_article_id
+ * @property int|null $curator_id
+ * @property bool $is_featured
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ * @property \App\Models\Community $community
+ * @property \App\Models\Resource $resource
+ * @property \App\Models\CommunityResourceCollection $collection
+ * @property \App\Models\ResourceTextArticle|null $resourceTextArticle
+ * @property \App\Models\UserProfile $curator
+ */
 class CommunityResource extends Model
 {
     // Automatically generate cuid2 for the model
@@ -75,6 +97,8 @@ class CommunityResource extends Model
 
     /**
      *  Get the community that this belongs to
+     *
+     * @return BelongsTo<Community, covariant $this>
      */
     final public function community(): BelongsTo
     {
@@ -82,7 +106,9 @@ class CommunityResource extends Model
     }
 
     /**
-     *  Get the resource that this corresponds to
+     * Get the resource that this corresponds to
+     *
+     * @return BelongsTo<Resource, covariant $this>
      */
     final public function resource(): BelongsTo
     {
@@ -91,6 +117,8 @@ class CommunityResource extends Model
 
     /**
      *  Get the collection that this corresponds to
+     *
+     * @return BelongsTo<CommunityResourceCollection, covariant $this>
      */
     final public function collection(): BelongsTo
     {
@@ -99,6 +127,8 @@ class CommunityResource extends Model
 
     /**
      *  Get the text article that this corresponds to (if any)
+     *
+     * @return BelongsTo<ResourceTextArticle, covariant $this>
      */
     final public function textArticle(): BelongsTo
     {
@@ -106,6 +136,12 @@ class CommunityResource extends Model
     }
 
     // WARNING: do not delete. This is used via load(...) (e.g., TextResourceApiController and ResourceResource
+
+    /**
+     * Get the resource curator
+     *
+     * @return BelongsTo<UserProfile, covariant $this>
+     */
     final public function curator(): BelongsTo
     {
         return $this->belongsTo(UserProfile::class, 'curator_id');

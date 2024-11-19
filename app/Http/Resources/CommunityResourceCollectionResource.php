@@ -2,8 +2,10 @@
 
 namespace App\Http\Resources;
 
+use App\Models\CommunityResourceCollection;
 use Illuminate\Http\Request;
 
+/** @mixin CommunityResourceCollection **/
 class CommunityResourceCollectionResource extends AbstractKnowiiJsonResource
 {
     /**

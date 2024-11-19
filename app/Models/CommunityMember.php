@@ -3,9 +3,21 @@
 namespace App\Models;
 
 use App\Enums\KnowiiCommunityMemberRole;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Parables\Cuid\GeneratesCuid;
 
+/**
+ * App\Models\CommunityMember
+ *
+ * @property int $id
+ * @property string $cuid
+ * @property int $community_id
+ * @property int $user_id
+ * @property KnowiiCommunityMemberRole $role
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ */
 class CommunityMember extends Pivot
 {
     // Automatically generate cuid2 for the model

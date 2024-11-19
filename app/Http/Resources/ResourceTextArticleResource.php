@@ -2,8 +2,10 @@
 
 namespace App\Http\Resources;
 
+use App\Models\ResourceTextArticle;
 use Illuminate\Http\Request;
 
+/** @mixin ResourceTextArticle **/
 class ResourceTextArticleResource extends AbstractKnowiiJsonResource
 {
     /**

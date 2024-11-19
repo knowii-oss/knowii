@@ -20,8 +20,6 @@ class CommunityResourceController extends Controller
 
     /**
      * Show a resource.
-     *
-     * @param  string  $slug
      */
     public function show(Request $request, string $communitySlug, string $resourceCollectionSlug, string $resourceSlug): Response
     {

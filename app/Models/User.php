@@ -3,8 +3,10 @@
 namespace App\Models;
 
 use App\Traits\HasCommunities;
+use Carbon\Carbon;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -13,6 +15,24 @@ use Parables\Cuid\GeneratesCuid;
 use TaylorNetwork\UsernameGenerator\FindSimilarUsernames;
 use TaylorNetwork\UsernameGenerator\GeneratesUsernames;
 
+/**
+ * App\Models\User
+ *
+ * @property int $id
+ * @property string $cuid
+ * @property string $username
+ * @property string $name
+ * @property string $email
+ * @property Carbon $email_verified_at
+ * @property string $password
+ * @property string $two_factor_secret
+ * @property string $two_factor_recovery_codes
+ * @property Carbon $two_factor_confirmed_at
+ * @property string $remember_token
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ * @property UserProfile $profile
+ */
 class User extends Authenticatable implements MustVerifyEmail
 {
     use FindSimilarUsernames;
@@ -70,8 +90,10 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /**
      * Get the user's profile.
+     *
+     * @return HasOne<UserProfile, covariant $this>
      */
-    final public function profile(): \Illuminate\Database\Eloquent\Relations\HasOne
+    final public function profile(): HasOne
     {
         return $this->hasOne(UserProfile::class);
     }
@@ -88,14 +110,6 @@ class User extends Authenticatable implements MustVerifyEmail
             // This will enable re-claiming past user profiles
             $profile->save();
         }
-    }
-
-    /**
-     * Get the communities that the user owns.
-     */
-    final public function ownedCommunities(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Community::class, 'owner_id');
     }
 
     final public function getRouteKeyName(): string
