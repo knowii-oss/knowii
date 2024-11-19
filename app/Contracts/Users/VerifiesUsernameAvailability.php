@@ -7,7 +7,7 @@ use App\Models\User;
 interface VerifiesUsernameAvailability
 {
     /**
-     * @param  array<string,string>  $input
+     * @param  array<mixed>  $input
      */
     public function verify(User $user, array $input): bool;
 }

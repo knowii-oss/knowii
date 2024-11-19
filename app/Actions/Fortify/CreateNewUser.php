@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 use Laravel\Jetstream\Jetstream;
 
@@ -23,16 +24,23 @@ class CreateNewUser implements CreatesNewUsers
      * Create a newly registered user.
      *
      * @param  array<mixed>  $input
+     *
+     * @throws ValidationException
      */
     final public function create(array $input): User
     {
         // WARNING: Those rules must remain aligned with those in UpdateUserProfileInformation.php
-        Validator::make($input, [
+        $validator = Validator::make($input, [
             'name' => ['required', 'string', 'max:'.Constants::$MAX_LENGTH_USER_NAME],
             'email' => ['required', 'email', 'max:'.Constants::$MAX_LENGTH_USER_EMAIL, Rule::unique('users')],
             'password' => $this->passwordRules(),
             'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature() ? ['accepted', 'required'] : '',
-        ])->validate();
+        ]);
+
+        $validator->validate();
+
+        /** @var array{name: string, email: string, password: string, terms: string} $input */
+        $input = $validator->validated();
 
         // Derive username from the user's name
         $username = Knowii::generateRandomUsername($input['name']);

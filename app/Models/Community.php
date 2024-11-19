@@ -194,17 +194,20 @@ class Community extends Model
     /**
      * Get the 10 most recent resources across all communityResourceCollections.
      *
-     * @return Collection<int, CommunityResourceCollection>
+     * @return \Illuminate\Support\Collection<int, \App\Models\CommunityResource>
      */
     final public function recentResources(): Collection
     {
-        return $this->communityResourceCollections()
+        /** @var \Illuminate\Support\Collection<int, \App\Models\CommunityResource> */
+        $resources = $this->communityResourceCollections()
             ->with(['communityResources', 'communityResources.resource', 'communityResources.curator', 'communityResources.collection'])
             ->get()
             ->pluck('communityResources')
             ->flatten()
             ->sortByDesc('created_at')
             ->take(10);
+
+        return $resources;
     }
 
     /**

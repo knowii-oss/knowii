@@ -6,9 +6,18 @@ parameters:
 
     paths:
         - app/
+        - bootstrap/
+        # - config/
+        # - database/factories/
+        - database/migrations/
+        - database/seeders/
+        - resources/
+        - resources/views/emails/
+        - routes/
+        # - tests/
 
-    # Level 9 is the highest level
-    level: 8
+    # Level 10 is the highest level
+    level: max
 
 #    ignoreErrors:
 #        - '#PHPDoc tag @var#'

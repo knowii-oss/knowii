@@ -111,18 +111,16 @@ class UserProfile extends Authenticatable implements MustVerifyEmail
     use Notifiable;
 
     /**
-     * Initialize the model by setting up fillable attributes for social media links.
+     * @param  list<string>  $attributes
      */
-    final public static function boot(): void
+    public function __construct(array $attributes = [])
     {
-        parent::boot();
+        $this->fillable = array_merge(
+            $this->fillable,
+            Constants::$SOCIAL_MEDIA_LINK_PROPERTIES
+        );
 
-        static::creating(static function ($model) {
-            // Add all social media link properties to the list of fillable fields
-            foreach (Constants::$SOCIAL_MEDIA_LINK_PROPERTIES as $property) {
-                $model->fillable[] = $property;
-            }
-        });
+        parent::__construct($attributes);
     }
 
     /**

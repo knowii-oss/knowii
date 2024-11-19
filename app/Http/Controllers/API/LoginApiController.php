@@ -27,6 +27,7 @@ class LoginApiController extends Controller
     #[OpenApi\Response(factory: LoginApiResponse::class)]
     final public function login(Request $request): JsonResponse
     {
+        /** @var array{email: string, password: string} $credentials */
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],

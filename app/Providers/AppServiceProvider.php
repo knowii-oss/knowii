@@ -52,8 +52,10 @@ class AppServiceProvider extends ServiceProvider
         // But in production, log the violation instead of throwing an exception.
         if ($this->app->isProduction()) {
             Model::handleLazyLoadingViolationUsing(function ($model, $relation) {
+                /** @phpstan-ignore argument.type */
                 $class = get_class($model);
 
+                /** @phpstan-ignore encapsedStringPart.nonString */
                 info("Attempted lazy loading [{$relation}] on model [{$class}].");
             });
         }

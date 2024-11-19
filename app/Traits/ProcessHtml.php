@@ -14,11 +14,13 @@ trait ProcessHtml
     /**
      * Clean the HTML using HTMLPurifier
      *
+     * @param  string  $html
+     *
      * References:
      * https://github.com/mewebstudio/Purifier
      * https://htmlpurifier.org
      */
-    final public function purifyHtml(string $html): string
+    final public function purifyHtml(string $html): mixed
     {
         return Purifier::clean($html);
     }
