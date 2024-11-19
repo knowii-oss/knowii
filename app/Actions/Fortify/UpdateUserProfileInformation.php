@@ -17,6 +17,8 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     /**
      * Validate and update the given user's profile information.
      *
+     * @param  array<mixed>  $input
+     *
      * @throws TechnicalException
      * @throws ValidationException
      */
@@ -85,6 +87,8 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 
     /**
      * Update the given verified user's profile information.
+     *
+     * @param  array<mixed>  $input
      */
     final public function updateVerifiedUser(User $user, UserProfile $userProfile, array $input): void
     {
@@ -103,6 +107,11 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         $user->sendEmailVerificationNotification();
     }
 
+    /**
+     * Updated the given unverified user's profile information
+     *
+     * @param  array<mixed>  $input
+     */
     final public function updatedUnverifiedUser(User $user, UserProfile $userProfile, array $input): void
     {
         // Update the user account
@@ -118,6 +127,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 
     /**
      * Update the username if needed/possible
+     *
      *
      * @throws ValidationException
      */
@@ -152,6 +162,8 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 
     /**
      * Update social links if present
+     *
+     * @param  array<mixed>  $input
      */
     final public function updateSocialLinks(UserProfile $userProfile, array $input): void
     {

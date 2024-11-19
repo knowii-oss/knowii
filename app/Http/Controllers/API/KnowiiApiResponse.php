@@ -15,12 +15,26 @@ class KnowiiApiResponse implements JsonSerializable
 
     private string $message;
 
+    /**
+     * @var array<mixed>|null
+     */
     private ?array $metadata;
 
+    /**
+     * @var array<mixed>|JsonResource|null
+     */
     private array|JsonResource|null $data;
 
+    /**
+     * @var array<mixed>|null
+     */
     private ?array $errors;
 
+    /**
+     * @param  array<mixed>|null  $metadata
+     * @param  array<mixed>|JsonResource|null  $data
+     * @param  array<mixed>|null  $errors
+     */
     public function __construct(
         KnowiiApiResponseCategory $category,
         KnowiiApiResponseType $type,
@@ -37,6 +51,9 @@ class KnowiiApiResponse implements JsonSerializable
         $this->errors = $errors;
     }
 
+    /**
+     * @return array<mixed>
+     */
     final public function jsonSerialize(): array
     {
         $retVal = [

@@ -9,6 +9,7 @@ use App\Events\Resources\ResourceDeleted;
 use App\Events\Resources\ResourceUpdated;
 use Carbon\Carbon;
 use Cviebrock\EloquentSluggable\Sluggable;
+use Database\Factories\ResourceFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -48,7 +49,7 @@ use Parables\Cuid\GeneratesCuid;
  * @property-read int|null $text_articles_count
  *
  * @method static \Database\Factories\ResourceFactory factory($count = null, $state = [])
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource findSimilarSlugs(string $attribute, array $config, string $slug)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource findSimilarSlugs(string $attribute, array<mixed> $config, string $slug)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource query()
@@ -78,7 +79,7 @@ use Parables\Cuid\GeneratesCuid;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereUrl($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereViewCount($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array<mixed> $config, string $slug)
  *
  * @mixin \Eloquent
  */
@@ -87,6 +88,8 @@ class Resource extends Model
     // Automatically generate cuid2 for the model
     // Reference: https://github.com/Parables/laravel-cuid2
     use GeneratesCuid;
+
+    /** @use HasFactory<ResourceFactory> */
     use HasFactory;
 
     // Automatically generate slugs
@@ -175,7 +178,7 @@ class Resource extends Model
      * Return the sluggable configuration array for this model.
      * Reference: https://github.com/cviebrock/eloquent-sluggable
      *
-     * array<string,array<string,string>>
+     * @return array<string,array<string,string>>
      */
     final public function sluggable(): array
     {
@@ -197,6 +200,8 @@ class Resource extends Model
 
     /**
      * Find a resource by URL or create a new one if it doesn't exist.
+     *
+     * @param  array<string,mixed>  $attributes
      */
     public static function findByUrlAndUpdateOrCreateNew(string $url, array $attributes = []): self
     {

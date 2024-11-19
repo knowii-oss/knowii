@@ -43,6 +43,8 @@ class CommunityInvitation extends Model
 
     /**
      * Get the community that the invitation belongs to.
+     *
+     * @return BelongsTo<Community, covariant $this>
      */
     public function community(): BelongsTo
     {

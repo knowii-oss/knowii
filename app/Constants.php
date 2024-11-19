@@ -50,6 +50,9 @@ class Constants
 
     public static int $MAX_LENGTH_COMMUNITY_RESOURCE_DESCRIPTION = 255;
 
+    /**
+     * @var list<string>
+     */
     public static array $SOCIAL_MEDIA_LINK_PROPERTIES = [
         'social_link_x',
         'social_link_website',

@@ -6,6 +6,7 @@ use App\Constants;
 use App\Enums\KnowiiCommunityVisibility;
 use App\Http\Resources\CommunityResource;
 use App\Models\Community;
+use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -42,6 +43,9 @@ abstract class CommunityEvent implements ShouldBroadcast, ShouldDispatchAfterCom
         return (new CommunityResource($this->community))->toArray(request());
     }
 
+    /**
+     * @return array<Channel|PrivateChannel>
+     */
     final public function broadcastOn(): array
     {
         // Emit events to the community channel

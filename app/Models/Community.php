@@ -8,6 +8,7 @@ use App\Events\Communities\CommunityDeleted;
 use App\Events\Communities\CommunityUpdated;
 use Carbon\Carbon;
 use Cviebrock\EloquentSluggable\Sluggable;
+use Database\Factories\CommunityFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -38,7 +39,7 @@ use Parables\Cuid\GeneratesCuid;
  * @property-read int|null $users_count
  *
  * @method static \Database\Factories\CommunityFactory factory($count = null, $state = [])
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Community findSimilarSlugs(string $attribute, array $config, string $slug)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Community findSimilarSlugs(string $attribute, array<mixed> $config, string $slug)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Community newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Community newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Community query()
@@ -51,7 +52,7 @@ use Parables\Cuid\GeneratesCuid;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Community whereSlug($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Community whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Community whereVisibility($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Community withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Community withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array<mixed> $config, string $slug)
  *
  * @mixin \Eloquent
  */
@@ -60,6 +61,8 @@ class Community extends Model
     // Automatically generate cuid2 for the model
     // Reference: https://github.com/Parables/laravel-cuid2
     use GeneratesCuid;
+
+    /** @use HasFactory<CommunityFactory> */
     use HasFactory;
 
     // Automatically generate slugs
@@ -128,7 +131,7 @@ class Community extends Model
     /**
      * Get all of the users including the owner.
      *
-     * @return Collection<User>
+     * @return Collection<int, User>
      */
     final public function allUsers(): Collection
     {
@@ -191,7 +194,7 @@ class Community extends Model
     /**
      * Get the 10 most recent resources across all communityResourceCollections.
      *
-     * @return Collection<CommunityResourceCollection>
+     * @return Collection<int, CommunityResourceCollection>
      */
     final public function recentResources(): Collection
     {

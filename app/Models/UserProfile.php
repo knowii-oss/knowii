@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Constants;
 use Carbon\Carbon;
+use Database\Factories\UserProfileFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -102,7 +103,10 @@ class UserProfile extends Authenticatable implements MustVerifyEmail
     // Automatically generate cuid2 for the model
     // Reference: https://github.com/Parables/laravel-cuid2
     use GeneratesCuid;
+
+    /** @use HasFactory<UserProfileFactory> */
     use HasFactory;
+
     use HasProfilePhoto;
     use Notifiable;
 

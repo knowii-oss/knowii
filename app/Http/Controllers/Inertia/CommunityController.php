@@ -74,6 +74,9 @@ class CommunityController extends Controller
 
     /**
      * Get the permissions for a community.
+     *
+     *
+     * @return array<string,bool>
      */
     private function getCommunityPermissions(Community $community): array
     {

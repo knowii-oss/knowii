@@ -56,6 +56,9 @@ abstract class CommunityResourceEvent implements ShouldBroadcast, ShouldDispatch
         return (new CommunityResourceResource($this->communityResource, false))->toArray(request());
     }
 
+    /**
+     * @return array<Channel|PrivateChannel>
+     */
     final public function broadcastOn(): array
     {
         $retVal = [

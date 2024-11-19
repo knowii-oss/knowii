@@ -20,7 +20,7 @@ trait HasCommunities
     /**
      * Get all of the communities the user owns or belongs to.
      *
-     * @return Collection<Community>
+     * @return Collection<int, Community>
      */
     final public function allCommunities(): Collection
     {
