@@ -254,7 +254,7 @@ class CreateTextResource implements CreatesTextResources
                     $readingTime = ceil(str_word_count($pageContent['markdown']) / 200);
                 }
 
-                if ($wordCount == null && $pageContent['html'] !== null) {
+                if ($wordCount === null && $pageContent['html'] !== null) {
                     $wordCount = str_word_count(strip_tags($pageContent['html']));
                     $readingTime = ceil(str_word_count($pageContent['html']) / 200);
                 }

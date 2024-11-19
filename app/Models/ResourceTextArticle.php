@@ -128,13 +128,18 @@ class ResourceTextArticle extends Model
 
     /**
      * Find a ResourceTextArticle by resource_id and update it, or create a new one if not found.
+     *
+     * @param  array<string, mixed>  $attributes
      */
-    public static function findByResourceIdAndUpdateOrCreateNew(string $resourceId, array $attributes): ResourceTextArticle
+    public static function findByResourceIdAndUpdateOrCreateNew(int $resourceId, array $attributes): ResourceTextArticle
     {
-        return static::updateOrCreate(
+        /** @var ResourceTextArticle $retVal */
+        $retVal = static::updateOrCreate(
             ['resource_id' => $resourceId],
             $attributes
         );
+
+        return $retVal;
     }
 
     final public function getRouteKeyName(): string
