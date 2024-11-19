@@ -103,9 +103,9 @@ class Community extends Model
     /**
      * Get all of the users including the owner.
      *
-     * @return Collection
+     * @return Collection<User>
      */
-    final public function allUsers()
+    final public function allUsers(): Collection
     {
         return $this->users->merge([$this->owner]);
     }

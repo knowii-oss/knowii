@@ -74,6 +74,9 @@
     "test": [
       "sail php artisan test"
     ],
+    "lint": [
+      "./vendor/bin/phpstan analyze"
+    ],
     "format": [
       "./vendor/bin/pint"
     ],
