@@ -79,7 +79,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * The attributes that are mass assignable.
      *
-     * @var array<int, string>
+     * @var list<string>
      */
     protected $fillable = [
         // WARNING: When new fields are added, this list should be updated!
@@ -93,7 +93,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * The attributes that should be hidden for serialization.
      *
-     * @var array<int, string>
+     * @var list<string>
      */
     protected $hidden = [
         'communities',
@@ -133,12 +133,11 @@ class User extends Authenticatable implements MustVerifyEmail
     final public function detachProfile(): void
     {
         $profile = $this->profile;
-        if ($profile) {
-            $profile->user_id = null;
-            // WARNING: the username and email fields should NOT be cleared when detaching the user profile
-            // This will enable re-claiming past user profiles
-            $profile->save();
-        }
+        $profile->user_id = null;
+
+        // WARNING: the username and email fields should NOT be cleared when detaching the user profile
+        // This will enable re-claiming past user profiles
+        $profile->save();
     }
 
     final public function getRouteKeyName(): string
