@@ -84,6 +84,10 @@ trait UrlCleanup
         // Remove 'www.' if present
         $cleanUrl = preg_replace('/^(https?:\/\/)www\./i', '$1', $cleanUrl);
 
+        if ($cleanUrl === null) {
+            $cleanUrl = '';
+        }
+
         // Remove trailing slashes again (in case lowercase conversion or www removal added any)
         $cleanUrl = rtrim($cleanUrl, '/');
 
