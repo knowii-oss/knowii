@@ -118,6 +118,8 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 
     /**
      * Update the username if needed/possible
+     *
+     * @throws ValidationException
      */
     final public function updateUsername(User $user, UserProfile $userProfile, string $newUsername): void
     {
@@ -130,7 +132,9 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         $usernameIsAvailable = $checker->verify($user, ['usernameToCheck' => $newUsername]);
 
         if (! $usernameIsAvailable) {
-            throw new ValidationException('The username is already taken');
+            throw ValidationException::withMessages([
+                'username' => ['The username is already taken'],
+            ]);
         }
 
         $safeNewUsername = strtolower($newUsername);
