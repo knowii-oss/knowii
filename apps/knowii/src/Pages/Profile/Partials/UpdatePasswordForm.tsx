@@ -35,7 +35,6 @@ export default function UpdatePasswordForm() {
     e.preventDefault();
 
     form.put(route(USER_PROFILE_PASSWORD_UPDATE_URL), {
-      errorBag: 'updatePassword',
       preserveScroll: true,
       onSuccess: () => {
         form.reset();

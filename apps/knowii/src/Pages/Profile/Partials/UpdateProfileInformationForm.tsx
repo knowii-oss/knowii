@@ -135,7 +135,6 @@ export default function UpdateProfileInformationForm(props: Props) {
     e.preventDefault();
 
     form.put(route(USER_PROFILE_INFORMATION_UPDATE_URL), {
-      errorBag: 'updateProfileInformation',
       preserveScroll: true,
       onSuccess: () => {
         toast?.show({ severity: 'success', summary: 'Success', detail: 'Profile updated successfully.' });
