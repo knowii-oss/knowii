@@ -1,0 +1,20 @@
+# Repo-scoped Git configuration with config-based hooks (Git 2.54+).
+#
+# Activate once per clone:
+#
+#   npm run setup
+#
+# (which runs: git config --local --replace-all include.path ../.gitconfig)
+# The path is relative to .git/, so `../.gitconfig` resolves to the repo root.
+#
+# After that, the hooks below run automatically on `git commit`.
+# Requires Git >= 2.54. Older versions silently ignore these hooks.
+
+[hook "lint-and-audit"]
+    event = pre-commit
+    command = scripts/git-hooks/pre-commit.sh
+
+[hook "commitlint"]
+    event = commit-msg
+    # Git appends the commit-msg file path as the trailing arg, which becomes the value of --edit.
+    command = npx --no -- commitlint --edit

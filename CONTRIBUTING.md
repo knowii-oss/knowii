@@ -30,6 +30,7 @@ This contains tons of ideas to help us out.
 - Run `composer install` to install the dependencies
 - Run `php artisan key:generate` to generate an encryption key
 - Run `npm install` or `npm run install:linux` if you're on Linux
+- Run `npm run setup` to enable the Git hooks (see "Git hooks" below)
 - Run `npm run build` at least once to build the assets under `public/build` (at least `.vite/manifest.json` which is required for the application to start)
 - Run `composer clean` to build/rebuild the Sail docker images
 - Run `sail up` to start the Sail containers
@@ -560,6 +561,38 @@ Instead of running `git commit`, use `npm run commit` or `npm run cm`.
 You'll be prompted to fill in any required fields and your commit message will be formatted according to our guidelines.
 
 You can still use `git commit`, but be sure to follow the guidelines, otherwise [Commitlint](https://github.com/marionebl/commitlint) will throw an error during your commit.
+
+### Git hooks (Git 2.54+)
+
+This repo uses [Git's built-in config-based hooks](https://github.blog/open-source/git/highlights-from-git-2-54/) (introduced in **Git 2.54**) instead of Husky. The hook definitions live in a tracked `.gitconfig` file at the repo root and are committed to source control.
+
+#### Enable the hooks once per clone
+
+After the first `npm install`, run:
+
+```bash
+npm run setup
+```
+
+That script runs `git config --local --replace-all include.path ../.gitconfig` — the path is relative to `.git/`, so `../.gitconfig` resolves to the repo root. Git then reads the tracked `.gitconfig`, picking up:
+
+- **`pre-commit` → `scripts/git-hooks/pre-commit.sh`** — runs `npm run lint`, `npm run format:affected` and `composer audit`.
+- **`commit-msg` → `npx --no -- commitlint --edit`** — validates the commit message against `commitlint.config.js`.
+
+Confirm the hooks are wired up:
+
+```bash
+git hook list pre-commit
+git hook list commit-msg
+```
+
+#### Requirements
+
+- Git **≥ 2.54** is required for config-based hooks. Older Git versions silently ignore them, so the hooks won't run (but nothing will break).
+
+#### Why not Husky?
+
+Husky requires a `prepare` post-install script to inject shims into `.git/hooks/`. Git 2.54 provides the same functionality natively, the hook config is plain text in version control, and there's no install-time magic.
 
 ### Workflow
 
