@@ -121,7 +121,7 @@
     "laravel-echo": "^1.16.1",
     "laravel-vite-plugin": "0.8.1",
     "nx": "19.7.3",
-    "postcss": "8.4.47",
+    "postcss": "8.5.15",
     "prettier": "^2.6.2",
     "pusher-js": "^8.4.0-rc2",
     "release-it": "17.8.2",
