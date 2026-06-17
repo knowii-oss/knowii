@@ -8,6 +8,8 @@ use Database\Factories\UserProfileFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\Notifications\DatabaseNotificationCollection;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Parables\Cuid\GeneratesCuid;
@@ -51,7 +53,7 @@ use Parables\Cuid\GeneratesCuid;
  * @property string|null $social_link_gitlab
  * @property Carbon $created_at
  * @property Carbon $updated_at
- * @property-read \Illuminate\Notifications\DatabaseNotificationCollection<int, \Illuminate\Notifications\DatabaseNotification> $notifications
+ * @property-read DatabaseNotificationCollection<int, DatabaseNotification> $notifications
  * @property-read int|null $notifications_count
  * @property-read string $profile_photo_url
  *
@@ -111,7 +113,7 @@ class UserProfile extends Authenticatable implements MustVerifyEmail
     use Notifiable;
 
     /**
-     * @param  list<string>  $attributes
+     * @param  array<string, mixed>  $attributes
      */
     public function __construct(array $attributes = [])
     {

@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Support\Collection;
 use Parables\Cuid\GeneratesCuid;
 
@@ -31,11 +32,11 @@ use Parables\Cuid\GeneratesCuid;
  * @property-read Collection<int, CommunityResourceCollection> $communityResourceCollections
  * @property-read Collection<int, User> $users
  * @property int $owner_id
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CommunityInvitation> $communityInvitations
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, CommunityInvitation> $communityInvitations
  * @property-read int|null $community_invitations_count
  * @property-read int|null $community_resource_collections_count
- * @property-read \App\Models\User $owner
- * @property-read \App\Models\CommunityMember|null $communityMember
+ * @property-read User $owner
+ * @property-read CommunityMember|null $communityMember
  * @property-read int|null $users_count
  *
  * @method static \Database\Factories\CommunityFactory factory($count = null, $state = [])
@@ -142,7 +143,7 @@ class Community extends Model
     /**
      * Get all of the users that belong to the community.
      *
-     * @return BelongsToMany<User, covariant $this>
+     * @return BelongsToMany<User, covariant $this, Pivot, 'communityMember'>
      */
     final public function users(): BelongsToMany
     {
@@ -194,11 +195,11 @@ class Community extends Model
     /**
      * Get the 10 most recent resources across all communityResourceCollections.
      *
-     * @return \Illuminate\Support\Collection<int, \App\Models\CommunityResource>
+     * @return Collection<int, CommunityResource>
      */
     final public function recentResources(): Collection
     {
-        /** @var \Illuminate\Support\Collection<int, \App\Models\CommunityResource> */
+        /** @var Collection<int, CommunityResource> */
         $resources = $this->communityResourceCollections()
             ->with(['communityResources', 'communityResources.resource', 'communityResources.curator', 'communityResources.collection'])
             ->get()
