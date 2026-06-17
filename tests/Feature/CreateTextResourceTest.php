@@ -30,15 +30,28 @@ function makeOwnerWithCollection(): array
 test('text resources can be created via the creator', function () {
     [$owner, $community, $collection] = makeOwnerWithCollection();
 
-    $input = [
+    $html = '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">'
+        .'<title>Some Article Title</title><meta name="description" content="A great read about testing">'
+        .'</head><body><article><h1>Some Article Title</h1>'
+        .'<p>This is a sufficiently long paragraph of readable content so that the parser has '
+        .'something meaningful to extract. It discusses software testing and quality in general terms, '
+        .'with enough words to be considered an article rather than boilerplate.</p>'
+        .'</article></body></html>';
+
+    $action = new CreateTextResource;
+    $action->setHttpHandlerStack(fakeTextResourceFetchHandler($html));
+
+    $resource = $action->create($owner, $community, $collection, [
         'name' => 'Some Article',
         'description' => 'A great read',
         'url' => 'https://example.com/some-article',
         'level' => KnowiiResourceLevel::Beginner->value,
-    ];
+    ]);
 
-    (new CreateTextResource)->create($owner, $community, $collection, $input);
-})->skip('Requires faking the Browserless/Guzzle network calls (FetchUrl is final and not injectable).');
+    expect($resource->name)->toBe('Some Article');
+    expect($resource->resource->url)->toBe('https://example.com/some-article');
+    expect($collection->fresh()->communityResources)->toHaveCount(1);
+});
 
 test('text resource creation is rejected if the user is not authorized', function () {
     [, $community, $collection] = makeOwnerWithCollection();

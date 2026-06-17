@@ -7,10 +7,26 @@ use App\Exceptions\TechnicalException;
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\HandlerStack;
 use Illuminate\Support\Facades\Log;
 
 trait FetchUrl
 {
+    /**
+     * Optional Guzzle handler stack. When set, it overrides the default
+     * handler so the HTTP layer can be faked (e.g. with a MockHandler) in
+     * tests. In production it stays null and the default client is used.
+     */
+    protected ?HandlerStack $httpHandlerStack = null;
+
+    /**
+     * Override the Guzzle handler stack used by {@see self::getClient()}.
+     */
+    public function setHttpHandlerStack(?HandlerStack $handlerStack): void
+    {
+        $this->httpHandlerStack = $handlerStack;
+    }
+
     /**
      * Fetch the content of a URL using Browserless.
      *
@@ -184,7 +200,7 @@ trait FetchUrl
      */
     final public function getClient(): Client
     {
-        return new Client([
+        $config = [
             'headers' => [
                 'User-Agent' => 'Knowii / 1.0 Crawler',
             ],
@@ -192,6 +208,12 @@ trait FetchUrl
             'cookies' => true,
             'timeout' => 10, // seconds
             'verify' => false, // Ignore SSL certificates
-        ]);
+        ];
+
+        if ($this->httpHandlerStack !== null) {
+            $config['handler'] = $this->httpHandlerStack;
+        }
+
+        return new Client($config);
     }
 }

@@ -1,6 +1,8 @@
 <?php
 
+use App\Actions\Resources\CreateTextResource;
 use App\ApiRoutes;
+use App\Contracts\Resources\CreatesTextResources;
 use App\Enums\KnowiiApiResponseType;
 use App\Enums\KnowiiResourceLevel;
 use App\Models\User;
@@ -135,6 +137,19 @@ test('text articles can be created via the API', function () {
     $path = textArticlesPathFor($owner);
     $this->actingAs($owner);
 
+    $html = '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">'
+        .'<title>Some Article Title</title><meta name="description" content="A great read about testing">'
+        .'</head><body><article><h1>Some Article Title</h1>'
+        .'<p>This is a sufficiently long paragraph of readable content so that the parser has '
+        .'something meaningful to extract. It discusses software testing and quality in general terms, '
+        .'with enough words to be considered an article rather than boilerplate.</p>'
+        .'</article></body></html>';
+
+    // Fake the network calls made by the creator (resolved from the container).
+    $creator = new CreateTextResource;
+    $creator->setHttpHandlerStack(fakeTextResourceFetchHandler($html));
+    $this->app->instance(CreatesTextResources::class, $creator);
+
     $response = $this->json('POST', $path, [
         'name' => 'Some Article',
         'url' => 'https://example.com/some-article',
@@ -142,4 +157,6 @@ test('text articles can be created via the API', function () {
     ], ['Accept' => 'application/json']);
 
     $response->assertStatus(Response::HTTP_CREATED);
-})->skip('Requires faking the Browserless/Guzzle network calls (FetchUrl is final and not injectable).');
+    expect($response->json('type'))->toBe(KnowiiApiResponseType::Success->value);
+    expect($response->json('data.name'))->toBe('Some Article');
+});

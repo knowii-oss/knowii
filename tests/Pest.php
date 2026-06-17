@@ -1,5 +1,8 @@
 <?php
 
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Psr7\Response;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -45,4 +48,23 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/**
+ * Build a Guzzle handler stack that fakes the HTTP calls made by the text
+ * resource creation flow (FetchUrl trait), in order:
+ *   1. getFinalUrlAfterRedirects (GET) — no redirect history
+ *   2. isUrlAvailable (HEAD)
+ *   3. fetchUrl (POST to Browserless) — returns the given HTML
+ *
+ * The provided HTML should not reference a cover image, so no extra image
+ * requests are made.
+ */
+function fakeTextResourceFetchHandler(string $html): HandlerStack
+{
+    return HandlerStack::create(new MockHandler([
+        new Response(200, [], ''),
+        new Response(200, [], ''),
+        new Response(200, [], $html),
+    ]));
 }
