@@ -234,7 +234,7 @@ export default function UpdateProfileInformationForm(props: Props) {
                 href={route(EMAIL_VERIFICATION_URL)}
                 method="post"
                 as="button"
-                className="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 onClick={sendEmailVerification}
               >
                 Click here to re-send the verification email.

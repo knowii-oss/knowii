@@ -58,7 +58,7 @@ export default function CommunityBox(props: Props) {
       <span className="text-xl font-bold">New</span>
     </div>
   ) : (
-    <div className="w-full sm:w-[450px] h-[250px] rounded-lg hover:outline hover:outline-primary-500 hover:outline-offset-2 hover:rounded-md shadow-lg overflow-hidden flex-shrink-0">
+    <div className="w-full sm:w-[450px] h-[250px] rounded-lg hover:outline hover:outline-primary-500 hover:outline-offset-2 hover:rounded-md shadow-lg overflow-hidden shrink-0">
       {props.link ? (
         <Link href={props.link} preserveState={true}>
           {normalModeCard}

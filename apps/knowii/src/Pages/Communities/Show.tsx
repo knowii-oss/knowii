@@ -221,7 +221,7 @@ export default function CommunityPage(props: Props) {
                 {recentResources.map((recentResource) => (
                   <div
                     key={recentResource.cuid}
-                    className="p-2 overflow-hidden rounded-md border border-gray-200 shadow-sm hover:shadow-md hover:border-primary-500 flex-shrink-0 cursor-pointer transition-all duration-200"
+                    className="p-2 overflow-hidden rounded-md border border-gray-200 shadow-xs hover:shadow-md hover:border-primary-500 shrink-0 cursor-pointer transition-all duration-200"
                   >
                     <div
                       className="flex justify-between items-center"
