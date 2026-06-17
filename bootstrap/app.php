@@ -3,19 +3,30 @@
 use App\Exceptions\AlreadyAuthenticatedException;
 use App\Exceptions\BusinessException;
 use App\Exceptions\TechnicalException;
+use App\Http\Middleware\AddViteContentSecurityPolicyNonce;
+use App\Http\Middleware\HandleInertiaRequests;
 use App\Traits\ApiResponses;
+use Bepsvpt\SecureHeaders\SecureHeadersMiddleware;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Database\Eloquent\RelationNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Illuminate\Http\Middleware\HandleCors;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Routing\Middleware\SubstituteBindings;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
+use Laravel\Sanctum\Http\Middleware\AuthenticateSession;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -30,26 +41,26 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->web(append: [
-            \App\Http\Middleware\HandleInertiaRequests::class,
-            \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
-            \Bepsvpt\SecureHeaders\SecureHeadersMiddleware::class,
-            \App\Http\Middleware\AddViteContentSecurityPolicyNonce::class,
+            HandleInertiaRequests::class,
+            AddLinkHeadersForPreloadedAssets::class,
+            SecureHeadersMiddleware::class,
+            AddViteContentSecurityPolicyNonce::class,
         ]);
 
         $middleware->api([
             // Included in statefulApi()
-            \Illuminate\Cookie\Middleware\EncryptCookies::class,
-            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
-            \Illuminate\Session\Middleware\StartSession::class,
-            \Laravel\Sanctum\Http\Middleware\AuthenticateSession::class,
-            \Illuminate\Http\Middleware\HandleCors::class,
+            EncryptCookies::class,
+            AddQueuedCookiesToResponse::class,
+            StartSession::class,
+            AuthenticateSession::class,
+            HandleCors::class,
 
             // WARNING: Enabling this causes 302 redirects for API calls
-            //\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
+            // \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
 
-            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            SubstituteBindings::class,
 
-            \Bepsvpt\SecureHeaders\SecureHeadersMiddleware::class,
+            SecureHeadersMiddleware::class,
         ]);
 
         $middleware->statefulApi();
@@ -108,6 +119,21 @@ return Application::configure(basePath: dirname(__DIR__))
             {
                 use ApiResponses;
             })::notFoundIssue();
+        });
+
+        // Convert AuthenticationException instances to Knowii's error representation
+        // (otherwise unauthenticated JSON API requests fall through to the generic
+        // Exception handler below and return a 500 instead of a 401).
+        $exceptions->render(function (AuthenticationException $e, Request $request) {
+            if (! $request->expectsJson()) {
+                // Default Laravel processing if not expecting a JSON response
+                return null;
+            }
+
+            return (new class
+            {
+                use ApiResponses;
+            })::authenticationIssue($e->getMessage(), null, null);
         });
 
         // Convert ValidationException instances to Knowii's error representation
