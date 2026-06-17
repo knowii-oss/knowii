@@ -129,7 +129,7 @@ export default function AppLayout(props: Props) {
           </div>
         </PageHeader>
 
-        <div className="bg-gradient-to-r from-gray-700 via-gray-500 to-gray-700">
+        <div className="bg-linear-to-r from-gray-700 via-gray-500 to-gray-700">
           <div className="px-4 py-3 mx-auto sm:px-6 lg:px-8 flex justify-center">
             <PageTitle
               pageTitle={props.pageTitle}

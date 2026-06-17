@@ -71,10 +71,10 @@ export default function Banner() {
                 <p className="ml-3 font-medium text-sm text-white truncate">{message}</p>
               </div>
 
-              <div className="flex-shrink-0 sm:ml-3">
+              <div className="shrink-0 sm:ml-3">
                 <button
                   type="button"
-                  className={classNames('-mr-1 flex p-2 rounded-md focus:outline-none sm:-mr-2 transition', {
+                  className={classNames('-mr-1 flex p-2 rounded-md focus:outline-hidden sm:-mr-2 transition', {
                     'hover:bg-indigo-600 focus:bg-indigo-600': style === 'success',
                     'hover:bg-red-600 focus:bg-red-600': style === 'danger',
                   })}

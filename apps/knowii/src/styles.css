@@ -4,15 +4,31 @@
  */
 @layer tailwind-base, primereact, tailwind-utilities;
 
+/*
+ * Tailwind CSS v4: import the individual layers so the PrimeReact theme can be
+ * interleaved between Tailwind's base (preflight) and utilities, keeping the
+ * specificity order the app relies on (utilities win over PrimeReact).
+ */
+@import 'tailwindcss/theme.css' layer(tailwind-base);
+@import 'tailwindcss/preflight.css' layer(tailwind-base);
 @import 'primereact/resources/themes/lara-light-pink/theme.css' layer(primereact);
+@import 'tailwindcss/utilities.css' layer(tailwind-utilities);
 
+/* Keep using the existing JavaScript-based theme configuration. */
+@config '../tailwind.config.ts';
+
+/*
+  The default border color changed to `currentcolor` in Tailwind CSS v4, so we
+  restore the v3 default (gray-200) to keep the existing look.
+*/
 @layer tailwind-base {
-  @tailwind base;
-}
-
-@layer tailwind-utilities {
-  @tailwind components;
-  @tailwind utilities;
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
 }
 
 /* Reference: https://alpinejs.dev/directives/cloak */
@@ -84,7 +100,7 @@ h2 {
 }
 
 .user-menu-entry {
-  @apply hover:cursor-pointer flex flex-row p-4 rounded-md bg-gray-50 hover:outline hover:outline-primary-600;
+  @apply hover:cursor-pointer flex flex-row p-4 rounded-md bg-gray-50 hover:outline-solid hover:outline-primary-600;
 }
 
 .page-content-boundaries {
@@ -92,7 +108,7 @@ h2 {
 }
 
 #waitlist-container > div.inline-container {
-  @apply rounded-lg outline outline-4 outline-offset-[-4px] outline-primary-500 shadow-md transition-all duration-300 ease-in-out hover:outline-offset-[-2px] hover:shadow-lg mb-0 pb-0 !important;
+  @apply rounded-lg! outline-solid! outline-4! -outline-offset-4! outline-primary-500! shadow-md! transition-all! duration-300! ease-in-out! hover:-outline-offset-2! hover:shadow-lg! mb-0! pb-0!;
 }
 
 /**
