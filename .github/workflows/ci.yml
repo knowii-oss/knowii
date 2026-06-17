@@ -37,6 +37,12 @@ jobs:
       - name: Execute front-end tests
         run: npx nx affected -t lint test || true
 
+      # Build the front-end assets so the Vite manifest
+      # (public/build/.vite/manifest.json) exists for the back-end tests below.
+      # This is why the manifest is no longer committed to Git.
+      - name: Build front-end assets
+        run: npm run build
+
       # Cache composer dependencies
       - name: Cache composer dependencies
         uses: actions/cache@v3
