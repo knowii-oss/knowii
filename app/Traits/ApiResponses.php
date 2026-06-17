@@ -96,6 +96,18 @@ trait ApiResponses
     }
 
     /**
+     * Return an unsupported media type response (the request body was not JSON).
+     *
+     * @param  ?array<mixed>  $metadata
+     */
+    final public static function unsupportedMediaTypeIssue(string $message = 'Only JSON input is accepted. Please set the Content-Type header to application/json.', ?array $metadata = null): JsonResponse
+    {
+        $knowiiResponse = new KnowiiApiResponse(KnowiiApiResponseCategory::Business, KnowiiApiResponseType::UnsupportedMediaType, $message, $metadata, null, null);
+
+        return response()->json($knowiiResponse->jsonSerialize(), Response::HTTP_UNSUPPORTED_MEDIA_TYPE);
+    }
+
+    /**
      * Return a business issue response.
      * Reference: https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/HTTP-Status-Codes-Client-Error-%284xx%29
      *

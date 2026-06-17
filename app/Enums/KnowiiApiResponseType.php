@@ -8,6 +8,7 @@ enum KnowiiApiResponseType: string
     case AuthenticationIssue = 'authenticationIssue';
     case AuthorizationIssue = 'authorizationIssue';
     case BusinessIssue = 'businessIssue';
+    case UnsupportedMediaType = 'unsupportedMediaType';
     case InternalError = 'internalError';
     case Success = 'success';
     case NotFound = 'notFound';

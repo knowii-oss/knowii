@@ -4,6 +4,7 @@ use App\Exceptions\AlreadyAuthenticatedException;
 use App\Exceptions\BusinessException;
 use App\Exceptions\TechnicalException;
 use App\Http\Middleware\AddViteContentSecurityPolicyNonce;
+use App\Http\Middleware\EnsureRequestIsJson;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Traits\ApiResponses;
 use Bepsvpt\SecureHeaders\SecureHeadersMiddleware;
@@ -54,6 +55,9 @@ return Application::configure(basePath: dirname(__DIR__))
             StartSession::class,
             AuthenticateSession::class,
             HandleCors::class,
+
+            // Reject non-JSON request bodies (the API only accepts JSON input)
+            EnsureRequestIsJson::class,
 
             // WARNING: Enabling this causes 302 redirects for API calls
             // \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
