@@ -1,5 +1,6 @@
 <?php
 
+use App\ApiRoutes;
 use App\Http\Controllers\API\CommunityApiController;
 use App\Http\Controllers\API\CommunityResourceCollectionApiController;
 use App\Http\Controllers\API\LoginApiController;
@@ -9,25 +10,25 @@ use App\Http\Controllers\API\UserApiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/user', static function (Request $request) {
+Route::get(ApiRoutes::USER, static function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::prefix('v1')->group(function () {
+Route::prefix(ApiRoutes::VERSION)->group(function () {
     // Auth
-    Route::post('auth/login', [LoginApiController::class, 'login']);
+    Route::post(ApiRoutes::AUTH_LOGIN, [LoginApiController::class, 'login']);
 
     // Utils
-    Route::get('ping', [PingApiController::class, 'ping']);
+    Route::get(ApiRoutes::PING, [PingApiController::class, 'ping']);
 
     Route::middleware('auth:sanctum')->group(function () {
-        Route::post('users/is-username-available', [UserApiController::class, 'isUsernameAvailable']);
+        Route::post(ApiRoutes::USERS_IS_USERNAME_AVAILABLE, [UserApiController::class, 'isUsernameAvailable']);
 
-        Route::post('communities', [CommunityApiController::class, 'store']);
-        Route::delete('communities/{community}', [CommunityApiController::class, 'destroy']);
+        Route::post(ApiRoutes::COMMUNITIES, [CommunityApiController::class, 'store']);
+        Route::delete(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'destroy']);
 
-        Route::post('communities/{community}/resource-collections', [CommunityResourceCollectionApiController::class, 'store']);
-        Route::delete('communities/{community}/resource-collections/{communityResourceCollection}', [CommunityResourceCollectionApiController::class, 'destroy']);
-        Route::post('communities/{community}/resource-collections/{communityResourceCollection}/text-articles', [ResourceTextArticleApiController::class, 'store']);
+        Route::post(ApiRoutes::COMMUNITY_RESOURCE_COLLECTIONS, [CommunityResourceCollectionApiController::class, 'store']);
+        Route::delete(ApiRoutes::COMMUNITY_RESOURCE_COLLECTION, [CommunityResourceCollectionApiController::class, 'destroy']);
+        Route::post(ApiRoutes::COMMUNITY_RESOURCE_TEXT_ARTICLES, [ResourceTextArticleApiController::class, 'store']);
     });
 });

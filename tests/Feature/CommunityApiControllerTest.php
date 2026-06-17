@@ -1,5 +1,6 @@
 <?php
 
+use App\ApiRoutes;
 use App\Constants;
 use App\Enums\KnowiiApiResponseType;
 use App\Enums\KnowiiCommunityVisibility;
@@ -15,10 +16,7 @@ test('communities can be created via the API', function () {
         'visibility' => KnowiiCommunityVisibility::Public->value,
     ];
 
-    $requestUrl = 'api/v1/communities';
-
-    // TODO stop hardcoding URLs in tests
-    $response = $this->json('POST', $requestUrl, $input, [
+    $response = $this->json('POST', ApiRoutes::path(ApiRoutes::COMMUNITIES), $input, [
         'Accept' => 'application/json',
     ]);
 
@@ -40,7 +38,7 @@ test('the create community API returns the created community in the response', f
         'visibility' => KnowiiCommunityVisibility::Public->value,
     ];
 
-    $response = $this->json('POST', 'api/v1/communities', $input, [
+    $response = $this->json('POST', ApiRoutes::path(ApiRoutes::COMMUNITIES), $input, [
         'Accept' => 'application/json',
     ]);
 
@@ -62,7 +60,7 @@ test('the create community API rejects a missing name with a validation issue', 
         'visibility' => KnowiiCommunityVisibility::Public->value,
     ];
 
-    $response = $this->json('POST', 'api/v1/communities', $input, [
+    $response = $this->json('POST', ApiRoutes::path(ApiRoutes::COMMUNITIES), $input, [
         'Accept' => 'application/json',
     ]);
 
@@ -78,7 +76,7 @@ test('the create community API rejects a missing visibility with a validation is
         'description' => 'Awesome community',
     ];
 
-    $response = $this->json('POST', 'api/v1/communities', $input, [
+    $response = $this->json('POST', ApiRoutes::path(ApiRoutes::COMMUNITIES), $input, [
         'Accept' => 'application/json',
     ]);
 
@@ -95,7 +93,7 @@ test('the create community API rejects an invalid visibility with a validation i
         'visibility' => 'foobar',
     ];
 
-    $response = $this->json('POST', 'api/v1/communities', $input, [
+    $response = $this->json('POST', ApiRoutes::path(ApiRoutes::COMMUNITIES), $input, [
         'Accept' => 'application/json',
     ]);
 
@@ -112,7 +110,7 @@ test('the create community API rejects a name that is too long with a validation
         'visibility' => KnowiiCommunityVisibility::Public->value,
     ];
 
-    $response = $this->json('POST', 'api/v1/communities', $input, [
+    $response = $this->json('POST', ApiRoutes::path(ApiRoutes::COMMUNITIES), $input, [
         'Accept' => 'application/json',
     ]);
 
@@ -129,7 +127,7 @@ test('the create community API rejects a description that is too long with a val
         'visibility' => KnowiiCommunityVisibility::Public->value,
     ];
 
-    $response = $this->json('POST', 'api/v1/communities', $input, [
+    $response = $this->json('POST', ApiRoutes::path(ApiRoutes::COMMUNITIES), $input, [
         'Accept' => 'application/json',
     ]);
 
@@ -146,7 +144,7 @@ test('the create community API rejects a name with forbidden characters with a v
         'visibility' => KnowiiCommunityVisibility::Public->value,
     ];
 
-    $response = $this->json('POST', 'api/v1/communities', $input, [
+    $response = $this->json('POST', ApiRoutes::path(ApiRoutes::COMMUNITIES), $input, [
         'Accept' => 'application/json',
     ]);
 
@@ -161,7 +159,7 @@ test('the create community API requires authentication', function () {
         'visibility' => KnowiiCommunityVisibility::Public->value,
     ];
 
-    $response = $this->json('POST', 'api/v1/communities', $input, [
+    $response = $this->json('POST', ApiRoutes::path(ApiRoutes::COMMUNITIES), $input, [
         'Accept' => 'application/json',
     ]);
 
@@ -171,10 +169,9 @@ test('the create community API requires authentication', function () {
 test('communities can be deleted via the API', function () {
     $this->actingAs($user = User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
-    $requestUrl = 'api/v1/communities/'.$user->ownedCommunities()->latest('id')->first()->cuid;
+    $community = $user->ownedCommunities()->latest('id')->first();
 
-    // TODO stop hardcoding URLs in tests
-    $response = $this->delete($requestUrl, [
+    $response = $this->json('DELETE', ApiRoutes::path(ApiRoutes::COMMUNITY, [ApiRoutes::PARAM_COMMUNITY => $community->cuid]), [], [
         'Accept' => 'application/json',
     ]);
 
@@ -189,7 +186,7 @@ test('the delete community API forbids deleting a community owned by another use
 
     $this->actingAs(User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
-    $response = $this->json('DELETE', 'api/v1/communities/'.$community->cuid, [], [
+    $response = $this->json('DELETE', ApiRoutes::path(ApiRoutes::COMMUNITY, [ApiRoutes::PARAM_COMMUNITY => $community->cuid]), [], [
         'Accept' => 'application/json',
     ]);
 
@@ -201,7 +198,7 @@ test('the delete community API forbids deleting a community owned by another use
 test('the delete community API returns a not found response for an unknown community', function () {
     $this->actingAs(User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
-    $response = $this->json('DELETE', 'api/v1/communities/does-not-exist', [], [
+    $response = $this->json('DELETE', ApiRoutes::path(ApiRoutes::COMMUNITY, [ApiRoutes::PARAM_COMMUNITY => 'does-not-exist']), [], [
         'Accept' => 'application/json',
     ]);
 
@@ -213,7 +210,7 @@ test('the delete community API requires authentication', function () {
     $owner = User::factory()->withUserProfile()->withPersonalCommunity()->create();
     $community = $owner->ownedCommunities()->latest('id')->first();
 
-    $response = $this->json('DELETE', 'api/v1/communities/'.$community->cuid, [], [
+    $response = $this->json('DELETE', ApiRoutes::path(ApiRoutes::COMMUNITY, [ApiRoutes::PARAM_COMMUNITY => $community->cuid]), [], [
         'Accept' => 'application/json',
     ]);
 

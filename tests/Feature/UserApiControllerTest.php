@@ -1,5 +1,6 @@
 <?php
 
+use App\ApiRoutes;
 use App\Enums\KnowiiApiResponseType;
 use App\Models\User;
 use Illuminate\Http\Response;
@@ -11,7 +12,7 @@ test('usernames availability can be verified via the user api controller', funct
         'usernameToCheck' => 'foo',
     ];
 
-    $response = $this->json('POST', 'api/v1/users/is-username-available', $input, [
+    $response = $this->json('POST', ApiRoutes::path(ApiRoutes::USERS_IS_USERNAME_AVAILABLE), $input, [
         'Accept' => 'application/json',
     ]);
 
@@ -31,7 +32,7 @@ test('api controller returns false when a username is not available', function (
         'usernameToCheck' => 'foo',
     ];
 
-    $response = $this->json('POST', 'api/v1/users/is-username-available', $input, [
+    $response = $this->json('POST', ApiRoutes::path(ApiRoutes::USERS_IS_USERNAME_AVAILABLE), $input, [
         'Accept' => 'application/json',
     ]);
 
@@ -51,7 +52,7 @@ test('api controller username availability check is case insensitive', function 
         'usernameToCheck' => 'foobar',
     ];
 
-    $response = $this->json('POST', 'api/v1/users/is-username-available', $input, [
+    $response = $this->json('POST', ApiRoutes::path(ApiRoutes::USERS_IS_USERNAME_AVAILABLE), $input, [
         'Accept' => 'application/json',
     ]);
 
@@ -66,7 +67,7 @@ test('usernames availability checks return validation exception if the input is 
     $input = [
     ];
 
-    $response = $this->json('POST', 'api/v1/users/is-username-available', $input, [
+    $response = $this->json('POST', ApiRoutes::path(ApiRoutes::USERS_IS_USERNAME_AVAILABLE), $input, [
         'Accept' => 'application/json',
     ]);
 

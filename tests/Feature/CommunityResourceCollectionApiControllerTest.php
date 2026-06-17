@@ -1,5 +1,6 @@
 <?php
 
+use App\ApiRoutes;
 use App\Models\User;
 use Illuminate\Http\Response;
 
@@ -14,9 +15,8 @@ test('resource collections can be created via the API', function () {
         'description' => 'Awesome collection',
     ];
 
-    $requestUrl = 'api/v1/communities/'.$community->cuid.'/resource-collections';
+    $requestUrl = ApiRoutes::path(ApiRoutes::COMMUNITY_RESOURCE_COLLECTIONS, [ApiRoutes::PARAM_COMMUNITY => $community->cuid]);
 
-    // TODO stop hardcoding URLs in tests
     $response = $this->json('POST', $requestUrl, $input, [
         'Accept' => 'application/json',
     ]);
@@ -44,8 +44,10 @@ test('resource collections can be deleted via the API', function () {
 
     expect($community->communityResourceCollections)->toHaveCount(1);
 
-    // TODO stop hardcoding URLs in tests
-    $requestUrl = 'api/v1/communities/'.$community->cuid.'/resource-collections/'.$resourceCollection->cuid;
+    $requestUrl = ApiRoutes::path(ApiRoutes::COMMUNITY_RESOURCE_COLLECTION, [
+        ApiRoutes::PARAM_COMMUNITY => $community->cuid,
+        ApiRoutes::PARAM_COMMUNITY_RESOURCE_COLLECTION => $resourceCollection->cuid,
+    ]);
 
     $response = $this->delete($requestUrl, [
         'Accept' => 'application/json',
