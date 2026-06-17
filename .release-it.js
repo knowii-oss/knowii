@@ -39,7 +39,11 @@ const releaseItConfig = {
   },
   hooks: {
     'before:init': [],
-    'after:bump': ['npx auto-changelog -p'],
+    // Regenerate the changelog from the bumped version and stage it so that
+    // release-it includes CHANGELOG.md in the release commit (otherwise the
+    // generated changelog is only added to the GitHub release notes and never
+    // persisted in the repository).
+    'after:bump': ['npx auto-changelog -p', 'git add CHANGELOG.md'],
     'after:git:release': [],
     'after:release': 'echo Successfully released ${name} v${version} to ${repo.repository}.',
   },
