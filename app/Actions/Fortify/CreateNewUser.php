@@ -31,8 +31,8 @@ class CreateNewUser implements CreatesNewUsers
     {
         // WARNING: Those rules must remain aligned with those in UpdateUserProfileInformation.php
         $validator = Validator::make($input, [
-            'name' => ['required', 'string', 'max:'.Constants::$MAX_LENGTH_USER_NAME],
-            'email' => ['required', 'email', 'max:'.Constants::$MAX_LENGTH_USER_EMAIL, Rule::unique('users')],
+            'name' => ['required', 'string', 'max:'.Constants::MAX_LENGTH_USER_NAME],
+            'email' => ['required', 'email', 'max:'.Constants::MAX_LENGTH_USER_EMAIL, Rule::unique('users')],
             'password' => $this->passwordRules(),
             'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature() ? ['accepted', 'required'] : '',
         ]);

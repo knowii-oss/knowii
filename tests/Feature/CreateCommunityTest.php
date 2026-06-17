@@ -51,7 +51,7 @@ test('creation is rejected by the community creator if the name is too long', fu
     expect($user->ownedCommunities)->toHaveCount(1);
 
     $input = [
-        'name' => str_repeat('a', Constants::$MAX_LENGTH_COMMUNITY_NAME + 1),
+        'name' => str_repeat('a', Constants::MAX_LENGTH_COMMUNITY_NAME + 1),
         'description' => 'Awesome community',
         'visibility' => KnowiiCommunityVisibility::Public->value,
     ];
@@ -86,7 +86,7 @@ test('creation is rejected by the community creator if the description is too lo
 
     $input = [
         'name' => 'foo',
-        'description' => str_repeat('a', Constants::$MAX_LENGTH_COMMUNITY_DESCRIPTION + 1),
+        'description' => str_repeat('a', Constants::MAX_LENGTH_COMMUNITY_DESCRIPTION + 1),
         'visibility' => KnowiiCommunityVisibility::Public->value,
     ];
 

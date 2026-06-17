@@ -50,14 +50,14 @@ abstract class CommunityResourceCollectionEvent implements ShouldBroadcast, Shou
     {
         $retVal = [
             // Emit to the community channel
-            new PrivateChannel(Str::of(Constants::$WS_CHANNEL_COMMUNITY)->replace(Constants::$WS_CHANNEL_COMMUNITY_PARAM_COMMUNITY_CUID, $this->communityResourceCollection->community->cuid)),
+            new PrivateChannel(Str::of(Constants::WS_CHANNEL_COMMUNITY)->replace(Constants::WS_CHANNEL_COMMUNITY_PARAM_COMMUNITY_CUID, $this->communityResourceCollection->community->cuid)),
             // Emit to the resource collection channel
-            new PrivateChannel(Str::of(Constants::$WS_CHANNEL_COMMUNITY_RESOURCE_COLLECTION)->replace(Constants::$WS_CHANNEL_COMMUNITY_RESOURCE_COLLECTION_PARAM_COMMUNITY_CUID, $this->communityResourceCollection->community->cuid)->replace(Constants::$WS_CHANNEL_COMMUNITY_RESOURCE_COLLECTION_PARAM_RESOURCE_COLLECTION_CUID, $this->communityResourceCollection->cuid)),
+            new PrivateChannel(Str::of(Constants::WS_CHANNEL_COMMUNITY_RESOURCE_COLLECTION)->replace(Constants::WS_CHANNEL_COMMUNITY_RESOURCE_COLLECTION_PARAM_COMMUNITY_CUID, $this->communityResourceCollection->community->cuid)->replace(Constants::WS_CHANNEL_COMMUNITY_RESOURCE_COLLECTION_PARAM_RESOURCE_COLLECTION_CUID, $this->communityResourceCollection->cuid)),
         ];
 
         // Emit events about public communities to the public channel
         if ($this->communityResourceCollection->community->visibility === KnowiiCommunityVisibility::Public) {
-            $retVal[] = new Channel(Constants::$WS_CHANNEL_COMMUNITIES);
+            $retVal[] = new Channel(Constants::WS_CHANNEL_COMMUNITIES);
         }
 
         return $retVal;

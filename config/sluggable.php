@@ -26,7 +26,7 @@ return [
      * no length restrictions are enforced.  Set it to a positive integer if you
      * want to make sure your slugs aren't too long.
      */
-    'maxLength' => Constants::$MAX_LENGTH_SLUG,
+    'maxLength' => Constants::MAX_LENGTH_SLUG,
 
     /**
      * If you are setting a maximum length on your slugs, you may not want the

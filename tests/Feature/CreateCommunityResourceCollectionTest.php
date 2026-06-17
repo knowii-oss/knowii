@@ -52,7 +52,7 @@ test('creation is rejected by the creator if the name is too long', function () 
     $community = $user->ownedCommunities()->first();
 
     $input = [
-        'name' => str_repeat('a', Constants::$MAX_LENGTH_COMMUNITY_RESOURCE_COLLECTION_NAME + 1),
+        'name' => str_repeat('a', Constants::MAX_LENGTH_COMMUNITY_RESOURCE_COLLECTION_NAME + 1),
         'description' => 'Awesome collection',
     ];
 
@@ -89,7 +89,7 @@ test('creation is rejected by the creator if the description is too long', funct
 
     $input = [
         'name' => 'foo',
-        'description' => str_repeat('a', Constants::$MAX_LENGTH_COMMUNITY_RESOURCE_COLLECTION_DESCRIPTION + 1),
+        'description' => str_repeat('a', Constants::MAX_LENGTH_COMMUNITY_RESOURCE_COLLECTION_DESCRIPTION + 1),
     ];
 
     $creator = new CreateCommunityResourceCollection;

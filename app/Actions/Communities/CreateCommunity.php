@@ -37,11 +37,11 @@ class CreateCommunity implements CreatesCommunities
         $validator = Validator::make($input, [
             // WARNING: Those validation rules must match those in the community creation form in Dashboard.tsx and those in UpdateCommunityName.php
             // The fields MUST also match the ones listed in CommunityApiController
-            'name' => ['required', 'string', 'min:'.Constants::$MIN_LENGTH_COMMUNITY_NAME, 'max:'.Constants::$MAX_LENGTH_COMMUNITY_NAME, 'regex:'.Constants::$ALLOWED_COMMUNITY_NAME_CHARACTERS_REGEX],
+            'name' => ['required', 'string', 'min:'.Constants::MIN_LENGTH_COMMUNITY_NAME, 'max:'.Constants::MAX_LENGTH_COMMUNITY_NAME, 'regex:'.Constants::ALLOWED_COMMUNITY_NAME_CHARACTERS_REGEX],
             // Nullable allows empty strings to be passed in
             // Note that the CommunityResource transforms null to an empty string
             // Reference: https://laravel.com/docs/11.x/validation#a-note-on-optional-fields
-            'description' => ['nullable', 'string', 'max:'.Constants::$MAX_LENGTH_COMMUNITY_DESCRIPTION],
+            'description' => ['nullable', 'string', 'max:'.Constants::MAX_LENGTH_COMMUNITY_DESCRIPTION],
             'visibility' => ['required', Rule::enum(KnowiiCommunityVisibility::class)],
         ]);
 

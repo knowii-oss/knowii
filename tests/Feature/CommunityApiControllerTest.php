@@ -105,7 +105,7 @@ test('the create community API rejects a name that is too long with a validation
     $this->actingAs(User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
     $input = [
-        'name' => str_repeat('a', Constants::$MAX_LENGTH_COMMUNITY_NAME + 1),
+        'name' => str_repeat('a', Constants::MAX_LENGTH_COMMUNITY_NAME + 1),
         'description' => 'Awesome community',
         'visibility' => KnowiiCommunityVisibility::Public->value,
     ];
@@ -123,7 +123,7 @@ test('the create community API rejects a description that is too long with a val
 
     $input = [
         'name' => 'Test Community',
-        'description' => str_repeat('a', Constants::$MAX_LENGTH_COMMUNITY_DESCRIPTION + 1),
+        'description' => str_repeat('a', Constants::MAX_LENGTH_COMMUNITY_DESCRIPTION + 1),
         'visibility' => KnowiiCommunityVisibility::Public->value,
     ];
 

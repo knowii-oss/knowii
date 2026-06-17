@@ -1,6 +1,7 @@
 <?php
 
 use App\Constants;
+use App\Models\User;
 use TaylorNetwork\UsernameGenerator\Drivers\EmailDriver;
 use TaylorNetwork\UsernameGenerator\Drivers\NameDriver;
 
@@ -17,7 +18,7 @@ return [
      *
      * Set to 0 to not enforce
      */
-    'min_length' => Constants::$MIN_LENGTH_USER_USERNAME,
+    'min_length' => Constants::MIN_LENGTH_USER_USERNAME,
 
     /*
      * Want to throw a UsernameTooShort exception when too short?
@@ -29,7 +30,7 @@ return [
      *
      * Set to 0 to not enforce
      */
-    'max_length' => Constants::$MAX_LENGTH_USER_USERNAME,
+    'max_length' => Constants::MAX_LENGTH_USER_USERNAME,
 
     /*
      * Want to throw a UsernameTooLong exception when too long?
@@ -55,7 +56,7 @@ return [
      *
      * This is only used if unique is true
      */
-    'model' => \App\Models\User::class,
+    'model' => User::class,
 
     /*
      * Database field to check and store username
@@ -74,7 +75,7 @@ return [
      * '\p{Cryillic}\p{Latin}\s ' would allow cryillic and latin characters
      *
      */
-    'allowed_characters' => Constants::$ALLOWED_USER_USERNAME_INPUT_CHARACTERS,
+    'allowed_characters' => Constants::ALLOWED_USER_USERNAME_INPUT_CHARACTERS,
 
     /*
      * Character encoding

@@ -27,15 +27,15 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     {
         // WARNING: Those rules must remain aligned with those in CreateNewUser.php
         $validator = Validator::make($input, [
-            'name' => ['string', 'max:'.Constants::$MAX_LENGTH_USER_NAME],
+            'name' => ['string', 'max:'.Constants::MAX_LENGTH_USER_NAME],
             // WARNING: Those rules must remain aligned with those in VerifyUsernameAvailability.php and with the client-side usernameSchema
-            'username' => ['string', 'min:'.Constants::$MIN_LENGTH_USER_USERNAME, 'max:'.Constants::$MAX_LENGTH_USER_USERNAME, 'regex:'.Constants::$ALLOWED_USER_USERNAME_CHARACTERS_REGEX],
-            'email' => ['required', 'email', 'max:'.Constants::$MAX_LENGTH_USER_EMAIL, Rule::unique('users')->ignore($user->id)],
+            'username' => ['string', 'min:'.Constants::MIN_LENGTH_USER_USERNAME, 'max:'.Constants::MAX_LENGTH_USER_USERNAME, 'regex:'.Constants::ALLOWED_USER_USERNAME_CHARACTERS_REGEX],
+            'email' => ['required', 'email', 'max:'.Constants::MAX_LENGTH_USER_EMAIL, Rule::unique('users')->ignore($user->id)],
             'photo' => ['nullable', 'mimes:jpg,jpeg,png', 'max:1024'],
-            'bio' => ['nullable', 'string', 'max:'.Constants::$MAX_LENGTH_USER_BIO],
-            'location' => ['nullable', 'string', 'max:'.Constants::$MAX_LENGTH_USER_LOCATION],
-            'phone' => ['nullable', 'string', 'max:'.Constants::$MAX_LENGTH_USER_PHONE, 'regex:'.Constants::$USER_PHONE_REGEX],
-            ...array_fill_keys(Constants::$SOCIAL_MEDIA_LINK_PROPERTIES, ['nullable', 'string', 'max:255']),
+            'bio' => ['nullable', 'string', 'max:'.Constants::MAX_LENGTH_USER_BIO],
+            'location' => ['nullable', 'string', 'max:'.Constants::MAX_LENGTH_USER_LOCATION],
+            'phone' => ['nullable', 'string', 'max:'.Constants::MAX_LENGTH_USER_PHONE, 'regex:'.Constants::USER_PHONE_REGEX],
+            ...array_fill_keys(Constants::SOCIAL_MEDIA_LINK_PROPERTIES, ['nullable', 'string', 'max:255']),
         ]);
 
         $validator->validateWithBag('updateProfileInformation');
@@ -174,7 +174,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     final public function updateSocialLinks(UserProfile $userProfile, array $input): void
     {
         $updatedLinks = [];
-        foreach (Constants::$SOCIAL_MEDIA_LINK_PROPERTIES as $socialMediaLinkProperty) {
+        foreach (Constants::SOCIAL_MEDIA_LINK_PROPERTIES as $socialMediaLinkProperty) {
             if (isset($input[$socialMediaLinkProperty])) {
                 $updatedLinks[$socialMediaLinkProperty] = $input[$socialMediaLinkProperty];
             } else {

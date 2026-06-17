@@ -119,7 +119,7 @@ class UserProfile extends Authenticatable implements MustVerifyEmail
     {
         $this->fillable = array_merge(
             $this->fillable,
-            Constants::$SOCIAL_MEDIA_LINK_PROPERTIES
+            Constants::SOCIAL_MEDIA_LINK_PROPERTIES
         );
 
         parent::__construct($attributes);

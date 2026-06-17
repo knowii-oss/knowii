@@ -38,7 +38,7 @@ trait FetchUrl
             $browserlessUrl = (string) $browserlessUrl;
             $browserlessToken = (string) $browserlessToken;
 
-            $browserlessUrl .= Constants::$BROWSERLESS_CONTENT_API_PATH.'?'.Constants::$BROWSERLESS_TOKEN_API_PARAMETER.'='.$browserlessToken.'&blockAds=true&launch=%7B%20%22stealth%22%3A%20true%2C%20%22headless%22%3A%20false%20%7D';
+            $browserlessUrl .= Constants::BROWSERLESS_CONTENT_API_PATH.'?'.Constants::BROWSERLESS_TOKEN_API_PARAMETER.'='.$browserlessToken.'&blockAds=true&launch=%7B%20%22stealth%22%3A%20true%2C%20%22headless%22%3A%20false%20%7D';
 
             $response = $client->post($browserlessUrl, [
                 'json' => [
