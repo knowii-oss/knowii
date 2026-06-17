@@ -34,6 +34,7 @@
   <link color="#37404c" href="/icons/favicon.svg" rel="mask-icon" />
 
   <script id="site-microdata-script" type="application/ld+json" nonce="{{ csp_nonce('script') }}">
+    @verbatim
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
@@ -70,6 +71,7 @@
       },
       "url": "https://www.knowii.net"
     }
+    @endverbatim
   </script>
 
   <!-- TODO add manifests -->

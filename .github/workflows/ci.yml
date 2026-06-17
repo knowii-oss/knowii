@@ -37,12 +37,6 @@ jobs:
       - name: Execute front-end tests
         run: npx nx affected -t lint test || true
 
-      # Build the front-end assets so the Vite manifest
-      # (public/build/.vite/manifest.json) exists for the back-end tests below.
-      # This is why the manifest is no longer committed to Git.
-      - name: Build front-end assets
-        run: npm run build
-
       # Cache composer dependencies
       - name: Cache composer dependencies
         uses: actions/cache@v3
@@ -64,6 +58,14 @@ jobs:
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
       - name: Audit PHP dependencies security
         run: composer audit
+
+      # Build the front-end assets so the Vite manifest
+      # (public/build/.vite/manifest.json) exists for the back-end tests below.
+      # Runs after composer install because the build resolves the `ziggy-js`
+      # tsconfig alias from vendor/tightenco/ziggy. The manifest is no longer
+      # committed to Git; it is generated here (and on deploy via Forge).
+      - name: Build front-end assets
+        run: npm run build
       - name: Generate Laravel key
         run: php artisan key:generate
       - name: Configure FS permissions
