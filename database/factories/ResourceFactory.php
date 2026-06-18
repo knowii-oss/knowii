@@ -4,11 +4,12 @@ namespace Database\Factories;
 
 use App\Enums\KnowiiResourceLevel;
 use App\Enums\KnowiiResourceType;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Visus\Cuid2\Cuid2;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
+ * @extends Factory<User>
  */
 class ResourceFactory extends Factory
 {

@@ -27,12 +27,12 @@ use Parables\Cuid\GeneratesCuid;
  * @property bool $is_featured
  * @property Carbon $created_at
  * @property Carbon $updated_at
- * @property \App\Models\Community $community
+ * @property Community $community
  * @property \App\Models\Resource $resource
- * @property \App\Models\CommunityResourceCollection $collection
- * @property \App\Models\UserProfile $curator
+ * @property CommunityResourceCollection $collection
+ * @property UserProfile $curator
  * @property int $collection_id
- * @property-read \App\Models\ResourceTextArticle|null $textArticle
+ * @property-read ResourceTextArticle|null $textArticle
  *
  * @method static \Database\Factories\CommunityResourceFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource newModelQuery()

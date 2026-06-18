@@ -8,6 +8,7 @@ use App\Events\CommunityResourceCollections\CommunityResourceCollectionUpdated;
 use Carbon\Carbon;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Database\Factories\CommunityResourceCollectionFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -155,7 +156,7 @@ class CommunityResourceCollection extends Model
     final public function containsCommunityResourcePointingToResourceWithUrl(string $url): bool
     {
         return $this->communityResources()
-            ->whereHas('resource', function (\Illuminate\Database\Eloquent\Builder $query) use ($url) {
+            ->whereHas('resource', function (Builder $query) use ($url) {
                 $query->where('url', $url);
             })
             ->exists();

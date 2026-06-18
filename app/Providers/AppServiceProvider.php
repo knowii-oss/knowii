@@ -14,6 +14,7 @@ use App\Contracts\CommunityResourceCollections\CreatesCommunityResourceCollectio
 use App\Contracts\CommunityResourceCollections\DeletesCommunityResourceCollections;
 use App\Contracts\Resources\CreatesTextResources;
 use App\Contracts\Users\VerifiesUsernameAvailability;
+use Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\ServiceProvider;
 
@@ -25,7 +26,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         if ($this->app->isLocal()) {
-            $this->app->register(\Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class);
+            $this->app->register(IdeHelperServiceProvider::class);
         }
     }
 

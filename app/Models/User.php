@@ -6,12 +6,16 @@ use App\Traits\HasCommunities;
 use Carbon\Carbon;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\Notifications\DatabaseNotificationCollection;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
+use Laravel\Sanctum\PersonalAccessToken;
 use Parables\Cuid\GeneratesCuid;
 use TaylorNetwork\UsernameGenerator\FindSimilarUsernames;
 use TaylorNetwork\UsernameGenerator\GeneratesUsernames;
@@ -33,14 +37,14 @@ use TaylorNetwork\UsernameGenerator\GeneratesUsernames;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property UserProfile $profile
- * @property-read \App\Models\CommunityMember|null $pivot
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Community> $communities
+ * @property-read CommunityMember|null $pivot
+ * @property-read Collection<int, Community> $communities
  * @property-read int|null $communities_count
- * @property-read \Illuminate\Notifications\DatabaseNotificationCollection<int, \Illuminate\Notifications\DatabaseNotification> $notifications
+ * @property-read DatabaseNotificationCollection<int, DatabaseNotification> $notifications
  * @property-read int|null $notifications_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Community> $ownedCommunities
+ * @property-read Collection<int, Community> $ownedCommunities
  * @property-read int|null $owned_communities_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \Laravel\Sanctum\PersonalAccessToken> $tokens
+ * @property-read Collection<int, PersonalAccessToken> $tokens
  * @property-read int|null $tokens_count
  *
  * @method static \Database\Factories\UserFactory factory($count = null, $state = [])
