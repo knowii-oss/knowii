@@ -6,7 +6,7 @@ import { replaceInFile } from 'replace-in-file';
 
 // Reference: https://www.npmjs.com/package/replace-in-file
 const options = {
-  files: './public/build/.vite/manifest.json',
+  files: './public/build/manifest.json',
   from: /"src\//g,
   to: '"apps/knowii/src/',
 };
