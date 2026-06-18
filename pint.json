@@ -1,0 +1,8 @@
+{
+  "preset": "laravel",
+  "rules": {
+    "phpdoc_types": {
+      "groups": ["alias", "simple"]
+    }
+  }
+}
