@@ -3,11 +3,12 @@
 namespace Database\Factories;
 
 use App\Models\Resource;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Visus\Cuid2\Cuid2;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
+ * @extends Factory<User>
  */
 class ResourceTextArticleFactory extends Factory
 {

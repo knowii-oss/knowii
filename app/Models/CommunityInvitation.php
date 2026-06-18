@@ -17,7 +17,7 @@ use Parables\Cuid\GeneratesCuid;
  * @property KnowiiCommunityMemberRole $role
  * @property Carbon $created_at
  * @property Carbon $updated_at
- * @property-read \App\Models\Community $community
+ * @property-read Community $community
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityInvitation newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityInvitation newQuery()

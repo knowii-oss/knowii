@@ -27,14 +27,14 @@ class JetstreamServiceProvider extends ServiceProvider
 
         // Example of how to pass additional data to a client-side page (via props)
         // When rendered via Inertia
-        //Jetstream::inertia()->whenRendering(
+        // Jetstream::inertia()->whenRendering(
         //    'Profile/Show',
         //    function (Request $request, array $data) {
         //        return array_merge($data, [
         //            // Custom data...
         //        ]);
         //    }
-        //);
+        // );
     }
 
     /**

@@ -5,6 +5,7 @@ namespace App;
 use App\Models\Community;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -12,8 +13,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $community_id
  * @property string $email
  * @property string $role
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property-read Community $community
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityInvitation newModelQuery()

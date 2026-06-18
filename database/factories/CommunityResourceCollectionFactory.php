@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Visus\Cuid2\Cuid2;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Community>
+ * @extends Factory<Community>
  */
 class CommunityResourceCollectionFactory extends Factory
 {
