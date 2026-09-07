@@ -60,6 +60,7 @@ testem.log
 # System Files
 .DS_Store
 Thumbs.db
+*:Zone.Identifier
 
 # nx
 .nx/cache
