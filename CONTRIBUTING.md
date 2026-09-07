@@ -17,6 +17,10 @@ This contains tons of ideas to help us out.
 
 ### Pre-requisites
 
+For the Docker-only setup below, only Docker with Compose and Linux containers is needed; PHP, Composer, and Node.js run inside the application container.
+
+For the host-based setup:
+
 - PHP
 - PHP zip extension: `sudo apt install libzip-dev php-zip` and uncomment `extension=zip` in 'php.ini'
 - Composer
@@ -51,6 +55,43 @@ During development, we use Laravel Sail with Docker and docker-compose.
 - To stop it, run `./vendor/bin/sail down`
 
 WARNING: After making changes to the Dockerfile, make sure to rebuild the container images using `./vendor/bin/sail build --no-cache`
+
+### Docker-only setup (PowerShell)
+
+No host installation of PHP, Composer, Node.js, or Sail is required. Start Docker Desktop in Linux-container mode, then run from the repository root:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Set `APP_URL=http://localhost:4200` in `.env`. Keep `WWWUSER=1000` and `WWWGROUP=1000` when using Compose directly. For local development without an email provider, set `MAIL_MAILER=log`; emails will be written to the application logs rather than delivered.
+
+If public container registries are restricted, set `SAIL_BASE_IMAGE`, `POSTGRES_IMAGE`, `REDIS_IMAGE`, and `BROWSERLESS_IMAGE` in `.env` to the equivalent image references from your approved registry. Defaults remain Ubuntu 22.04, PostgreSQL 17, Redis Alpine, and Browserless Chromium from GHCR. Authenticate using `docker login` if your registry requires it; never put registry credentials in tracked files. The application image build also needs access to its APT repositories and Composer/Node.js download sources.
+
+If your organization uses HTTPS inspection, put its approved public CA certificates (PEM format, `.crt` extension) in `docker\8.3\certificates` before building. Files in that directory are ignored by Git. The image adds them to the system trust store and makes that store available to Node.js as well; TLS verification remains enabled. Never copy private keys into this directory or force-add certificates to Git. Images built with these certificates contain them, so keep those images within your organization's approved environment. Rebuild the application image after changing certificates.
+
+Run each command in order, stopping if any fails:
+
+```powershell
+docker compose build laravel.test
+docker compose run --rm --no-deps laravel.test composer install
+docker compose run --rm --no-deps laravel.test php artisan key:generate
+docker compose run --rm --no-deps laravel.test npm ci
+docker compose run --rm --no-deps laravel.test npm run build
+docker compose up -d --wait pgsql redis chrome
+docker compose run --rm --no-deps laravel.test php artisan migrate
+docker compose up -d laravel.test
+```
+
+Open `http://localhost:4200`. The queue worker and Reverb start with the application container. Built frontend assets do not require a separate Vite development server. Dependencies are installed inside containers but stored in the bind-mounted `vendor` and `node_modules` directories.
+
+If Docker Desktop asks to share the repository directory, approve that specific directory. Dependency extraction on Windows bind mounts can be slow; keep the installs sequential. If Composer reports a process timeout while extracting packages, retry with a longer timeout:
+
+```powershell
+docker compose run --rm --no-deps -e COMPOSER_PROCESS_TIMEOUT=1800 laravel.test composer install
+```
+
+On subsequent runs, use `docker compose up -d` to start and `docker compose down` to stop. Database data remains in Docker volumes.
 
 ### Running the application
 
