@@ -36,6 +36,7 @@ Route::middleware([
     Route::get('/dashboard', [DashboardController::class, 'show'])->name('dashboard');
 
     Route::get('/community/{communitySlug}', [CommunityController::class, 'show'])->name('communities.show');
+    Route::get('/community/{communitySlug}/about', [CommunityController::class, 'about'])->name('communities.about');
     Route::get('/community/{communitySlug}/settings', [CommunityController::class, 'settings'])->name('communities.settings');
 
     // The link of an invitation email (#1242): signed and temporary

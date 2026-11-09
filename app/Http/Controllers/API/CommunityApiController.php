@@ -12,6 +12,7 @@ use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 
 class CommunityApiController extends Controller
@@ -42,6 +43,16 @@ class CommunityApiController extends Controller
     /**
      * @throws AuthenticationException
      */
+    /**
+     * Get a community with its description, its moderator rights and its number of members (#1135). Members only.
+     */
+    final public function show(Community $community): JsonResponse
+    {
+        Gate::authorize('view', $community);
+
+        return self::success('Community', null, $community->loadCount('users')->toResource()->withLargeFields());
+    }
+
     final public function destroy(Request $request, Community $community): Response
     {
         Log::info('Processing API request to delete a community.');

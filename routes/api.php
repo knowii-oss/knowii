@@ -36,6 +36,7 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
         Route::post(ApiRoutes::USERS_IS_USERNAME_AVAILABLE, [UserApiController::class, 'isUsernameAvailable']);
 
         Route::post(ApiRoutes::COMMUNITIES, [CommunityApiController::class, 'store']);
+        Route::get(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'show']);
         Route::delete(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'destroy']);
         Route::patch(ApiRoutes::COMMUNITY_MODERATOR_PERMISSIONS, [ModeratorPermissionApiController::class, 'update']);
 

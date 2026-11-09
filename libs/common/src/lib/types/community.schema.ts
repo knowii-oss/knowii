@@ -19,6 +19,15 @@ export const communityVisibilityOptions: Array<{ name: string; visibility: Commu
   { name: 'Public', visibility: 'public', color: 'text-success' },
 ];
 
+/**
+ * What each visibility means, for the details page of a community (#1135)
+ */
+export const COMMUNITY_VISIBILITY_DESCRIPTIONS: Record<CommunityVisibility, string> = {
+  personal: 'Only you. A place for your own notes and resources.',
+  private: 'Members only. People join with an invitation.',
+  public: 'Members only for now. Public spaces come later.',
+};
+
 export const newCommunitySchema = z.object({
   // WARNING: those rules must remain aligned with those in CreateCommunity.php
   name: z
@@ -63,7 +72,8 @@ export type ModeratorPermissions = z.infer<typeof moderatorPermissionsSchema>;
 export const communitySchema = baseEntitySchema
   .extend(newCommunitySchema.shape)
   .extend(slugSchema.shape)
-  .extend({ moderator_permissions: moderatorPermissionsSchema });
+  // member_count: only where the server counts the members (community page, details page, GET community, #1135)
+  .extend({ moderator_permissions: moderatorPermissionsSchema, member_count: z.number().int().optional() });
 
 export type Community = z.infer<typeof communitySchema>;
 

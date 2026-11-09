@@ -42,6 +42,27 @@ final class CommunityMemberQuery
             })->orderByRaw('lower(users.username) like ? desc', [$prefix]);
         }
 
+        return self::ordered($query, $community);
+    }
+
+    /**
+     * The team of a community: the owner, the admins and the moderators, in the same order (#1135).
+     *
+     * @return Builder<User>
+     */
+    public static function team(Community $community): Builder
+    {
+        return self::for($community)->where(function (Builder $scope) use ($community) {
+            $scope->where('users.id', $community->owner_id)->orWhereIn('community_members.role', ['admin', 'moderator']);
+        });
+    }
+
+    /**
+     * @param  Builder<User>  $query
+     * @return Builder<User>
+     */
+    private static function ordered(Builder $query, Community $community): Builder
+    {
         return $query
             ->orderByRaw("case when users.id = ? then 0 when community_members.role = 'admin' then 1 when community_members.role = 'moderator' then 2 else 3 end", [$community->owner_id])
             ->orderBy('users.username');

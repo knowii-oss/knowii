@@ -148,6 +148,11 @@ export const knowiiApiClient = {
   },
   communities: {
     /**
+     * A community with its moderator rights and its number of members (#1135). Members only.
+     */
+    get: (communityCuid: string): Promise<ApiResult<Community>> =>
+      apiRequest('get', communityPath(COMMUNITY_API_PATH, communityCuid), communitySchema, 'Failed to load the community.'),
+    /**
      * Switch some rights of the moderators (owner and admins, #1240). Returns the community.
      */
     updateModeratorPermissions: (communityCuid: string, input: Partial<ModeratorPermissions>): Promise<ApiResult<Community>> =>
