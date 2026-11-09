@@ -22,8 +22,9 @@ export default function PageHeader(props: PropsWithChildren<Props>) {
     <div className="flex h-full flex-row items-center gap-2">
       {/* The mark matches the height of the letters of the name */}
       <ApplicationMark className="w-7 md:w-8" />
-      {/* Hide the name when the screen is too small in compact mode */}
-      <ApplicationName className="hidden sm:block sm:w-32 md:w-36" />
+      {/* Hide the name when the screen is too small in compact mode.
+          The viewBox is cropped to the letters (y 143 to 405 of 512): centering the boxes then centers the letters on the mark */}
+      <ApplicationName viewBox="0 140 1132 268" className="hidden sm:block sm:w-32 md:w-36" />
     </div>
   );
 
