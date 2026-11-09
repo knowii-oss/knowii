@@ -14,7 +14,7 @@
     "dedoc/scramble": "^0.13",
     "fivefilters/readability.php": "^4.0",
     "guzzlehttp/guzzle": "^7.10 || ^8.0",
-    "inertiajs/inertia-laravel": "^2.0.28",
+    "inertiajs/inertia-laravel": "^3.0",
     "laravel/framework": "^13.0",
     "laravel/jetstream": "^5.5",
     "laravel/reverb": "^1.12",
