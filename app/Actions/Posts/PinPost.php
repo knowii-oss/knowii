@@ -3,6 +3,7 @@
 namespace App\Actions\Posts;
 
 use App\Contracts\Posts\PinsPosts;
+use App\Events\Spaces\SpaceContentChanged;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
@@ -24,6 +25,7 @@ class PinPost implements PinsPosts
             'is_pinned' => $validated['pinned'],
             'pinned_at' => $validated['pinned'] ? now() : null,
         ]);
+        event(SpaceContentChanged::forPost(SpaceContentChanged::POST_UPDATED, $post, $user->cuid));
 
         return $post;
     }

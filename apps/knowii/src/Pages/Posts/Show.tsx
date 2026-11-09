@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { router } from '@inertiajs/react';
-import type { Comment, Community, Post, PostPermissions, Space, SpaceGroup } from '@knowii/common';
-import { COMMUNITY_URL, knowiiApiClient, SPACE_TYPE_LABELS, SPACE_URL, useAppData, useTypedPage } from '@knowii/common';
+import type { Comment, Community, Post, PostPermissions, Space, SpaceGroup, SpaceContentPayload } from '@knowii/common';
+import { COMMUNITY_URL, knowiiApiClient, SPACE_TYPE_LABELS, SPACE_URL, useAppData, useSocket, useTypedPage } from '@knowii/common';
 import { FaPen, FaThumbtack, FaTrash } from 'react-icons/fa6';
 import AppLayout from '@/Layouts/AppLayout';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
@@ -33,6 +33,37 @@ export default function PostPage(props: Props) {
   const [busy, setBusy] = useState(false);
 
   const spaceHref = route(SPACE_URL, { communitySlug: community.slug, spaceSlug: space.slug });
+
+  // Live updates (#1180): the post changed elsewhere. Not while the member edits it: their save wins.
+  const channel = useMemo(
+    () => ({ type: 'space' as const, communityCuid: community.cuid, spaceCuid: space.cuid }),
+    [community.cuid, space.cuid],
+  );
+  useSocket({
+    channel,
+    event: ['space.post.updated', 'space.post.deleted', 'space.reactions.changed'],
+    callback: (event, payload) => {
+      const data = payload as SpaceContentPayload;
+      if (data.post_cuid !== post.cuid || (event === 'space.reactions.changed' && data.comment_cuid)) {
+        return;
+      }
+      if (event === 'space.post.deleted') {
+        if (data.author_cuid !== page.props.auth.user?.cuid) {
+          showToast({ severity: 'info', summary: 'This post was deleted' });
+          router.visit(spaceHref);
+        }
+        return;
+      }
+      if (editing) {
+        return;
+      }
+      void knowiiApiClient.communities.posts.get(community.cuid, space.cuid, post.cuid).then((result) => {
+        if (result.ok) {
+          setPost(result.data);
+        }
+      });
+    },
+  });
 
   const breadcrumbItems: BreadcrumbItem[] = [
     {

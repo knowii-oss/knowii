@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import type { Comment, CommentSubject } from '@knowii/common';
-import { knowiiApiClient, useAppData } from '@knowii/common';
+import { useMemo, useState } from 'react';
+import type { Comment, CommentSubject, SpaceContentPayload } from '@knowii/common';
+import { knowiiApiClient, useAppData, useSocket } from '@knowii/common';
 import { FaPen, FaReply, FaTrash } from 'react-icons/fa6';
 import { Button, Dialog, ErrorBoundary, MarkdownContent, RelativeTime } from '@/Components/ui';
 import { CommentForm } from './CommentForm';
@@ -38,6 +38,31 @@ export function CommentSection(props: CommentSectionProps) {
     setComments(next);
     onCountChange?.(countAll(next));
   };
+
+  // Live updates (#1180): a comment of this subject changed, or the reactions of one: load the comments again. The
+  // forms keep what the member is typing (they are keyed by comment).
+  const channel = useMemo(
+    () => ({ type: 'space' as const, communityCuid: subject.communityCuid, spaceCuid: subject.spaceCuid }),
+    [subject.communityCuid, subject.spaceCuid],
+  );
+  const subjectCuid = 'postCuid' in subject ? subject.postCuid : subject.resourceCuid;
+  useSocket({
+    channel,
+    event: ['space.comment.created', 'space.comment.updated', 'space.comment.deleted', 'space.reactions.changed'],
+    callback: (event, payload) => {
+      const data = payload as SpaceContentPayload;
+      const aboutThisSubject = ('postCuid' in subject ? data.post_cuid : data.resource_cuid) === subjectCuid;
+      if (!aboutThisSubject || (event === 'space.reactions.changed' && !data.comment_cuid)) {
+        return;
+      }
+      void knowiiApiClient.communities.comments.list(subject).then((result) => {
+        if (result.ok) {
+          setComments(result.data);
+          onCountChange?.(countAll(result.data));
+        }
+      });
+    },
+  });
 
   const create = async (body: string, parentCuid: string | null): Promise<string | null> => {
     const result = await knowiiApiClient.communities.comments.create(subject, { body, parent_cuid: parentCuid });

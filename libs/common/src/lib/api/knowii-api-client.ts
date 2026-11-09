@@ -278,6 +278,16 @@ export const knowiiApiClient = {
       /**
        * A page of posts, with the pagination metadata of the guide (ADR 0011)
        */
+      /**
+       * One post, with the reactions of the current member (#1180: live updates load the changed post)
+       */
+      get: (communityCuid: string, spaceCuid: string, postCuid: string): Promise<ApiResult<Post>> =>
+        apiRequest(
+          'get',
+          postsPath(communityCuid, spaceCuid, postCuid, COMMUNITY_SPACE_POST_API_PATH),
+          postSchema,
+          'Failed to load the post.',
+        ),
       list: async (communityCuid: string, spaceCuid: string, limit: number, offset: number): Promise<ApiResult<Paginated<Post>>> => {
         const url = `${postsPath(communityCuid, spaceCuid)}?limit=${limit}&offset=${offset}`;
         try {

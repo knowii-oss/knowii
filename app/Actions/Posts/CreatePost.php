@@ -5,6 +5,7 @@ namespace App\Actions\Posts;
 use App\Constants;
 use App\Contracts\Posts\CreatesPosts;
 use App\Enums\KnowiiSpaceType;
+use App\Events\Spaces\SpaceContentChanged;
 use App\Exceptions\BusinessException;
 use App\Models\Post;
 use App\Models\Space;
@@ -50,6 +51,8 @@ class CreatePost implements CreatesPosts
         });
 
         Log::info('Post created', ['post' => $post->cuid]);
+        // Live updates (#1180)
+        event(SpaceContentChanged::forPost(SpaceContentChanged::POST_CREATED, $post, $user->cuid));
 
         return $post;
     }

@@ -4,6 +4,7 @@ namespace App\Actions\Comments;
 
 use App\Constants;
 use App\Contracts\Comments\CreatesComments;
+use App\Events\Spaces\SpaceContentChanged;
 use App\Models\Comment;
 use App\Models\CommunityResource;
 use App\Models\Post;
@@ -52,6 +53,8 @@ class CreateComment implements CreatesComments
             ]);
             $comment->update(['body_html' => $comment->renderBodyAndSyncMentions($validated['body'], $user)]);
             $comment->syncUploadUsages($validated['body']);
+            // Live updates (#1180): sent after the commit (ShouldDispatchAfterCommit)
+            event(SpaceContentChanged::forComment(SpaceContentChanged::COMMENT_CREATED, $comment, $user->cuid));
 
             return $comment;
         });

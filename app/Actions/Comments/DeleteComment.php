@@ -3,6 +3,7 @@
 namespace App\Actions\Comments;
 
 use App\Contracts\Comments\DeletesComments;
+use App\Events\Spaces\SpaceContentChanged;
 use App\Models\Comment;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
@@ -19,6 +20,9 @@ class DeleteComment implements DeletesComments
 
         Gate::forUser($user)->authorize('delete', $comment);
 
+        // Built before the delete: the event names the subject of the comment
+        $event = SpaceContentChanged::forComment(SpaceContentChanged::COMMENT_DELETED, $comment, $user->cuid);
         $comment->delete();
+        event($event);
     }
 }

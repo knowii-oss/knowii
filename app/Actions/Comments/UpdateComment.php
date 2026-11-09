@@ -4,6 +4,7 @@ namespace App\Actions\Comments;
 
 use App\Constants;
 use App\Contracts\Comments\UpdatesComments;
+use App\Events\Spaces\SpaceContentChanged;
 use App\Models\Comment;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -24,13 +25,14 @@ class UpdateComment implements UpdatesComments
             'body' => ['required', 'string', 'min:1', 'max:'.Constants::MAX_LENGTH_COMMENT_BODY],
         ])->validate();
 
-        DB::transaction(function () use ($comment, $validated) {
+        DB::transaction(function () use ($comment, $validated, $user) {
             $comment->update([
                 'body' => $validated['body'],
                 'body_html' => $comment->renderBodyAndSyncMentions($validated['body'], $comment->author),
                 'edited_at' => now(),
             ]);
             $comment->syncUploadUsages($validated['body']);
+            event(SpaceContentChanged::forComment(SpaceContentChanged::COMMENT_UPDATED, $comment, $user->cuid));
         });
 
         return $comment;

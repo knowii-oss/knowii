@@ -42,13 +42,34 @@ type MemberEvent = 'community.members.changed';
 // The access groups of the community changed (#1241): load them again (the payload only names the community)
 type AccessGroupEvent = 'community.access_groups.changed';
 
+// Posts, comments and reactions of a space changed (#1180): identifiers only, the page loads the item through the API.
+// WARNING: aligned with SpaceContentChanged.php
+export const SPACE_CONTENT_EVENTS = [
+  'space.post.created',
+  'space.post.updated',
+  'space.post.deleted',
+  'space.comment.created',
+  'space.comment.updated',
+  'space.comment.deleted',
+  'space.reactions.changed',
+] as const;
+export type SpaceContentEvent = (typeof SPACE_CONTENT_EVENTS)[number];
+
+export interface SpaceContentPayload {
+  space_cuid: string;
+  post_cuid?: string | null;
+  resource_cuid?: string | null;
+  comment_cuid?: string | null;
+  author_cuid?: string | null;
+}
+
 type CommunityEvent = (typeof CommunityEvents)[keyof typeof CommunityEvents];
 type ResourceEvent = (typeof ResourceEvents)[keyof typeof ResourceEvents];
 
 type CommunitiesChannelEvent = CommunityEvent;
 type CommunityChannelEvent = Exclude<CommunityEvent, typeof CommunityEvents.CREATED> | SpaceTreeEvent | MemberEvent | AccessGroupEvent;
 // The resources of a resources space go to the channel of the space only (ADR 0015)
-type SpaceChannelEvent = ResourceEvent;
+type SpaceChannelEvent = ResourceEvent | SpaceContentEvent;
 
 type AllEvents = CommunitiesChannelEvent | CommunityChannelEvent | SpaceChannelEvent;
 
@@ -65,6 +86,8 @@ type EventPayloadMap = {
   [K in MemberEvent]: { community_cuid: string };
 } & {
   [K in AccessGroupEvent]: { community_cuid: string };
+} & {
+  [K in SpaceContentEvent]: SpaceContentPayload;
 };
 
 // Define the hook options with improved type safety
@@ -105,7 +128,7 @@ const getAllEventsForChannelType = (channelType: Channel['type']): AllEvents[] =
     return [...Object.values(CommunityEvents).filter((event) => event !== CommunityEvents.CREATED), ...Object.values(SpaceTreeEvents)];
   }
 
-  return Object.values(ResourceEvents);
+  return [...Object.values(ResourceEvents), ...SPACE_CONTENT_EVENTS];
 };
 
 // Number of hooks using each channel: the channel is left when the last one unmounts

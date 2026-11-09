@@ -92,3 +92,22 @@ describe('ReactionBar', () => {
     expect(screen.queryByRole('group')).not.toBeInTheDocument();
   });
 });
+
+describe('ReactionBar live updates (#1180)', () => {
+  it('shows the new summary when the item is loaded again', () => {
+    const { rerender } = render(
+      <AppDataProvider>
+        <ReactionBar target={target} initialReactions={[{ kind: 'like', count: 2, reacted: true }]} canReact itemLabel="this post" />
+      </AppDataProvider>,
+    );
+    expect(screen.getByText('2')).toBeInTheDocument();
+
+    rerender(
+      <AppDataProvider>
+        <ReactionBar target={target} initialReactions={[{ kind: 'like', count: 5, reacted: true }]} canReact itemLabel="this post" />
+      </AppDataProvider>,
+    );
+
+    expect(screen.getByText('5')).toBeInTheDocument();
+  });
+});
