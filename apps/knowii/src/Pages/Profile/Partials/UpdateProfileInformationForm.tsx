@@ -1,6 +1,4 @@
-import type {
-  CurrentUser,
-  UserProfile} from '@knowii/common';
+import type { CurrentUser, UserProfile } from '@knowii/common';
 import {
   knowiiApiClient,
   MIN_ACTION_TIME,
@@ -22,7 +20,7 @@ import {
 } from '@knowii/common';
 import { Link, useForm } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
-import type { FormEventHandler} from 'react';
+import type { FormEventHandler } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { Button } from 'primereact/button';
 import FormSection from '@/Components/FormSection';

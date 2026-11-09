@@ -1,5 +1,5 @@
 import { GrGroup } from 'react-icons/gr';
-import type { CommunityVisibility} from '@knowii/common';
+import type { CommunityVisibility } from '@knowii/common';
 import { communityVisibilityOptions } from '@knowii/common';
 
 interface Props {

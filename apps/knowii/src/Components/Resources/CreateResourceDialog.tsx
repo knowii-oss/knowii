@@ -1,9 +1,5 @@
 import { useRef, useState } from 'react';
-import type {
-  CommunityResource,
-  CommunityResourceCollection,
-  ResourceLevel,
-  ResourceType} from '@knowii/common';
+import type { CommunityResource, CommunityResourceCollection, ResourceLevel, ResourceType } from '@knowii/common';
 import {
   ALLOWED_COMMUNITY_RESOURCE_NAME_CHARACTERS_REGEX,
   DEFAULT_TEXTAREA_ROWS,

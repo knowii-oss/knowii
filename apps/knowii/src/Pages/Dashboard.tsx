@@ -1,7 +1,7 @@
 import AppLayout from '@/Layouts/AppLayout';
 import { useCallback, useState } from 'react';
 import CommunityBox from '@/Components/Communities/CommunityBox';
-import type { Community, Identifiable} from '@knowii/common';
+import type { Community, Identifiable } from '@knowii/common';
 import { COMMUNITY_URL, communityVisibilityOptions, useSocket } from '@knowii/common';
 import CardGroup from '@/Components/CardGroup';
 import { useImmer } from 'use-immer';

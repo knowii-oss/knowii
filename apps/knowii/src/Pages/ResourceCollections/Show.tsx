@@ -1,5 +1,5 @@
 import AppLayout from '@/Layouts/AppLayout';
-import type { Community, CommunityPermissions, CommunityResourceCollection} from '@knowii/common';
+import type { Community, CommunityPermissions, CommunityResourceCollection } from '@knowii/common';
 import { COMMUNITY_URL, useSocket, DASHBOARD_URL } from '@knowii/common';
 import { Link, router } from '@inertiajs/react';
 import type { MenuItem } from 'primereact/menuitem';

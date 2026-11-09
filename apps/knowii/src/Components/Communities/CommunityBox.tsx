@@ -1,6 +1,6 @@
 import { Divider } from 'primereact/divider';
 import { Card } from 'primereact/card';
-import type { Community} from '@knowii/common';
+import type { Community } from '@knowii/common';
 import { communityVisibilityOptions } from '@knowii/common';
 import { FaPlus } from 'react-icons/fa';
 import { Link } from '@inertiajs/react';

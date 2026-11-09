@@ -8,9 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
-import type {
-  NewCommunityResourceCollection,
-  CommunityResourceCollection} from '@knowii/common';
+import type { NewCommunityResourceCollection, CommunityResourceCollection } from '@knowii/common';
 import {
   newCommunityResourceCollectionSchema,
   knowiiApiClient,
