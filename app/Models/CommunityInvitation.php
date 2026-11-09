@@ -10,8 +10,8 @@ use Carbon\Carbon;
 /**
  * Community invitations
  *
- * @property int $id
- * @property string $cuid
+ * @property-read int $id
+ * @property-read string $cuid
  * @property int $community_id
  * @property string $email
  * @property KnowiiCommunityMemberRole $role

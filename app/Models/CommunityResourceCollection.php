@@ -19,17 +19,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * App\Models\CommunityResourceCollection
  *
- * @property int $id
- * @property string $cuid
+ * @property-read int $id
+ * @property-read string $cuid
  * @property int $community_id
  * @property string $name
  * @property string $slug
- * @property string $description
+ * @property ?string $description
  * @property Carbon $created_at
  * @property Carbon $updated_at
- * @property Community $community
+ * @property-read Community $community
  * @property-read Collection<int, CommunityResource> $communityResources
- * @property-read int|null $community_resources_count
+ * @property-read ?int $community_resources_count
  *
  * @method static \Database\Factories\CommunityResourceCollectionFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResourceCollection findSimilarSlugs(string $attribute, array<mixed> $config, string $slug)

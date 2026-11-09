@@ -19,14 +19,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * A place in a community where members do one kind of thing. Its type decides what it holds (#1173, ADR 0012).
  *
- * @property int $id
- * @property string $cuid
+ * @property-read int $id
+ * @property-read string $cuid
  * @property int $community_id
  * @property int $space_group_id
  * @property string $name
  * @property string $slug
- * @property string|null $description
- * @property string|null $emoji
+ * @property ?string $description
+ * @property ?string $emoji
  * @property KnowiiSpaceType $type
  * @property KnowiiSpaceVisibility $visibility
  * @property KnowiiSpacePostingPolicy $posting_policy
@@ -36,8 +36,28 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Community $community
  * @property-read SpaceGroup $spaceGroup
  * @property-read Collection<int, Post> $posts
+ * @property-read ?int $posts_count
  *
  * @method static \Database\Factories\SpaceFactory factory($count = null, $state = [])
+ * @method static Builder<static>|Space findSimilarSlugs(string $attribute, array<mixed> $config, string $slug)
+ * @method static Builder<static>|Space newModelQuery()
+ * @method static Builder<static>|Space newQuery()
+ * @method static Builder<static>|Space query()
+ * @method static Builder<static>|Space whereCommunityId($value)
+ * @method static Builder<static>|Space whereCreatedAt($value)
+ * @method static Builder<static>|Space whereCuid($value)
+ * @method static Builder<static>|Space whereDescription($value)
+ * @method static Builder<static>|Space whereEmoji($value)
+ * @method static Builder<static>|Space whereId($value)
+ * @method static Builder<static>|Space whereName($value)
+ * @method static Builder<static>|Space wherePosition($value)
+ * @method static Builder<static>|Space wherePostingPolicy($value)
+ * @method static Builder<static>|Space whereSlug($value)
+ * @method static Builder<static>|Space whereSpaceGroupId($value)
+ * @method static Builder<static>|Space whereType($value)
+ * @method static Builder<static>|Space whereUpdatedAt($value)
+ * @method static Builder<static>|Space whereVisibility($value)
+ * @method static Builder<static>|Space withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array<mixed> $config, string $slug)
  *
  * @mixin \Eloquent
  */

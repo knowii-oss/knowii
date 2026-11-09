@@ -18,29 +18,51 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * A post in a discussion space (#1174).
  *
- * @property int $id
- * @property string $cuid
+ * @property-read int $id
+ * @property-read string $cuid
  * @property int $community_id
  * @property int $space_id
- * @property int|null $author_id
+ * @property ?int $author_id
  * @property string $title
  * @property string $slug
  * @property string $body
  * @property string $body_html
  * @property bool $is_pinned
- * @property Carbon|null $pinned_at
- * @property Carbon|null $edited_at
+ * @property ?Carbon $pinned_at
+ * @property ?Carbon $edited_at
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read Community $community
  * @property-read Space $space
- * @property-read User|null $author
+ * @property-read ?User $author
  * @property-read Collection<int, Comment> $comments
- * @property-read int|null $comments_count
+ * @property-read ?int $comments_count
+ * @property-read Collection<int, Reaction> $reactions
+ * @property-read Collection<int, Mention> $mentions
+ * @property-read ?int $mentions_count
+ * @property-read ?int $reactions_count
  *
  * @method static \Database\Factories\PostFactory factory($count = null, $state = [])
- *
- * @property-read Collection<int, Reaction> $reactions
+ * @method static Builder<static>|Post findSimilarSlugs(string $attribute, array<mixed> $config, string $slug)
+ * @method static Builder<static>|Post forSpacePage()
+ * @method static Builder<static>|Post newModelQuery()
+ * @method static Builder<static>|Post newQuery()
+ * @method static Builder<static>|Post query()
+ * @method static Builder<static>|Post whereAuthorId($value)
+ * @method static Builder<static>|Post whereBody($value)
+ * @method static Builder<static>|Post whereBodyHtml($value)
+ * @method static Builder<static>|Post whereCommunityId($value)
+ * @method static Builder<static>|Post whereCreatedAt($value)
+ * @method static Builder<static>|Post whereCuid($value)
+ * @method static Builder<static>|Post whereEditedAt($value)
+ * @method static Builder<static>|Post whereId($value)
+ * @method static Builder<static>|Post whereIsPinned($value)
+ * @method static Builder<static>|Post wherePinnedAt($value)
+ * @method static Builder<static>|Post whereSlug($value)
+ * @method static Builder<static>|Post whereSpaceId($value)
+ * @method static Builder<static>|Post whereTitle($value)
+ * @method static Builder<static>|Post whereUpdatedAt($value)
+ * @method static Builder<static>|Post withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array<mixed> $config, string $slug)
  *
  * @mixin \Eloquent
  */

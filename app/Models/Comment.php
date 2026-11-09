@@ -16,26 +16,43 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * A comment on a post. A reply has a parent (a top-level comment): one level of nesting only (#1175).
  *
- * @property int $id
- * @property string $cuid
+ * @property-read int $id
+ * @property-read string $cuid
  * @property int $community_id
  * @property int $post_id
- * @property int|null $author_id
- * @property int|null $parent_id
+ * @property ?int $author_id
+ * @property ?int $parent_id
  * @property string $body
  * @property string $body_html
- * @property Carbon|null $edited_at
+ * @property ?Carbon $edited_at
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read Community $community
  * @property-read Post $post
- * @property-read User|null $author
- * @property-read Comment|null $parent
+ * @property-read ?User $author
+ * @property-read ?Comment $parent
  * @property-read Collection<int, Comment> $replies
+ * @property-read Collection<int, Reaction> $reactions
+ * @property-read Collection<int, Mention> $mentions
+ * @property-read ?int $mentions_count
+ * @property-read ?int $reactions_count
+ * @property-read ?int $replies_count
  *
  * @method static \Database\Factories\CommentFactory factory($count = null, $state = [])
- *
- * @property-read Collection<int, Reaction> $reactions
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Comment newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Comment newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Comment query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Comment whereAuthorId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Comment whereBody($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Comment whereBodyHtml($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Comment whereCommunityId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Comment whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Comment whereCuid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Comment whereEditedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Comment whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Comment whereParentId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Comment wherePostId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Comment whereUpdatedAt($value)
  *
  * @mixin \Eloquent
  */

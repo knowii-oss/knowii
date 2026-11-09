@@ -15,18 +15,18 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 
 /**
- * @property int $id
- * @property string $cuid
+ * @property-read int $id
+ * @property-read string $cuid
  * @property int $resource_id
- * @property string|null $markdown
- * @property string|null $html
- * @property int|null $word_count
- * @property int|null $reading_time
+ * @property ?string $markdown
+ * @property ?string $html
+ * @property ?int $reading_time
  * @property Carbon $created_at
  * @property Carbon $updated_at
- * @property \App\Models\Resource $resource
+ * @property-read ?int $word_count
+ * @property-read Resource $resource
  * @property-read Collection<int, CommunityResource> $communityResources
- * @property-read int|null $community_resources_count
+ * @property-read ?int $community_resources_count
  *
  * @method static \Database\Factories\ResourceTextArticleFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ResourceTextArticle newModelQuery()

@@ -11,10 +11,10 @@ use Illuminate\Support\Facades\Storage;
 /**
  * An image uploaded by a member (#1178).
  *
- * @property int $id
- * @property string $cuid
+ * @property-read int $id
+ * @property-read string $cuid
  * @property int $community_id
- * @property int|null $user_id
+ * @property ?int $user_id
  * @property string $disk
  * @property string $path
  * @property string $mime_type
@@ -24,6 +24,22 @@ use Illuminate\Support\Facades\Storage;
  * @property string $alt
  * @property Carbon $created_at
  * @property-read Community $community
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Upload newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Upload newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Upload query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Upload whereAlt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Upload whereCommunityId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Upload whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Upload whereCuid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Upload whereDisk($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Upload whereHeight($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Upload whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Upload whereMimeType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Upload wherePath($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Upload whereSizeBytes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Upload whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Upload whereWidth($value)
  *
  * @mixin \Eloquent
  */

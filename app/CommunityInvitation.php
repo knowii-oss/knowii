@@ -8,13 +8,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * @property int $id
- * @property string $cuid
+ * @property-read int $id
+ * @property-read string $cuid
  * @property int $community_id
  * @property string $email
  * @property string $role
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
+ * @property ?Carbon $created_at
+ * @property ?Carbon $updated_at
  * @property-read Community $community
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityInvitation newModelQuery()

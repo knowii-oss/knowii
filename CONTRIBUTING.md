@@ -350,8 +350,7 @@ Workflow and commands:
 - work on your feature branch
   - checkout the branch: `git checkout feature/<name>`
   - make changes
-  - if you have made changes to model classes, then make sure to update the PHPdoc manually
-  - if you have made changes to database migrations, then make sure to update the PHPdoc: `npm run generate-phpdoc`
+  - if you have made changes to database migrations or model classes, then update the model docblocks: `composer generate-phpdoc`, then follow the conventions in `documentation/architecture/backend.md` (Model docblocks)
   - ensure that the code is formatted correctly: `npm run format`
   - ensure that the code quality is maintained: `npm run lint`
   - regularly commit the changes: `git commit -a -m 'refactor(core): made it great again'`
