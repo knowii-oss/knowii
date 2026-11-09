@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Contracts\Communities\CreatesCommunities;
 use App\Contracts\Communities\DeletesCommunities;
+use App\Contracts\Communities\UpdatesCommunities;
 use App\Http\Controllers\Controller;
 use App\Models\Community;
 use App\Traits\ApiResponses;
@@ -51,6 +52,22 @@ class CommunityApiController extends Controller
         Gate::authorize('view', $community);
 
         return self::success('Community', null, $community->loadCount('users')->toResource()->withLargeFields());
+    }
+
+    /**
+     * Change the name, the description or the visibility of a community (owner only, #1129). The slug stays the same.
+     * The visibility changes between private and public only.
+     *
+     * @throws AuthenticationException
+     */
+    #[BodyParameter('name', description: 'Name of the community', required: false, type: 'string', example: 'Knowii Community')]
+    #[BodyParameter('description', description: 'Description of the community (can be empty)', required: false, type: 'string')]
+    #[BodyParameter('visibility', description: 'private or public (a personal community stays personal)', required: false, type: 'string', example: 'private')]
+    final public function update(Request $request, Community $community): JsonResponse
+    {
+        $community = app(UpdatesCommunities::class)->update($request->user() ?? throw new AuthenticationException, $community, $request->only(['name', 'description', 'visibility']));
+
+        return self::success('Community updated', null, $community->loadCount('users')->toResource()->withLargeFields());
     }
 
     final public function destroy(Request $request, Community $community): Response

@@ -1,0 +1,28 @@
+meta {
+  name: Communities - Update
+  type: http
+  seq: 70
+}
+
+patch {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Knowii Community",
+    "description": "Learn and share knowledge management",
+    "visibility": "private"
+  }
+}
+
+docs {
+  Changes the name, the description or the visibility of a community (#1129). Owner only. The fields not sent keep their value. The slug never changes, so links keep working. The visibility changes between private and public only: a personal community stays personal. Returns the community with member_count.
+}

@@ -10,6 +10,7 @@ import DeleteCommunityForm from '@/Pages/Communities/Partials/DeleteCommunityFor
 import { SpaceTreeEditor } from '@/Components/Spaces/SpaceTreeEditor';
 import { ModeratorPermissionsForm } from '@/Components/Communities/ModeratorPermissionsForm';
 import { CommunityMembersManager } from '@/Components/Communities/CommunityMembersManager';
+import { UpdateCommunityForm } from '@/Components/Communities/UpdateCommunityForm';
 import Separator from '@/Components/Separator';
 import { useCallback, useState } from 'react';
 
@@ -72,6 +73,13 @@ export default function CommunitySettingsPage(props: Props) {
 
   return (
     <AppLayout browserPageTitle={`${props.community.name} - Settings`} breadcrumbItems={breadcrumbItems} breadcrumbHome={breadcrumbHome()}>
+      {props.permissions.canUpdateCommunity && (
+        <>
+          <UpdateCommunityForm community={props.community} onSaved={() => router.reload({ only: ['community'] })} />
+          <Separator />
+        </>
+      )}
+
       {props.permissions.canManageSpaces && (
         <SpaceTreeEditor communityCuid={props.community.cuid} spaceGroups={props.spaceGroups} onChanged={reloadSpaceTree} />
       )}
