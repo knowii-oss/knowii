@@ -22,7 +22,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix(ApiRoutes::VERSION)->group(function () {
     // Auth
-    Route::post(ApiRoutes::AUTH_LOGIN, [LoginApiController::class, 'login']);
+    // The limiter of the web login (email + IP): no unlimited guessing of passwords or codes (#1256)
+    Route::post(ApiRoutes::AUTH_LOGIN, [LoginApiController::class, 'login'])->middleware('throttle:login');
 
     // Utils
     Route::get(ApiRoutes::PING, [PingApiController::class, 'ping']);

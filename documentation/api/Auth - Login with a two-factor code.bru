@@ -1,0 +1,28 @@
+meta {
+  name: Auth - Login with a two-factor code
+  type: http
+  seq: 73
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+body:json {
+  {
+    "email": "{{EMAIL}}",
+    "password": "{{PASSWORD}}",
+    "code": "123456"
+  }
+}
+
+docs {
+  For an account with two-factor authentication (#1256). Without code or recovery_code, the login answers 401 with metadata.two_factor_required = true. Send the code of the authenticator app, or "recovery_code" instead (each recovery code works once). The session and the token start only after both factors. Rate limited with the web login (5 per minute per email and IP).
+}
