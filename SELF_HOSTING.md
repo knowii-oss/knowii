@@ -1,181 +1,179 @@
 # Self-hosting Knowii
 
-Knowii is free and open source. You're free to install it anywhere and host it yourself. This guide will help you do that.
+Knowii is free and open source (AGPL). You can install it on your own server. This guide explains how to install, configure, run, and update a Knowii instance.
 
-## Prerequisites
+## What you need
 
-First, you need a machine to host Knowii. You can use a VPS, a dedicated server, or your own computer. You need root access to that machine. In production, Knowii uses Ubuntu installed on an Hetzner VPS, created and configured using [Laravel Forge](https://forge.laravel.com/). For simplicity and ease of use, we recommend using Laravel Forge for your self-hosting server. That way, you'll be able to easily deploy and configure your instance.
+| Component                     | Version                      | Notes                                                                          |
+| ----------------------------- | ---------------------------- | ------------------------------------------------------------------------------ |
+| Linux server with root access | Ubuntu 24.04 LTS recommended | Other distributions work, but the commands in this guide are for Ubuntu.       |
+| PHP (CLI and FPM)             | 8.5                          | The required version is in `composer.json`. See the extensions below.          |
+| Composer                      | 2                            |                                                                                |
+| Node.js and npm               | Node.js 24, npm 11           | Only to build the front-end assets. The Node.js version is in `.nvmrc`.        |
+| PostgreSQL                    | 17                           | The development version is in `docker-compose.yml`.                            |
+| Web server                    | nginx (or equivalent)        | Serves the application and proxies the WebSocket server, both over HTTPS.      |
+| Browserless (Chromium)        | Latest                       | Runs in a Podman or Docker container. Knowii uses it to fetch web pages.       |
+| Email provider                | Any                          | Resend by default. Any Laravel mailer works (SMTP, Postmark, Amazon SES, ...). |
 
-You need to have the following installed on the machine where you want to host Knowii:
+You do not need Redis: sessions, the cache, and the job queue use the database.
 
-- Ideally Ubuntu so that all explanations and scripts work as expected, even though Knowii can also run on other Linux distributions
-- Node.js (use the same version as the one in the `.nvmrc` file)
-- npm
-- PostgreSQL (use the same version as the one in the `docker-compose.yml` file)
-- Redis (use the same version as the one in the `docker-compose.yml` file)
-- PHP (use the same version as the one in the `composer.json` file)
-- An e-mail provider. By default, Knowii expects Resend, but you may configure the application differently
-- A Podman or Docker container running Browserless (more details below)
+The required PHP extensions are: `ctype`, `curl`, `dom`, `fileinfo`, `iconv`, `mbstring`, `openssl`, `pcntl` (used by the queue worker for job timeouts), `pdo_pgsql`, `tokenizer`, `xml`, and `zip`. To list what Composer requires, run `composer check-platform-reqs --no-dev`.
 
-You also need to install some packages:
+On Ubuntu, the PHP 8.5 packages are in the `ondrej/php` PPA:
 
-- `sudo apt install libzip-dev php-zip`
-
-## Domain and DNS configuration
-
-If you're using your own domain, you need to configure it to point to your server.
-
-At the DNS level, you need:
-
-- An A record pointing to the IP address of your server
-- An A record called `www` pointing to the IP address of your server
-- An A record called `ws` pointing to the IP address of your server (for WebSockets)
-
-You also need a valid TLS certificate for your domain. You can use Let's Encrypt to get a free SSL certificate. If you're using Laravel Forge, you can use the Let's Encrypt integration to get a free SSL certificate, or create a CSR and use it with CloudFlare's SSL/TLS Origin Server "Create Certificate" feature, which will ensure that your certificate is always valid.
-
-WARNING: Note that the TLS certificate should be valid for `<YOUR_DOMAIN>` and `*.<YOUR_DOMAIN>` so that it works for `www`, `ws`, etc.
-
-Once your domain, DNS, and certificate are configured, don't forget to adapt the `.env` file accordingly.
-
-In particular:
-
-- `APP_URL` should be set to your domain name
-- `APP_PORT` should be set to `443`
-- `REVERB_HOST` should point to `ws.<YOUR_DOMAIN>`
-- `REVERB_PORT` should be set to `443`
-- `REVERB_SCHEME` should be set to `https`
-- `REVERB_ALLOWED_ORIGINS`
-
-## Database configuration
-
-You should use a dedicated database, schema and database user for Knowii. Assuming that your database is called `knowii` and that your database user is called `knowiipro`
-
-Create the database and set the owner:
-
-```
-psql
-  CREATE DATABASE knowii;
-  ALTER DATABASE knowii OWNER TO knowiipro
+```bash
+sudo add-apt-repository ppa:ondrej/php
+sudo apt install php8.5-cli php8.5-fpm php8.5-curl php8.5-mbstring php8.5-pgsql php8.5-xml php8.5-zip
 ```
 
-Run `psql knowii --username knowiipro to enter psql as the knowiipro user`:
+## 1. Get the code
 
+Clone the repository and check out the release that you want to run:
+
+```bash
+git clone https://github.com/knowii-oss/knowii.git
+cd knowii
+git checkout <release tag>
 ```
-DROP schema public CASCADE;
-CREATE SCHEMA public;
-GRANT ALL ON SCHEMA public to postgres;
-GRANT ALL ON SCHEMA public to knowiipro;
+
+## 2. Configure DNS and TLS
+
+Knowii serves the application on your domain, and the WebSocket server on the `ws` sub-domain. Create these DNS records:
+
+- An `A` record for `<YOUR_DOMAIN>` that points to the IP address of your server
+- An `A` record for `www.<YOUR_DOMAIN>` that points to the same IP address
+- An `A` record for `ws.<YOUR_DOMAIN>` that points to the same IP address
+
+Get a TLS certificate that is valid for `<YOUR_DOMAIN>`, `www.<YOUR_DOMAIN>`, and `ws.<YOUR_DOMAIN>` (or for `*.<YOUR_DOMAIN>`). Let's Encrypt certificates are free. If Cloudflare is in front of your server, you can also use a Cloudflare Origin certificate.
+
+## 3. Create the database
+
+Use a dedicated database and database user. In this example, the database is `knowii` and the user is `knowiipro`.
+
+As the `postgres` user, create the user and the database:
+
+```sql
+CREATE USER knowiipro WITH PASSWORD '<a strong password>';
+CREATE DATABASE knowii OWNER knowiipro;
 ```
 
-If you're using forge, you should also run this command in the `psql` session using the `knowiipro` user: `GRANT ALL ON SCHEMA public to forge;`
+Then connect to the new database (`psql knowii`) and give the user the `public` schema:
 
-## Environment
-
-You need to create a `.env` file at the root of the project. You can copy the `.env.example` file and adjust the values to your needs.
-
-Don't forget to:
-
-- Set a different value for `APP_KEY` using `php artisan key:generate`
-- Set correct values for `APP_ENV`, `APP_URL`, `DB_*`, `MAIL_*`, `REDIS_*`, `BROWSERLESS_*`
-- Set the `SANCTUM_STATEFUL_DOMAINS` to be empty in production: `SANCTUM_STATEFUL_DOMAINS=`, otherwise the front-end API calls will be broken
-- Set `SESSION_SECURE_COOKIE` to `true`, assuming you use HTTPS
-- Set `SESSION_COOKIE` to `__Secure-knowii_session`, assuming you use HTTPS
-
-For WebSockets to work (securely), don't forget to modify:
-
-- `REVERB_APP_ID`: set to a unique, secure, and random value
-- `REVERB_APP_KEY`: set to a unique value. You can prefix-it by `knowii-your-own-instance-name`)
-- `REVERB_APP_SECRET`: set to a unique, secure, and random value
-
-## Browserless
-
-Browserless is used by Knowii to scrape websites and fetch page metadata. The codebase includes a `./browserless-create-container.sh` script that you can use to create the browserless container with the right name and environment values (it loads the `.env` file).
-
-That script expects podman to be installed and running. If you don't have it yet, you can install podman using `sudo apt-get update && sudo apt-get -y install podman` (reference: https://docs.docker.com/engine/install/ubuntu/#installation-methods).
-
-But that is just useful for testing purposes. In production, you will want to create and use a systemd service to run Browserless, because that service must always be available for Knowii to work as intended.
-To that end, the codebase also includes a `./browserless-create-service.sh` script that you can use to create a systemd service for Browserless.
-
-WARNING: That script MUST NOT be executed as root. It leverages Podman's support for running rootless containers through systemd services. For more details about this, check out the following links:
-
-- Explanations: https://www.redhat.com/sysadmin/quadlet-podman
-- Reference: https://docs.podman.io/en/stable/markdown/podman-systemd.unit.5.html
-
-The above script will create a `knowii_browserless_chromium.container` file in `~/.config/containers/systemd`, and will load it using systemd for the current user.
-
-If you need to change the browserless container settings, then you should:
-
-- Stop the service using `systemctl --user stop knowii_browserless_chromium`
-- Delete the `knowii_browserless_chromium.container` container unit file in `~/.config/containers/systemd`
-- Reload the systemd daemon for your user: `systemctl --user daemon-reload` so that it removes the old service
-- Change your `.env` file
-- Run the `./browserless-create-service.sh` script again.
-
-## Queue worker
-
-Knowii relies on queue workers to process queued jobs. For instance, whenever a WebSocket event needs to be sent, a job will be queued. Without queue workers, those events will never be delivered.
-
-Example configuration:
-
-- Connection: database
-- Queue: default
-- Command: `php artisan queue:work --queue=default --sleep=3 --tries=3`
-
-## Laravel Forge
-
-This section will be useful (or serve as reference) if you use Laravel Forge to manage your self-hosted server.
-
-### Deployment script
-
-The following script installs/updates the back-end and front-end dependencies, restarts FPM, and runs database migrations:
-
+```sql
+ALTER SCHEMA public OWNER TO knowiipro;
 ```
-cd <path to knowii>
 
-$FORGE_COMPOSER install --no-dev --no-interaction --prefer-dist --optimize-autoloader
-npm run install:linux
+## 4. Configure the environment
+
+Copy `.env.example` to `.env`, then change the values below. The other values in `.env.example` are correct for most instances.
+
+| Key                                                               | Value                                                                                                     |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `APP_ENV`                                                         | `production`                                                                                              |
+| `APP_DEBUG`                                                       | `false`                                                                                                   |
+| `APP_URL`                                                         | `https://<YOUR_DOMAIN>`                                                                                   |
+| `APP_KEY`                                                         | Generated by `php artisan key:generate` (step 5)                                                          |
+| `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | The database from step 3                                                                                  |
+| `MAIL_MAILER`, `MAIL_FROM_ADDRESS`                                | Your email provider and sender address. For Resend, also set `RESEND_KEY`.                                |
+| `SESSION_DOMAIN`                                                  | `<YOUR_DOMAIN>`                                                                                           |
+| `SESSION_SECURE_COOKIE`                                           | `true`                                                                                                    |
+| `SESSION_COOKIE`                                                  | `__Secure-knowii_session`                                                                                 |
+| `REVERB_APP_ID`, `REVERB_APP_SECRET`                              | Unique random values                                                                                      |
+| `REVERB_APP_KEY`                                                  | A unique value, for example `knowii-<your instance name>`                                                 |
+| `REVERB_HOST`                                                     | `ws.<YOUR_DOMAIN>`                                                                                        |
+| `REVERB_PORT`                                                     | `443`                                                                                                     |
+| `REVERB_SCHEME`                                                   | `https`                                                                                                   |
+| `REVERB_SERVER_HOST`, `REVERB_SERVER_PORT`                        | `127.0.0.1` and `4201`: the WebSocket server listens locally, and nginx forwards `ws.<YOUR_DOMAIN>` to it |
+| `REVERB_ALLOWED_ORIGINS`                                          | `<YOUR_DOMAIN>`                                                                                           |
+| `BROWSERLESS_TOKEN`                                               | A unique random value                                                                                     |
+
+Do not set `SANCTUM_STATEFUL_DOMAINS` to an empty value. The front-end calls the API with the session cookie, so the API must treat requests from your domain as first-party ("stateful"). If the value is empty, every API call fails with `401 Unauthorized`. Leave the key out (the default includes the host of `APP_URL`), or set it to `<YOUR_DOMAIN>`.
+
+The `VITE_*` values are read when you build the front-end (step 5). If you change `APP_NAME` or a `REVERB_*` value later, build the front-end again.
+
+## 5. Install and build
+
+Run these commands from the root of the repository:
+
+```bash
+composer install --no-dev --optimize-autoloader --no-interaction
+npm ci
 npm run build
-
-( flock -w 10 9 || exit 1
-    echo 'Restarting FPM...'; sudo -S service $FORGE_PHP_FPM reload ) 9>/tmp/fpmlock
-
-if [ -f artisan ]; then
-    $FORGE_PHP artisan migrate --force
-fi
+php artisan key:generate   # first installation only
+php artisan migrate --force
+php artisan optimize
 ```
 
-### WebSockets
+## 6. Run the processes
 
-The centrally hosted Knowii production environment uses Laravel Forge with CloudFlare in front. TLS uses a certificate provisioned by CloudFlare (Origin Server certificate). That certificate includes `knowii.net` as CN, and `*.knowii.net` as SAN. This is supported by Laravel Forge. Unfortunately, when enabling Laravel Reverb using Laravel Forge, it doesn't understand that the certificate is also valid for Laravel Reverb and the WebSockets sub-domain (in this case `ws.knowii.net`). Because of that, when Laravel Reverb is enabled via Laravel Forge, it generates an NGINX configuration that listens on port 80 instead of port 443.
+Knowii needs three processes, in addition to PHP-FPM:
 
-If you face this issue, you need to adapt the `/etc/nginx/forge-conf/<your site>/after/reverb.conf` configuration file as follows in order to enable TLS for the WebSockets:
+- The web server (nginx with PHP-FPM), which serves the `public/` folder
+- The queue worker, which processes jobs. Knowii sends its real-time (WebSocket) events through the queue: without a worker, users get no live updates.
+- The WebSocket server (Laravel Reverb)
 
+Keep the queue worker and Reverb running with a process manager. This is an example for Supervisor (`/etc/supervisor/conf.d/knowii.conf`). Change the path and the user:
+
+```ini
+[program:knowii-queue]
+command=php /var/www/knowii/artisan queue:work --queue=default --sleep=3 --tries=3
+user=www-data
+autostart=true
+autorestart=true
+stopwaitsecs=60
+
+[program:knowii-reverb]
+command=php /var/www/knowii/artisan reverb:start
+user=www-data
+autostart=true
+autorestart=true
 ```
+
+Reverb opens one file descriptor per connection. To let it accept many connections, set `minfds=10000` in the `[supervisord]` section of `/etc/supervisor/supervisord.conf`, then restart Supervisor.
+
+Knowii has no scheduled tasks today, so you do not need a cron entry. If you want automatic backups, schedule `php artisan backup:run` (the `spatie/laravel-backup` package is installed; see `config/backup.php`).
+
+## 7. Configure nginx
+
+This example uses PHP-FPM 8.5 on Ubuntu. Change the domain, the paths, and the certificate files.
+
+```nginx
+# Application
 server {
-    listen 443 ssl http2;
-    listen [::]:443 ssl http2;
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name <YOUR_DOMAIN> www.<YOUR_DOMAIN>;
+    root /var/www/knowii/public;
+    index index.php;
+
+    ssl_certificate     /etc/ssl/<YOUR_DOMAIN>/fullchain.pem;
+    ssl_certificate_key /etc/ssl/<YOUR_DOMAIN>/privkey.pem;
+
+    client_max_body_size 10m;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        fastcgi_pass unix:/run/php/php8.5-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}
+
+# WebSockets (Laravel Reverb)
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
     server_name ws.<YOUR_DOMAIN>;
-    server_tokens off;
 
-    # FORGE SSL (DO NOT REMOVE!)
-    ssl_certificate /etc/nginx/ssl/<YOUR_DOMAIN>/<certificate id>/server.crt;
-    ssl_certificate_key /etc/nginx/ssl/<YOUR_DOMAIN>/<certificate id>/server.key;
-
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES25>    ssl_prefer_server_ciphers off;
-    ssl_dhparam /etc/nginx/dhparams.pem;
-
-    add_header X-Frame-Options "SAMEORIGIN";
-    add_header X-XSS-Protection "1; mode=block";
-    add_header X-Content-Type-Options "nosniff";
-
-    charset utf-8;
-
-    # FORGE CONFIG (DO NOT REMOVE!)
-    include forge-conf/<YOUR DOMAIN>/server/*;
-
-    access_log off;
-    error_log  /var/log/nginx/ws.<YOUR DOMAIN>-error.log error;
+    ssl_certificate     /etc/ssl/<YOUR_DOMAIN>/fullchain.pem;
+    ssl_certificate_key /etc/ssl/<YOUR_DOMAIN>/privkey.pem;
 
     location / {
         proxy_http_version 1.1;
@@ -186,15 +184,79 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "Upgrade";
-
-        proxy_pass http://localhost:4201;
-    }
-
-    location ~ /\.(?!well-known).* {
-        deny all;
+        proxy_pass http://127.0.0.1:4201;
     }
 }
 
+# Redirect HTTP to HTTPS
+server {
+    listen 80;
+    listen [::]:80;
+    server_name <YOUR_DOMAIN> www.<YOUR_DOMAIN> ws.<YOUR_DOMAIN>;
+    return 301 https://$host$request_uri;
+}
 ```
 
-Useful reference: https://tonymasek.com/articles/how-to-make-laravel-reverb-work-on-laravel-forge
+The `www-data` user (or the user of PHP-FPM) must be able to write to `storage/` and `bootstrap/cache/`.
+
+## 8. Run Browserless
+
+Knowii uses Browserless (headless Chromium) to fetch the web pages that users share. It must always be available.
+
+The repository includes two scripts. Both read the `BROWSERLESS_*` values from the `.env` file and use Podman (`sudo apt install podman`):
+
+- `./browserless-create-container.sh` creates a container. Use it to test.
+- `./browserless-create-service.sh` creates a systemd service, so the container starts with the server. Use it in production.
+
+Do not run `browserless-create-service.sh` as root. It uses Podman's rootless containers with systemd (Quadlet). For details, see [Quadlet explained](https://www.redhat.com/sysadmin/quadlet-podman) and the [Podman systemd unit reference](https://docs.podman.io/en/stable/markdown/podman-systemd.unit.5.html).
+
+The script creates `~/.config/containers/systemd/knowii_browserless_chromium.container` and loads it for the current user. To change the container settings:
+
+1. Stop the service: `systemctl --user stop knowii_browserless_chromium`.
+2. Delete `~/.config/containers/systemd/knowii_browserless_chromium.container`.
+3. Reload systemd for your user: `systemctl --user daemon-reload`.
+4. Change the `.env` file.
+5. Run `./browserless-create-service.sh` again.
+
+## 9. Update your instance
+
+To update to a new release, run these commands from the root of the repository:
+
+```bash
+git fetch --tags
+git checkout <new release tag>
+composer install --no-dev --optimize-autoloader --no-interaction
+npm ci
+npm run build
+php artisan migrate --force
+php artisan optimize
+php artisan queue:restart    # the worker restarts with the new code
+php artisan reverb:restart   # the WebSocket server restarts with the new code
+sudo systemctl reload php8.5-fpm
+```
+
+Read the release notes (`CHANGELOG.md`) before you update. They tell you about new or changed environment values.
+
+## Laravel Forge (optional)
+
+If you use [Laravel Forge](https://forge.laravel.com/) to manage your server, use this deployment script:
+
+```bash
+cd <path to knowii>
+
+$FORGE_COMPOSER install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+npm ci
+npm run build
+
+( flock -w 10 9 || exit 1
+    echo 'Restarting FPM...'; sudo -S service $FORGE_PHP_FPM reload ) 9>/tmp/fpmlock
+
+if [ -f artisan ]; then
+    $FORGE_PHP artisan migrate --force
+    $FORGE_PHP artisan optimize
+    $FORGE_PHP artisan queue:restart
+    $FORGE_PHP artisan reverb:restart
+fi
+```
+
+If you enable Laravel Reverb through Forge with a Cloudflare Origin certificate, Forge can create an nginx configuration for the WebSocket sub-domain that listens on port 80 instead of 443. In that case, edit `/etc/nginx/forge-conf/<YOUR_DOMAIN>/after/reverb.conf`: make it listen on 443 with the certificate of your main site (the file paths are in the main nginx configuration of the site), and proxy to `http://localhost:4201` as in step 7. Reference: [How to make Laravel Reverb work on Laravel Forge](https://tonymasek.com/articles/how-to-make-laravel-reverb-work-on-laravel-forge).

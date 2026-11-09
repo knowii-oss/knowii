@@ -33,7 +33,7 @@ For the host-based setup:
 - Copy the `.env.example` file to `.env` and fill in the necessary values
 - Run `composer install` to install the dependencies
 - Run `php artisan key:generate` to generate an encryption key
-- Run `npm install` or `npm run install:linux` if you're on Linux
+- Run `npm ci` to install the front-end dependencies
 - Run `npm run setup` to enable the Git hooks (see "Git hooks" below)
 - Run `npm run build` at least once to build the assets under `public/build` (at least `.vite/manifest.json` which is required for the application to start)
 - Run `composer clean` to build/rebuild the Sail docker images

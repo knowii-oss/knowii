@@ -6,7 +6,7 @@ single source of truth for project conventions; `CLAUDE.md` points here.
 ## Project
 
 Knowii is a community knowledge platform. It is an **Nx monorepo** combining a
-**Laravel 13** (PHP 8.5) back-end with a **React 18 + Inertia.js** front-end, styled with
+**Laravel 13** (PHP 8.5) back-end with a **React 19 + Inertia.js 3** front-end, styled with
 **Tailwind CSS** and **PrimeReact**.
 
 Tech stack you are expected to be fluent in: Laravel, PHP (8.5+), Pest,
@@ -61,7 +61,15 @@ After cloning, run `npm run setup` once to enable the Git hooks (see
 ### General
 
 - TypeScript must compile under the strictest configuration; **never** use
-  `any`.
+  `any`. The base config enables `strict`, `noUncheckedIndexedAccess`,
+  `exactOptionalPropertyTypes`, `noPropertyAccessFromIndexSignature` and
+  `verbatimModuleSyntax`: never relax them to make code compile.
+- Import types with `import type` (enforced by ESLint and required by
+  `verbatimModuleSyntax`).
+- Before committing, run `npm run tsc` and
+  `npx nx run-many -t lint typecheck test` (CI fails on any error).
+- Keep PrimeReact on 10.x: PrimeReact 11 is a different product (unstyled
+  primitives) under a commercial license, which does not fit an AGPL project.
 - Favor readability over premature performance optimization.
 - Use up-to-date, valid syntax.
 
