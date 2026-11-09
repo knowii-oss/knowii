@@ -61,7 +61,7 @@ import { commentSchema } from '../types/comment.schema';
 import type { Upload } from '../types/upload.schema';
 import { uploadSchema } from '../types/upload.schema';
 import type { CommunityResource } from '../types/community-resource.schema';
-import type { Community, ModeratorPermissions } from '../types/community.schema';
+import type { Community, ModeratorPermissions, NewCommunity } from '../types/community.schema';
 import { communitySchema } from '../types/community.schema';
 import { communityResourceSchema } from '../types/community-resource.schema';
 import type { NewResourceTextArticle } from '../types/resource-text-article.schema';
@@ -152,6 +152,11 @@ export const knowiiApiClient = {
      */
     get: (communityCuid: string): Promise<ApiResult<Community>> =>
       apiRequest('get', communityPath(COMMUNITY_API_PATH, communityCuid), communitySchema, 'Failed to load the community.'),
+    /**
+     * Change the name, the description or the visibility of a community (owner only, #1129). The slug stays the same.
+     */
+    update: (communityCuid: string, input: Partial<NewCommunity>): Promise<ApiResult<Community>> =>
+      apiRequest('patch', communityPath(COMMUNITY_API_PATH, communityCuid), communitySchema, 'Failed to save the community.', input),
     /**
      * Switch some rights of the moderators (owner and admins, #1240). Returns the community.
      */

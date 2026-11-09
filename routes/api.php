@@ -37,6 +37,7 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
 
         Route::post(ApiRoutes::COMMUNITIES, [CommunityApiController::class, 'store']);
         Route::get(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'show']);
+        Route::patch(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'update']);
         Route::delete(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'destroy']);
         Route::patch(ApiRoutes::COMMUNITY_MODERATOR_PERMISSIONS, [ModeratorPermissionApiController::class, 'update']);
 
