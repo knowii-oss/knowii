@@ -5,6 +5,7 @@ import UpdateProfileInformationForm from '@/Pages/Profile/Partials/UpdateProfile
 import UpdateAvatarForm from '@/Pages/Profile/Partials/UpdateAvatarForm';
 import Separator from '@/Components/Separator';
 import UpdatePasswordForm from '@/Pages/Profile/Partials/UpdatePasswordForm';
+import TwoFactorAuthenticationForm from '@/Pages/Profile/Partials/TwoFactorAuthenticationForm';
 import LogoutOtherBrowserSessionsForm from '@/Pages/Profile/Partials/LogoutOtherBrowserSessionsForm';
 import DeleteUserForm from '@/Pages/Profile/Partials/DeleteUserForm';
 import type { BreadcrumbItem } from '@/Components/ui';
@@ -37,6 +38,13 @@ export default function UserProfile(props: Props) {
 
       {page.props.jetstream.canUpdatePassword && <UpdatePasswordForm />}
       <Separator />
+
+      {page.props.jetstream.canManageTwoFactorAuthentication && (
+        <>
+          <TwoFactorAuthenticationForm requiresConfirmation={props.confirmsTwoFactorAuthentication} />
+          <Separator />
+        </>
+      )}
 
       <LogoutOtherBrowserSessionsForm sessions={props.sessions} />
       <Separator />
