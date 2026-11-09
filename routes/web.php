@@ -4,6 +4,7 @@ use App\Http\Controllers\Inertia\CommunityController;
 use App\Http\Controllers\Inertia\CommunityInvitationController;
 use App\Http\Controllers\Inertia\CommunityResourceController;
 use App\Http\Controllers\Inertia\DashboardController;
+use App\Http\Controllers\Inertia\MagicLinkController;
 use App\Http\Controllers\Inertia\MemberController;
 use App\Http\Controllers\Inertia\PostController;
 use App\Http\Controllers\Inertia\SpaceController;
@@ -48,6 +49,13 @@ Route::middleware([
 
     // A resource of a resources space (ADR 0015). The page itself is #1133
     Route::get('/community/{communitySlug}/space/{spaceSlug}/resource/{resourceSlug}', [CommunityResourceController::class, 'show'])->name('resources.show');
+});
+
+// Sign in with a link sent by email (#703, ADR 0023)
+Route::middleware('guest')->group(function () {
+    Route::post('/login/link', [MagicLinkController::class, 'store'])->middleware('throttle:magic-link')->name('login.link.store');
+    Route::get('/login/link/{token}', [MagicLinkController::class, 'show'])->name('login.link.show');
+    Route::post('/login/link/{token}', [MagicLinkController::class, 'consume'])->middleware('throttle:magic-link')->name('login.link.consume');
 });
 
 Route::inertia('/contact', 'Contact');

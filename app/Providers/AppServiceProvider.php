@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Actions\Auth\MagicLinks;
 use App\Actions\Comments\CreateComment;
 use App\Actions\Comments\DeleteComment;
 use App\Actions\Comments\UpdateComment;
@@ -33,6 +34,8 @@ use App\Actions\Users\UpdateAvatar;
 use App\Actions\Users\VerifyUsernameAvailability;
 use App\Actions\Waitlist\JoinWaitlist;
 use App\Constants;
+use App\Contracts\Auth\ConsumesMagicLinks;
+use App\Contracts\Auth\SendsMagicLinks;
 use App\Contracts\Comments\CreatesComments;
 use App\Contracts\Comments\DeletesComments;
 use App\Contracts\Comments\UpdatesComments;
@@ -97,6 +100,8 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(UpdatesAvatars::class, UpdateAvatar::class);
         app()->singleton(CreatesTextResources::class, CreateTextResource::class);
         app()->singleton(UpdatesModeratorPermissions::class, UpdateModeratorPermissions::class);
+        app()->singleton(SendsMagicLinks::class, MagicLinks::class);
+        app()->singleton(ConsumesMagicLinks::class, MagicLinks::class);
         app()->singleton(UpdatesCommunityMemberRoles::class, UpdateCommunityMemberRole::class);
         app()->singleton(RemovesCommunityMembers::class, RemoveCommunityMember::class);
         app()->singleton(InvitesCommunityMembers::class, InviteCommunityMember::class);
@@ -140,6 +145,13 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('uploads', static function (Request $request) {
             return Limit::perMinute(Constants::UPLOADS_PER_MINUTE)->by(self::rateLimitKey($request));
+        });
+
+        // Each sign-in link sends an email (#703): per address and IP, like the login
+        RateLimiter::for('magic-link', static function (Request $request) {
+            $email = $request->input('email');
+
+            return Limit::perMinute(5)->by(mb_strtolower(is_string($email) ? $email : '').'|'.$request->ip());
         });
 
         // Each invitation sends an email (#1242)
