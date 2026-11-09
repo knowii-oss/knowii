@@ -54,7 +54,7 @@ class CommunityResourceApiController extends Controller
      *
      * @throws AuthenticationException
      */
-    #[BodyParameter('name', description: 'Name of the resource in the community (3 to 64 characters)', required: true, type: 'string', example: 'How to take smart notes')]
+    #[BodyParameter('name', description: 'Name of the resource in the community (3 to 64 characters). Empty: the title of the page', required: false, type: 'string', example: 'How to take smart notes')]
     #[BodyParameter('url', description: 'Absolute URL of the article. Video and streaming platforms are refused', required: true, type: 'string', format: 'uri', example: 'https://example.com/some-article')]
     #[BodyParameter('level', description: 'beginner, intermediate, advanced, expert or unknown', required: true, type: 'string', example: 'beginner')]
     #[BodyParameter('description', description: 'Why the resource is useful (up to 255 characters)', required: false, type: 'string')]

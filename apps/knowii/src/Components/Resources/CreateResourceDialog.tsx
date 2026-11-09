@@ -119,7 +119,7 @@ export function CreateResourceDialog({ open, communityCuid, space, onClose, onRe
         </div>
 
         <div>
-          <InputLabel htmlFor="resource-name">Name in this community</InputLabel>
+          <InputLabel htmlFor="resource-name">Name in this community (optional)</InputLabel>
           <Controller
             name="name"
             control={form.control}
@@ -128,7 +128,6 @@ export function CreateResourceDialog({ open, communityCuid, space, onClose, onRe
                 id="resource-name"
                 wrapperClassName="mt-1"
                 {...field}
-                required
                 maxLength={MAX_LENGTH_COMMUNITY_RESOURCE_NAME}
                 invalid={!!errors.name}
                 aria-describedby={errors.name ? 'resource-name-error resource-name-hint' : 'resource-name-hint'}
@@ -136,7 +135,7 @@ export function CreateResourceDialog({ open, communityCuid, space, onClose, onRe
             )}
           />
           <p id="resource-name-hint" className="mt-1 text-xs text-muted">
-            The article keeps its own title. This name is the one members see here.
+            Leave it empty to use the title of the page. The article keeps its own title.
           </p>
           <InputError id="resource-name-error" className="mt-2" message={errors.name?.message} />
         </div>

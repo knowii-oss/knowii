@@ -77,12 +77,13 @@ test('the resources API returns not found for an unknown community', function ()
     expect($response->json('type'))->toBe(KnowiiApiResponseType::NotFound->value);
 });
 
-test('the resources API rejects a missing name with a validation issue', function () {
+test('the resources API rejects a name that is too short with a validation issue', function () {
     $owner = User::factory()->withUserProfile()->withPersonalCommunity()->create();
     $path = textArticlesPathFor($owner);
     $this->actingAs($owner);
 
     $response = $this->json('POST', $path, [
+        'name' => 'ab',
         'url' => 'https://example.com/some-article',
         'level' => KnowiiResourceLevel::Beginner->value,
     ], ['Accept' => 'application/json']);

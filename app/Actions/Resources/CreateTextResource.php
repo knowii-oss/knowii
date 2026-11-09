@@ -26,6 +26,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -56,7 +57,8 @@ class CreateTextResource implements CreatesTextResources
         Log::debug('Validating the input');
 
         $validator = Validator::make($input, [
-            'name' => ['required', 'string', 'min: '.Constants::MIN_LENGTH_COMMUNITY_RESOURCE_NAME, 'max: '.Constants::MAX_LENGTH_COMMUNITY_RESOURCE_NAME, 'regex: '.Constants::ALLOWED_COMMUNITY_RESOURCE_NAME_CHARACTERS_REGEX],
+            // Optional: the title of the page is used when it is missing (#1062)
+            'name' => ['nullable', 'string', 'min: '.Constants::MIN_LENGTH_COMMUNITY_RESOURCE_NAME, 'max: '.Constants::MAX_LENGTH_COMMUNITY_RESOURCE_NAME, 'regex: '.Constants::ALLOWED_COMMUNITY_RESOURCE_NAME_CHARACTERS_REGEX],
 
             // Nullable allows empty strings to be passed in
             // Note that the CommunityResource transforms null to an empty string
@@ -69,7 +71,7 @@ class CreateTextResource implements CreatesTextResources
 
         $validator->validate();
 
-        /** @var array{name: string, description: string|null, url: string, level: string} $input */
+        /** @var array{name?: string|null, description?: string|null, url: string, level: string} $input */
         $input = $validator->validated();
 
         Log::debug('Input validated');
@@ -97,7 +99,7 @@ class CreateTextResource implements CreatesTextResources
             throw new BusinessException('The URL points to a video or streaming platform. It is not a text article');
         }
 
-        $name = $input['name'];
+        $name = blank($input['name'] ?? null) ? null : trim((string) $input['name']);
         $description = $input['description'] ?? null;
 
         $level = KnowiiResourceLevel::from($input['level']);
@@ -167,7 +169,8 @@ class CreateTextResource implements CreatesTextResources
                 $inferredTitle = str_replace(['-', '_'], ' ', $lastPart);
                 $inferredTitle = ucwords($inferredTitle);
 
-                if (empty($inferredTitle)) {
+                // The condition was inverted before #1062: the inferred title was only used when it was empty
+                if (! empty($inferredTitle)) {
                     $pageContent['title'] = $inferredTitle;
                 }
             }
@@ -226,6 +229,15 @@ class CreateTextResource implements CreatesTextResources
                 Log::debug("Could not convert the page's readable content to Markdown");
                 $pageContent['markdown'] = null;
             }
+        }
+
+        // Without a name from the member, the community uses the title of the page (#1062)
+        if ($name === null) {
+            $title = trim((string) ($pageContent['title'] ?? ''));
+            if ($title === '') {
+                throw new BusinessException('Could not find the title of the page. Give the resource a name');
+            }
+            $name = Str::limit($title, Constants::MAX_LENGTH_COMMUNITY_RESOURCE_NAME - 1, '…');
         }
 
         try {

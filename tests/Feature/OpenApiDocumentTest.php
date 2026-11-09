@@ -90,7 +90,7 @@ test('the older endpoints document their required body fields', function (string
     expect($schema['required'] ?? [])->toEqualCanonicalizing($required);
 })->with([
     'communities' => ['/v1/communities', ['name', 'visibility']],
-    'resources' => ['/v1/communities/{community}/spaces/{space}/resources', ['name', 'url', 'level']],
+    'resources' => ['/v1/communities/{community}/spaces/{space}/resources', ['url', 'level']],
     'username availability' => ['/v1/users/is-username-available', ['usernameToCheck']],
     'waitlist' => ['/v1/waitlist', ['email', 'turnstileToken']],
 ]);
