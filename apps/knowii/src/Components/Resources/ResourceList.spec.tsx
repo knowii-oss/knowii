@@ -119,7 +119,7 @@ describe('ResourceList', () => {
     expect(screen.getByRole('button', { name: 'Add a resource' })).toHaveFocus();
     await userEvent.keyboard('{Enter}');
 
-    expect(await screen.findByRole('dialog')).toHaveTextContent('Add a resource to Cool links.');
+    expect(await screen.findByRole('dialog')).toHaveTextContent('Share a web article in Cool links.');
   });
 
   it('follows the resource events of the space', async () => {
