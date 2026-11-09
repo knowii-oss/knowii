@@ -32,8 +32,7 @@ interface CreateResourceCollectionDialogProps {
 }
 
 export default function CreateResourceCollectionDialog(props: CreateResourceCollectionDialogProps) {
-  const appData = useAppData();
-  const toast = appData.toast;
+  const { showToast } = useAppData();
 
   const [loading, setLoading] = useState(false);
 
@@ -58,7 +57,7 @@ export default function CreateResourceCollectionDialog(props: CreateResourceColl
     });
 
     if ('success' === response.type && !response.errors) {
-      toast?.show({
+      showToast({
         severity: 'success',
         summary: 'Resource collection created successfully',
       });
@@ -70,7 +69,7 @@ export default function CreateResourceCollectionDialog(props: CreateResourceColl
       form.reset();
       props.onHide();
     } else {
-      toast?.show({
+      showToast({
         severity: 'error',
         summary: response.message ? response.message : 'Failed to create the resource collection',
         detail: response.message ? response.message : 'Please try again later.',

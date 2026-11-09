@@ -19,8 +19,7 @@ interface Props {
 }
 
 export default function DeleteCommunityForm(props: Props) {
-  const appData = useAppData();
-  const toast = appData.toast;
+  const { showToast } = useAppData();
 
   const deleteCommunitySchema = z.object({
     communityName: z.string().regex(new RegExp(`^${props.communityName}$`, 'i'), 'Community name must match exactly'),
@@ -47,7 +46,7 @@ export default function DeleteCommunityForm(props: Props) {
     });
 
     if (succeeded) {
-      toast?.show({
+      showToast({
         severity: 'success',
         summary: 'Community deleted successfully',
       });
@@ -57,7 +56,7 @@ export default function DeleteCommunityForm(props: Props) {
         preserveState: false,
       });
     } else {
-      toast?.show({
+      showToast({
         severity: 'error',
         summary: 'Failed to delete the community',
         detail: 'Please try again later.',

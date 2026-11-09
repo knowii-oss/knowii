@@ -21,8 +21,7 @@ interface LogoutOtherBrowserSessionsFormProps {
 export default function LogoutOtherBrowserSessionsForm(props: Props) {
   const route = useRoute();
 
-  const appData = useAppData();
-  const toast = appData.toast;
+  const { showToast } = useAppData();
 
   const form = useForm<LogoutOtherBrowserSessionsFormProps>({
     password: '',
@@ -43,7 +42,7 @@ export default function LogoutOtherBrowserSessionsForm(props: Props) {
       preserveScroll: true,
       onSuccess: () => {
         closeModal();
-        toast?.show({ severity: 'success', summary: 'Success', detail: 'Logged you out of other browser sessions.' });
+        showToast({ severity: 'success', summary: 'Success', detail: 'Logged you out of other browser sessions.' });
       },
       onError: () => passwordRef.current?.focus(),
       onFinish: () => form.reset(),
