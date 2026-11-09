@@ -1,7 +1,35 @@
 # AGENTS.md
 
 Guidance for AI agents and contributors working in this repository. This is the
-single source of truth for project conventions; `CLAUDE.md` points here.
+short version of the project conventions; `CLAUDE.md` points here. The full
+technical documentation is in `documentation/`.
+
+## Technical documentation (read first)
+
+Before a structural change (a new model or concept, a new space type, a new
+channel, a new dependency, a new pattern), read:
+
+- `documentation/README.md` — index
+- `documentation/architecture/` — overview, high-level design (domain model,
+  multi-community scoping, request flow, authorization, real time, security),
+  back-end design, front-end design
+- `documentation/conventions/naming.md` — names of classes, files, tables,
+  routes, events, channels, branches
+- `documentation/conventions/rules.md` — the architecture rules and the
+  **definition of done**
+- `documentation/adr/` — architecture decision records. Never contradict an
+  accepted ADR silently: write a new ADR that supersedes it.
+
+In the same pull request as the code:
+
+- Add an ADR (`documentation/adr/NNNN-title.md`, from `template.md`, listed in
+  the index) for a structural decision (see `documentation/adr/README.md`).
+- Update the architecture documents when the domain model, a flow or a runtime
+  process changes.
+- For each new or changed API endpoint: Pest tests, a Bruno request in
+  `documentation/api` (see its `README.md`), and a check that the generated
+  OpenAPI document (`/docs/api`, Scramble) describes it correctly.
+- New configuration values go to `SELF_HOSTING.md` and `.env.example`.
 
 ## Project
 
@@ -21,6 +49,7 @@ react-hook-form.
 - `libs/common/` — shared TypeScript library (`common`), includes the Knowii API
   client and shared `constants.ts`
 - `tests/` — Pest tests (`Feature/`, `Unit/`)
+- `documentation/` — technical documentation, ADRs, Bruno API collection
 - `tools/` — build helper scripts
 
 ## Commands
