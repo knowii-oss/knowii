@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { router, useForm } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
-import type { ApiToken, Permission } from '@knowii/common';
+import type { ApiToken, ApiTokenExpiry, Permission } from '@knowii/common';
 import {
+  API_TOKEN_DEFAULT_EXPIRY,
+  API_TOKEN_EXPIRY_CHOICES,
+  API_TOKEN_EXPIRY_LABELS,
   API_TOKEN_PERMISSION_LABELS,
   API_TOKENS_DESTROY_URL,
   API_TOKENS_STORE_URL,
@@ -18,7 +21,7 @@ import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import Separator from '@/Components/Separator';
 import type { BreadcrumbItem } from '@/Components/ui';
-import { Button, Checkbox, Dialog, TextInput } from '@/Components/ui';
+import { Button, Checkbox, Dialog, SegmentedControl, TextInput } from '@/Components/ui';
 
 interface Props {
   tokens: ApiToken[];
@@ -50,6 +53,20 @@ function PermissionChoices(props: { idPrefix: string; available: Permission[]; v
   );
 }
 
+const expiryOptions = API_TOKEN_EXPIRY_CHOICES.map((value) => ({ value, label: API_TOKEN_EXPIRY_LABELS[value] }));
+
+/**
+ * When a token stops working (#1267): never, expired, or a date
+ */
+function expiryText(expiresAt: string | null): string {
+  if (!expiresAt) {
+    return 'never expires';
+  }
+  const date = new Date(expiresAt);
+  const formatted = date.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+  return date.getTime() <= Date.now() ? `expired on ${formatted}` : `expires on ${formatted}`;
+}
+
 /**
  * Personal API tokens (#689, ADR 0022): create a token with the abilities it needs, see it once, change its abilities,
  * delete it. Scripts and the browser extension (ADR 0018) use them.
@@ -57,7 +74,11 @@ function PermissionChoices(props: { idPrefix: string; available: Permission[]; v
 export default function ApiTokensPage({ tokens, availablePermissions, defaultPermissions }: Props) {
   const route = useRoute();
   const { showToast } = useAppData();
-  const createForm = useForm({ name: '', permissions: [...defaultPermissions] as string[] });
+  const createForm = useForm({
+    name: '',
+    permissions: [...defaultPermissions] as string[],
+    expires_in: API_TOKEN_DEFAULT_EXPIRY as ApiTokenExpiry,
+  });
   const updateForm = useForm({ permissions: [] as string[] });
   const [managing, setManaging] = useState<ApiToken | null>(null);
   const [deleting, setDeleting] = useState<ApiToken | null>(null);
@@ -145,6 +166,19 @@ export default function ApiTokensPage({ tokens, availablePermissions, defaultPer
           <InputError id="token-name-error" className="mt-2" message={createForm.errors.name} />
         </div>
         <div className="col-span-6">
+          <InputLabel id="token-expiry-label">Expires after</InputLabel>
+          <SegmentedControl<ApiTokenExpiry>
+            aria-labelledby="token-expiry-label"
+            className="mt-1"
+            name="expires_in"
+            options={expiryOptions}
+            value={createForm.data.expires_in}
+            onChange={(value) => createForm.setData('expires_in', value)}
+          />
+          <p className="mt-1 text-xs text-muted">A token that never expires works until you delete it.</p>
+          <InputError className="mt-2" message={createForm.errors.expires_in} />
+        </div>
+        <div className="col-span-6">
           <InputLabel>Permissions</InputLabel>
           <div className="mt-2">
             <PermissionChoices
@@ -170,8 +204,7 @@ export default function ApiTokensPage({ tokens, availablePermissions, defaultPer
                   <div className="flex min-w-0 flex-1 flex-col">
                     <span className="truncate font-bold">{token.name}</span>
                     <span className="text-sm text-muted">
-                      {token.last_used_ago ? `Last used ${token.last_used_ago}` : 'Never used'}
-                      {token.expires_at && `, expires ${new Date(token.expires_at).toLocaleString()}`}
+                      {token.last_used_ago ? `Last used ${token.last_used_ago}` : 'Never used'}, {expiryText(token.expires_at)}
                     </span>
                   </div>
                   <Button variant="ghost" size="sm" onClick={() => openManage(token)} aria-label={`Permissions of ${token.name}`}>

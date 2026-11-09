@@ -20,7 +20,7 @@ Jetstream lets members create personal API tokens with "permissions" (Sanctum ab
 ## Consequences
 
 1. A new API route needs an `ability:` middleware, and a new area needs its abilities here, in `JetstreamServiceProvider`, in `API_TOKEN_PERMISSIONS` and in the API README.
-2. Personal tokens do not expire. An expiry choice is a later improvement.
+2. Personal tokens expire after 30 days, 90 days (the default) or 1 year, or never, as the member chooses when creating them (#1267, Sébastien, 2026-11-09). Sanctum refuses an expired token. The login token of `POST /api/v1/login` lasts 12 hours.
 3. Abilities limit what a token can do, never more than its owner: the policies still apply.
 
 ## Alternatives considered

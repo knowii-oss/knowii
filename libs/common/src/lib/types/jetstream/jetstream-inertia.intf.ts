@@ -89,6 +89,19 @@ export const API_TOKEN_PERMISSION_LABELS: Record<Permission, string> = {
 };
 
 /**
+ * The lifetimes of a new token, in days, or never (#1267). WARNING: aligned with Constants::API_TOKEN_EXPIRY_CHOICES
+ */
+export const API_TOKEN_EXPIRY_CHOICES = ['30', '90', '365', 'never'] as const;
+export type ApiTokenExpiry = (typeof API_TOKEN_EXPIRY_CHOICES)[number];
+export const API_TOKEN_DEFAULT_EXPIRY: ApiTokenExpiry = '90';
+export const API_TOKEN_EXPIRY_LABELS: Record<ApiTokenExpiry, string> = {
+  '30': '30 days',
+  '90': '90 days',
+  '365': '1 year',
+  never: 'Never',
+};
+
+/**
  * A personal access token as Jetstream lists it (API/Index)
  */
 export interface ApiToken {
