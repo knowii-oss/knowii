@@ -5,6 +5,7 @@ use App\ApiRoutes;
 use App\Contracts\Resources\CreatesTextResources;
 use App\Enums\KnowiiApiResponseType;
 use App\Enums\KnowiiResourceLevel;
+use App\Models\CommunityResource;
 use App\Models\User;
 use Illuminate\Http\Response;
 
@@ -159,4 +160,24 @@ test('text articles can be created via the API', function () {
     $response->assertStatus(Response::HTTP_CREATED);
     expect($response->json('type'))->toBe(KnowiiApiResponseType::Success->value);
     expect($response->json('data.name'))->toBe('Some Article');
+});
+
+test('the text article API refuses a collection of another community (#1213)', function () {
+    // The attacker owns a personal community, so they may create resources there
+    $attacker = User::factory()->withUserProfile()->withPersonalCommunity()->create();
+    $victim = User::factory()->withUserProfile()->withPersonalCommunity()->create();
+    $victimCollection = $victim->ownedCommunities()->first()->communityResourceCollections()->create(['name' => 'Victim', 'description' => null]);
+
+    $path = ApiRoutes::path(ApiRoutes::COMMUNITY_RESOURCE_TEXT_ARTICLES, [
+        ApiRoutes::PARAM_COMMUNITY => $attacker->ownedCommunities()->first()->cuid,
+        ApiRoutes::PARAM_COMMUNITY_RESOURCE_COLLECTION => $victimCollection->cuid,
+    ]);
+
+    $this->actingAs($attacker)->postJson($path, [
+        'name' => 'Injected',
+        'url' => 'https://example.com/some-article',
+        'level' => KnowiiResourceLevel::Beginner->value,
+    ])->assertNotFound();
+
+    expect(CommunityResource::query()->count())->toBe(0);
 });

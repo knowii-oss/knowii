@@ -39,9 +39,12 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
         Route::post(ApiRoutes::COMMUNITIES, [CommunityApiController::class, 'store']);
         Route::delete(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'destroy']);
 
-        Route::post(ApiRoutes::COMMUNITY_RESOURCE_COLLECTIONS, [CommunityResourceCollectionApiController::class, 'store']);
-        Route::delete(ApiRoutes::COMMUNITY_RESOURCE_COLLECTION, [CommunityResourceCollectionApiController::class, 'destroy']);
-        Route::post(ApiRoutes::COMMUNITY_RESOURCE_TEXT_ARTICLES, [ResourceTextArticleApiController::class, 'store']);
+        // Resource collections. scopeBindings: a collection of another community gives a 404 (#1213)
+        Route::scopeBindings()->group(function () {
+            Route::post(ApiRoutes::COMMUNITY_RESOURCE_COLLECTIONS, [CommunityResourceCollectionApiController::class, 'store']);
+            Route::delete(ApiRoutes::COMMUNITY_RESOURCE_COLLECTION, [CommunityResourceCollectionApiController::class, 'destroy']);
+            Route::post(ApiRoutes::COMMUNITY_RESOURCE_TEXT_ARTICLES, [ResourceTextArticleApiController::class, 'store']);
+        });
 
         // Space groups and spaces (#1173). scopeBindings: a space group or space of another community gives a 404
         Route::scopeBindings()->group(function () {

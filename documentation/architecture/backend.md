@@ -119,7 +119,7 @@ Status codes follow the API design guide:
 
 - API Controllers are under `app/Http/Controllers/API`
 - API Controllers are named `SomethingApiController`
-- API Controllers are registered in the `routes/api.php` file
+- API Controllers are registered in the `routes/api.php` file. A route with nested models (`communities/{community}/spaces/{space}`) goes in a `Route::scopeBindings()` group: a child of another community then gives a 404, and the action never receives a child that does not belong to the community it authorized (#1213)
 - API Controllers should have accurate PHP types and docblocks (the OpenAPI documentation is generated from them). Validation lives in the actions, so Scramble cannot infer the request body: declare each body field with `#[BodyParameter(...)]` on the controller method (see `SpaceApiController`)
 - They should NOT validate the input (not their responsibility)
 - They should delegate operations to a dedicated action classes (e.g., CreateCommunity)
