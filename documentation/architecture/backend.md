@@ -183,9 +183,8 @@ Events that can be dispatched and processed within Knowii (with or without WebSo
 - `App\Events\Communities\CommunityCreated`
 - `App\Events\Communities\CommunityUpdated`
 - `App\Events\Communities\CommunityDeleted`
-- `App\Events\CommunityResourceCollections\CommunityResourceCollectionCreated`
-- `App\Events\CommunityResourceCollections\CommunityResourceCollectionUpdated`
-- `App\Events\CommunityResourceCollections\CommunityResourceCollectionDeleted`
+- `App\Events\CommunityResources\CommunityResourceCreated` (also `Updated`, `Deleted`): on the channel of the resources space only ([ADR 0015](../adr/0015-resources-space-type.md))
+- `App\Events\Spaces\SpaceTreeChanged`
 - ...
 
 https://ryanc.co/posts/understanding-laravels-serializesmodels

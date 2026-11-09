@@ -31,13 +31,12 @@ use Illuminate\Support\Collection;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property int $owner_id
- * @property-read \Illuminate\Database\Eloquent\Collection<int, CommunityResourceCollection> $communityResourceCollections
  * @property-read \Illuminate\Database\Eloquent\Collection<int, User> $users
  * @property-read \Illuminate\Database\Eloquent\Collection<int, SpaceGroup> $spaceGroups
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Space> $spaces
  * @property-read \Illuminate\Database\Eloquent\Collection<int, CommunityInvitation> $communityInvitations
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CommunityResource> $communityResources
  * @property-read ?int $community_invitations_count
- * @property-read ?int $community_resource_collections_count
  * @property-read User $owner
  * @property-read ?CommunityMember $communityMember
  * @property-read ?int $users_count
@@ -209,32 +208,31 @@ class Community extends Model
     }
 
     /**
-     * Get the resource collections of the community.
+     * Get the resources of all the resources spaces of the community (ADR 0015).
      *
-     * @return HasMany<CommunityResourceCollection, covariant $this>
+     * @return HasMany<\App\Models\CommunityResource, covariant $this>
      */
-    final public function communityResourceCollections(): HasMany
+    final public function communityResources(): HasMany
     {
-        return $this->hasMany(CommunityResourceCollection::class);
+        // The model, not the API resource class imported above
+        return $this->hasMany(\App\Models\CommunityResource::class);
     }
 
     /**
-     * Get the 10 most recent resources across all communityResourceCollections.
+     * The 10 most recent resources of the given spaces (the resources spaces that a member can see).
      *
-     * @return Collection<int, CommunityResource>
+     * @param  array<int, int>  $spaceIds
+     * @return \Illuminate\Database\Eloquent\Collection<int, \App\Models\CommunityResource>
      */
-    final public function recentResources(): Collection
+    final public function recentResources(array $spaceIds): \Illuminate\Database\Eloquent\Collection
     {
-        /** @var Collection<int, CommunityResource> */
-        $resources = $this->communityResourceCollections()
-            ->with(['communityResources', 'communityResources.resource', 'communityResources.curator', 'communityResources.collection'])
-            ->get()
-            ->pluck('communityResources')
-            ->flatten()
-            ->sortByDesc('created_at')
-            ->take(10);
-
-        return $resources;
+        return $this->communityResources()
+            ->whereIn('space_id', $spaceIds)
+            ->with(['resource', 'curator', 'space'])
+            ->latest()
+            ->latest('id')
+            ->limit(10)
+            ->get();
     }
 
     /**

@@ -13,7 +13,7 @@ import {
  * Space groups and spaces (#1173, ADR 0012).
  * WARNING: the enums are aligned with KnowiiSpaceType, KnowiiSpaceVisibility and KnowiiSpacePostingPolicy (back-end)
  */
-export const SPACE_TYPES = ['discussion', 'chat', 'pages', 'course'] as const;
+export const SPACE_TYPES = ['discussion', 'chat', 'pages', 'course', 'resources'] as const;
 export const spaceTypeSchema = z.enum(SPACE_TYPES);
 export type SpaceType = z.infer<typeof spaceTypeSchema>;
 
@@ -28,8 +28,9 @@ export type SpacePostingPolicy = z.infer<typeof spacePostingPolicySchema>;
 export const SPACE_TYPE_LABELS: Record<SpaceType, { name: string; description: string; emoji: string }> = {
   discussion: { name: 'Discussion', description: 'Posts with comments and reactions', emoji: '💬' },
   chat: { name: 'Chat', description: 'Real-time messages with threads', emoji: '⚡' },
-  pages: { name: 'Pages', description: 'Ordered pages: guides, Start Here, resources', emoji: '📄' },
+  pages: { name: 'Pages', description: 'Ordered pages: guides, Start Here', emoji: '📄' },
   course: { name: 'Course', description: 'Ordered lessons with videos', emoji: '🎓' },
+  resources: { name: 'Resources', description: 'Curated links to articles', emoji: '🔗' },
 };
 
 export const SPACE_VISIBILITY_LABELS: Record<SpaceVisibility, string> = {

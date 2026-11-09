@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * App\Models\CommunityResourceCollection
+ * A resource added to a resources space of a community (ADR 0015).
  *
  * @property-read int $id
  * @property-read string $cuid
@@ -29,10 +29,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property bool $is_featured
  * @property Carbon $created_at
  * @property Carbon $updated_at
- * @property int $collection_id
+ * @property int $space_id
  * @property-read Community $community
  * @property-read Resource $resource
- * @property-read CommunityResourceCollection $collection
+ * @property-read Space $space
  * @property-read ?UserProfile $curator
  * @property-read ?ResourceTextArticle $textArticle
  *
@@ -40,7 +40,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereCollectionId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereCommunityId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereCuid($value)
@@ -52,6 +51,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereResourceId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereResourceTextArticleId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereSlug($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereSpaceId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereUpdatedAt($value)
  * @method TResource toResource<TResource of \Illuminate\Http\Resources\Json\JsonResource = \App\Http\Resources\CommunityResourceResource>(class-string<TResource>|null $resourceClass = null)
  *
@@ -79,7 +79,7 @@ class CommunityResource extends Model
         'description',
         'resource_id',
         'community_id',
-        'collection_id',
+        'space_id',
         'resource_text_article_id',
         'curator_id',
         'is_featured',
@@ -94,7 +94,7 @@ class CommunityResource extends Model
         'id',
         'resource_id',
         'community_id',
-        'collection_id',
+        'space_id',
         'resource_text_article_id',
         'curator_id',
     ];
@@ -143,13 +143,13 @@ class CommunityResource extends Model
     }
 
     /**
-     *  Get the collection that this corresponds to
+     * Get the resources space that holds this resource
      *
-     * @return BelongsTo<CommunityResourceCollection, covariant $this>
+     * @return BelongsTo<Space, covariant $this>
      */
-    final public function collection(): BelongsTo
+    final public function space(): BelongsTo
     {
-        return $this->belongsTo(CommunityResourceCollection::class);
+        return $this->belongsTo(Space::class);
     }
 
     /**

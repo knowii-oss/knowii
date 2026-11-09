@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { CommunityResource, CommunityResourceCollection, ResourceLevel, ResourceType } from '@knowii/common';
+import type { CommunityResource, ResourceLevel, ResourceType, Space } from '@knowii/common';
 import {
   ALLOWED_COMMUNITY_RESOURCE_NAME_CHARACTERS_REGEX,
   DEFAULT_TEXTAREA_ROWS,
@@ -25,18 +25,12 @@ const STEPS = ['Overview', 'Details'] as const;
 const resourceTypeOptions = resourceTypeSchemaOptions.map((option) => ({ value: option.type, label: option.name }));
 const resourceLevelOptions = resourceLevelSchemaOptions.map((option) => ({ value: option.level, label: option.name, icon: option.icon }));
 
-export interface CreateResourceDialogSettings {
-  visible: boolean;
-  communityCuid: string;
-  // FIXME accept either a specific collection to create the new resource into, or a list of collections to choose from
-  resourceCollection?: CommunityResourceCollection;
-  // FIXME make this optional
-  resourceCollections: CommunityResourceCollection[];
-}
-
 interface CreateResourceDialogProps {
-  settings: CreateResourceDialogSettings;
-  onHide: () => void;
+  open: boolean;
+  communityCuid: string;
+  // The resources space that receives the resource (ADR 0015)
+  space: Space;
+  onClose: () => void;
   onResourceCreated: (newResource: CommunityResource) => void;
 }
 
@@ -45,12 +39,6 @@ export function CreateResourceDialog(props: CreateResourceDialogProps) {
 
   const [loading, setLoading] = useState(false);
 
-  // All resources go in a specific collection and have a specific type
-  // If a specific resource collection was passed in, we use that
-  // Otherwise, we set to null and let the user choose
-  const [resourceCollection, setResourceCollection] = useState<CommunityResourceCollection | null>(
-    props.settings.resourceCollection ? props.settings.resourceCollection : null,
-  );
   const [resourceType, setResourceType] = useState<ResourceType>('textArticle');
   const [level, setLevel] = useState<ResourceLevel>('unknown');
   const [name, setName] = useState('');
@@ -58,12 +46,11 @@ export function CreateResourceDialog(props: CreateResourceDialogProps) {
   const [url, setUrl] = useState('');
 
   // Requirements for step 1:
-  // - Select a collection
   // - Select a type of resource
   // - Select the resource level
   // - Select a name for the resource
   // TODO once there is more than one type of resource, the user should select one explicitly
-  const isStepOneValid = resourceCollection && resourceType && name && level;
+  const isStepOneValid = resourceType && name && level;
   const isStepTwoValid =
     resourceType === 'textArticle' &&
     newResourceTextArticleSchema.safeParse({
@@ -88,47 +75,29 @@ export function CreateResourceDialog(props: CreateResourceDialogProps) {
 
     await sleep(MIN_ACTION_TIME);
 
-    if (!resourceCollection || !resourceType) {
-      setLoading(false);
-      return;
-    }
-
     if (resourceType === 'textArticle') {
-      const response = await knowiiApiClient.resources.createTextArticle({
-        communityCuid: props.settings.communityCuid,
-        resourceCollectionCuid: resourceCollection?.cuid,
-        url,
-        name,
-        description,
-        level,
-      });
+      const result = await knowiiApiClient.resources.create(props.communityCuid, props.space.cuid, { url, name, description, level });
 
-      if ('success' === response.type && !response.errors) {
+      if (result.ok) {
         showToast({
           severity: 'success',
-          summary: 'Resource created successfully',
+          summary: 'Resource added',
         });
-
-        if (response.data) {
-          const createdResource = response.data;
-          props.onResourceCreated(createdResource);
-        }
+        props.onResourceCreated(result.data);
 
         // The form is reset once the dialog is closed (onAfterClose)
-        props.onHide();
+        props.onClose();
       } else {
         showToast({
           severity: 'error',
-          summary: response.message ? response.message : 'Failed to create the resource',
-          detail: response.message ? response.message : 'Please try again later.',
+          summary: result.message,
         });
       }
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   const resetForm = () => {
-    setResourceCollection(props.settings.resourceCollection ?? null);
     setResourceType('textArticle');
     setLevel('unknown');
     setName('');
@@ -141,15 +110,15 @@ export function CreateResourceDialog(props: CreateResourceDialogProps) {
 
   return (
     <Dialog
-      open={props.settings.visible}
-      onClose={props.onHide}
+      open={props.open}
+      onClose={props.onClose}
       title={
         <>
           <ResourceIcon />
           New resource
         </>
       }
-      description="Provide the details of your new resource."
+      description={`Add a resource to ${props.space.name}.`}
       onAfterClose={resetForm}
     >
       {loading ? (
@@ -186,26 +155,6 @@ export function CreateResourceDialog(props: CreateResourceDialogProps) {
                   placeholder="Choose a name for this resource"
                 />
               </div>
-
-              {
-                // Collection
-                // Only shown if no specific collection was given
-                !props.settings.resourceCollection && props.settings.resourceCollections && (
-                  <div className="mt-4">
-                    <InputLabel htmlFor="resourceCollection">Resource collection</InputLabel>
-                    <Select
-                      id="resourceCollection"
-                      className="mt-1"
-                      options={props.settings.resourceCollections.map((collection) => ({ value: collection.cuid, label: collection.name }))}
-                      value={resourceCollection ? resourceCollection.cuid : null}
-                      onChange={(cuid) =>
-                        setResourceCollection(props.settings.resourceCollections.find((collection) => collection.cuid === cuid) ?? null)
-                      }
-                      placeholder="Where to store the new resource?"
-                    />
-                  </div>
-                )
-              }
 
               {/* Type */}
               <div className="mt-4">
@@ -248,7 +197,7 @@ export function CreateResourceDialog(props: CreateResourceDialogProps) {
               </div>
 
               <div className="flex justify-end gap-2 border-t border-border pt-4 mt-6">
-                <Button variant="secondary" onClick={props.onHide}>
+                <Button variant="secondary" onClick={props.onClose}>
                   Cancel
                 </Button>
                 <Button type="submit" disabled={!isStepOneValid} rightIcon={<FaChevronRight aria-hidden="true" />}>

@@ -78,7 +78,7 @@ export default function DeleteCommunityForm(props: Props) {
   return (
     <ActionSection title={'Delete Community'} description={'Permanently delete this community.'}>
       <div className="max-w-xl text-sm text-muted">
-        Once your community is deleted, the collections, resources, and interactions will all be permanently removed.
+        Once your community is deleted, its spaces, posts, resources and interactions will all be permanently removed.
       </div>
 
       <div className="mt-5 flex items-center">

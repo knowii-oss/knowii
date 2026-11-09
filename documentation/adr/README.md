@@ -39,3 +39,4 @@ Do not write an ADR for a bug fix, a refactor that keeps the structure, or a fea
 | [0012](0012-space-groups-and-typed-spaces.md)                          | Space groups and typed spaces structure a community                     | Accepted |
 | [0013](0013-markdown-rendered-on-the-server.md)                        | Member content is Markdown, rendered to safe HTML on the server         | Accepted |
 | [0014](0014-explicit-foreign-keys-instead-of-polymorphic-relations.md) | Explicit foreign keys instead of polymorphic relations                  | Accepted |
+| [0015](0015-resources-space-type.md)                                   | Resource collections become a `resources` space type                    | Accepted |

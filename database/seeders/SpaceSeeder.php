@@ -18,6 +18,9 @@ class SpaceSeeder extends Seeder
 
     public const string BRUNO_SPACE_CUID = 'q8kspacewelcome000000001';
 
+    // The cuid of the former "Cool links" resource collection (ADR 0015)
+    public const string BRUNO_RESOURCES_SPACE_CUID = 'z40cggggsksggkgskkwocock';
+
     /**
      * @var array<string, list<array{name: string, emoji: string, type: KnowiiSpaceType, visibility: KnowiiSpaceVisibility, posting_policy: KnowiiSpacePostingPolicy, description: string}>>
      */
@@ -32,6 +35,9 @@ class SpaceSeeder extends Seeder
         ],
         'Learn' => [
             ['name' => 'Obsidian Starter Course', 'emoji' => '🎓', 'type' => KnowiiSpaceType::Course, 'visibility' => KnowiiSpaceVisibility::Members, 'posting_policy' => KnowiiSpacePostingPolicy::Moderators, 'description' => 'Learn Obsidian step by step'],
+        ],
+        'Resources' => [
+            ['name' => 'Cool links', 'emoji' => '🔗', 'type' => KnowiiSpaceType::Resources, 'visibility' => KnowiiSpaceVisibility::Members, 'posting_policy' => KnowiiSpacePostingPolicy::Moderators, 'description' => 'A collection of cool links'],
         ],
     ];
 
@@ -59,6 +65,7 @@ class SpaceSeeder extends Seeder
                     'space_group_id' => $group->id,
                     'position' => $position,
                     ...($space['name'] === 'Welcome' ? ['cuid' => self::BRUNO_SPACE_CUID] : []),
+                    ...($space['name'] === 'Cool links' ? ['cuid' => self::BRUNO_RESOURCES_SPACE_CUID] : []),
                 ]);
             }
         }

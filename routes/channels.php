@@ -23,14 +23,6 @@ Broadcast::channel(Constants::WS_CHANNEL_COMMUNITY, static function (User $user,
     return $retVal;
 });
 
-Broadcast::channel(Constants::WS_CHANNEL_COMMUNITY_RESOURCE_COLLECTION, static function (User $user, string $communityCuid, string $resourceCollectionCuid) {
-    // This is a private channel reserved to community members
-    $community = Community::whereCuid($communityCuid)->firstOrFail();
-    $retVal = $user->allCommunities()->contains($community);
-
-    return $retVal;
-});
-
 Broadcast::channel(Constants::WS_CHANNEL_COMMUNITY_SPACE, static function (User $user, string $communityCuid, string $spaceCuid) {
     // Private channel of a space: same rule as reading the space (SpacePolicy::view)
     $community = Community::whereCuid($communityCuid)->firstOrFail();

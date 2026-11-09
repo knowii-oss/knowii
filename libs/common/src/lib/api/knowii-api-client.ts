@@ -2,15 +2,8 @@ import {
   COMMUNITY_API_BASE_PATH,
   COMMUNITY_API_PATH,
   COMMUNITY_API_PATH_PARAM_COMMUNITY,
-  COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH,
-  COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH_PARAM_COMMUNITY,
-  COMMUNITY_RESOURCE_COLLECTION_API_PATH,
-  COMMUNITY_RESOURCE_COLLECTION_API_PATH_PARAM_COMMUNITY,
-  COMMUNITY_RESOURCE_COLLECTION_API_PATH_PARAM_RESOURCE_COLLECTION,
-  COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH,
-  COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH_PARAM_COMMUNITY,
-  COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH_PARAM_RESOURCE_COLLECTION,
   COMMUNITY_SPACE_API_PATH,
+  COMMUNITY_SPACE_RESOURCES_API_PATH,
   COMMUNITY_MEMBERS_API_PATH,
   COMMUNITY_UPLOADS_API_PATH,
   COMMUNITY_SPACE_GROUP_API_PATH,
@@ -41,19 +34,12 @@ import type { CreateCommunityRequest } from './communities/create-community-requ
 import type { IsUsernameAvailableRequest } from './users/is-username-available-request.schema';
 import type { IsUsernameAvailableResponse } from './users/is-username-available-response.schema';
 import { isUsernameAvailableResponseSchema } from './users/is-username-available-response.schema';
-import type { CreateCommunityResourceCollectionRequest } from './community-resource-collections/create-community-resource-collection-request.schema';
-import type { CreateCommunityResourceCollectionResponse } from './community-resource-collections/create-community-resource-collection-response.schema';
-import { createCommunityResourceCollectionResponseSchema } from './community-resource-collections/create-community-resource-collection-response.schema';
-import type { CreateResourceTextArticleRequest } from './resources/create-resource-text-article-request.schema';
-import type { CreateResourceTextArticleResponse } from './resources/create-resource-text-article-response.schema';
-import { createResourceTextArticleResponseSchema } from './resources/create-resource-text-article-response.schema';
-import { HttpStatus } from '../types/http-status.intf';
-import type { DeleteResourceCollectionRequest } from './community-resource-collections/delete-community-resource-collection-request.schema';
 import type { DeleteCommunityRequest } from './communities/delete-community-request.schema';
 import type { JoinWaitlistRequest } from './waitlist/join-waitlist-request.schema';
 import type { JoinWaitlistResponse } from './waitlist/join-waitlist-response.schema';
 import { joinWaitlistResponseSchema } from './waitlist/join-waitlist-response.schema';
 import { z } from 'zod';
+import { HttpStatus } from '../types/http-status.intf';
 import type { ApiResult } from './api-result';
 import { apiPath, apiRequest } from './api-result';
 import type { Space, SpaceForm, SpaceGroup, SpaceGroupForm } from '../types/space.schema';
@@ -64,6 +50,9 @@ import type { Comment, CommentForm } from '../types/comment.schema';
 import { commentSchema } from '../types/comment.schema';
 import type { Upload } from '../types/upload.schema';
 import { uploadSchema } from '../types/upload.schema';
+import type { CommunityResource } from '../types/community-resource.schema';
+import { communityResourceSchema } from '../types/community-resource.schema';
+import type { NewResourceTextArticle } from '../types/resource-text-article.schema';
 import type { ReactionKind, ReactionSummary, WhoReacted } from '../types/reaction.schema';
 import { reactionSummarySchema, whoReactedSchema } from '../types/reaction.schema';
 
@@ -97,6 +86,8 @@ const commentsPath = (communityCuid: string, spaceCuid: string, postCuid: string
     [SPACE_API_PARAM_POST]: postCuid,
     [SPACE_API_PARAM_COMMENT]: commentCuid ?? '',
   });
+const resourcesPath = (communityCuid: string, spaceCuid: string) =>
+  apiPath(COMMUNITY_SPACE_RESOURCES_API_PATH, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE]: spaceCuid });
 const htmlSchema = z.object({ html: z.string() });
 
 const defaultHeaders: Headers = new Headers({
@@ -344,99 +335,13 @@ export const knowiiApiClient = {
       whoReacted: (target: ReactionTarget): Promise<ApiResult<WhoReacted>> =>
         apiRequest('get', reactionsPath(target), whoReactedSchema, 'Failed to load the reactions.'),
     },
-    resourceCollections: {
-      create: async (input: CreateCommunityResourceCollectionRequest): Promise<CreateCommunityResourceCollectionResponse> => {
-        const requestUrl = COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH.replace(
-          COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH_PARAM_COMMUNITY,
-          input.communityCuid,
-        );
-
-        try {
-          const response = await fetch(requestUrl, {
-            method: 'post',
-            headers: defaultHeaders,
-            body: JSON.stringify(input),
-          });
-
-          const responseAsJson = await response.json();
-
-          const parsedResponse = createCommunityResourceCollectionResponseSchema.safeParse(responseAsJson);
-
-          if (parsedResponse.success) {
-            return parsedResponse.data;
-          }
-
-          return {
-            message: responseAsJson.message ? responseAsJson.message : 'Failed to create the resource collection. Please try again later.',
-            errors: parsedResponse.error.issues,
-            type: responseAsJson.type ? responseAsJson.type : 'internalError',
-            category: responseAsJson.category ? responseAsJson.category : 'technical',
-          };
-        } catch {
-          return {
-            message: 'Failed to create the resource collection. Please try again later.',
-            errors: [],
-            type: 'internalError',
-            category: 'technical',
-          };
-        }
-      },
-      delete: async (input: DeleteResourceCollectionRequest): Promise<boolean> => {
-        const requestUrl = COMMUNITY_RESOURCE_COLLECTION_API_PATH.replace(
-          COMMUNITY_RESOURCE_COLLECTION_API_PATH_PARAM_COMMUNITY,
-          input.community.cuid,
-        ).replace(COMMUNITY_RESOURCE_COLLECTION_API_PATH_PARAM_RESOURCE_COLLECTION, input.resourceCollection.cuid);
-
-        try {
-          const response = await fetch(requestUrl, {
-            method: 'delete',
-            headers: defaultHeaders,
-          });
-
-          return response.status === HttpStatus.NO_CONTENT;
-        } catch {
-          return false;
-        }
-      },
-    },
   },
   resources: {
-    createTextArticle: async (input: CreateResourceTextArticleRequest): Promise<CreateResourceTextArticleResponse> => {
-      const requestUrl = COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH.replace(
-        COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH_PARAM_COMMUNITY,
-        input.communityCuid,
-      ).replace(COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH_PARAM_RESOURCE_COLLECTION, input.resourceCollectionCuid);
-
-      try {
-        const response = await fetch(requestUrl, {
-          method: 'post',
-          headers: defaultHeaders,
-          body: JSON.stringify(input),
-        });
-
-        const responseAsJson = await response.json();
-
-        const parsedResponse = createResourceTextArticleResponseSchema.safeParse(responseAsJson);
-
-        if (parsedResponse.success) {
-          return parsedResponse.data;
-        }
-
-        return {
-          message: responseAsJson.message ? responseAsJson.message : 'Failed to create the text article. Please try again later.',
-          errors: parsedResponse.error.issues,
-          type: responseAsJson.type ? responseAsJson.type : 'internalError',
-          category: responseAsJson.category ? responseAsJson.category : 'technical',
-        };
-      } catch {
-        return {
-          message: 'Failed to create the text article. Please try again later.',
-          errors: [],
-          type: 'internalError',
-          category: 'technical',
-        };
-      }
-    },
+    /**
+     * Add a resource to a resources space, from the URL of a web article (ADR 0015)
+     */
+    create: (communityCuid: string, spaceCuid: string, input: NewResourceTextArticle): Promise<ApiResult<CommunityResource>> =>
+      apiRequest('post', resourcesPath(communityCuid, spaceCuid), communityResourceSchema, 'Failed to add the resource.', input),
   },
   users: {
     isUsernameAvailable: async (input: IsUsernameAvailableRequest, signal?: AbortSignal): Promise<IsUsernameAvailableResponse> => {

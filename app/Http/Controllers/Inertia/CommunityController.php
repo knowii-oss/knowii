@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers\Inertia;
 
+use App\Enums\KnowiiSpaceType;
 use App\Models\Community;
+use App\Models\Space;
+use App\Models\SpaceGroup;
 use App\Support\SpaceTree;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -23,14 +26,18 @@ class CommunityController extends Controller
     {
         $community = Community::where('slug', $slug)->firstOrFail();
 
-        $communityResourceCollections = $community->communityResourceCollections()
-            ->orderBy('name')
-            ->get();
-
-        // WARNING: this is an associative array. This needs to be converted using array_values
-        $recentResources = $community->recentResources();
-
         Gate::authorize('view', $community);
+
+        $spaceGroups = SpaceTree::for($community, $request->user());
+
+        // Recent resources: only from the resources spaces that the member can see (ADR 0015)
+        $resourcesSpaceIds = $spaceGroups
+            ->flatMap(fn (SpaceGroup $group) => $group->spaces)
+            ->filter(fn (Space $space) => $space->type === KnowiiSpaceType::Resources)
+            ->map(fn (Space $space) => $space->id)
+            ->values()
+            ->all();
+        $recentResources = $community->recentResources($resourcesSpaceIds);
 
         // Disable wrapping for the data we return to the frontend from this controller
         // This lets us use the API Resources classes without the wrapping that is normally applied
@@ -41,9 +48,8 @@ class CommunityController extends Controller
             // WARNING: The props passed here must remain aligned with the props expected by the page
             'community' => $community->toResource()->withLargeFields(),
 
-            'resourceCollections' => $communityResourceCollections->toResourceCollection(),
             'recentResources' => $recentResources->toResourceCollection(),
-            'spaceGroups' => SpaceTree::for($community, $request->user())->toResourceCollection(),
+            'spaceGroups' => $spaceGroups->toResourceCollection(),
 
             'permissions' => $this->getCommunityPermissions($community),
         ]);
@@ -90,14 +96,6 @@ class CommunityController extends Controller
             'canAddCommunityMembers' => Gate::check('addCommunityMember', $community),
             'canUpdateCommunityMembers' => Gate::check('updateCommunityMember', $community),
             'canRemoveCommunityMembers' => Gate::check('removeCommunityMember', $community),
-
-            'canCreateResourceCollection' => Gate::check('createResourceCollection', $community),
-            'canUpdateResourceCollection' => Gate::check('updateResourceCollection', $community),
-            'canDeleteResourceCollection' => Gate::check('deleteResourceCollection', $community),
-
-            'canCreateResource' => Gate::check('createResource', $community),
-            'canUpdateResource' => Gate::check('updateResource', $community),
-            'canDeleteResource' => Gate::check('deleteResource', $community),
         ];
     }
 }

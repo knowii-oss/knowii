@@ -3,9 +3,7 @@
 namespace App\Events\CommunityResources;
 
 use App\Constants;
-use App\Enums\KnowiiCommunityVisibility;
 use App\Models\CommunityResource;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -49,29 +47,26 @@ abstract class CommunityResourceEvent implements ShouldBroadcast, ShouldDispatch
             'resource',
             'curator',
             'textArticle',
-            'collection',
+            'space',
         ]);
 
         return $this->communityResource->toResource()->toArray(request());
     }
 
     /**
-     * @return array<Channel|PrivateChannel>
+     * The channel of the space only: it checks SpacePolicy::view, so a members-only space never leaks (ADR 0015).
+     *
+     * @return array<PrivateChannel>
      */
     final public function broadcastOn(): array
     {
-        $retVal = [
-            // Emit to the community channel
-            new PrivateChannel(Str::of(Constants::WS_CHANNEL_COMMUNITY)->replace(Constants::WS_CHANNEL_COMMUNITY_PARAM_COMMUNITY_CUID, $this->communityResource->community->cuid)),
-            // Emit to the resource collection channel
-            new PrivateChannel(Str::of(Constants::WS_CHANNEL_COMMUNITY_RESOURCE_COLLECTION)->replace(Constants::WS_CHANNEL_COMMUNITY_RESOURCE_COLLECTION_PARAM_COMMUNITY_CUID, $this->communityResource->community->cuid)->replace(Constants::WS_CHANNEL_COMMUNITY_RESOURCE_COLLECTION_PARAM_RESOURCE_COLLECTION_CUID, $this->communityResource->collection->cuid)),
+        $space = $this->communityResource->space;
+
+        return [
+            new PrivateChannel(Str::of(Constants::WS_CHANNEL_COMMUNITY_SPACE)
+                ->replace(Constants::WS_CHANNEL_COMMUNITY_SPACE_PARAM_COMMUNITY_CUID, $this->communityResource->community->cuid)
+                ->replace(Constants::WS_CHANNEL_COMMUNITY_SPACE_PARAM_SPACE_CUID, $space->cuid)
+                ->toString()),
         ];
-
-        // Emit events about public communities to the public channel
-        if ($this->communityResource->community->visibility === KnowiiCommunityVisibility::Public) {
-            $retVal[] = new Channel(Constants::WS_CHANNEL_COMMUNITIES);
-        }
-
-        return $retVal;
     }
 }

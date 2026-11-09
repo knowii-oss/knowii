@@ -29,12 +29,6 @@ class DatabaseSeeder extends Seeder
             'visibility' => KnowiiCommunityVisibility::Public,
         ]);
 
-        $resourceCollection = $community->communityResourceCollections()->create([
-            'cuid' => 'z40cggggsksggkgskkwocock', // Used by Bruno
-            'name' => 'Cool links',
-            'description' => 'A collection of cool links',
-        ]);
-
         // A second member, to check mentions, reactions and real time with two browsers
         $member = User::factory()->withUserProfile()->create([
             'name' => 'Ada Lovelace',

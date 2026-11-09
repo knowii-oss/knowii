@@ -3,9 +3,9 @@
 namespace App\Http\Resources;
 
 use App\Models\CommunityResource;
-use App\Models\CommunityResourceCollection;
 use App\Models\Resource;
 use App\Models\ResourceTextArticle;
+use App\Models\Space;
 use App\Models\UserProfile;
 use Illuminate\Http\Request;
 
@@ -27,7 +27,7 @@ class CommunityResourceResource extends AbstractKnowiiJsonResource
             'resource' => $this->whenLoaded('resource', fn (Resource $resource) => $resource->toResource()->withLargeFields($this->serializeLargeFields)),
             'resource_text_article' => $this->whenLoaded('textArticle', fn (ResourceTextArticle $textArticle) => $textArticle->toResource()->withLargeFields($this->serializeLargeFields)),
             'curator' => $this->whenLoaded('curator', fn (UserProfile $curator) => $curator->toResource()->withLargeFields($this->serializeLargeFields)),
-            'collection' => $this->whenLoaded('collection', fn (CommunityResourceCollection $collection) => $collection->toResource()->withLargeFields($this->serializeLargeFields)),
+            'space' => $this->whenLoaded('space', fn (Space $space) => $space->toResource()),
             'is_featured' => $this->is_featured,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

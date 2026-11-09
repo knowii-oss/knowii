@@ -1,85 +1,52 @@
 import AppLayout from '@/Layouts/AppLayout';
-import type { Community, CommunityPermissions, CommunityResourceCollection, CommunityResource } from '@knowii/common';
-import { COMMUNITY_URL, RESOURCE_COLLECTION_URL, useSocket, DASHBOARD_URL } from '@knowii/common';
-import { router } from '@inertiajs/react';
+import type { Community, CommunityResource, Space, SpaceGroup } from '@knowii/common';
+import { COMMUNITY_URL, SPACE_TYPE_LABELS, SPACE_URL } from '@knowii/common';
 import type { BreadcrumbItem } from '@/Components/ui';
+import { EmptyState } from '@/Components/ui';
 import { breadcrumbHome } from '../../Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
-import ResourceCollectionIcon from '@/Components/ResourceCollections/ResourceCollectionIcon';
 import ResourceIcon from '@/Components/Resources/ResourceIcon';
+import { CommunityShell } from '@/Components/Spaces/CommunityShell';
 
 interface Props {
+  // WARNING: aligned with CommunityResourceController.php
   community: Community;
-  permissions: CommunityPermissions;
-  resourceCollection: CommunityResourceCollection;
+  space: Space;
+  spaceGroups: SpaceGroup[];
   resource: CommunityResource;
 }
 
+/**
+ * A resource of a resources space (ADR 0015). The full page (article, cover image, comments) is #1133.
+ */
 export default function ResourcePage(props: Props) {
-  useSocket({
-    channel: {
-      type: 'community',
-      communityCuid: props.community.cuid,
-    },
-    event: 'community.deleted',
-    callback: (_event, _deletedCommunity) => {
-      // The current community has been deleted. Can't stay here anymore
-      router.visit(route(DASHBOARD_URL), {
-        preserveState: false,
-      });
-    },
-  });
-
-  useSocket({
-    channel: {
-      type: 'resourceCollection',
-      communityCuid: props.community.cuid,
-      resourceCollectionCuid: props.resourceCollection.cuid,
-    },
-    event: 'community.resource_collection.deleted',
-    callback: (_event, _deletedResourceCollection) => {
-      // The current resource collection has been deleted. Can't stay here anymore
-      router.visit(route(COMMUNITY_URL, { communitySlug: props.community.slug }), {
-        preserveState: false,
-      });
-    },
-  });
+  const { community, space, resource } = props;
+  const name = resource.name || resource.resource.name;
 
   const breadcrumbItems: BreadcrumbItem[] = [
     {
-      label: props.community.name,
-      href: route(COMMUNITY_URL, { communitySlug: props.community.slug }),
-      icon: <CommunityIcon visibility={props.community.visibility} />,
+      label: community.name,
+      href: route(COMMUNITY_URL, { communitySlug: community.slug }),
+      icon: <CommunityIcon visibility={community.visibility} />,
     },
     {
-      label: props.resourceCollection.name,
-      href: route(RESOURCE_COLLECTION_URL, {
-        communitySlug: props.community.slug,
-        resourceCollectionSlug: props.resourceCollection.slug,
-      }),
-      icon: <ResourceCollectionIcon />,
+      label: space.name,
+      href: route(SPACE_URL, { communitySlug: community.slug, spaceSlug: space.slug }),
+      icon: <span aria-hidden="true">{space.emoji || SPACE_TYPE_LABELS[space.type].emoji}</span>,
     },
-    { label: props.resource.name ? props.resource.name : props.resource.resource.name, icon: <ResourceIcon /> },
+    { label: name, icon: <ResourceIcon /> },
   ];
 
   return (
     <AppLayout
-      browserPageTitle={`${props.community.name} - ${props.resourceCollection.name} - Resource`}
+      browserPageTitle={`${name} - ${space.name} - ${community.name}`}
       breadcrumbItems={breadcrumbItems}
       breadcrumbHome={breadcrumbHome()}
     >
-      <p className="text-muted">Coming soon...</p>
-      {/*<h2>{props.resource.resource.name}</h2>*/}
-      {/*{props.resource.resource_text_article?.markdown && (*/}
-      {/*  <Markdown>{props.resource.resource_text_article.markdown}</Markdown>*/}
-      {/*)}*/}
-      {/*      {props.resource.resource.cover_image_base64 && (*/}
-      {/*    <img*/}
-      {/*      src={`data:image/jpeg;base64,${props.resource.resource.cover_image_base64}`}*/}
-      {/*      alt="Resource Cover"*/}
-      {/*      className="max-w-full h-auto rounded-lg shadow-md"*/}
-      {/*    />*/}
-      {/*)}*/}
+      <CommunityShell community={community} spaceGroups={props.spaceGroups} activeSpaceCuid={space.cuid}>
+        <h1 className="mb-4 text-2xl font-extrabold">{name}</h1>
+        <EmptyState icon="🔗" title="Coming soon" description="The page of a resource is not ready yet." />
+      </CommunityShell>
     </AppLayout>
   );
 }

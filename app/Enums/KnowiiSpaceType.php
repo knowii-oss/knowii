@@ -9,6 +9,7 @@ enum KnowiiSpaceType: string
     case Chat = 'chat';
     case Pages = 'pages';
     case Course = 'course';
+    case Resources = 'resources';
 
     public static function toCommaSeparatedString(): string
     {
