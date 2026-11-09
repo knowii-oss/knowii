@@ -8,7 +8,6 @@
       "!{projectRoot}/tsconfig.spec.json",
       "!{projectRoot}/eslint.config.mjs",
       "!{projectRoot}/eslint.config.js",
-      "!{projectRoot}/jest.config.[jt]s",
       "!{projectRoot}/src/test-setup.[jt]s",
       "!{projectRoot}/test-setup.[jt]s"
     ],
@@ -36,12 +35,6 @@
       "plugin": "@nx/eslint/plugin",
       "options": {
         "targetName": "lint"
-      }
-    },
-    {
-      "plugin": "@nx/jest/plugin",
-      "options": {
-        "targetName": "test"
       }
     },
     {
