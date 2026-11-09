@@ -13,6 +13,7 @@ use App\Http\Controllers\API\ReactionApiController;
 use App\Http\Controllers\API\ResourceTextArticleApiController;
 use App\Http\Controllers\API\SpaceApiController;
 use App\Http\Controllers\API\SpaceGroupApiController;
+use App\Http\Controllers\API\UploadApiController;
 use App\Http\Controllers\API\UserApiController;
 use App\Http\Controllers\API\WaitlistApiController;
 use Illuminate\Http\Request;
@@ -76,6 +77,8 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::get(ApiRoutes::COMMUNITY_SPACE_POST_COMMENT_REACTIONS, [ReactionApiController::class, 'listComment']);
             Route::post(ApiRoutes::COMMUNITY_SPACE_POST_COMMENT_REACTIONS, [ReactionApiController::class, 'toggleComment'])->middleware('throttle:reactions');
         });
+
+        Route::post(ApiRoutes::COMMUNITY_UPLOADS, [UploadApiController::class, 'store'])->middleware('throttle:uploads');
 
         Route::get(ApiRoutes::COMMUNITY_MEMBERS, [MemberApiController::class, 'search'])->middleware('throttle:markdown-preview');
 

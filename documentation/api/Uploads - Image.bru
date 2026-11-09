@@ -1,0 +1,26 @@
+meta {
+  name: Uploads - Image
+  type: http
+  seq: 51
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/uploads
+  body: multipartForm
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+body:multipart-form {
+  file: @file(path/to/image.jpg)
+  alt: A short description of the image
+}
+
+docs {
+  Uploads an image for a post or a comment (multipart/form-data: the only non-JSON body the API accepts).
+  JPEG, PNG, WebP or GIF, up to 10 MB and 40 megapixels. The server re-encodes it to WebP (metadata such as the GPS location is removed) and scales it down to 2,000 pixels on the longest side.
+  alt is required (accessibility). Insert the result in Markdown as ![alt](url). Members of the community only. Rate limited: 20 per minute.
+}

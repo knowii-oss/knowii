@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\ApiRoutes;
 use App\Traits\ApiResponses;
 use Closure;
 use Illuminate\Http\Request;
@@ -22,10 +23,21 @@ class EnsureRequestIsJson
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (in_array($request->getRealMethod(), ['POST', 'PUT', 'PATCH'], true) && ! $request->isJson()) {
+        if (in_array($request->getRealMethod(), ['POST', 'PUT', 'PATCH'], true) && ! $request->isJson() && ! self::acceptsFiles($request)) {
             return self::unsupportedMediaTypeIssue();
         }
 
         return $next($request);
+    }
+
+    /**
+     * File uploads are the only non-JSON bodies the API accepts, on the upload endpoints only (#1178).
+     */
+    private static function acceptsFiles(Request $request): bool
+    {
+        $isMultipart = str_starts_with(strtolower((string) $request->header('Content-Type')), 'multipart/form-data')
+            || $request->allFiles() !== [];
+
+        return $isMultipart && $request->is(str_replace('{'.ApiRoutes::PARAM_COMMUNITY.'}', '*', ApiRoutes::path(ApiRoutes::COMMUNITY_UPLOADS)));
     }
 }

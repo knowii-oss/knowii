@@ -94,6 +94,20 @@ class Constants
     // Reaction toggles per minute and per user
     public const int REACTIONS_PER_MINUTE = 60;
 
+    // Image uploads (#1178). WARNING: aligned with constants.ts (libs/common)
+    public const int MAX_UPLOAD_SIZE_KILOBYTES = 10240;
+
+    public const int MAX_UPLOAD_IMAGE_PIXELS = 40_000_000;
+
+    // Longest side after the resize
+    public const int MAX_UPLOAD_IMAGE_DIMENSION = 2000;
+
+    public const int UPLOAD_IMAGE_QUALITY = 82;
+
+    public const int MAX_LENGTH_UPLOAD_ALT = 500;
+
+    public const int UPLOADS_PER_MINUTE = 20;
+
     // Markdown preview requests (editor) per minute and per user
     public const int MARKDOWN_PREVIEWS_PER_MINUTE = 60;
 

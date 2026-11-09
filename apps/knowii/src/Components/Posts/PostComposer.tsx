@@ -4,6 +4,7 @@ import { useEffect, useMemo } from 'react';
 import type { Post, PostForm } from '@knowii/common';
 import { knowiiApiClient, MAX_LENGTH_POST_BODY, MAX_LENGTH_POST_TITLE, POST_EDITOR_ROWS, postFormSchema, useAppData } from '@knowii/common';
 import { useMentionSource } from '@/Components/Members/use-mention-source';
+import { useImageUploader } from '@/Components/Uploads/use-image-uploader';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import { Button, Dialog, MarkdownEditor, TextInput } from '@/Components/ui';
@@ -24,6 +25,7 @@ export interface PostComposerProps {
 export function PostComposer({ open, communityCuid, spaceCuid, spaceName, post, onClose, onSaved }: PostComposerProps) {
   const { showToast } = useAppData();
   const mentions = useMentionSource(communityCuid);
+  const images = useImageUploader(communityCuid);
   const renderPreview = useMemo(
     () => (markdown: string, signal: AbortSignal) => knowiiApiClient.markdown.preview(markdown, signal, communityCuid),
     [communityCuid],
@@ -115,6 +117,7 @@ export function PostComposer({ open, communityCuid, spaceCuid, spaceName, post, 
                   ref={field.ref}
                   renderPreview={renderPreview}
                   mentions={mentions}
+                  images={images}
                   rows={POST_EDITOR_ROWS}
                   maxLength={MAX_LENGTH_POST_BODY}
                   invalid={!!errors.body}

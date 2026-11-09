@@ -6,6 +6,7 @@ import { COMMENT_EDITOR_ROWS, commentFormSchema, knowiiApiClient, MAX_LENGTH_COM
 import InputError from '@/Components/InputError';
 import { Button, MarkdownEditor } from '@/Components/ui';
 import { useMentionSource } from '@/Components/Members/use-mention-source';
+import { useImageUploader } from '@/Components/Uploads/use-image-uploader';
 
 export interface CommentFormProps {
   /**
@@ -40,6 +41,7 @@ export function CommentForm({
 }: CommentFormProps) {
   const id = useId();
   const mentions = useMentionSource(communityCuid);
+  const images = useImageUploader(communityCuid);
   const renderPreview = useMemo(
     () => (markdown: string, signal: AbortSignal) => knowiiApiClient.markdown.preview(markdown, signal, communityCuid),
     [communityCuid],
@@ -84,6 +86,7 @@ export function CommentForm({
             ref={field.ref}
             renderPreview={renderPreview}
             mentions={mentions}
+            images={images}
             rows={COMMENT_EDITOR_ROWS}
             maxLength={MAX_LENGTH_COMMENT_BODY}
             invalid={!!error}

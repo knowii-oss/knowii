@@ -1,6 +1,6 @@
 import type { KeyboardEvent, ReactNode, Ref } from 'react';
 import { useEffect, useId, useRef, useState } from 'react';
-import { FaBold, FaCode, FaItalic, FaLink, FaListOl, FaListUl, FaQuoteRight } from 'react-icons/fa6';
+import { FaBold, FaCode, FaImage, FaItalic, FaLink, FaListOl, FaListUl, FaQuoteRight } from 'react-icons/fa6';
 import { cn } from './cn';
 import { MarkdownContent } from './MarkdownContent';
 import type { MarkdownFormat, TextSelection } from './markdown-format';
@@ -8,6 +8,8 @@ import { applyMarkdownFormat, MARKDOWN_SHORTCUTS } from './markdown-format';
 import { mergeRefs } from './merge-refs';
 import { Spinner } from './Spinner';
 import { formControlClasses } from './form-field';
+import { Button } from './Button';
+import { TextInput } from './TextInput';
 
 export interface MarkdownEditorProps {
   id: string;
@@ -33,6 +35,10 @@ export interface MarkdownEditorProps {
    * Suggests members after "@" (combobox pattern). Absent: no suggestions.
    */
   mentions?: MentionSource | undefined;
+  /**
+   * Uploads images (toolbar button, paste, drag and drop). Absent: no image upload.
+   */
+  images?: ImageUploader | undefined;
   ref?: Ref<HTMLTextAreaElement>;
 }
 
@@ -41,6 +47,25 @@ type Tab = 'write' | 'preview';
 export interface MentionSuggestion {
   username: string;
   name: string;
+}
+
+export interface ImageUploader {
+  /**
+   * Returns the URL of the stored image, or an error message
+   */
+  upload: (file: File, alt: string) => Promise<{ url: string } | { error: string }>;
+  maxSizeBytes: number;
+  acceptedTypes: readonly string[];
+}
+
+interface PendingImage {
+  file: File;
+  previewUrl: string;
+  alt: string;
+  error: string | null;
+  uploading: boolean;
+  // Where to insert the image in the text
+  position: number;
 }
 
 export interface MentionSource {
@@ -91,6 +116,7 @@ export function MarkdownEditor({
   'aria-describedby': ariaDescribedBy,
   toolbarExtra,
   mentions,
+  images,
   ref,
 }: MarkdownEditorProps) {
   const baseId = useId();
@@ -100,6 +126,9 @@ export function MarkdownEditor({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const pendingSelection = useRef<TextSelection | null>(null);
   const writeTabRef = useRef<HTMLButtonElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pendingImage, setPendingImage] = useState<PendingImage | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
   const [mention, setMention] = useState<{ start: number; query: string } | null>(null);
   const [suggestions, setSuggestions] = useState<{ query: string; items: MentionSuggestion[] }>({ query: '', items: [] });
   const [activeSuggestion, setActiveSuggestion] = useState(0);
@@ -165,6 +194,80 @@ export function MarkdownEditor({
     const result = applyMarkdownFormat({ value, selectionStart: textarea.selectionStart, selectionEnd: textarea.selectionEnd }, command);
     pendingSelection.current = result;
     onChange(result.value);
+  };
+
+  // Move the focus to the description field when an image is chosen (the file picker had it)
+  const pendingPreviewUrl = pendingImage?.previewUrl;
+  useEffect(() => {
+    if (!pendingPreviewUrl) {
+      return;
+    }
+    // After the browser gives the focus back to the file input (when the picker closes)
+    const timer = window.setTimeout(() => document.getElementById(`${baseId}-image-alt`)?.focus(), 50);
+    return () => window.clearTimeout(timer);
+  }, [pendingPreviewUrl, baseId]);
+
+  const startImage = (file: File) => {
+    if (!images) {
+      return;
+    }
+    if (!images.acceptedTypes.includes(file.type)) {
+      setImageError('Choose a JPEG, PNG, WebP or GIF image.');
+      return;
+    }
+    if (file.size > images.maxSizeBytes) {
+      setImageError(`The image is too large (maximum ${Math.round(images.maxSizeBytes / 1024 / 1024)} MB).`);
+      return;
+    }
+    setImageError(null);
+    if (pendingImage) {
+      URL.revokeObjectURL(pendingImage.previewUrl);
+    }
+    setPendingImage({
+      file,
+      previewUrl: URL.createObjectURL(file),
+      alt: '',
+      error: null,
+      uploading: false,
+      position: textareaRef.current?.selectionStart ?? value.length,
+    });
+  };
+
+  const cancelImage = () => {
+    if (pendingImage) {
+      URL.revokeObjectURL(pendingImage.previewUrl);
+    }
+    setPendingImage(null);
+    textareaRef.current?.focus();
+  };
+
+  const insertImage = async () => {
+    if (!images || !pendingImage) {
+      return;
+    }
+    const alt = pendingImage.alt.trim();
+    if (alt === '') {
+      setPendingImage({ ...pendingImage, error: 'Describe the image for people who cannot see it.' });
+      return;
+    }
+    setPendingImage({ ...pendingImage, uploading: true, error: null });
+    const result = await images.upload(pendingImage.file, alt);
+    if ('error' in result) {
+      setPendingImage({ ...pendingImage, uploading: false, error: result.error });
+      return;
+    }
+    // Brackets in the alt text would end the Markdown image syntax
+    const markdown = `![${alt.replace(/[[\]]/g, '')}](${result.url})`;
+    const before = value.slice(0, pendingImage.position);
+    const after = value.slice(pendingImage.position);
+    const prefix = before === '' || before.endsWith('\n') ? '' : '\n';
+    const suffix = after.startsWith('\n') ? '' : '\n';
+    const next = `${before}${prefix}${markdown}${suffix}${after}`;
+    const caret = before.length + prefix.length + markdown.length + suffix.length;
+    URL.revokeObjectURL(pendingImage.previewUrl);
+    setPendingImage(null);
+    pendingSelection.current = { value: next, selectionStart: caret, selectionEnd: caret };
+    onChange(next);
   };
 
   const updateMention = (text: string, caret: number) => {
@@ -298,6 +401,35 @@ export function MarkdownEditor({
                 <span aria-hidden="true">{item.icon}</span>
               </button>
             ))}
+            {images && (
+              <>
+                <button
+                  type="button"
+                  aria-label="Add an image"
+                  title="Add an image (or paste it, or drop it on the text)"
+                  disabled={disabled}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex size-8 cursor-pointer items-center justify-center rounded-md text-muted transition-colors hover:bg-overlay/10 hover:text-primary focus-visible:outline-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <FaImage aria-hidden="true" />
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept={images.acceptedTypes.join(',')}
+                  className="sr-only"
+                  tabIndex={-1}
+                  aria-hidden="true"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    if (file) {
+                      startImage(file);
+                    }
+                    event.target.value = '';
+                  }}
+                />
+              </>
+            )}
             {toolbarExtra}
           </div>
         )}
@@ -319,6 +451,25 @@ export function MarkdownEditor({
             onBlur?.();
           }}
           onKeyDown={onTextareaKeyDown}
+          onPaste={(event) => {
+            const file = Array.from(event.clipboardData.files).find((item) => item.type.startsWith('image/'));
+            if (images && file) {
+              event.preventDefault();
+              startImage(file);
+            }
+          }}
+          onDragOver={(event) => {
+            if (images && event.dataTransfer.types.includes('Files')) {
+              event.preventDefault();
+            }
+          }}
+          onDrop={(event) => {
+            const file = Array.from(event.dataTransfer.files).find((item) => item.type.startsWith('image/'));
+            if (images && file) {
+              event.preventDefault();
+              startImage(file);
+            }
+          }}
           {...(mentions
             ? {
                 role: 'combobox',
@@ -336,6 +487,64 @@ export function MarkdownEditor({
           aria-describedby={ariaDescribedBy}
           className={cn(formControlClasses, 'block w-full resize-y rounded-t-none border-0 bg-transparent px-3 py-2 font-mono text-sm')}
         />
+        {imageError && (
+          <p role="alert" className="px-3 pb-2 text-sm text-danger-text">
+            {imageError}
+          </p>
+        )}
+        {pendingImage && (
+          <div
+            role="group"
+            aria-label="Add an image"
+            className="mx-2 mb-2 flex flex-col gap-2 rounded-lg border border-border bg-surface p-3 sm:flex-row"
+          >
+            {/* Decorative preview: the description below is the alternative */}
+            <img src={pendingImage.previewUrl} alt="" className="max-h-32 w-auto self-start rounded-md object-contain" />
+            <div className="flex grow flex-col gap-2">
+              <label htmlFor={`${baseId}-image-alt`} className="text-sm font-bold">
+                Image description (alt text)
+              </label>
+              <TextInput
+                id={`${baseId}-image-alt`}
+                value={pendingImage.alt}
+                maxLength={500}
+                placeholder="What does the image show?"
+                aria-describedby={`${baseId}-image-alt-hint`}
+                invalid={pendingImage.error !== null}
+                onChange={(event) => setPendingImage({ ...pendingImage, alt: event.target.value, error: null })}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault();
+                    void insertImage();
+                  }
+                  if (event.key === 'Escape') {
+                    // Cancel the image, not the dialog around the editor
+                    event.preventDefault();
+                    event.stopPropagation();
+                    event.nativeEvent.stopImmediatePropagation();
+                    cancelImage();
+                  }
+                }}
+              />
+              <p id={`${baseId}-image-alt-hint`} className="text-xs text-muted">
+                Screen readers read this text. Describe what matters in the image.
+              </p>
+              {pendingImage.error && (
+                <p role="alert" className="text-sm text-danger-text">
+                  {pendingImage.error}
+                </p>
+              )}
+              <div className="flex justify-end gap-2">
+                <Button size="sm" variant="secondary" onClick={cancelImage}>
+                  Cancel
+                </Button>
+                <Button size="sm" onClick={() => void insertImage()} loading={pendingImage.uploading}>
+                  Insert the image
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
         {mentions && (
           <ul
             id={listboxId}

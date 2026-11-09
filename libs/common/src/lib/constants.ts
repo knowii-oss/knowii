@@ -114,6 +114,11 @@ export const POST_EDITOR_ROWS = 12;
 export const MAX_LENGTH_COMMENT_BODY = 10000;
 export const COMMENT_EDITOR_ROWS = 4;
 
+// Image uploads. WARNING: aligned with Constants.php
+export const MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024;
+export const MAX_LENGTH_UPLOAD_ALT = 500;
+export const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'] as const;
+
 // Community resource collection
 export const MIN_LENGTH_COMMUNITY_RESOURCE_COLLECTION_NAME = 3;
 export const MAX_LENGTH_COMMUNITY_RESOURCE_COLLECTION_NAME = 64;
@@ -186,3 +191,6 @@ export const COMMUNITY_SPACE_POST_COMMENT_API_PATH = `${COMMUNITY_SPACE_POST_COM
 // Members (#1177: mention autocomplete)
 export const COMMUNITY_MEMBERS_API_PATH = `${COMMUNITY_API_PATH}/members`;
 export const MENTION_SUGGESTIONS_LIMIT = 8;
+
+// Image uploads (#1178)
+export const COMMUNITY_UPLOADS_API_PATH = `${COMMUNITY_API_PATH}/uploads`;
