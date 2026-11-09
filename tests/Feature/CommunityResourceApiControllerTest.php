@@ -8,6 +8,7 @@ use App\Enums\KnowiiResourceLevel;
 use App\Enums\KnowiiSpaceType;
 use App\Models\Community;
 use App\Models\CommunityResource;
+use App\Models\ResourceTextArticle;
 use App\Models\Space;
 use App\Models\SpaceGroup;
 use App\Models\User;
@@ -275,4 +276,48 @@ test('the resources list refuses a space of another community (#877)', function 
     ]);
 
     $this->actingAs($other)->getJson($path)->assertNotFound();
+});
+
+function resourcePath(Space $space, CommunityResource $resource): string
+{
+    return ApiRoutes::path(ApiRoutes::COMMUNITY_SPACE_RESOURCE, [
+        ApiRoutes::PARAM_COMMUNITY => $space->community->cuid,
+        ApiRoutes::PARAM_SPACE => $space->cuid,
+        ApiRoutes::PARAM_RESOURCE => $resource->cuid,
+    ]);
+}
+
+test('members get one resource with its large fields (#876)', function () {
+    [$c, $space, $resources] = resourcesSpaceWithResources(1);
+    $article = ResourceTextArticle::create([
+        'resource_id' => $resources[0]->resource_id,
+        'html' => '<p>Body</p>',
+        'markdown' => 'Body',
+        'word_count' => 1,
+        'reading_time' => 1,
+    ]);
+    $resources[0]->update(['resource_text_article_id' => $article->id]);
+
+    $response = $this->actingAs($c['member'])->getJson(resourcePath($space, $resources[0]))->assertOk();
+
+    expect($response->json('data.cuid'))->toBe($resources[0]->cuid)
+        ->and($response->json('data.resource.cover_image_base64'))->toBe(base64_encode('image'))
+        ->and($response->json('data.resource_text_article.markdown'))->toBe('Body')
+        ->and($response->json('data.space.cuid'))->toBe($space->cuid);
+});
+
+test('only the readers of a space get its resources (#876)', function () {
+    [$c, $space, $resources] = resourcesSpaceWithResources(1);
+
+    $this->getJson(resourcePath($space, $resources[0]))->assertUnauthorized();
+    $this->actingAs($c['outsider'])->getJson(resourcePath($space, $resources[0]))->assertForbidden();
+});
+
+test('a resource of another space gives a 404 (#876)', function () {
+    [$c, $space, $resources] = resourcesSpaceWithResources(1);
+    $otherSpace = Space::factory()
+        ->inGroup(SpaceGroup::factory()->create(['community_id' => $c['community']->id]))
+        ->create(['type' => KnowiiSpaceType::Resources]);
+
+    $this->actingAs($c['member'])->getJson(resourcePath($otherSpace, $resources[0]))->assertNotFound();
 });

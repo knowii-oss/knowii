@@ -157,6 +157,8 @@ export const COMMUNITY_SPACE_API_PATH = `${COMMUNITY_SPACES_API_PATH}/${SPACE_AP
 
 // Resources of resources spaces (ADR 0015)
 export const COMMUNITY_SPACE_RESOURCES_API_PATH = `${COMMUNITY_SPACE_API_PATH}/resources`;
+export const SPACE_API_PARAM_RESOURCE = '{resourceCuid}';
+export const COMMUNITY_SPACE_RESOURCE_API_PATH = `${COMMUNITY_SPACE_RESOURCES_API_PATH}/${SPACE_API_PARAM_RESOURCE}`;
 
 // Posts (#1174)
 export const SPACE_API_PARAM_POST = '{postCuid}';

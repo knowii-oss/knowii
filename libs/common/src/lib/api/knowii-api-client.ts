@@ -3,6 +3,7 @@ import {
   COMMUNITY_API_PATH,
   COMMUNITY_API_PATH_PARAM_COMMUNITY,
   COMMUNITY_SPACE_API_PATH,
+  COMMUNITY_SPACE_RESOURCE_API_PATH,
   COMMUNITY_SPACE_RESOURCES_API_PATH,
   COMMUNITY_MEMBERS_API_PATH,
   COMMUNITY_UPLOADS_API_PATH,
@@ -19,6 +20,7 @@ import {
   COMMUNITY_SPACE_POSTS_API_PATH,
   MARKDOWN_PREVIEW_API_PATH,
   SPACE_API_PARAM_POST,
+  SPACE_API_PARAM_RESOURCE,
   PING_API_PATH,
   SPACE_API_PARAM_COMMUNITY,
   SPACE_API_PARAM_SPACE,
@@ -361,6 +363,20 @@ export const knowiiApiClient = {
         return { ok: false, status: 0, message: 'Failed to load the resources.', errors: {} };
       }
     },
+    /**
+     * One resource, with the Markdown of the article and the base64 cover image
+     */
+    get: (communityCuid: string, spaceCuid: string, resourceCuid: string): Promise<ApiResult<CommunityResource>> =>
+      apiRequest(
+        'get',
+        apiPath(COMMUNITY_SPACE_RESOURCE_API_PATH, {
+          [SPACE_API_PARAM_COMMUNITY]: communityCuid,
+          [SPACE_API_PARAM_SPACE]: spaceCuid,
+          [SPACE_API_PARAM_RESOURCE]: resourceCuid,
+        }),
+        communityResourceSchema,
+        'Failed to load the resource.',
+      ),
     /**
      * Add a resource to a resources space, from the URL of a web article (ADR 0015)
      */
