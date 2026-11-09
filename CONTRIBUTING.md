@@ -66,7 +66,7 @@ Copy-Item .env.example .env
 
 Set `APP_URL=http://localhost:4200` in `.env`. Keep `WWWUSER=1000` and `WWWGROUP=1000` when using Compose directly. For local development without an email provider, set `MAIL_MAILER=log`; emails will be written to the application logs rather than delivered.
 
-If public container registries are restricted, set `SAIL_BASE_IMAGE`, `POSTGRES_IMAGE`, `REDIS_IMAGE`, and `BROWSERLESS_IMAGE` in `.env` to the equivalent image references from your approved registry. Defaults remain Ubuntu 24.04, PostgreSQL 17, Redis Alpine, and Browserless Chromium from GHCR. Authenticate using `docker login` if your registry requires it; never put registry credentials in tracked files. The application image build also needs access to its APT repositories and Composer/Node.js download sources.
+If public container registries are restricted, set `SAIL_BASE_IMAGE`, `POSTGRES_IMAGE`, `REDIS_IMAGE`, and `BROWSERLESS_IMAGE` in `.env` to the equivalent image references from your approved registry. Defaults remain Ubuntu 24.04, PostgreSQL 18, Redis Alpine, and Browserless Chromium from GHCR. Authenticate using `docker login` if your registry requires it; never put registry credentials in tracked files. The application image build also needs access to its APT repositories and Composer/Node.js download sources.
 
 If your organization uses HTTPS inspection, put its approved public CA certificates (PEM format, `.crt` extension) in `docker\8.5\certificates` before building. Files in that directory are ignored by Git. The image adds them to the system trust store and makes that store available to Node.js as well; TLS verification remains enabled. Never copy private keys into this directory or force-add certificates to Git. Images built with these certificates contain them, so keep those images within your organization's approved environment. Rebuild the application image after changing certificates.
 
@@ -92,6 +92,21 @@ docker compose run --rm --no-deps -e COMPOSER_PROCESS_TIMEOUT=1800 laravel.test 
 ```
 
 On subsequent runs, use `docker compose up -d` to start and `docker compose down` to stop. Database data remains in Docker volumes.
+
+#### Upgrade from PostgreSQL 17 (volume `sail-pgsql`)
+
+The development database moved to PostgreSQL 18 in a new volume, `sail-pgsql-18` (PostgreSQL 18 images keep their data under `/var/lib/postgresql`). The old volume `sail-pgsql` is not used anymore. To keep your local data, dump it before you pull this change, then restore it:
+
+```bash
+# Before the upgrade (PostgreSQL 17 still running)
+docker compose exec -T pgsql pg_dump -U sail -d laravel --format=custom > laravel-pg17.dump
+
+# After the upgrade
+docker compose up -d --wait pgsql
+docker compose exec -T pgsql pg_restore -U sail -d laravel --no-owner --exit-on-error < laravel-pg17.dump
+```
+
+If you do not need the data, run `php artisan migrate --seed` instead. When everything works, remove the old volume with `docker volume rm knowii_sail-pgsql`.
 
 ### Running the application
 
