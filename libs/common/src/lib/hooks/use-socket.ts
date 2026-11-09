@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { Community } from '../types/community.schema';
 import type { CommunityResourceCollection } from '../types/community-resource-collection.schema';
 import type { CommunityResource } from '../types/community-resource.schema';
@@ -37,12 +37,20 @@ const ResourceEvents = {
   DELETED: 'community.resource.deleted',
 } as const;
 
+// The navigation of the community changed: reload it (the payload only names the community)
+const SpaceTreeEvents = {
+  CHANGED: 'community.space_tree.changed',
+} as const;
+
+type SpaceTreeEvent = (typeof SpaceTreeEvents)[keyof typeof SpaceTreeEvents];
+
 type CommunityEvent = (typeof CommunityEvents)[keyof typeof CommunityEvents];
 type ResourceCollectionEvent = (typeof ResourceCollectionEvents)[keyof typeof ResourceCollectionEvents];
 type ResourceEvent = (typeof ResourceEvents)[keyof typeof ResourceEvents];
 
 type CommunitiesChannelEvent = CommunityEvent | ResourceCollectionEvent | ResourceEvent;
-type CommunityChannelEvent = Exclude<CommunityEvent, typeof CommunityEvents.CREATED> | ResourceCollectionEvent | ResourceEvent;
+type CommunityChannelEvent =
+  Exclude<CommunityEvent, typeof CommunityEvents.CREATED> | ResourceCollectionEvent | ResourceEvent | SpaceTreeEvent;
 type ResourceCollectionChannelEvent = Exclude<ResourceCollectionEvent, typeof ResourceCollectionEvents.CREATED> | ResourceEvent;
 
 type AllEvents = CommunitiesChannelEvent | CommunityChannelEvent | ResourceCollectionChannelEvent;
@@ -57,6 +65,8 @@ type EventPayloadMap = {
 } & {
   // All resource events apart from 'community.resource.deleted' have a payload of type CommunityResource
   [K in ResourceEvent]: K extends typeof ResourceEvents.DELETED ? Identifiable : CommunityResource;
+} & {
+  [K in SpaceTreeEvent]: { community_cuid: string };
 };
 
 // Define the hook options with improved type safety
@@ -97,10 +107,27 @@ const getAllEventsForChannelType = (channelType: Channel['type']): AllEvents[] =
   }
 
   if (channelType === 'community') {
-    return allEvents.filter((event) => event !== CommunityEvents.CREATED);
+    return [...allEvents.filter((event) => event !== CommunityEvents.CREATED), ...Object.values(SpaceTreeEvents)];
   }
 
   return resourceCollectionEvents;
+};
+
+// Number of hooks using each channel: the channel is left when the last one unmounts
+const channelUsers = new Map<string, number>();
+
+const retainChannel = (channel: string): void => {
+  channelUsers.set(channel, (channelUsers.get(channel) ?? 0) + 1);
+};
+
+const releaseChannel = (channel: string): void => {
+  const remaining = (channelUsers.get(channel) ?? 1) - 1;
+  if (remaining <= 0) {
+    channelUsers.delete(channel);
+    window.Echo.leaveChannel(`private-${channel}`);
+  } else {
+    channelUsers.set(channel, remaining);
+  }
 };
 
 export const useSocket = <
@@ -113,26 +140,32 @@ export const useSocket = <
 >(
   options: UseSocketOptions<ChannelType, EventType>,
 ) => {
+  // Depend on the channel name, not on the object: callers often pass a new object at each render
+  const channelString = getChannelString(options.channel);
+  const channelType = options.channel.type;
+  const eventKey = Array.isArray(options.event) ? options.event.join(',') : options.event;
+  const callbackRef = useRef(options.callback);
+  callbackRef.current = options.callback;
+
   useEffect(() => {
-    const channelString = getChannelString(options.channel);
     const echo = window.Echo.private(channelString);
+    retainChannel(channelString);
 
-    const listenToEvent = (event: AllEvents) => {
-      echo.listen(`.${event}`, (payload: EventPayloadMap[typeof event]) => {
-        options.callback(event as EventType, payload as EventPayloadMap[EventType]);
-      });
-    };
+    const events: AllEvents[] =
+      eventKey === 'all' ? getAllEventsForChannelType(channelType) : (eventKey.split(',').filter((event) => event !== '') as AllEvents[]);
 
-    if (options.event === 'all') {
-      getAllEventsForChannelType(options.channel.type).forEach(listenToEvent);
-    } else if (Array.isArray(options.event)) {
-      options.event.forEach(listenToEvent);
-    } else {
-      listenToEvent(options.event);
-    }
+    const handlers = events.map((event) => {
+      const handler = (payload: EventPayloadMap[typeof event]) => {
+        callbackRef.current(event as EventType, payload as EventPayloadMap[EventType]);
+      };
+      echo.listen(`.${event}`, handler);
+      return { event, handler };
+    });
 
     return () => {
-      window.Echo.leaveChannel(`private-${channelString}`);
+      // Remove only our listeners: other components can listen on the same channel
+      handlers.forEach(({ event, handler }) => echo.stopListening(`.${event}`, handler));
+      releaseChannel(channelString);
     };
-  }, [options.channel, options.event, options.callback]);
+  }, [channelString, eventKey, channelType]);
 };
