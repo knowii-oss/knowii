@@ -6,6 +6,7 @@ export * from './Card';
 export * from './Checkbox';
 export * from './cn';
 export * from './Collapsible';
+export * from './current-url';
 export * from './Dialog';
 export * from './Divider';
 export * from './Drawer';
