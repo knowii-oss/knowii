@@ -14,6 +14,14 @@ Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
+        'waitlist' => [
+            // The form is only shown when the EmailOctopus list and the Turnstile bot check are configured
+            'enabled' => filled(config('services.emailoctopus.api_key'))
+                && filled(config('services.emailoctopus.waitlist_list_id'))
+                && filled(config('services.turnstile.site_key'))
+                && filled(config('services.turnstile.secret_key')),
+            'turnstileSiteKey' => config('services.turnstile.site_key'),
+        ],
     ]);
 });
 

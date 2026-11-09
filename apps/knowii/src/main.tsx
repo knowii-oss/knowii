@@ -11,7 +11,11 @@ import { Toaster } from '@/Components/ui';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
+// Per-request CSP nonce for the <style> elements that Inertia injects (progress bar, error dialog), see app.blade.php
+const styleNonce = document.querySelector<HTMLMetaElement>('meta[property="csp-nonce"]')?.nonce;
+
 createInertiaApp({
+  ...(styleNonce ? { nonce: styleNonce } : {}),
   title: (title) => `${title} - ${appName}`,
   resolve: (name) =>
     resolvePageComponent<ResolvedComponent>(

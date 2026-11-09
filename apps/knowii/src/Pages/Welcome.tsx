@@ -4,11 +4,15 @@ import PageHeader from '@/Components/PageHeader';
 import PageContentWrapper from '@/Components/PageContentWrapper';
 import Footer from '@/Components/Footer';
 import PageWrapper from '@/Components/PageWrapper';
-import { useEffect } from 'react';
+import WaitlistForm from '@/Components/Waitlist/WaitlistForm';
 
 interface Props {
   canLogin: boolean;
   canRegister: boolean;
+  waitlist: {
+    enabled: boolean;
+    turnstileSiteKey: string | null;
+  };
 }
 
 export default function WelcomePage(props: Props) {
@@ -18,25 +22,6 @@ export default function WelcomePage(props: Props) {
   const showDashboard = props.canLogin && page.props.auth.user !== null;
   const showLogin = props.canLogin && !page.props.auth.user;
   const showRegister = props.canLogin && !page.props.auth.user;
-
-  useEffect(() => {
-    const script = document.createElement('script');
-
-    script.src = 'https://eocampaign1.com/form/ab92cdda-764d-11ef-9338-89ce4ce1395d.js';
-    script.async = true;
-    script.setAttribute('data-form', 'ab92cdda-764d-11ef-9338-89ce4ce1395d');
-    script.nonce = 'nonce-knowii-waitlist';
-
-    document.getElementById('waitlist-container')?.appendChild(script);
-
-    return () => {
-      try {
-        document.getElementById('waitlist-container')?.removeChild(script);
-      } catch {
-        /* empty */
-      }
-    };
-  }, []);
 
   return (
     <>
@@ -68,7 +53,11 @@ export default function WelcomePage(props: Props) {
             </div>
           </div>
 
-          <div id="waitlist-container" className="mt-20 flex flex-col items-center"></div>
+          {props.waitlist.enabled && props.waitlist.turnstileSiteKey && (
+            <div className="mt-16 flex flex-col items-center">
+              <WaitlistForm turnstileSiteKey={props.waitlist.turnstileSiteKey} />
+            </div>
+          )}
         </PageContentWrapper>
         <Footer />
       </PageWrapper>

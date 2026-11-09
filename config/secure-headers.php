@@ -525,7 +525,6 @@ return [
             ],
             'allow' => [
                 'https://blue-bar-dsebastien-19fd.developassion.workers.dev/api/v1/event',
-                'https://eocampaign1.com/form/ab92cdda-764d-11ef-9338-89ce4ce1395d',
             ],
         ],
 
@@ -567,11 +566,8 @@ return [
         'frame-src' => [
             'self' => true,
             'allow' => [
-                'https://www.google.com/recaptcha/',
-                'https://www.gstatic.com/recaptcha/',
-            ],
-            'schemes' => [
-                'https:',
+                // Cloudflare Turnstile (bot check of the waitlist form)
+                'https://challenges.cloudflare.com',
             ],
         ],
 
@@ -645,9 +641,7 @@ return [
             // Fallback for older browsers
             'allow' => [
                 'blue-bar-dsebastien-19fd.developassion.workers.dev',
-                'eocampaign1.com',
-                'https://www.google.com/recaptcha/',
-                'https://www.gstatic.com/recaptcha/',
+                'https://challenges.cloudflare.com',
             ],
 
             'unsafe-inline' => false,
@@ -661,9 +655,9 @@ return [
             // https://www.w3.org/TR/CSP3/#strict-dynamic-usage
             'strict-dynamic' => true,
 
-            'nonces' => [
-                'nonce-knowii-waitlist',
-            ],
+            // Nonces are generated per request (csp_nonce('script')): values listed here are replaced by the package.
+            // Scripts added by a trusted script (for example the waitlist form on the welcome page) are allowed by 'strict-dynamic'.
+            'nonces' => [],
 
             'hashes' => [
                 'sha256' => [
@@ -691,9 +685,12 @@ return [
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/style-src
+        // Inline styles are not allowed: injected <style> elements need the per-request nonce
+        // (csp_nonce('style'), exposed in app.blade.php through <meta property="csp-nonce">).
+        // Styles set from JavaScript through the CSSOM (React style props, Headless UI positioning) are not affected.
         'style-src' => [
             'self' => true,
-            'unsafe-inline' => true,
+            'unsafe-inline' => false,
             'schemes' => [
                 'https:',
             ],

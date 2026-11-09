@@ -20,3 +20,4 @@ export * from './theme';
 export * from './ThemeToggle';
 export * from './TextInput';
 export * from './Toaster';
+export * from './Turnstile';

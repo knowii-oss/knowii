@@ -12,6 +12,7 @@ import {
   COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH_PARAM_RESOURCE_COLLECTION,
   PING_API_PATH,
   USERS_API_IS_USERNAME_AVAILABLE_PATH,
+  WAITLIST_API_PATH,
 } from '../constants';
 import type { PingResponse } from './ping-response.schema';
 import { pingResponseSchema } from './ping-response.schema';
@@ -30,6 +31,9 @@ import { createResourceTextArticleResponseSchema } from './resources/create-reso
 import { HttpStatus } from '../types/http-status.intf';
 import type { DeleteResourceCollectionRequest } from './community-resource-collections/delete-community-resource-collection-request.schema';
 import type { DeleteCommunityRequest } from './communities/delete-community-request.schema';
+import type { JoinWaitlistRequest } from './waitlist/join-waitlist-request.schema';
+import type { JoinWaitlistResponse } from './waitlist/join-waitlist-response.schema';
+import { joinWaitlistResponseSchema } from './waitlist/join-waitlist-response.schema';
 
 const defaultHeaders: Headers = new Headers({
   Accept: 'application/json',
@@ -37,6 +41,30 @@ const defaultHeaders: Headers = new Headers({
 });
 
 export const knowiiApiClient = {
+  waitlist: {
+    join: async (input: JoinWaitlistRequest): Promise<JoinWaitlistResponse> => {
+      const failure: JoinWaitlistResponse = {
+        message: 'Failed to join the waitlist. Please try again later.',
+        errors: [],
+        type: 'internalError',
+        category: 'technical',
+      };
+
+      try {
+        const response = await fetch(WAITLIST_API_PATH, {
+          method: 'post',
+          headers: defaultHeaders,
+          body: JSON.stringify(input),
+        });
+
+        const parsedResponse = joinWaitlistResponseSchema.safeParse(await response.json());
+
+        return parsedResponse.success ? parsedResponse.data : failure;
+      } catch {
+        return failure;
+      }
+    },
+  },
   communities: {
     create: async (input: CreateCommunityRequest): Promise<CreateCommunityResponse> => {
       try {

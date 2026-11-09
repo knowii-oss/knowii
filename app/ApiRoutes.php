@@ -39,6 +39,8 @@ final class ApiRoutes
 
     public const PING = 'ping';
 
+    public const WAITLIST = 'waitlist';
+
     public const USERS_IS_USERNAME_AVAILABLE = 'users/is-username-available';
 
     public const COMMUNITIES = 'communities';

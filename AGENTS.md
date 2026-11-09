@@ -118,6 +118,12 @@ After cloning, run `npm run setup` once to enable the Git hooks (see
   button inside a link.
 - Toasts: call `showToast()` from `useAppData()`; the `<Toaster>` is mounted
   once in `main.tsx`.
+- Content Security Policy: scripts and styles need the per-request nonce;
+  `'unsafe-inline'` is not allowed for scripts or styles. Set styles with
+  classes or React `style` props (CSSOM, allowed), never with
+  `setAttribute('style')` or new `<style>` elements without the nonce from
+  `<meta property="csp-nonce">`. Avoid third-party embeds that inject styles;
+  third-party scripts must be added by our code (`'strict-dynamic'`).
 - Every page uses the `<AppLayout>` component.
 - Forms use **react-hook-form** and call the back-end through the **Knowii API
   client**.

@@ -76,6 +76,10 @@ export const ALLOWED_USER_USERNAME_CHARACTERS_REGEX = /^[a-zA-Z0-9-']+$/;
 export const MAX_LENGTH_USER_LOCATION = 128;
 export const MAX_LENGTH_USER_BIO = 512;
 export const MAX_LENGTH_USER_PHONE = 48;
+
+// Waitlist. WARNING: aligned with Constants.php
+export const MAX_LENGTH_WAITLIST_EMAIL = 255;
+export const WAITLIST_HONEYPOT_FIELD = 'website';
 export const USER_PHONE_REGEX = /^[0-9-+()./ ]+$/;
 
 // Community
@@ -102,6 +106,9 @@ export const MAX_LENGTH_COMMUNITY_RESOURCE_DESCRIPTION = 255;
  */
 export const API_BASE_PATH = '/api/v1';
 export const PING_API_PATH = `${API_BASE_PATH}/ping`;
+
+// Waitlist
+export const WAITLIST_API_PATH = `${API_BASE_PATH}/waitlist`;
 
 // Users
 export const USERS_API_BASE_PATH = `${API_BASE_PATH}/users`;

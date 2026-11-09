@@ -85,6 +85,9 @@ Copy `.env.example` to `.env`, then change the values below. The other values in
 | `REVERB_SCHEME`                                                   | `https`                                                                                                   |
 | `REVERB_SERVER_HOST`, `REVERB_SERVER_PORT`                        | `127.0.0.1` and `4201`: the WebSocket server listens locally, and nginx forwards `ws.<YOUR_DOMAIN>` to it |
 | `REVERB_ALLOWED_ORIGINS`                                          | `<YOUR_DOMAIN>`                                                                                           |
+| `EMAILOCTOPUS_API_KEY`, `EMAILOCTOPUS_WAITLIST_LIST_ID`           | Optional: the waitlist form on the welcome page. Leave empty to hide the form.                            |
+| `EMAILOCTOPUS_WAITLIST_CONTACT_STATUS`                            | `pending` (the visitor confirms the address by email, recommended) or `subscribed`                        |
+| `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`                      | Cloudflare Turnstile keys (bot check). Required by the waitlist form: without them, the form is hidden.   |
 | `BROWSERLESS_TOKEN`                                               | A unique random value                                                                                     |
 
 Do not set `SANCTUM_STATEFUL_DOMAINS` to an empty value. The front-end calls the API with the session cookie, so the API must treat requests from your domain as first-party ("stateful"). If the value is empty, every API call fails with `401 Unauthorized`. Leave the key out (the default includes the host of `APP_URL`), or set it to `<YOUR_DOMAIN>`.
