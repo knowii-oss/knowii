@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { Community, CommunityResource, Paginated, Space } from '@knowii/common';
-import { AppDataProvider } from '@knowii/common';
+import { AppDataProvider, knowiiApiClient } from '@knowii/common';
 import { ResourceList } from './ResourceList';
 
 vi.mock('@inertiajs/react', () => ({
@@ -69,17 +69,17 @@ function resource(cuid: string, name: string, url = `https://example.com/${cuid}
   } as unknown as CommunityResource;
 }
 
-function page(items: CommunityResource[]): Paginated<CommunityResource> {
+function page(items: CommunityResource[], nextOffset: number | null = null): Paginated<CommunityResource> {
   return {
     items,
-    pagination: { limit: 24, offset: 0, previousOffset: null, nextOffset: null, currentPage: 1, pageCount: 1, totalCount: items.length },
+    pagination: { limit: 24, offset: 0, previousOffset: null, nextOffset, currentPage: 1, pageCount: 1, totalCount: items.length },
   };
 }
 
-function renderList(items: CommunityResource[], canContribute = false) {
+function renderList(items: CommunityResource[], canContribute = false, nextOffset: number | null = null) {
   return render(
     <AppDataProvider>
-      <ResourceList community={community} space={space} initialResources={page(items)} canContribute={canContribute} />
+      <ResourceList community={community} space={space} initialResources={page(items, nextOffset)} canContribute={canContribute} />
     </AppDataProvider>,
   );
 }
@@ -133,5 +133,18 @@ describe('ResourceList', () => {
 
     act(() => handlers.get('.community.resource.deleted')?.({ cuid: 'a' }));
     expect(screen.queryByText('First')).not.toBeInTheDocument();
+  });
+
+  it('loads the next page and skips the resources already shown (#877)', async () => {
+    const list = vi
+      .spyOn(knowiiApiClient.resources, 'list')
+      .mockResolvedValue({ ok: true, message: '', data: page([resource('a', 'First'), resource('b', 'Second')]) });
+    renderList([resource('a', 'First')], false, 1);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Load more resources' }));
+
+    expect(list).toHaveBeenCalledWith('c1', 's1', 24, 1);
+    expect(screen.getAllByRole('listitem')).toHaveLength(2);
+    expect(screen.queryByRole('button', { name: 'Load more resources' })).not.toBeInTheDocument();
   });
 });

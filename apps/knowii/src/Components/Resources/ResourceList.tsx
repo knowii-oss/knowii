@@ -1,7 +1,15 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Link } from '@inertiajs/react';
 import type { Community, CommunityResource, Identifiable, Paginated, Space } from '@knowii/common';
-import { getIconForResourceLevel, RESOURCE_URL, safeHttpUrl, useSocket } from '@knowii/common';
+import {
+  getIconForResourceLevel,
+  knowiiApiClient,
+  RESOURCE_URL,
+  RESOURCES_PER_PAGE,
+  safeHttpUrl,
+  useAppData,
+  useSocket,
+} from '@knowii/common';
 import { FaArrowUpRightFromSquare, FaPlus } from 'react-icons/fa6';
 import { Button, buttonClasses, EmptyState } from '@/Components/ui';
 import { CreateResourceDialog } from './CreateResourceDialog';
@@ -18,7 +26,10 @@ export interface ResourceListProps {
  * follows the resource events of the space channel.
  */
 export function ResourceList({ community, space, initialResources, canContribute }: ResourceListProps) {
+  const { showToast } = useAppData();
   const [resources, setResources] = useState<CommunityResource[]>(initialResources.items);
+  const [nextOffset, setNextOffset] = useState<number | null>(initialResources.pagination.nextOffset);
+  const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const addResource = useCallback((resource: CommunityResource) => {
@@ -45,6 +56,22 @@ export function ResourceList({ community, space, initialResources, canContribute
       }
     },
   });
+
+  const loadMore = async () => {
+    if (nextOffset === null) {
+      return;
+    }
+    setLoading(true);
+    const result = await knowiiApiClient.resources.list(community.cuid, space.cuid, RESOURCES_PER_PAGE, nextOffset);
+    setLoading(false);
+    if (result.ok) {
+      // A resource can move between pages when new ones arrive: skip the ones already shown
+      setResources((current) => [...current, ...result.data.items.filter((item) => !current.some((shown) => shown.cuid === item.cuid))]);
+      setNextOffset(result.data.pagination.nextOffset);
+    } else {
+      showToast({ severity: 'error', summary: result.message });
+    }
+  };
 
   const href = (resource: CommunityResource) =>
     route(RESOURCE_URL, { communitySlug: community.slug, spaceSlug: space.slug, resourceSlug: resource.slug });
@@ -100,6 +127,14 @@ export function ResourceList({ community, space, initialResources, canContribute
             );
           })}
         </ul>
+      )}
+
+      {nextOffset !== null && (
+        <div className="flex justify-center">
+          <Button variant="secondary" onClick={loadMore} loading={loading}>
+            Load more resources
+          </Button>
+        </div>
       )}
 
       {canContribute && (

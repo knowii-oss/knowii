@@ -338,6 +338,30 @@ export const knowiiApiClient = {
   },
   resources: {
     /**
+     * A page of resources of a resources space, newest first, with the pagination metadata of the guide (ADR 0011)
+     */
+    list: async (
+      communityCuid: string,
+      spaceCuid: string,
+      limit: number,
+      offset: number,
+    ): Promise<ApiResult<Paginated<CommunityResource>>> => {
+      const url = `${resourcesPath(communityCuid, spaceCuid)}?limit=${limit}&offset=${offset}`;
+      try {
+        const response = await fetch(url, { headers: { Accept: 'application/json' } });
+        const json: unknown = await response.json();
+        const parsed = z
+          .object({ data: z.array(communityResourceSchema), metadata: z.object({ pagination: paginationSchema }) })
+          .safeParse(json);
+        if (!response.ok || !parsed.success) {
+          return { ok: false, status: response.status, message: 'Failed to load the resources.', errors: {} };
+        }
+        return { ok: true, message: '', data: { items: parsed.data.data, pagination: parsed.data.metadata.pagination } };
+      } catch {
+        return { ok: false, status: 0, message: 'Failed to load the resources.', errors: {} };
+      }
+    },
+    /**
      * Add a resource to a resources space, from the URL of a web article (ADR 0015)
      */
     create: (communityCuid: string, spaceCuid: string, input: NewResourceTextArticle): Promise<ApiResult<CommunityResource>> =>

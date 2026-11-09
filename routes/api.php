@@ -61,6 +61,7 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::post(ApiRoutes::COMMUNITY_SPACE_POST_PIN, [PostApiController::class, 'pin']);
 
             // Resources of resources spaces (ADR 0015)
+            Route::get(ApiRoutes::COMMUNITY_SPACE_RESOURCES, [CommunityResourceApiController::class, 'index']);
             Route::post(ApiRoutes::COMMUNITY_SPACE_RESOURCES, [CommunityResourceApiController::class, 'store']);
 
             // Comments (#1175)
