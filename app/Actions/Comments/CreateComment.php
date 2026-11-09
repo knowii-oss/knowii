@@ -5,6 +5,7 @@ namespace App\Actions\Comments;
 use App\Constants;
 use App\Contracts\Comments\CreatesComments;
 use App\Models\Comment;
+use App\Models\CommunityResource;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -15,11 +16,12 @@ use Illuminate\Validation\ValidationException;
 class CreateComment implements CreatesComments
 {
     /**
-     * Comment a post, or reply to a comment. A reply to a reply goes to the top-level comment (one level only).
+     * Comment a post or a resource (#1034), or reply to a comment. A reply to a reply goes to the top-level comment
+     * (one level only).
      */
-    final public function create(User $user, Post $post, array $input): Comment
+    final public function create(User $user, Post|CommunityResource $subject, array $input): Comment
     {
-        Gate::forUser($user)->authorize('comment', $post);
+        Gate::forUser($user)->authorize('comment', $subject);
 
         /** @var array{body: string, parent_cuid?: string|null} $validated */
         $validated = Validator::make($input, [
@@ -30,17 +32,18 @@ class CreateComment implements CreatesComments
 
         $parentId = null;
         if (filled($validated['parent_cuid'] ?? null)) {
-            $parent = $post->comments()->where('cuid', $validated['parent_cuid'])->first();
+            $parent = $subject->comments()->where('cuid', $validated['parent_cuid'])->first();
             if ($parent === null) {
-                throw ValidationException::withMessages(['parent_cuid' => 'The comment to reply to does not exist on this post']);
+                throw ValidationException::withMessages(['parent_cuid' => 'The comment to reply to does not exist here']);
             }
             $parentId = $parent->parent_id ?? $parent->id;
         }
 
-        return DB::transaction(function () use ($post, $user, $parentId, $validated) {
+        return DB::transaction(function () use ($subject, $user, $parentId, $validated) {
             $comment = Comment::create([
-                'community_id' => $post->community_id,
-                'post_id' => $post->id,
+                'community_id' => $subject->community_id,
+                'post_id' => $subject instanceof Post ? $subject->id : null,
+                'community_resource_id' => $subject instanceof CommunityResource ? $subject->id : null,
                 'author_id' => $user->id,
                 'parent_id' => $parentId,
                 'body' => $validated['body'],

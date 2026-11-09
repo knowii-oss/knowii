@@ -1,0 +1,19 @@
+meta {
+  name: Resource Comments - List
+  type: http
+  seq: 55
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/z40cggggsksggkgskkwocock/resources/<resource cuid>/comments
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Comments on a resource of a resources space (#1034), oldest first, each with its replies. metadata.totalCount counts the replies too. Get a resource cuid with Resources - List.
+}

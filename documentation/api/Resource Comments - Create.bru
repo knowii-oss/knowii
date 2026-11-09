@@ -1,0 +1,24 @@
+meta {
+  name: Resource Comments - Create
+  type: http
+  seq: 56
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/z40cggggsksggkgskkwocock/resources/<resource cuid>/comments
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  { "body": "Worth reading, **thanks**!" }
+}
+
+docs {
+  Comments a resource (Markdown). Members comment every resource they can read. Add parent_cuid to reply. Rate limited: 10 per minute.
+}

@@ -1,0 +1,24 @@
+meta {
+  name: Resource Comments - Toggle a reaction
+  type: http
+  seq: 59
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/z40cggggsksggkgskkwocock/resources/<resource cuid>/comments/<comment cuid>/reactions
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  { "kind": "insightful" }
+}
+
+docs {
+  Adds or removes the reaction of the member to a comment on a resource. Returns the new summary.
+}

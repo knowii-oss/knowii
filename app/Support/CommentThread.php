@@ -3,11 +3,13 @@
 namespace App\Support;
 
 use App\Models\Comment;
+use App\Models\CommunityResource;
 use App\Models\Post;
 use Illuminate\Database\Eloquent\Collection;
 
 /**
- * The comments of a post as shown on the page: top-level comments, oldest first, each with its replies.
+ * The comments of a post or a resource (#1034) as shown on the page: top-level comments, oldest first, each with its
+ * replies.
  */
 final class CommentThread
 {
@@ -19,9 +21,9 @@ final class CommentThread
     /**
      * @return Collection<int, Comment>
      */
-    public static function for(Post $post): Collection
+    public static function for(Post|CommunityResource $subject): Collection
     {
-        return $post->comments()
+        return $subject->comments()
             ->whereNull('parent_id')
             ->with(['author', 'reactions', 'replies.author', 'replies.reactions'])
             ->limit(self::MAX_TOP_LEVEL_COMMENTS)

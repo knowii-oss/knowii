@@ -41,6 +41,8 @@ final class ApiRoutes
     // Named after Space::resources() for the scoped binding
     public const PARAM_RESOURCE = 'resource';
 
+    public const PARAM_RESOURCE_COMMENT = 'comment';
+
     // Paths relative to the version prefix, used in routes/api.php.
     public const USER = 'user';
 
@@ -72,6 +74,12 @@ final class ApiRoutes
     public const COMMUNITY_SPACE_RESOURCES = self::COMMUNITY_SPACE.'/resources';
 
     public const COMMUNITY_SPACE_RESOURCE = self::COMMUNITY_SPACE_RESOURCES.'/{'.self::PARAM_RESOURCE.'}';
+
+    public const COMMUNITY_SPACE_RESOURCE_COMMENTS = self::COMMUNITY_SPACE_RESOURCE.'/comments';
+
+    public const COMMUNITY_SPACE_RESOURCE_COMMENT = self::COMMUNITY_SPACE_RESOURCE_COMMENTS.'/{'.self::PARAM_RESOURCE_COMMENT.'}';
+
+    public const COMMUNITY_SPACE_RESOURCE_COMMENT_REACTIONS = self::COMMUNITY_SPACE_RESOURCE_COMMENT.'/reactions';
 
     public const COMMUNITY_SPACE_POSTS = self::COMMUNITY_SPACE.'/posts';
 
