@@ -1,13 +1,13 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Community, CommunityPermissions, CommunityResource, SpaceGroup } from '@knowii/common';
-import { COMMUNITY_SETTINGS_URL, DASHBOARD_URL, RESOURCE_URL, useSocket } from '@knowii/common';
+import { COMMUNITY_ABOUT_URL, COMMUNITY_SETTINGS_URL, DASHBOARD_URL, RESOURCE_URL, useSocket } from '@knowii/common';
 import { breadcrumbHome } from '../../Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
 import ResourceIcon from '@/Components/Resources/ResourceIcon';
 import { ResourceCard } from '@/Components/Resources/ResourceCard';
 import CommunityMembersIcon from '@/Components/Communities/CommunityMembersIcon';
 import { Link, router } from '@inertiajs/react';
-import { FaGear } from 'react-icons/fa6';
+import { FaCircleInfo, FaGear } from 'react-icons/fa6';
 import type { BreadcrumbItem } from '@/Components/ui';
 import { buttonClasses, Card, CardBody, CardHeader } from '@/Components/ui';
 import { CommunityShell } from '@/Components/Spaces/CommunityShell';
@@ -47,17 +47,27 @@ export default function CommunityPage(props: Props) {
       breadcrumbItems={breadcrumbItems}
       breadcrumbHome={breadcrumbHome()}
       pageActions={
-        // Moderators with the "manage spaces" or "manage members" right reach their part of the settings (#1240, #1242)
-        props.permissions.canManageCommunity || props.permissions.canManageSpaces || props.permissions.canAddCommunityMembers ? (
+        <>
+          {/* The details page: what the community is, its team, what each role can do (#1135) */}
           <Link
-            href={route(COMMUNITY_SETTINGS_URL, { communitySlug: props.community.slug })}
-            preserveState={true}
+            href={route(COMMUNITY_ABOUT_URL, { communitySlug: props.community.slug })}
             className={buttonClasses({ variant: 'ghost', size: 'sm' })}
           >
-            <FaGear aria-hidden="true" />
-            Settings
+            <FaCircleInfo aria-hidden="true" />
+            About
           </Link>
-        ) : null
+          {/* Moderators with the "manage spaces" or "manage members" right reach their part of the settings (#1240, #1242) */}
+          {(props.permissions.canManageCommunity || props.permissions.canManageSpaces || props.permissions.canAddCommunityMembers) && (
+            <Link
+              href={route(COMMUNITY_SETTINGS_URL, { communitySlug: props.community.slug })}
+              preserveState={true}
+              className={buttonClasses({ variant: 'ghost', size: 'sm' })}
+            >
+              <FaGear aria-hidden="true" />
+              Settings
+            </Link>
+          )}
+        </>
       }
     >
       <CommunityShell community={props.community} spaceGroups={props.spaceGroups}>
@@ -96,8 +106,16 @@ export default function CommunityPage(props: Props) {
             {'personal' !== props.community.visibility && (
               <Card aria-labelledby="members-title">
                 <CardHeader title={<span id="members-title">Members</span>} icon={<CommunityMembersIcon />} />
-                <CardBody>
-                  <p className="text-sm text-muted">Coming soon...</p>
+                <CardBody className="flex flex-col gap-2">
+                  {props.community.member_count !== undefined && (
+                    <p>
+                      <span className="text-2xl font-bold">{props.community.member_count}</span>{' '}
+                      {props.community.member_count === 1 ? 'member' : 'members'}
+                    </p>
+                  )}
+                  <Link href={route(COMMUNITY_ABOUT_URL, { communitySlug: props.community.slug })} className="text-sm underline">
+                    See the team
+                  </Link>
                 </CardBody>
               </Card>
             )}

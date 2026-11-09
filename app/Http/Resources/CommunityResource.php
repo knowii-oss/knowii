@@ -23,6 +23,8 @@ class CommunityResource extends AbstractKnowiiJsonResource
             'visibility' => $this->visibility,
             // Every right with its value, also the defaults (#1240, ADR 0017)
             'moderator_permissions' => $this->moderatorPermissions(),
+            // Only when the users are counted (loadCount('users')): the owner is not in the pivot, so + 1 (#1135)
+            'member_count' => $this->whenCounted('users', fn (int $count) => $count + 1),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

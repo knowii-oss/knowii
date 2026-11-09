@@ -31,6 +31,7 @@ The owner and the admins switch these rights in the community settings ("Moderat
 | Ability                                 | Policy                                                    | Owner  | Admin  | Moderator        | Member | Outsider | Visitor |
 | --------------------------------------- | --------------------------------------------------------- | ------ | ------ | ---------------- | ------ | -------- | ------- |
 | See the community                       | `CommunityPolicy::view`                                   | yes    | yes    | yes              | yes    | no       | no      |
+| See the details page and the team       | `CommunityPolicy::view`                                   | yes    | yes    | yes              | yes    | no       | no      |
 | Update the community                    | `CommunityPolicy::update`                                 | yes    | no     | no               | no     | no       | no      |
 | Delete the community                    | `CommunityPolicy::delete`                                 | yes    | no     | no               | no     | no       | no      |
 | Community settings                      | `CommunityPolicy::manage`                                 | yes    | yes    | no               | no     | no       | no      |

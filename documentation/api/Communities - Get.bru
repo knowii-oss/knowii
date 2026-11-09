@@ -1,0 +1,19 @@
+meta {
+  name: Communities - Get
+  type: http
+  seq: 69
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  A community with its description, visibility, moderator rights and number of members (member_count, the owner included) (#1135). Members only. The team (owner, admins, moderators) comes from Members - List.
+}

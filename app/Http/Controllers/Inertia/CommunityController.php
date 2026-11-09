@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Inertia;
 
 use App\Enums\KnowiiSpaceType;
+use App\Http\Resources\MemberWithRoleResource;
 use App\Models\Community;
 use App\Models\Space;
 use App\Models\SpaceGroup;
 use App\Models\User;
+use App\Support\CommunityMemberQuery;
+use App\Support\CommunityRoles;
 use App\Support\SpaceTree;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -19,6 +22,9 @@ use Laravel\Jetstream\RedirectsActions;
 class CommunityController extends Controller
 {
     use RedirectsActions;
+
+    // The details page lists the owner, the admins and the moderators: more than this is not a team, it is a directory
+    private const int MAX_TEAM_MEMBERS = 50;
 
     /**
      * Show the community screen.
@@ -47,12 +53,34 @@ class CommunityController extends Controller
         // WARNING: The props passed here must remain aligned with the props expected by the page
         return Jetstream::inertia()->render($request, 'Communities/Show', [
             // WARNING: The props passed here must remain aligned with the props expected by the page
-            'community' => $community->toResource()->withLargeFields(),
+            'community' => $community->loadCount('users')->toResource()->withLargeFields(),
 
             'recentResources' => $recentResources->toResourceCollection(),
             'spaceGroups' => $spaceGroups->toResourceCollection(),
 
             'permissions' => $this->getCommunityPermissions($community),
+        ]);
+    }
+
+    /**
+     * The details page of a community (#1135): what it is, its team, what moderators can do, and the controls of the
+     * current user. Same access as the community page.
+     */
+    public function about(Request $request, string $slug): Response
+    {
+        $community = Community::where('slug', $slug)->firstOrFail();
+
+        Gate::authorize('view', $community);
+
+        JsonResource::withoutWrapping();
+
+        // WARNING: The props passed here must remain aligned with the props expected by Pages/Communities/About.tsx
+        return Jetstream::inertia()->render($request, 'Communities/About', [
+            'community' => $community->loadCount('users')->toResource()->withLargeFields(),
+            'spaceGroups' => SpaceTree::for($community, $request->user())->toResourceCollection(),
+            'team' => CommunityMemberQuery::team($community)->limit(self::MAX_TEAM_MEMBERS)->get()->toResourceCollection(MemberWithRoleResource::class),
+            'permissions' => $this->getCommunityPermissions($community),
+            'currentRole' => $this->currentRole($request, $community),
         ]);
     }
 
@@ -90,7 +118,7 @@ class CommunityController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        return $user->ownsCommunity($community) ? 'owner' : ($community->getMemberById($user->id)?->role->value ?? 'member');
+        return CommunityRoles::roleName($user, $community) ?? 'member';
     }
 
     /**

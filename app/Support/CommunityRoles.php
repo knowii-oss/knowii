@@ -25,6 +25,18 @@ final class CommunityRoles
     }
 
     /**
+     * The name of the role of a user in a community: owner, admin, moderator, member, or null for a non-member.
+     */
+    public static function roleName(User $user, Community $community): ?string
+    {
+        if ($user->ownsCommunity($community)) {
+            return 'owner';
+        }
+
+        return $community->getMemberById($user->id)?->role->value;
+    }
+
+    /**
      * The rank of a role in the hierarchy of #1242: owner 4, admin 3, moderator 2, member 1. Null is the owner.
      */
     public static function rankOf(?KnowiiCommunityMemberRole $role): int
