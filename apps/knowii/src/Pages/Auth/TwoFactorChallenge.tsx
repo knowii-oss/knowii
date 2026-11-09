@@ -5,7 +5,7 @@ import { useRoute } from 'ziggy-js';
 import { TWO_FACTOR_LOGIN_URL } from '@knowii/common';
 import { FaKey } from 'react-icons/fa';
 import AuthenticationCard from '@/Components/AuthenticationCard';
-import FooterGuest from '@/Components/FooterGuest';
+import Footer from '@/Components/Footer';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import { Button, TextInput } from '@/Components/ui';
@@ -93,7 +93,7 @@ export default function TwoFactorChallengePage() {
           </div>
         </form>
       </AuthenticationCard>
-      <FooterGuest />
+      <Footer variant="compact" />
     </>
   );
 }

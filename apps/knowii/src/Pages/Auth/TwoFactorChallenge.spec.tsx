@@ -25,7 +25,7 @@ vi.mock('@inertiajs/react', async () => {
   };
 });
 vi.mock('ziggy-js', () => ({ useRoute: () => (name: string) => `/${name}` }));
-vi.mock('@/Components/FooterGuest', () => ({ default: () => null }));
+vi.mock('@/Components/Footer', () => ({ default: () => null }));
 
 describe('TwoFactorChallengePage', () => {
   it('sends the code of the authenticator app (#690)', async () => {

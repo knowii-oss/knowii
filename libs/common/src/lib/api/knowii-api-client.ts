@@ -40,6 +40,7 @@ import {
   SPACE_API_PARAM_SPACE,
   SPACE_API_PARAM_SPACE_GROUP,
   USERS_API_IS_USERNAME_AVAILABLE_PATH,
+  NEWSLETTER_API_PATH,
   WAITLIST_API_PATH,
 } from '../constants';
 import type { PingResponse } from './ping-response.schema';
@@ -137,30 +138,38 @@ const defaultHeaders: Headers = new Headers({
   'Content-Type': 'application/json',
 });
 
+/**
+ * Adds an address to an EmailOctopus list through a public endpoint (the waitlist, the newsletter of the footer #938)
+ */
+const subscribeToList = async (path: string, input: JoinWaitlistRequest, failureMessage: string): Promise<JoinWaitlistResponse> => {
+  const failure: JoinWaitlistResponse = { message: failureMessage, errors: [], type: 'internalError', category: 'technical' };
+
+  try {
+    const response = await fetch(path, {
+      method: 'post',
+      headers: defaultHeaders,
+      body: JSON.stringify(input),
+    });
+
+    const parsedResponse = joinWaitlistResponseSchema.safeParse(await response.json());
+
+    return parsedResponse.success ? parsedResponse.data : failure;
+  } catch {
+    return failure;
+  }
+};
+
 export const knowiiApiClient = {
   waitlist: {
-    join: async (input: JoinWaitlistRequest): Promise<JoinWaitlistResponse> => {
-      const failure: JoinWaitlistResponse = {
-        message: 'Failed to join the waitlist. Please try again later.',
-        errors: [],
-        type: 'internalError',
-        category: 'technical',
-      };
-
-      try {
-        const response = await fetch(WAITLIST_API_PATH, {
-          method: 'post',
-          headers: defaultHeaders,
-          body: JSON.stringify(input),
-        });
-
-        const parsedResponse = joinWaitlistResponseSchema.safeParse(await response.json());
-
-        return parsedResponse.success ? parsedResponse.data : failure;
-      } catch {
-        return failure;
-      }
-    },
+    join: (input: JoinWaitlistRequest): Promise<JoinWaitlistResponse> =>
+      subscribeToList(WAITLIST_API_PATH, input, 'Failed to join the waitlist. Please try again later.'),
+  },
+  newsletter: {
+    /**
+     * Subscribe to the newsletter (#938). The same input and answer as the waitlist.
+     */
+    subscribe: (input: JoinWaitlistRequest): Promise<JoinWaitlistResponse> =>
+      subscribeToList(NEWSLETTER_API_PATH, input, 'Failed to subscribe to the newsletter. Please try again later.'),
   },
   communities: {
     /**

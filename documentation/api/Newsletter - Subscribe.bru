@@ -1,0 +1,31 @@
+meta {
+  name: Newsletter - Subscribe
+  type: http
+  seq: 81
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/newsletter
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "someone@example.com",
+    "turnstileToken": "XXXX.DUMMY.TOKEN.XXXX",
+    "website": ""
+  }
+}
+
+docs {
+  Public endpoint for the newsletter form of the footer (#938), rate limited (5 requests per minute per IP address).
+  It fails while the instance has no EMAILOCTOPUS_NEWSLETTER_LIST_ID: the footer then shows no form.
+  `turnstileToken` comes from the Cloudflare Turnstile widget. With the Cloudflare test secret key, the dummy token passes.
+  `website` is the honeypot field: it must stay empty.
+}

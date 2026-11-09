@@ -29,7 +29,7 @@ vi.mock('@inertiajs/react', async () => {
   };
 });
 vi.mock('ziggy-js', () => ({ useRoute: () => (name: string, params?: Record<string, string>) => `/${name}/${params?.['token'] ?? ''}` }));
-vi.mock('@/Components/FooterGuest', () => ({ default: () => null }));
+vi.mock('@/Components/Footer', () => ({ default: () => null }));
 
 describe('MagicLinkPage', () => {
   it('signs in only when the member clicks the button (#703)', async () => {

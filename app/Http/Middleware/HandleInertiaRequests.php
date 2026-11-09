@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\Newsletter;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
@@ -35,6 +36,8 @@ class HandleInertiaRequests extends Middleware
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
             ],
+            // The newsletter form of the footer (#938)
+            'newsletter' => fn () => Newsletter::pageProp(),
         ];
 
         // If the user is authenticated, load their communities

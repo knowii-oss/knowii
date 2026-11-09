@@ -2,122 +2,34 @@
 
 namespace App\Actions\Waitlist;
 
-use App\Constants;
+use App\Actions\EmailOctopus\AddsEmailOctopusContact;
 use App\Contracts\Waitlist\JoinsWaitlist;
-use App\Exceptions\TechnicalException;
-use App\Support\Turnstile;
-use Illuminate\Http\Client\ConnectionException;
-use Illuminate\Http\Client\Response;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
 
 /**
- * Adds an email address to the waitlist (an EmailOctopus list).
- *
- * Protection against bots and abuse:
- * - Cloudflare Turnstile token, verified server-side (required: without Turnstile keys, nothing is accepted)
- * - honeypot field: a hidden field that people never fill in
- * - rate limit per IP address (route middleware, see AppServiceProvider)
- * - double opt-in: by default the contact is "pending" until the address is confirmed
+ * Adds an email address to the waitlist (an EmailOctopus list). The protection against bots is in the parent class.
  */
-class JoinWaitlist implements JoinsWaitlist
+class JoinWaitlist extends AddsEmailOctopusContact implements JoinsWaitlist
 {
-    private const int HTTP_TIMEOUT_SECONDS = 10;
-
     /**
      * @param  array<mixed>  $input
-     *
-     * @throws ValidationException|TechnicalException
      */
     final public function join(array $input, ?string $ipAddress): void
     {
-        Log::info('Processing a waitlist request');
-
-        $validator = Validator::make($input, [
-            // WARNING: Those rules must remain aligned with the client-side waitlistSchema
-            'email' => ['required', 'string', 'email:rfc', 'max:'.Constants::MAX_LENGTH_WAITLIST_EMAIL],
-            'turnstileToken' => ['required', 'string', 'max:'.Constants::MAX_LENGTH_TURNSTILE_TOKEN],
-            // Honeypot: must stay empty
-            Constants::WAITLIST_HONEYPOT_FIELD => ['nullable', 'string', 'max:255'],
-        ]);
-
-        $validator->validate();
-
-        /** @var array{email: string, turnstileToken: string, website?: string|null} $validated */
-        $validated = $validator->validated();
-
-        if (filled($validated[Constants::WAITLIST_HONEYPOT_FIELD] ?? null)) {
-            // Answer as if it worked, so bots learn nothing
-            Log::notice('Waitlist request ignored: the honeypot field is filled');
-
-            return;
-        }
-
-        $apiKey = config('services.emailoctopus.api_key');
-        $listId = config('services.emailoctopus.waitlist_list_id');
-        if (! is_string($apiKey) || $apiKey === '' || ! is_string($listId) || $listId === '') {
-            Log::error('Waitlist request refused: EmailOctopus is not configured (EMAILOCTOPUS_API_KEY, EMAILOCTOPUS_WAITLIST_LIST_ID)');
-            throw new TechnicalException('The waitlist is not available right now. Please try again later.');
-        }
-
-        Turnstile::verify($validated['turnstileToken'], $ipAddress, 'turnstileToken');
-
-        $this->addContact($apiKey, $listId, $validated['email']);
+        $this->addContact($input, $ipAddress);
     }
 
-    /**
-     * @throws ValidationException|TechnicalException
-     */
-    private function addContact(string $apiKey, string $listId, string $email): void
+    protected function listName(): string
     {
-        $baseUrl = config('services.emailoctopus.base_url');
-        $status = config('services.emailoctopus.waitlist_contact_status');
-
-        try {
-            $response = Http::withToken($apiKey)
-                ->acceptJson()
-                ->asJson()
-                ->timeout(self::HTTP_TIMEOUT_SECONDS)
-                ->post(rtrim(is_string($baseUrl) ? $baseUrl : '', '/').'/lists/'.rawurlencode($listId).'/contacts', [
-                    'email_address' => $email,
-                    'status' => in_array($status, ['pending', 'subscribed'], true) ? $status : 'pending',
-                ]);
-        } catch (ConnectionException $e) {
-            Log::warning('Could not reach EmailOctopus', ['exception' => $e]);
-            throw new TechnicalException('The waitlist is not available right now. Please try again later.', null, $e);
-        }
-
-        $this->handleEmailOctopusResponse($response);
+        return 'waitlist';
     }
 
-    /**
-     * @throws ValidationException|TechnicalException
-     */
-    private function handleEmailOctopusResponse(Response $response): void
+    protected function listIdConfigKey(): string
     {
-        if ($response->successful()) {
-            Log::info('Contact added to the waitlist');
+        return 'services.emailoctopus.waitlist_list_id';
+    }
 
-            return;
-        }
-
-        if ($response->status() === 409) {
-            // Already on the list: same answer as a new signup, so the API does not reveal who is on the list
-            Log::info('Contact already on the waitlist');
-
-            return;
-        }
-
-        if ($response->status() === 422) {
-            Log::notice('EmailOctopus refused the email address', ['errors' => $response->json('errors')]);
-            throw ValidationException::withMessages([
-                'email' => 'Please enter a valid email address.',
-            ]);
-        }
-
-        Log::error('EmailOctopus request failed', ['status' => $response->status(), 'body' => $response->json('detail')]);
-        throw new TechnicalException('The waitlist is not available right now. Please try again later.');
+    protected function contactStatusConfigKey(): string
+    {
+        return 'services.emailoctopus.waitlist_contact_status';
     }
 }

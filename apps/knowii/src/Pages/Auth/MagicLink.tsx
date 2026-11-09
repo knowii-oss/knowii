@@ -2,7 +2,7 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
 import { LOGIN_LINK_CONSUME_URL, LOGIN_URL } from '@knowii/common';
 import AuthenticationCard from '@/Components/AuthenticationCard';
-import FooterGuest from '@/Components/FooterGuest';
+import Footer from '@/Components/Footer';
 import { Button } from '@/Components/ui';
 
 interface Props {
@@ -47,7 +47,7 @@ export default function MagicLinkPage({ token, valid, email }: Props) {
           </div>
         )}
       </AuthenticationCard>
-      <FooterGuest />
+      <Footer variant="compact" />
     </>
   );
 }

@@ -2,7 +2,7 @@ import ReactMarkdown from 'react-markdown';
 import PageHeader from '@/Components/PageHeader';
 import PageContentWrapper from '@/Components/PageContentWrapper';
 import { Head } from '@inertiajs/react';
-import FooterGuest from '@/Components/FooterGuest';
+import Footer from '@/Components/Footer';
 import PageWrapper from '@/Components/PageWrapper';
 
 interface Props {
@@ -30,7 +30,7 @@ export default function TermsOfServicePage(props: Props) {
               <ReactMarkdown>{props.terms}</ReactMarkdown>
             </div>
           </div>
-          <FooterGuest />
+          <Footer variant="compact" />
         </PageContentWrapper>
       </PageWrapper>
     </>

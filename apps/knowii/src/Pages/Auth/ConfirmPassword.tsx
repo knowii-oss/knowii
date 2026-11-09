@@ -1,4 +1,4 @@
-import FooterGuest from '@/Components/FooterGuest';
+import Footer from '@/Components/Footer';
 import { Button, PasswordInput } from '@/Components/ui';
 import { Head, useForm } from '@inertiajs/react';
 import type { FormEventHandler } from 'react';
@@ -58,7 +58,7 @@ export default function ConfirmPasswordPage() {
           </div>
         </form>
       </AuthenticationCard>
-      <FooterGuest />
+      <Footer variant="compact" />
     </>
   );
 }

@@ -7,7 +7,7 @@ import InputError from '@/Components/InputError';
 import { useRoute } from 'ziggy-js';
 import { FORGOT_PASSWORD_URL, LOGIN_LINK_STORE_URL, LOGIN_URL, REGISTER_URL } from '@knowii/common';
 import { FaAt, FaLock } from 'react-icons/fa';
-import FooterGuest from '@/Components/FooterGuest';
+import Footer from '@/Components/Footer';
 import { Button, Checkbox, PasswordInput, TextInput } from '@/Components/ui';
 
 interface LoginFormData {
@@ -179,7 +179,7 @@ export default function LoginPage({ canResetPassword, status }: Props) {
           </div>
         )}
       </AuthenticationCard>
-      <FooterGuest />
+      <Footer variant="compact" />
     </>
   );
 }

@@ -26,7 +26,7 @@ vi.mock('@inertiajs/react', async () => {
   };
 });
 vi.mock('ziggy-js', () => ({ useRoute: () => (name: string) => `/${name}` }));
-vi.mock('@/Components/FooterGuest', () => ({ default: () => null }));
+vi.mock('@/Components/Footer', () => ({ default: () => null }));
 vi.mock('@knowii/common', async (importOriginal) => ({
   ...(await importOriginal<typeof Common>()),
   useTypedPage: () => ({ props: { jetstream: { hasTermsAndPrivacyPolicyFeature: false } } }),

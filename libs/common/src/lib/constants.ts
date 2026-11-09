@@ -28,7 +28,7 @@ export const USER_PROFILE_BIO_TEXTAREA_ROWS = 8;
  */
 export const HOME_URL = '/';
 export const DASHBOARD_URL = 'dashboard';
-export const CONTACT_URL = 'contact';
+export const CONTACT_URL = '/contact';
 
 // Legal
 export const TERMS_OF_SERVICE_URL = 'terms-of-service.show';
@@ -153,6 +153,8 @@ export const PING_API_PATH = `${API_BASE_PATH}/ping`;
 
 // Waitlist
 export const WAITLIST_API_PATH = `${API_BASE_PATH}/waitlist`;
+// Newsletter of the footer (#938)
+export const NEWSLETTER_API_PATH = `${API_BASE_PATH}/newsletter`;
 
 // Users
 export const USERS_API_BASE_PATH = `${API_BASE_PATH}/users`;
