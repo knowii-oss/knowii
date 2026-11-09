@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Contracts\Resources\CreatesCommunityResources;
+use App\Contracts\Resources\UpdatesCommunityResources;
 use App\Enums\KnowiiCaptureStatus;
 use App\Exceptions\BusinessException;
 use App\Http\Controllers\Controller;
@@ -62,12 +63,13 @@ class CommunityResourceApiController extends Controller
     #[BodyParameter('url', description: 'Absolute http or https URL of the page', required: true, type: 'string', format: 'uri', example: 'https://example.com/some-article')]
     #[BodyParameter('level', description: 'beginner, intermediate, advanced, expert or unknown', required: true, type: 'string', example: 'beginner')]
     #[BodyParameter('description', description: 'Why the resource is useful (up to 255 characters)', required: false, type: 'string')]
+    #[BodyParameter('type', description: 'article, video, audio, book, paper, tool or other. Empty: detected by the capture; a type given here stays', required: false, type: 'string', example: 'article')]
     final public function store(Request $request, Community $community, Space $space): JsonResponse
     {
         $resource = app(CreatesCommunityResources::class)->create(
             $request->user() ?? throw new AuthenticationException,
             $space,
-            $request->only(['name', 'description', 'level', 'url'])
+            $request->only(['name', 'description', 'level', 'url', 'type'])
         );
 
         return self::created(
@@ -92,5 +94,22 @@ class CommunityResourceApiController extends Controller
         CaptureCommunityResource::dispatch($resource);
 
         return self::success('Capture started', null, $resource->load(['resource', 'curator', 'capture', 'space'])->toResource());
+    }
+
+    /**
+     * Change the type or the level of a resource (#1246): the curator, or a member who manages the spaces. A type
+     * chosen here stays when the page is captured again.
+     */
+    #[BodyParameter('type', description: 'article, video, audio, book, paper, tool or other', required: false, type: 'string', example: 'video')]
+    #[BodyParameter('level', description: 'beginner, intermediate, advanced, expert or unknown', required: false, type: 'string', example: 'advanced')]
+    final public function update(Request $request, Community $community, Space $space, CommunityResource $resource): JsonResponse
+    {
+        $updated = app(UpdatesCommunityResources::class)->update(
+            $request->user() ?? throw new AuthenticationException,
+            $resource,
+            $request->only(['type', 'level'])
+        );
+
+        return self::success('Resource updated', null, $updated->load(['resource', 'curator', 'capture', 'space'])->toResource());
     }
 }

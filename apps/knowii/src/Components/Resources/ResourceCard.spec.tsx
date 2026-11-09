@@ -64,8 +64,8 @@ describe('ResourceCard', () => {
   });
 
   it('names the type of the resource for screen readers (#1137)', () => {
-    render(<ResourceCard resource={{ ...resource({}), type: 'textArticle' } as CommunityResource} href="/r" />);
+    render(<ResourceCard resource={{ ...resource({}), type: 'article' } as CommunityResource} href="/r" />);
 
-    expect(screen.getByTitle('Text article')).toHaveTextContent('Text article,');
+    expect(screen.getByTitle('Article')).toHaveTextContent('Article,');
   });
 });

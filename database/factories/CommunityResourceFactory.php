@@ -37,7 +37,7 @@ class CommunityResourceFactory extends Factory
             'community_id' => fn (array $attributes) => Space::query()->whereKey($attributes['space_id'])->value('community_id'),
             'curator_id' => UserProfile::factory(),
             'is_featured' => $this->faker->boolean(),
-            'type' => KnowiiResourceType::TextArticle,
+            'type' => KnowiiResourceType::Article,
             'level' => KnowiiResourceLevel::Beginner,
             'capture_status' => KnowiiCaptureStatus::Captured,
         ];

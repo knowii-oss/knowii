@@ -2,10 +2,21 @@
 
 namespace App\Enums;
 
-// WARNING: Must remain in sync with the one defined in resource.schema.ts
+/**
+ * The fixed list of resource types (ADR 0018, #1246). WARNING: Must remain in sync with resourceTypeSchema
+ * (resource.schema.ts) and the icons of ResourceTypeIcon.tsx
+ */
 enum KnowiiResourceType: string
 {
-    case TextArticle = 'textArticle';
+    case Article = 'article';
+    case Video = 'video';
+    // Podcasts
+    case Audio = 'audio';
+    case Book = 'book';
+    case Paper = 'paper';
+    // Websites and software
+    case Tool = 'tool';
+    case Other = 'other';
 
     public static function toCommaSeparatedString(): string
     {

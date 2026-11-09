@@ -58,7 +58,7 @@ test('the level and the type belong to the community resource (#1244)', function
     $this->actingAs($c['member'])->getJson(singleCaptureResourcePath($space, $inA))
         ->assertOk()
         ->assertJsonPath('data.level', 'expert')
-        ->assertJsonPath('data.type', 'textArticle')
+        ->assertJsonPath('data.type', 'article')
         ->assertJsonPath('data.capture_status', 'captured')
         ->assertJsonMissingPath('data.resource.level');
 });

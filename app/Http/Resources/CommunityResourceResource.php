@@ -27,6 +27,8 @@ class CommunityResourceResource extends AbstractKnowiiJsonResource
             'resource' => $this->whenLoaded('resource', fn (Resource $resource) => $resource->toResource()->withLargeFields($this->serializeLargeFields)),
             // ADR 0018: what the community decided and the state of the capture
             'type' => $this->type->value,
+            // The curator chose the type: a new capture keeps it (#1246)
+            'type_chosen' => $this->type_chosen,
             'level' => $this->level->value,
             'capture_status' => $this->capture_status->value,
             'capture_failure_reason' => $this->capture_failure_reason,

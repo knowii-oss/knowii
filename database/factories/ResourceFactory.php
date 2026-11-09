@@ -31,7 +31,7 @@ class ResourceFactory extends Factory
             // Unique: a resource is one URL
             'url' => fake()->unique()->url(),
             'cover_image_alt' => fake()->sentence(),
-            'type' => KnowiiResourceType::TextArticle,
+            'type' => KnowiiResourceType::Article,
             'is_featured' => false,
             'view_count' => 0,
             'share_count' => 0,

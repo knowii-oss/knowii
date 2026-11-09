@@ -57,6 +57,7 @@ describe('CreateResourceDialog', () => {
       name: 'Some article',
       description: '',
       level: 'unknown',
+      type: '',
     });
     expect(onClose).toHaveBeenCalled();
   });

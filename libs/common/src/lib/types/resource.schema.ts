@@ -2,18 +2,21 @@ import { z } from 'zod';
 import { baseEntitySchema } from './base-entity.schema';
 import { slugSchema } from './slug.schema';
 
-// Resource type
-export const resourceTypeSchema = z.enum(['textArticle'], {
+// Resource type: a fixed list (ADR 0018, #1246). WARNING: aligned with KnowiiResourceType.php and ResourceTypeIcon.tsx
+export const resourceTypeSchema = z.enum(['article', 'video', 'audio', 'book', 'paper', 'tool', 'other'], {
   error: 'Please select the type of resource',
 });
 
 export type ResourceType = z.infer<typeof resourceTypeSchema>;
 
 export const resourceTypeSchemaOptions: Array<{ name: string; type: ResourceType }> = [
-  {
-    name: 'Text article',
-    type: 'textArticle',
-  },
+  { name: 'Article', type: 'article' },
+  { name: 'Video', type: 'video' },
+  { name: 'Audio or podcast', type: 'audio' },
+  { name: 'Book', type: 'book' },
+  { name: 'Paper', type: 'paper' },
+  { name: 'Tool or website', type: 'tool' },
+  { name: 'Other', type: 'other' },
 ];
 
 // Resource level

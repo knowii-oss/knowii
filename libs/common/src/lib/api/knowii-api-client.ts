@@ -74,7 +74,7 @@ import type { CommunityResource } from '../types/community-resource.schema';
 import type { Community, ModeratorPermissions, NewCommunity } from '../types/community.schema';
 import { communitySchema } from '../types/community.schema';
 import { communityResourceSchema } from '../types/community-resource.schema';
-import type { NewCommunityResource } from '../types/new-community-resource.schema';
+import type { CommunityResourceChanges, NewCommunityResource } from '../types/new-community-resource.schema';
 import type { ReactionKind, ReactionSummary, WhoReacted } from '../types/reaction.schema';
 import type { AssignableCommunityRole, CommunityInvitation, CommunityInvitationForm, CommunityMember } from '../types/member.schema';
 import { communityInvitationSchema, communityMemberSchema } from '../types/member.schema';
@@ -576,6 +576,26 @@ export const knowiiApiClient = {
      */
     create: (communityCuid: string, spaceCuid: string, input: NewCommunityResource): Promise<ApiResult<CommunityResource>> =>
       apiRequest('post', resourcesPath(communityCuid, spaceCuid), communityResourceSchema, 'Failed to add the resource.', input),
+    /**
+     * Change the type or the level of a resource (#1246): the curator, or a member who manages the spaces
+     */
+    update: (
+      communityCuid: string,
+      spaceCuid: string,
+      resourceCuid: string,
+      input: CommunityResourceChanges,
+    ): Promise<ApiResult<CommunityResource>> =>
+      apiRequest(
+        'patch',
+        apiPath(COMMUNITY_SPACE_RESOURCE_API_PATH, {
+          [SPACE_API_PARAM_COMMUNITY]: communityCuid,
+          [SPACE_API_PARAM_SPACE]: spaceCuid,
+          [SPACE_API_PARAM_RESOURCE]: resourceCuid,
+        }),
+        communityResourceSchema,
+        'Failed to save the resource.',
+        input,
+      ),
     /**
      * Start the capture of a resource again (ADR 0018): the curator, or a member who manages the spaces
      */

@@ -1,0 +1,27 @@
+meta {
+  name: Resources - Update
+  type: http
+  seq: 83
+}
+
+patch {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/z40cggggsksggkgskkwocock/resources/<cuid of a resource>
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "type": "video",
+    "level": "advanced"
+  }
+}
+
+docs {
+  Changes the type or the level of a resource (#1246). Both fields are optional. The curator, or a member who manages the spaces of the community. A type chosen here stays when the page is captured again (type_chosen). Only articles keep captured content: another type removes the server capture. Token ability: resources:write.
+}

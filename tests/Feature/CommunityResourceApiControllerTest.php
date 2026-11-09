@@ -245,7 +245,7 @@ test('the resources list never carries the large fields (#877)', function () {
     expect($response->json('data.0'))->not->toHaveKey('capture')
         ->and($response->json('data.0.capture_status'))->toBe('captured')
         ->and($response->json('data.0.level'))->toBe('beginner')
-        ->and($response->json('data.0.type'))->toBe('textArticle')
+        ->and($response->json('data.0.type'))->toBe('article')
         ->and($response->json('data.0.resource.url'))->not->toBeEmpty();
 });
 
