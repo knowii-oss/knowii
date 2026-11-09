@@ -14,7 +14,6 @@
     ],
     "sharedGlobals": ["{workspaceRoot}/.github/workflows/ci.yml"]
   },
-  "nxCloudAccessToken": "NTIxNjA3M2UtMjI5NC00MjcyLWFiZmItNTgxMThjN2ZlYTc3fHJlYWQtd3JpdGU=",
   "plugins": [
     {
       "plugin": "@nx/vite/plugin",
@@ -63,5 +62,5 @@
       "inputs": ["production", "^production"]
     }
   },
-  "useLegacyCache": true
+  "neverConnectToCloud": true
 }
