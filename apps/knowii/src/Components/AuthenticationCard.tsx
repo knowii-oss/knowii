@@ -1,14 +1,18 @@
 import type { PropsWithChildren } from 'react';
 import AuthenticationCardLogo from '@/Components/AuthenticationCardLogo';
+import { Card, ThemeToggle } from '@/Components/ui';
 
 export default function AuthenticationCard({ children }: PropsWithChildren<Record<string, unknown>>) {
   return (
-    <div className="mt-0 pt-0 sm:mt-16 flex flex-col sm:justify-center items-center">
-      <div className="bg-gray-800 w-full sm:max-w-md sm:rounded-lg flex justify-center">
+    <main className="relative flex flex-col items-center px-0 pt-6 sm:justify-center sm:px-4 sm:pt-16">
+      <ThemeToggle className="absolute top-4 right-4" />
+      <div className="flex w-48 justify-center sm:w-60">
         <AuthenticationCardLogo />
       </div>
 
-      <div className="w-full sm:max-w-md mt-6 px-6 py-4 bg-white shadow-md overflow-hidden sm:rounded-lg">{children}</div>
-    </div>
+      <Card as="div" className="mt-6 w-full overflow-hidden rounded-none border-x-0 px-6 py-6 sm:max-w-md sm:rounded-xl sm:border-x">
+        {children}
+      </Card>
+    </main>
   );
 }

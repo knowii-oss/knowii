@@ -1,12 +1,10 @@
 import type { PropsWithChildren } from 'react';
 import { useRoute } from 'ziggy-js';
 import { DASHBOARD_URL, HOME_URL, LOGIN_URL, LOGOUT_URL, REGISTER_URL } from '@knowii/common';
-import { Button } from 'primereact/button';
-import { Link } from '@inertiajs/react';
 import { FaSignOutAlt } from 'react-icons/fa';
-import classNames from 'classnames';
 import ApplicationMark from '@/Components/ApplicationMark';
 import ApplicationName from '@/Components/ApplicationName';
+import { cn, LinkButton, ThemeToggle } from '@/Components/ui';
 
 interface Props {
   compact: boolean;
@@ -21,68 +19,75 @@ export default function PageHeader(props: PropsWithChildren<Props>) {
   const route = useRoute();
 
   const compactLogoAndMark = (
-    <div className="flex flex-col sm:flex-row gap-2 items-center h-full">
-      <ApplicationMark className="w-12 md:w-14 lg:w-14" />
-      {/* Hide the logo when the screen is too small in compact mode */}
-      <ApplicationName className="hidden sm:block sm:w-40 md:w-44 xl:w-48" />
+    <div className="flex h-full flex-row items-center gap-3">
+      <ApplicationMark className="w-10 md:w-12" />
+      {/* Hide the name when the screen is too small in compact mode */}
+      <ApplicationName className="hidden sm:block sm:w-32 md:w-36" />
     </div>
   );
 
   const normalLogoAndMark = (
-    <div className="flex flex-col sm:flex-row gap-2 items-center h-full">
+    <div className="flex h-full flex-col items-center gap-3 sm:flex-row">
       <ApplicationMark className="w-14 md:w-18 lg:w-24" />
-      <ApplicationName className="w-40 lg:w-auto" />
+      <ApplicationName className="w-40 lg:w-56" />
     </div>
   );
 
+  const logoAndMark = props.compact ? compactLogoAndMark : normalLogoAndMark;
+
   return (
     <header
-      className={classNames(
-        `bg-gray-800 flex flex-col flex-wrap md:flex-row sm:justify-center items-center md:justify-between`,
-        { 'p-4 md:p-6 lg:p-12': !props.compact },
-        { 'pt-4 pl-0 sm:pl-4 sm:pr-4 pb-2 lg:pb-2': props.compact },
+      className={cn(
+        'flex flex-col flex-wrap items-center border-b border-border bg-well sm:justify-center md:flex-row md:justify-between',
+        props.compact ? 'flex-row justify-between gap-3 px-4 py-3 sm:justify-between sm:px-6' : 'p-4 md:p-6 lg:p-12',
       )}
     >
       {props.addLinkOnLogo ? (
-        <a href={HOME_URL}>{props.compact ? compactLogoAndMark : normalLogoAndMark}</a>
-      ) : props.compact ? (
-        compactLogoAndMark
+        <a href={HOME_URL} aria-label="Knowii home page" className="rounded-lg">
+          {logoAndMark}
+        </a>
       ) : (
-        normalLogoAndMark
+        logoAndMark
       )}
 
-      <nav className="flex flex-row flex-wrap gap-4 mt-6 md:mt-0 justify-center">
+      <nav aria-label="Main" className={cn('flex flex-row flex-wrap items-center justify-center gap-3', !props.compact && 'mt-6 md:mt-0')}>
+        <ThemeToggle />
         {props.showDashboardButton && (
-          <Link href={route(DASHBOARD_URL)} preserveState={true}>
-            <Button label="Dashboard" className={classNames('font-mono font-bold', { 'min-w-48 min-h-16': !props.compact })} />
-          </Link>
+          <LinkButton
+            href={route(DASHBOARD_URL)}
+            preserveState={true}
+            size={props.compact ? 'md' : 'lg'}
+            className={cn(!props.compact && 'min-w-48')}
+          >
+            Dashboard
+          </LinkButton>
         )}
         {props.showLogoutButton && (
-          <Link href={route(LOGOUT_URL)} method="post" className="">
-            <Button
-              aria-label={'Log out'}
-              severity="secondary"
-              className={classNames('font-mono font-bold min-h-full', { 'flex flex-row justify-center': !props.compact })}
-            >
-              <FaSignOutAlt />
-            </Button>
-          </Link>
+          <LinkButton
+            href={route(LOGOUT_URL)}
+            method="post"
+            variant="secondary"
+            size={props.compact ? 'md' : 'lg'}
+            iconOnly
+            aria-label="Log out"
+          >
+            <FaSignOutAlt aria-hidden="true" />
+          </LinkButton>
         )}
         {props.showLoginButton && (
-          <Link href={route(LOGIN_URL)} className="">
-            <Button
-              severity="secondary"
-              label="Log in"
-              aria-label={'Log in'}
-              className={classNames('font-mono font-bold min-w-48 min-h-full')}
-            />
-          </Link>
+          <LinkButton
+            href={route(LOGIN_URL)}
+            variant="secondary"
+            size={props.compact ? 'md' : 'lg'}
+            className={cn(!props.compact && 'min-w-48')}
+          >
+            Log in
+          </LinkButton>
         )}
-
         {props.showRegisterButton && (
-          <Link href={route(REGISTER_URL)} className="">
-            <Button label="Register" className={classNames('font-mono font-bold min-w-48', { 'min-h-16': !props.compact })} />
-          </Link>
+          <LinkButton href={route(REGISTER_URL)} size={props.compact ? 'md' : 'lg'} className={cn(!props.compact && 'min-w-48')}>
+            Register
+          </LinkButton>
         )}
 
         {props.children}

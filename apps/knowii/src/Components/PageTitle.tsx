@@ -1,35 +1,25 @@
-import { BreadCrumb } from 'primereact/breadcrumb';
-import type { MenuItem } from 'primereact/menuitem';
 import type { ReactElement } from 'react';
+import type { BreadcrumbItem } from '@/Components/ui';
+import { Breadcrumb } from '@/Components/ui';
 
 interface Props {
   pageTitle?: string | undefined;
-  breadcrumbItems?: MenuItem[] | undefined;
-  home?: MenuItem | undefined;
+  breadcrumbItems?: BreadcrumbItem[] | undefined;
+  home?: BreadcrumbItem | undefined;
   pageActions?: ReactElement | null | undefined;
 }
 
 export default function PageTitle(props: Props) {
-  return props.pageTitle ? (
-    <h1 className="text-white text-2xl sm:text-3xl font-bold tracking-wide uppercase shadow-xs">{props.pageTitle}</h1>
-  ) : props.breadcrumbItems ? (
-    <div className="w-full flex flex-col sm:flex-row gap-2 items-center justify-between">
-      <BreadCrumb
-        model={props.breadcrumbItems}
-        home={props.home}
-        className="bg-black"
-        pt={{
-          root: { className: 'border-none p-0' },
-          label: { className: 'text-white font-bold text-sm sm:text-base' },
-          menu: { className: 'text-white' },
-          menuitem: { className: 'hover:text-primary-500 transition-colors duration-200' },
-          separator: { className: 'text-primary-500 mx-2 sm:mx-3' },
-          action: { className: '' },
-        }}
-      />
+  if (props.pageTitle) {
+    return <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{props.pageTitle}</h1>;
+  }
+
+  const items = [...(props.home ? [props.home] : []), ...(props.breadcrumbItems ?? [])];
+
+  return (
+    <div className="flex w-full flex-col items-center justify-between gap-2 sm:flex-row">
+      <Breadcrumb items={items} />
       {props.pageActions}
     </div>
-  ) : (
-    <p className="text-white text-sm sm:text-base">WRONG Props given to the PageTitle component</p>
   );
 }

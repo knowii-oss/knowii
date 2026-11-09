@@ -6,8 +6,8 @@ import * as ReactDOM from 'react-dom/client';
 import { createInertiaApp } from '@inertiajs/react';
 import type { ResolvedComponent } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
-import { PrimeReactProvider } from 'primereact/api';
 import { AppDataProvider } from '@knowii/common';
+import { Toaster } from '@/Components/ui';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -23,23 +23,17 @@ createInertiaApp({
 
     root.render(
       <StrictMode>
-        <PrimeReactProvider
-          value={{
-            ripple: true,
-            // Reference: https://primereact.org/configuration/#nonce
-            // WARNING: MUST remain aligned with secure-headers.php
-            nonce: 'nonce-knowii-primereact',
-          }}
-        >
-          <AppDataProvider>
-            <App {...props} />
-          </AppDataProvider>
-        </PrimeReactProvider>
+        <AppDataProvider>
+          {/* The single application toaster lives here (not in a page layout), so toasts survive Inertia page visits */}
+          <Toaster />
+          <App {...props} />
+        </AppDataProvider>
       </StrictMode>,
     );
   },
   progress: {
-    color: '#4B5563',
+    // Knowii magenta
+    color: '#e5007d',
   },
 }).then((_createdApp) => {
   console.log('Welcome to Knowii ❤️');

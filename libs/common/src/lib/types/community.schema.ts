@@ -14,9 +14,9 @@ const communityVisibilitySchema = z.enum(['personal', 'private', 'public'], {
 export type CommunityVisibility = z.infer<typeof communityVisibilitySchema>;
 
 export const communityVisibilityOptions: Array<{ name: string; visibility: CommunityVisibility; color: string }> = [
-  { name: 'Personal', visibility: 'personal', color: 'text-yellow-500' },
-  { name: 'Private', visibility: 'private', color: 'text-primary-500' },
-  { name: 'Public', visibility: 'public', color: 'text-green-500' },
+  { name: 'Personal', visibility: 'personal', color: 'text-warning' },
+  { name: 'Private', visibility: 'private', color: 'text-secondary-text' },
+  { name: 'Public', visibility: 'public', color: 'text-success' },
 ];
 
 export const newCommunitySchema = z.object({

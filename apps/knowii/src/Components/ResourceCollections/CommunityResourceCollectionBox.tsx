@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 import type { CommunityResourceCollection } from '@knowii/common';
 import { FaChevronRight } from 'react-icons/fa';
 import { Link } from '@inertiajs/react';
@@ -9,40 +9,44 @@ interface Props {
   link?: string;
 }
 
+const boxClasses =
+  'flex h-20 w-full min-w-full items-center justify-between gap-2 rounded-lg border border-border bg-well p-3 text-left transition-colors hover:border-overlay/40 hover:bg-overlay/5 md:w-72 md:min-w-0 lg:w-96';
+
 const CommunityResourceCollectionBox: React.FC<Props> = ({ resourceCollection, clickHandler, link }) => {
-  const handleClick = (e: React.MouseEvent) => {
-    if (clickHandler) {
-      e.preventDefault();
-      clickHandler();
-    }
-  };
-
   const content = (
-    <div className="flex items-center justify-between p-3 h-20">
-      <div className="grow pr-2 min-w-0 overflow-hidden">
-        <h3 className="text-base font-semibold text-primary-500 leading-tight truncate mb-1">{resourceCollection.name}</h3>
-        <p className="text-xs text-gray-600 line-clamp-2">{resourceCollection.description}</p>
+    <>
+      <div className="min-w-0 grow overflow-hidden">
+        <h3 className="mb-1 truncate text-base leading-tight font-bold">{resourceCollection.name}</h3>
+        <p className="line-clamp-2 text-xs text-muted">{resourceCollection.description}</p>
       </div>
-      <div className="shrink-0 w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center text-white ml-2">
-        <FaChevronRight className="w-3 h-3" />
-      </div>
-    </div>
+      <span aria-hidden="true" className="flex size-6 shrink-0 items-center justify-center rounded-full bg-secondary text-white">
+        <FaChevronRight className="size-3" />
+      </span>
+    </>
   );
 
-  const boxContent = link ? (
-    <Link href={link} preserveState={true} onClick={handleClick} className="block h-full">
-      {content}
-    </Link>
-  ) : (
-    <div onClick={handleClick} className="h-full">
-      {content}
-    </div>
-  );
+  if (link) {
+    return (
+      <Link
+        href={link}
+        preserveState={true}
+        className={boxClasses}
+        onClick={(e: React.MouseEvent) => {
+          if (clickHandler) {
+            e.preventDefault();
+            clickHandler();
+          }
+        }}
+      >
+        {content}
+      </Link>
+    );
+  }
 
   return (
-    <div className="w-full min-w-full md:w-72 lg:w-96 h-20 shadow-xs hover:shadow-md border border-gray-200 hover:border-primary-500 cursor-pointer rounded-md overflow-hidden transition-all duration-200">
-      {boxContent}
-    </div>
+    <button type="button" onClick={clickHandler} className={`${boxClasses} cursor-pointer`}>
+      {content}
+    </button>
   );
 };
 

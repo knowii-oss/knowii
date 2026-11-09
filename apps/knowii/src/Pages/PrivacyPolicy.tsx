@@ -26,7 +26,7 @@ export default function PrivacyPolicyPage(props: Props) {
 
         <PageContentWrapper>
           <div className="flex flex-col items-center">
-            <div className="min-w-full md:min-w-[75%] xl:min-w-[50%] p-6 mt-6 overflow-hidden prose bg-white shadow-md sm:max-w-2xl sm:rounded-lg">
+            <div className="prose dark:prose-invert mt-6 w-full max-w-none overflow-hidden rounded-xl border border-border bg-surface p-6 prose-a:text-primary prose-a:underline-offset-4 md:w-3/4 md:p-8 xl:w-1/2">
               <ReactMarkdown>{props.policy}</ReactMarkdown>
             </div>
           </div>

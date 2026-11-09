@@ -1,17 +1,14 @@
-import { Link } from '@inertiajs/react';
-import type { MenuItem } from 'primereact/menuitem';
 import { DASHBOARD_URL } from '@knowii/common';
 import { FaHome } from 'react-icons/fa';
+import type { BreadcrumbItem } from '@/Components/ui';
 
-export const breadcrumbHome: MenuItem = {
-  label: 'Home',
-  template: (item) => (
-    <Link href={route(DASHBOARD_URL)} preserveState={true}>
-      {/* TODO move the text color to the home pt attribute of the Breadcrumb component used in pageTitle */}
-      <div className="flex items-center gap-2 text-white hover:text-primary-500 transition-colors duration-200">
-        <FaHome />
-        {item.label}
-      </div>
-    </Link>
-  ),
-};
+/**
+ * First breadcrumb item of the pages below the dashboard
+ */
+export function breadcrumbHome(): BreadcrumbItem {
+  return {
+    label: 'Home',
+    href: route(DASHBOARD_URL),
+    icon: <FaHome />,
+  };
+}

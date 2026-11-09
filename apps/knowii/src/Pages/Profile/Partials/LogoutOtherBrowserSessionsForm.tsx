@@ -2,13 +2,12 @@ import type { Session } from '@knowii/common';
 import { DESTROY_OTHER_BROWSER_SESSIONS_URL, useAppData } from '@knowii/common';
 import { useForm } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
+import type { FormEventHandler } from 'react';
 import { useRef, useState } from 'react';
 import ActionSection from '@/Components/ActionSection';
 import { FaDesktop, FaLock, FaMobile } from 'react-icons/fa';
-import { Button } from 'primereact/button';
-import { Dialog } from 'primereact/dialog';
-import { InputText } from 'primereact/inputtext';
 import InputError from '@/Components/InputError';
+import { Button, Dialog, PasswordInput } from '@/Components/ui';
 
 interface Props {
   sessions: Session[];
@@ -33,11 +32,11 @@ export default function LogoutOtherBrowserSessionsForm(props: Props) {
 
   const confirmLogout = () => {
     setConfirmingLogout(true);
-
-    setTimeout(() => passwordRef.current?.focus(), 250);
   };
 
-  const logoutOtherBrowserSessions = () => {
+  const logoutOtherBrowserSessions: FormEventHandler = (e) => {
+    e.preventDefault();
+
     form.delete(route(DESTROY_OTHER_BROWSER_SESSIONS_URL), {
       preserveScroll: true,
       onSuccess: () => {
@@ -56,7 +55,7 @@ export default function LogoutOtherBrowserSessionsForm(props: Props) {
 
   return (
     <ActionSection title={'Browser Sessions'} description={'Manage and log out your active sessions on other browsers and devices.'}>
-      <div className="max-w-xl text-sm text-gray-600">
+      <div className="max-w-xl text-sm text-muted">
         If necessary, you may log out of all of your other browser sessions across all of your devices. Some of your recent sessions are
         listed below; however, this list may not be exhaustive. If you feel your account has been compromised, you should also update your
         password.
@@ -69,22 +68,22 @@ export default function LogoutOtherBrowserSessionsForm(props: Props) {
             <div className="flex items-center" key={i}>
               <div>
                 {session.agent.is_desktop ? (
-                  <FaDesktop className="w-8 h-8 text-gray-500" />
+                  <FaDesktop aria-hidden="true" className="h-8 w-8 text-muted" />
                 ) : (
-                  <FaMobile className="w-8 h-8 text-gray-500" />
+                  <FaMobile aria-hidden="true" className="h-8 w-8 text-muted" />
                 )}
               </div>
 
               <div className="ml-3">
-                <div className="text-sm text-gray-600">
+                <div className="text-sm">
                   {session.agent.platform} - {session.agent.browser}
                 </div>
 
                 <div>
-                  <div className="text-xs text-gray-500">
-                    {session.ip_address},
+                  <div className="text-xs text-muted">
+                    {session.ip_address},{' '}
                     {session.is_current_device ? (
-                      <span className="text-green-500 font-semibold">This device</span>
+                      <span className="font-semibold text-success">This device</span>
                     ) : (
                       <span>Last active {session.last_active}</span>
                     )}
@@ -96,41 +95,44 @@ export default function LogoutOtherBrowserSessionsForm(props: Props) {
         </div>
       )}
 
-      <div className="flex items-center mt-5">
+      <div className="mt-5 flex items-center">
         <Button onClick={confirmLogout}>Log out other browser sessions</Button>
       </div>
 
       <Dialog
-        header="Log Out Other Browser Sessions"
-        closeOnEscape={true}
-        visible={confirmingLogout}
-        className="w-full sm:w-[75vw] md:w-[60vw] lg:w-[40vw] xl:w-[30vw]"
-        onHide={() => closeModal()}
+        open={confirmingLogout}
+        onClose={closeModal}
+        title="Log Out Other Browser Sessions"
         footer={
           <>
-            <Button severity="secondary" label="Cancel" onClick={closeModal} />
-            <Button label="Go ahead!" onClick={logoutOtherBrowserSessions} disabled={form.processing} className="ml-2" />
+            <Button variant="secondary" onClick={closeModal}>
+              Cancel
+            </Button>
+            <Button type="submit" form="logout-other-sessions-form" loading={form.processing}>
+              Go ahead!
+            </Button>
           </>
         }
       >
-        Please enter your password to confirm you would like to log out of your other browser sessions across all of your known devices.
-        <div className="mt-4">
-          <div className="p-inputgroup mt-1">
-            <span className="p-inputgroup-addon mt-1">
-              <FaLock />
-            </span>
-            <InputText
-              type="password"
-              className="mt-1 w-full"
+        <form id="logout-other-sessions-form" onSubmit={logoutOtherBrowserSessions}>
+          <label htmlFor="logout-other-sessions-password" className="text-sm">
+            Please enter your password to confirm you would like to log out of your other browser sessions across all of your known devices.
+          </label>
+          <div className="mt-4">
+            <PasswordInput
+              id="logout-other-sessions-password"
+              icon={<FaLock />}
               ref={passwordRef}
               value={form.data.password}
               onChange={(e) => form.setData('password', e.target.value)}
+              autoFocus
               required
               autoComplete="current-password"
+              invalid={!!form.errors.password}
             />
+            <InputError className="mt-2" message={form.errors.password} />
           </div>
-          <InputError className="mt-2" message={form.errors.password} />
-        </div>
+        </form>
       </Dialog>
     </ActionSection>
   );

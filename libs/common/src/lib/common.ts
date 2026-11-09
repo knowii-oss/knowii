@@ -23,6 +23,7 @@ export * from './types/jetstream/jetstream-inertia.intf';
 export * from './types/resource.schema';
 export * from './types/resource-text-article.schema';
 export * from './types/social-media-link.schema';
+export * from './types/toast.intf';
 export * from './types/url.schema';
 export * from './types/user.schema';
 export * from './types/username.schema';

@@ -6,7 +6,7 @@ import Separator from '@/Components/Separator';
 import UpdatePasswordForm from '@/Pages/Profile/Partials/UpdatePasswordForm';
 import LogoutOtherBrowserSessionsForm from '@/Pages/Profile/Partials/LogoutOtherBrowserSessionsForm';
 import DeleteUserForm from '@/Pages/Profile/Partials/DeleteUserForm';
-import type { MenuItem } from 'primereact/menuitem';
+import type { BreadcrumbItem } from '@/Components/ui';
 import { breadcrumbHome } from '../../Components/BreadcrumbHome';
 import { FaUser } from 'react-icons/fa';
 
@@ -18,20 +18,10 @@ interface Props {
 export default function UserProfile(props: Props) {
   const page = useTypedPage();
 
-  const breadcrumbItems: MenuItem[] = [
-    {
-      label: 'Edit profile',
-      template: (item) => (
-        <span className="flex items-center gap-2">
-          <FaUser />
-          {item.label}
-        </span>
-      ),
-    },
-  ];
+  const breadcrumbItems: BreadcrumbItem[] = [{ label: 'Edit profile', icon: <FaUser /> }];
 
   return (
-    <AppLayout browserPageTitle="Profile" breadcrumbItems={breadcrumbItems} breadcrumbHome={breadcrumbHome}>
+    <AppLayout browserPageTitle="Profile" breadcrumbItems={breadcrumbItems} breadcrumbHome={breadcrumbHome()}>
       {page.props.jetstream.canUpdateProfileInformation && page.props.auth.user && (
         <UpdateProfileInformationForm user={page.props.auth.user} />
       )}

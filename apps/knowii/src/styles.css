@@ -1,119 +1,214 @@
 /*
- * Wrap Tailwind's base and utilities in separate layers
- * Reference: https://primereact.org/tailwind/#csslayer
+ * Knowii design tokens and global styles (Tailwind CSS v4, CSS-first configuration).
+ *
+ * The tokens follow the "Knowii Brand Colors" and "Knowii Brand Style" references,
+ * with the same names as store-website (src/styles/index.css):
+ * - primary   = the text color (white on dark, near-black on light)
+ * - secondary = the signature magenta (fills, buttons)
+ * - secondary-text = the text accent pink
+ * - overlay   = the color used with an opacity for subtle fills and hovers (bg-overlay/10)
+ *
+ * Two themes: dark (default, the @theme values below) and light ([data-theme='light'] below).
+ * The theme is set on <html data-theme="..."> by an inline script in app.blade.php, before the first paint.
  */
-@layer tailwind-base, primereact, tailwind-utilities;
+@import 'tailwindcss';
 
-/*
- * Tailwind CSS v4: import the individual layers so the PrimeReact theme can be
- * interleaved between Tailwind's base (preflight) and utilities, keeping the
- * specificity order the app relies on (utilities win over PrimeReact).
- */
-@import 'tailwindcss/theme.css' layer(tailwind-base);
-@import 'tailwindcss/preflight.css' layer(tailwind-base);
-@import 'primereact/resources/themes/lara-light-pink/theme.css' layer(primereact);
-@import 'tailwindcss/utilities.css' layer(tailwind-utilities);
+@plugin '@tailwindcss/typography';
 
-/* Keep using the existing JavaScript-based theme configuration. */
-@config '../tailwind.config.ts';
+/* Tailwind scans the app sources automatically. These are the other places that use utility classes. */
+@source '../../../libs/common/src';
+@source '../../../resources/views';
 
-/*
-  The default border color changed to `currentcolor` in Tailwind CSS v4, so we
-  restore the v3 default (gray-200) to keep the existing look.
-*/
-@layer tailwind-base {
+/* dark: variant, for the rare cases where a token is not enough (for example prose-invert) */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+@theme {
+  /* Only the Knowii tokens exist: the default Tailwind palette is removed, so off-brand colors cannot creep in. */
+  --color-*: initial;
+
+  --color-transparent: transparent;
+  --color-current: currentcolor;
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  /* Surfaces */
+  --color-background: #37404c; /* dark slate */
+  --color-surface: #3f4957; /* cards */
+  --color-surface-elevated: #475363; /* hover / raised */
+  --color-well: #2b323c; /* darker panels inside cards (data, form fields) */
+
+  /* Text */
+  --color-primary: #ffffff; /* text on dark */
+  --color-muted: rgb(255 255 255 / 0.64); /* secondary text: 4.85:1 on surface */
+
+  /* Brand */
+  --color-secondary: #e5007d; /* signature magenta: fills and buttons (white text on it: 4.54:1) */
+  --color-secondary-hover: #cc006f;
+  --color-secondary-text: #ff1493; /* text accent pink: large or decorative text only (2.89:1 on the background) */
+  --color-gradient-partner: #a855f7; /* purple companion of the magenta in gradients */
+
+  /* Subtle fills and hovers, always used with an opacity */
+  --color-overlay: #ffffff;
+
+  /* Lines */
+  --color-border: rgb(255 255 255 / 0.1);
+  --color-border-strong: rgb(255 255 255 / 0.4); /* form control borders: 3.4:1 on the well */
+
+  /* Status */
+  --color-success: #4ade80;
+  --color-warning: #fbbf24; /* accent yellow */
+  --color-danger: #dc2626; /* fills (white text on it: 4.83:1) */
+  --color-danger-hover: #b91c1c;
+  --color-danger-text: #fca5a5; /* error text: 4.81:1 on surface */
+
+  --font-sans:
+    'Noto Sans', Inter, 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue',
+    sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --breakpoint-sm: 600px;
+  --breakpoint-md: 960px;
+  --breakpoint-lg: 1280px;
+  --breakpoint-xg: 1600px;
+  --breakpoint-xl: 1920px;
+  --breakpoint-2xl: 2440px;
+
+  --shadow-glow: 0 10px 25px -10px rgb(229 0 125 / 0.6);
+
+  --animate-toast-in: toast-in 200ms ease-out;
+
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+      transform: translateY(-0.5rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+/* Light theme ("Knowii Brand Colors": light mode of the store). Contrast on the white surface given in comments. */
+[data-theme='light'] {
+  color-scheme: light;
+
+  --color-background: #f5f7fa;
+  --color-surface: #ffffff;
+  --color-surface-elevated: #ffffff;
+  --color-well: #eef1f5;
+
+  --color-primary: #1a1a2e; /* 17:1 */
+  --color-muted: rgb(26 26 46 / 0.7); /* 6.3:1 */
+
+  --color-secondary: #d10070; /* white text on it: 5.3:1 */
+  --color-secondary-hover: #b3005f;
+  --color-secondary-text: #c20066; /* 6:1 */
+
+  --color-overlay: #1a1a2e;
+
+  --color-border: rgb(0 0 0 / 0.1);
+  --color-border-strong: rgb(26 26 46 / 0.5); /* 3.2:1 on the well */
+
+  --color-success: #15803d; /* 5:1 */
+  --color-warning: #b45309; /* 5:1 */
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-danger-text: #b91c1c; /* 6.5:1 */
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+@layer base {
+  /* Tailwind v4 uses currentcolor as the default border color. Knowii uses the subtle border token. */
   *,
   ::after,
   ::before,
   ::backdrop,
   ::file-selector-button {
-    border-color: var(--color-gray-200, currentcolor);
+    border-color: var(--color-border);
+  }
+
+  html {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0); /* no blue flashes */
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    font-family: var(--font-sans);
+    background-color: var(--color-background);
+    color: var(--color-primary);
+    line-height: 1.6;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
+    tab-size: 4;
+  }
+
+  h1 {
+    @apply text-4xl leading-none font-extrabold tracking-tight md:text-5xl lg:text-6xl;
+  }
+
+  h2 {
+    @apply text-xl font-bold md:text-2xl;
+  }
+
+  /* Visible focus for every interactive element: the text color has enough contrast on all the surfaces */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary;
+  }
+
+  /* Browser autofill: keep the dark field instead of the light blue default */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--color-primary);
+    caret-color: var(--color-primary);
+    box-shadow: 0 0 0 1000px var(--color-well) inset;
+    transition: background-color 9999s ease-out;
+  }
+
+  ::selection {
+    background-color: rgb(229 0 125 / 0.45);
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--color-overlay) 25%, transparent) transparent;
   }
 }
 
-/* Reference: https://alpinejs.dev/directives/cloak */
-[x-cloak] {
-  display: none;
+@utility page-content-boundaries {
+  @apply mt-8 px-4 sm:mx-4 md:mx-8 md:mt-12 lg:mx-16 lg:mt-16 xl:mx-24;
 }
 
-/**
-  * App styles
- */
-html {
-  -webkit-tap-highlight-color: rgba(0, 0, 0, 0); /* no blue flashes */
+@utility simple-link {
+  @apply text-sm text-muted underline underline-offset-2 transition-colors hover:text-primary;
 }
 
-html,
-body {
-  @apply antialiased;
-  text-rendering: optimizeLegibility;
-  -moz-osx-font-smoothing: grayscale;
+/* Key word of a headline: gradient magenta treatment ("Knowii Brand Style") */
+@utility text-gradient-brand {
+  background-image: linear-gradient(90deg, #ff1493, #e5007d, #a855f7);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 18px rgba(255, 20, 147, 0.35));
 }
 
-html,
-body,
-body > div:first-child {
-  @apply antialiased m-0 p-0 text-base font-normal font-app bg-gray-50;
-  -webkit-text-size-adjust: 100%;
-  letter-spacing: -0.1px;
-  /* Standard line height */
-  /* Reference for line-height: https://dev.to/lampewebdev/css-line-height-jjp */
-  line-height: 1.5;
-  tab-size: 4;
-  scroll-behavior: smooth;
-}
-
-body {
-  font-family: inherit;
-  line-height: inherit;
-}
-
-svg {
-  display: block;
-  vertical-align: middle;
-  shape-rendering: auto;
-  text-rendering: optimizeLegibility;
-}
-
-h1 {
-  @apply font-bold text-4xl md:text-5xl lg:text-6xl leading-none tracking-tight;
-}
-
-h2 {
-  @apply font-semibold text-xl md:text-2xl;
-}
-
-.full-page {
-  @apply h-full min-h-full w-full min-w-full;
-}
-
-.simple-link {
-  @apply underline text-sm text-gray-600 hover:text-primary-500;
-}
-
-.menu-content-wrapper {
-  @apply flex flex-col gap-4 h-full;
-}
-
-.main-menu-entry > * {
-  @apply flex flex-row gap-4 justify-center text-2xl py-2 rounded-md leading-none text-white bg-primary-500 hover:bg-primary-600 hover:cursor-pointer;
-}
-
-.user-menu-entry {
-  @apply hover:cursor-pointer flex flex-row p-4 rounded-md bg-gray-50 hover:outline-solid hover:outline-primary-600;
-}
-
-.page-content-boundaries {
-  @apply px-4 mt-8 md:mt-12 lg:mt-16 sm:mx-4 md:mx-8 lg:mx-16 xl:mx-24;
-}
-
+/* The EmailOctopus waitlist form is injected by a third-party script */
 #waitlist-container > div.inline-container {
-  @apply rounded-lg! outline-solid! outline-4! -outline-offset-4! outline-primary-500! shadow-md! transition-all! duration-300! ease-in-out! hover:-outline-offset-2! hover:shadow-lg! mb-0! pb-0!;
-}
-
-/**
- * The last element of the breadcrumb should not be clickable, nor should it have a hover effect
- */
-.p-breadcrumb-list > li:last-child {
-  @apply hover:text-white cursor-default;
+  @apply mb-0! rounded-xl! pb-0! shadow-md! outline-4! -outline-offset-4! outline-secondary! transition-all! duration-300! ease-in-out! outline-solid! hover:-outline-offset-2! hover:shadow-lg!;
 }

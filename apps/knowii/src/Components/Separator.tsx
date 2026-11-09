@@ -1,3 +1,5 @@
+import { Divider } from '@/Components/ui';
+
 export default function Separator() {
-  return <hr className="my-8 h-px shadow border-0 bg-gray-100 " />;
+  return <Divider className="my-10" />;
 }
