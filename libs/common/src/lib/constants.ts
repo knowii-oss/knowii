@@ -6,7 +6,6 @@ import type { ToastProps } from 'primereact/toast';
 export const BUILD_TIME = new Date().toISOString();
 export const BUILD_TIMESTAMP = Date.now();
 
-
 /**
  * UI/UX
  */
