@@ -1,7 +1,8 @@
 import { useAppData, USER_PROFILE_PASSWORD_UPDATE_URL } from '@knowii/common';
 import { useForm } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
-import { FormEventHandler, useRef } from 'react';
+import type { FormEventHandler} from 'react';
+import { useRef } from 'react';
 import { Button } from 'primereact/button';
 import FormSection from '@/Components/FormSection';
 import classNames from 'classnames';

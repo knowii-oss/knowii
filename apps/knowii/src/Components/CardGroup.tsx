@@ -1,7 +1,6 @@
-import { PropsWithChildren } from 'react';
+import type { PropsWithChildren } from 'react';
 import classNames from 'classnames';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface Props {
   className?: string;
 }

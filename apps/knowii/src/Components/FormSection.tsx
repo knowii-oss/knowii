@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import { FormEventHandler, PropsWithChildren, ReactNode } from 'react';
+import type { FormEventHandler, PropsWithChildren, ReactNode } from 'react';
 import SectionTitle from '@/Components/SectionTitle';
 
 interface Props {

@@ -59,7 +59,7 @@ const viteConfig = defineConfig({
     // WARNING: MUST be aligned with the config in app.blade.php
     // Reference: https://github.com/laravel/vite-plugin
     laravel({
-      input: [`${__dirname}/src/main.tsx`],
+      input: [`${import.meta.dirname}/src/main.tsx`],
       refresh: true,
       hotFile: '../../public/hot',
       buildDirectory: buildFolder,
@@ -73,7 +73,7 @@ const viteConfig = defineConfig({
   // Reference: Mention that mandatory to override the default alias defined by the Laravel plugin
   resolve: {
     alias: {
-      '@': `${__dirname}/src`,
+      '@': `${import.meta.dirname}/src`,
     },
   },
 

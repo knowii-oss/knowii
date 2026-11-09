@@ -1,8 +1,11 @@
 import { useRef, useState } from 'react';
-import {
-  ALLOWED_COMMUNITY_RESOURCE_NAME_CHARACTERS_REGEX,
+import type {
   CommunityResource,
   CommunityResourceCollection,
+  ResourceLevel,
+  ResourceType} from '@knowii/common';
+import {
+  ALLOWED_COMMUNITY_RESOURCE_NAME_CHARACTERS_REGEX,
   DEFAULT_TEXTAREA_ROWS,
   knowiiApiClient,
   MAX_LENGTH_COMMUNITY_RESOURCE_DESCRIPTION,
@@ -10,9 +13,7 @@ import {
   MIN_ACTION_TIME,
   MIN_LENGTH_COMMUNITY_RESOURCE_NAME,
   newResourceTextArticleSchema,
-  ResourceLevel,
   resourceLevelSchemaOptions,
-  ResourceType,
   resourceTypeSchemaOptions,
   sleep,
   urlSchema,
@@ -20,7 +21,8 @@ import {
 } from '@knowii/common';
 import ResourceIcon from '@/Components/Resources/ResourceIcon';
 import { Dialog } from 'primereact/dialog';
-import { Stepper, StepperRefAttributes } from 'primereact/stepper';
+import type { StepperRefAttributes } from 'primereact/stepper';
+import { Stepper } from 'primereact/stepper';
 import { Button } from 'primereact/button';
 import { StepperPanel } from 'primereact/stepperpanel';
 import { ProgressSpinner } from 'primereact/progressspinner';

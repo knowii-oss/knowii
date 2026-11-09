@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { IconType } from 'react-icons/lib/iconBase';
+import type { IconType } from 'react-icons';
 import { FaBluesky, FaHashnode, FaThreads, FaXTwitter } from 'react-icons/fa6';
 import {
   FaCoffee,

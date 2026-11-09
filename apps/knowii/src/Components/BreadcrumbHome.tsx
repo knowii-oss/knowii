@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { MenuItem } from 'primereact/menuitem';
+import type { MenuItem } from 'primereact/menuitem';
 import { DASHBOARD_URL } from '@knowii/common';
 import { FaHome } from 'react-icons/fa';
 

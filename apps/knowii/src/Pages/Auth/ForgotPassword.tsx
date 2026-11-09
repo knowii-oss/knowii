@@ -1,6 +1,6 @@
 import FooterGuest from '@/Components/FooterGuest';
 import { Head, useForm } from '@inertiajs/react';
-import { FormEventHandler } from 'react';
+import type { FormEventHandler } from 'react';
 import { useRoute } from 'ziggy-js';
 import { EMAIL_PASSWORD_URL } from '@knowii/common';
 import AuthenticationCard from '@/Components/AuthenticationCard';

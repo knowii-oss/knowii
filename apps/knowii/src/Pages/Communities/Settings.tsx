@@ -1,7 +1,8 @@
-import { MenuItem } from 'primereact/menuitem';
+import type { MenuItem } from 'primereact/menuitem';
 import AppLayout from '@/Layouts/AppLayout';
-import { Community, COMMUNITY_URL, CommunityPermissions, DASHBOARD_URL, useSocket } from '@knowii/common';
-import { breadcrumbHome } from '@/Components/BreadcrumbHome';
+import type { Community, CommunityPermissions} from '@knowii/common';
+import { COMMUNITY_URL, DASHBOARD_URL, useSocket } from '@knowii/common';
+import { breadcrumbHome } from '../../Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
 import { Link, router } from '@inertiajs/react';
 import { FaGear } from 'react-icons/fa6';

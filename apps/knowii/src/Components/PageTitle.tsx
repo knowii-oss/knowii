@@ -1,6 +1,6 @@
 import { BreadCrumb } from 'primereact/breadcrumb';
-import { MenuItem } from 'primereact/menuitem';
-import { ReactElement } from 'react';
+import type { MenuItem } from 'primereact/menuitem';
+import type { ReactElement } from 'react';
 
 interface Props {
   pageTitle?: string;

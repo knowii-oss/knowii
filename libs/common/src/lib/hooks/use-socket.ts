@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
-import { Community } from '../types/community.schema';
-import { CommunityResourceCollection } from '../types/community-resource-collection.schema';
-import { CommunityResource } from '../types/community-resource.schema';
-import { Identifiable } from '../types/identifiable.schema';
+import type { Community } from '../types/community.schema';
+import type { CommunityResourceCollection } from '../types/community-resource-collection.schema';
+import type { CommunityResource } from '../types/community-resource.schema';
+import type { Identifiable } from '../types/identifiable.schema';
 
 const COMMUNITIES_CHANNEL = 'communities';
 const COMMUNITY_CHANNEL_PARAM_COMMUNITY_CUID = '{communityCuid}';

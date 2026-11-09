@@ -1,5 +1,7 @@
-import {
+import type {
   CurrentUser,
+  UserProfile} from '@knowii/common';
+import {
   knowiiApiClient,
   MIN_ACTION_TIME,
   sleep,
@@ -15,13 +17,13 @@ import {
   MAX_LENGTH_USER_BIO,
   MAX_LENGTH_USER_PHONE,
   USER_PHONE_REGEX,
-  UserProfile,
   USER_PROFILE_BIO_TEXTAREA_ROWS,
   EMAIL_VERIFICATION_URL,
 } from '@knowii/common';
 import { Link, useForm } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
-import { FormEventHandler, useEffect, useRef, useState } from 'react';
+import type { FormEventHandler} from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from 'primereact/button';
 import FormSection from '@/Components/FormSection';
 import classNames from 'classnames';
@@ -65,7 +67,7 @@ export default function UpdateProfileInformationForm(props: Props) {
   const [checkingUsernameAvailability, setCheckingUsernameAvailability] = useState(false);
   const usernameToCheck = useDebounce(form.data.username, 200);
 
-  const lastAbortController = useRef<AbortController | null>();
+  const lastAbortController = useRef<AbortController | null>(null);
 
   const verifyUsernameAvailability = async (abortController: AbortController) => {
     if (props.user && form.data.username === props.user.username) {

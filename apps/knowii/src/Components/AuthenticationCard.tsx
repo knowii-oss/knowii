@@ -1,4 +1,4 @@
-import { PropsWithChildren } from 'react';
+import type { PropsWithChildren } from 'react';
 import AuthenticationCardLogo from '@/Components/AuthenticationCardLogo';
 
 export default function AuthenticationCard({ children }: PropsWithChildren<Record<string, unknown>>) {

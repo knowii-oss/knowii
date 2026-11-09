@@ -1,4 +1,5 @@
-import { ReactElement, ReactNode, useEffect, useRef, useState } from 'react';
+import type { ReactElement, ReactNode} from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { DASHBOARD_URL, DEFAULT_TOAST_POSITION, LOGOUT_URL, useAppData, USER_PROFILE_URL, useTypedPage } from '@knowii/common';
 import { useRoute } from 'ziggy-js';
@@ -15,7 +16,7 @@ import PageContentWrapper from '@/Components/PageContentWrapper';
 import PageWrapper from '@/Components/PageWrapper';
 import { Toast } from 'primereact/toast';
 import PageTitle from '@/Components/PageTitle';
-import { MenuItem } from 'primereact/menuitem';
+import type { MenuItem } from 'primereact/menuitem';
 
 interface Props {
   browserPageTitle: string;

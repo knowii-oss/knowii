@@ -1,5 +1,6 @@
 import { useRoute } from 'ziggy-js';
-import { FormEventHandler, useRef, useState } from 'react';
+import type { FormEventHandler} from 'react';
+import { useRef, useState } from 'react';
 import { useForm } from '@inertiajs/react';
 import { DELETE_USER_URL } from '@knowii/common';
 import { Button } from 'primereact/button';

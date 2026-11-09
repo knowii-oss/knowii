@@ -1,12 +1,13 @@
 import AppLayout from '@/Layouts/AppLayout';
-import { Session, useTypedPage } from '@knowii/common';
+import type { Session} from '@knowii/common';
+import { useTypedPage } from '@knowii/common';
 import UpdateProfileInformationForm from '@/Pages/Profile/Partials/UpdateProfileInformationForm';
 import Separator from '@/Components/Separator';
 import UpdatePasswordForm from '@/Pages/Profile/Partials/UpdatePasswordForm';
 import LogoutOtherBrowserSessionsForm from '@/Pages/Profile/Partials/LogoutOtherBrowserSessionsForm';
 import DeleteUserForm from '@/Pages/Profile/Partials/DeleteUserForm';
-import { MenuItem } from 'primereact/menuitem';
-import { breadcrumbHome } from '@/Components/BreadcrumbHome';
+import type { MenuItem } from 'primereact/menuitem';
+import { breadcrumbHome } from '../../Components/BreadcrumbHome';
 import { FaUser } from 'react-icons/fa';
 
 interface Props {
