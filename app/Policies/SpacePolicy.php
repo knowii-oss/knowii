@@ -3,10 +3,12 @@
 namespace App\Policies;
 
 use App\Enums\KnowiiCommunityMemberRole;
+use App\Enums\KnowiiModeratorPermission;
 use App\Enums\KnowiiSpacePostingPolicy;
 use App\Enums\KnowiiSpaceVisibility;
 use App\Models\Space;
 use App\Models\User;
+use App\Support\CommunityRoles;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 /**
@@ -48,11 +50,12 @@ class SpacePolicy
     }
 
     /**
-     * Whether the user moderates the space: community owner, admins and moderators.
+     * Whether the user moderates the content of the space (deletes the posts and comments of others): owner, admins,
+     * and moderators when the community gives them the "delete content" right (#1240, ADR 0017).
      */
     final public function moderate(User $user, Space $space): bool
     {
-        return self::isModerator($user, $space);
+        return CommunityRoles::allows($user, $space->community, KnowiiModeratorPermission::DeleteContent);
     }
 
     private static function isModerator(User $user, Space $space): bool

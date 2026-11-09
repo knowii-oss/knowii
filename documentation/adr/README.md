@@ -41,3 +41,4 @@ Do not write an ADR for a bug fix, a refactor that keeps the structure, or a fea
 | [0014](0014-explicit-foreign-keys-instead-of-polymorphic-relations.md) | Explicit foreign keys instead of polymorphic relations                  | Accepted |
 | [0015](0015-resources-space-type.md)                                   | Resource collections become a `resources` space type                    | Accepted |
 | [0016](0016-resource-images-stored-by-knowii.md)                       | Resource images are stored by Knowii, never hotlinked                   | Accepted |
+| [0017](0017-roles-with-configurable-moderator-rights.md)               | Four fixed roles, with moderator rights configured per community        | Accepted |

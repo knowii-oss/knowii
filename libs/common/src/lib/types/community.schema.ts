@@ -38,7 +38,32 @@ export const newCommunitySchema = z.object({
 
 export type NewCommunity = z.infer<typeof newCommunitySchema>;
 
-export const communitySchema = baseEntitySchema.extend(newCommunitySchema.shape).extend(slugSchema.shape);
+/**
+ * The rights that the owner and the admins switch for the moderators of a community (#1240, ADR 0017).
+ * WARNING: aligned with KnowiiModeratorPermission (back-end)
+ */
+export const MODERATOR_PERMISSIONS = ['manage_spaces', 'manage_members', 'pin_posts', 'delete_content'] as const;
+export type ModeratorPermission = (typeof MODERATOR_PERMISSIONS)[number];
+
+export const MODERATOR_PERMISSION_LABELS: Record<ModeratorPermission, { name: string; description: string }> = {
+  manage_spaces: { name: 'Manage spaces', description: 'Create, edit, move and delete space groups and spaces' },
+  manage_members: { name: 'Manage members', description: 'Invite members, change roles below their own, remove members' },
+  pin_posts: { name: 'Pin posts', description: 'Pin and unpin posts at the top of a space' },
+  delete_content: { name: 'Delete content', description: 'Delete the posts and comments of other members' },
+};
+
+export const moderatorPermissionsSchema = z.object({
+  manage_spaces: z.boolean(),
+  manage_members: z.boolean(),
+  pin_posts: z.boolean(),
+  delete_content: z.boolean(),
+});
+export type ModeratorPermissions = z.infer<typeof moderatorPermissionsSchema>;
+
+export const communitySchema = baseEntitySchema
+  .extend(newCommunitySchema.shape)
+  .extend(slugSchema.shape)
+  .extend({ moderator_permissions: moderatorPermissionsSchema });
 
 export type Community = z.infer<typeof communitySchema>;
 
@@ -46,6 +71,7 @@ export interface CommunityPermissions {
   // WARNING: The props defined here must remain aligned with the props defined in CommunityController.php
   canManageCommunity: boolean;
   canManageSpaces: boolean;
+  canManageModeratorPermissions: boolean;
   canUpdateCommunity: boolean;
   canDeleteCommunity: boolean;
 

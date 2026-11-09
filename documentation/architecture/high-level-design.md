@@ -51,7 +51,7 @@ Other browsers ◀──WebSocket── Reverb ◀── queue worker ◀── 
 ## Authorization
 
 1. Policies (`app/Policies`) hold the rules. The actions call `Gate::forUser($user)->authorize(...)`. Controllers never decide permissions themselves.
-2. Community roles: owner (implicit), admin, moderator, member. Access groups (M2) add finer access to spaces.
+2. Community roles: owner (implicit), admin, moderator, member, with moderator rights that the owner and the admins switch per community ([ADR 0017](../adr/0017-roles-with-configurable-moderator-rights.md), [roles and permissions](roles-and-permissions.md)). Access groups (M2, #1241) add finer access to spaces.
 3. The Inertia controllers pass a `permissions` object to the pages. The UI uses it only to show or hide controls. The server checks every action again.
 4. WebSocket channels authorize in `routes/channels.php` with the same rules as the data they carry.
 

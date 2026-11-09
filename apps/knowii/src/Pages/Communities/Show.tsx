@@ -47,7 +47,8 @@ export default function CommunityPage(props: Props) {
       breadcrumbItems={breadcrumbItems}
       breadcrumbHome={breadcrumbHome()}
       pageActions={
-        props.permissions.canManageCommunity ? (
+        // Moderators with the "manage spaces" right reach the space editor (#1240)
+        props.permissions.canManageCommunity || props.permissions.canManageSpaces ? (
           <Link
             href={route(COMMUNITY_SETTINGS_URL, { communitySlug: props.community.slug })}
             preserveState={true}
