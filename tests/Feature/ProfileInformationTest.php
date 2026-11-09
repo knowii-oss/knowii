@@ -1,7 +1,6 @@
 <?php
 
 use App\Constants;
-use App\Http\Resources\UserProfileResource;
 use App\Models\User;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
@@ -67,7 +66,7 @@ test('the new social link types can be updated via profile information', functio
 
 test('every social link property exists on the user profile and in its API resource', function () {
     $user = User::factory()->withUserProfile()->create();
-    $serialized = (new UserProfileResource($user->profile))->toArray(request());
+    $serialized = $user->profile->toResource()->toArray(request());
 
     foreach (Constants::SOCIAL_MEDIA_LINK_PROPERTIES as $property) {
         expect(Schema::hasColumn('user_profiles', $property))->toBeTrue("Missing column {$property}")

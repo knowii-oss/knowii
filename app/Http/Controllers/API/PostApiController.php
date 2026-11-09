@@ -7,7 +7,6 @@ use App\Contracts\Posts\DeletesPosts;
 use App\Contracts\Posts\PinsPosts;
 use App\Contracts\Posts\UpdatesPosts;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\PostResource;
 use App\Models\Community;
 use App\Models\Post;
 use App\Models\Space;
@@ -39,7 +38,7 @@ class PostApiController extends Controller
 
         $page = Pagination::fromRequest($request)->apply($space->posts()->with(['author', 'space', 'reactions'])->withCount('comments')->forSpacePage());
 
-        return self::success('Posts', $page['metadata'], PostResource::collection($page['items']));
+        return self::success('Posts', $page['metadata'], $page['items']->toResourceCollection());
     }
 
     /**
@@ -53,7 +52,7 @@ class PostApiController extends Controller
     {
         $post = app(CreatesPosts::class)->create($request->user() ?? throw new AuthenticationException, $space, $request->only(['title', 'body']));
 
-        return self::created(new PostResource($post->load(['author', 'space', 'reactions']), true), 'Post created successfully');
+        return self::created($post->load(['author', 'space', 'reactions'])->toResource()->withLargeFields(), 'Post created successfully');
     }
 
     /**
@@ -63,7 +62,7 @@ class PostApiController extends Controller
     {
         Gate::authorize('view', $post);
 
-        return self::success('Post', null, new PostResource($post->load(['author', 'space', 'reactions']), true));
+        return self::success('Post', null, $post->load(['author', 'space', 'reactions'])->toResource()->withLargeFields());
     }
 
     /**
@@ -77,7 +76,7 @@ class PostApiController extends Controller
     {
         $post = app(UpdatesPosts::class)->update($request->user() ?? throw new AuthenticationException, $post, $request->only(['title', 'body']));
 
-        return self::success('Post updated successfully', null, new PostResource($post->load(['author', 'space', 'reactions']), true));
+        return self::success('Post updated successfully', null, $post->load(['author', 'space', 'reactions'])->toResource()->withLargeFields());
     }
 
     /**
@@ -102,6 +101,6 @@ class PostApiController extends Controller
     {
         $post = app(PinsPosts::class)->pin($request->user() ?? throw new AuthenticationException, $post, $request->only(['pinned']));
 
-        return self::success($post->is_pinned ? 'Post pinned' : 'Post unpinned', null, new PostResource($post->load(['author', 'space', 'reactions'])));
+        return self::success($post->is_pinned ? 'Post pinned' : 'Post unpinned', null, $post->load(['author', 'space', 'reactions'])->toResource());
     }
 }

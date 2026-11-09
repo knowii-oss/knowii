@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Resource;
 use App\Models\ResourceTextArticle;
 use Illuminate\Http\Request;
 
@@ -25,7 +26,7 @@ class ResourceTextArticleResource extends AbstractKnowiiJsonResource
             'word_count' => $this->word_count,
             'reading_time' => $this->reading_time,
 
-            'resource' => $this->whenLoaded('resource') ? new ResourceResource($this->whenLoaded('resource'), $this->serializeLargeFields) : null,
+            'resource' => $this->whenLoaded('resource', fn (Resource $resource) => $resource->toResource()->withLargeFields($this->serializeLargeFields)),
 
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

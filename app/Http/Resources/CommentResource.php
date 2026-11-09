@@ -22,7 +22,7 @@ class CommentResource extends AbstractKnowiiJsonResource
             'body' => $this->body,
             'body_html' => $this->body_html,
             'edited_at' => $this->edited_at,
-            'author' => $this->author ? new AuthorResource($this->author) : null,
+            'author' => $this->author?->toResource(AuthorResource::class),
             'parent_cuid' => $this->parent_id === null ? null : ($this->relationLoaded('parent') ? $this->parent?->cuid : $this->parent()->value('cuid')),
             'replies' => self::collection($this->whenLoaded('replies')),
             // Count per kind and whether the current member reacted (when the reactions are loaded)

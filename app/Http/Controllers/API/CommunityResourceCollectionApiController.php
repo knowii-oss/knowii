@@ -5,7 +5,6 @@ namespace App\Http\Controllers\API;
 use App\Contracts\CommunityResourceCollections\CreatesCommunityResourceCollections;
 use App\Contracts\CommunityResourceCollections\DeletesCommunityResourceCollections;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\CommunityResourceCollectionResource;
 use App\Models\Community;
 use App\Models\CommunityResourceCollection;
 use App\Traits\ApiResponses;
@@ -35,7 +34,7 @@ class CommunityResourceCollectionApiController extends Controller
         $createdItem = $creator->create($request->user() ?? throw new AuthenticationException('User must be authenticated'), $community, $input);
 
         return self::created(
-            new CommunityResourceCollectionResource($createdItem, true),
+            $createdItem->toResource()->withLargeFields(),
             'Resource collection created successfully'
         );
     }

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\API;
 
 use App\Contracts\Resources\CreatesTextResources;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\CommunityResourceResource;
 use App\Models\Community;
 use App\Models\CommunityResourceCollection;
 use App\Traits\ApiResponses;
@@ -49,7 +48,7 @@ class ResourceTextArticleApiController extends Controller
         ]);
 
         return self::created(
-            new CommunityResourceResource($createdResource, true),
+            $createdResource->toResource()->withLargeFields(),
             'Resource created successfully'
         );
     }

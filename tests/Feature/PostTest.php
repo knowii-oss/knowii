@@ -131,7 +131,9 @@ test('the API lists posts pinned first, then newest, with the pagination of the 
         ->assertOk()
         ->assertJsonPath('data.0.title', 'Old')
         ->assertJsonPath('data.1.title', 'Newest')
+        // Lists never carry the Markdown source (a collection passes the index of each item to the resource constructor: #936)
         ->assertJsonMissingPath('data.0.body')
+        ->assertJsonMissingPath('data.1.body')
         ->assertJsonPath('metadata.pagination.totalCount', 3)
         ->assertJsonPath('metadata.pagination.nextOffset', 2)
         ->assertJsonPath('metadata.pagination.pageCount', 2);
@@ -157,7 +159,7 @@ test('the API creates, reads, edits, pins and deletes a post', function () {
         ->json('data.cuid');
     $post = Post::where('cuid', $cuid)->firstOrFail();
 
-    $this->getJson(postsPath($this->space, $post, ApiRoutes::COMMUNITY_SPACE_POST))->assertOk()->assertJsonPath('data.body_html', '<p>Hello</p>');
+    $this->getJson(postsPath($this->space, $post, ApiRoutes::COMMUNITY_SPACE_POST))->assertOk()->assertJsonPath('data.body_html', '<p>Hello</p>')->assertJsonPath('data.body', 'Hello');
     $this->patchJson(postsPath($this->space, $post, ApiRoutes::COMMUNITY_SPACE_POST), ['body' => 'Edited'])->assertOk()->assertJsonPath('data.body', 'Edited');
     $this->postJson(postsPath($this->space, $post, ApiRoutes::COMMUNITY_SPACE_POST_PIN), ['pinned' => true])->assertForbidden();
 

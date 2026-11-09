@@ -28,7 +28,7 @@ class PostResource extends AbstractKnowiiJsonResource
             'pinned_at' => $this->pinned_at,
             'edited_at' => $this->edited_at,
             // null when the author deleted their account
-            'author' => $this->author ? new AuthorResource($this->author) : null,
+            'author' => $this->author?->toResource(AuthorResource::class),
             // Comments and replies, when the query counted them
             'comments_count' => $this->whenCounted('comments'),
             'space_cuid' => $this->relationLoaded('space') ? $this->space->cuid : $this->space()->value('cuid'),

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\API;
 use App\Contracts\Communities\CreatesCommunities;
 use App\Contracts\Communities\DeletesCommunities;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\CommunityResource;
 use App\Models\Community;
 use App\Traits\ApiResponses;
 use Illuminate\Auth\AuthenticationException;
@@ -33,7 +32,7 @@ class CommunityApiController extends Controller
         $creator = app(CreatesCommunities::class);
         $createdItem = $creator->create($request->user() ?? throw new AuthenticationException('User must be authenticated'), $input);
 
-        return self::created(new CommunityResource($createdItem, true), 'Community created successfully');
+        return self::created($createdItem->toResource()->withLargeFields(), 'Community created successfully');
     }
 
     /**

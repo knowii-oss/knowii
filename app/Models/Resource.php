@@ -7,10 +7,12 @@ use App\Enums\KnowiiResourceType;
 use App\Events\Resources\ResourceCreated;
 use App\Events\Resources\ResourceDeleted;
 use App\Events\Resources\ResourceUpdated;
+use App\Http\Resources\ResourceResource;
 use App\Traits\GeneratesCuid;
 use Carbon\Carbon;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Database\Factories\ResourceFactory;
+use Illuminate\Database\Eloquent\Attributes\UseResource;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -80,9 +82,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereUrl($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereViewCount($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array<mixed> $config, string $slug)
+ * @method TResource toResource<TResource of \Illuminate\Http\Resources\Json\JsonResource = \App\Http\Resources\ResourceResource>(class-string<TResource>|null $resourceClass = null)
  *
  * @mixin \Eloquent
  */
+#[UseResource(ResourceResource::class)]
 class Resource extends Model
 {
     // Automatically generate cuid2 for the model

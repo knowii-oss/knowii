@@ -3,10 +3,6 @@
 namespace App\Http\Controllers\Inertia;
 
 use App\Enums\KnowiiSpaceType;
-use App\Http\Resources\CommunityResource;
-use App\Http\Resources\PostResource;
-use App\Http\Resources\SpaceGroupResource;
-use App\Http\Resources\SpaceResource;
 use App\Models\Community;
 use App\Support\Pagination;
 use App\Support\SpaceTree;
@@ -39,7 +35,7 @@ class SpaceController extends Controller
         if ($space->type === KnowiiSpaceType::Discussion) {
             $page = (new Pagination(self::POSTS_PER_PAGE, 0))->apply($space->posts()->with(['author', 'space', 'reactions'])->withCount('comments')->forSpacePage());
             $posts = [
-                'items' => PostResource::collection($page['items']),
+                'items' => $page['items']->toResourceCollection(),
                 'pagination' => $page['metadata']['pagination'],
             ];
         }
@@ -47,9 +43,9 @@ class SpaceController extends Controller
         // WARNING: The props passed here must remain aligned with the props expected by the page (Pages/Spaces/Show.tsx)
         return Jetstream::inertia()->render($request, 'Spaces/Show', [
             'posts' => $posts,
-            'community' => new CommunityResource($community, true),
-            'space' => new SpaceResource($space, true),
-            'spaceGroups' => SpaceGroupResource::collection(SpaceTree::for($community, $request->user())),
+            'community' => $community->toResource()->withLargeFields(),
+            'space' => $space->toResource()->withLargeFields(),
+            'spaceGroups' => SpaceTree::for($community, $request->user())->toResourceCollection(),
             'permissions' => [
                 'canManageSpaces' => Gate::check('manageSpaces', $community),
                 'canContribute' => Gate::check('contribute', $space),

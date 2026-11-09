@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers\Inertia;
 
-use App\Http\Resources\CommunityResource;
 use App\Http\Resources\MemberProfileResource;
-use App\Http\Resources\SpaceGroupResource;
 use App\Models\Community;
 use App\Models\User;
 use App\Support\SpaceTree;
@@ -32,9 +30,9 @@ class MemberController extends Controller
 
         // WARNING: aligned with the props of Pages/Members/Show.tsx
         return Jetstream::inertia()->render($request, 'Members/Show', [
-            'community' => new CommunityResource($community, true),
-            'spaceGroups' => SpaceGroupResource::collection(SpaceTree::for($community, $request->user())),
-            'member' => new MemberProfileResource($member),
+            'community' => $community->toResource()->withLargeFields(),
+            'spaceGroups' => SpaceTree::for($community, $request->user())->toResourceCollection(),
+            'member' => $member->toResource(MemberProfileResource::class),
         ]);
     }
 }

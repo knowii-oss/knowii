@@ -7,7 +7,6 @@ use App\Contracts\Spaces\DeletesSpaces;
 use App\Contracts\Spaces\ReordersSpaces;
 use App\Contracts\Spaces\UpdatesSpaces;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\SpaceResource;
 use App\Models\Community;
 use App\Models\Space;
 use App\Models\SpaceGroup;
@@ -35,7 +34,7 @@ class SpaceApiController extends Controller
     {
         Gate::authorize('view', $space);
 
-        return self::success('Space', null, new SpaceResource($space));
+        return self::success('Space', null, $space->toResource());
     }
 
     /**
@@ -56,7 +55,7 @@ class SpaceApiController extends Controller
 
         $space = app(CreatesSpaces::class)->create($request->user() ?? throw new AuthenticationException, $community, $input);
 
-        return self::created(new SpaceResource($space), 'Space created successfully');
+        return self::created($space->toResource(), 'Space created successfully');
     }
 
     /**
@@ -76,7 +75,7 @@ class SpaceApiController extends Controller
 
         $space = app(UpdatesSpaces::class)->update($request->user() ?? throw new AuthenticationException, $space, $input);
 
-        return self::success('Space updated successfully', null, new SpaceResource($space));
+        return self::success('Space updated successfully', null, $space->toResource());
     }
 
     /**
@@ -103,6 +102,6 @@ class SpaceApiController extends Controller
 
         $spaces = app(ReordersSpaces::class)->reorder($request->user() ?? throw new AuthenticationException, $spaceGroup, $input);
 
-        return self::success('Spaces reordered successfully', null, SpaceResource::collection($spaces));
+        return self::success('Spaces reordered successfully', null, $spaces->toResourceCollection());
     }
 }

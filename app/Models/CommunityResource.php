@@ -5,9 +5,11 @@ namespace App\Models;
 use App\Events\CommunityResources\CommunityResourceCreated;
 use App\Events\CommunityResources\CommunityResourceDeleted;
 use App\Events\CommunityResources\CommunityResourceUpdated;
+use App\Http\Resources\CommunityResourceResource;
 use App\Traits\GeneratesCuid;
 use Carbon\Carbon;
 use Database\Factories\CommunityResourceFactory;
+use Illuminate\Database\Eloquent\Attributes\UseResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -51,9 +53,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereResourceTextArticleId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereSlug($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereUpdatedAt($value)
+ * @method TResource toResource<TResource of \Illuminate\Http\Resources\Json\JsonResource = \App\Http\Resources\CommunityResourceResource>(class-string<TResource>|null $resourceClass = null)
  *
  * @mixin \Eloquent
  */
+#[UseResource(CommunityResourceResource::class)]
 class CommunityResource extends Model
 {
     // Automatically generate cuid2 for the model

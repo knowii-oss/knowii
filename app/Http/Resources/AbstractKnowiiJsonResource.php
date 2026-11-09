@@ -5,15 +5,24 @@ namespace App\Http\Resources;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @property bool $serializeLargeFields
+ * Base class of the Knowii API resources. Models declare their resource with
+ * #[UseResource], so code writes $model->toResource() and
+ * $collection->toResourceCollection() (see documentation/architecture/backend.md).
  */
 class AbstractKnowiiJsonResource extends JsonResource
 {
-    protected bool $serializeLargeFields;
+    /**
+     * Whether the large fields (Markdown sources, article bodies, base64 images) are serialized.
+     */
+    protected bool $serializeLargeFields = false;
 
-    public function __construct($resource, bool $serializeLargeFields = false)
+    /**
+     * Serialize the large fields too (for single-item responses and edit forms, not for lists).
+     */
+    final public function withLargeFields(bool $serializeLargeFields = true): static
     {
-        parent::__construct($resource);
         $this->serializeLargeFields = $serializeLargeFields;
+
+        return $this;
     }
 }

@@ -2,11 +2,6 @@
 
 namespace App\Http\Controllers\Inertia;
 
-use App\Http\Resources\CommentResource;
-use App\Http\Resources\CommunityResource;
-use App\Http\Resources\PostResource;
-use App\Http\Resources\SpaceGroupResource;
-use App\Http\Resources\SpaceResource;
 use App\Models\Community;
 use App\Support\CommentThread;
 use App\Support\SpaceTree;
@@ -34,11 +29,11 @@ class PostController extends Controller
 
         // WARNING: The props passed here must remain aligned with the props expected by the page (Pages/Posts/Show.tsx)
         return Jetstream::inertia()->render($request, 'Posts/Show', [
-            'community' => new CommunityResource($community, true),
-            'space' => new SpaceResource($space, true),
-            'spaceGroups' => SpaceGroupResource::collection(SpaceTree::for($community, $request->user())),
-            'post' => new PostResource($post, true),
-            'comments' => CommentResource::collection(CommentThread::for($post)),
+            'community' => $community->toResource()->withLargeFields(),
+            'space' => $space->toResource()->withLargeFields(),
+            'spaceGroups' => SpaceTree::for($community, $request->user())->toResourceCollection(),
+            'post' => $post->toResource()->withLargeFields(),
+            'comments' => CommentThread::for($post)->toResourceCollection(),
             'permissions' => [
                 'canManageSpaces' => Gate::check('manageSpaces', $community),
                 'canContribute' => Gate::check('contribute', $space),
