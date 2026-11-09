@@ -7,11 +7,20 @@ import type { UserConfig } from 'vite';
 
 //console.log("Launching Vite build. Current directory: ", __dirname);
 
-const buildFolder = '../../public/build';
+const workspaceRoot = `${import.meta.dirname}/../..`;
+const buildFolder = `${workspaceRoot}/public/build`;
 
 const viteConfig = defineConfig({
+  // The monorepo root is the Vite root, so the module paths are the ones Laravel uses (apps/knowii/src/...):
+  // in the manifest (production) and in the dev server URLs (hot mode)
+  root: workspaceRoot,
   base: '',
-  cacheDir: '../../dist/.vite/apps/knowii',
+  cacheDir: `${workspaceRoot}/dist/.vite/apps/knowii`,
+
+  css: {
+    // Load apps/knowii/postcss.config.js (Vite looks for it from the root otherwise)
+    postcss: import.meta.dirname,
+  },
 
   // Public assets are served by Laravel and managed separately
   publicDir: false,
@@ -62,8 +71,8 @@ const viteConfig = defineConfig({
     laravel({
       input: [`${import.meta.dirname}/src/main.tsx`],
       refresh: true,
-      hotFile: '../../public/hot',
-      buildDirectory: buildFolder,
+      hotFile: `${workspaceRoot}/public/hot`,
+      buildDirectory: 'build',
     }),
     react(),
   ],
