@@ -12,4 +12,7 @@ enum KnowiiApiResponseType: string
     case InternalError = 'internalError';
     case Success = 'success';
     case NotFound = 'notFound';
+    case MethodNotAllowed = 'methodNotAllowed';
+    case TooManyRequests = 'tooManyRequests';
+    case HttpIssue = 'httpIssue';
 }

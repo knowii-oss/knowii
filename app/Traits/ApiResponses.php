@@ -122,6 +122,28 @@ trait ApiResponses
     }
 
     /**
+     * Return a response for an HTTP error that has no dedicated helper (e.g., 405, 429).
+     * Keeps the status code and the headers of the HTTP exception (e.g., Allow, Retry-After).
+     *
+     * @param  array<string, string>  $headers
+     */
+    final public static function httpIssue(int $statusCode, array $headers = []): JsonResponse
+    {
+        [$category, $type] = match ($statusCode) {
+            Response::HTTP_METHOD_NOT_ALLOWED => [KnowiiApiResponseCategory::Technical, KnowiiApiResponseType::MethodNotAllowed],
+            Response::HTTP_TOO_MANY_REQUESTS => [KnowiiApiResponseCategory::Security, KnowiiApiResponseType::TooManyRequests],
+            default => [KnowiiApiResponseCategory::Technical, KnowiiApiResponseType::HttpIssue],
+        };
+
+        // WARNING: never use the exception message: it can expose internal details
+        $message = Response::$statusTexts[$statusCode] ?? 'HTTP error';
+
+        $knowiiResponse = new KnowiiApiResponse($category, $type, $message, null, null, null);
+
+        return response()->json($knowiiResponse->jsonSerialize(), $statusCode, $headers);
+    }
+
+    /**
      * Return a technical issue response.
      * Reference: https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/HTTP-Status-Codes-Server-Error-%285xx%29
      *

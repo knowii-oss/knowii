@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -210,6 +211,33 @@ return Application::configure(basePath: dirname(__DIR__))
             {
                 use ApiResponses;
             })::technicalIssue($e->getMessage(), $e->getErrors(), $e->getMetadata());
+        });
+
+        // Keep the status code and headers of the other HTTP exceptions (e.g., 405 Method Not Allowed, 429 Too Many Requests)
+        // instead of turning them into a 500 below
+        $exceptions->render(function (HttpExceptionInterface $e, Request $request) {
+            if (! $request->expectsJson()) {
+                // Default Laravel processing if not expecting a JSON response
+                return null;
+            }
+
+            // Symfony types the headers as a plain array: keep the string names with string (or string list) values
+            $headers = [];
+            foreach ($e->getHeaders() as $name => $value) {
+                if (! is_string($name)) {
+                    continue;
+                }
+                if (is_string($value)) {
+                    $headers[$name] = $value;
+                } elseif (is_array($value)) {
+                    $headers[$name] = implode(', ', array_filter($value, 'is_string'));
+                }
+            }
+
+            return (new class
+            {
+                use ApiResponses;
+            })::httpIssue($e->getStatusCode(), $headers);
         });
 
         // Convert Exception instances to Internal Server Exception
