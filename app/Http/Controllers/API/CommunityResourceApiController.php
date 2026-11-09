@@ -45,11 +45,14 @@ class CommunityResourceApiController extends Controller
     /**
      * Get a resource of a resources space, with its large field: the captured Markdown (ADR 0018).
      */
-    final public function show(Community $community, Space $space, CommunityResource $resource): JsonResponse
+    final public function show(Request $request, Community $community, Space $space, CommunityResource $resource): JsonResponse
     {
         Gate::authorize('view', $space);
 
-        return self::success('Resource', null, $resource->load(['resource', 'curator', 'capture', 'space'])->toResource()->withLargeFields());
+        // The captured content is for the members of the community only (ADR 0018), also in a public space
+        $relations = $request->user()?->belongsToCommunity($community) ? ['resource', 'curator', 'capture', 'space'] : ['resource', 'curator', 'space'];
+
+        return self::success('Resource', null, $resource->load($relations)->toResource()->withLargeFields());
     }
 
     /**

@@ -48,7 +48,8 @@ class UpdateCommunityResource implements UpdatesCommunityResources
 
         // A server capture of a page that is not an article any more goes; "Capture again" brings it back
         if ($resource->type !== KnowiiResourceType::Article && $resource->capture_status === KnowiiCaptureStatus::Captured) {
-            $resource->capture()->where('source', 'server')->delete();
+            // One by one: the model event deletes the stored images of the article
+            $resource->capture()->where('source', 'server')->first()?->delete();
         }
 
         Log::info('Resource updated', ['resource' => $resource->cuid, 'fields' => array_keys($changes)]);

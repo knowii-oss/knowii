@@ -4,12 +4,15 @@ namespace App\Models;
 
 use App\Enums\KnowiiCaptureSource;
 use App\Http\Resources\ResourceCaptureResource;
+use App\Support\CommunityResourceFiles;
 use Carbon\Carbon;
 use Database\Factories\ResourceCaptureFactory;
 use Illuminate\Database\Eloquent\Attributes\UseResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * The captured content of one community resource (ADR 0018): Markdown only, for the members of its community.
@@ -73,6 +76,19 @@ class ResourceCapture extends Model
     final public function communityResource(): BelongsTo
     {
         return $this->belongsTo(CommunityResource::class);
+    }
+
+    /**
+     * A deleted capture takes the stored images of its article with it (#1247), once the transaction commits
+     */
+    protected static function booted(): void
+    {
+        static::deleted(static function (ResourceCapture $capture) {
+            $cuid = CommunityResource::query()->whereKey($capture->community_resource_id)->value('cuid');
+            if (is_string($cuid)) {
+                DB::afterCommit(static fn () => Storage::disk(CommunityResourceFiles::disk())->deleteDirectory(CommunityResourceFiles::folder($cuid).'/images'));
+            }
+        });
     }
 
     /**
