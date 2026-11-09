@@ -2,31 +2,30 @@
   "folders": [
     {
       "name": "Root",
-      "path": "./"
+      "path": "./",
     },
     {
       "name": "Backend",
-      "path": "./app"
+      "path": "./app",
     },
     {
       "name": "Config",
-      "path": "./config"
+      "path": "./config",
     },
     {
       "name": "Database",
-      "path": "./database"
+      "path": "./database",
     },
     {
       "name": "Frontend",
-      "path": "./apps/knowii"
+      "path": "./apps/knowii",
     },
     {
       "name": "Frontend - Common",
-      "path": "./libs/common"
-    }
+      "path": "./libs/common",
+    },
   ],
   "settings": {
-    "files.exclude": {
-    }
-  }
+    "files.exclude": {},
+  },
 }
