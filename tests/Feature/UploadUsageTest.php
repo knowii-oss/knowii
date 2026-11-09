@@ -72,7 +72,7 @@ test('the prune deletes the old uploads that nothing uses, file and row, and kee
     $unused = uploadAnImage();
     $recent = uploadAnImage();
     app(CreatesPosts::class)->create($this->c['member'], $this->space, ['title' => 'A photo', 'body' => imageMarkdown($used)]);
-    Upload::query()->whereKey([$used->id, $unused->id])->update(['created_at' => now()->subHours(25)]);
+    Upload::query()->whereKey([$used->id, $unused->id])->update(['created_at' => now()->subDays(8)]);
 
     $this->artisan('uploads:prune')->expectsOutputToContain('Unused uploads deleted: 1')->assertSuccessful();
 
@@ -86,7 +86,7 @@ test('the prune deletes the old uploads that nothing uses, file and row, and kee
 
 test('the dry run of the prune deletes nothing (#1201)', function () {
     $unused = uploadAnImage();
-    Upload::query()->whereKey($unused->id)->update(['created_at' => now()->subDays(2)]);
+    Upload::query()->whereKey($unused->id)->update(['created_at' => now()->subDays(8)]);
 
     $this->artisan('uploads:prune', ['--dry-run' => true])
         ->expectsOutputToContain('Would delete '.$unused->path)
@@ -97,12 +97,22 @@ test('the dry run of the prune deletes nothing (#1201)', function () {
     Storage::disk('public')->assertExists($unused->path);
 });
 
-test('the images of a deleted post are pruned the next day (#1201)', function () {
+test('an image of a draft kept open for days stays: unused uploads are kept 7 days (#1273)', function () {
+    $draftImage = uploadAnImage();
+    Upload::query()->whereKey($draftImage->id)->update(['created_at' => now()->subDays(6)]);
+
+    $this->artisan('uploads:prune')->expectsOutputToContain('Unused uploads deleted: 0')->assertSuccessful();
+
+    expect(Upload::query()->whereKey($draftImage->id)->exists())->toBeTrue();
+    Storage::disk('public')->assertExists($draftImage->path);
+});
+
+test('the images of a deleted post are pruned after 7 days (#1201, #1273)', function () {
     $upload = uploadAnImage();
     $post = app(CreatesPosts::class)->create($this->c['member'], $this->space, ['title' => 'A photo', 'body' => imageMarkdown($upload)]);
 
     app(DeletesPosts::class)->delete($this->c['member'], $post);
-    $this->travel(25)->hours();
+    $this->travel(8)->days();
     $this->artisan('uploads:prune')->assertSuccessful();
 
     expect(Upload::query()->whereKey($upload->id)->exists())->toBeFalse();
