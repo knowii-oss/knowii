@@ -18,6 +18,9 @@ class SpaceController extends Controller
     // WARNING: aligned with POSTS_PER_PAGE (constants.ts)
     public const int POSTS_PER_PAGE = 20;
 
+    // WARNING: aligned with RESOURCES_PER_PAGE (constants.ts)
+    public const int RESOURCES_PER_PAGE = 24;
+
     /**
      * Show a space of a community.
      */
@@ -40,9 +43,20 @@ class SpaceController extends Controller
             ];
         }
 
+        // Resources spaces: the first page of resources, newest first (ADR 0015)
+        $resources = null;
+        if ($space->type === KnowiiSpaceType::Resources) {
+            $page = (new Pagination(self::RESOURCES_PER_PAGE, 0))->apply($space->resources()->with(['resource', 'curator'])->latest()->latest('id'));
+            $resources = [
+                'items' => $page['items']->toResourceCollection(),
+                'pagination' => $page['metadata']['pagination'],
+            ];
+        }
+
         // WARNING: The props passed here must remain aligned with the props expected by the page (Pages/Spaces/Show.tsx)
         return Jetstream::inertia()->render($request, 'Spaces/Show', [
             'posts' => $posts,
+            'resources' => $resources,
             'community' => $community->toResource()->withLargeFields(),
             'space' => $space->toResource()->withLargeFields(),
             'spaceGroups' => SpaceTree::for($community, $request->user())->toResourceCollection(),

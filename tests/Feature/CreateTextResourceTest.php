@@ -3,32 +3,41 @@
 use App\Actions\Resources\CreateTextResource;
 use App\Constants;
 use App\Enums\KnowiiResourceLevel;
+use App\Enums\KnowiiSpacePostingPolicy;
+use App\Enums\KnowiiSpaceType;
 use App\Exceptions\BusinessException;
-use App\Models\Community;
-use App\Models\CommunityResourceCollection;
+use App\Models\Space;
+use App\Models\SpaceGroup;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Create an owner with a community and a resource collection in it.
+ * Create an owner with a community and a resources space in it (ADR 0015).
  *
- * @return array{0: User, 1: Community, 2: CommunityResourceCollection}
+ * @return array{0: User, 1: Space}
  */
-function makeOwnerWithCollection(): array
+function makeOwnerWithResourcesSpace(KnowiiSpacePostingPolicy $postingPolicy = KnowiiSpacePostingPolicy::Moderators, KnowiiSpaceType $type = KnowiiSpaceType::Resources): array
 {
     $owner = User::factory()->withUserProfile()->withPersonalCommunity()->create();
     $community = $owner->ownedCommunities()->first();
-    $collection = $community->communityResourceCollections()->create([
-        'name' => 'Test Collection',
-        'description' => 'A collection',
-    ]);
+    $space = Space::factory()
+        ->inGroup(SpaceGroup::factory()->create(['community_id' => $community->id]))
+        ->create(['type' => $type, 'posting_policy' => $postingPolicy]);
 
-    return [$owner, $community, $collection];
+    return [$owner, $space];
 }
 
+const ARTICLE_HTML = '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">'
+    .'<title>Some Article Title</title><meta name="description" content="A great read about testing">'
+    .'</head><body><article><h1>Some Article Title</h1>'
+    .'<p>This is a sufficiently long paragraph of readable content so that the parser has '
+    .'something meaningful to extract. It discusses software testing and quality in general terms, '
+    .'with enough words to be considered an article rather than boilerplate.</p>'
+    .'</article></body></html>';
+
 test('text resources can be created via the creator', function () {
-    [$owner, $community, $collection] = makeOwnerWithCollection();
+    [$owner, $space] = makeOwnerWithResourcesSpace();
 
     $html = '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">'
         .'<title>Some Article Title</title><meta name="description" content="A great read about testing">'
@@ -41,7 +50,7 @@ test('text resources can be created via the creator', function () {
     $action = new CreateTextResource;
     $action->setHttpHandlerStack(fakeTextResourceFetchHandler($html));
 
-    $resource = $action->create($owner, $community, $collection, [
+    $resource = $action->create($owner, $space, [
         'name' => 'Some Article',
         'description' => 'A great read',
         'url' => 'https://example.com/some-article',
@@ -50,11 +59,13 @@ test('text resources can be created via the creator', function () {
 
     expect($resource->name)->toBe('Some Article');
     expect($resource->resource->url)->toBe('https://example.com/some-article');
-    expect($collection->fresh()->communityResources)->toHaveCount(1);
+    expect($space->fresh()->resources)->toHaveCount(1);
+    expect($resource->space_id)->toBe($space->id);
+    expect($resource->community_id)->toBe($space->community_id);
 });
 
 test('text resource creation is rejected if the user is not authorized', function () {
-    [, $community, $collection] = makeOwnerWithCollection();
+    [, $space] = makeOwnerWithResourcesSpace();
 
     $otherUser = User::factory()->withUserProfile()->withPersonalCommunity()->create();
 
@@ -66,11 +77,11 @@ test('text resource creation is rejected if the user is not authorized', functio
 
     $this->expectException(AuthorizationException::class);
 
-    (new CreateTextResource)->create($otherUser, $community, $collection, $input);
+    (new CreateTextResource)->create($otherUser, $space, $input);
 });
 
 test('text resource creation is rejected if the name is missing', function () {
-    [$owner, $community, $collection] = makeOwnerWithCollection();
+    [$owner, $space] = makeOwnerWithResourcesSpace();
 
     $input = [
         'url' => 'https://example.com/some-article',
@@ -79,11 +90,11 @@ test('text resource creation is rejected if the name is missing', function () {
 
     $this->expectException(ValidationException::class);
 
-    (new CreateTextResource)->create($owner, $community, $collection, $input);
+    (new CreateTextResource)->create($owner, $space, $input);
 });
 
 test('text resource creation is rejected if the url is missing', function () {
-    [$owner, $community, $collection] = makeOwnerWithCollection();
+    [$owner, $space] = makeOwnerWithResourcesSpace();
 
     $input = [
         'name' => 'Some Article',
@@ -92,11 +103,11 @@ test('text resource creation is rejected if the url is missing', function () {
 
     $this->expectException(ValidationException::class);
 
-    (new CreateTextResource)->create($owner, $community, $collection, $input);
+    (new CreateTextResource)->create($owner, $space, $input);
 });
 
 test('text resource creation is rejected if the url is invalid', function () {
-    [$owner, $community, $collection] = makeOwnerWithCollection();
+    [$owner, $space] = makeOwnerWithResourcesSpace();
 
     $input = [
         'name' => 'Some Article',
@@ -106,11 +117,11 @@ test('text resource creation is rejected if the url is invalid', function () {
 
     $this->expectException(ValidationException::class);
 
-    (new CreateTextResource)->create($owner, $community, $collection, $input);
+    (new CreateTextResource)->create($owner, $space, $input);
 });
 
 test('text resource creation is rejected if the level is missing', function () {
-    [$owner, $community, $collection] = makeOwnerWithCollection();
+    [$owner, $space] = makeOwnerWithResourcesSpace();
 
     $input = [
         'name' => 'Some Article',
@@ -119,11 +130,11 @@ test('text resource creation is rejected if the level is missing', function () {
 
     $this->expectException(ValidationException::class);
 
-    (new CreateTextResource)->create($owner, $community, $collection, $input);
+    (new CreateTextResource)->create($owner, $space, $input);
 });
 
 test('text resource creation is rejected if the level is invalid', function () {
-    [$owner, $community, $collection] = makeOwnerWithCollection();
+    [$owner, $space] = makeOwnerWithResourcesSpace();
 
     $input = [
         'name' => 'Some Article',
@@ -133,11 +144,11 @@ test('text resource creation is rejected if the level is invalid', function () {
 
     $this->expectException(ValidationException::class);
 
-    (new CreateTextResource)->create($owner, $community, $collection, $input);
+    (new CreateTextResource)->create($owner, $space, $input);
 });
 
 test('text resource creation is rejected if the name is too long', function () {
-    [$owner, $community, $collection] = makeOwnerWithCollection();
+    [$owner, $space] = makeOwnerWithResourcesSpace();
 
     $input = [
         'name' => str_repeat('a', Constants::MAX_LENGTH_COMMUNITY_RESOURCE_NAME + 1),
@@ -147,11 +158,11 @@ test('text resource creation is rejected if the name is too long', function () {
 
     $this->expectException(ValidationException::class);
 
-    (new CreateTextResource)->create($owner, $community, $collection, $input);
+    (new CreateTextResource)->create($owner, $space, $input);
 });
 
 test('text resource creation is rejected for video and streaming platforms', function () {
-    [$owner, $community, $collection] = makeOwnerWithCollection();
+    [$owner, $space] = makeOwnerWithResourcesSpace();
 
     $input = [
         'name' => 'Some Video',
@@ -161,11 +172,11 @@ test('text resource creation is rejected for video and streaming platforms', fun
 
     $this->expectException(BusinessException::class);
 
-    (new CreateTextResource)->create($owner, $community, $collection, $input);
+    (new CreateTextResource)->create($owner, $space, $input);
 });
 
 test('the keywords of the page are stored on the resource', function () {
-    [$owner, $community, $collection] = makeOwnerWithCollection();
+    [$owner, $space] = makeOwnerWithResourcesSpace();
 
     $html = '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Notes</title>'
         .'<meta name="keywords" content="PKM, Smart Notes"><meta property="article:tag" content="Zettelkasten">'
@@ -178,7 +189,7 @@ test('the keywords of the page are stored on the resource', function () {
     $action = new CreateTextResource;
     $action->setHttpHandlerStack(fakeTextResourceFetchHandler($html));
 
-    $resource = $action->create($owner, $community, $collection, [
+    $resource = $action->create($owner, $space, [
         'name' => 'Notes',
         'url' => 'https://example.com/notes',
         'level' => KnowiiResourceLevel::Beginner->value,
@@ -186,3 +197,74 @@ test('the keywords of the page are stored on the resource', function () {
 
     expect($resource->resource->fresh()->keywords)->toBe(['pkm', 'smart notes', 'zettelkasten']);
 });
+
+test('resources can only be added to resources spaces', function () {
+    [$owner, $space] = makeOwnerWithResourcesSpace(type: KnowiiSpaceType::Discussion);
+
+    (new CreateTextResource)->create($owner, $space, [
+        'name' => 'Some Article',
+        'url' => 'https://example.com/some-article',
+        'level' => KnowiiResourceLevel::Beginner->value,
+    ]);
+})->throws(BusinessException::class);
+
+test('the posting policy of the space decides who adds resources', function (KnowiiSpacePostingPolicy $policy, array $allowed) {
+    $c = communityWithMembers();
+    $space = Space::factory()
+        ->inGroup(SpaceGroup::factory()->create(['community_id' => $c['community']->id]))
+        ->create(['type' => KnowiiSpaceType::Resources, 'posting_policy' => $policy]);
+
+    foreach (['owner', 'admin', 'moderator', 'member', 'outsider'] as $role) {
+        expect($c[$role]->can('contribute', $space))->toBe(in_array($role, $allowed, true), "{$role} with {$policy->value}");
+    }
+})->with([
+    'moderators' => [KnowiiSpacePostingPolicy::Moderators, ['owner', 'admin', 'moderator']],
+    'members' => [KnowiiSpacePostingPolicy::Members, ['owner', 'admin', 'moderator', 'member']],
+]);
+
+test('a member adds a resource to a space where members can post', function () {
+    $c = communityWithMembers();
+    $space = Space::factory()
+        ->inGroup(SpaceGroup::factory()->create(['community_id' => $c['community']->id]))
+        ->create(['type' => KnowiiSpaceType::Resources, 'posting_policy' => KnowiiSpacePostingPolicy::Members]);
+
+    $action = new CreateTextResource;
+    $action->setHttpHandlerStack(fakeTextResourceFetchHandler(ARTICLE_HTML));
+
+    $resource = $action->create($c['member'], $space, [
+        'name' => 'Some Article',
+        'url' => 'https://example.com/some-article',
+        'level' => KnowiiResourceLevel::Beginner->value,
+    ]);
+
+    expect($resource->curator_id)->toBe($c['member']->profile->id);
+});
+
+test('a member cannot add a resource to a space where only moderators post', function () {
+    $c = communityWithMembers();
+    $space = Space::factory()
+        ->inGroup(SpaceGroup::factory()->create(['community_id' => $c['community']->id]))
+        ->create(['type' => KnowiiSpaceType::Resources, 'posting_policy' => KnowiiSpacePostingPolicy::Moderators]);
+
+    (new CreateTextResource)->create($c['member'], $space, [
+        'name' => 'Some Article',
+        'url' => 'https://example.com/some-article',
+        'level' => KnowiiResourceLevel::Beginner->value,
+    ]);
+})->throws(AuthorizationException::class);
+
+test('the same URL cannot be added twice to a space', function () {
+    [$owner, $space] = makeOwnerWithResourcesSpace();
+    $input = [
+        'name' => 'Some Article',
+        'url' => 'https://example.com/some-article',
+        'level' => KnowiiResourceLevel::Beginner->value,
+    ];
+
+    $action = new CreateTextResource;
+    $action->setHttpHandlerStack(fakeTextResourceFetchHandler(ARTICLE_HTML));
+    $action->create($owner, $space, $input);
+
+    $action->setHttpHandlerStack(fakeTextResourceFetchHandler(ARTICLE_HTML));
+    $action->create($owner, $space, $input);
+})->throws(BusinessException::class, 'This resource is already in this space');

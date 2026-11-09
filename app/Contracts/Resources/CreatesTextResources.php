@@ -2,17 +2,16 @@
 
 namespace App\Contracts\Resources;
 
-use App\Models\Community;
 use App\Models\CommunityResource;
-use App\Models\CommunityResourceCollection;
+use App\Models\Space;
 use App\Models\User;
 
 interface CreatesTextResources
 {
     /**
-     * Create a new resource.
+     * Add a text article to a resources space (ADR 0015).
      *
      * @param  array<mixed>  $input
      */
-    public function create(User $user, Community $community, CommunityResourceCollection $communityResourceCollection, array $input): CommunityResource;
+    public function create(User $user, Space $space, array $input): CommunityResource;
 }

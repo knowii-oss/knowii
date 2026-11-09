@@ -45,14 +45,6 @@ class Constants
 
     public const string ALLOWED_COMMUNITY_NAME_CHARACTERS_REGEX = '/^[a-zA-Z0-9-@\' ]+$/';
 
-    public const int MIN_LENGTH_COMMUNITY_RESOURCE_COLLECTION_NAME = 3;
-
-    public const int MAX_LENGTH_COMMUNITY_RESOURCE_COLLECTION_NAME = 64;
-
-    public const int MAX_LENGTH_COMMUNITY_RESOURCE_COLLECTION_DESCRIPTION = 255;
-
-    public const string ALLOWED_COMMUNITY_RESOURCE_COLLECTION_NAME_CHARACTERS_REGEX = '/^[a-zA-Z0-9-@\' ]+$/';
-
     public const int MIN_LENGTH_COMMUNITY_RESOURCE_NAME = 3;
 
     public const int MAX_LENGTH_COMMUNITY_RESOURCE_NAME = 64;
@@ -159,12 +151,6 @@ class Constants
     public const string WS_CHANNEL_COMMUNITY_PARAM_COMMUNITY_CUID = '{communityCuid}';
 
     public const string WS_CHANNEL_COMMUNITY = 'community.{communityCuid}';
-
-    public const string WS_CHANNEL_COMMUNITY_RESOURCE_COLLECTION_PARAM_COMMUNITY_CUID = '{communityCuid}';
-
-    public const string WS_CHANNEL_COMMUNITY_RESOURCE_COLLECTION_PARAM_RESOURCE_COLLECTION_CUID = '{resourceCollectionCuid}';
-
-    public const string WS_CHANNEL_COMMUNITY_RESOURCE_COLLECTION = 'community.{communityCuid}.resource_collection.{resourceCollectionCuid}';
 
     public const string WS_CHANNEL_COMMUNITY_SPACE_PARAM_COMMUNITY_CUID = '{communityCuid}';
 

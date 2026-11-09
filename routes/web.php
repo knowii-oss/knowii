@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Inertia\CommunityController;
-use App\Http\Controllers\Inertia\CommunityResourceCollectionController;
 use App\Http\Controllers\Inertia\CommunityResourceController;
 use App\Http\Controllers\Inertia\DashboardController;
 use App\Http\Controllers\Inertia\MemberController;
@@ -42,10 +41,8 @@ Route::middleware([
     Route::get('/community/{communitySlug}/space/{spaceSlug}', [SpaceController::class, 'show'])->name('spaces.show');
     Route::get('/community/{communitySlug}/space/{spaceSlug}/post/{postSlug}', [PostController::class, 'show'])->name('posts.show');
 
-    Route::get('/community/{communitySlug}/resource-collection/{resourceCollectionSlug}', [CommunityResourceCollectionController::class, 'show'])->name('resource-collections.show');
-
-    // FIXME implement
-    Route::get('/community/{communitySlug}/resource-collection/{resourceCollectionSlug}/{resourceSlug}', [CommunityResourceController::class, 'show'])->name('resources.show');
+    // A resource of a resources space (ADR 0015). The page itself is #1133
+    Route::get('/community/{communitySlug}/space/{spaceSlug}/resource/{resourceSlug}', [CommunityResourceController::class, 'show'])->name('resources.show');
 });
 
 Route::inertia('/contact', 'Contact');

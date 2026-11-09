@@ -1,0 +1,44 @@
+<?php
+
+namespace App\Http\Controllers\API;
+
+use App\Contracts\Resources\CreatesTextResources;
+use App\Http\Controllers\Controller;
+use App\Models\Community;
+use App\Models\Space;
+use App\Traits\ApiResponses;
+use Dedoc\Scramble\Attributes\BodyParameter;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+/**
+ * Resources of the resources spaces (ADR 0015). Changes are delegated to the actions (ADR 0006).
+ */
+class CommunityResourceApiController extends Controller
+{
+    use ApiResponses;
+
+    /**
+     * Add a resource to a resources space, from the URL of a web article. The posting policy of the space decides who can add one.
+     *
+     * @throws AuthenticationException
+     */
+    #[BodyParameter('name', description: 'Name of the resource in the community (3 to 64 characters)', required: true, type: 'string', example: 'How to take smart notes')]
+    #[BodyParameter('url', description: 'Absolute URL of the article. Video and streaming platforms are refused', required: true, type: 'string', format: 'uri', example: 'https://example.com/some-article')]
+    #[BodyParameter('level', description: 'beginner, intermediate, advanced, expert or unknown', required: true, type: 'string', example: 'beginner')]
+    #[BodyParameter('description', description: 'Why the resource is useful (up to 255 characters)', required: false, type: 'string')]
+    final public function store(Request $request, Community $community, Space $space): JsonResponse
+    {
+        $resource = app(CreatesTextResources::class)->create(
+            $request->user() ?? throw new AuthenticationException,
+            $space,
+            $request->only(['name', 'description', 'level', 'url'])
+        );
+
+        return self::created(
+            $resource->load(['resource', 'curator', 'textArticle', 'space'])->toResource()->withLargeFields(),
+            'Resource created successfully'
+        );
+    }
+}

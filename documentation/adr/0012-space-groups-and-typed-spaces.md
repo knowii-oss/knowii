@@ -1,6 +1,6 @@
 # 0012. Space groups and typed spaces structure a community
 
-- Status: Accepted
+- Status: Accepted, amended by [0015](0015-resources-space-type.md) (the `resources` type replaces the resource collections)
 - Date: 2026-11-09
 - Issue: #1173
 

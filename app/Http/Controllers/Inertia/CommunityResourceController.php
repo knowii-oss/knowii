@@ -2,58 +2,38 @@
 
 namespace App\Http\Controllers\Inertia;
 
+use App\Enums\KnowiiSpaceType;
 use App\Models\Community;
+use App\Support\SpaceTree;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Response;
 use Laravel\Jetstream\Jetstream;
-use Laravel\Jetstream\RedirectsActions;
 
 class CommunityResourceController extends Controller
 {
-    use RedirectsActions;
-
     /**
-     * Show a resource.
+     * Show a resource of a resources space (ADR 0015).
      */
-    public function show(Request $request, string $communitySlug, string $resourceCollectionSlug, string $resourceSlug): Response
+    public function show(Request $request, string $communitySlug, string $spaceSlug, string $resourceSlug): Response
     {
-        $community = (new Community)->where('slug', $communitySlug)->firstOrFail();
-        $resourceCollection = $community->communityResourceCollections()->where('slug', $resourceCollectionSlug)->firstOrFail();
-        $communityResource = $resourceCollection->communityResources()->where('slug', $resourceSlug)->with(['curator', 'resource', 'textArticle'])->firstOrFail();
+        $community = Community::where('slug', $communitySlug)->firstOrFail();
+        $space = $community->spaces()->where('slug', $spaceSlug)->where('type', KnowiiSpaceType::Resources)->firstOrFail();
 
-        Gate::authorize('view', $community);
+        Gate::authorize('view', $space);
 
-        // Disable wrapping for the data we return to the frontend from this controller
-        // This lets us use the API Resources classes without the wrapping that is normally applied
+        $resource = $space->resources()->where('slug', $resourceSlug)->with(['curator', 'resource', 'textArticle', 'space'])->firstOrFail();
+
         JsonResource::withoutWrapping();
 
-        // WARNING: The props passed here must remain aligned with the props expected by the page
+        // WARNING: The props passed here must remain aligned with the props expected by the page (Pages/Resources/Show.tsx)
         return Jetstream::inertia()->render($request, 'Resources/Show', [
-            // WARNING: The props passed here must remain aligned with the props expected by the page
             'community' => $community->toResource()->withLargeFields(),
-            'resourceCollection' => $resourceCollection->toResource()->withLargeFields(),
-            'resource' => $communityResource->toResource()->withLargeFields(),
-
-            // WARNING: The props passed here must remain aligned with the props defined in community.schema.ts
-            'permissions' => [
-                'canUpdateCommunity' => Gate::check('update', $community),
-                'canDeleteCommunity' => Gate::check('delete', $community),
-
-                'canAddCommunityMembers' => Gate::check('addCommunityMember', $community),
-                'canUpdateCommunityMembers' => Gate::check('updateCommunityMember', $community),
-                'canRemoveCommunityMembers' => Gate::check('removeCommunityMember', $community),
-
-                'canCreateResourceCollection' => Gate::check('createResourceCollection', $community),
-                'canUpdateResourceCollection' => Gate::check('updateResourceCollection', $community),
-                'canDeleteResourceCollection' => Gate::check('deleteResourceCollection', $community),
-
-                'canCreateResource' => Gate::check('createResource', $community),
-                'canUpdateResource' => Gate::check('updateResource', $community),
-                'canDeleteResource' => Gate::check('deleteResource', $community),
-            ],
+            'space' => $space->toResource()->withLargeFields(),
+            'spaceGroups' => SpaceTree::for($community, $request->user())->toResourceCollection(),
+            'resource' => $resource->toResource()->withLargeFields(),
         ]);
     }
 }

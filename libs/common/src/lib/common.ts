@@ -18,7 +18,6 @@ export * from './hooks/use-typed-page.hook.fn';
 
 export * from './types/base-entity.schema';
 export * from './types/community.schema';
-export * from './types/community-resource-collection.schema';
 export * from './types/community-resource.schema';
 export * from './types/http-status.intf';
 export * from './types/identifiable.schema';

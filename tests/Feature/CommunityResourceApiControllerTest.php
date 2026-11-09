@@ -5,29 +5,30 @@ use App\ApiRoutes;
 use App\Contracts\Resources\CreatesTextResources;
 use App\Enums\KnowiiApiResponseType;
 use App\Enums\KnowiiResourceLevel;
+use App\Enums\KnowiiSpaceType;
 use App\Models\CommunityResource;
+use App\Models\Space;
+use App\Models\SpaceGroup;
 use App\Models\User;
 use Illuminate\Http\Response;
 
 /**
- * Create an owner with a community and a resource collection, and return the
- * API path to create a text article in that collection.
+ * Create a resources space in the personal community of the owner, and return the API path to add resources to it.
  */
-function textArticlesPathFor(User $owner): string
+function textArticlesPathFor(User $owner, KnowiiSpaceType $type = KnowiiSpaceType::Resources): string
 {
     $community = $owner->ownedCommunities()->first();
-    $collection = $community->communityResourceCollections()->create([
-        'name' => 'Test Collection',
-        'description' => 'A collection',
-    ]);
+    $space = Space::factory()
+        ->inGroup(SpaceGroup::factory()->create(['community_id' => $community->id]))
+        ->create(['type' => $type]);
 
-    return ApiRoutes::path(ApiRoutes::COMMUNITY_RESOURCE_TEXT_ARTICLES, [
+    return ApiRoutes::path(ApiRoutes::COMMUNITY_SPACE_RESOURCES, [
         ApiRoutes::PARAM_COMMUNITY => $community->cuid,
-        ApiRoutes::PARAM_COMMUNITY_RESOURCE_COLLECTION => $collection->cuid,
+        ApiRoutes::PARAM_SPACE => $space->cuid,
     ]);
 }
 
-test('the text article API requires authentication', function () {
+test('the resources API requires authentication', function () {
     $owner = User::factory()->withUserProfile()->withPersonalCommunity()->create();
     $path = textArticlesPathFor($owner);
 
@@ -40,7 +41,7 @@ test('the text article API requires authentication', function () {
     $response->assertStatus(Response::HTTP_UNAUTHORIZED);
 });
 
-test('the text article API rejects a request from an unauthorized user', function () {
+test('the resources API rejects a request from an unauthorized user', function () {
     $owner = User::factory()->withUserProfile()->withPersonalCommunity()->create();
     $path = textArticlesPathFor($owner);
 
@@ -56,12 +57,12 @@ test('the text article API rejects a request from an unauthorized user', functio
     expect($response->json('type'))->toBe(KnowiiApiResponseType::AuthorizationIssue->value);
 });
 
-test('the text article API returns not found for an unknown community', function () {
+test('the resources API returns not found for an unknown community', function () {
     $this->actingAs(User::factory()->withUserProfile()->withPersonalCommunity()->create());
 
-    $path = ApiRoutes::path(ApiRoutes::COMMUNITY_RESOURCE_TEXT_ARTICLES, [
+    $path = ApiRoutes::path(ApiRoutes::COMMUNITY_SPACE_RESOURCES, [
         ApiRoutes::PARAM_COMMUNITY => 'does-not-exist',
-        ApiRoutes::PARAM_COMMUNITY_RESOURCE_COLLECTION => 'does-not-exist',
+        ApiRoutes::PARAM_SPACE => 'does-not-exist',
     ]);
 
     $response = $this->json('POST', $path, [
@@ -74,7 +75,7 @@ test('the text article API returns not found for an unknown community', function
     expect($response->json('type'))->toBe(KnowiiApiResponseType::NotFound->value);
 });
 
-test('the text article API rejects a missing name with a validation issue', function () {
+test('the resources API rejects a missing name with a validation issue', function () {
     $owner = User::factory()->withUserProfile()->withPersonalCommunity()->create();
     $path = textArticlesPathFor($owner);
     $this->actingAs($owner);
@@ -88,7 +89,7 @@ test('the text article API rejects a missing name with a validation issue', func
     expect($response->json('type'))->toBe(KnowiiApiResponseType::ValidationIssue->value);
 });
 
-test('the text article API rejects an invalid url with a validation issue', function () {
+test('the resources API rejects an invalid url with a validation issue', function () {
     $owner = User::factory()->withUserProfile()->withPersonalCommunity()->create();
     $path = textArticlesPathFor($owner);
     $this->actingAs($owner);
@@ -103,7 +104,7 @@ test('the text article API rejects an invalid url with a validation issue', func
     expect($response->json('type'))->toBe(KnowiiApiResponseType::ValidationIssue->value);
 });
 
-test('the text article API rejects an invalid level with a validation issue', function () {
+test('the resources API rejects an invalid level with a validation issue', function () {
     $owner = User::factory()->withUserProfile()->withPersonalCommunity()->create();
     $path = textArticlesPathFor($owner);
     $this->actingAs($owner);
@@ -118,7 +119,7 @@ test('the text article API rejects an invalid level with a validation issue', fu
     expect($response->json('type'))->toBe(KnowiiApiResponseType::ValidationIssue->value);
 });
 
-test('the text article API rejects video and streaming platforms with a business issue', function () {
+test('the resources API rejects video and streaming platforms with a business issue', function () {
     $owner = User::factory()->withUserProfile()->withPersonalCommunity()->create();
     $path = textArticlesPathFor($owner);
     $this->actingAs($owner);
@@ -133,7 +134,7 @@ test('the text article API rejects video and streaming platforms with a business
     expect($response->json('type'))->toBe(KnowiiApiResponseType::BusinessIssue->value);
 });
 
-test('text articles can be created via the API', function () {
+test('resources can be created via the API', function () {
     $owner = User::factory()->withUserProfile()->withPersonalCommunity()->create();
     $path = textArticlesPathFor($owner);
     $this->actingAs($owner);
@@ -153,6 +154,7 @@ test('text articles can be created via the API', function () {
 
     $response = $this->json('POST', $path, [
         'name' => 'Some Article',
+        'description' => 'Worth reading',
         'url' => 'https://example.com/some-article',
         'level' => KnowiiResourceLevel::Beginner->value,
     ], ['Accept' => 'application/json']);
@@ -160,17 +162,21 @@ test('text articles can be created via the API', function () {
     $response->assertStatus(Response::HTTP_CREATED);
     expect($response->json('type'))->toBe(KnowiiApiResponseType::Success->value);
     expect($response->json('data.name'))->toBe('Some Article');
+    expect($response->json('data.description'))->toBe('Worth reading');
+    expect($response->json('data.space.type'))->toBe(KnowiiSpaceType::Resources->value);
+    expect($response->json('data.resource.url'))->toBe('https://example.com/some-article');
 });
 
-test('the text article API refuses a collection of another community (#1213)', function () {
-    // The attacker owns a personal community, so they may create resources there
+test('the resources API refuses a space of another community (#1213)', function () {
+    // The attacker owns a personal community, so they may add resources there
     $attacker = User::factory()->withUserProfile()->withPersonalCommunity()->create();
     $victim = User::factory()->withUserProfile()->withPersonalCommunity()->create();
-    $victimCollection = $victim->ownedCommunities()->first()->communityResourceCollections()->create(['name' => 'Victim', 'description' => null]);
+    $victimPath = textArticlesPathFor($victim);
+    $victimSpaceCuid = explode('/', $victimPath)[5];
 
-    $path = ApiRoutes::path(ApiRoutes::COMMUNITY_RESOURCE_TEXT_ARTICLES, [
+    $path = ApiRoutes::path(ApiRoutes::COMMUNITY_SPACE_RESOURCES, [
         ApiRoutes::PARAM_COMMUNITY => $attacker->ownedCommunities()->first()->cuid,
-        ApiRoutes::PARAM_COMMUNITY_RESOURCE_COLLECTION => $victimCollection->cuid,
+        ApiRoutes::PARAM_SPACE => $victimSpaceCuid,
     ]);
 
     $this->actingAs($attacker)->postJson($path, [
@@ -180,4 +186,18 @@ test('the text article API refuses a collection of another community (#1213)', f
     ])->assertNotFound();
 
     expect(CommunityResource::query()->count())->toBe(0);
+});
+
+test('the resources API refuses a space of another type with a business issue', function () {
+    $owner = User::factory()->withUserProfile()->withPersonalCommunity()->create();
+    $path = textArticlesPathFor($owner, KnowiiSpaceType::Discussion);
+
+    $response = $this->actingAs($owner)->postJson($path, [
+        'name' => 'Some Article',
+        'url' => 'https://example.com/some-article',
+        'level' => KnowiiResourceLevel::Beginner->value,
+    ]);
+
+    $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+    expect($response->json('type'))->toBe(KnowiiApiResponseType::BusinessIssue->value);
 });

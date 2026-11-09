@@ -39,6 +39,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read SpaceGroup $spaceGroup
  * @property-read Collection<int, Post> $posts
  * @property-read ?int $posts_count
+ * @property-read Collection<int, CommunityResource> $resources
+ * @property-read ?int $resources_count
  *
  * @method static \Database\Factories\SpaceFactory factory($count = null, $state = [])
  * @method static Builder<static>|Space findSimilarSlugs(string $attribute, array<mixed> $config, string $slug)
@@ -136,6 +138,26 @@ class Space extends Model
     final public function posts(): HasMany
     {
         return $this->hasMany(Post::class);
+    }
+
+    /**
+     * The resources of a resources space (ADR 0015). Named after the route parameter, for scoped bindings.
+     *
+     * @return HasMany<CommunityResource, covariant $this>
+     */
+    final public function resources(): HasMany
+    {
+        return $this->hasMany(CommunityResource::class);
+    }
+
+    /**
+     * Whether the space already holds a resource that points to this URL.
+     */
+    final public function containsResourceWithUrl(string $url): bool
+    {
+        return $this->resources()
+            ->whereHas('resource', fn (Builder $query) => $query->where('url', $url))
+            ->exists();
     }
 
     /**

@@ -3,14 +3,13 @@
 use App\ApiRoutes;
 use App\Http\Controllers\API\CommentApiController;
 use App\Http\Controllers\API\CommunityApiController;
-use App\Http\Controllers\API\CommunityResourceCollectionApiController;
+use App\Http\Controllers\API\CommunityResourceApiController;
 use App\Http\Controllers\API\LoginApiController;
 use App\Http\Controllers\API\MarkdownApiController;
 use App\Http\Controllers\API\MemberApiController;
 use App\Http\Controllers\API\PingApiController;
 use App\Http\Controllers\API\PostApiController;
 use App\Http\Controllers\API\ReactionApiController;
-use App\Http\Controllers\API\ResourceTextArticleApiController;
 use App\Http\Controllers\API\SpaceApiController;
 use App\Http\Controllers\API\SpaceGroupApiController;
 use App\Http\Controllers\API\UploadApiController;
@@ -39,13 +38,6 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
         Route::post(ApiRoutes::COMMUNITIES, [CommunityApiController::class, 'store']);
         Route::delete(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'destroy']);
 
-        // Resource collections. scopeBindings: a collection of another community gives a 404 (#1213)
-        Route::scopeBindings()->group(function () {
-            Route::post(ApiRoutes::COMMUNITY_RESOURCE_COLLECTIONS, [CommunityResourceCollectionApiController::class, 'store']);
-            Route::delete(ApiRoutes::COMMUNITY_RESOURCE_COLLECTION, [CommunityResourceCollectionApiController::class, 'destroy']);
-            Route::post(ApiRoutes::COMMUNITY_RESOURCE_TEXT_ARTICLES, [ResourceTextArticleApiController::class, 'store']);
-        });
-
         // Space groups and spaces (#1173). scopeBindings: a space group or space of another community gives a 404
         Route::scopeBindings()->group(function () {
             Route::get(ApiRoutes::COMMUNITY_SPACE_GROUPS, [SpaceGroupApiController::class, 'index']);
@@ -67,6 +59,9 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::patch(ApiRoutes::COMMUNITY_SPACE_POST, [PostApiController::class, 'update']);
             Route::delete(ApiRoutes::COMMUNITY_SPACE_POST, [PostApiController::class, 'destroy']);
             Route::post(ApiRoutes::COMMUNITY_SPACE_POST_PIN, [PostApiController::class, 'pin']);
+
+            // Resources of resources spaces (ADR 0015)
+            Route::post(ApiRoutes::COMMUNITY_SPACE_RESOURCES, [CommunityResourceApiController::class, 'store']);
 
             // Comments (#1175)
             Route::get(ApiRoutes::COMMUNITY_SPACE_POST_COMMENTS, [CommentApiController::class, 'index']);
