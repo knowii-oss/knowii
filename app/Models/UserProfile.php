@@ -17,48 +17,48 @@ use Laravel\Jetstream\HasProfilePhoto;
 /**
  * App\Models\UserProfile
  *
- * @property int $id
- * @property string $cuid
- * @property int|null $user_id
- * @property string|null $username
+ * @property-read int $id
+ * @property-read string $cuid
+ * @property ?int $user_id
+ * @property ?string $username
  * @property string $name
- * @property string|null $email
- * @property string|null $profile_photo_path
- * @property string|null $bio
- * @property string|null $location
- * @property string|null $phone
- * @property string|null $social_link_website
- * @property string|null $social_link_newsletter
- * @property string|null $social_link_x
- * @property string|null $social_link_mastodon
- * @property string|null $social_link_bluesky
- * @property string|null $social_link_threads_dot_net
- * @property string|null $social_link_linkedin
- * @property string|null $social_link_facebook
- * @property string|null $social_link_instagram
- * @property string|null $social_link_reddit
- * @property string|null $social_link_medium
- * @property string|null $social_link_substack
- * @property string|null $social_link_hackernews
- * @property string|null $social_link_hashnode
- * @property string|null $social_link_dev_dot_to
- * @property string|null $social_link_youtube
- * @property string|null $social_link_tiktok
- * @property string|null $social_link_twitch
- * @property string|null $social_link_gumroad
- * @property string|null $social_link_buymeacoffee
- * @property string|null $social_link_patreon
- * @property string|null $social_link_producthunt
- * @property string|null $social_link_github
- * @property string|null $social_link_gitlab
- * @property string|null $social_link_wikipedia
- * @property string|null $social_link_google_scholar
- * @property string|null $social_link_orcid
- * @property string|null $social_link_kofi
+ * @property ?string $email
+ * @property ?string $profile_photo_path
+ * @property ?string $bio
+ * @property ?string $location
+ * @property ?string $phone
+ * @property ?string $social_link_website
+ * @property ?string $social_link_newsletter
+ * @property ?string $social_link_x
+ * @property ?string $social_link_mastodon
+ * @property ?string $social_link_bluesky
+ * @property ?string $social_link_threads_dot_net
+ * @property ?string $social_link_linkedin
+ * @property ?string $social_link_facebook
+ * @property ?string $social_link_instagram
+ * @property ?string $social_link_reddit
+ * @property ?string $social_link_medium
+ * @property ?string $social_link_substack
+ * @property ?string $social_link_hackernews
+ * @property ?string $social_link_hashnode
+ * @property ?string $social_link_dev_dot_to
+ * @property ?string $social_link_youtube
+ * @property ?string $social_link_tiktok
+ * @property ?string $social_link_twitch
+ * @property ?string $social_link_gumroad
+ * @property ?string $social_link_buymeacoffee
+ * @property ?string $social_link_patreon
+ * @property ?string $social_link_producthunt
+ * @property ?string $social_link_github
+ * @property ?string $social_link_gitlab
+ * @property ?string $social_link_wikipedia
+ * @property ?string $social_link_google_scholar
+ * @property ?string $social_link_orcid
+ * @property ?string $social_link_kofi
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read DatabaseNotificationCollection<int, DatabaseNotification> $notifications
- * @property-read int|null $notifications_count
+ * @property-read ?int $notifications_count
  * @property-read string $profile_photo_url
  *
  * @method static \Database\Factories\UserProfileFactory factory($count = null, $state = [])
@@ -101,6 +101,10 @@ use Laravel\Jetstream\HasProfilePhoto;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereUserId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereUsername($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkGoogleScholar($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkKofi($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkOrcid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkWikipedia($value)
  *
  * @mixin \Eloquent
  */

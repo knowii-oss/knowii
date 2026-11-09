@@ -20,25 +20,27 @@ use Illuminate\Support\Collection;
 /**
  * App\Models\Community
  *
- * @property int $id
- * @property string $cuid
+ * @property-read int $id
+ * @property-read string $cuid
  * @property string $name
  * @property string $slug
- * @property string $description
+ * @property ?string $description
  * @property KnowiiCommunityVisibility $visibility
  * @property Carbon $created_at
  * @property Carbon $updated_at
- * @property-read Collection<int, CommunityResourceCollection> $communityResourceCollections
- * @property-read Collection<int, User> $users
+ * @property int $owner_id
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, CommunityResourceCollection> $communityResourceCollections
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, User> $users
  * @property-read \Illuminate\Database\Eloquent\Collection<int, SpaceGroup> $spaceGroups
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Space> $spaces
- * @property int $owner_id
  * @property-read \Illuminate\Database\Eloquent\Collection<int, CommunityInvitation> $communityInvitations
- * @property-read int|null $community_invitations_count
- * @property-read int|null $community_resource_collections_count
+ * @property-read ?int $community_invitations_count
+ * @property-read ?int $community_resource_collections_count
  * @property-read User $owner
- * @property-read CommunityMember|null $communityMember
- * @property-read int|null $users_count
+ * @property-read ?CommunityMember $communityMember
+ * @property-read ?int $users_count
+ * @property-read ?int $space_groups_count
+ * @property-read ?int $spaces_count
  *
  * @method static \Database\Factories\CommunityFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Community findSimilarSlugs(string $attribute, array<mixed> $config, string $slug)

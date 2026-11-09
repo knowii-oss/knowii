@@ -11,42 +11,42 @@ use App\Traits\GeneratesCuid;
 use Carbon\Carbon;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Database\Factories\ResourceFactory;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Collection;
 
 /**
  * App\Models\Resource
  *
- * @property int $id
- * @property string $cuid
+ * @property-read int $id
+ * @property-read string $cuid
  * @property string $name
  * @property string $slug
- * @property string|null $description
- * @property string|null $excerpt
- * @property array<string,string> $keywords // FIXME invalid type?
- * @property string|null $ai_summary
- * @property Carbon|null $published_at
- * @property Carbon|null $modified_at
- * @property string|null $language
- * @property string|null $url
- * @property string|null $cover_image_url
- * @property string|null $cover_image_alt
- * @property string|null $cover_image_base64
+ * @property ?string $description
+ * @property ?string $excerpt
+ * @property list<string> $keywords
+ * @property ?string $ai_summary
+ * @property ?Carbon $published_at
+ * @property ?Carbon $modified_at
+ * @property ?string $language
+ * @property ?string $url
+ * @property ?string $cover_image_url
+ * @property ?string $cover_image_alt
+ * @property ?string $cover_image_base64
  * @property KnowiiResourceType $type
  * @property KnowiiResourceLevel $level
  * @property bool $is_featured
- * @property int $view_count
- * @property int $share_count
- * @property Carbon|null $last_captured_at
- * @property Carbon|null $last_checked_at
- * @property int|null $check_failures_count
- * @property bool|null $is_unavailable
+ * @property ?Carbon $last_captured_at
+ * @property ?Carbon $last_checked_at
+ * @property ?bool $is_unavailable
  * @property Carbon $created_at
  * @property Carbon $updated_at
+ * @property-read int $view_count
+ * @property-read int $share_count
+ * @property-read ?int $check_failures_count
  * @property-read Collection<int, ResourceTextArticle> $textArticles
- * @property-read int|null $text_articles_count
+ * @property-read ?int $text_articles_count
  *
  * @method static \Database\Factories\ResourceFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource findSimilarSlugs(string $attribute, array<mixed> $config, string $slug)

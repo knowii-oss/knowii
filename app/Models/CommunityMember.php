@@ -10,8 +10,8 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
 /**
  * App\Models\CommunityMember
  *
- * @property int $id
- * @property string $cuid
+ * @property-read int $id
+ * @property-read string $cuid
  * @property int $community_id
  * @property int $user_id
  * @property KnowiiCommunityMemberRole $role

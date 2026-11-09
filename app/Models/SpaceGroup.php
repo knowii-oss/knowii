@@ -14,8 +14,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * An ordered, named group of spaces in the navigation of a community (#1173, ADR 0012).
  *
- * @property int $id
- * @property string $cuid
+ * @property-read int $id
+ * @property-read string $cuid
  * @property int $community_id
  * @property string $name
  * @property int $position
@@ -23,8 +23,19 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property Carbon $updated_at
  * @property-read Community $community
  * @property-read Collection<int, Space> $spaces
+ * @property-read ?int $spaces_count
  *
  * @method static \Database\Factories\SpaceGroupFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SpaceGroup newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SpaceGroup newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SpaceGroup query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SpaceGroup whereCommunityId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SpaceGroup whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SpaceGroup whereCuid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SpaceGroup whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SpaceGroup whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SpaceGroup wherePosition($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SpaceGroup whereUpdatedAt($value)
  *
  * @mixin \Eloquent
  */

@@ -23,29 +23,29 @@ use TaylorNetwork\UsernameGenerator\GeneratesUsernames;
 /**
  * App\Models\User
  *
- * @property int $id
- * @property string $cuid
+ * @property-read int $id
+ * @property-read string $cuid
  * @property string $username
  * @property string $name
  * @property string $email
- * @property Carbon $email_verified_at
+ * @property ?Carbon $email_verified_at
  * @property string $password
- * @property string $two_factor_secret
- * @property string $two_factor_recovery_codes
- * @property Carbon $two_factor_confirmed_at
- * @property string $remember_token
+ * @property ?string $two_factor_secret
+ * @property ?string $two_factor_recovery_codes
+ * @property ?Carbon $two_factor_confirmed_at
+ * @property ?string $remember_token
  * @property Carbon $created_at
  * @property Carbon $updated_at
- * @property UserProfile $profile
- * @property-read CommunityMember|null $pivot
+ * @property-read UserProfile $profile
+ * @property-read ?CommunityMember $pivot
  * @property-read Collection<int, Community> $communities
- * @property-read int|null $communities_count
+ * @property-read ?int $communities_count
  * @property-read DatabaseNotificationCollection<int, DatabaseNotification> $notifications
- * @property-read int|null $notifications_count
+ * @property-read ?int $notifications_count
  * @property-read Collection<int, Community> $ownedCommunities
- * @property-read int|null $owned_communities_count
+ * @property-read ?int $owned_communities_count
  * @property-read Collection<int, PersonalAccessToken> $tokens
- * @property-read int|null $tokens_count
+ * @property-read ?int $tokens_count
  *
  * @method static \Database\Factories\UserFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newModelQuery()

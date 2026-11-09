@@ -10,6 +10,16 @@ When creating new database tables, make sure to include a `cuid` string field ri
 
 You can learn more about cuid2 here: https://github.com/paralleldrive/cuid2?tab=readme-ov-file#why
 
+### Model docblocks
+
+Each model has a class docblock that lists its columns, its relations and its query methods. PHPStan (Larastan, level max) and the IDE read it, so it must agree with the database:
+
+1. Run `composer generate-phpdoc` after a migration. It runs `ide-helper:models --write` and Pint. ide-helper adds the missing tags and keeps the tags that already exist, so a second run changes nothing.
+2. Write a nullable column or relation as `?Type` (`?Carbon $edited_at`, `?User $author`), not `Type|null`. ide-helper writes new tags as `Type|null`: change them.
+3. Mark `id`, `cuid`, relations, `*_count` attributes and accessors with `@property-read`. Only the other columns are `@property`.
+4. Give a JSON column its real shape (`list<string> $keywords`), not `array`.
+5. When a relation or a cast changes, change its tag by hand: ide-helper does not change a tag that exists.
+
 ### Administration
 
 If you want to look at the database during development, you can use the `npm run db:admin` command. It will start a container with PgAdmin.

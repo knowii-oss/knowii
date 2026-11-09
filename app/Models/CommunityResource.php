@@ -15,24 +15,24 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * App\Models\CommunityResourceCollection
  *
- * @property int $id
- * @property string $cuid
+ * @property-read int $id
+ * @property-read string $cuid
  * @property string $slug
  * @property string $name
- * @property string|null $description
+ * @property ?string $description
  * @property int $resource_id
  * @property int $community_id
- * @property int|null $resource_text_article_id
- * @property int|null $curator_id
+ * @property ?int $resource_text_article_id
+ * @property ?int $curator_id
  * @property bool $is_featured
  * @property Carbon $created_at
  * @property Carbon $updated_at
- * @property Community $community
- * @property \App\Models\Resource $resource
- * @property CommunityResourceCollection $collection
- * @property UserProfile $curator
  * @property int $collection_id
- * @property-read ResourceTextArticle|null $textArticle
+ * @property-read Community $community
+ * @property-read Resource $resource
+ * @property-read CommunityResourceCollection $collection
+ * @property-read ?UserProfile $curator
+ * @property-read ?ResourceTextArticle $textArticle
  *
  * @method static \Database\Factories\CommunityResourceFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource newModelQuery()
