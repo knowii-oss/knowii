@@ -1,5 +1,5 @@
 import AppLayout from '@/Layouts/AppLayout';
-import type { Community, CommunityPermissions, SpaceGroup } from '@knowii/common';
+import type { Community, CommunityPermissions, CommunityRole, SpaceGroup } from '@knowii/common';
 import { COMMUNITY_URL, DASHBOARD_URL, useSocket } from '@knowii/common';
 import { breadcrumbHome } from '../../Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
@@ -9,13 +9,15 @@ import { FaGear } from 'react-icons/fa6';
 import DeleteCommunityForm from '@/Pages/Communities/Partials/DeleteCommunityForm';
 import { SpaceTreeEditor } from '@/Components/Spaces/SpaceTreeEditor';
 import { ModeratorPermissionsForm } from '@/Components/Communities/ModeratorPermissionsForm';
+import { CommunityMembersManager } from '@/Components/Communities/CommunityMembersManager';
 import Separator from '@/Components/Separator';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
 interface Props {
   community: Community;
   spaceGroups: SpaceGroup[];
   permissions: CommunityPermissions;
+  currentRole: CommunityRole;
 }
 
 export default function CommunitySettingsPage(props: Props) {
@@ -46,6 +48,19 @@ export default function CommunitySettingsPage(props: Props) {
     callback: reloadSpaceTree,
   });
 
+  // The members or the invitations changed (#1242): the member lists load again
+  const [membersVersion, setMembersVersion] = useState(0);
+  useSocket({
+    channel: {
+      type: 'community',
+      communityCuid: props.community.cuid,
+    },
+    event: 'community.members.changed',
+    callback: () => setMembersVersion((version) => version + 1),
+  });
+
+  const canManageMembers = props.permissions.canAddCommunityMembers;
+
   const breadcrumbItems: BreadcrumbItem[] = [
     {
       label: props.community.name,
@@ -68,9 +83,21 @@ export default function CommunitySettingsPage(props: Props) {
         </>
       )}
 
-      {(props.permissions.canManageSpaces || props.permissions.canManageModeratorPermissions) && props.permissions.canDeleteCommunity && (
-        <Separator />
+      {canManageMembers && (
+        <>
+          {(props.permissions.canManageSpaces || props.permissions.canManageModeratorPermissions) && <Separator />}
+          <CommunityMembersManager
+            communityCuid={props.community.cuid}
+            communitySlug={props.community.slug}
+            currentRole={props.currentRole}
+            permissions={props.permissions}
+            refreshKey={membersVersion}
+          />
+        </>
       )}
+
+      {(props.permissions.canManageSpaces || props.permissions.canManageModeratorPermissions || canManageMembers) &&
+        props.permissions.canDeleteCommunity && <Separator />}
 
       {props.permissions.canDeleteCommunity && (
         <DeleteCommunityForm communityCuid={props.community.cuid} communityName={props.community.name} />

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Inertia\CommunityController;
+use App\Http\Controllers\Inertia\CommunityInvitationController;
 use App\Http\Controllers\Inertia\CommunityResourceController;
 use App\Http\Controllers\Inertia\DashboardController;
 use App\Http\Controllers\Inertia\MemberController;
@@ -36,6 +37,9 @@ Route::middleware([
 
     Route::get('/community/{communitySlug}', [CommunityController::class, 'show'])->name('communities.show');
     Route::get('/community/{communitySlug}/settings', [CommunityController::class, 'settings'])->name('communities.settings');
+
+    // The link of an invitation email (#1242): signed and temporary
+    Route::get('/community-invitations/{invitation}', [CommunityInvitationController::class, 'accept'])->middleware('signed')->name('community-invitations.accept');
 
     Route::get('/community/{communitySlug}/member/{username}', [MemberController::class, 'show'])->name('members.show');
     Route::get('/community/{communitySlug}/space/{spaceSlug}', [SpaceController::class, 'show'])->name('spaces.show');

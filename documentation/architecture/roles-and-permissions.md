@@ -36,7 +36,8 @@ The owner and the admins switch these rights in the community settings ("Moderat
 | Community settings                      | `CommunityPolicy::manage`                                 | yes    | yes    | no               | no     | no       | no      |
 | Switch the moderator rights             | `CommunityPolicy::manageModeratorPermissions`             | yes    | yes    | no               | no     | no       | no      |
 | Manage space groups and spaces          | `CommunityPolicy::manageSpaces`                           | yes    | yes    | `manage_spaces`  | no     | no       | no      |
-| Add, change and remove members          | `CommunityPolicy::add/update/removeCommunityMember`       | yes    | yes    | `manage_members` | no     | no       | no      |
+| List the members and their roles        | `CommunityPolicy::view`                                   | yes    | yes    | yes              | yes    | no       | no      |
+| Invite, change and remove members       | `CommunityPolicy::add/update/removeCommunityMember`       | yes    | yes    | `manage_members` | no     | no       | no      |
 | Upload images                           | `CommunityPolicy::uploadImage`                            | yes    | yes    | yes              | yes    | no       | no      |
 | Read a members-only space               | `SpacePolicy::view`                                       | yes    | yes    | yes              | yes    | no       | no      |
 | Read a public space                     | `SpacePolicy::view`                                       | yes    | yes    | yes              | yes    | yes      | yes     |
@@ -47,6 +48,23 @@ The owner and the admins switch these rights in the community settings ("Moderat
 | Edit one's own post or comment          | `PostPolicy::update`, `CommentPolicy::update`             | author | author | author           | author | no       | no      |
 | Comment and react                       | `PostPolicy::comment`, `CommunityResourcePolicy::comment` | yes    | yes    | yes              | yes    | no       | no      |
 
+## Role hierarchy
+
+Member management (#1242) adds a rule on top of the abilities above. `CommunityRoles::canActOn()` and `canGrant()` apply it in the member actions.
+
+1. The ranks are owner 4, admin 3, moderator 2, member 1.
+2. A user acts only on a member with a lower rank: nobody changes or removes the owner, and nobody changes their own role.
+3. A user gives only a role with a lower rank than their own: only the owner makes admins, admins make moderators and members, moderators with `manage_members` invite and remove members only.
+4. The same rule applies to invitations: the role of an invitation is lower than the role of the person who sends or cancels it.
+
+| Who                             | Acts on                     | Gives the roles          |
+| ------------------------------- | --------------------------- | ------------------------ |
+| Owner                           | admins, moderators, members | admin, moderator, member |
+| Admin                           | moderators, members         | moderator, member        |
+| Moderator with `manage_members` | members                     | member                   |
+
+Invitations ([ADR 0019](../adr/0019-community-invitations-by-email.md)): the email of an invitation has a signed link, valid for 7 days, that works only for an account with the invited email address.
+
 ## Per space type
 
 The rules above are the same for every space type (discussion, chat, pages, course, resources). What changes per type is the content that `contribute` adds: posts, chat messages, pages, lessons or resources.
@@ -54,4 +72,4 @@ The rules above are the same for every space type (discussion, chat, pages, cour
 ## Later
 
 1. Access groups (#1241): spaces visible to some groups, and moderators of one space.
-2. The role hierarchy of member management (#1242): nobody acts on the owner; only the owner manages admins; nobody acts on a member with their own role or a higher one.
+2. Leaving a community, and transferring the ownership of a community.

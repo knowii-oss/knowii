@@ -1,0 +1,19 @@
+meta {
+  name: Members - List
+  type: http
+  seq: 63
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/members?limit=20&offset=0
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The members of the community with their role (#1242): owner first, then admins, moderators and members, each by username. Offset pagination (limit, offset). Members of the community only. With a query parameter, the same list is filtered (see Members - Search).
+}

@@ -3,6 +3,7 @@
 use App\ApiRoutes;
 use App\Http\Controllers\API\CommentApiController;
 use App\Http\Controllers\API\CommunityApiController;
+use App\Http\Controllers\API\CommunityInvitationApiController;
 use App\Http\Controllers\API\CommunityResourceApiController;
 use App\Http\Controllers\API\CommunityResourceCommentApiController;
 use App\Http\Controllers\API\LoginApiController;
@@ -88,7 +89,17 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
 
         Route::post(ApiRoutes::COMMUNITY_UPLOADS, [UploadApiController::class, 'store'])->middleware('throttle:uploads');
 
-        Route::get(ApiRoutes::COMMUNITY_MEMBERS, [MemberApiController::class, 'search'])->middleware('throttle:markdown-preview');
+        // Members (#1177 search, #1242 management)
+        Route::get(ApiRoutes::COMMUNITY_MEMBERS, [MemberApiController::class, 'index'])->middleware('throttle:markdown-preview');
+        Route::patch(ApiRoutes::COMMUNITY_MEMBER, [MemberApiController::class, 'update']);
+        Route::delete(ApiRoutes::COMMUNITY_MEMBER, [MemberApiController::class, 'destroy']);
+
+        // Invitations (#1242). scopeBindings: an invitation of another community gives a 404
+        Route::scopeBindings()->group(function () {
+            Route::get(ApiRoutes::COMMUNITY_INVITATIONS, [CommunityInvitationApiController::class, 'index']);
+            Route::post(ApiRoutes::COMMUNITY_INVITATIONS, [CommunityInvitationApiController::class, 'store'])->middleware('throttle:invitations');
+            Route::delete(ApiRoutes::COMMUNITY_INVITATION, [CommunityInvitationApiController::class, 'destroy']);
+        });
 
         Route::post(ApiRoutes::MARKDOWN_PREVIEW, [MarkdownApiController::class, 'preview'])->middleware('throttle:markdown-preview');
     });

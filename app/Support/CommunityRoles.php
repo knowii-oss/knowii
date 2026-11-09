@@ -23,4 +23,50 @@ final class CommunityRoles
         return self::isOwnerOrAdmin($user, $community)
             || ($user->hasCommunityRole($community, KnowiiCommunityMemberRole::Moderator) && $community->moderatorsCan($permission));
     }
+
+    /**
+     * The rank of a role in the hierarchy of #1242: owner 4, admin 3, moderator 2, member 1. Null is the owner.
+     */
+    public static function rankOf(?KnowiiCommunityMemberRole $role): int
+    {
+        return match ($role) {
+            null => 4,
+            KnowiiCommunityMemberRole::Admin => 3,
+            KnowiiCommunityMemberRole::Moderator => 2,
+            KnowiiCommunityMemberRole::Member => 1,
+        };
+    }
+
+    /**
+     * The rank of a user in a community: 0 when they are not a member.
+     */
+    public static function rankOfUser(User $user, Community $community): int
+    {
+        if ($user->ownsCommunity($community)) {
+            return self::rankOf(null);
+        }
+
+        $member = $community->getMemberById($user->id);
+
+        return $member === null ? 0 : self::rankOf($member->role);
+    }
+
+    /**
+     * The role hierarchy of member management (#1242, ADR 0017): with the "manage members" right, a user acts only on
+     * members whose role is lower than their own (null target: the owner, whom nobody changes or removes).
+     */
+    public static function canActOn(User $user, Community $community, ?KnowiiCommunityMemberRole $targetRole): bool
+    {
+        return self::allows($user, $community, KnowiiModeratorPermission::ManageMembers)
+            && self::rankOf($targetRole) < self::rankOfUser($user, $community);
+    }
+
+    /**
+     * A user with the "manage members" right gives only roles lower than their own: only the owner makes admins.
+     */
+    public static function canGrant(User $user, Community $community, KnowiiCommunityMemberRole $role): bool
+    {
+        return self::allows($user, $community, KnowiiModeratorPermission::ManageMembers)
+            && self::rankOf($role) < self::rankOfUser($user, $community);
+    }
 }

@@ -1,0 +1,19 @@
+meta {
+  name: Invitations - Cancel
+  type: http
+  seq: 68
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/invitations/<invitation cuid>
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Cancels a pending invitation (#1242): its link stops working. Same rule as giving its role. An invitation of another community gives a 404. Returns 204.
+}

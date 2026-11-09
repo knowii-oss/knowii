@@ -36,11 +36,18 @@ const SpaceTreeEvents = {
 
 type SpaceTreeEvent = (typeof SpaceTreeEvents)[keyof typeof SpaceTreeEvents];
 
+// The members or the invitations of the community changed (#1242): load them again (the payload only names the community)
+const MemberEvents = {
+  CHANGED: 'community.members.changed',
+} as const;
+
+type MemberEvent = (typeof MemberEvents)[keyof typeof MemberEvents];
+
 type CommunityEvent = (typeof CommunityEvents)[keyof typeof CommunityEvents];
 type ResourceEvent = (typeof ResourceEvents)[keyof typeof ResourceEvents];
 
 type CommunitiesChannelEvent = CommunityEvent;
-type CommunityChannelEvent = Exclude<CommunityEvent, typeof CommunityEvents.CREATED> | SpaceTreeEvent;
+type CommunityChannelEvent = Exclude<CommunityEvent, typeof CommunityEvents.CREATED> | SpaceTreeEvent | MemberEvent;
 // The resources of a resources space go to the channel of the space only (ADR 0015)
 type SpaceChannelEvent = ResourceEvent;
 
@@ -55,6 +62,8 @@ type EventPayloadMap = {
   [K in ResourceEvent]: K extends typeof ResourceEvents.DELETED ? Identifiable : CommunityResource;
 } & {
   [K in SpaceTreeEvent]: { community_cuid: string };
+} & {
+  [K in MemberEvent]: { community_cuid: string };
 };
 
 // Define the hook options with improved type safety

@@ -6,6 +6,7 @@ use App\Enums\KnowiiSpaceType;
 use App\Models\Community;
 use App\Models\Space;
 use App\Models\SpaceGroup;
+use App\Models\User;
 use App\Support\SpaceTree;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -62,8 +63,8 @@ class CommunityController extends Controller
     {
         $community = (new Community)->where('slug', $slug)->firstOrFail();
 
-        // Owner and admins; moderators with the "manage spaces" right see the space editor only (#1240)
-        abort_unless(Gate::any(['manage', 'manageSpaces'], $community), 403);
+        // Owner and admins; moderators see the parts that their rights open: spaces (#1240), members (#1242)
+        abort_unless(Gate::any(['manage', 'manageSpaces', 'addCommunityMember'], $community), 403);
 
         // Disable wrapping for the data we return to the frontend from this controller
         // This lets us use the API Resources classes without the wrapping that is normally applied
@@ -76,7 +77,20 @@ class CommunityController extends Controller
             'spaceGroups' => SpaceTree::for($community, $request->user())->toResourceCollection(),
 
             'permissions' => $this->getCommunityPermissions($community),
+            // The member management screen offers only the roles below this one (#1242)
+            'currentRole' => $this->currentRole($request, $community),
         ]);
+    }
+
+    /**
+     * The role of the current user in the community: owner, admin, moderator or member.
+     */
+    private function currentRole(Request $request, Community $community): string
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        return $user->ownsCommunity($community) ? 'owner' : ($community->getMemberById($user->id)?->role->value ?? 'member');
     }
 
     /**

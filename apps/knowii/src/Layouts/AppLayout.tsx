@@ -1,7 +1,7 @@
 import type { ReactElement, ReactNode } from 'react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import { DASHBOARD_URL, LOGOUT_URL, USER_PROFILE_URL, useTypedPage } from '@knowii/common';
+import { DASHBOARD_URL, LOGOUT_URL, USER_PROFILE_URL, useAppData, useTypedPage } from '@knowii/common';
 import { useRoute } from 'ziggy-js';
 import { FaBars, FaHome, FaSignOutAlt, FaUser } from 'react-icons/fa';
 import PageHeader from '@/Components/PageHeader';
@@ -12,6 +12,9 @@ import PageWrapper from '@/Components/PageWrapper';
 import PageTitle from '@/Components/PageTitle';
 import type { BreadcrumbItem } from '@/Components/ui';
 import { Avatar, Button, Drawer, DropdownMenu, DropdownMenuItem, dropdownMenuItemClasses, ErrorBoundary } from '@/Components/ui';
+
+// A message after a redirect explains why the member landed here: it stays longer than a usual toast
+const FLASH_TOAST_LIFE = 8000;
 
 interface Props {
   browserPageTitle: string;
@@ -28,6 +31,19 @@ export default function AppLayout(props: Props) {
   const user = page.props.auth.user;
 
   const [mainMenuVisible, setMainMenuVisible] = useState(false);
+
+  // A message flashed by a redirect of the server (for example the link of an invitation, #1242) shows as a toast
+  const { showToast } = useAppData();
+  const flashMessage = page.props.jetstream.flash?.banner;
+  const flashStyle = page.props.jetstream.flash?.bannerStyle;
+  // Once per page: React runs effects twice in development (StrictMode)
+  const shownFlash = useRef<string | null>(null);
+  useEffect(() => {
+    if (flashMessage && shownFlash.current !== flashMessage) {
+      shownFlash.current = flashMessage;
+      showToast({ severity: flashStyle === 'danger' ? 'error' : 'success', summary: flashMessage, life: FLASH_TOAST_LIFE });
+    }
+  }, [flashMessage, flashStyle, showToast]);
 
   return (
     <>
