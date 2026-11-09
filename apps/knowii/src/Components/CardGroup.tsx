@@ -6,5 +6,9 @@ interface Props {
 }
 
 export default function CardGroup(props: PropsWithChildren<Props>) {
-  return <ul className={cn('flex list-none flex-wrap justify-center gap-6 md:justify-start', props.className)}>{props.children}</ul>;
+  return (
+    <ul className={cn('grid list-none grid-cols-1 gap-6 sm:grid-cols-[repeat(auto-fill,minmax(20rem,1fr))]', props.className)}>
+      {props.children}
+    </ul>
+  );
 }

@@ -106,7 +106,7 @@ export default function DashboardPage(props: Props) {
             placeholder="Search communities..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            wrapperClassName="md:w-[34rem] lg:w-[48rem]"
+            wrapperClassName="sm:grow md:max-w-xl"
           />
           <Select<CommunityVisibility>
             size="sm"
@@ -123,7 +123,7 @@ export default function DashboardPage(props: Props) {
         </div>
         <CardGroup className="mt-4">
           {filteredCommunities().map((item) => (
-            <li className="w-full sm:w-auto" key={item.cuid}>
+            <li key={item.cuid}>
               <CommunityBox
                 community={item}
                 creationMode={false}
@@ -133,7 +133,7 @@ export default function DashboardPage(props: Props) {
               />
             </li>
           ))}
-          <li className="w-full sm:w-auto">
+          <li>
             <CommunityBox creationMode={true} clickHandler={openCreateCommunityModal} />
           </li>
         </CardGroup>

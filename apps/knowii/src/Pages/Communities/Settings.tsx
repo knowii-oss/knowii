@@ -72,7 +72,12 @@ export default function CommunitySettingsPage(props: Props) {
   ];
 
   return (
-    <AppLayout browserPageTitle={`${props.community.name} - Settings`} breadcrumbItems={breadcrumbItems} breadcrumbHome={breadcrumbHome()}>
+    <AppLayout
+      contentWidth="form"
+      browserPageTitle={`${props.community.name} - Settings`}
+      breadcrumbItems={breadcrumbItems}
+      breadcrumbHome={breadcrumbHome()}
+    >
       {props.permissions.canUpdateCommunity && (
         <>
           <UpdateCommunityForm community={props.community} onSaved={() => router.reload({ only: ['community'] })} />

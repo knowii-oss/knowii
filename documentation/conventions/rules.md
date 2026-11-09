@@ -35,12 +35,14 @@ These rules keep the code structurally sound as it grows. Each rule has a reason
 5. Never put text written by a member in an `href` without `safeHttpUrl()` (libs/common): only absolute http and https URLs become links.
 6. Inertia props are not parsed by Zod: their dates are ISO strings even when the type says `Date`. Components that format dates accept both (see `RelativeTime`).
 7. Call the API through `apiRequest()`: it sends uppercase HTTP methods (`fetch` does not uppercase `patch`, and servers reject it).
+8. Layout (#1264): the breakpoints are custom (`styles.css`: `sm` 600 px, `md` 960 px, `lg` 1280 px, `xg` 1600 px, `xl` 1920 px). Every page sits in the `page-container` frame (100rem wide at most). Long text uses `readable-width` (`CommunityShell contentWidth="readable"`), and settings pages use `AppLayout contentWidth="form"`. Inside a community page, use container queries (`@3xl:grid-cols-2`), not window breakpoints: the space navigation takes part of the width.
+9. Touch targets are at least 24 px (WCAG 2.5.8). Links outside running text get 44 px of height on small screens (`touch-target`).
 
 ## Definition of done
 
 A pull request is done when all of these are true:
 
-1. The feature works in the browser (Docker development environment), in both themes, with the keyboard, without a CSP violation in the console.
+1. The feature works in the browser (Docker development environment), in both themes, with the keyboard, without a CSP violation in the console, at a phone width (360 px) and a large width (1920 px), without horizontal scrolling.
 2. Pest tests cover the actions, the policies and the API endpoints (success and main failures). Vitest tests cover the new components.
 3. `npm run tsc`, `npx nx run-many -t lint typecheck test`, `composer lint` and `php artisan test` pass.
 4. The Bruno collection (`documentation/api`) has a request for each new or changed endpoint (`BrunoCollectionTest` checks that every route has one).

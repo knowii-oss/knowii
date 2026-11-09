@@ -43,7 +43,7 @@ export default function MemberPage({ community, spaceGroups, member }: Props) {
 
   return (
     <AppLayout browserPageTitle={`${member.name} - ${community.name}`} breadcrumbItems={breadcrumbItems} breadcrumbHome={breadcrumbHome()}>
-      <CommunityShell community={community} spaceGroups={spaceGroups}>
+      <CommunityShell community={community} spaceGroups={spaceGroups} contentWidth="readable">
         <Card as="article" aria-labelledby="member-name" className="flex flex-col gap-4 p-6">
           <header className="flex items-center gap-4">
             <Avatar name={member.name} imageUrl={member.avatar_url} size="lg" />

@@ -191,8 +191,26 @@
   }
 }
 
+/*
+ * The horizontal frame of every page (#1264): the header, the title bar, the content and the footer line up on it.
+ * Up to 100rem (1600 px) wide, centered: wider screens get more columns inside, not longer lines.
+ */
+@utility page-container {
+  @apply mx-auto w-full max-w-400 px-4 sm:px-6 md:px-8 lg:px-12;
+}
+
 @utility page-content-boundaries {
-  @apply mt-8 px-4 sm:mx-4 md:mx-8 md:mt-12 lg:mx-16 lg:mt-16 xl:mx-24;
+  @apply page-container mt-6 md:mt-10 lg:mt-12;
+}
+
+/* Long text (posts, resources, profiles): about 75 characters per line */
+@utility readable-width {
+  @apply w-full max-w-3xl;
+}
+
+/* A link outside running text: 44 px high on touch screens, compact from md (#1264) */
+@utility touch-target {
+  @apply inline-flex min-h-11 items-center md:min-h-0;
 }
 
 @utility simple-link {

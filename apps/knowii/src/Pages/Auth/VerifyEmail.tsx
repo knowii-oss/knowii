@@ -43,10 +43,10 @@ export default function VerifyEmailPage(props: Props) {
               Resend verification email
             </Button>
             <div className="flex flex-col sm:flex-row items-center">
-              <Link href={route(USER_PROFILE_URL)} className="simple-link mb-2 sm:mb-0 sm:mr-4">
+              <Link href={route(USER_PROFILE_URL)} className="simple-link touch-target mb-2 sm:mb-0 sm:mr-4">
                 Edit profile
               </Link>
-              <Link href={route(LOGOUT_URL)} method="post" className="simple-link" as="button">
+              <Link href={route(LOGOUT_URL)} method="post" className="simple-link touch-target" as="button">
                 Log out
               </Link>
             </div>

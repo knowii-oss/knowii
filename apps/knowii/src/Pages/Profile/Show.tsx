@@ -23,7 +23,7 @@ export default function UserProfile(props: Props) {
   const breadcrumbItems: BreadcrumbItem[] = [{ label: 'Edit profile', icon: <FaUser /> }];
 
   return (
-    <AppLayout browserPageTitle="Profile" breadcrumbItems={breadcrumbItems} breadcrumbHome={breadcrumbHome()}>
+    <AppLayout contentWidth="form" browserPageTitle="Profile" breadcrumbItems={breadcrumbItems} breadcrumbHome={breadcrumbHome()}>
       {page.props.auth.user && (
         <>
           <UpdateAvatarForm name={page.props.auth.user.name} avatarUrl={page.props.auth.user.avatar_url} />

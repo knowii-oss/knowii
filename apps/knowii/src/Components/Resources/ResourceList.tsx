@@ -106,7 +106,7 @@ export function ResourceList({ community, space, initialResources, canContribute
           description={canContribute ? 'Share the first useful article with the community.' : 'Curated articles will show here.'}
         />
       ) : (
-        <ul className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-3 @3xl:grid-cols-2 @6xl:grid-cols-3">
           {resources.map((resource) => (
             <li key={resource.cuid}>
               <ResourceCard resource={resource} href={href(resource)} />

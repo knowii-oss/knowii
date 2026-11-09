@@ -117,7 +117,7 @@ export default function ApiTokensPage({ tokens, availablePermissions, defaultPer
   };
 
   return (
-    <AppLayout browserPageTitle="API tokens" breadcrumbItems={breadcrumbItems} breadcrumbHome={breadcrumbHome()}>
+    <AppLayout contentWidth="form" browserPageTitle="API tokens" breadcrumbItems={breadcrumbItems} breadcrumbHome={breadcrumbHome()}>
       <FormSection
         onSubmit={(event) => {
           event.preventDefault();

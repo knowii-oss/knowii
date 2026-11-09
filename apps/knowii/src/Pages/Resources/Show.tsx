@@ -48,7 +48,7 @@ export default function ResourcePage(props: Props) {
       breadcrumbItems={breadcrumbItems}
       breadcrumbHome={breadcrumbHome()}
     >
-      <CommunityShell community={community} spaceGroups={props.spaceGroups} activeSpaceCuid={space.cuid}>
+      <CommunityShell community={community} spaceGroups={props.spaceGroups} activeSpaceCuid={space.cuid} contentWidth="readable">
         <ResourceDetails
           communitySlug={community.slug}
           resource={resource}

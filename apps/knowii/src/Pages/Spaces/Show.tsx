@@ -62,7 +62,13 @@ export default function SpacePage(props: Props) {
         ) : null
       }
     >
-      <CommunityShell community={community} spaceGroups={props.spaceGroups} activeSpaceCuid={space.cuid}>
+      <CommunityShell
+        community={community}
+        spaceGroups={props.spaceGroups}
+        activeSpaceCuid={space.cuid}
+        // A grid of resources uses the width; a list of posts reads better in a column
+        contentWidth={space.type === 'resources' ? 'wide' : 'readable'}
+      >
         <header className="mb-6 flex flex-col gap-2 border-b border-border pb-4">
           <h1 className="flex items-center gap-3 text-2xl font-extrabold">
             <span aria-hidden="true">{space.emoji || typeLabel.emoji}</span>
