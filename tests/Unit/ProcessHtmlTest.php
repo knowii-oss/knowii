@@ -112,3 +112,36 @@ test('malformed HTML and other encodings never throw', function () {
         ->and($process->getHtmlPageTitle("<title>Caf\xE9 ISO-8859-1</title>"))->toBeString()
         ->and($process->getHtmlPageMeta("\x00\xFF<meta name=x content=y>"))->toBeArray();
 });
+
+test('keywords from the keywords meta tag are lowercased, trimmed and kept in order, without empty entries', function () {
+    expect(processHtml()->getHtmlKeywords('<meta name="keywords" content=" PKM,  Smart Notes ,,Zettelkasten , ">'))
+        ->toBe(['pkm', 'smart notes', 'zettelkasten']);
+});
+
+test('keywords and article tags are merged without duplicates', function () {
+    $html = '<meta name="keywords" content="PKM, Obsidian">'
+        .'<meta property="article:tag" content="obsidian">'
+        .'<meta content=\'Second Brain\' property="article:tag">'
+        .'<meta property=\'article:tag\' content="pkm">';
+
+    expect(processHtml()->getHtmlKeywords($html))->toBe(['pkm', 'obsidian', 'second brain']);
+});
+
+test('a keyword longer than 100 characters is dropped, from both sources', function () {
+    $long = str_repeat('a', 101);
+    $max = str_repeat('b', 100);
+
+    expect(processHtml()->getHtmlKeywords("<meta name=\"keywords\" content=\"{$long}, ok\"><meta property=\"article:tag\" content=\"{$long}\"><meta property=\"article:tag\" content=\"{$max}\">"))
+        ->toBe(['ok', $max]);
+});
+
+test('keywords decode HTML entities and lowercase non-ASCII text', function () {
+    $html = '<meta name="keywords" content="R&amp;D, Connaissance, WISSENSMANAGEMENT, ÉCOLE">';
+
+    expect(processHtml()->getHtmlKeywords($html))->toBe(['r&d', 'connaissance', 'wissensmanagement', 'école']);
+});
+
+test('a page without keywords gives an empty list', function () {
+    expect(processHtml()->getHtmlKeywords(htmlFixture('article')))->toBe([])
+        ->and(processHtml()->getHtmlKeywords(MALFORMED_HTML))->toBe([]);
+});
