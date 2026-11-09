@@ -31,81 +31,82 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
     // Waitlist (public, rate limited: see AppServiceProvider)
     Route::post(ApiRoutes::WAITLIST, [WaitlistApiController::class, 'join'])->middleware('throttle:waitlist');
 
+    // Every route names the token abilities that it needs (ADR 0022, #689). Session users pass every check
     Route::middleware('auth:sanctum')->group(function () {
         // The current user, as an API resource (#1145)
-        Route::get(ApiRoutes::USER, [UserApiController::class, 'me']);
-        Route::post(ApiRoutes::USER_AVATAR, [UserApiController::class, 'updateAvatar'])->middleware('throttle:uploads');
-        Route::delete(ApiRoutes::USER_AVATAR, [UserApiController::class, 'deleteAvatar']);
-        Route::post(ApiRoutes::USERS_IS_USERNAME_AVAILABLE, [UserApiController::class, 'isUsernameAvailable']);
+        Route::get(ApiRoutes::USER, [UserApiController::class, 'me'])->middleware('ability:user:read');
+        Route::post(ApiRoutes::USER_AVATAR, [UserApiController::class, 'updateAvatar'])->middleware('ability:user:write')->middleware('throttle:uploads');
+        Route::delete(ApiRoutes::USER_AVATAR, [UserApiController::class, 'deleteAvatar'])->middleware('ability:user:write');
+        Route::post(ApiRoutes::USERS_IS_USERNAME_AVAILABLE, [UserApiController::class, 'isUsernameAvailable'])->middleware('ability:user:read');
 
-        Route::post(ApiRoutes::COMMUNITIES, [CommunityApiController::class, 'store']);
-        Route::get(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'show']);
-        Route::patch(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'update']);
-        Route::delete(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'destroy']);
-        Route::patch(ApiRoutes::COMMUNITY_MODERATOR_PERMISSIONS, [ModeratorPermissionApiController::class, 'update']);
+        Route::post(ApiRoutes::COMMUNITIES, [CommunityApiController::class, 'store'])->middleware('ability:communities:write');
+        Route::get(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'show'])->middleware('ability:communities:read');
+        Route::patch(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'update'])->middleware('ability:communities:write');
+        Route::delete(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'destroy'])->middleware('ability:communities:write');
+        Route::patch(ApiRoutes::COMMUNITY_MODERATOR_PERMISSIONS, [ModeratorPermissionApiController::class, 'update'])->middleware('ability:communities:write');
 
         // Space groups and spaces (#1173). scopeBindings: a space group or space of another community gives a 404
         Route::scopeBindings()->group(function () {
-            Route::get(ApiRoutes::COMMUNITY_SPACE_GROUPS, [SpaceGroupApiController::class, 'index']);
-            Route::post(ApiRoutes::COMMUNITY_SPACE_GROUPS, [SpaceGroupApiController::class, 'store']);
-            Route::post(ApiRoutes::COMMUNITY_SPACE_GROUPS_REORDER, [SpaceGroupApiController::class, 'reorder']);
-            Route::patch(ApiRoutes::COMMUNITY_SPACE_GROUP, [SpaceGroupApiController::class, 'update']);
-            Route::delete(ApiRoutes::COMMUNITY_SPACE_GROUP, [SpaceGroupApiController::class, 'destroy']);
-            Route::post(ApiRoutes::COMMUNITY_SPACE_GROUP_SPACES_REORDER, [SpaceApiController::class, 'reorder']);
+            Route::get(ApiRoutes::COMMUNITY_SPACE_GROUPS, [SpaceGroupApiController::class, 'index'])->middleware('ability:communities:read');
+            Route::post(ApiRoutes::COMMUNITY_SPACE_GROUPS, [SpaceGroupApiController::class, 'store'])->middleware('ability:communities:write');
+            Route::post(ApiRoutes::COMMUNITY_SPACE_GROUPS_REORDER, [SpaceGroupApiController::class, 'reorder'])->middleware('ability:communities:write');
+            Route::patch(ApiRoutes::COMMUNITY_SPACE_GROUP, [SpaceGroupApiController::class, 'update'])->middleware('ability:communities:write');
+            Route::delete(ApiRoutes::COMMUNITY_SPACE_GROUP, [SpaceGroupApiController::class, 'destroy'])->middleware('ability:communities:write');
+            Route::post(ApiRoutes::COMMUNITY_SPACE_GROUP_SPACES_REORDER, [SpaceApiController::class, 'reorder'])->middleware('ability:communities:write');
 
-            Route::post(ApiRoutes::COMMUNITY_SPACES, [SpaceApiController::class, 'store']);
-            Route::get(ApiRoutes::COMMUNITY_SPACE, [SpaceApiController::class, 'show']);
-            Route::patch(ApiRoutes::COMMUNITY_SPACE, [SpaceApiController::class, 'update']);
-            Route::delete(ApiRoutes::COMMUNITY_SPACE, [SpaceApiController::class, 'destroy']);
+            Route::post(ApiRoutes::COMMUNITY_SPACES, [SpaceApiController::class, 'store'])->middleware('ability:communities:write');
+            Route::get(ApiRoutes::COMMUNITY_SPACE, [SpaceApiController::class, 'show'])->middleware('ability:communities:read');
+            Route::patch(ApiRoutes::COMMUNITY_SPACE, [SpaceApiController::class, 'update'])->middleware('ability:communities:write');
+            Route::delete(ApiRoutes::COMMUNITY_SPACE, [SpaceApiController::class, 'destroy'])->middleware('ability:communities:write');
 
             // Posts (#1174)
-            Route::get(ApiRoutes::COMMUNITY_SPACE_POSTS, [PostApiController::class, 'index']);
-            Route::post(ApiRoutes::COMMUNITY_SPACE_POSTS, [PostApiController::class, 'store'])->middleware('throttle:posts');
-            Route::get(ApiRoutes::COMMUNITY_SPACE_POST, [PostApiController::class, 'show']);
-            Route::patch(ApiRoutes::COMMUNITY_SPACE_POST, [PostApiController::class, 'update']);
-            Route::delete(ApiRoutes::COMMUNITY_SPACE_POST, [PostApiController::class, 'destroy']);
-            Route::post(ApiRoutes::COMMUNITY_SPACE_POST_PIN, [PostApiController::class, 'pin']);
+            Route::get(ApiRoutes::COMMUNITY_SPACE_POSTS, [PostApiController::class, 'index'])->middleware('ability:posts:read');
+            Route::post(ApiRoutes::COMMUNITY_SPACE_POSTS, [PostApiController::class, 'store'])->middleware('ability:posts:write')->middleware('throttle:posts');
+            Route::get(ApiRoutes::COMMUNITY_SPACE_POST, [PostApiController::class, 'show'])->middleware('ability:posts:read');
+            Route::patch(ApiRoutes::COMMUNITY_SPACE_POST, [PostApiController::class, 'update'])->middleware('ability:posts:write');
+            Route::delete(ApiRoutes::COMMUNITY_SPACE_POST, [PostApiController::class, 'destroy'])->middleware('ability:posts:write');
+            Route::post(ApiRoutes::COMMUNITY_SPACE_POST_PIN, [PostApiController::class, 'pin'])->middleware('ability:posts:write');
 
             // Resources of resources spaces (ADR 0015)
-            Route::get(ApiRoutes::COMMUNITY_SPACE_RESOURCES, [CommunityResourceApiController::class, 'index']);
-            Route::post(ApiRoutes::COMMUNITY_SPACE_RESOURCES, [CommunityResourceApiController::class, 'store']);
-            Route::get(ApiRoutes::COMMUNITY_SPACE_RESOURCE, [CommunityResourceApiController::class, 'show']);
+            Route::get(ApiRoutes::COMMUNITY_SPACE_RESOURCES, [CommunityResourceApiController::class, 'index'])->middleware('ability:resources:read');
+            Route::post(ApiRoutes::COMMUNITY_SPACE_RESOURCES, [CommunityResourceApiController::class, 'store'])->middleware('ability:resources:create,resources:write');
+            Route::get(ApiRoutes::COMMUNITY_SPACE_RESOURCE, [CommunityResourceApiController::class, 'show'])->middleware('ability:resources:read');
 
             // Comments on resources (#1034)
-            Route::get(ApiRoutes::COMMUNITY_SPACE_RESOURCE_COMMENTS, [CommunityResourceCommentApiController::class, 'index']);
-            Route::post(ApiRoutes::COMMUNITY_SPACE_RESOURCE_COMMENTS, [CommunityResourceCommentApiController::class, 'store'])->middleware('throttle:comments');
-            Route::patch(ApiRoutes::COMMUNITY_SPACE_RESOURCE_COMMENT, [CommunityResourceCommentApiController::class, 'update']);
-            Route::delete(ApiRoutes::COMMUNITY_SPACE_RESOURCE_COMMENT, [CommunityResourceCommentApiController::class, 'destroy']);
-            Route::get(ApiRoutes::COMMUNITY_SPACE_RESOURCE_COMMENT_REACTIONS, [ReactionApiController::class, 'listResourceComment']);
-            Route::post(ApiRoutes::COMMUNITY_SPACE_RESOURCE_COMMENT_REACTIONS, [ReactionApiController::class, 'toggleResourceComment'])->middleware('throttle:reactions');
+            Route::get(ApiRoutes::COMMUNITY_SPACE_RESOURCE_COMMENTS, [CommunityResourceCommentApiController::class, 'index'])->middleware('ability:resources:read');
+            Route::post(ApiRoutes::COMMUNITY_SPACE_RESOURCE_COMMENTS, [CommunityResourceCommentApiController::class, 'store'])->middleware('ability:resources:write')->middleware('throttle:comments');
+            Route::patch(ApiRoutes::COMMUNITY_SPACE_RESOURCE_COMMENT, [CommunityResourceCommentApiController::class, 'update'])->middleware('ability:resources:write');
+            Route::delete(ApiRoutes::COMMUNITY_SPACE_RESOURCE_COMMENT, [CommunityResourceCommentApiController::class, 'destroy'])->middleware('ability:resources:write');
+            Route::get(ApiRoutes::COMMUNITY_SPACE_RESOURCE_COMMENT_REACTIONS, [ReactionApiController::class, 'listResourceComment'])->middleware('ability:resources:read');
+            Route::post(ApiRoutes::COMMUNITY_SPACE_RESOURCE_COMMENT_REACTIONS, [ReactionApiController::class, 'toggleResourceComment'])->middleware('ability:resources:write')->middleware('throttle:reactions');
 
             // Comments (#1175)
-            Route::get(ApiRoutes::COMMUNITY_SPACE_POST_COMMENTS, [CommentApiController::class, 'index']);
-            Route::post(ApiRoutes::COMMUNITY_SPACE_POST_COMMENTS, [CommentApiController::class, 'store'])->middleware('throttle:comments');
-            Route::patch(ApiRoutes::COMMUNITY_SPACE_POST_COMMENT, [CommentApiController::class, 'update']);
-            Route::delete(ApiRoutes::COMMUNITY_SPACE_POST_COMMENT, [CommentApiController::class, 'destroy']);
+            Route::get(ApiRoutes::COMMUNITY_SPACE_POST_COMMENTS, [CommentApiController::class, 'index'])->middleware('ability:posts:read');
+            Route::post(ApiRoutes::COMMUNITY_SPACE_POST_COMMENTS, [CommentApiController::class, 'store'])->middleware('ability:posts:write')->middleware('throttle:comments');
+            Route::patch(ApiRoutes::COMMUNITY_SPACE_POST_COMMENT, [CommentApiController::class, 'update'])->middleware('ability:posts:write');
+            Route::delete(ApiRoutes::COMMUNITY_SPACE_POST_COMMENT, [CommentApiController::class, 'destroy'])->middleware('ability:posts:write');
 
             // Reactions (#1176)
-            Route::get(ApiRoutes::COMMUNITY_SPACE_POST_REACTIONS, [ReactionApiController::class, 'listPost']);
-            Route::post(ApiRoutes::COMMUNITY_SPACE_POST_REACTIONS, [ReactionApiController::class, 'togglePost'])->middleware('throttle:reactions');
-            Route::get(ApiRoutes::COMMUNITY_SPACE_POST_COMMENT_REACTIONS, [ReactionApiController::class, 'listComment']);
-            Route::post(ApiRoutes::COMMUNITY_SPACE_POST_COMMENT_REACTIONS, [ReactionApiController::class, 'toggleComment'])->middleware('throttle:reactions');
+            Route::get(ApiRoutes::COMMUNITY_SPACE_POST_REACTIONS, [ReactionApiController::class, 'listPost'])->middleware('ability:posts:read');
+            Route::post(ApiRoutes::COMMUNITY_SPACE_POST_REACTIONS, [ReactionApiController::class, 'togglePost'])->middleware('ability:posts:write')->middleware('throttle:reactions');
+            Route::get(ApiRoutes::COMMUNITY_SPACE_POST_COMMENT_REACTIONS, [ReactionApiController::class, 'listComment'])->middleware('ability:posts:read');
+            Route::post(ApiRoutes::COMMUNITY_SPACE_POST_COMMENT_REACTIONS, [ReactionApiController::class, 'toggleComment'])->middleware('ability:posts:write')->middleware('throttle:reactions');
         });
 
-        Route::post(ApiRoutes::COMMUNITY_UPLOADS, [UploadApiController::class, 'store'])->middleware('throttle:uploads');
+        Route::post(ApiRoutes::COMMUNITY_UPLOADS, [UploadApiController::class, 'store'])->middleware('ability:posts:write')->middleware('throttle:uploads');
 
         // Members (#1177 search, #1242 management)
-        Route::get(ApiRoutes::COMMUNITY_MEMBERS, [MemberApiController::class, 'index'])->middleware('throttle:markdown-preview');
-        Route::patch(ApiRoutes::COMMUNITY_MEMBER, [MemberApiController::class, 'update']);
-        Route::delete(ApiRoutes::COMMUNITY_MEMBER, [MemberApiController::class, 'destroy']);
+        Route::get(ApiRoutes::COMMUNITY_MEMBERS, [MemberApiController::class, 'index'])->middleware('ability:communities:read')->middleware('throttle:markdown-preview');
+        Route::patch(ApiRoutes::COMMUNITY_MEMBER, [MemberApiController::class, 'update'])->middleware('ability:communities:write');
+        Route::delete(ApiRoutes::COMMUNITY_MEMBER, [MemberApiController::class, 'destroy'])->middleware('ability:communities:write');
 
         // Invitations (#1242). scopeBindings: an invitation of another community gives a 404
         Route::scopeBindings()->group(function () {
-            Route::get(ApiRoutes::COMMUNITY_INVITATIONS, [CommunityInvitationApiController::class, 'index']);
-            Route::post(ApiRoutes::COMMUNITY_INVITATIONS, [CommunityInvitationApiController::class, 'store'])->middleware('throttle:invitations');
-            Route::delete(ApiRoutes::COMMUNITY_INVITATION, [CommunityInvitationApiController::class, 'destroy']);
+            Route::get(ApiRoutes::COMMUNITY_INVITATIONS, [CommunityInvitationApiController::class, 'index'])->middleware('ability:communities:read');
+            Route::post(ApiRoutes::COMMUNITY_INVITATIONS, [CommunityInvitationApiController::class, 'store'])->middleware('ability:communities:write')->middleware('throttle:invitations');
+            Route::delete(ApiRoutes::COMMUNITY_INVITATION, [CommunityInvitationApiController::class, 'destroy'])->middleware('ability:communities:write');
         });
 
-        Route::post(ApiRoutes::MARKDOWN_PREVIEW, [MarkdownApiController::class, 'preview'])->middleware('throttle:markdown-preview');
+        Route::post(ApiRoutes::MARKDOWN_PREVIEW, [MarkdownApiController::class, 'preview'])->middleware('ability:posts:read')->middleware('throttle:markdown-preview');
     });
 });

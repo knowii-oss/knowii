@@ -43,28 +43,25 @@ class JetstreamServiceProvider extends ServiceProvider
     protected function configurePermissions(): void
     {
 
-        // All permissions
-        // WARNING: MUST remain aligned with those defined in jetstream-inertia.intf.ts on the client-side
+        // The abilities of API tokens (ADR 0022, #689): read and write per area, and resources:create for the browser
+        // extension (ADR 0018). Every API route names the abilities that it needs (routes/api.php).
+        // WARNING: MUST remain aligned with API_TOKEN_PERMISSIONS (jetstream-inertia.intf.ts) and documentation/api/README.md
         $allPermissions = [
-            'community:create',
-            'community:read',
-            'community:update',
-            'community:delete',
-            'resource:create',
-            'resource:read',
-            'resource:update',
-            'resource:delete',
-            // WARNING: All concepts should be listed
-
-            // TODO implement
-            // 'user_account:update'
+            'user:read',
+            'user:write',
+            'communities:read',
+            'communities:write',
+            'posts:read',
+            'posts:write',
+            'resources:read',
+            'resources:write',
+            'resources:create',
         ];
 
-        // All permissions
         Jetstream::permissions($allPermissions);
 
-        // Default API token permissions
-        Jetstream::defaultApiTokenPermissions($allPermissions);
+        // A new token can read, nothing more, until the member chooses more (least privilege)
+        Jetstream::defaultApiTokenPermissions(['user:read', 'communities:read', 'posts:read', 'resources:read']);
 
         // TODO define the exact admin permissions
         Jetstream::role('admin', 'Administrator', $allPermissions)->description('Administrator users can perform any action.');

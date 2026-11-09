@@ -1,9 +1,9 @@
 import type { ReactElement, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import { DASHBOARD_URL, LOGOUT_URL, USER_PROFILE_URL, useAppData, useTypedPage } from '@knowii/common';
+import { API_TOKENS_URL, DASHBOARD_URL, LOGOUT_URL, USER_PROFILE_URL, useAppData, useTypedPage } from '@knowii/common';
 import { useRoute } from 'ziggy-js';
-import { FaBars, FaHome, FaSignOutAlt, FaUser } from 'react-icons/fa';
+import { FaBars, FaHome, FaKey, FaSignOutAlt, FaUser } from 'react-icons/fa';
 import PageHeader from '@/Components/PageHeader';
 import ApplicationMark from '@/Components/ApplicationMark';
 import Footer from '@/Components/Footer';
@@ -114,6 +114,14 @@ export default function AppLayout(props: Props) {
                 Edit profile
               </Link>
             </DropdownMenuItem>
+            {page.props.jetstream.hasApiFeatures && (
+              <DropdownMenuItem>
+                <Link href={route(API_TOKENS_URL)} preserveState={true} className={dropdownMenuItemClasses}>
+                  <FaKey aria-hidden="true" className="text-muted" />
+                  API tokens
+                </Link>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem>
               <Link href={route(LOGOUT_URL)} method="post" as="button" className={dropdownMenuItemClasses}>
                 <FaSignOutAlt aria-hidden="true" className="text-muted" />

@@ -65,8 +65,9 @@ class LoginApiController extends Controller
         session()->regenerate();
 
         if ($request->boolean('includeToken')) {
+            // The password (and the second factor) stand behind this token: every ability, for 12 hours (ADR 0022)
             $tokenValidUntil = now()->addHours(12);
-            $token = $user->createToken('api', [], $tokenValidUntil)->plainTextToken;
+            $token = $user->createToken('api', ['*'], $tokenValidUntil)->plainTextToken;
 
             return self::success("Welcome to Knowii's API 🎉", null, [
                 'token' => $token,

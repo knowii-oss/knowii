@@ -13,6 +13,22 @@ The reference description of the API is the OpenAPI document that Scramble gener
 
 Requests that target an existing item (a community, a space) contain a cuid from the seed data. Replace it with a cuid from your database.
 
+## Tokens and abilities
+
+A personal API token (created on the "API tokens" page of the user menu) has abilities ([ADR 0022](../adr/0022-api-token-abilities.md)). Each route of `routes/api.php` names the abilities that it accepts (`ability:` middleware); a token without one of them gets a 403. The web session and the token of `Auth - Login (include token)` have every ability.
+
+| Ability             | What it allows                                                        |
+| ------------------- | --------------------------------------------------------------------- |
+| `user:read`         | Read the current user                                                 |
+| `user:write`        | Change the avatar                                                     |
+| `communities:read`  | Read communities, space groups, spaces, members and invitations       |
+| `communities:write` | Create, change and delete communities, spaces, members, invitations   |
+| `posts:read`        | Read posts, comments and reactions, preview Markdown                  |
+| `posts:write`       | Write posts and comments, pin, react, upload images                   |
+| `resources:read`    | Read resources, their comments and reactions                          |
+| `resources:write`   | Add resources, comment and react on them                              |
+| `resources:create`  | Add resources, nothing else (the browser extension, ADR 0018)         |
+
 ## Keep it current
 
 Each pull request that adds or changes an endpoint adds or updates the requests here, in the same pull request:
