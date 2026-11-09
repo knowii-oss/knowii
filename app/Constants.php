@@ -94,6 +94,9 @@ class Constants
     // Longest side after the resize
     public const int MAX_UPLOAD_IMAGE_DIMENSION = 2000;
 
+    // Avatars (#109): square, this many pixels on each side
+    public const int AVATAR_SIZE = 256;
+
     public const int UPLOAD_IMAGE_QUALITY = 82;
 
     // Largest page or image that the server downloads from an external address (#1231)

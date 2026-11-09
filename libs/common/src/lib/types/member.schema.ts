@@ -7,6 +7,7 @@ export const memberProfileSchema = z.object({
   cuid: z.string(),
   name: z.string(),
   username: z.string(),
+  avatar_url: z.string().nullable().optional(),
   bio: z.string(),
   location: z.string(),
   // Empty unless the member shows it (#1076)
@@ -61,6 +62,7 @@ export const communityMemberSchema = z.object({
   cuid: z.string(),
   name: z.string(),
   username: z.string(),
+  avatar_url: z.string().nullable().optional(),
   role: communityRoleSchema,
   // Inertia props and JSON are not parsed into dates everywhere: keep the ISO string
   member_since: z.string().nullable(),

@@ -30,6 +30,7 @@ class MemberWithRoleResource extends AbstractKnowiiJsonResource
             'cuid' => $this->cuid,
             'name' => $this->name,
             'username' => $this->username,
+            'avatar_url' => $this->avatar_url,
             'role' => is_string($role) ? $role : '',
             'member_since' => is_string($memberSince) || $memberSince instanceof DateTimeInterface ? Carbon::parse($memberSince) : null,
         ];

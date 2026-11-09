@@ -140,6 +140,7 @@ export const USERS_API_BASE_PATH = `${API_BASE_PATH}/users`;
 export const USERS_API_IS_USERNAME_AVAILABLE_PATH = `${USERS_API_BASE_PATH}/is-username-available`;
 
 // Communities
+export const USER_AVATAR_API_PATH = `${API_BASE_PATH}/user/avatar`;
 export const COMMUNITY_API_BASE_PATH = `${API_BASE_PATH}/communities`;
 
 export const COMMUNITY_API_PATH_PARAM_COMMUNITY = '{communityCuid}';

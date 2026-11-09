@@ -1,0 +1,23 @@
+meta {
+  name: Users - Update avatar
+  type: http
+  seq: 71
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/user/avatar
+  body: multipartForm
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+body:multipart-form {
+  file: @file(path/to/picture.jpg)
+}
+
+docs {
+  Replaces the avatar of the current user (#109, ADR 0021). multipart/form-data with a JPEG, PNG, WebP or GIF image, up to 10 MB. The server crops the centered square, scales it to 256 pixels and re-encodes it to WebP (no metadata). Returns the current user with avatar_url. Rate limited with the uploads.
+}

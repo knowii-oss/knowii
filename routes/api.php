@@ -33,6 +33,8 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         // The current user, as an API resource (#1145)
         Route::get(ApiRoutes::USER, [UserApiController::class, 'me']);
+        Route::post(ApiRoutes::USER_AVATAR, [UserApiController::class, 'updateAvatar'])->middleware('throttle:uploads');
+        Route::delete(ApiRoutes::USER_AVATAR, [UserApiController::class, 'deleteAvatar']);
         Route::post(ApiRoutes::USERS_IS_USERNAME_AVAILABLE, [UserApiController::class, 'isUsernameAvailable']);
 
         Route::post(ApiRoutes::COMMUNITIES, [CommunityApiController::class, 'store']);

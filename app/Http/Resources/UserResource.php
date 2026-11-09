@@ -26,6 +26,7 @@ class UserResource extends AbstractKnowiiJsonResource
             'cuid' => $this->cuid,
             'name' => $this->name,
             'username' => $this->username,
+            'avatar_url' => $this->avatar_url,
             'email' => $this->when($isSelf, fn () => $this->email),
             'email_verified_at' => $this->when($isSelf, fn () => $this->email_verified_at),
             'two_factor_enabled' => $this->when($isSelf, fn () => $this->two_factor_confirmed_at !== null),

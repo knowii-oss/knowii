@@ -150,7 +150,7 @@ export default function CommunityAboutPage(props: Props) {
                 <ul className="flex flex-col divide-y divide-border" aria-labelledby="team-title">
                   {team.map((member) => (
                     <li key={member.cuid} className="flex items-center gap-3 py-3">
-                      <Avatar name={member.name} size="sm" />
+                      <Avatar name={member.name} imageUrl={member.avatar_url} size="sm" />
                       <div className="flex min-w-0 flex-1 flex-col">
                         <Link
                           href={route(MEMBER_URL, { communitySlug: community.slug, username: member.username })}

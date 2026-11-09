@@ -33,7 +33,7 @@ interface Props {
   user: CurrentUser;
 }
 
-type UpdateProfileInformationFormData = { photo: File | null } & Omit<
+type UpdateProfileInformationFormData = Omit<
   CurrentUser,
   'created_at' | 'updated_at' | 'email_verified_at' | 'cuid' | 'two_factor_enabled' | 'two_factor_confirmed_at'
 > &
@@ -87,7 +87,6 @@ export default function UpdateProfileInformationForm(props: Props) {
     ...props.user,
     ...userProfileFieldsToInclude,
     field_visibility: resolveProfileFieldVisibility(storedFieldVisibility),
-    photo: null as File | null,
   });
 
   const visibilityToggle = (field: ProfileVisibilityField, fieldLabel: string) => (

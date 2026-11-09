@@ -29,7 +29,6 @@ class UserProfileFactory extends Factory
             'name' => $name,
             'username' => $username,
             'email' => fake()->unique()->safeEmail(),
-            'profile_photo_path' => null,
             // TODO missing all the other fields
         ];
     }

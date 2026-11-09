@@ -38,6 +38,7 @@ class MemberProfileResource extends AbstractKnowiiJsonResource
             'cuid' => $this->cuid,
             'name' => $this->name,
             'username' => $this->username,
+            'avatar_url' => $this->avatar_url,
             'bio' => $profile?->showsField('bio') ? (string) $profile->bio : '',
             'location' => $profile?->showsField('location') ? (string) $profile->location : '',
             // Hidden unless the member shows it

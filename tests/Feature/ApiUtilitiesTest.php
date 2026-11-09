@@ -46,5 +46,5 @@ test('the user resource of another member carries no account field (#1145)', fun
     $json = $user->load('profile')->toResource()->toArray(request());
 
     expect(array_keys(array_filter($json, fn ($value) => ! $value instanceof MissingValue)))
-        ->toEqualCanonicalizing(['cuid', 'name', 'username', 'created_at']);
+        ->toEqualCanonicalizing(['cuid', 'name', 'username', 'avatar_url', 'created_at']);
 });

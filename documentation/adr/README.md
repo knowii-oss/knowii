@@ -45,3 +45,4 @@ Do not write an ADR for a bug fix, a refactor that keeps the structure, or a fea
 | [0018](0018-content-capture.md)                                        | Queued server capture of links, full captures from a browser extension  | Accepted |
 | [0019](0019-community-invitations-by-email.md)                         | Community invitations by email, for one address, with a signed link     | Accepted |
 | [0020](0020-members-choose-visible-profile-fields.md)                  | Members choose which profile fields the other members see               | Accepted |
+| [0021](0021-avatars-stored-by-knowii-on-the-user.md)                   | Avatars are square images stored by Knowii, on the user                 | Accepted |

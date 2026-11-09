@@ -96,11 +96,11 @@ export default function AppLayout(props: Props) {
           {/* USER menu */}
           <DropdownMenu
             label="Open the user menu"
-            trigger={<Avatar name={user?.name} size="md" />}
+            trigger={<Avatar name={user?.name} imageUrl={user?.avatar_url} size="md" />}
             triggerClassName="rounded-full"
             header={
               <div className="flex items-center gap-3">
-                <Avatar name={user?.name} size="lg" />
+                <Avatar name={user?.name} imageUrl={user?.avatar_url} size="lg" />
                 <div className="min-w-0">
                   <p className="truncate font-bold">{user?.name}</p>
                   <p className="truncate text-xs text-muted">{user?.email}</p>

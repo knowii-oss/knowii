@@ -2,6 +2,7 @@ import AppLayout from '@/Layouts/AppLayout';
 import type { Session } from '@knowii/common';
 import { useTypedPage } from '@knowii/common';
 import UpdateProfileInformationForm from '@/Pages/Profile/Partials/UpdateProfileInformationForm';
+import UpdateAvatarForm from '@/Pages/Profile/Partials/UpdateAvatarForm';
 import Separator from '@/Components/Separator';
 import UpdatePasswordForm from '@/Pages/Profile/Partials/UpdatePasswordForm';
 import LogoutOtherBrowserSessionsForm from '@/Pages/Profile/Partials/LogoutOtherBrowserSessionsForm';
@@ -22,6 +23,13 @@ export default function UserProfile(props: Props) {
 
   return (
     <AppLayout browserPageTitle="Profile" breadcrumbItems={breadcrumbItems} breadcrumbHome={breadcrumbHome()}>
+      {page.props.auth.user && (
+        <>
+          <UpdateAvatarForm name={page.props.auth.user.name} avatarUrl={page.props.auth.user.avatar_url} />
+          <Separator />
+        </>
+      )}
+
       {page.props.jetstream.canUpdateProfileInformation && page.props.auth.user && (
         <UpdateProfileInformationForm user={page.props.auth.user} />
       )}

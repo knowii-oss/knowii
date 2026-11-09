@@ -46,7 +46,7 @@ export default function MemberPage({ community, spaceGroups, member }: Props) {
       <CommunityShell community={community} spaceGroups={spaceGroups}>
         <Card as="article" aria-labelledby="member-name" className="flex flex-col gap-4 p-6">
           <header className="flex items-center gap-4">
-            <Avatar name={member.name} size="lg" />
+            <Avatar name={member.name} imageUrl={member.avatar_url} size="lg" />
             <div className="min-w-0">
               <h1 id="member-name" className="text-2xl font-extrabold">
                 {member.name}

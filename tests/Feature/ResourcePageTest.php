@@ -39,7 +39,7 @@ test('members see the page of a resource, without the large fields (#1133)', fun
             ->where('resource.resource_text_article.reading_time', 6)
             ->where('resource.resource_text_article.markdown', null)
             ->where('resource.resource.cover_image_base64', null)
-            ->has('resource.curator', 3)
+            ->has('resource.curator', 4)
             ->where('space.cuid', $this->space->cuid)
             ->has('spaceGroups'));
 });
