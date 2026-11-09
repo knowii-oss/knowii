@@ -1,6 +1,6 @@
 import { Link } from '@inertiajs/react';
 import type { Community, CommunityResource, Paginated, Post, Space, SpaceGroup, SpacePermissions } from '@knowii/common';
-import { COMMUNITY_SETTINGS_URL, COMMUNITY_URL, SPACE_POSTING_POLICY_LABELS, SPACE_TYPE_LABELS } from '@knowii/common';
+import { COMMUNITY_SETTINGS_URL, COMMUNITY_URL, SPACE_POSTING_POLICY_LABELS, SPACE_TYPE_LABELS, useTypedPage } from '@knowii/common';
 import { FaGear } from 'react-icons/fa6';
 import AppLayout from '@/Layouts/AppLayout';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
@@ -32,6 +32,7 @@ const EMPTY_STATES: Record<Space['type'], { title: string; description: string }
 };
 
 export default function SpacePage(props: Props) {
+  const page = useTypedPage();
   const { community, space } = props;
   const typeLabel = SPACE_TYPE_LABELS[space.type];
 
@@ -93,6 +94,7 @@ export default function SpacePage(props: Props) {
             initialPosts={props.posts}
             canContribute={props.permissions.canContribute}
             canReact={props.permissions.canReact}
+            currentUserCuid={page.props.auth.user?.cuid ?? null}
           />
         ) : space.type === 'resources' && props.resources ? (
           <ResourceList

@@ -27,14 +27,23 @@ export function CommunityShell({ community, spaceGroups, activeSpaceCuid, conten
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const channel = useMemo(() => ({ type: 'community' as const, communityCuid: community.cuid }), [community.cuid]);
+  // The navigation changed, or the current space (renamed, moved, other visibility): load both again (#1180, #1128).
+  // Inertia ignores a prop that the page does not have.
   const reloadSpaceTree = useCallback(() => {
-    router.reload({ only: ['spaceGroups'] });
+    router.reload({ only: ['spaceGroups', 'space'] });
   }, []);
 
   useSocket({
     channel,
     event: 'community.space_tree.changed',
     callback: reloadSpaceTree,
+  });
+
+  // The community was renamed or changed: the breadcrumb and the titles follow (#1128)
+  useSocket({
+    channel,
+    event: 'community.updated',
+    callback: () => router.reload({ only: ['community'] }),
   });
 
   const getSpaceHref = useCallback(

@@ -33,6 +33,12 @@ function toSummary(input: ReactionBarProps['initialReactions']): ReactionSummary
 export function ReactionBar({ target, initialReactions, canReact, itemLabel }: ReactionBarProps) {
   const { showToast } = useAppData();
   const [reactions, setReactions] = useState<ReactionSummary>(() => toSummary(initialReactions));
+  // Live updates (#1180): a new summary from the server (the item loaded again) replaces the shown one
+  const [source, setSource] = useState(initialReactions);
+  if (source !== initialReactions) {
+    setSource(initialReactions);
+    setReactions(toSummary(initialReactions));
+  }
   const [whoReacted, setWhoReacted] = useState<{ open: boolean; data: WhoReacted | null }>({ open: false, data: null });
 
   const toggle = async (kind: ReactionKind) => {

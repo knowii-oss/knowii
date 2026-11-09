@@ -4,6 +4,7 @@ namespace App\Actions\Reactions;
 
 use App\Contracts\Reactions\TogglesReactions;
 use App\Enums\KnowiiReactionKind;
+use App\Events\Spaces\SpaceContentChanged;
 use App\Models\Comment;
 use App\Models\Post;
 use App\Models\User;
@@ -38,6 +39,8 @@ class ToggleReaction implements TogglesReactions
                 ['community_id' => $reactable->community_id],
             );
         }
+
+        event(SpaceContentChanged::forReactions($reactable));
 
         return $reactable->load('reactions')->reactionSummary($user);
     }

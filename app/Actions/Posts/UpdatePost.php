@@ -3,6 +3,7 @@
 namespace App\Actions\Posts;
 
 use App\Contracts\Posts\UpdatesPosts;
+use App\Events\Spaces\SpaceContentChanged;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -36,6 +37,7 @@ class UpdatePost implements UpdatesPosts
 
         if ($changes !== []) {
             DB::transaction(fn () => $post->update([...$changes, 'edited_at' => now()]));
+            event(SpaceContentChanged::forPost(SpaceContentChanged::POST_UPDATED, $post, $user->cuid));
         }
 
         return $post;

@@ -1,9 +1,10 @@
 import { describe, expect, it, vi, afterEach } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { Comment } from '@knowii/common';
 import { AppDataProvider, knowiiApiClient } from '@knowii/common';
 import { CommentSection } from './CommentSection';
+import { emitSocketEvent } from '@/test-utils/fake-echo';
 
 const now = new Date();
 const ada = { cuid: 'ada', name: 'Ada', username: 'ada' };
@@ -118,5 +119,37 @@ describe('CommentSection', () => {
       { communityCuid: 'community', spaceCuid: 'space', resourceCuid: 'resource' },
       { body: 'Useful', parent_cuid: null },
     );
+  });
+});
+
+describe('CommentSection live updates (#1180)', () => {
+  const channel = 'community.community.space.space';
+
+  it('loads the comments again when one of this post changes, and keeps the reply being typed', async () => {
+    const list = vi
+      .spyOn(knowiiApiClient.communities.comments, 'list')
+      .mockResolvedValue({ ok: true, message: '', data: [...initial, comment('c3', bob, 'Live one')] });
+    const onCountChange = renderSection();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Reply to Ada' }));
+    const reply = screen.getByRole('combobox', { name: 'Reply to Ada' });
+    await userEvent.type(reply, 'Half-written');
+
+    act(() => emitSocketEvent(channel, 'space.comment.created', { space_cuid: 'space', post_cuid: 'post', comment_cuid: 'c3' }));
+
+    expect(await screen.findByText('Live one')).toBeInTheDocument();
+    expect(list).toHaveBeenCalledWith({ communityCuid: 'community', spaceCuid: 'space', postCuid: 'post' });
+    expect(onCountChange).toHaveBeenLastCalledWith(4);
+    expect(screen.getByRole('combobox', { name: 'Reply to Ada' })).toHaveValue('Half-written');
+  });
+
+  it('ignores the comments of other posts and the reactions of the post itself', () => {
+    const list = vi.spyOn(knowiiApiClient.communities.comments, 'list');
+    renderSection();
+
+    act(() => emitSocketEvent(channel, 'space.comment.created', { space_cuid: 'space', post_cuid: 'other', comment_cuid: 'x' }));
+    act(() => emitSocketEvent(channel, 'space.reactions.changed', { space_cuid: 'space', post_cuid: 'post' }));
+
+    expect(list).not.toHaveBeenCalled();
   });
 });

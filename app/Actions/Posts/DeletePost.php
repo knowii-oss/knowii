@@ -3,6 +3,7 @@
 namespace App\Actions\Posts;
 
 use App\Contracts\Posts\DeletesPosts;
+use App\Events\Spaces\SpaceContentChanged;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
@@ -19,6 +20,9 @@ class DeletePost implements DeletesPosts
 
         Gate::forUser($user)->authorize('delete', $post);
 
+        // Built before the delete: the event names the space of the post
+        $event = SpaceContentChanged::forPost(SpaceContentChanged::POST_DELETED, $post, $user->cuid);
         $post->delete();
+        event($event);
     }
 }
