@@ -37,7 +37,7 @@ class PostApiController extends Controller
     {
         Gate::authorize('view', $space);
 
-        $page = Pagination::fromRequest($request)->apply($space->posts()->with(['author', 'space'])->withCount('comments')->forSpacePage());
+        $page = Pagination::fromRequest($request)->apply($space->posts()->with(['author', 'space', 'reactions'])->withCount('comments')->forSpacePage());
 
         return self::success('Posts', $page['metadata'], PostResource::collection($page['items']));
     }
@@ -53,7 +53,7 @@ class PostApiController extends Controller
     {
         $post = app(CreatesPosts::class)->create($request->user() ?? throw new AuthenticationException, $space, $request->only(['title', 'body']));
 
-        return self::created(new PostResource($post->load(['author', 'space']), true), 'Post created successfully');
+        return self::created(new PostResource($post->load(['author', 'space', 'reactions']), true), 'Post created successfully');
     }
 
     /**
@@ -63,7 +63,7 @@ class PostApiController extends Controller
     {
         Gate::authorize('view', $post);
 
-        return self::success('Post', null, new PostResource($post->load(['author', 'space']), true));
+        return self::success('Post', null, new PostResource($post->load(['author', 'space', 'reactions']), true));
     }
 
     /**
@@ -77,7 +77,7 @@ class PostApiController extends Controller
     {
         $post = app(UpdatesPosts::class)->update($request->user() ?? throw new AuthenticationException, $post, $request->only(['title', 'body']));
 
-        return self::success('Post updated successfully', null, new PostResource($post->load(['author', 'space']), true));
+        return self::success('Post updated successfully', null, new PostResource($post->load(['author', 'space', 'reactions']), true));
     }
 
     /**
@@ -102,6 +102,6 @@ class PostApiController extends Controller
     {
         $post = app(PinsPosts::class)->pin($request->user() ?? throw new AuthenticationException, $post, $request->only(['pinned']));
 
-        return self::success($post->is_pinned ? 'Post pinned' : 'Post unpinned', null, new PostResource($post->load(['author', 'space'])));
+        return self::success($post->is_pinned ? 'Post pinned' : 'Post unpinned', null, new PostResource($post->load(['author', 'space', 'reactions'])));
     }
 }

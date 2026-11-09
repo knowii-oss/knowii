@@ -91,6 +91,9 @@ class Constants
     // Comments created per minute and per user
     public const int COMMENTS_PER_MINUTE = 10;
 
+    // Reaction toggles per minute and per user
+    public const int REACTIONS_PER_MINUTE = 60;
+
     // Markdown preview requests (editor) per minute and per user
     public const int MARKDOWN_PREVIEWS_PER_MINUTE = 60;
 

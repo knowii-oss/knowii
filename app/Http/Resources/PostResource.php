@@ -32,6 +32,8 @@ class PostResource extends AbstractKnowiiJsonResource
             // Comments and replies, when the query counted them
             'comments_count' => $this->whenCounted('comments'),
             'space_cuid' => $this->relationLoaded('space') ? $this->space->cuid : $this->space()->value('cuid'),
+            // Count per kind and whether the current member reacted (when the reactions are loaded)
+            'reactions' => $this->when($this->relationLoaded('reactions'), fn () => $this->reactionSummary($request->user())),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

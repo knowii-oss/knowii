@@ -60,6 +60,18 @@ import type { Paginated, Post, PostForm } from '../types/post.schema';
 import { paginationSchema, postSchema } from '../types/post.schema';
 import type { Comment, CommentForm } from '../types/comment.schema';
 import { commentSchema } from '../types/comment.schema';
+import type { ReactionKind, ReactionSummary, WhoReacted } from '../types/reaction.schema';
+import { reactionSummarySchema, whoReactedSchema } from '../types/reaction.schema';
+
+/**
+ * The item a reaction targets: a post, or a comment of a post
+ */
+export interface ReactionTarget {
+  communityCuid: string;
+  spaceCuid: string;
+  postCuid: string;
+  commentCuid?: string | undefined;
+}
 
 const spaceGroupPath = (communityCuid: string, spaceGroupCuid: string, path = COMMUNITY_SPACE_GROUP_API_PATH) =>
   apiPath(path, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE_GROUP]: spaceGroupCuid });
@@ -70,6 +82,10 @@ const postsPath = (communityCuid: string, spaceCuid: string, postCuid = '', path
   apiPath(path, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE]: spaceCuid, [SPACE_API_PARAM_POST]: postCuid });
 
 const postListSchema = z.array(postSchema);
+const reactionsPath = (target: ReactionTarget) =>
+  target.commentCuid
+    ? `${commentsPath(target.communityCuid, target.spaceCuid, target.postCuid, target.commentCuid)}/reactions`
+    : `${postsPath(target.communityCuid, target.spaceCuid, target.postCuid, COMMUNITY_SPACE_POST_API_PATH)}/reactions`;
 const commentsPath = (communityCuid: string, spaceCuid: string, postCuid: string, commentCuid?: string) =>
   apiPath(commentCuid ? COMMUNITY_SPACE_POST_COMMENT_API_PATH : COMMUNITY_SPACE_POST_COMMENTS_API_PATH, {
     [SPACE_API_PARAM_COMMUNITY]: communityCuid,
@@ -270,6 +286,15 @@ export const knowiiApiClient = {
         ),
       delete: (communityCuid: string, spaceCuid: string, postCuid: string, commentCuid: string): Promise<ApiResult<undefined>> =>
         apiRequest('delete', commentsPath(communityCuid, spaceCuid, postCuid, commentCuid), null, 'Failed to delete the comment.'),
+    },
+    reactions: {
+      /**
+       * Add the reaction of the member, or remove it. Returns the new summary.
+       */
+      toggle: (target: ReactionTarget, kind: ReactionKind): Promise<ApiResult<ReactionSummary>> =>
+        apiRequest('post', reactionsPath(target), reactionSummarySchema, 'Failed to save the reaction.', { kind }),
+      whoReacted: (target: ReactionTarget): Promise<ApiResult<WhoReacted>> =>
+        apiRequest('get', reactionsPath(target), whoReactedSchema, 'Failed to load the reactions.'),
     },
     resourceCollections: {
       create: async (input: CreateCommunityResourceCollectionRequest): Promise<CreateCommunityResourceCollectionResponse> => {

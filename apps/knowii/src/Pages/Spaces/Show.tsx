@@ -77,7 +77,13 @@ export default function SpacePage(props: Props) {
         </header>
 
         {space.type === 'discussion' && props.posts ? (
-          <PostList community={community} space={space} initialPosts={props.posts} canContribute={props.permissions.canContribute} />
+          <PostList
+            community={community}
+            space={space}
+            initialPosts={props.posts}
+            canContribute={props.permissions.canContribute}
+            canReact={props.permissions.canReact}
+          />
         ) : (
           <EmptyState icon={typeLabel.emoji} title={EMPTY_STATES[space.type].title} description={EMPTY_STATES[space.type].description} />
         )}

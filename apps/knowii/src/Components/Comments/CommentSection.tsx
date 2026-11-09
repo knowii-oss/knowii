@@ -4,6 +4,7 @@ import { knowiiApiClient, useAppData } from '@knowii/common';
 import { FaPen, FaReply, FaTrash } from 'react-icons/fa6';
 import { Button, Dialog, MarkdownContent, RelativeTime } from '@/Components/ui';
 import { CommentForm } from './CommentForm';
+import { ReactionBar } from '@/Components/Reactions/ReactionBar';
 
 export interface CommentSectionProps {
   communityCuid: string;
@@ -111,7 +112,15 @@ export function CommentSection(props: CommentSectionProps) {
             onCancel={() => setEditing(null)}
           />
         ) : (
-          <MarkdownContent html={comment.body_html} className="text-sm" />
+          <>
+            <MarkdownContent html={comment.body_html} className="text-sm" />
+            <ReactionBar
+              target={{ communityCuid, spaceCuid, postCuid, commentCuid: comment.cuid }}
+              initialReactions={comment.reactions}
+              canReact={canComment}
+              itemLabel={`the comment by ${authorName}`}
+            />
+          </>
         )}
         {editing !== comment.cuid && (
           <div className="flex flex-wrap gap-1">

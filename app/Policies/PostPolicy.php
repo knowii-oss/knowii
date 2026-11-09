@@ -43,6 +43,14 @@ class PostPolicy
         return $user->belongsToCommunity($post->community) && Gate::forUser($user)->check('view', $post->space);
     }
 
+    /**
+     * Same rule as commenting.
+     */
+    final public function react(User $user, Post $post): bool
+    {
+        return $this->comment($user, $post);
+    }
+
     final public function pin(User $user, Post $post): bool
     {
         return Gate::forUser($user)->check('moderate', $post->space);

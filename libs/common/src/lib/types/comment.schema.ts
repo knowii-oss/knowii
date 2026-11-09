@@ -13,6 +13,7 @@ const commentBaseSchema = baseEntitySchema.extend({
   author: authorSchema.nullable(),
   // null for a top-level comment
   parent_cuid: z.string().nullable(),
+  reactions: z.array(z.object({ kind: z.string(), count: z.number().int(), reacted: z.boolean() })).optional(),
 });
 
 export type Comment = z.infer<typeof commentBaseSchema> & { replies?: Comment[] | undefined };

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\GeneratesCuid;
+use App\Traits\HasReactions;
 use Carbon\Carbon;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Database\Factories\PostFactory;
@@ -38,6 +39,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  *
  * @method static \Database\Factories\PostFactory factory($count = null, $state = [])
  *
+ * @property-read Collection<int, Reaction> $reactions
+ *
  * @mixin \Eloquent
  */
 class Post extends Model
@@ -47,6 +50,7 @@ class Post extends Model
     /** @use HasFactory<PostFactory> */
     use HasFactory;
 
+    use HasReactions;
     use Sluggable;
 
     /**
@@ -157,6 +161,11 @@ class Post extends Model
     {
         /** @var Post $model */
         return $query->where('space_id', $model->space_id);
+    }
+
+    protected function reactionForeignKey(): string
+    {
+        return 'post_id';
     }
 
     final public function getRouteKeyName(): string

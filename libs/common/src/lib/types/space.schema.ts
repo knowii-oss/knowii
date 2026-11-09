@@ -101,6 +101,7 @@ export interface SpacePermissions {
   canManageSpaces: boolean;
   canContribute: boolean;
   canModerate: boolean;
+  canReact: boolean;
 }
 
 /**
