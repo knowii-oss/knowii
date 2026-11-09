@@ -47,7 +47,8 @@ export async function apiRequest<T>(
 ): Promise<ApiResult<T>> {
   try {
     const response = await fetch(url, {
-      method,
+      // fetch() uppercases GET, POST, DELETE... but not PATCH: servers reject a lowercase "patch" method
+      method: method.toUpperCase(),
       headers: jsonHeaders,
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     });
