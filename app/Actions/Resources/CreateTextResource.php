@@ -19,7 +19,6 @@ use App\Traits\HtmlToMarkdown;
 use App\Traits\ProcessHtml;
 use App\Traits\UrlCleanup;
 use Exception;
-use fivefilters\Readability\Configuration;
 use fivefilters\Readability\Readability;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -189,11 +188,10 @@ class CreateTextResource implements CreatesTextResources
             }
 
             Log::debug('Trying to extract readable content from the page');
-            $readability = new Readability(new Configuration);
             try {
-                $readability->parse($pageContent['html']);
+                $article = (new Readability)->parse($pageContent['html']);
 
-                $pageContent['readable_content'] = $readability->getContent();
+                $pageContent['readable_content'] = $article->content;
                 if ($pageContent['readable_content'] === null) {
                     Log::debug('Could not extract the page content');
                 } else {
@@ -201,9 +199,9 @@ class CreateTextResource implements CreatesTextResources
                 }
 
                 // FIXME stop extracting this here
-                $pageContent['excerpt'] = $readability->getExcerpt();
+                $pageContent['excerpt'] = $article->excerpt;
 
-                $author = $readability->getAuthor();
+                $author = $article->byline;
                 if ($author !== null) {
                     Log::debug('Found text article author: '.$author);
                     // Emit event. Should be handled by an event handler that will find or create the corresponding user profile

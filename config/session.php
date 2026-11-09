@@ -51,6 +51,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Session Serialization
+    |--------------------------------------------------------------------------
+    |
+    | The format used to serialize session data. JSON prevents PHP
+    | deserialization gadget chain attacks. Switching from "php" to "json"
+    | invalidates the active sessions.
+    |
+    */
+
+    'serialization' => env('SESSION_SERIALIZATION', 'json'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Session File Location
     |--------------------------------------------------------------------------
     |

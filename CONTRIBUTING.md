@@ -282,7 +282,7 @@ Status codes follow the API design guide:
 - API Controllers are under `app/Http/Controllers/API`
 - API Controllers are named `SomethingApiController`
 - API Controllers are registered in the `routes/api.php` file
-- API Controllers should include OpenAPI annotations
+- API Controllers should have accurate PHP types and docblocks (the OpenAPI documentation is generated from them)
 - They should NOT validate the input (not their responsibility)
 - They should delegate operations to a dedicated action classes (e.g., CreateCommunity)
 - They should not catch exceptions returned by the action classes (that handle validation). Those are handled by the global exception handler (without leaking sensitive information)
@@ -296,19 +296,16 @@ Data flow:
 
 #### OpenAPI
 
-This project is using the Laravel OpenAPI package:
+The OpenAPI documentation of the API is generated automatically by [Scramble](https://scramble.dedoc.co/), from the routes, the controllers, the request validation rules, and the API resources. No annotations are needed.
 
-- Documentation: https://vyuldashev.github.io/laravel-openapi
-- Source code: https://github.com/TartanLeGrand/laravel-openapi
+In local development, it is available at:
 
-For parameters, make sure to read: https://vyuldashev.github.io/laravel-openapi/paths/parameters.html
+- http://localhost:4200/docs/api (interactive documentation)
+- http://localhost:4200/docs/api.json (OpenAPI document)
 
-For examples, look at the `LoginApiController`.
+To export the OpenAPI document to a file, run `php artisan scramble:export`.
 
-The OpenAPI documentation can be generated using the `php artisan openapi:generate` command.
-It is also exposed via: http://localhost:4200/openapi
-
-To test it, you can use Swagger and paste in the schema: https://editor.swagger.io/
+Outside of the local environment, the documentation is only visible to users allowed by the `viewApiDocs` gate.
 
 #### Testing
 
