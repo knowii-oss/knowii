@@ -8,6 +8,7 @@ import {
   COMMUNITY_SPACE_RESOURCE_COMMENTS_API_PATH,
   COMMUNITY_SPACE_RESOURCES_API_PATH,
   COMMUNITY_MEMBERS_API_PATH,
+  COMMUNITY_MODERATOR_PERMISSIONS_API_PATH,
   COMMUNITY_UPLOADS_API_PATH,
   COMMUNITY_SPACE_GROUP_API_PATH,
   COMMUNITY_SPACE_GROUP_SPACES_REORDER_API_PATH,
@@ -55,6 +56,8 @@ import { commentSchema } from '../types/comment.schema';
 import type { Upload } from '../types/upload.schema';
 import { uploadSchema } from '../types/upload.schema';
 import type { CommunityResource } from '../types/community-resource.schema';
+import type { Community, ModeratorPermissions } from '../types/community.schema';
+import { communitySchema } from '../types/community.schema';
 import { communityResourceSchema } from '../types/community-resource.schema';
 import type { NewResourceTextArticle } from '../types/resource-text-article.schema';
 import type { ReactionKind, ReactionSummary, WhoReacted } from '../types/reaction.schema';
@@ -135,6 +138,17 @@ export const knowiiApiClient = {
     },
   },
   communities: {
+    /**
+     * Switch some rights of the moderators (owner and admins, #1240). Returns the community.
+     */
+    updateModeratorPermissions: (communityCuid: string, input: Partial<ModeratorPermissions>): Promise<ApiResult<Community>> =>
+      apiRequest(
+        'patch',
+        communityPath(COMMUNITY_MODERATOR_PERMISSIONS_API_PATH, communityCuid),
+        communitySchema,
+        'Failed to save the moderator rights.',
+        input,
+      ),
     create: async (input: CreateCommunityRequest): Promise<CreateCommunityResponse> => {
       try {
         const response = await fetch(COMMUNITY_API_BASE_PATH, {

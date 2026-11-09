@@ -3,8 +3,10 @@
 namespace App\Policies;
 
 use App\Enums\KnowiiCommunityMemberRole;
+use App\Enums\KnowiiModeratorPermission;
 use App\Models\Community;
 use App\Models\User;
+use App\Support\CommunityRoles;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class CommunityPolicy
@@ -53,12 +55,20 @@ class CommunityPolicy
     }
 
     /**
-     * Determine whether the user can create, update, reorder and delete the space groups and spaces (#1173).
+     * Create, update, reorder and delete the space groups and spaces (#1173): owner, admins, and moderators when the
+     * community gives them the "manage spaces" right (#1240, ADR 0017).
      */
     final public function manageSpaces(User $user, Community $community): bool
     {
-        return $user->ownsCommunity($community)
-            || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Admin);
+        return CommunityRoles::allows($user, $community, KnowiiModeratorPermission::ManageSpaces);
+    }
+
+    /**
+     * Switch the rights of the moderators (#1240): owner and admins.
+     */
+    final public function manageModeratorPermissions(User $user, Community $community): bool
+    {
+        return CommunityRoles::isOwnerOrAdmin($user, $community);
     }
 
     /**
@@ -70,27 +80,28 @@ class CommunityPolicy
     }
 
     /**
-     * Determine whether the user can add members.
+     * Add members: owner, admins, and moderators with the "manage members" right (#1240). The role hierarchy (who
+     * can act on whom) is checked by the member actions (#1242).
      */
     final public function addCommunityMember(User $user, Community $community): bool
     {
-        return $user->ownsCommunity($community);
+        return CommunityRoles::allows($user, $community, KnowiiModeratorPermission::ManageMembers);
     }
 
     /**
-     * Determine whether the user can update member permissions.
+     * Change the role of members: same rule as adding them (#1240, #1242).
      */
     final public function updateCommunityMember(User $user, Community $community): bool
     {
-        return $user->ownsCommunity($community);
+        return CommunityRoles::allows($user, $community, KnowiiModeratorPermission::ManageMembers);
     }
 
     /**
-     * Determine whether the user can remove members.
+     * Remove members: same rule as adding them (#1240, #1242).
      */
     final public function removeCommunityMember(User $user, Community $community): bool
     {
-        return $user->ownsCommunity($community);
+        return CommunityRoles::allows($user, $community, KnowiiModeratorPermission::ManageMembers);
     }
 
     /**

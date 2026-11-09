@@ -27,7 +27,7 @@ There is no production instance, so no backward compatibility is needed (decisio
 ## Consequences
 
 1. One navigation, one permission model and one settings screen for all the content of a community.
-2. Moderators no longer create, rename or delete collections: owners and admins manage spaces. Moderators still add resources to the spaces that only moderators post in.
+2. Moderators no longer create, rename or delete collections: owners and admins manage spaces. Moderators still add resources to the spaces that only moderators post in. Since [ADR 0017](0017-roles-with-configurable-moderator-rights.md), the community can give its moderators the "manage spaces" right.
 3. Resource names (#925) follow the space rules: the slug is unique in the community and does not change on rename; two spaces can have the same name.
 4. The community home page keeps a "Recent resources" list, limited to the `resources` spaces the member can see.
 5. A future resource type (videos, books) is a new kind of resource in a `resources` space, not a new space type.

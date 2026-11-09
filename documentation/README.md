@@ -4,16 +4,17 @@ This folder is the technical reference of the Knowii Platform. It describes how 
 
 ## Contents
 
-| Document                                               | What it covers                                                                              |
-| ------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
-| [Architecture overview](architecture/overview.md)      | The system, its runtime processes, the repository layout and the environments               |
-| [High-level design](architecture/high-level-design.md) | The domain model, multi-community scoping, request flow, authorization, real time, security |
-| [Back-end design](architecture/backend.md)             | Actions and contracts, API controllers, errors, events, WebSocket channels                  |
-| [Front-end design](architecture/frontend.md)           | Pages, UI components, themes, the API client, `useSocket`, the CSP rules for the front-end  |
-| [Naming conventions](conventions/naming.md)            | Names of classes, files, routes, tables, events, channels, branches and commits             |
-| [Rules](conventions/rules.md)                          | The rules that every change must follow, and the definition of done                         |
-| [Architecture decision records](adr/README.md)         | The decisions that shape the code, one file per decision                                    |
-| [API requests (Bruno)](api/README.md)                  | The Bruno collection that documents and exercises the REST API                              |
+| Document                                                       | What it covers                                                                              |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| [Architecture overview](architecture/overview.md)              | The system, its runtime processes, the repository layout and the environments               |
+| [High-level design](architecture/high-level-design.md)         | The domain model, multi-community scoping, request flow, authorization, real time, security |
+| [Back-end design](architecture/backend.md)                     | Actions and contracts, API controllers, errors, events, WebSocket channels                  |
+| [Roles and permissions](architecture/roles-and-permissions.md) | Who can do what in a community: roles, moderator rights, abilities per policy               |
+| [Front-end design](architecture/frontend.md)                   | Pages, UI components, themes, the API client, `useSocket`, the CSP rules for the front-end  |
+| [Naming conventions](conventions/naming.md)                    | Names of classes, files, routes, tables, events, channels, branches and commits             |
+| [Rules](conventions/rules.md)                                  | The rules that every change must follow, and the definition of done                         |
+| [Architecture decision records](adr/README.md)                 | The decisions that shape the code, one file per decision                                    |
+| [API requests (Bruno)](api/README.md)                          | The Bruno collection that documents and exercises the REST API                              |
 
 Other documents at the root of the repository:
 

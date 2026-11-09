@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\KnowiiCommunityMemberRole;
+use App\Enums\KnowiiModeratorPermission;
 use App\Enums\KnowiiSpacePostingPolicy;
 use App\Enums\KnowiiSpaceVisibility;
 use App\Models\Comment;
@@ -62,9 +63,10 @@ test('community abilities per role', function (string $ability, array $allowed) 
     'manage' => ['manage', ['owner', 'admin']],
     'manageSpaces' => ['manageSpaces', ['owner', 'admin']],
     'uploadImage' => ['uploadImage', POLICY_MEMBERS],
-    'addCommunityMember' => ['addCommunityMember', ['owner']],
-    'updateCommunityMember' => ['updateCommunityMember', ['owner']],
-    'removeCommunityMember' => ['removeCommunityMember', ['owner']],
+    'manageModeratorPermissions' => ['manageModeratorPermissions', ['owner', 'admin']],
+    'addCommunityMember' => ['addCommunityMember', ['owner', 'admin']],
+    'updateCommunityMember' => ['updateCommunityMember', ['owner', 'admin']],
+    'removeCommunityMember' => ['removeCommunityMember', ['owner', 'admin']],
     'delete' => ['delete', ['owner']],
 ]);
 
@@ -125,4 +127,47 @@ test('a role change takes effect on the next check', function () {
 
     expect(Gate::forUser($member)->allows('moderate', $this->membersSpace))->toBeTrue()
         ->and(Gate::forUser($member)->allows('manageSpaces', $this->c['community']))->toBeFalse();
+});
+
+/*
+ * The moderator rights of ADR 0017 (#1240): each right switches one moderator ability. Owner and admins always have
+ * it, members never.
+ */
+test('each moderator right switches the matching ability of the moderators', function (KnowiiModeratorPermission $permission, string $ability, string $subject) {
+    foreach ([true, false] as $enabled) {
+        $community = $this->c['community']->fresh();
+        $community->update(['moderator_permissions' => [...$community->moderatorPermissions(), $permission->value => $enabled]]);
+
+        $target = match ($subject) {
+            'community' => $community,
+            'space' => $this->membersSpace->fresh(),
+            'post' => $this->post->fresh(),
+        };
+
+        expectAllowedRoles($this->c, $ability, [$target], $enabled ? POLICY_MODERATORS : ['owner', 'admin']);
+    }
+})->with([
+    'manage spaces' => [KnowiiModeratorPermission::ManageSpaces, 'manageSpaces', 'community'],
+    'manage members: add' => [KnowiiModeratorPermission::ManageMembers, 'addCommunityMember', 'community'],
+    'manage members: change roles' => [KnowiiModeratorPermission::ManageMembers, 'updateCommunityMember', 'community'],
+    'manage members: remove' => [KnowiiModeratorPermission::ManageMembers, 'removeCommunityMember', 'community'],
+    'pin posts' => [KnowiiModeratorPermission::PinPosts, 'pin', 'post'],
+    'delete content' => [KnowiiModeratorPermission::DeleteContent, 'moderate', 'space'],
+]);
+
+test('without the "delete content" right, moderators no longer delete the posts and comments of others', function () {
+    $this->c['community']->update(['moderator_permissions' => [...KnowiiModeratorPermission::defaults(), 'delete_content' => false]]);
+
+    expectAllowedRoles($this->c, 'delete', [$this->post->fresh()], ['owner', 'admin', 'member']);
+    expectAllowedRoles($this->c, 'delete', [$this->comment->fresh()], ['owner', 'admin', 'member']);
+});
+
+test('moderators keep posting where only moderators post, whatever their rights', function () {
+    $this->c['community']->update(['moderator_permissions' => array_map(fn () => false, KnowiiModeratorPermission::defaults())]);
+
+    expectAllowedRoles($this->c, 'contribute', [$this->publicModeratedSpace->fresh()], POLICY_MODERATORS);
+});
+
+test('a community built in memory has the default moderator rights (rules, Data 7)', function () {
+    expect((new Community)->moderatorPermissions())->toBe(KnowiiModeratorPermission::defaults());
 });

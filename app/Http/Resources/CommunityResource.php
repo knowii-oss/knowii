@@ -21,6 +21,8 @@ class CommunityResource extends AbstractKnowiiJsonResource
             'slug' => $this->slug,
             'description' => $this->description ?? '', // Ensures the returned value is never null
             'visibility' => $this->visibility,
+            // Every right with its value, also the defaults (#1240, ADR 0017)
+            'moderator_permissions' => $this->moderatorPermissions(),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

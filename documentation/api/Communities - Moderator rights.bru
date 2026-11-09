@@ -1,0 +1,27 @@
+meta {
+  name: Communities - Moderator rights
+  type: http
+  seq: 62
+}
+
+patch {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/moderator-permissions
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "manage_spaces": true,
+    "pin_posts": true
+  }
+}
+
+docs {
+  Switches some rights of the moderators of a community (#1240, ADR 0017): manage_spaces, manage_members, pin_posts, delete_content. Owner and admins only. The rights that are not sent keep their value. Returns the community with moderator_permissions.
+}

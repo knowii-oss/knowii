@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\KnowiiCommunityVisibility;
+use App\Enums\KnowiiModeratorPermission;
 use App\Events\Communities\CommunityCreated;
 use App\Events\Communities\CommunityDeleted;
 use App\Events\Communities\CommunityUpdated;
@@ -28,6 +29,7 @@ use Illuminate\Support\Collection;
  * @property string $slug
  * @property ?string $description
  * @property KnowiiCommunityVisibility $visibility
+ * @property array<string, bool> $moderator_permissions
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property int $owner_id
@@ -88,6 +90,7 @@ class Community extends Model
         'description',
         'visibility',
         'owner_id',
+        'moderator_permissions',
     ];
 
     /**
@@ -121,7 +124,31 @@ class Community extends Model
     {
         return [
             'visibility' => KnowiiCommunityVisibility::class,
+            'moderator_permissions' => 'array',
         ];
+    }
+
+    /**
+     * The rights of the moderators, complete: a right that is not stored takes its default (#1240, ADR 0017).
+     *
+     * @return array<string, bool>
+     */
+    final public function moderatorPermissions(): array
+    {
+        // A community built in memory does not hold the database default (rules, Data 7)
+        $stored = array_key_exists('moderator_permissions', $this->getAttributes()) ? $this->moderator_permissions : [];
+        $permissions = [];
+
+        foreach (KnowiiModeratorPermission::defaults() as $key => $default) {
+            $permissions[$key] = (bool) ($stored[$key] ?? $default);
+        }
+
+        return $permissions;
+    }
+
+    final public function moderatorsCan(KnowiiModeratorPermission $permission): bool
+    {
+        return $this->moderatorPermissions()[$permission->value];
     }
 
     /**

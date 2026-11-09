@@ -2,8 +2,10 @@
 
 namespace App\Policies;
 
+use App\Enums\KnowiiModeratorPermission;
 use App\Models\Post;
 use App\Models\User;
+use App\Support\CommunityRoles;
 use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Support\Facades\Gate;
 
@@ -51,8 +53,11 @@ class PostPolicy
         return $this->comment($user, $post);
     }
 
+    /**
+     * Owner, admins, and moderators when the community gives them the "pin posts" right (#1240, ADR 0017).
+     */
     final public function pin(User $user, Post $post): bool
     {
-        return Gate::forUser($user)->check('moderate', $post->space);
+        return CommunityRoles::allows($user, $post->community, KnowiiModeratorPermission::PinPosts);
     }
 }

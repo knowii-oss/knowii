@@ -58,6 +58,9 @@ final class ApiRoutes
 
     public const COMMUNITY = self::COMMUNITIES.'/{'.self::PARAM_COMMUNITY.'}';
 
+    // The rights of the moderators (#1240)
+    public const COMMUNITY_MODERATOR_PERMISSIONS = self::COMMUNITY.'/moderator-permissions';
+
     public const COMMUNITY_SPACE_GROUPS = self::COMMUNITY.'/space-groups';
 
     public const COMMUNITY_SPACE_GROUPS_REORDER = self::COMMUNITY_SPACE_GROUPS.'/reorder';

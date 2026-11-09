@@ -8,6 +8,7 @@ use App\Http\Controllers\API\CommunityResourceCommentApiController;
 use App\Http\Controllers\API\LoginApiController;
 use App\Http\Controllers\API\MarkdownApiController;
 use App\Http\Controllers\API\MemberApiController;
+use App\Http\Controllers\API\ModeratorPermissionApiController;
 use App\Http\Controllers\API\PingApiController;
 use App\Http\Controllers\API\PostApiController;
 use App\Http\Controllers\API\ReactionApiController;
@@ -35,6 +36,7 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
 
         Route::post(ApiRoutes::COMMUNITIES, [CommunityApiController::class, 'store']);
         Route::delete(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'destroy']);
+        Route::patch(ApiRoutes::COMMUNITY_MODERATOR_PERMISSIONS, [ModeratorPermissionApiController::class, 'update']);
 
         // Space groups and spaces (#1173). scopeBindings: a space group or space of another community gives a 404
         Route::scopeBindings()->group(function () {

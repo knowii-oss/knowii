@@ -62,7 +62,8 @@ class CommunityController extends Controller
     {
         $community = (new Community)->where('slug', $slug)->firstOrFail();
 
-        Gate::authorize('manage', $community);
+        // Owner and admins; moderators with the "manage spaces" right see the space editor only (#1240)
+        abort_unless(Gate::any(['manage', 'manageSpaces'], $community), 403);
 
         // Disable wrapping for the data we return to the frontend from this controller
         // This lets us use the API Resources classes without the wrapping that is normally applied
@@ -90,6 +91,7 @@ class CommunityController extends Controller
         return [
             'canManageCommunity' => Gate::check('manage', $community),
             'canManageSpaces' => Gate::check('manageSpaces', $community),
+            'canManageModeratorPermissions' => Gate::check('manageModeratorPermissions', $community),
             'canUpdateCommunity' => Gate::check('update', $community),
             'canDeleteCommunity' => Gate::check('delete', $community),
 
