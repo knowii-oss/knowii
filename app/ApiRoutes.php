@@ -83,6 +83,10 @@ final class ApiRoutes
 
     public const COMMUNITY_SPACE_POST_COMMENT = self::COMMUNITY_SPACE_POST_COMMENTS.'/{'.self::PARAM_COMMENT.'}';
 
+    public const COMMUNITY_SPACE_POST_REACTIONS = self::COMMUNITY_SPACE_POST.'/reactions';
+
+    public const COMMUNITY_SPACE_POST_COMMENT_REACTIONS = self::COMMUNITY_SPACE_POST_COMMENT.'/reactions';
+
     public const MARKDOWN_PREVIEW = 'markdown/preview';
 
     /**

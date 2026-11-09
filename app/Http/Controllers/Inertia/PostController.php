@@ -26,7 +26,7 @@ class PostController extends Controller
     {
         $community = Community::where('slug', $communitySlug)->firstOrFail();
         $space = $community->spaces()->where('slug', $spaceSlug)->firstOrFail();
-        $post = $space->posts()->with(['author', 'space'])->withCount('comments')->where('slug', $postSlug)->firstOrFail();
+        $post = $space->posts()->with(['author', 'space', 'reactions'])->withCount('comments')->where('slug', $postSlug)->firstOrFail();
 
         Gate::authorize('view', $post);
 

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\GeneratesCuid;
+use App\Traits\HasReactions;
 use Carbon\Carbon;
 use Database\Factories\CommentFactory;
 use Illuminate\Database\Eloquent\Collection;
@@ -33,6 +34,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  *
  * @method static \Database\Factories\CommentFactory factory($count = null, $state = [])
  *
+ * @property-read Collection<int, Reaction> $reactions
+ *
  * @mixin \Eloquent
  */
 class Comment extends Model
@@ -41,6 +44,8 @@ class Comment extends Model
 
     /** @use HasFactory<CommentFactory> */
     use HasFactory;
+
+    use HasReactions;
 
     /**
      * @var list<string>
@@ -116,6 +121,11 @@ class Comment extends Model
     final public function replies(): HasMany
     {
         return $this->hasMany(Comment::class, 'parent_id')->orderBy('created_at')->orderBy('id');
+    }
+
+    protected function reactionForeignKey(): string
+    {
+        return 'comment_id';
     }
 
     final public function getRouteKeyName(): string

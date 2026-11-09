@@ -1,0 +1,26 @@
+meta {
+  name: Reactions - Toggle - Invalid kind
+  type: http
+  seq: 48
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a discussion space>/posts/<post cuid>/reactions
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "kind": "angry"
+  }
+}
+
+docs {
+  Returns 400: the kinds are a fixed set.
+}

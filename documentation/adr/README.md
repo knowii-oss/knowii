@@ -23,18 +23,19 @@ Do not write an ADR for a bug fix, a refactor that keeps the structure, or a fea
 
 ## Index
 
-| ADR                                             | Decision                                                                | Status   |
-| ----------------------------------------------- | ----------------------------------------------------------------------- | -------- |
-| [0001](0001-record-architecture-decisions.md)   | Record architecture decisions                                           | Accepted |
-| [0002](0002-laravel-inertia-react-monolith.md)  | Laravel, Inertia and React in one Nx monorepo                           | Accepted |
-| [0003](0003-own-ui-components.md)               | Own UI components on Tailwind CSS and Headless UI                       | Accepted |
-| [0004](0004-multi-community-scoping.md)         | Every piece of data is scoped to a community                            | Accepted |
-| [0005](0005-cuid2-public-identifiers.md)        | cuid2 public identifiers, slugs for page URLs                           | Accepted |
-| [0006](0006-actions-behind-contracts.md)        | Changes go through actions behind contracts, the API is complete        | Accepted |
-| [0007](0007-strict-content-security-policy.md)  | Strict Content Security Policy                                          | Accepted |
-| [0008](0008-postgresql-only.md)                 | PostgreSQL only                                                         | Accepted |
-| [0009](0009-real-time-through-reverb.md)        | Real time through Reverb                                                | Accepted |
-| [0010](0010-own-accounts-optional-oidc.md)      | Own accounts, the Knowii account as an optional OpenID Connect provider | Accepted |
-| [0011](0011-rest-api-design-guide.md)           | The REST API follows the NBB REST API Design Guide                      | Accepted |
-| [0012](0012-space-groups-and-typed-spaces.md)   | Space groups and typed spaces structure a community                     | Accepted |
-| [0013](0013-markdown-rendered-on-the-server.md) | Member content is Markdown, rendered to safe HTML on the server         | Accepted |
+| ADR                                                                    | Decision                                                                | Status   |
+| ---------------------------------------------------------------------- | ----------------------------------------------------------------------- | -------- |
+| [0001](0001-record-architecture-decisions.md)                          | Record architecture decisions                                           | Accepted |
+| [0002](0002-laravel-inertia-react-monolith.md)                         | Laravel, Inertia and React in one Nx monorepo                           | Accepted |
+| [0003](0003-own-ui-components.md)                                      | Own UI components on Tailwind CSS and Headless UI                       | Accepted |
+| [0004](0004-multi-community-scoping.md)                                | Every piece of data is scoped to a community                            | Accepted |
+| [0005](0005-cuid2-public-identifiers.md)                               | cuid2 public identifiers, slugs for page URLs                           | Accepted |
+| [0006](0006-actions-behind-contracts.md)                               | Changes go through actions behind contracts, the API is complete        | Accepted |
+| [0007](0007-strict-content-security-policy.md)                         | Strict Content Security Policy                                          | Accepted |
+| [0008](0008-postgresql-only.md)                                        | PostgreSQL only                                                         | Accepted |
+| [0009](0009-real-time-through-reverb.md)                               | Real time through Reverb                                                | Accepted |
+| [0010](0010-own-accounts-optional-oidc.md)                             | Own accounts, the Knowii account as an optional OpenID Connect provider | Accepted |
+| [0011](0011-rest-api-design-guide.md)                                  | The REST API follows the NBB REST API Design Guide                      | Accepted |
+| [0012](0012-space-groups-and-typed-spaces.md)                          | Space groups and typed spaces structure a community                     | Accepted |
+| [0013](0013-markdown-rendered-on-the-server.md)                        | Member content is Markdown, rendered to safe HTML on the server         | Accepted |
+| [0014](0014-explicit-foreign-keys-instead-of-polymorphic-relations.md) | Explicit foreign keys instead of polymorphic relations                  | Accepted |

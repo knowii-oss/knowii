@@ -19,6 +19,14 @@ class CommentPolicy
         return Gate::forUser($user)->check('view', $comment->post);
     }
 
+    /**
+     * Members who can comment the post can react to its comments.
+     */
+    final public function react(User $user, Comment $comment): bool
+    {
+        return Gate::forUser($user)->check('comment', $comment->post);
+    }
+
     final public function update(User $user, Comment $comment): bool
     {
         return $comment->author_id === $user->id && $user->belongsToCommunity($comment->community);

@@ -1,0 +1,19 @@
+meta {
+  name: Reactions - Who reacted to a post
+  type: http
+  seq: 47
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a discussion space>/posts/<post cuid>/reactions
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Who reacted, per kind (name and username only).
+}

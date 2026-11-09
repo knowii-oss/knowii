@@ -8,6 +8,7 @@ use App\Http\Controllers\API\LoginApiController;
 use App\Http\Controllers\API\MarkdownApiController;
 use App\Http\Controllers\API\PingApiController;
 use App\Http\Controllers\API\PostApiController;
+use App\Http\Controllers\API\ReactionApiController;
 use App\Http\Controllers\API\ResourceTextArticleApiController;
 use App\Http\Controllers\API\SpaceApiController;
 use App\Http\Controllers\API\SpaceGroupApiController;
@@ -67,6 +68,12 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::post(ApiRoutes::COMMUNITY_SPACE_POST_COMMENTS, [CommentApiController::class, 'store'])->middleware('throttle:comments');
             Route::patch(ApiRoutes::COMMUNITY_SPACE_POST_COMMENT, [CommentApiController::class, 'update']);
             Route::delete(ApiRoutes::COMMUNITY_SPACE_POST_COMMENT, [CommentApiController::class, 'destroy']);
+
+            // Reactions (#1176)
+            Route::get(ApiRoutes::COMMUNITY_SPACE_POST_REACTIONS, [ReactionApiController::class, 'listPost']);
+            Route::post(ApiRoutes::COMMUNITY_SPACE_POST_REACTIONS, [ReactionApiController::class, 'togglePost'])->middleware('throttle:reactions');
+            Route::get(ApiRoutes::COMMUNITY_SPACE_POST_COMMENT_REACTIONS, [ReactionApiController::class, 'listComment']);
+            Route::post(ApiRoutes::COMMUNITY_SPACE_POST_COMMENT_REACTIONS, [ReactionApiController::class, 'toggleComment'])->middleware('throttle:reactions');
         });
 
         Route::post(ApiRoutes::MARKDOWN_PREVIEW, [MarkdownApiController::class, 'preview'])->middleware('throttle:markdown-preview');

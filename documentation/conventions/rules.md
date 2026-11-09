@@ -19,7 +19,7 @@ These rules keep the code structurally sound as it grows. Each rule has a reason
 ## Data
 
 1. Every table has `id` (big integer, internal), `cuid` (unique) and timestamps.
-2. Foreign keys are constrained. Pick `cascadeOnDelete` or `nullOnDelete` on purpose, and write the choice in the migration when it is not obvious.
+2. Foreign keys are constrained. Pick `cascadeOnDelete` or `nullOnDelete` on purpose, and write the choice in the migration when it is not obvious. No polymorphic relations for member data: one nullable foreign key per kind of item, with a check constraint ([ADR 0014](../adr/0014-explicit-foreign-keys-instead-of-polymorphic-relations.md)).
 3. Ordered items have a `position` column and a unique or indexed `(parent_id, position)`. Reordering is one action that rewrites the positions of the parent in a transaction.
 4. Slugs are unique within their parent (a space slug is unique in its community), not globally.
 5. Migrations never change data in a way that cannot be undone without a backup. Destructive migrations (drop a column with data) need an issue and a note in the pull request.

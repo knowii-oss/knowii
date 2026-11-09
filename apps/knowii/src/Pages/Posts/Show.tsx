@@ -9,6 +9,7 @@ import CommunityIcon from '@/Components/Communities/CommunityIcon';
 import { CommunityShell } from '@/Components/Spaces/CommunityShell';
 import { PostComposer } from '@/Components/Posts/PostComposer';
 import { CommentSection } from '@/Components/Comments/CommentSection';
+import { ReactionBar } from '@/Components/Reactions/ReactionBar';
 import type { BreadcrumbItem } from '@/Components/ui';
 import { Button, Dialog, MarkdownContent, RelativeTime } from '@/Components/ui';
 
@@ -115,6 +116,12 @@ export default function PostPage(props: Props) {
           </header>
 
           <MarkdownContent html={post.body_html} />
+          <ReactionBar
+            target={{ communityCuid: community.cuid, spaceCuid: space.cuid, postCuid: post.cuid }}
+            initialReactions={post.reactions}
+            canReact={props.permissions.canComment}
+            itemLabel="this post"
+          />
         </article>
 
         <CommentSection

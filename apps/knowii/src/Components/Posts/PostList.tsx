@@ -11,12 +11,13 @@ export interface PostListProps {
   space: Space;
   initialPosts: Paginated<Post>;
   canContribute: boolean;
+  canReact: boolean;
 }
 
 /**
  * The posts of a discussion space, pinned first, with "Load more" and the composer for new posts.
  */
-export function PostList({ community, space, initialPosts, canContribute }: PostListProps) {
+export function PostList({ community, space, initialPosts, canContribute, canReact }: PostListProps) {
   const { showToast } = useAppData();
   const [posts, setPosts] = useState<Post[]>(initialPosts.items);
   const [nextOffset, setNextOffset] = useState<number | null>(initialPosts.pagination.nextOffset);
@@ -70,7 +71,7 @@ export function PostList({ community, space, initialPosts, canContribute }: Post
         <ul className="flex flex-col gap-3">
           {posts.map((post) => (
             <li key={post.cuid}>
-              <PostCard post={post} href={href(post)} />
+              <PostCard post={post} href={href(post)} communityCuid={community.cuid} canReact={canReact} />
             </li>
           ))}
         </ul>

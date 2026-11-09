@@ -13,6 +13,7 @@ use App\Actions\Posts\CreatePost;
 use App\Actions\Posts\DeletePost;
 use App\Actions\Posts\PinPost;
 use App\Actions\Posts\UpdatePost;
+use App\Actions\Reactions\ToggleReaction;
 use App\Actions\Resources\CreateTextResource;
 use App\Actions\SpaceGroups\CreateSpaceGroup;
 use App\Actions\SpaceGroups\DeleteSpaceGroup;
@@ -36,6 +37,7 @@ use App\Contracts\Posts\CreatesPosts;
 use App\Contracts\Posts\DeletesPosts;
 use App\Contracts\Posts\PinsPosts;
 use App\Contracts\Posts\UpdatesPosts;
+use App\Contracts\Reactions\TogglesReactions;
 use App\Contracts\Resources\CreatesTextResources;
 use App\Contracts\SpaceGroups\CreatesSpaceGroups;
 use App\Contracts\SpaceGroups\DeletesSpaceGroups;
@@ -96,6 +98,7 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(CreatesComments::class, CreateComment::class);
         app()->singleton(UpdatesComments::class, UpdateComment::class);
         app()->singleton(DeletesComments::class, DeleteComment::class);
+        app()->singleton(TogglesReactions::class, ToggleReaction::class);
 
         // Public waitlist endpoint: a few requests per minute and per IP address
         RateLimiter::for('waitlist', static function (Request $request) {
@@ -108,6 +111,10 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('comments', static function (Request $request) {
             return Limit::perMinute(Constants::COMMENTS_PER_MINUTE)->by(self::rateLimitKey($request));
+        });
+
+        RateLimiter::for('reactions', static function (Request $request) {
+            return Limit::perMinute(Constants::REACTIONS_PER_MINUTE)->by(self::rateLimitKey($request));
         });
 
         RateLimiter::for('markdown-preview', static function (Request $request) {

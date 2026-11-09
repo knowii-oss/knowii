@@ -23,7 +23,7 @@ final class CommentThread
     {
         return $post->comments()
             ->whereNull('parent_id')
-            ->with(['author', 'replies.author'])
+            ->with(['author', 'reactions', 'replies.author', 'replies.reactions'])
             ->limit(self::MAX_TOP_LEVEL_COMMENTS)
             ->get();
     }

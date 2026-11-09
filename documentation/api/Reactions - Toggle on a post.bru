@@ -1,0 +1,26 @@
+meta {
+  name: Reactions - Toggle on a post
+  type: http
+  seq: 45
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a discussion space>/posts/<post cuid>/reactions
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "kind": "like"
+  }
+}
+
+docs {
+  Adds the reaction of the member, or removes it when it exists. kind: like, love, insightful, funny or celebrate. Returns the summary: count per kind and whether the member reacted. Rate limited: 60 per minute.
+}

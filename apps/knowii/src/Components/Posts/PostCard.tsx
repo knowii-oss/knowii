@@ -2,16 +2,19 @@ import { Link } from '@inertiajs/react';
 import type { Post } from '@knowii/common';
 import { FaThumbtack } from 'react-icons/fa6';
 import { Card, MarkdownContent, RelativeTime } from '@/Components/ui';
+import { ReactionBar } from '@/Components/Reactions/ReactionBar';
 
 export interface PostCardProps {
   post: Post;
   href: string;
+  communityCuid: string;
+  canReact: boolean;
 }
 
 /**
  * A post in the list of a space: title (link to the post), author, date, the beginning of the text.
  */
-export function PostCard({ post, href }: PostCardProps) {
+export function PostCard({ post, href, communityCuid, canReact }: PostCardProps) {
   const headingId = `post-${post.cuid}-title`;
   return (
     <Card as="article" aria-labelledby={headingId} className="flex flex-col gap-2 p-4">
@@ -34,6 +37,12 @@ export function PostCard({ post, href }: PostCardProps) {
         </p>
       </header>
       <MarkdownContent html={post.body_html} className="line-clamp-4 text-sm" />
+      <ReactionBar
+        target={{ communityCuid, spaceCuid: post.space_cuid, postCuid: post.cuid }}
+        initialReactions={post.reactions}
+        canReact={canReact}
+        itemLabel={post.title}
+      />
     </Card>
   );
 }

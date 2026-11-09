@@ -50,7 +50,7 @@ class CommentApiController extends Controller
     {
         $comment = app(CreatesComments::class)->create($request->user() ?? throw new AuthenticationException, $post, $request->only(['body', 'parent_cuid']));
 
-        return self::created(new CommentResource($comment->load(['author', 'parent'])), 'Comment published');
+        return self::created(new CommentResource($comment->load(['author', 'parent', 'reactions'])), 'Comment published');
     }
 
     /**
@@ -63,7 +63,7 @@ class CommentApiController extends Controller
     {
         $comment = app(UpdatesComments::class)->update($request->user() ?? throw new AuthenticationException, $comment, $request->only(['body']));
 
-        return self::success('Comment updated', null, new CommentResource($comment->load(['author', 'parent'])));
+        return self::success('Comment updated', null, new CommentResource($comment->load(['author', 'parent', 'reactions'])));
     }
 
     /**
