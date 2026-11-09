@@ -1,5 +1,19 @@
 <?php
 
+use App\Support\ContentSecurityPolicySources as Sources;
+
+/*
+ * Origins that the Content Security Policy allows next to 'self'. The policy never accepts a whole scheme
+ * (`http:`, `https:`, `ws:`, `wss:`): each origin is listed, and comes from the environment so that acceptance,
+ * production and self-hosted instances set their own (#1183).
+ */
+$cspReverb = Sources::reverbOrigin(env('REVERB_HOST'), env('REVERB_PORT'), env('REVERB_SCHEME'));
+// Vite dev server (local environment only): styles, fonts and images in hot mode, and the HMR WebSocket
+$cspViteDevServer = Sources::viteDevServerOrigins(env('APP_ENV'), env('VITE_DEV_SERVER_URL'), env('VITE_PORT'));
+// Host of the uploaded files when they are not served by the app itself (S3-compatible bucket, CDN)
+$cspStorage = Sources::origin(env('UPLOADS_PUBLIC_URL'));
+$cspAnalytics = 'https://blue-bar-dsebastien-19fd.developassion.workers.dev';
+
 return [
 
     /*
@@ -520,12 +534,13 @@ return [
             'schemes' => [
                 'blob:',
                 'data:',
-                'ws:',
-                'wss:',
             ],
-            'allow' => [
-                'https://blue-bar-dsebastien-19fd.developassion.workers.dev/api/v1/event',
-            ],
+            'allow' => Sources::unique([
+                $cspReverb,
+                $cspAnalytics.'/api/v1/event',
+                ...array_slice($cspViteDevServer, 1),
+                ...Sources::list(env('CSP_CONNECT_SRC')),
+            ]),
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/default-src
@@ -541,14 +556,12 @@ return [
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/font-src
         'font-src' => [
             'self' => true,
-            'allow' => [
-                'fonts.googleapis.com',
-                'fonts.gstatic.com',
-            ],
+            'allow' => Sources::unique([
+                'https://fonts.gstatic.com',
+                ...array_slice($cspViteDevServer, 0, 1),
+            ]),
             'schemes' => [
                 'data:',
-                'http:',
-                'https:',
             ],
         ],
 
@@ -565,10 +578,11 @@ return [
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/frame-src
         'frame-src' => [
             'self' => true,
-            'allow' => [
+            'allow' => Sources::unique([
                 // Cloudflare Turnstile (bot check of the waitlist form)
                 'https://challenges.cloudflare.com',
-            ],
+                ...Sources::list(env('CSP_FRAME_SRC')),
+            ]),
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/img-src
@@ -576,27 +590,27 @@ return [
             'self' => true,
             'schemes' => [
                 'data:',
-                'http:',
-                'https:',
+                'blob:',
             ],
+            'allow' => Sources::unique([
+                $cspStorage,
+                ...array_slice($cspViteDevServer, 0, 1),
+                ...Sources::list(env('CSP_IMG_SRC')),
+            ]),
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/manifest-src
         'manifest-src' => [
             'self' => true,
-            'schemes' => [
-                'http:',
-                'https:',
-            ],
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/media-src
         'media-src' => [
             'self' => true,
-            'schemes' => [
-                'http:',
-                'https:',
-            ],
+            'allow' => Sources::unique([
+                $cspStorage,
+                ...Sources::list(env('CSP_MEDIA_SRC')),
+            ]),
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/object-src
@@ -640,7 +654,7 @@ return [
 
             // Fallback for older browsers
             'allow' => [
-                'blue-bar-dsebastien-19fd.developassion.workers.dev',
+                $cspAnalytics,
                 'https://challenges.cloudflare.com',
             ],
 
@@ -691,9 +705,10 @@ return [
         'style-src' => [
             'self' => true,
             'unsafe-inline' => false,
-            'schemes' => [
-                'https:',
-            ],
+            'allow' => Sources::unique([
+                'https://fonts.googleapis.com',
+                ...array_slice($cspViteDevServer, 0, 1),
+            ]),
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/style-src-attr
