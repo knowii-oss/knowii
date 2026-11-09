@@ -62,7 +62,7 @@ type EventPayloadMap = {
 // Define the hook options with improved type safety
 type UseSocketOptions<
   ChannelType extends Channel,
-  EventType extends ChannelType['type'] extends 'communities' ? CommunitiesChannelEvent : CommunityChannelEvent,
+  EventType extends (ChannelType['type'] extends 'communities' ? CommunitiesChannelEvent : CommunityChannelEvent),
 > = {
   channel: ChannelType;
   event: EventType | EventType[] | 'all';
@@ -105,11 +105,11 @@ const getAllEventsForChannelType = (channelType: Channel['type']): AllEvents[] =
 
 export const useSocket = <
   ChannelType extends Channel,
-  EventType extends ChannelType['type'] extends 'communities'
+  EventType extends (ChannelType['type'] extends 'communities'
     ? CommunitiesChannelEvent
     : ChannelType['type'] extends 'community'
-    ? CommunityChannelEvent
-    : ResourceCollectionChannelEvent,
+      ? CommunityChannelEvent
+      : ResourceCollectionChannelEvent),
 >(
   options: UseSocketOptions<ChannelType, EventType>,
 ) => {

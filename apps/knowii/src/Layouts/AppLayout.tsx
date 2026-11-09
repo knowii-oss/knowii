@@ -30,14 +30,12 @@ export default function AppLayout(props: Props) {
   const page = useTypedPage();
   const route = useRoute();
 
-
   const [mainMenuVisible, setMainMenuVisible] = useState(false);
   const [userMenuVisible, setUserMenuVisible] = useState(false);
 
   return (
     <>
       <Head title={props.browserPageTitle} />
-
 
       <PageWrapper>
         <PageHeader
