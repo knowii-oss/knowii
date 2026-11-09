@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { CommunityResource, NewCommunityResource, ResourceLevel, Space } from '@knowii/common';
+import type { CommunityResource, NewCommunityResource, ResourceLevel, ResourceType, Space } from '@knowii/common';
 import {
   DEFAULT_TEXTAREA_ROWS,
   knowiiApiClient,
@@ -9,6 +9,7 @@ import {
   MAX_LENGTH_COMMUNITY_RESOURCE_NAME,
   newCommunityResourceSchema,
   resourceLevelSchemaOptions,
+  resourceTypeSchemaOptions,
   useAppData,
 } from '@knowii/common';
 import ResourceIcon from '@/Components/Resources/ResourceIcon';
@@ -18,7 +19,12 @@ import { Button, Dialog, Select, Textarea, TextInput } from '@/Components/ui';
 
 const levelOptions = resourceLevelSchemaOptions.map((option) => ({ value: option.level, label: option.name, icon: option.icon }));
 
-const EMPTY_FORM: NewCommunityResource = { url: '', name: '', description: '', level: 'unknown' };
+const typeOptions: Array<{ value: ResourceType | ''; label: string }> = [
+  { value: '', label: 'Detect it from the page' },
+  ...resourceTypeSchemaOptions.map((option) => ({ value: option.type, label: option.name })),
+];
+
+const EMPTY_FORM: NewCommunityResource = { url: '', name: '', description: '', level: 'unknown', type: '' };
 
 interface CreateResourceDialogProps {
   open: boolean;
@@ -138,6 +144,24 @@ export function CreateResourceDialog({ open, communityCuid, space, onClose, onRe
             Leave it empty to use the title of the page. The article keeps its own title.
           </p>
           <InputError id="resource-name-error" className="mt-2" message={errors.name?.message} />
+        </div>
+
+        <div>
+          <InputLabel htmlFor="resource-type">Type</InputLabel>
+          <Controller
+            name="type"
+            control={form.control}
+            render={({ field }) => (
+              <Select<ResourceType | ''>
+                id="resource-type"
+                className="mt-1"
+                options={typeOptions}
+                value={field.value ?? ''}
+                onChange={field.onChange}
+              />
+            )}
+          />
+          <InputError className="mt-2" message={errors.type?.message} />
         </div>
 
         <div>

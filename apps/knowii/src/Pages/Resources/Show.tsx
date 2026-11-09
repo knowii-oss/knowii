@@ -16,6 +16,7 @@ import type { BreadcrumbItem } from '@/Components/ui';
 import { breadcrumbHome } from '../../Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
 import ResourceIcon from '@/Components/Resources/ResourceIcon';
+import { ResourceChangesForm } from '@/Components/Resources/ResourceChangesForm';
 import { ResourceDetails } from '@/Components/Resources/ResourceDetails';
 import { CommunityShell } from '@/Components/Spaces/CommunityShell';
 import { CommentSection } from '@/Components/Comments/CommentSection';
@@ -28,7 +29,7 @@ interface Props {
   resource: CommunityResource;
   // Comments on the resource (#1034)
   comments: Comment[];
-  permissions: { canComment: boolean; canModerate: boolean; canCapture: boolean };
+  permissions: { canComment: boolean; canModerate: boolean; canCapture: boolean; canUpdate: boolean };
 }
 
 /**
@@ -100,6 +101,17 @@ export default function ResourcePage(props: Props) {
           onCaptureAgain={props.permissions.canCapture ? captureAgain : undefined}
           captureStarting={captureStarting}
         />
+
+        {props.permissions.canUpdate && (
+          <ResourceChangesForm
+            // A new type from the capture or from another member resets the form
+            key={`${resource.type}-${resource.level}`}
+            communityCuid={community.cuid}
+            spaceCuid={space.cuid}
+            resource={resource}
+            onSaved={() => router.reload({ only: ['resource'] })}
+          />
+        )}
 
         <CommentSection
           subject={{ communityCuid: community.cuid, spaceCuid: space.cuid, resourceCuid: resource.cuid }}

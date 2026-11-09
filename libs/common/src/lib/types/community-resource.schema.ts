@@ -15,6 +15,8 @@ export const communityResourceSchema = baseEntitySchema.extend(slugSchema.shape)
   resource: resourceSchema,
   // ADR 0018: what the community decided, and the state of its capture
   type: resourceTypeSchema,
+  // The curator chose the type: a new capture keeps it (#1246)
+  type_chosen: z.boolean().optional(),
   level: resourceLevelSchema,
   capture_status: captureStatusSchema,
   capture_failure_reason: z.string().nullable(),

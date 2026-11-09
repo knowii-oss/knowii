@@ -4,11 +4,13 @@ namespace App\Actions\Resources;
 
 use App\Contracts\Resources\CapturesResourcePages;
 use App\Enums\KnowiiCaptureSource;
+use App\Enums\KnowiiResourceType;
 use App\Exceptions\BusinessException;
 use App\Exceptions\CaptureFailedException;
 use App\Models\CommunityResource;
 use App\Models\ResourceCapture;
 use App\Support\ResourceImages;
+use App\Support\ResourceTypeDetector;
 use App\Traits\FetchUrl;
 use App\Traits\HtmlToMarkdown;
 use App\Traits\ProcessHtml;
@@ -26,6 +28,13 @@ use Throwable;
 class CaptureResourcePage implements CapturesResourcePages
 {
     use FetchUrl, HtmlToMarkdown, ProcessHtml;
+
+    private readonly ResourceTypeDetector $detector;
+
+    public function __construct(?ResourceTypeDetector $detector = null)
+    {
+        $this->detector = $detector ?? new ResourceTypeDetector;
+    }
 
     final public function capture(CommunityResource $communityResource): void
     {
@@ -53,8 +62,12 @@ class CaptureResourcePage implements CapturesResourcePages
 
         $isHtml = str_contains($page['content_type'], 'text/html') || str_contains($page['content_type'], 'application/xhtml');
         if (! $isHtml || $page['body'] === '') {
-            // A PDF, an image, a file: a link with its URL (the types come with #1246)
-            $resource->update(['last_captured_at' => now(), 'last_checked_at' => now(), 'is_unavailable' => false]);
+            // A PDF, an audio or a video file: a link with its URL, typed by its content type (#1246)
+            $type = $this->detector->detect(null, $url, $page['content_type'], false);
+            DB::transaction(function () use ($resource, $communityResource, $type) {
+                $resource->update(['type' => $type, 'last_captured_at' => now(), 'last_checked_at' => now(), 'is_unavailable' => false]);
+                $this->applyType($communityResource, $type);
+            });
 
             return;
         }
@@ -69,8 +82,9 @@ class CaptureResourcePage implements CapturesResourcePages
         $faviconBytes = $this->downloadImage($this->getHtmlFaviconUrl($html, $url));
 
         [$markdown, $excerpt] = $this->readableContent($html, $url);
+        $type = $this->detector->detect($html, $url, $page['content_type'], $markdown !== null);
 
-        DB::transaction(function () use ($resource, $communityResource, $html, $title, $excerpt, $markdown) {
+        DB::transaction(function () use ($resource, $communityResource, $html, $title, $excerpt, $markdown, $type) {
             $resource->update(array_filter([
                 'name' => $title,
                 'description' => $this->getHtmlPageDescription($html),
@@ -81,6 +95,7 @@ class CaptureResourcePage implements CapturesResourcePages
                 'language' => $this->getHtmlLanguage($html),
                 'cover_image_alt' => $this->getHtmlCoverImageAlt($html),
             ], static fn ($value) => $value !== null && $value !== '' && $value !== []) + [
+                'type' => $type,
                 'last_captured_at' => now(),
                 'last_checked_at' => now(),
                 'check_failures_count' => 0,
@@ -88,12 +103,14 @@ class CaptureResourcePage implements CapturesResourcePages
             ]);
 
             $existing = $communityResource->capture()->first();
+            $this->applyType($communityResource, $type);
             if ($existing !== null && $existing->source === KnowiiCaptureSource::Extension) {
                 // What a member captured in their browser is better than a plain fetch: it stays
                 return;
             }
 
-            if ($markdown === null) {
+            // Only articles keep captured content (ADR 0018): a video page or a tool stays a link
+            if ($markdown === null || $this->applyType($communityResource, $type) !== KnowiiResourceType::Article) {
                 $existing?->delete();
 
                 return;
@@ -107,6 +124,22 @@ class CaptureResourcePage implements CapturesResourcePages
 
         // After the commit: the files need the cuid of the resource, and a failure only loses the images
         ResourceImages::store($resource, $coverBytes, $faviconBytes);
+    }
+
+    /**
+     * The community resource takes the detected type, unless its curator chose one (#1246). Returns the type that the
+     * community uses.
+     */
+    private function applyType(CommunityResource $communityResource, KnowiiResourceType $detected): KnowiiResourceType
+    {
+        if ($communityResource->type_chosen) {
+            return $communityResource->type;
+        }
+        if ($communityResource->type !== $detected) {
+            $communityResource->update(['type' => $detected]);
+        }
+
+        return $detected;
     }
 
     /**

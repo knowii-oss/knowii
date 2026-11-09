@@ -1,11 +1,17 @@
 import type { IconType } from 'react-icons';
-import { FaNewspaper } from 'react-icons/fa6';
+import { FaBook, FaCirclePlay, FaFileLines, FaHeadphones, FaLink, FaNewspaper, FaToolbox } from 'react-icons/fa6';
 import type { ResourceType } from '@knowii/common';
 import { resourceTypeSchemaOptions } from '@knowii/common';
 
 // One icon per resource type (#1137). WARNING: a new type in KnowiiResourceType needs an icon here (the Record fails to compile without it)
 const ICONS: Record<ResourceType, IconType> = {
-  textArticle: FaNewspaper,
+  article: FaNewspaper,
+  video: FaCirclePlay,
+  audio: FaHeadphones,
+  book: FaBook,
+  paper: FaFileLines,
+  tool: FaToolbox,
+  other: FaLink,
 };
 
 export interface ResourceTypeIconProps {

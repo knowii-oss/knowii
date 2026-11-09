@@ -63,9 +63,9 @@ function resource(cuid: string, name: string, url = `https://example.com/${cuid}
     description: `${name} description`,
     is_featured: false,
     level: 'beginner',
-    type: 'textArticle',
+    type: 'article',
     capture_status: 'captured',
-    resource: { cuid: `r-${cuid}`, name, url, type: 'textArticle', description: '' },
+    resource: { cuid: `r-${cuid}`, name, url, type: 'article', description: '' },
     curator: null,
     created_at: now,
     updated_at: now,
@@ -92,7 +92,7 @@ describe('ResourceList', () => {
     renderList([resource('a', 'Smart notes')]);
 
     const list = screen.getByRole('list');
-    expect(within(list).getByRole('link', { name: /^Text article.*Smart notes Smart notes description$/ })).toHaveAttribute(
+    expect(within(list).getByRole('link', { name: /^Article.*Smart notes Smart notes description$/ })).toHaveAttribute(
       'href',
       '/community/tests/space/cool-links/resource/a',
     );

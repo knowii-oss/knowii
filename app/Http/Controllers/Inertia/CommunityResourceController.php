@@ -43,6 +43,8 @@ class CommunityResourceController extends Controller
                 'canModerate' => Gate::check('moderate', $space),
                 // "Capture again" (ADR 0018)
                 'canCapture' => Gate::check('capture', $resource),
+                // Change the type and the level (#1246)
+                'canUpdate' => Gate::check('update', $resource),
             ],
         ]);
     }

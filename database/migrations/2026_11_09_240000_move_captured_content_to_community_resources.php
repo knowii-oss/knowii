@@ -3,7 +3,6 @@
 use App\Enums\KnowiiCaptureSource;
 use App\Enums\KnowiiCaptureStatus;
 use App\Enums\KnowiiResourceLevel;
-use App\Enums\KnowiiResourceType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -27,7 +26,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('community_resources', static function (Blueprint $table) {
-            $table->enum('type', KnowiiResourceType::toStringArray())->default(KnowiiResourceType::TextArticle->value)->index();
+            // The types of that time (the fixed list of #1246 replaces them in a later migration)
+            $table->enum('type', ['textArticle'])->default('textArticle')->index();
             $table->enum('level', KnowiiResourceLevel::toStringArray())->default(KnowiiResourceLevel::Unknown->value)->index();
             $table->enum('capture_status', KnowiiCaptureStatus::toStringArray())->default(KnowiiCaptureStatus::Pending->value)->index();
             // Why the last capture failed (shown to the curator), null otherwise

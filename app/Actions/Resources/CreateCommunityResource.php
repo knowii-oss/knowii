@@ -45,13 +45,15 @@ class CreateCommunityResource implements CreatesCommunityResources
             throw new BusinessException('Resources can only be added to resources spaces');
         }
 
-        /** @var array{name?: string|null, description?: string|null, url: string, level: string} $input */
+        /** @var array{name?: string|null, description?: string|null, url: string, level: string, type?: string|null} $input */
         $input = Validator::make($input, [
             // Optional: the title of the page replaces it after the capture (#1062)
             'name' => ['nullable', 'string', 'min:'.Constants::MIN_LENGTH_COMMUNITY_RESOURCE_NAME, 'max:'.Constants::MAX_LENGTH_COMMUNITY_RESOURCE_NAME, 'regex:'.Constants::ALLOWED_COMMUNITY_RESOURCE_NAME_CHARACTERS_REGEX],
             'description' => ['nullable', 'string', 'max:'.Constants::MAX_LENGTH_COMMUNITY_RESOURCE_DESCRIPTION],
             'url' => ['required', 'string', 'url:http,https', 'max:2048'],
             'level' => ['required', Rule::enum(KnowiiResourceLevel::class)],
+            // Optional: the capture detects it (#1246); a type from the member stays
+            'type' => ['nullable', Rule::enum(KnowiiResourceType::class)],
         ])->validate();
 
         $url = $this->cleanupUrl($input['url']);
@@ -72,8 +74,10 @@ class CreateCommunityResource implements CreatesCommunityResources
                 'name' => $urlTitle,
                 'url' => $url,
                 'keywords' => [],
-                'type' => KnowiiResourceType::TextArticle,
+                // Until the capture detects it
+                'type' => KnowiiResourceType::Other,
             ]);
+            $chosenType = blank($input['type'] ?? null) ? null : KnowiiResourceType::from((string) $input['type']);
 
             return CommunityResource::create([
                 'slug' => $resource->slug,
@@ -82,7 +86,8 @@ class CreateCommunityResource implements CreatesCommunityResources
                 'resource_id' => $resource->id,
                 'community_id' => $space->community_id,
                 'space_id' => $space->id,
-                'type' => $resource->type,
+                'type' => $chosenType ?? $resource->type,
+                'type_chosen' => $chosenType !== null,
                 'level' => KnowiiResourceLevel::from($input['level']),
                 'capture_status' => KnowiiCaptureStatus::Pending,
                 // A profile, not a user: the curation stays when the account goes (ADR 0024)

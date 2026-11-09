@@ -28,9 +28,17 @@ class CommunityResourcePolicy
     }
 
     /**
-     * Start the capture again (ADR 0018): the curator, or a member who manages the spaces of the community
+     * Start the capture again (ADR 0018): the same members as for a change
      */
     final public function capture(User $user, CommunityResource $resource): bool
+    {
+        return $this->update($user, $resource);
+    }
+
+    /**
+     * Change the type or the level (#1246): the curator, or a member who manages the spaces of the community
+     */
+    final public function update(User $user, CommunityResource $resource): bool
     {
         if (! Gate::forUser($user)->check('view', $resource->space)) {
             return false;

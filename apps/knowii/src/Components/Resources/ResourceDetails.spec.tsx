@@ -41,7 +41,7 @@ function resource(
     curator,
     created_at: new Date().toISOString(),
     level: 'beginner',
-    type: 'textArticle',
+    type: 'article',
     capture_status: 'captured',
     capture: { markdown: null, word_count: 1200, reading_time: 6, source: 'server', captured_at: new Date().toISOString() },
     resource: {
@@ -120,5 +120,22 @@ describe('ResourceDetails', () => {
   it('shows a capture that runs', () => {
     renderDetails({ ...resource(), capture_status: 'capturing', capture: null } as CommunityResource);
     expect(screen.getByText('Capturing the page…')).toBeInTheDocument();
+  });
+
+  it('names each type of the fixed list (#1246)', () => {
+    for (const [type, name] of [
+      ['video', 'Video'],
+      ['audio', 'Audio or podcast'],
+      ['paper', 'Paper'],
+      ['tool', 'Tool or website'],
+    ] as const) {
+      const { unmount } = render(
+        <AppDataProvider>
+          <ResourceDetails communitySlug="tests" resource={{ ...resource(), type } as CommunityResource} shareUrl="https://knowii.test/r" />
+        </AppDataProvider>,
+      );
+      expect(screen.getByTitle(name)).toBeInTheDocument();
+      unmount();
+    }
   });
 });

@@ -34,6 +34,7 @@ use Illuminate\Support\Facades\DB;
  * @property int $resource_id
  * @property int $community_id
  * @property KnowiiResourceType $type
+ * @property bool $type_chosen
  * @property KnowiiResourceLevel $level
  * @property KnowiiCaptureStatus $capture_status
  * @property ?string $capture_failure_reason
@@ -95,6 +96,7 @@ class CommunityResource extends Model
         'community_id',
         'space_id',
         'type',
+        'type_chosen',
         'level',
         'capture_status',
         'capture_failure_reason',
@@ -136,6 +138,7 @@ class CommunityResource extends Model
         return [
             'is_featured' => 'boolean',
             'type' => KnowiiResourceType::class,
+            'type_chosen' => 'boolean',
             'level' => KnowiiResourceLevel::class,
             'capture_status' => KnowiiCaptureStatus::class,
         ];
