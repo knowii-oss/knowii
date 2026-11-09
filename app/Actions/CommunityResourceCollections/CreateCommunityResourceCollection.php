@@ -43,7 +43,7 @@ class CreateCommunityResourceCollection implements CreatesCommunityResourceColle
 
         $validator->validate();
 
-        /** @var array{name: string, description: string|null} $input */
+        /** @var array{name: string, description?: string|null} $input */
         $input = $validator->validated();
         Log::debug('Input validated');
 
@@ -52,7 +52,7 @@ class CreateCommunityResourceCollection implements CreatesCommunityResourceColle
         try {
             $collection = $community->communityResourceCollections()->create([
                 'name' => $input['name'],
-                'description' => $input['description'],
+                'description' => $input['description'] ?? null,
             ]);
 
             Log::info('New community resource collection created successfully', ['collection' => $collection]);
