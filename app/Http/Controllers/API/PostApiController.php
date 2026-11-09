@@ -37,7 +37,7 @@ class PostApiController extends Controller
     {
         Gate::authorize('view', $space);
 
-        $page = Pagination::fromRequest($request)->apply($space->posts()->with(['author', 'space'])->forSpacePage());
+        $page = Pagination::fromRequest($request)->apply($space->posts()->with(['author', 'space'])->withCount('comments')->forSpacePage());
 
         return self::success('Posts', $page['metadata'], PostResource::collection($page['items']));
     }

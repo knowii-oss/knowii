@@ -17,6 +17,9 @@ import {
   COMMUNITY_SPACE_GROUPS_REORDER_API_PATH,
   COMMUNITY_SPACES_API_PATH,
   COMMUNITY_SPACE_POST_API_PATH,
+  COMMUNITY_SPACE_POST_COMMENT_API_PATH,
+  COMMUNITY_SPACE_POST_COMMENTS_API_PATH,
+  SPACE_API_PARAM_COMMENT,
   COMMUNITY_SPACE_POST_PIN_API_PATH,
   COMMUNITY_SPACE_POSTS_API_PATH,
   MARKDOWN_PREVIEW_API_PATH,
@@ -55,6 +58,8 @@ import type { Space, SpaceForm, SpaceGroup, SpaceGroupForm } from '../types/spac
 import { spaceGroupSchema, spaceSchema } from '../types/space.schema';
 import type { Paginated, Post, PostForm } from '../types/post.schema';
 import { paginationSchema, postSchema } from '../types/post.schema';
+import type { Comment, CommentForm } from '../types/comment.schema';
+import { commentSchema } from '../types/comment.schema';
 
 const spaceGroupPath = (communityCuid: string, spaceGroupCuid: string, path = COMMUNITY_SPACE_GROUP_API_PATH) =>
   apiPath(path, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE_GROUP]: spaceGroupCuid });
@@ -65,6 +70,13 @@ const postsPath = (communityCuid: string, spaceCuid: string, postCuid = '', path
   apiPath(path, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE]: spaceCuid, [SPACE_API_PARAM_POST]: postCuid });
 
 const postListSchema = z.array(postSchema);
+const commentsPath = (communityCuid: string, spaceCuid: string, postCuid: string, commentCuid?: string) =>
+  apiPath(commentCuid ? COMMUNITY_SPACE_POST_COMMENT_API_PATH : COMMUNITY_SPACE_POST_COMMENTS_API_PATH, {
+    [SPACE_API_PARAM_COMMUNITY]: communityCuid,
+    [SPACE_API_PARAM_SPACE]: spaceCuid,
+    [SPACE_API_PARAM_POST]: postCuid,
+    [SPACE_API_PARAM_COMMENT]: commentCuid ?? '',
+  });
 const htmlSchema = z.object({ html: z.string() });
 
 const defaultHeaders: Headers = new Headers({
@@ -231,6 +243,33 @@ export const knowiiApiClient = {
           pinned ? 'Failed to pin the post.' : 'Failed to unpin the post.',
           { pinned },
         ),
+    },
+    comments: {
+      list: (communityCuid: string, spaceCuid: string, postCuid: string): Promise<ApiResult<Comment[]>> =>
+        apiRequest('get', commentsPath(communityCuid, spaceCuid, postCuid), z.array(commentSchema), 'Failed to load the comments.'),
+      create: (
+        communityCuid: string,
+        spaceCuid: string,
+        postCuid: string,
+        input: CommentForm & { parent_cuid?: string | null },
+      ): Promise<ApiResult<Comment>> =>
+        apiRequest('post', commentsPath(communityCuid, spaceCuid, postCuid), commentSchema, 'Failed to publish the comment.', input),
+      update: (
+        communityCuid: string,
+        spaceCuid: string,
+        postCuid: string,
+        commentCuid: string,
+        input: CommentForm,
+      ): Promise<ApiResult<Comment>> =>
+        apiRequest(
+          'patch',
+          commentsPath(communityCuid, spaceCuid, postCuid, commentCuid),
+          commentSchema,
+          'Failed to save the comment.',
+          input,
+        ),
+      delete: (communityCuid: string, spaceCuid: string, postCuid: string, commentCuid: string): Promise<ApiResult<undefined>> =>
+        apiRequest('delete', commentsPath(communityCuid, spaceCuid, postCuid, commentCuid), null, 'Failed to delete the comment.'),
     },
     resourceCollections: {
       create: async (input: CreateCommunityResourceCollectionRequest): Promise<CreateCommunityResourceCollectionResponse> => {

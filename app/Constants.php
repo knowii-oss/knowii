@@ -86,6 +86,11 @@ class Constants
 
     public const int MAX_LENGTH_POST_BODY = 50000;
 
+    public const int MAX_LENGTH_COMMENT_BODY = 10000;
+
+    // Comments created per minute and per user
+    public const int COMMENTS_PER_MINUTE = 10;
+
     // Markdown preview requests (editor) per minute and per user
     public const int MARKDOWN_PREVIEWS_PER_MINUTE = 60;
 

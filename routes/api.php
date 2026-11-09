@@ -1,6 +1,7 @@
 <?php
 
 use App\ApiRoutes;
+use App\Http\Controllers\API\CommentApiController;
 use App\Http\Controllers\API\CommunityApiController;
 use App\Http\Controllers\API\CommunityResourceCollectionApiController;
 use App\Http\Controllers\API\LoginApiController;
@@ -60,6 +61,12 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::patch(ApiRoutes::COMMUNITY_SPACE_POST, [PostApiController::class, 'update']);
             Route::delete(ApiRoutes::COMMUNITY_SPACE_POST, [PostApiController::class, 'destroy']);
             Route::post(ApiRoutes::COMMUNITY_SPACE_POST_PIN, [PostApiController::class, 'pin']);
+
+            // Comments (#1175)
+            Route::get(ApiRoutes::COMMUNITY_SPACE_POST_COMMENTS, [CommentApiController::class, 'index']);
+            Route::post(ApiRoutes::COMMUNITY_SPACE_POST_COMMENTS, [CommentApiController::class, 'store'])->middleware('throttle:comments');
+            Route::patch(ApiRoutes::COMMUNITY_SPACE_POST_COMMENT, [CommentApiController::class, 'update']);
+            Route::delete(ApiRoutes::COMMUNITY_SPACE_POST_COMMENT, [CommentApiController::class, 'destroy']);
         });
 
         Route::post(ApiRoutes::MARKDOWN_PREVIEW, [MarkdownApiController::class, 'preview'])->middleware('throttle:markdown-preview');

@@ -25,6 +25,8 @@ export const postSchema = baseEntitySchema.extend({
   pinned_at: z.coerce.date().nullable(),
   edited_at: z.coerce.date().nullable(),
   author: authorSchema.nullable(),
+  // Comments and replies, when counted
+  comments_count: z.number().int().optional(),
   space_cuid: z.string(),
 });
 export type Post = z.infer<typeof postSchema>;
@@ -72,4 +74,5 @@ export interface PostPermissions {
   canUpdatePost: boolean;
   canDeletePost: boolean;
   canPinPost: boolean;
+  canComment: boolean;
 }
