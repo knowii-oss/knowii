@@ -2,19 +2,10 @@
 
 namespace App;
 
-use App\Models\Community;
 use TaylorNetwork\UsernameGenerator\Generator;
 
 class Knowii
 {
-    /**
-     * Get a new instance of the community model.
-     */
-    public static function newCommunityModel(): Community
-    {
-        return new Community;
-    }
-
     /**
      * Generate a random username based on the user's name
      * References:
