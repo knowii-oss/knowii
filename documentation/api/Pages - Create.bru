@@ -1,0 +1,27 @@
+meta {
+  name: Pages - Create
+  type: http
+  seq: 86
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a page space>/pages
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Start here",
+    "body": "Welcome! Read these pages in order."
+  }
+}
+
+docs {
+  Adds a page at the end of the space. The owner, the admins and the moderators. Ability pages:write.
+}

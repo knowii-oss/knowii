@@ -115,6 +115,8 @@ export interface SpacePermissions {
   canContribute: boolean;
   canModerate: boolean;
   canReact: boolean;
+  // Page spaces (#1179): the owner, the admins and the moderators
+  canManagePages: boolean;
 }
 
 /**

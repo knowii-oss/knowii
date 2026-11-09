@@ -54,6 +54,8 @@ export const SPACE_URL = 'spaces.show';
 
 // Posts
 export const POST_URL = 'posts.show';
+// A page of a page space (#1179)
+export const PAGE_URL = 'pages.show';
 
 // Members
 export const MEMBER_URL = 'members.show';
@@ -194,6 +196,11 @@ export const COMMUNITY_SPACE_RESOURCE_COMMENT_API_PATH = `${COMMUNITY_SPACE_RESO
 export const SPACE_API_PARAM_POST = '{postCuid}';
 export const COMMUNITY_SPACE_POSTS_API_PATH = `${COMMUNITY_SPACE_API_PATH}/posts`;
 export const COMMUNITY_SPACE_POST_API_PATH = `${COMMUNITY_SPACE_POSTS_API_PATH}/${SPACE_API_PARAM_POST}`;
+// Pages of page spaces (#1179)
+export const SPACE_API_PARAM_PAGE = '{pageCuid}';
+export const COMMUNITY_SPACE_PAGES_API_PATH = `${COMMUNITY_SPACE_API_PATH}/pages`;
+export const COMMUNITY_SPACE_PAGES_ORDER_API_PATH = `${COMMUNITY_SPACE_PAGES_API_PATH}/order`;
+export const COMMUNITY_SPACE_PAGE_API_PATH = `${COMMUNITY_SPACE_PAGES_API_PATH}/${SPACE_API_PARAM_PAGE}`;
 export const COMMUNITY_SPACE_POST_PIN_API_PATH = `${COMMUNITY_SPACE_POST_API_PATH}/pin`;
 
 // Markdown preview (same rendering as the saved content)

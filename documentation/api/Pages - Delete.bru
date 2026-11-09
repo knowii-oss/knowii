@@ -1,0 +1,19 @@
+meta {
+  name: Pages - Delete
+  type: http
+  seq: 88
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a page space>/pages/<cuid of a page>
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Deletes a page. The owner, the admins and the moderators. Ability pages:write.
+}

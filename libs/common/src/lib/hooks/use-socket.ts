@@ -52,6 +52,11 @@ export const SPACE_CONTENT_EVENTS = [
   'space.comment.updated',
   'space.comment.deleted',
   'space.reactions.changed',
+  // Pages of page spaces (#1179)
+  'space.page.created',
+  'space.page.updated',
+  'space.page.deleted',
+  'space.pages.reordered',
 ] as const;
 export type SpaceContentEvent = (typeof SPACE_CONTENT_EVENTS)[number];
 
@@ -60,6 +65,7 @@ export interface SpaceContentPayload {
   post_cuid?: string | null;
   resource_cuid?: string | null;
   comment_cuid?: string | null;
+  page_cuid?: string | null;
   author_cuid?: string | null;
 }
 

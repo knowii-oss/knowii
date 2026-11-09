@@ -6,12 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * A post or a comment that uses an upload (#1201). Exactly one of post_id and comment_id is set (ADR 0014).
+ * A post or a comment that uses an upload (#1201). Exactly one of post_id, comment_id and page_id (#1179) is set (ADR 0014).
  *
  * @property-read int $id
  * @property int $upload_id
  * @property ?int $post_id
  * @property ?int $comment_id
+ * @property ?int $page_id
  * @property-read Upload $upload
  */
 class UploadUsage extends Model
@@ -21,7 +22,7 @@ class UploadUsage extends Model
     /**
      * @var list<string>
      */
-    protected $fillable = ['upload_id', 'post_id', 'comment_id'];
+    protected $fillable = ['upload_id', 'post_id', 'comment_id', 'page_id'];
 
     /**
      * @return BelongsTo<Upload, covariant $this>

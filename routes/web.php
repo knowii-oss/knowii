@@ -6,6 +6,7 @@ use App\Http\Controllers\Inertia\CommunityResourceController;
 use App\Http\Controllers\Inertia\DashboardController;
 use App\Http\Controllers\Inertia\MagicLinkController;
 use App\Http\Controllers\Inertia\MemberController;
+use App\Http\Controllers\Inertia\PageController;
 use App\Http\Controllers\Inertia\PostController;
 use App\Http\Controllers\Inertia\SpaceController;
 use App\Http\Controllers\PrivacyPolicyController;
@@ -50,6 +51,8 @@ Route::middleware([
     Route::get('/community/{communitySlug}/member/{username}', [MemberController::class, 'show'])->name('members.show');
     Route::get('/community/{communitySlug}/space/{spaceSlug}', [SpaceController::class, 'show'])->name('spaces.show');
     Route::get('/community/{communitySlug}/space/{spaceSlug}/post/{postSlug}', [PostController::class, 'show'])->name('posts.show');
+    // Pages of page spaces (#1179)
+    Route::get('/community/{communitySlug}/space/{spaceSlug}/page/{pageSlug}', [PageController::class, 'show'])->name('pages.show');
 
     // A resource of a resources space (ADR 0015). The page itself is #1133
     Route::get('/community/{communitySlug}/space/{spaceSlug}/resource/{resourceSlug}', [CommunityResourceController::class, 'show'])->name('resources.show');

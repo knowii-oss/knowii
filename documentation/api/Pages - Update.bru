@@ -1,0 +1,26 @@
+meta {
+  name: Pages - Update
+  type: http
+  seq: 87
+}
+
+patch {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a page space>/pages/<cuid of a page>
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Start here, updated"
+  }
+}
+
+docs {
+  Changes the title or the text of a page; the slug stays. The owner, the admins and the moderators. Ability pages:write.
+}

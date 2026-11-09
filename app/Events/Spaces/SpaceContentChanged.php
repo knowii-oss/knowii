@@ -5,6 +5,7 @@ namespace App\Events\Spaces;
 use App\Constants;
 use App\Models\Comment;
 use App\Models\CommunityResource;
+use App\Models\Page;
 use App\Models\Post;
 use App\Models\Space;
 use Illuminate\Broadcasting\InteractsWithSockets;
@@ -40,6 +41,15 @@ class SpaceContentChanged implements ShouldBroadcast, ShouldDispatchAfterCommit
 
     public const string REACTIONS_CHANGED = 'space.reactions.changed';
 
+    // Pages of a page space (#1179)
+    public const string PAGE_CREATED = 'space.page.created';
+
+    public const string PAGE_UPDATED = 'space.page.updated';
+
+    public const string PAGE_DELETED = 'space.page.deleted';
+
+    public const string PAGES_REORDERED = 'space.pages.reordered';
+
     /**
      * @param  array<string, string|null>  $payload
      */
@@ -53,6 +63,16 @@ class SpaceContentChanged implements ShouldBroadcast, ShouldDispatchAfterCommit
     public static function forPost(string $name, Post $post, ?string $authorCuid = null): self
     {
         return self::in($post->space, $name, ['post_cuid' => $post->cuid, 'author_cuid' => $authorCuid]);
+    }
+
+    public static function forPage(string $name, Page $page, ?string $authorCuid = null): self
+    {
+        return self::in($page->space, $name, ['page_cuid' => $page->cuid, 'author_cuid' => $authorCuid]);
+    }
+
+    public static function forPagesOrder(Space $space): self
+    {
+        return self::in($space, self::PAGES_REORDERED, []);
     }
 
     public static function forComment(string $name, Comment $comment, ?string $authorCuid = null): self

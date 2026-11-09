@@ -12,6 +12,7 @@ use App\Http\Controllers\API\MarkdownApiController;
 use App\Http\Controllers\API\MemberApiController;
 use App\Http\Controllers\API\ModeratorPermissionApiController;
 use App\Http\Controllers\API\NewsletterApiController;
+use App\Http\Controllers\API\PageApiController;
 use App\Http\Controllers\API\PingApiController;
 use App\Http\Controllers\API\PostApiController;
 use App\Http\Controllers\API\ReactionApiController;
@@ -71,6 +72,14 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::patch(ApiRoutes::COMMUNITY_SPACE_POST, [PostApiController::class, 'update'])->middleware('ability:posts:write');
             Route::delete(ApiRoutes::COMMUNITY_SPACE_POST, [PostApiController::class, 'destroy'])->middleware('ability:posts:write');
             Route::post(ApiRoutes::COMMUNITY_SPACE_POST_PIN, [PostApiController::class, 'pin'])->middleware('ability:posts:write');
+
+            // Pages of page spaces (#1179)
+            Route::get(ApiRoutes::COMMUNITY_SPACE_PAGES, [PageApiController::class, 'index'])->middleware('ability:pages:read');
+            Route::post(ApiRoutes::COMMUNITY_SPACE_PAGES, [PageApiController::class, 'store'])->middleware('ability:pages:write');
+            Route::post(ApiRoutes::COMMUNITY_SPACE_PAGES_ORDER, [PageApiController::class, 'reorder'])->middleware('ability:pages:write');
+            Route::get(ApiRoutes::COMMUNITY_SPACE_PAGE, [PageApiController::class, 'show'])->middleware('ability:pages:read');
+            Route::patch(ApiRoutes::COMMUNITY_SPACE_PAGE, [PageApiController::class, 'update'])->middleware('ability:pages:write');
+            Route::delete(ApiRoutes::COMMUNITY_SPACE_PAGE, [PageApiController::class, 'destroy'])->middleware('ability:pages:write');
 
             // Resources of resources spaces (ADR 0015)
             Route::get(ApiRoutes::COMMUNITY_SPACE_RESOURCES, [CommunityResourceApiController::class, 'index'])->middleware('ability:resources:read');

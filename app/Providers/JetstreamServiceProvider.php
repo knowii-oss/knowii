@@ -56,6 +56,8 @@ class JetstreamServiceProvider extends ServiceProvider
             'communities:write',
             'posts:read',
             'posts:write',
+            'pages:read',
+            'pages:write',
             'resources:read',
             'resources:write',
             'resources:create',
@@ -67,7 +69,7 @@ class JetstreamServiceProvider extends ServiceProvider
         Jetstream::permissions($allPermissions);
 
         // A new token can read, nothing more, until the member chooses more (least privilege)
-        Jetstream::defaultApiTokenPermissions(['user:read', 'communities:read', 'posts:read', 'resources:read']);
+        Jetstream::defaultApiTokenPermissions(['user:read', 'communities:read', 'posts:read', 'pages:read', 'resources:read']);
 
         // TODO define the exact admin permissions
         Jetstream::role('admin', 'Administrator', $allPermissions)->description('Administrator users can perform any action.');

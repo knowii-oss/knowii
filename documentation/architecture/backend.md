@@ -195,7 +195,7 @@ Events that can be dispatched and processed within Knowii (with or without WebSo
 - `App\Events\Communities\CommunityDeleted`
 - `App\Events\CommunityResources\CommunityResourceCreated` (also `Updated`, `Deleted`): on the channel of the resources space only ([ADR 0015](../adr/0015-resources-space-type.md))
 - `App\Events\Spaces\SpaceTreeChanged`
-- `App\Events\Spaces\SpaceContentChanged` (#1180): posts, comments and reactions (`space.post.created`, `.updated`, `.deleted`, `space.comment.*`, `space.reactions.changed`) on the channel of the space only. The payload holds identifiers only (`post_cuid`, `resource_cuid`, `comment_cuid`, `author_cuid`): the page loads the item again through the API, which checks the access and computes the fields of the member, such as their own reactions. New posts wait behind a "new posts" button, so the list does not move under the reader.
+- `App\Events\Spaces\SpaceContentChanged` (#1180): posts, comments and reactions (`space.post.created`, `.updated`, `.deleted`, `space.comment.*`, `space.reactions.changed`) on the channel of the space only. The payload holds identifiers only (`post_cuid`, `resource_cuid`, `comment_cuid`, `author_cuid`): the page loads the item again through the API, which checks the access and computes the fields of the member, such as their own reactions. New posts wait behind a "new posts" button, so the list does not move under the reader. Page spaces (#1179) add `space.page.created`, `.updated`, `.deleted` (`page_cuid`) and `space.pages.reordered`; the list and the page view reload their props.
 - `App\Events\CommunityMembers\CommunityMembersChanged`, `App\Events\AccessGroups\AccessGroupsChanged`
 - ...
 

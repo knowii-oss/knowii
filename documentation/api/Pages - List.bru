@@ -1,0 +1,19 @@
+meta {
+  name: Pages - List
+  type: http
+  seq: 84
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a page space>/pages
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The pages of a page space, in their order (#1179), without their text. Members who can read the space. Ability pages:read.
+}

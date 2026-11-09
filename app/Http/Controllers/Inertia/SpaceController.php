@@ -53,10 +53,14 @@ class SpaceController extends Controller
             ];
         }
 
+        // Page spaces: the titles of the pages, in their order (#1179)
+        $pages = $space->type === KnowiiSpaceType::Pages ? $space->pages()->get()->toResourceCollection() : null;
+
         // WARNING: The props passed here must remain aligned with the props expected by the page (Pages/Spaces/Show.tsx)
         return Jetstream::inertia()->render($request, 'Spaces/Show', [
             'posts' => $posts,
             'resources' => $resources,
+            'pages' => $pages,
             'community' => $community->toResource()->withLargeFields(),
             'space' => $space->toResource()->withLargeFields(),
             'spaceGroups' => SpaceTree::for($community, $request->user())->toResourceCollection(),
@@ -64,6 +68,7 @@ class SpaceController extends Controller
                 'canManageSpaces' => Gate::check('manageSpaces', $community),
                 'canContribute' => Gate::check('contribute', $space),
                 'canModerate' => Gate::check('moderate', $space),
+                'canManagePages' => Gate::check('managePages', $space),
                 // Members react to and comment what they can read
                 'canReact' => $request->user()?->belongsToCommunity($community) ?? false,
             ],

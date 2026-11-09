@@ -153,6 +153,16 @@ class Space extends Model
     }
 
     /**
+     * The pages of a page space (#1179), in their order
+     *
+     * @return HasMany<Page, covariant $this>
+     */
+    final public function pages(): HasMany
+    {
+        return $this->hasMany(Page::class)->orderBy('position')->orderBy('id');
+    }
+
+    /**
      * The resources of a resources space (ADR 0015). Named after the route parameter, for scoped bindings.
      *
      * @return HasMany<CommunityResource, covariant $this>
