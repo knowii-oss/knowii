@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import type { Community, CommunityResource, Page, Paginated, Post, Space, SpaceGroup, SpacePermissions } from '@knowii/common';
+import type { ChatMessage, Community, CommunityResource, Page, Paginated, Post, Space, SpaceGroup, SpacePermissions } from '@knowii/common';
 import { COMMUNITY_SETTINGS_URL, COMMUNITY_URL, SPACE_POSTING_POLICY_LABELS, SPACE_TYPE_LABELS, useTypedPage } from '@knowii/common';
 import { FaGear } from 'react-icons/fa6';
 import AppLayout from '@/Layouts/AppLayout';
@@ -11,6 +11,7 @@ import { buttonClasses, EmptyState } from '@/Components/ui';
 import { PostList } from '@/Components/Posts/PostList';
 import { ResourceList } from '@/Components/Resources/ResourceList';
 import { PageList } from '@/Components/SpacePages/PageList';
+import { ChatSpace } from '@/Components/Chat/ChatSpace';
 
 interface Props {
   // WARNING: aligned with SpaceController.php
@@ -24,6 +25,8 @@ interface Props {
   resources: Paginated<CommunityResource> | null;
   // Page spaces (#1179): the titles, in their order
   pages: Page[] | null;
+  // Chat spaces (#1185): the newest messages and where the unread ones start
+  chat: { messages: ChatMessage[]; has_more: boolean; first_unread_cuid: string | null } | null;
 }
 
 const EMPTY_STATES: Record<Space['type'], { title: string; description: string }> = {
@@ -98,6 +101,18 @@ export default function SpacePage(props: Props) {
             canContribute={props.permissions.canContribute}
             canReact={props.permissions.canReact}
             currentUserCuid={page.props.auth.user?.cuid ?? null}
+          />
+        ) : space.type === 'chat' && props.chat ? (
+          <ChatSpace
+            community={community}
+            space={space}
+            initialMessages={props.chat.messages}
+            hasMore={props.chat.has_more}
+            firstUnreadCuid={props.chat.first_unread_cuid}
+            currentUserCuid={page.props.auth.user?.cuid ?? null}
+            canWrite={props.permissions.canContribute}
+            canReact={props.permissions.canReact}
+            canModerate={props.permissions.canModerate}
           />
         ) : space.type === 'pages' && props.pages ? (
           <PageList community={community} space={space} pages={props.pages} canManagePages={props.permissions.canManagePages} />

@@ -54,6 +54,13 @@ export function SpaceNavigation({ spaceGroups, activeSpaceCuid, getSpaceHref, on
                         {space.emoji || SPACE_TYPE_LABELS[space.type].emoji}
                       </span>
                       <span className="min-w-0 grow truncate">{space.name}</span>
+                      {/* Chat spaces (#1185): the messages that the member did not read */}
+                      {!active && (space.unread_count ?? 0) > 0 && (
+                        <span className="shrink-0 rounded-full bg-secondary px-1.5 text-xs font-bold text-white">
+                          {space.unread_count}
+                          <span className="sr-only"> unread</span>
+                        </span>
+                      )}
                       {space.visibility === 'members' && <FaLock aria-label="Members only" className="size-3 shrink-0 text-muted" />}
                       {space.visibility === 'groups' && (
                         <FaUserLock aria-label="Access groups only" className="size-3 shrink-0 text-muted" />

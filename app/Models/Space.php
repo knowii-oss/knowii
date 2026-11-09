@@ -153,6 +153,26 @@ class Space extends Model
     }
 
     /**
+     * The messages of a chat space (#1185), with the replies of the threads
+     *
+     * @return HasMany<ChatMessage, covariant $this>
+     */
+    final public function chatMessages(): HasMany
+    {
+        return $this->hasMany(ChatMessage::class);
+    }
+
+    /**
+     * The same as chatMessages(), named after the route parameter {message}, for scoped bindings
+     *
+     * @return HasMany<ChatMessage, covariant $this>
+     */
+    final public function messages(): HasMany
+    {
+        return $this->chatMessages();
+    }
+
+    /**
      * The pages of a page space (#1179), in their order
      *
      * @return HasMany<Page, covariant $this>

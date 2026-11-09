@@ -3,6 +3,7 @@
 namespace App\Events\Spaces;
 
 use App\Constants;
+use App\Models\ChatMessage;
 use App\Models\Comment;
 use App\Models\CommunityResource;
 use App\Models\Page;
@@ -50,6 +51,13 @@ class SpaceContentChanged implements ShouldBroadcast, ShouldDispatchAfterCommit
 
     public const string PAGES_REORDERED = 'space.pages.reordered';
 
+    // Messages of a chat space (#1185)
+    public const string MESSAGE_CREATED = 'space.message.created';
+
+    public const string MESSAGE_UPDATED = 'space.message.updated';
+
+    public const string MESSAGE_DELETED = 'space.message.deleted';
+
     /**
      * @param  array<string, string|null>  $payload
      */
@@ -68,6 +76,15 @@ class SpaceContentChanged implements ShouldBroadcast, ShouldDispatchAfterCommit
     public static function forPage(string $name, Page $page, ?string $authorCuid = null): self
     {
         return self::in($page->space, $name, ['page_cuid' => $page->cuid, 'author_cuid' => $authorCuid]);
+    }
+
+    public static function forMessage(string $name, ChatMessage $message, ?string $authorCuid = null): self
+    {
+        return self::in($message->space, $name, [
+            'message_cuid' => $message->cuid,
+            'parent_cuid' => $message->parent_id === null ? null : $message->parent?->cuid,
+            'author_cuid' => $authorCuid,
+        ]);
     }
 
     public static function forPagesOrder(Space $space): self
@@ -89,8 +106,15 @@ class SpaceContentChanged implements ShouldBroadcast, ShouldDispatchAfterCommit
     /**
      * The reactions of a post or of a comment changed
      */
-    public static function forReactions(Post|Comment $reactable): self
+    public static function forReactions(Post|Comment|ChatMessage $reactable): self
     {
+        if ($reactable instanceof ChatMessage) {
+            return self::in($reactable->space, self::REACTIONS_CHANGED, [
+                'message_cuid' => $reactable->cuid,
+                'parent_cuid' => $reactable->parent_id === null ? null : $reactable->parent?->cuid,
+            ]);
+        }
+
         if ($reactable instanceof Post) {
             return self::in($reactable->space, self::REACTIONS_CHANGED, ['post_cuid' => $reactable->cuid]);
         }

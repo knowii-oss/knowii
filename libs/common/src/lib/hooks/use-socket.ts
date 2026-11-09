@@ -57,6 +57,10 @@ export const SPACE_CONTENT_EVENTS = [
   'space.page.updated',
   'space.page.deleted',
   'space.pages.reordered',
+  // Messages of chat spaces (#1185)
+  'space.message.created',
+  'space.message.updated',
+  'space.message.deleted',
 ] as const;
 export type SpaceContentEvent = (typeof SPACE_CONTENT_EVENTS)[number];
 
@@ -66,6 +70,9 @@ export interface SpaceContentPayload {
   resource_cuid?: string | null;
   comment_cuid?: string | null;
   page_cuid?: string | null;
+  message_cuid?: string | null;
+  // The first message of the thread of a reply (#1185)
+  parent_cuid?: string | null;
   author_cuid?: string | null;
 }
 

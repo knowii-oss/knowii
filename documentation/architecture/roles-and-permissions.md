@@ -51,6 +51,9 @@ The owner and the admins switch these rights in the community settings ("Moderat
 | Delete the posts and comments of others | `SpacePolicy::moderate`                                   | yes    | yes    | `delete_content`                    | no         | no       | no      |
 | Pin a post                              | `PostPolicy::pin`                                         | yes    | yes    | `pin_posts`                         | no         | no       | no      |
 | Create, edit, reorder and delete pages  | `SpacePolicy::managePages` (needs `view`)                 | yes    | yes    | yes (role)                          | no         | no       | no      |
+| Write in a chat space                   | `SpacePolicy::contribute` (posting policy)                | yes    | yes    | yes                                 | members    | no       | no      |
+| Edit or delete one's own chat message   | `ChatMessagePolicy::update`, `::delete`                   | author | author | author                              | author     | no       | no      |
+| Delete the chat messages of others      | `ChatMessagePolicy::delete` (`SpacePolicy::moderate`)     | yes    | yes    | `delete_content`                    | no         | no       | no      |
 | Change a resource, capture it again     | `CommunityResourcePolicy::update`, `::capture`            | yes    | yes    | curator or `manage_spaces`          | curator    | no       | no      |
 | Edit one's own post or comment          | `PostPolicy::update`, `CommentPolicy::update`             | author | author | author                              | author     | no       | no      |
 | Comment and react                       | `PostPolicy::comment`, `CommunityResourcePolicy::comment` | yes    | yes    | yes                                 | yes        | no       | no      |

@@ -1,0 +1,26 @@
+meta {
+  name: Chat - Mark as read
+  type: http
+  seq: 96
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a chat space>/messages/read
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "message_cuid": "<cuid of the last first-level message seen>"
+  }
+}
+
+docs {
+  Remembers the last first-level message that the member read (unread markers). The marker never goes back. Ability chat:read.
+}

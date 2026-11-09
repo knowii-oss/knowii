@@ -95,6 +95,8 @@ export const spaceSchema = baseEntitySchema.extend({
   visibility: spaceVisibilitySchema,
   posting_policy: spacePostingPolicySchema,
   position: z.number().int(),
+  // Chat spaces in the navigation of a member: the messages not read yet (#1185)
+  unread_count: z.number().int().optional(),
   space_group_cuid: z.string(),
   // The groups that open a "groups" space (#1241)
   access_groups: z.array(z.object({ cuid: z.string(), name: z.string() })).optional(),

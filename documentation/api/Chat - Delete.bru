@@ -1,0 +1,19 @@
+meta {
+  name: Chat - Delete
+  type: http
+  seq: 95
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a chat space>/messages/<cuid of a message>
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The author, or a member who moderates the space, deletes a message. It stays as a marker without text and author. Ability chat:write.
+}

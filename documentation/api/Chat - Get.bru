@@ -1,0 +1,19 @@
+meta {
+  name: Chat - Get
+  type: http
+  seq: 91
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a chat space>/messages/<cuid of a message>
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  One message; live updates load it again (the events carry identifiers only). Ability chat:read.
+}

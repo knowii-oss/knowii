@@ -27,6 +27,11 @@ import {
   COMMUNITY_SPACE_GROUPS_API_PATH,
   COMMUNITY_SPACE_GROUPS_REORDER_API_PATH,
   COMMUNITY_SPACES_API_PATH,
+  COMMUNITY_SPACE_MESSAGE_API_PATH,
+  COMMUNITY_SPACE_MESSAGE_REACTIONS_API_PATH,
+  COMMUNITY_SPACE_MESSAGE_THREAD_API_PATH,
+  COMMUNITY_SPACE_MESSAGES_API_PATH,
+  COMMUNITY_SPACE_MESSAGES_READ_API_PATH,
   COMMUNITY_SPACE_PAGE_API_PATH,
   COMMUNITY_SPACE_PAGES_API_PATH,
   COMMUNITY_SPACE_PAGES_ORDER_API_PATH,
@@ -37,6 +42,7 @@ import {
   COMMUNITY_SPACE_POST_PIN_API_PATH,
   COMMUNITY_SPACE_POSTS_API_PATH,
   MARKDOWN_PREVIEW_API_PATH,
+  SPACE_API_PARAM_MESSAGE,
   SPACE_API_PARAM_PAGE,
   SPACE_API_PARAM_POST,
   SPACE_API_PARAM_RESOURCE,
@@ -78,6 +84,8 @@ import type { CommunityResource } from '../types/community-resource.schema';
 import type { Community, ModeratorPermissions, NewCommunity } from '../types/community.schema';
 import { communitySchema } from '../types/community.schema';
 import { communityResourceSchema } from '../types/community-resource.schema';
+import type { ChatMessage, ChatMessageForm, ChatThread } from '../types/chat-message.schema';
+import { chatMessageSchema, chatThreadSchema } from '../types/chat-message.schema';
 import type { Page, PageForm } from '../types/page.schema';
 import { pageSchema } from '../types/page.schema';
 import type { CommunityResourceChanges, NewCommunityResource } from '../types/new-community-resource.schema';
@@ -99,7 +107,9 @@ export type CommentSubject =
  */
 export type ReactionTarget =
   | { communityCuid: string; spaceCuid: string; postCuid: string; commentCuid?: string | undefined }
-  | { communityCuid: string; spaceCuid: string; resourceCuid: string; commentCuid: string };
+  | { communityCuid: string; spaceCuid: string; resourceCuid: string; commentCuid: string }
+  // A chat message (#1185)
+  | { communityCuid: string; spaceCuid: string; messageCuid: string; commentCuid?: undefined };
 
 const spaceGroupPath = (communityCuid: string, spaceGroupCuid: string, path = COMMUNITY_SPACE_GROUP_API_PATH) =>
   apiPath(path, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE_GROUP]: spaceGroupCuid });
@@ -121,10 +131,14 @@ const postListSchema = z.array(postSchema);
 const pagesPath = (communityCuid: string, spaceCuid: string, pageCuid = '', path = COMMUNITY_SPACE_PAGES_API_PATH) =>
   apiPath(path, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE]: spaceCuid, [SPACE_API_PARAM_PAGE]: pageCuid });
 const pageListSchema = z.array(pageSchema);
+const messagesPath = (communityCuid: string, spaceCuid: string, messageCuid = '', path = COMMUNITY_SPACE_MESSAGES_API_PATH) =>
+  apiPath(path, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE]: spaceCuid, [SPACE_API_PARAM_MESSAGE]: messageCuid });
 const reactionsPath = (target: ReactionTarget) =>
-  target.commentCuid
-    ? `${commentsPath(target, target.commentCuid)}/reactions`
-    : `${postsPath(target.communityCuid, target.spaceCuid, 'postCuid' in target ? target.postCuid : '', COMMUNITY_SPACE_POST_API_PATH)}/reactions`;
+  'messageCuid' in target
+    ? messagesPath(target.communityCuid, target.spaceCuid, target.messageCuid, COMMUNITY_SPACE_MESSAGE_REACTIONS_API_PATH)
+    : target.commentCuid
+      ? `${commentsPath(target, target.commentCuid)}/reactions`
+      : `${postsPath(target.communityCuid, target.spaceCuid, 'postCuid' in target ? target.postCuid : '', COMMUNITY_SPACE_POST_API_PATH)}/reactions`;
 const commentsPath = (subject: CommentSubject, commentCuid?: string) =>
   'resourceCuid' in subject
     ? apiPath(commentCuid ? COMMUNITY_SPACE_RESOURCE_COMMENT_API_PATH : COMMUNITY_SPACE_RESOURCE_COMMENTS_API_PATH, {
@@ -345,6 +359,77 @@ export const knowiiApiClient = {
           postSchema,
           pinned ? 'Failed to pin the post.' : 'Failed to unpin the post.',
           { pinned },
+        ),
+    },
+    /**
+     * The messages of chat spaces and their threads (#1185)
+     */
+    chat: {
+      /**
+       * The newest first-level messages, oldest first; with `before` (a message cuid), the older ones before it
+       */
+      list: async (
+        communityCuid: string,
+        spaceCuid: string,
+        before?: string,
+      ): Promise<ApiResult<{ messages: ChatMessage[]; hasMore: boolean }>> => {
+        const url = `${messagesPath(communityCuid, spaceCuid)}${before ? `?before=${encodeURIComponent(before)}` : ''}`;
+        try {
+          const response = await fetch(url, { headers: { Accept: 'application/json' } });
+          const json: unknown = await response.json();
+          const parsed = z.object({ data: z.array(chatMessageSchema), metadata: z.object({ has_more: z.boolean() }) }).safeParse(json);
+          if (!response.ok || !parsed.success) {
+            return { ok: false, status: response.status, message: 'Failed to load the messages.', errors: {} };
+          }
+          return { ok: true, message: '', data: { messages: parsed.data.data, hasMore: parsed.data.metadata.has_more } };
+        } catch {
+          return { ok: false, status: 0, message: 'Failed to load the messages.', errors: {} };
+        }
+      },
+      get: (communityCuid: string, spaceCuid: string, messageCuid: string): Promise<ApiResult<ChatMessage>> =>
+        apiRequest(
+          'get',
+          messagesPath(communityCuid, spaceCuid, messageCuid, COMMUNITY_SPACE_MESSAGE_API_PATH),
+          chatMessageSchema,
+          'Failed to load the message.',
+        ),
+      thread: (communityCuid: string, spaceCuid: string, messageCuid: string): Promise<ApiResult<ChatThread>> =>
+        apiRequest(
+          'get',
+          messagesPath(communityCuid, spaceCuid, messageCuid, COMMUNITY_SPACE_MESSAGE_THREAD_API_PATH),
+          chatThreadSchema,
+          'Failed to load the thread.',
+        ),
+      create: (
+        communityCuid: string,
+        spaceCuid: string,
+        input: ChatMessageForm & { parent_cuid?: string },
+      ): Promise<ApiResult<ChatMessage>> =>
+        apiRequest('post', messagesPath(communityCuid, spaceCuid), chatMessageSchema, 'Failed to send the message.', input),
+      update: (communityCuid: string, spaceCuid: string, messageCuid: string, input: ChatMessageForm): Promise<ApiResult<ChatMessage>> =>
+        apiRequest(
+          'patch',
+          messagesPath(communityCuid, spaceCuid, messageCuid, COMMUNITY_SPACE_MESSAGE_API_PATH),
+          chatMessageSchema,
+          'Failed to save the message.',
+          input,
+        ),
+      delete: (communityCuid: string, spaceCuid: string, messageCuid: string): Promise<ApiResult<undefined>> =>
+        apiRequest(
+          'delete',
+          messagesPath(communityCuid, spaceCuid, messageCuid, COMMUNITY_SPACE_MESSAGE_API_PATH),
+          null,
+          'Failed to delete the message.',
+        ),
+      markAsRead: (communityCuid: string, spaceCuid: string, messageCuid: string): Promise<ApiResult<undefined>> =>
+        apiRequest(
+          'post',
+          messagesPath(communityCuid, spaceCuid, '', COMMUNITY_SPACE_MESSAGES_READ_API_PATH),
+          null,
+          'Failed to save what you read.',
+          {
+            message_cuid: messageCuid,
+          },
         ),
     },
     /**

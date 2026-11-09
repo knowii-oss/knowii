@@ -1,0 +1,19 @@
+meta {
+  name: Chat - Thread
+  type: http
+  seq: 92
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a chat space>/messages/<cuid of a message>/thread
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The thread of a first-level message: the message and its replies, oldest first. Ability chat:read.
+}

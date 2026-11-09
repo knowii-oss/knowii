@@ -6,6 +6,7 @@ use App\Contracts\Reactions\TogglesReactions;
 use App\Enums\KnowiiReactionKind;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\AuthorResource;
+use App\Models\ChatMessage;
 use App\Models\Comment;
 use App\Models\Community;
 use App\Models\CommunityResource;
@@ -92,9 +93,30 @@ class ReactionApiController extends Controller
     }
 
     /**
+     * Add or remove a reaction of the current member on a chat message (#1185).
+     *
      * @throws AuthenticationException
      */
-    private function toggle(Request $request, Post|Comment $reactable): JsonResponse
+    #[BodyParameter('kind', description: self::KIND_DESCRIPTION, required: true, type: 'string', example: 'like')]
+    final public function toggleMessage(Request $request, Community $community, Space $space, ChatMessage $message): JsonResponse
+    {
+        return $this->toggle($request, $message);
+    }
+
+    /**
+     * Who reacted to a chat message, per kind (#1185).
+     */
+    final public function listMessage(Community $community, Space $space, ChatMessage $message): JsonResponse
+    {
+        Gate::authorize('view', $space);
+
+        return self::success('Reactions', null, self::whoReacted($message));
+    }
+
+    /**
+     * @throws AuthenticationException
+     */
+    private function toggle(Request $request, Post|Comment|ChatMessage $reactable): JsonResponse
     {
         $summary = app(TogglesReactions::class)->toggle($request->user() ?? throw new AuthenticationException, $reactable, $request->only(['kind']));
 
@@ -104,7 +126,7 @@ class ReactionApiController extends Controller
     /**
      * @return list<array{kind: string, members: array<int, array<string, mixed>>}>
      */
-    private static function whoReacted(Post|Comment $reactable): array
+    private static function whoReacted(Post|Comment|ChatMessage $reactable): array
     {
         $reactions = $reactable->reactions()->with('user')->orderBy('created_at')->get();
         $result = [];

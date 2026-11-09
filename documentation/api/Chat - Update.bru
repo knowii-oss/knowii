@@ -1,0 +1,26 @@
+meta {
+  name: Chat - Update
+  type: http
+  seq: 94
+}
+
+patch {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a chat space>/messages/<cuid of a message>
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "body": "Hello everyone, edited"
+  }
+}
+
+docs {
+  The author changes the text of their message; edited_at is set. Ability chat:write.
+}
