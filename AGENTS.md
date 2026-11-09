@@ -7,10 +7,11 @@ single source of truth for project conventions; `CLAUDE.md` points here.
 
 Knowii is a community knowledge platform. It is an **Nx monorepo** combining a
 **Laravel 13** (PHP 8.5) back-end with a **React 19 + Inertia.js 3** front-end, styled with
-**Tailwind CSS** and **PrimeReact**.
+**Tailwind CSS** (own components, Headless UI for the accessible interactive
+parts).
 
 Tech stack you are expected to be fluent in: Laravel, PHP (8.5+), Pest,
-TypeScript, React, PrimeReact, Tailwind CSS, Jetstream, Inertia.js, Zod,
+TypeScript, React, Tailwind CSS, Headless UI, Jetstream, Inertia.js, Zod,
 react-hook-form.
 
 ## Repository layout
@@ -28,7 +29,7 @@ Front-end / monorepo (npm + Nx):
 
 - `npm run dev` — serve the app
 - `npm run build` — production build (generates the Vite manifest)
-- `npm run test` / `npm run test:all` — run tests (Vitest/Jest via Nx)
+- `npm run test` / `npm run test:all` — run tests (Vitest via Nx)
 - `npm run lint` — lint everything (`lint:knowii`, `lint:common`, `lint:php`)
 - `npm run format` — format everything (Nx + `composer format`)
 - `npm run tsc` — type-check (`tsc --noEmit`, strictest config)
@@ -68,8 +69,6 @@ After cloning, run `npm run setup` once to enable the Git hooks (see
   `verbatimModuleSyntax`).
 - Before committing, run `npm run tsc` and
   `npx nx run-many -t lint typecheck test` (CI fails on any error).
-- Keep PrimeReact on 10.x: PrimeReact 11 is a different product (unstyled
-  primitives) under a commercial license, which does not fit an AGPL project.
 - Favor readability over premature performance optimization.
 - Use up-to-date, valid syntax.
 
@@ -87,10 +86,38 @@ After cloning, run `npm run setup` once to enable the Git hooks (see
 - Laravel 11+ has no `Kernel.php` — configure the application in
   `bootstrap/app.php` instead.
 
-### Front-end (TypeScript / React / PrimeReact / Tailwind / Zod / react-hook-form)
+### Front-end (TypeScript / React / Tailwind / Headless UI / Zod / react-hook-form)
 
 - Pages live under `apps/knowii/src/Pages`; components under
   `apps/knowii/src/Components`.
+- UI building blocks (buttons, form controls, dialog, drawer, menu, select,
+  toasts, cards, ...) live in `apps/knowii/src/Components/ui` and are imported
+  from `@/Components/ui`. Use them instead of styling raw elements. Build new
+  ones there, with tests (`*.spec.tsx`, Vitest + Testing Library), keyboard
+  support and visible focus. Headless UI is used only for the accessible
+  interactive parts (dialog, listbox, menu); everything else is plain React and
+  Tailwind CSS.
+- Colors, fonts and breakpoints are the Knowii brand tokens defined with
+  `@theme` in `apps/knowii/src/styles.css` (same names as store-website:
+  `background`, `surface`, `surface-elevated`, `well`, `primary` (text),
+  `muted`, `secondary` (magenta), `secondary-text`, `border`,
+  `border-strong`, `overlay`, `success`, `warning`, `danger`). The default
+  Tailwind palette is disabled: never use raw hex values or Tailwind palette
+  colors.
+- Two themes: dark (default) and light, selected with `data-theme` on
+  `<html>` (inline script in `app.blade.php`, `useTheme()` and
+  `<ThemeToggle>`). Tokens change with the theme, so never hardcode
+  `white`/`black`: use `bg-overlay/10` for subtle fills and hovers,
+  `text-primary` for text, `outline-primary` for focus. `text-white` is only
+  for text on `secondary` or `danger` fills. Check every screen in both
+  themes.
+- `secondary-text` (#ff1493) fails WCAG AA for normal text on the dark
+  background: use it for large or decorative text only.
+- `<Button>` defaults to `type="button"`: set `type="submit"` explicitly. For
+  navigation, use `<LinkButton>` (or `buttonClasses()` on a link), never a
+  button inside a link.
+- Toasts: call `showToast()` from `useAppData()`; the `<Toaster>` is mounted
+  once in `main.tsx`.
 - Every page uses the `<AppLayout>` component.
 - Forms use **react-hook-form** and call the back-end through the **Knowii API
   client**.
