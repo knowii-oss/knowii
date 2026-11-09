@@ -7,11 +7,22 @@ import { FaBars, FaHome, FaKey, FaSignOutAlt, FaUser } from 'react-icons/fa';
 import PageHeader from '@/Components/PageHeader';
 import ApplicationMark from '@/Components/ApplicationMark';
 import Footer from '@/Components/Footer';
+import MainMenu from '@/Components/MainMenu';
 import PageContentWrapper, { type PageContentWidth } from '@/Components/PageContentWrapper';
 import PageWrapper from '@/Components/PageWrapper';
 import PageTitle from '@/Components/PageTitle';
 import type { BreadcrumbItem } from '@/Components/ui';
-import { Avatar, Button, Drawer, DropdownMenu, DropdownMenuItem, dropdownMenuItemClasses, ErrorBoundary } from '@/Components/ui';
+import {
+  Avatar,
+  Button,
+  cn,
+  Drawer,
+  DropdownMenu,
+  DropdownMenuItem,
+  dropdownMenuItemClasses,
+  ErrorBoundary,
+  isCurrentUrl,
+} from '@/Components/ui';
 
 // A message after a redirect explains why the member landed here: it stays longer than a usual toast
 const FLASH_TOAST_LIFE = 8000;
@@ -83,19 +94,11 @@ export default function AppLayout(props: Props) {
               </>
             }
           >
-            <ul className="flex w-full flex-col gap-2">
-              <li>
-                <Link
-                  href={route(DASHBOARD_URL)}
-                  preserveState={true}
-                  onClick={() => setMainMenuVisible(false)}
-                  className="flex items-center gap-3 rounded-lg px-4 py-3 text-lg font-bold transition-colors hover:bg-overlay/10"
-                >
-                  <FaHome aria-hidden="true" className="text-secondary-text" />
-                  Dashboard
-                </Link>
-              </li>
-            </ul>
+            <MainMenu
+              entries={[{ label: 'Dashboard', href: route(DASHBOARD_URL), icon: <FaHome /> }]}
+              currentUrl={page.url}
+              onNavigate={() => setMainMenuVisible(false)}
+            />
           </Drawer>
 
           {/* USER menu */}
@@ -114,14 +117,24 @@ export default function AppLayout(props: Props) {
             }
           >
             <DropdownMenuItem>
-              <Link href={route(USER_PROFILE_URL)} preserveState={true} className={dropdownMenuItemClasses}>
+              <Link
+                href={route(USER_PROFILE_URL)}
+                preserveState={true}
+                aria-current={isCurrentUrl(route(USER_PROFILE_URL), page.url) ? 'page' : undefined}
+                className={cn(dropdownMenuItemClasses, 'aria-[current=page]:bg-overlay/10 aria-[current=page]:font-bold')}
+              >
                 <FaUser aria-hidden="true" className="text-muted" />
                 Edit profile
               </Link>
             </DropdownMenuItem>
             {page.props.jetstream.hasApiFeatures && (
               <DropdownMenuItem>
-                <Link href={route(API_TOKENS_URL)} preserveState={true} className={dropdownMenuItemClasses}>
+                <Link
+                  href={route(API_TOKENS_URL)}
+                  preserveState={true}
+                  aria-current={isCurrentUrl(route(API_TOKENS_URL), page.url) ? 'page' : undefined}
+                  className={cn(dropdownMenuItemClasses, 'aria-[current=page]:bg-overlay/10 aria-[current=page]:font-bold')}
+                >
                   <FaKey aria-hidden="true" className="text-muted" />
                   API tokens
                 </Link>
