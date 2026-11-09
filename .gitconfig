@@ -10,9 +10,11 @@
 # After that, the hooks below run automatically on `git commit`.
 # Requires Git >= 2.54. Older versions silently ignore these hooks.
 
-[hook "lint-and-audit"]
+# Formats only the staged files (Prettier, and Pint for PHP) and stages them again.
+# Lint, PHPStan, tests and audits run in CI.
+[hook "format-staged"]
     event = pre-commit
-    command = scripts/git-hooks/pre-commit.sh
+    command = scripts/git-hooks/format-staged.sh
 
 [hook "commitlint"]
     event = commit-msg

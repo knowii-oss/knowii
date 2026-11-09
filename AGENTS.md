@@ -73,7 +73,8 @@ Back-end (Composer / Laravel):
 - `composer format` — Laravel Pint
 
 After cloning, run `npm run setup` once to enable the Git hooks (see
-`CONTRIBUTING.md`).
+`CONTRIBUTING.md`). The pre-commit hook only formats the staged files; lint,
+PHPStan, tests and audits run in CI.
 
 ## Working style
 
@@ -99,8 +100,10 @@ After cloning, run `npm run setup` once to enable the Git hooks (see
   `verbatimModuleSyntax`: never relax them to make code compile.
 - Import types with `import type` (enforced by ESLint and required by
   `verbatimModuleSyntax`).
-- Before committing, run `npm run tsc` and
-  `npx nx run-many -t lint typecheck test` (CI fails on any error).
+- Before opening a pull request, run `npm run tsc`,
+  `npx nx run-many -t lint typecheck test`, `composer lint` and
+  `php artisan test` (CI runs them, and the formatting check, and fails on
+  any error).
 - Favor readability over premature performance optimization.
 - Use up-to-date, valid syntax.
 
