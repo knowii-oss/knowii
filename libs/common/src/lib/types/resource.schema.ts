@@ -36,11 +36,7 @@ export const resourceLevelSchemaOptions: Array<{ name: string; level: ResourceLe
  * @param level
  */
 export const getIconForResourceLevel = (level: ResourceLevel): string => {
-  let retVal = resourceLevelSchemaOptions.filter((option) => option.level === level)[0].icon;
-  if (!retVal) {
-    retVal = resourceLevelSchemaOptions[0].icon;
-  }
-  return retVal;
+  return (resourceLevelSchemaOptions.find((option) => option.level === level) ?? resourceLevelSchemaOptions[0])?.icon ?? '';
 };
 
 export const resourceSchema = baseEntitySchema.extend(slugSchema.shape).extend({

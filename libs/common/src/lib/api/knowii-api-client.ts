@@ -181,7 +181,7 @@ export const knowiiApiClient = {
     isUsernameAvailable: async (input: IsUsernameAvailableRequest, signal?: AbortSignal): Promise<IsUsernameAvailableResponse> => {
       try {
         const response = await fetch(USERS_API_IS_USERNAME_AVAILABLE_PATH, {
-          signal,
+          signal: signal ?? null,
           method: 'post',
           headers: defaultHeaders,
           body: JSON.stringify(input),

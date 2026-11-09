@@ -1,8 +1,8 @@
 import type { PropsWithChildren } from 'react';
 
 interface Props {
-  message?: string;
-  className?: string;
+  message?: string | undefined;
+  className?: string | undefined;
 }
 
 export default function InputError({ message, className, children }: PropsWithChildren<Props>) {

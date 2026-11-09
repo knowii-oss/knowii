@@ -3,10 +3,10 @@ import type { MenuItem } from 'primereact/menuitem';
 import type { ReactElement } from 'react';
 
 interface Props {
-  pageTitle?: string;
-  breadcrumbItems?: MenuItem[];
-  home?: MenuItem;
-  pageActions?: ReactElement | null;
+  pageTitle?: string | undefined;
+  breadcrumbItems?: MenuItem[] | undefined;
+  home?: MenuItem | undefined;
+  pageActions?: ReactElement | null | undefined;
 }
 
 export default function PageTitle(props: Props) {
