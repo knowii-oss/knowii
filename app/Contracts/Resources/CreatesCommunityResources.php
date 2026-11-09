@@ -6,10 +6,10 @@ use App\Models\CommunityResource;
 use App\Models\Space;
 use App\Models\User;
 
-interface CreatesTextResources
+interface CreatesCommunityResources
 {
     /**
-     * Add a text article to a resources space (ADR 0015).
+     * Add a link to a resources space (ADR 0015). The capture runs later, in a queued job (ADR 0018).
      *
      * @param  array<mixed>  $input
      */

@@ -3,6 +3,7 @@ import type { CommunityResource } from '@knowii/common';
 import { getIconForResourceLevel, safeHttpUrl } from '@knowii/common';
 import { FaArrowUpRightFromSquare } from 'react-icons/fa6';
 import { buttonClasses } from '@/Components/ui';
+import { CaptureStatus } from './CaptureStatus';
 import { ResourceTypeIcon } from './ResourceTypeIcon';
 
 export interface ResourceCardProps {
@@ -32,6 +33,7 @@ export function ResourceCard({ resource, href }: ResourceCardProps) {
           <span className="min-w-0">{name}</span>
         </h3>
         {description && <p className="my-1 line-clamp-2 text-sm text-muted">{description}</p>}
+        <CaptureStatus status={resource.capture_status} />
       </Link>
       {externalUrl && (
         <a

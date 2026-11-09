@@ -12,7 +12,6 @@ Knowii is free and open source (AGPL). You can install it on your own server. Th
 | Node.js and npm               | Node.js 24, npm 11           | Only to build the front-end assets. The Node.js version is in `.nvmrc`.        |
 | PostgreSQL                    | 18                           | The development version is in `docker-compose.yml`.                            |
 | Web server                    | nginx (or equivalent)        | Serves the application and proxies the WebSocket server, both over HTTPS.      |
-| Browserless (Chromium)        | Latest                       | Runs in a Podman or Docker container. Knowii uses it to fetch web pages.       |
 | Email provider                | Any                          | Resend by default. Any Laravel mailer works (SMTP, Postmark, Amazon SES, ...). |
 
 You do not need Redis: sessions, the cache, and the job queue use the database.
@@ -90,7 +89,6 @@ Copy `.env.example` to `.env`, then change the values below. The other values in
 | `EMAILOCTOPUS_NEWSLETTER_LIST_ID`                                 | Optional: the newsletter form in the footer (#938). Leave empty to hide the form. It also needs `EMAILOCTOPUS_API_KEY` and the Turnstile keys.                                      |
 | `EMAILOCTOPUS_NEWSLETTER_CONTACT_STATUS`                          | `pending` (recommended) or `subscribed`, as for the waitlist                                                                                                                        |
 | `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`                      | Cloudflare Turnstile keys (bot check). Required by the waitlist form: without them, the form is hidden.                                                                             |
-| `BROWSERLESS_TOKEN`                                               | A unique random value                                                                                                                                                               |
 | `ROBOTS_ALLOW_INDEXING`                                           | `true` lets search engines index the public pages (default in production). `false` on a test or private instance: `robots.txt` refuses every crawler and every page sends `noindex` |
 
 Crawlers (#104): `/robots.txt` is built from `config/robots.php`. It refuses a list of AI crawlers everywhere and keeps every crawler out of the member areas and the API. Pages of signed-in members and the API always send `X-Robots-Tag: noindex, nofollow`. `robots.txt` is only a request: if Cloudflare is in front of your instance, also turn on its "Block AI bots" setting (Security, Bots), which refuses them at the edge. On a test or private instance, set `ROBOTS_ALLOW_INDEXING=false`.
@@ -238,26 +236,7 @@ server {
 
 The `www-data` user (or the user of PHP-FPM) must be able to write to `storage/` and `bootstrap/cache/`.
 
-## 8. Run Browserless
-
-Knowii uses Browserless (headless Chromium) to fetch the web pages that users share. It must always be available.
-
-The repository includes two scripts. Both read the `BROWSERLESS_*` values from the `.env` file and use Podman (`sudo apt install podman`):
-
-- `./browserless-create-container.sh` creates a container. Use it to test.
-- `./browserless-create-service.sh` creates a systemd service, so the container starts with the server. Use it in production.
-
-Do not run `browserless-create-service.sh` as root. It uses Podman's rootless containers with systemd (Quadlet). For details, see [Quadlet explained](https://www.redhat.com/sysadmin/quadlet-podman) and the [Podman systemd unit reference](https://docs.podman.io/en/stable/markdown/podman-systemd.unit.5.html).
-
-The script creates `~/.config/containers/systemd/knowii_browserless_chromium.container` and loads it for the current user. To change the container settings:
-
-1. Stop the service: `systemctl --user stop knowii_browserless_chromium`.
-2. Delete `~/.config/containers/systemd/knowii_browserless_chromium.container`.
-3. Reload systemd for your user: `systemctl --user daemon-reload`.
-4. Change the `.env` file.
-5. Run `./browserless-create-service.sh` again.
-
-## 9. Update your instance
+## 8. Update your instance
 
 To update to a new release, run these commands from the root of the repository:
 

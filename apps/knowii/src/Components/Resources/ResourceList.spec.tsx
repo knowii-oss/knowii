@@ -122,7 +122,7 @@ describe('ResourceList', () => {
     expect(screen.getByRole('button', { name: 'Add a resource' })).toHaveFocus();
     await userEvent.keyboard('{Enter}');
 
-    expect(await screen.findByRole('dialog')).toHaveTextContent('Share a web article in Cool links.');
+    expect(await screen.findByRole('dialog')).toHaveTextContent('Share a link in Cool links.');
   });
 
   it('follows the resource events of the space', async () => {
@@ -136,6 +136,16 @@ describe('ResourceList', () => {
 
     act(() => handlers.get('.community.resource.deleted')?.({ cuid: 'a' }));
     expect(screen.queryByText('First')).not.toBeInTheDocument();
+  });
+
+  it('follows the capture of a resource: status, then the title of the page (ADR 0018)', () => {
+    renderList([{ ...resource('a', 'Smart Notes Guide'), capture_status: 'pending' } as CommunityResource]);
+    expect(screen.getByText('Capturing the page…')).toBeInTheDocument();
+
+    act(() => handlers.get('.community.resource.updated')?.({ ...resource('a', 'How to take smart notes'), capture_status: 'captured' }));
+
+    expect(screen.queryByText('Capturing the page…')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /How to take smart notes/ })).toBeInTheDocument();
   });
 
   it('loads the next page and skips the resources already shown (#877)', async () => {

@@ -1,11 +1,10 @@
 <?php
 
-use App\Actions\Resources\CreateTextResource;
 use App\ApiRoutes;
-use App\Contracts\Resources\CreatesTextResources;
 use App\Enums\KnowiiApiResponseType;
 use App\Enums\KnowiiResourceLevel;
 use App\Enums\KnowiiSpaceType;
+use App\Jobs\CaptureCommunityResource;
 use App\Models\Community;
 use App\Models\CommunityResource;
 use App\Models\ResourceCapture;
@@ -13,6 +12,8 @@ use App\Models\Space;
 use App\Models\SpaceGroup;
 use App\Models\User;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 
 /**
  * Create a resources space in the personal community of the owner, and return the API path to add resources to it.
@@ -122,38 +123,12 @@ test('the resources API rejects an invalid level with a validation issue', funct
     expect($response->json('type'))->toBe(KnowiiApiResponseType::ValidationIssue->value);
 });
 
-test('the resources API rejects video and streaming platforms with a business issue', function () {
+test('resources can be created via the API: the answer comes at once and the capture is queued (ADR 0018)', function () {
+    Queue::fake();
+    Http::preventStrayRequests();
     $owner = User::factory()->withUserProfile()->withPersonalCommunity()->create();
     $path = textArticlesPathFor($owner);
     $this->actingAs($owner);
-
-    $response = $this->json('POST', $path, [
-        'name' => 'Some Video',
-        'url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-        'level' => KnowiiResourceLevel::Beginner->value,
-    ], ['Accept' => 'application/json']);
-
-    $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
-    expect($response->json('type'))->toBe(KnowiiApiResponseType::BusinessIssue->value);
-});
-
-test('resources can be created via the API', function () {
-    $owner = User::factory()->withUserProfile()->withPersonalCommunity()->create();
-    $path = textArticlesPathFor($owner);
-    $this->actingAs($owner);
-
-    $html = '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">'
-        .'<title>Some Article Title</title><meta name="description" content="A great read about testing">'
-        .'</head><body><article><h1>Some Article Title</h1>'
-        .'<p>This is a sufficiently long paragraph of readable content so that the parser has '
-        .'something meaningful to extract. It discusses software testing and quality in general terms, '
-        .'with enough words to be considered an article rather than boilerplate.</p>'
-        .'</article></body></html>';
-
-    // Fake the network calls made by the creator (resolved from the container).
-    $creator = new CreateTextResource;
-    $creator->setHttpHandlerStack(fakeTextResourceFetchHandler($html));
-    $this->app->instance(CreatesTextResources::class, $creator);
 
     $response = $this->json('POST', $path, [
         'name' => 'Some Article',
@@ -163,11 +138,23 @@ test('resources can be created via the API', function () {
     ], ['Accept' => 'application/json']);
 
     $response->assertStatus(Response::HTTP_CREATED);
-    expect($response->json('type'))->toBe(KnowiiApiResponseType::Success->value);
-    expect($response->json('data.name'))->toBe('Some Article');
-    expect($response->json('data.description'))->toBe('Worth reading');
-    expect($response->json('data.space.type'))->toBe(KnowiiSpaceType::Resources->value);
-    expect($response->json('data.resource.url'))->toBe('https://example.com/some-article');
+    expect($response->json('type'))->toBe(KnowiiApiResponseType::Success->value)
+        ->and($response->json('data.name'))->toBe('Some Article')
+        ->and($response->json('data.description'))->toBe('Worth reading')
+        ->and($response->json('data.capture_status'))->toBe('pending')
+        ->and($response->json('data.space.type'))->toBe(KnowiiSpaceType::Resources->value)
+        ->and($response->json('data.resource.url'))->toBe('https://example.com/some-article');
+    Queue::assertPushed(CaptureCommunityResource::class);
+});
+
+test('video links are accepted: the domain list is gone (ADR 0018)', function () {
+    Queue::fake();
+    $owner = User::factory()->withUserProfile()->withPersonalCommunity()->create();
+
+    $this->actingAs($owner)->postJson(textArticlesPathFor($owner), [
+        'url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        'level' => KnowiiResourceLevel::Beginner->value,
+    ])->assertCreated();
 });
 
 test('the resources API refuses a space of another community (#1213)', function () {

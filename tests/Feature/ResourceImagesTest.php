@@ -1,16 +1,13 @@
 <?php
 
-use App\Actions\Resources\CreateTextResource;
 use App\Constants;
-use App\Enums\KnowiiResourceLevel;
 use App\Enums\KnowiiSpaceType;
+use App\Models\CommunityResource;
 use App\Models\Resource;
 use App\Models\Space;
 use App\Models\SpaceGroup;
 use App\Models\User;
 use App\Support\ResourceImages;
-use GuzzleHttp\Handler\MockHandler;
-use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use Illuminate\Support\Facades\Storage;
 
@@ -62,19 +59,14 @@ test('a captured page gets its cover and icon, and lists show their URLs (#1063)
         .'<meta property="og:image" content="https://cdn.example.com/cover.png">'
         .'<link rel="icon" type="image/png" href="/icon.png"></head><body><p>Text</p></body></html>';
 
-    $action = new CreateTextResource;
-    $action->setHttpHandlerStack(HandlerStack::create(new MockHandler([
-        new Response(200, [], ''),               // final URL
-        new Response(200, [], ''),               // availability (HEAD)
-        new Response(200, [], $html),            // page through Browserless
+    $created = CommunityResource::factory()->create([
+        'space_id' => $space->id,
+        'resource_id' => Resource::factory()->create(['url' => 'https://example.com/covered', 'cover_image_path' => null, 'favicon_path' => null])->id,
+    ]);
+    fakeCapturer($html, more: [
         new Response(200, ['Content-Type' => 'image/png'], pngBytes(1200, 630)), // cover
         new Response(200, ['Content-Type' => 'image/png'], pngBytes(48, 48)),    // icon
-    ])));
-
-    $created = $action->create($owner, $space, [
-        'url' => 'https://example.com/covered',
-        'level' => KnowiiResourceLevel::Beginner->value,
-    ]);
+    ])->capture($created);
 
     $resource = $created->resource->refresh();
     expect($resource->cover_image_path)->not->toBeNull()
@@ -97,16 +89,14 @@ test('a page whose images are not images still gets saved (#1063)', function () 
 
     $html = '<!DOCTYPE html><html><head><title>Broken images</title><meta property="og:image" content="https://cdn.example.com/c.png"></head><body></body></html>';
 
-    $action = new CreateTextResource;
-    $action->setHttpHandlerStack(HandlerStack::create(new MockHandler([
-        new Response(200, [], ''),
-        new Response(200, [], ''),
-        new Response(200, [], $html),
+    $created = CommunityResource::factory()->create([
+        'space_id' => $space->id,
+        'resource_id' => Resource::factory()->create(['url' => 'https://example.com/broken', 'cover_image_path' => null, 'favicon_path' => null])->id,
+    ]);
+    fakeCapturer($html, more: [
         new Response(200, ['Content-Type' => 'text/html'], '<html></html>'), // cover is a page
         new Response(404, ['Content-Type' => 'image/png'], ''),               // no icon
-    ])));
-
-    $created = $action->create($owner, $space, ['url' => 'https://example.com/broken', 'level' => KnowiiResourceLevel::Beginner->value]);
+    ])->capture($created);
 
     expect($created->resource->refresh()->cover_image_path)->toBeNull()
         ->and($created->resource->favicon_path)->toBeNull();

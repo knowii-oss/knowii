@@ -1,10 +1,14 @@
 <?php
 
-use App\Actions\Resources\CreateTextResource;
+use App\Actions\Resources\CaptureResourcePage;
+use App\Actions\Resources\CreateCommunityResource;
+use App\Enums\KnowiiCaptureStatus;
 use App\Enums\KnowiiResourceLevel;
 use App\Enums\KnowiiSpaceType;
 use App\Exceptions\BusinessException;
+use App\Jobs\CaptureCommunityResource;
 use App\Models\CommunityResource;
+use App\Models\Resource;
 use App\Models\Space;
 use App\Models\SpaceGroup;
 use App\Models\User;
@@ -12,6 +16,7 @@ use App\Support\SafeUrl;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
+use Illuminate\Support\Facades\Queue;
 
 test('public http and https addresses can be fetched (#1231)', function (string $url) {
     expect(SafeUrl::assertPublic($url))->toBe('93.184.215.14');
@@ -69,25 +74,23 @@ test('the host is pinned to the checked address (#1231)', function () {
         ->and(SafeUrl::pinnedResolveOption('http://example.com/a', '2606:4700::1'))->toBe([CURLOPT_RESOLVE => ['example.com:80:[2606:4700::1]']]);
 });
 
-test('a resource that redirects to an internal address is refused and nothing is saved (#1231)', function () {
-    $owner = User::factory()->withUserProfile()->withPersonalCommunity()->create();
-    $space = Space::factory()
-        ->inGroup(SpaceGroup::factory()->create(['community_id' => $owner->ownedCommunities()->first()->id]))
-        ->create(['type' => KnowiiSpaceType::Resources]);
-
-    $action = new CreateTextResource;
-    $action->setHttpHandlerStack(HandlerStack::create(new MockHandler([
+test('a capture that redirects to an internal address fails without reading it (#1231)', function () {
+    $resource = CommunityResource::factory()->create([
+        'resource_id' => Resource::factory()->create(['url' => 'https://example.com/redirect'])->id,
+    ]);
+    $mock = new MockHandler([
         new Response(302, ['Location' => 'http://169.254.169.254/latest/meta-data/']),
         new Response(200, [], 'secret'),
-    ])));
+    ]);
+    $capturer = new CaptureResourcePage;
+    $capturer->setHttpHandlerStack(HandlerStack::create($mock));
 
-    expect(fn () => $action->create($owner, $space, [
-        'name' => 'Innocent link',
-        'url' => 'https://example.com/redirect',
-        'level' => KnowiiResourceLevel::Beginner->value,
-    ]))->toThrow(BusinessException::class, 'This address points to a private or local network');
+    (new CaptureCommunityResource($resource))->handle($capturer);
 
-    expect(CommunityResource::query()->count())->toBe(0);
+    expect($resource->refresh()->capture_status)->toBe(KnowiiCaptureStatus::Failed)
+        ->and($resource->capture_failure_reason)->toBe('This address points to a private or local network')
+        // The internal answer was never read
+        ->and($mock->count())->toBe(1);
 });
 
 test('a resource with an internal address is refused before any request (#1231)', function () {
@@ -96,16 +99,14 @@ test('a resource with an internal address is refused before any request (#1231)'
         ->inGroup(SpaceGroup::factory()->create(['community_id' => $owner->ownedCommunities()->first()->id]))
         ->create(['type' => KnowiiSpaceType::Resources]);
 
-    $mock = new MockHandler([new Response(200, [], 'secret')]);
-    $action = new CreateTextResource;
-    $action->setHttpHandlerStack(HandlerStack::create($mock));
+    Queue::fake();
 
-    expect(fn () => $action->create($owner, $space, [
+    expect(fn () => (new CreateCommunityResource)->create($owner, $space, [
         'name' => 'Redis',
         'url' => 'http://127.0.0.1/',
         'level' => KnowiiResourceLevel::Beginner->value,
     ]))->toThrow(BusinessException::class);
 
-    // The fake response was never used: no request left the server
-    expect($mock->count())->toBe(1);
+    expect(CommunityResource::query()->count())->toBe(0);
+    Queue::assertNotPushed(CaptureCommunityResource::class);
 });

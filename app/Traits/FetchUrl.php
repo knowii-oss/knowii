@@ -4,7 +4,6 @@ namespace App\Traits;
 
 use App\Constants;
 use App\Exceptions\BusinessException;
-use App\Exceptions\TechnicalException;
 use App\Support\SafeUrl;
 use Exception;
 use GuzzleHttp\Client;
@@ -70,70 +69,31 @@ trait FetchUrl
     }
 
     /**
-     * Fetch the content of a URL using Browserless.
+     * Fetch a page with a plain HTTP request (ADR 0018: no headless browser). The URL and every redirect must point
+     * to a public address, and the body is limited to MAX_FETCH_SIZE_BYTES. 4xx and 5xx answers do not throw: the
+     * caller reads the status.
      *
-     * @throws Exception
+     * @return array{status: int, content_type: string, body: string}
+     *
+     * @throws GuzzleException When the site cannot be reached
      */
-    final public function fetchUrl(string $url): string
+    final public function fetchPage(string $url): array
     {
-        // Browserless is trusted (configuration), the page it loads is not
-        SafeUrl::assertPublic($url);
+        $response = $this->getClient()->get($url, $this->externalRequestOptions($url, [
+            'http_errors' => false,
+            'timeout' => Constants::CAPTURE_TIMEOUT_SECONDS,
+            'headers' => [
+                // Sites refuse unknown clients: a browser-like agent that still names Knowii
+                'User-Agent' => Constants::CAPTURE_USER_AGENT,
+                'Accept' => 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.8',
+            ],
+        ]));
 
-        $client = $this->getClient();
-
-        try {
-
-            // References
-            // https://docs.browserless.io/http-apis/content
-            // Alternative: https://docs.browserless.io/http-apis/scrape
-            /** @var string|null $browserlessUrl */
-            $browserlessUrl = config('browserless.url');
-            /** @var string|null $browserlessToken */
-            $browserlessToken = config('browserless.token');
-
-            if (empty($browserlessUrl) || empty($browserlessToken)) {
-                throw new TechnicalException('Browserless URL or token is not configured correctly.');
-            }
-
-            // Assert these are strings
-            $browserlessUrl = (string) $browserlessUrl;
-            $browserlessToken = (string) $browserlessToken;
-
-            $browserlessUrl .= Constants::BROWSERLESS_CONTENT_API_PATH.'?'.Constants::BROWSERLESS_TOKEN_API_PARAMETER.'='.$browserlessToken.'&blockAds=true&launch=%7B%20%22stealth%22%3A%20true%2C%20%22headless%22%3A%20false%20%7D';
-
-            $response = $client->post($browserlessUrl, [
-                'json' => [
-                    'url' => $url,
-                    'bestAttempt' => true,
-
-                    // Accelerate loading by skipping some resources
-                    // Reference
-                    // https://docs.browserless.io/http-apis/content#rejecting-undesired-requests
-                    'rejectRequestPattern' => ['/^.*\\.(css|jpg|jpeg|png|gif|svg|woff|woff2|ttf|eot|webp|avif|apng)$/i'],
-                    'rejectResourceTypes' => ['stylesheet', 'font', 'image', 'media'],
-
-                    'gotoOptions' => [
-                        'timeout' => 10000,
-                        'waitUntil' => 'networkidle2',
-                        'referer' => config('app.url'), // announce ourselves
-                    ],
-                ],
-            ]);
-
-            // With /scrape:
-            // "element": [{ "selector": "html" }],
-
-            $html = $response->getBody()->getContents();
-
-            if ($html === '' || $response->getStatusCode() !== 200) {
-                throw new Exception('Failed to fetch the page');
-            }
-
-            return $html;
-        } catch (GuzzleException $e) {
-            Log::debug('Error while loading the page: ', [$e]);
-            throw new Exception('Failed to fetch the page', 0, $e);
-        }
+        return [
+            'status' => $response->getStatusCode(),
+            'content_type' => strtolower($response->getHeaderLine('Content-Type')),
+            'body' => $response->getBody()->getContents(),
+        ];
     }
 
     /**

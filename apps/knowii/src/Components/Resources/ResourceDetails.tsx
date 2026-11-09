@@ -1,8 +1,9 @@
 import { Link } from '@inertiajs/react';
 import type { CommunityResource } from '@knowii/common';
 import { MEMBER_URL, resourceLevelSchemaOptions, resourceTypeSchemaOptions, safeHttpUrl, useAppData } from '@knowii/common';
-import { FaArrowUpRightFromSquare, FaLink } from 'react-icons/fa6';
+import { FaArrowUpRightFromSquare, FaLink, FaRotateRight } from 'react-icons/fa6';
 import { Button, buttonClasses, RelativeTime } from '@/Components/ui';
+import { CaptureStatus } from './CaptureStatus';
 import { ResourceTypeIcon } from './ResourceTypeIcon';
 
 export interface ResourceDetailsProps {
@@ -10,6 +11,12 @@ export interface ResourceDetailsProps {
   resource: CommunityResource;
   // The address to share: the page of the resource in the community
   shareUrl: string;
+  /**
+   * Start the capture again (ADR 0018). Absent when the member may not do it
+   */
+  onCaptureAgain?: (() => void) | undefined;
+  // A request to capture again runs
+  captureStarting?: boolean;
 }
 
 const chipClasses = 'rounded-full border border-border px-2 py-0.5';
@@ -24,9 +31,9 @@ function hostOf(url: string | null): string | null {
 
 /**
  * The page of a resource (#1133): what the community says about it, what the page says about itself, who added it,
- * and the links to open and share it. The captured article itself waits for the capture design (#1230).
+ * and the links to open and share it. The captured article comes with #1247.
  */
-export function ResourceDetails({ communitySlug, resource, shareUrl }: ResourceDetailsProps) {
+export function ResourceDetails({ communitySlug, resource, shareUrl, onCaptureAgain, captureStarting = false }: ResourceDetailsProps) {
   const { showToast } = useAppData();
   const page = resource.resource;
   const name = resource.name || page.name;
@@ -80,6 +87,27 @@ export function ResourceDetails({ communitySlug, resource, shareUrl }: ResourceD
           {readingTime !== null && readingTime > 0 && <span className={chipClasses}>{readingTime} min read</span>}
         </p>
       </header>
+
+      {(resource.capture_status === 'pending' || resource.capture_status === 'capturing') && (
+        <CaptureStatus status={resource.capture_status} />
+      )}
+      {resource.capture_status === 'failed' && (
+        <section
+          aria-labelledby="resource-capture-failed"
+          className="flex flex-col items-start gap-2 rounded-lg border border-border bg-well p-4"
+        >
+          <h2 id="resource-capture-failed" className="text-sm font-bold">
+            <CaptureStatus status="failed" />
+          </h2>
+          {resource.capture_failure_reason && <p className="text-sm text-muted">{resource.capture_failure_reason}</p>}
+          {onCaptureAgain && (
+            <Button variant="secondary" size="sm" onClick={onCaptureAgain} loading={captureStarting}>
+              <FaRotateRight aria-hidden="true" />
+              Capture again
+            </Button>
+          )}
+        </section>
+      )}
 
       {resource.description && <p className="text-base">{resource.description}</p>}
 

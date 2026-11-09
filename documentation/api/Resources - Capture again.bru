@@ -1,0 +1,19 @@
+meta {
+  name: Resources - Capture again
+  type: http
+  seq: 82
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/z40cggggsksggkgskkwocock/resources/<cuid of a resource>/capture
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Starts the capture of a resource again (ADR 0018), for example after capture_status "failed". The curator, or a member who manages the spaces of the community. No body. Refused (business issue) while a capture runs. Rate limited (6 per minute per member). Token ability: resources:write.
+}

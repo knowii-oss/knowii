@@ -26,4 +26,18 @@ class CommunityResourcePolicy
     {
         return $user->belongsToCommunity($resource->community) && Gate::forUser($user)->check('view', $resource->space);
     }
+
+    /**
+     * Start the capture again (ADR 0018): the curator, or a member who manages the spaces of the community
+     */
+    final public function capture(User $user, CommunityResource $resource): bool
+    {
+        if (! Gate::forUser($user)->check('view', $resource->space)) {
+            return false;
+        }
+
+        $isCurator = $resource->curator_id !== null && $resource->curator_id === $user->profile->id;
+
+        return $isCurator || Gate::forUser($user)->check('manageSpaces', $resource->community);
+    }
 }
