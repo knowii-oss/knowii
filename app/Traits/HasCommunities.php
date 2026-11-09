@@ -40,7 +40,7 @@ trait HasCommunities
     /**
      * Get all of the communities the user belongs to.
      *
-     * @return BelongsToMany<Community, covariant $this>
+     * @return BelongsToMany<Community, covariant $this, CommunityMember>
      */
     final public function communities(): BelongsToMany
     {

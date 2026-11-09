@@ -15,7 +15,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Support\Collection;
 
 /**
@@ -142,7 +141,7 @@ class Community extends Model
     /**
      * Get all of the users that belong to the community.
      *
-     * @return BelongsToMany<User, covariant $this, Pivot, 'communityMember'>
+     * @return BelongsToMany<User, covariant $this, CommunityMember, 'communityMember'>
      */
     final public function users(): BelongsToMany
     {

@@ -6,10 +6,10 @@ single source of truth for project conventions; `CLAUDE.md` points here.
 ## Project
 
 Knowii is a community knowledge platform. It is an **Nx monorepo** combining a
-**Laravel 12** back-end with a **React 18 + Inertia.js** front-end, styled with
+**Laravel 13** (PHP 8.5) back-end with a **React 18 + Inertia.js** front-end, styled with
 **Tailwind CSS** and **PrimeReact**.
 
-Tech stack you are expected to be fluent in: Laravel, PHP (8.2+), Pest,
+Tech stack you are expected to be fluent in: Laravel, PHP (8.5+), Pest,
 TypeScript, React, PrimeReact, Tailwind CSS, Jetstream, Inertia.js, Zod,
 react-hook-form.
 

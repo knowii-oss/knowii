@@ -60,7 +60,7 @@ return Application::configure(basePath: dirname(__DIR__))
             EnsureRequestIsJson::class,
 
             // WARNING: Enabling this causes 302 redirects for API calls
-            // \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
+            // \Illuminate\Foundation\Http\Middleware\PreventRequestForgery::class,
 
             SubstituteBindings::class,
 

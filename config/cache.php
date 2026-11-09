@@ -105,4 +105,17 @@ return [
 
     'prefix' => env('CACHE_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_cache_'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Serializable Classes
+    |--------------------------------------------------------------------------
+    |
+    | The classes that may be unserialized from the cache. Knowii only caches
+    | scalar values and arrays, so no class is allowed. This prevents PHP
+    | deserialization gadget chain attacks if the APP_KEY leaks.
+    |
+    */
+
+    'serializable_classes' => false,
+
 ];
