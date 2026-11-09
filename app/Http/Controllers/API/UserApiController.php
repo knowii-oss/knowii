@@ -8,6 +8,7 @@ use App\Contracts\Users\VerifiesUsernameAvailability;
 use App\Http\Controllers\Controller;
 use App\Traits\ApiResponses;
 use Dedoc\Scramble\Attributes\BodyParameter;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -15,6 +16,17 @@ use Illuminate\Support\Facades\Log;
 class UserApiController extends Controller
 {
     use ApiResponses;
+
+    /**
+     * The signed-in user: account fields (email, verification, two-factor status) and profile.
+     */
+    final public function me(Request $request): JsonResponse
+    {
+        $user = $request->user() ?? throw new AuthenticationException;
+
+        // refresh(): every column, also the ones a model built in memory does not hold (two_factor_confirmed_at)
+        return self::success('Current user', null, $user->refresh()->load('profile')->toResource());
+    }
 
     /**
      * Check if the given username is available

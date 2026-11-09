@@ -16,12 +16,7 @@ use App\Http\Controllers\API\SpaceGroupApiController;
 use App\Http\Controllers\API\UploadApiController;
 use App\Http\Controllers\API\UserApiController;
 use App\Http\Controllers\API\WaitlistApiController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
-Route::get(ApiRoutes::USER, static function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
 
 Route::prefix(ApiRoutes::VERSION)->group(function () {
     // Auth
@@ -34,6 +29,8 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
     Route::post(ApiRoutes::WAITLIST, [WaitlistApiController::class, 'join'])->middleware('throttle:waitlist');
 
     Route::middleware('auth:sanctum')->group(function () {
+        // The current user, as an API resource (#1145)
+        Route::get(ApiRoutes::USER, [UserApiController::class, 'me']);
         Route::post(ApiRoutes::USERS_IS_USERNAME_AVAILABLE, [UserApiController::class, 'isUsernameAvailable']);
 
         Route::post(ApiRoutes::COMMUNITIES, [CommunityApiController::class, 'store']);

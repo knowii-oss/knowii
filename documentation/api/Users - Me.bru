@@ -1,0 +1,19 @@
+meta {
+  name: Users - Me
+  type: http
+  seq: 61
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/user
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The signed-in user (#1145): cuid, name, username, email, email_verified_at, two_factor_enabled and the profile. Other members never get the account fields of a user.
+}
