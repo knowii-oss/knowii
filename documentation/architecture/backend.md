@@ -66,6 +66,8 @@ Authorization is done using Laravel's built-in authorization system. Policies ar
 
 Authorizations are checked in Action classes.
 
+`tests/Feature/PolicyTest.php` holds one matrix per policy: for each ability, the roles that have it (owner, admin, moderator, member, outsider, guest). The test checks that exactly these roles have it. When you add or change an ability, add or change its row in the same pull request.
+
 More details: https://laravel.com/docs/13.x/authorization
 
 ## Error handling
