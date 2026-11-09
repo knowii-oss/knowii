@@ -144,6 +144,8 @@ In local development, it is available at:
 
 To export the OpenAPI document to a file, run `php artisan scramble:export`.
 
+The interactive page uses Stoplight Elements. Scramble loads it from unpkg.com, which the strict CSP blocks ([ADR 0007](../adr/0007-strict-content-security-policy.md)), so `resources/views/vendor/scramble/docs.blade.php` loads a self-hosted copy from `public/vendor/` with the CSP nonce, and stops Font Awesome (bundled in Stoplight) from injecting its CSS. To update the copy, run `scripts/update-api-docs-assets.sh <stoplight version> <font awesome version>` and change the versions in the view. `ApiDocsPageTest` checks that the page loads no third-party origin and that every script and style element has the nonce.
+
 Outside of the local environment, the documentation is only visible to users allowed by the `viewApiDocs` gate.
 
 `tests/Feature/OpenApiDocumentTest.php` exports the document and checks it: every API route has an operation, every operation documents a success response, and every `POST`, `PUT` or `PATCH` documents its request body. Validation lives in the actions, so declare each body field with `#[BodyParameter]` on the controller method.
