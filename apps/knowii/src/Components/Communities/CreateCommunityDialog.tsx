@@ -9,9 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import { SelectButton } from 'primereact/selectbutton';
-import type {
-  NewCommunity,
-  Community} from '@knowii/common';
+import type { NewCommunity, Community } from '@knowii/common';
 import {
   communityVisibilityOptions,
   newCommunitySchema,

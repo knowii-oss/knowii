@@ -1,5 +1,5 @@
 import AppLayout from '@/Layouts/AppLayout';
-import type { Session} from '@knowii/common';
+import type { Session } from '@knowii/common';
 import { useTypedPage } from '@knowii/common';
 import UpdateProfileInformationForm from '@/Pages/Profile/Partials/UpdateProfileInformationForm';
 import Separator from '@/Components/Separator';

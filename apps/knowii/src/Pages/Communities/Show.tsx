@@ -5,12 +5,7 @@ import { FaExternalLinkAlt, FaPlus } from 'react-icons/fa';
 import { useState } from 'react';
 import type { MenuItem } from 'primereact/menuitem';
 import AppLayout from '@/Layouts/AppLayout';
-import type {
-  Community,
-  CommunityPermissions,
-  CommunityResource,
-  CommunityResourceCollection,
-  Identifiable} from '@knowii/common';
+import type { Community, CommunityPermissions, CommunityResource, CommunityResourceCollection, Identifiable } from '@knowii/common';
 import {
   COMMUNITY_SETTINGS_URL,
   DASHBOARD_URL,

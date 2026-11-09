@@ -1,4 +1,4 @@
-import type { ReactElement, ReactNode} from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { DASHBOARD_URL, DEFAULT_TOAST_POSITION, LOGOUT_URL, useAppData, USER_PROFILE_URL, useTypedPage } from '@knowii/common';
