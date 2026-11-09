@@ -1,11 +1,13 @@
 <?php
 
+use App\Actions\CommunityResourceCollections\CreateCommunityResourceCollection;
 use App\ApiRoutes;
 use App\Constants;
 use App\Enums\KnowiiApiResponseType;
 use App\Models\Community;
 use App\Models\CommunityResourceCollection;
 use App\Models\User;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Response;
 
 test('resource collections can be created via the API', function () {
@@ -151,3 +153,32 @@ test('the collection API returns 404 for an unknown community', function () {
     $this->actingAs($c['owner'])->postJson(ApiRoutes::path(ApiRoutes::COMMUNITY_RESOURCE_COLLECTIONS, [ApiRoutes::PARAM_COMMUNITY => 'unknown']), ['name' => 'Links'])
         ->assertNotFound();
 });
+
+test('a community cannot hold two collections with the same name, whatever the case (#925)', function () {
+    $c = communityWithMembers();
+    CommunityResourceCollection::factory()->create(['community_id' => $c['community']->id, 'name' => 'Reading list']);
+
+    $response = $this->actingAs($c['owner'])->postJson(resourceCollectionsPath($c['community']), ['name' => '  READING list '])
+        ->assertUnprocessable();
+
+    expect($response->json('type'))->toBe(KnowiiApiResponseType::BusinessIssue->value)
+        ->and($response->json('message'))->toBe(CreateCommunityResourceCollection::NAME_TAKEN)
+        ->and($c['community']->communityResourceCollections()->count())->toBe(1);
+});
+
+test('two communities can use the same collection name and the same slug (#925)', function () {
+    $first = communityWithMembers();
+    $second = communityWithMembers();
+
+    $this->actingAs($first['owner'])->postJson(resourceCollectionsPath($first['community']), ['name' => 'Links'])
+        ->assertCreated()->assertJsonPath('data.slug', 'links');
+    $this->actingAs($second['owner'])->postJson(resourceCollectionsPath($second['community']), ['name' => 'Links'])
+        ->assertCreated()->assertJsonPath('data.slug', 'links');
+});
+
+test('the database refuses a duplicate name in a community even without the action (#925)', function () {
+    $c = communityWithMembers();
+    CommunityResourceCollection::factory()->create(['community_id' => $c['community']->id, 'name' => 'Links']);
+
+    CommunityResourceCollection::factory()->create(['community_id' => $c['community']->id, 'name' => 'LINKS']);
+})->throws(UniqueConstraintViolationException::class);

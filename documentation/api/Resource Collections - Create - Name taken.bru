@@ -1,0 +1,26 @@
+meta {
+  name: Resource Collections - Create - Name taken
+  type: http
+  seq: 53
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/resource-collections
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "FOO"
+  }
+}
+
+docs {
+  Run "Resource Collections - Create" first. The names of the collections are unique in a community, whatever the case: 422 with a business issue. Another community can use the same name (and gets the same slug).
+}

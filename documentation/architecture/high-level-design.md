@@ -23,18 +23,18 @@ State on 2026-11-09: users, profiles, communities, members, invitations, resourc
 
 ### Concepts
 
-| Concept             | Meaning                                                                                            |
-| ------------------- | -------------------------------------------------------------------------------------------------- |
-| Community           | A group of members with its own spaces. Visibility: `public`, `private` or `personal` (one member) |
-| Community member    | The link between a user and a community, with a role. The owner of a community has all the rights  |
-| Space group         | An ordered, named group of spaces in the navigation of a community                                 |
-| Space               | A place in a community where members do one kind of thing. Its type decides what it holds          |
-| Discussion space    | Holds posts. Posts have comments, reactions and mentions                                           |
-| Chat space          | Holds chat messages, in real time. A reply to a message starts a thread                            |
-| Pages space         | Holds ordered Markdown pages (Start Here, guides, resource libraries)                              |
-| Course space        | Holds ordered lessons. A lesson is a page with an optional video                                   |
-| Conversation        | Direct messages between 2 to 10 members of the same community                                      |
-| Resource collection | A curated list of resources (web articles). Older than spaces; stays as its own concept            |
+| Concept             | Meaning                                                                                                                               |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Community           | A group of members with its own spaces. Visibility: `public`, `private` or `personal` (one member)                                    |
+| Community member    | The link between a user and a community, with a role. The owner of a community has all the rights                                     |
+| Space group         | An ordered, named group of spaces in the navigation of a community                                                                    |
+| Space               | A place in a community where members do one kind of thing. Its type decides what it holds                                             |
+| Discussion space    | Holds posts. Posts have comments, reactions and mentions                                                                              |
+| Chat space          | Holds chat messages, in real time. A reply to a message starts a thread                                                               |
+| Pages space         | Holds ordered Markdown pages (Start Here, guides, resource libraries)                                                                 |
+| Course space        | Holds ordered lessons. A lesson is a page with an optional video                                                                      |
+| Conversation        | Direct messages between 2 to 10 members of the same community                                                                         |
+| Resource collection | A curated list of resources (web articles). Older than spaces; stays as its own concept. Name and slug unique in the community (#925) |
 
 ## Request flow
 

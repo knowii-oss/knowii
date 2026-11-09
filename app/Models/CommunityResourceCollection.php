@@ -154,6 +154,31 @@ class CommunityResourceCollection extends Model
     }
 
     /**
+     * Slugs are unique in the community, not in the whole table (rules, Data 4).
+     *
+     * @param  Builder<CommunityResourceCollection>  $query
+     * @param  array<mixed>  $config
+     * @return Builder<CommunityResourceCollection>
+     */
+    final public function scopeWithUniqueSlugConstraints(Builder $query, Model $model, string $attribute, array $config, string $slug): Builder
+    {
+        /** @var CommunityResourceCollection $model */
+        return $query->where('community_id', $model->community_id);
+    }
+
+    /**
+     * Whether the community already has a collection with this name, case-insensitive (#925).
+     */
+    public static function nameIsTaken(Community $community, string $name, ?self $except = null): bool
+    {
+        return self::query()
+            ->where('community_id', $community->id)
+            ->whereRaw('lower(name) = ?', [mb_strtolower(trim($name))])
+            ->when($except !== null, fn (Builder $query) => $query->whereKeyNot($except?->id))
+            ->exists();
+    }
+
+    /**
      * Checks if there is already a community resource in this collection that points to a resource having the given URL
      */
     final public function containsCommunityResourcePointingToResourceWithUrl(string $url): bool
