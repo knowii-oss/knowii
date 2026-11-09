@@ -116,6 +116,12 @@ class Constants
 
     public const int INVITATIONS_PER_MINUTE = 10;
 
+    // Lifetimes of a personal API token, in days, or "never" (#1267, ADR 0022)
+    // WARNING: aligned with API_TOKEN_EXPIRY_CHOICES (jetstream-inertia.intf.ts)
+    public const array API_TOKEN_EXPIRY_CHOICES = ['30', '90', '365', 'never'];
+
+    public const string API_TOKEN_DEFAULT_EXPIRY = '90';
+
     // Markdown preview requests (editor) per minute and per user
     public const int MARKDOWN_PREVIEWS_PER_MINUTE = 60;
 

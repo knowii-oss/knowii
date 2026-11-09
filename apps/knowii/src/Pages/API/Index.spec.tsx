@@ -57,14 +57,47 @@ describe('ApiTokensPage', () => {
     await userEvent.click(screen.getByRole('checkbox', { name: /Add resources only/ }));
     await userEvent.click(screen.getByRole('button', { name: 'Create' }));
 
-    expect(post).toHaveBeenCalledWith('/api-tokens.store/', { name: 'Extension 2', permissions: ['resources:create'] });
+    expect(post).toHaveBeenCalledWith('/api-tokens.store/', { name: 'Extension 2', permissions: ['resources:create'], expires_in: '90' });
+  });
+
+  it('offers an expiry, 90 days by default, and sends the choice (#1267)', async () => {
+    renderPage();
+
+    const group = screen.getByRole('radiogroup', { name: 'Expires after' });
+    expect(within(group).getByRole('radio', { name: '90 days' })).toBeChecked();
+    await userEvent.type(screen.getByLabelText('Name'), 'Script');
+    await userEvent.click(within(group).getByRole('radio', { name: 'Never' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Create' }));
+
+    expect(post).toHaveBeenLastCalledWith('/api-tokens.store/', { name: 'Script', permissions: ['communities:read'], expires_in: 'never' });
+  });
+
+  it('shows when each token expires (#1267)', () => {
+    render(
+      <AppDataProvider>
+        <ApiTokensPage
+          tokens={[
+            ...tokens,
+            { ...tokens[0]!, id: 8, name: 'Old', expires_at: '2020-01-01T10:00:00Z' },
+            { ...tokens[0]!, id: 9, name: 'Script', expires_at: '2999-01-01T10:00:00Z' },
+          ]}
+          availablePermissions={available}
+          defaultPermissions={[]}
+        />
+      </AppDataProvider>,
+    );
+
+    const list = screen.getByRole('list', { name: 'Your API tokens' });
+    expect(within(list).getByText(/never expires/)).toBeInTheDocument();
+    expect(within(list).getByText(/expired on/)).toBeInTheDocument();
+    expect(within(list).getByText(/expires on/)).toBeInTheDocument();
   });
 
   it('lists the tokens and deletes one after a confirmation (#689)', async () => {
     renderPage();
 
     const list = screen.getByRole('list', { name: 'Your API tokens' });
-    expect(within(list).getByText('Never used')).toBeInTheDocument();
+    expect(within(list).getByText('Never used, never expires')).toBeInTheDocument();
     await userEvent.click(within(list).getByRole('button', { name: 'Delete Extension' }));
     const dialog = await screen.findByRole('dialog', { name: 'Delete Extension?' });
     await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));

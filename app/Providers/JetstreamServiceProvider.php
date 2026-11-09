@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use App\Actions\DeleteUser;
+use App\Http\Controllers\ApiTokenController;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Jetstream\Http\Controllers\Inertia\ApiTokenController as JetstreamApiTokenController;
 use Laravel\Jetstream\Jetstream;
 
 class JetstreamServiceProvider extends ServiceProvider
@@ -13,7 +15,8 @@ class JetstreamServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // The API tokens page creates tokens with an expiry (#1267): the routes of Jetstream resolve our controller
+        $this->app->bind(JetstreamApiTokenController::class, ApiTokenController::class);
     }
 
     /**
