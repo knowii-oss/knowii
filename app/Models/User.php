@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Actions\Users\UpdateAvatar;
 use App\Http\Resources\UserResource;
 use App\Traits\GeneratesCuid;
 use App\Traits\HasCommunities;
@@ -9,6 +10,7 @@ use Carbon\Carbon;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\UseResource;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -16,6 +18,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\DatabaseNotificationCollection;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -36,6 +39,8 @@ use TaylorNetwork\UsernameGenerator\GeneratesUsernames;
  * @property ?string $two_factor_recovery_codes
  * @property ?Carbon $two_factor_confirmed_at
  * @property ?string $remember_token
+ * @property ?string $avatar_path
+ * @property-read ?string $avatar_url
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read UserProfile $profile
@@ -106,7 +111,34 @@ class User extends Authenticatable implements MustVerifyEmail
      *
      * @var list<string>
      */
+    /**
+     * The URL of the avatar goes with the user to the pages (auth.user, #109).
+     *
+     * @var list<string>
+     */
+    protected $appends = [
+        'avatar_url',
+    ];
+
+    /**
+     * The URL of the avatar, null without one (#109, ADR 0021): the initials show instead. Never a third-party
+     * placeholder service (CSP, privacy).
+     *
+     * @return Attribute<?string, never>
+     */
+    protected function avatarUrl(): Attribute
+    {
+        return Attribute::get(function (): ?string {
+            // A query may select some columns only: no avatar then, instead of an error in strict mode
+            $path = $this->attributes['avatar_path'] ?? null;
+
+            return is_string($path) && $path !== '' ? Storage::disk(UpdateAvatar::disk())->url($path) : null;
+        });
+    }
+
     protected $hidden = [
+        // avatar_url is shown instead
+        'avatar_path',
         'communities',
         'id',
         'password',

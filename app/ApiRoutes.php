@@ -52,6 +52,9 @@ final class ApiRoutes
     // Paths relative to the version prefix, used in routes/api.php.
     public const USER = 'user';
 
+    // The avatar of the current user (#109)
+    public const USER_AVATAR = 'user/avatar';
+
     public const AUTH_LOGIN = 'auth/login';
 
     public const PING = 'ping';

@@ -15,7 +15,6 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\DatabaseNotificationCollection;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Jetstream\HasProfilePhoto;
 
 /**
  * App\Models\UserProfile
@@ -26,7 +25,6 @@ use Laravel\Jetstream\HasProfilePhoto;
  * @property ?string $username
  * @property string $name
  * @property ?string $email
- * @property ?string $profile_photo_path
  * @property ?string $bio
  * @property ?string $location
  * @property ?string $phone
@@ -63,7 +61,6 @@ use Laravel\Jetstream\HasProfilePhoto;
  * @property Carbon $updated_at
  * @property-read DatabaseNotificationCollection<int, DatabaseNotification> $notifications
  * @property-read ?int $notifications_count
- * @property-read string $profile_photo_url
  *
  * @method static \Database\Factories\UserProfileFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile newModelQuery()
@@ -77,7 +74,6 @@ use Laravel\Jetstream\HasProfilePhoto;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereLocation($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile wherePhone($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereProfilePhotoPath($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkBluesky($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkBuymeacoffee($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkDevDotTo($value)
@@ -122,7 +118,6 @@ class UserProfile extends Authenticatable implements MustVerifyEmail
     /** @use HasFactory<UserProfileFactory> */
     use HasFactory;
 
-    use HasProfilePhoto;
     use Notifiable;
 
     /**

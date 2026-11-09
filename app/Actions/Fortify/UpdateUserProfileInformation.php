@@ -8,7 +8,6 @@ use App\Exceptions\TechnicalException;
 use App\Models\User;
 use App\Models\UserProfile;
 use App\Support\ProfileFieldVisibility;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -32,7 +31,6 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             // WARNING: Those rules must remain aligned with those in VerifyUsernameAvailability.php and with the client-side usernameSchema
             'username' => ['string', 'min:'.Constants::MIN_LENGTH_USER_USERNAME, 'max:'.Constants::MAX_LENGTH_USER_USERNAME, 'regex:'.Constants::ALLOWED_USER_USERNAME_CHARACTERS_REGEX],
             'email' => ['required', 'email', 'max:'.Constants::MAX_LENGTH_USER_EMAIL, Rule::unique('users')->ignore($user->id)],
-            'photo' => ['nullable', 'mimes:jpg,jpeg,png', 'max:1024'],
             'bio' => ['nullable', 'string', 'max:'.Constants::MAX_LENGTH_USER_BIO],
             'location' => ['nullable', 'string', 'max:'.Constants::MAX_LENGTH_USER_LOCATION],
             'phone' => ['nullable', 'string', 'max:'.Constants::MAX_LENGTH_USER_PHONE, 'regex:'.Constants::USER_PHONE_REGEX],
@@ -44,7 +42,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 
         $validator->validateWithBag('updateProfileInformation');
 
-        /** @var array{name: string|null, username: string|null, email: string, photo:UploadedFile|null, bio: string|null, location: string|null, phone: string|null, field_visibility?: array<string, mixed>} $input */
+        /** @var array{name: string|null, username: string|null, email: string, bio: string|null, location: string|null, phone: string|null, field_visibility?: array<string, mixed>} $input */
         $input = $validator->validated();
 
         $userProfile = $user->profile;
@@ -78,11 +76,6 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
                 $userProfile->forceFill([
                     'name' => $input['name'],
                 ])->save();
-            }
-
-            // Handle user profile updates
-            if (isset($input['photo'])) {
-                $userProfile->updateProfilePhoto($input['photo']);
             }
 
             $userProfile->forceFill([

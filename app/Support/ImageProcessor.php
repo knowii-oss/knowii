@@ -17,7 +17,7 @@ final class ImageProcessor
      *
      * @throws BusinessException When the file is not a supported image or is too large in pixels
      */
-    public static function process(string $sourcePath, int $maxDimension = Constants::MAX_UPLOAD_IMAGE_DIMENSION): array
+    public static function process(string $sourcePath, int $maxDimension = Constants::MAX_UPLOAD_IMAGE_DIMENSION, bool $square = false): array
     {
         $info = @getimagesize($sourcePath);
         if ($info === false || ! in_array($info[2], [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_WEBP, IMAGETYPE_GIF], true)) {
@@ -40,6 +40,8 @@ final class ImageProcessor
             $image = self::applyExifOrientation($image, $sourcePath);
         }
 
+        // Avatars (#109): the centered square, so every avatar fills its circle
+        $image = $square ? self::cropToSquare($image) : $image;
         $image = self::scaleDown($image, $maxDimension);
         imagepalettetotruecolor($image);
         imagealphablending($image, false);
@@ -60,6 +62,20 @@ final class ImageProcessor
         imagedestroy($image);
 
         return $result;
+    }
+
+    private static function cropToSquare(GdImage $image): GdImage
+    {
+        $width = imagesx($image);
+        $height = imagesy($image);
+        $side = min($width, $height);
+        if ($width === $height) {
+            return $image;
+        }
+
+        $cropped = imagecrop($image, ['x' => intdiv($width - $side, 2), 'y' => intdiv($height - $side, 2), 'width' => $side, 'height' => $side]);
+
+        return $cropped instanceof GdImage ? $cropped : $image;
     }
 
     private static function scaleDown(GdImage $image, int $maxDimension): GdImage

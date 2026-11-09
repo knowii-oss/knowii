@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 namespace App\Http\Controllers\API;
 
+use App\Contracts\Users\UpdatesAvatars;
 use App\Contracts\Users\VerifiesUsernameAvailability;
 use App\Http\Controllers\Controller;
 use App\Traits\ApiResponses;
@@ -26,6 +27,32 @@ class UserApiController extends Controller
 
         // refresh(): every column, also the ones a model built in memory does not hold (two_factor_confirmed_at)
         return self::success('Current user', null, $user->refresh()->load('profile')->toResource());
+    }
+
+    /**
+     * Replace the avatar of the current user (#109): a JPEG, PNG, WebP or GIF image of 10 MB at most, re-encoded and
+     * cropped to a square. Returns the current user with avatar_url.
+     *
+     * @throws AuthenticationException
+     */
+    #[BodyParameter('file', description: 'The image (multipart/form-data)', required: true, type: 'string', format: 'binary')]
+    final public function updateAvatar(Request $request): JsonResponse
+    {
+        $user = app(UpdatesAvatars::class)->update($request->user() ?? throw new AuthenticationException, $request->only(['file']));
+
+        return self::success('Avatar updated', null, $user->refresh()->load('profile')->toResource());
+    }
+
+    /**
+     * Remove the avatar of the current user: the initials show again.
+     *
+     * @throws AuthenticationException
+     */
+    final public function deleteAvatar(Request $request): JsonResponse
+    {
+        $user = app(UpdatesAvatars::class)->delete($request->user() ?? throw new AuthenticationException);
+
+        return self::success('Avatar removed', null, $user->refresh()->load('profile')->toResource());
     }
 
     /**

@@ -6,6 +6,8 @@ export const currentUserSchema = z.object({
   name: z.string(),
   email: z.email(),
   username: z.string(),
+  // Null without an avatar (#109)
+  avatar_url: z.string().nullable().optional(),
   two_factor_enabled: z.boolean(),
   two_factor_confirmed_at: z.coerce.date().nullable(),
   email_verified_at: z.coerce.date().nullable(),

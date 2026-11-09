@@ -31,13 +31,17 @@ class EnsureRequestIsJson
     }
 
     /**
-     * File uploads are the only non-JSON bodies the API accepts, on the upload endpoints only (#1178).
+     * File uploads are the only non-JSON bodies the API accepts, on the upload endpoints only (#1178, #109).
      */
     private static function acceptsFiles(Request $request): bool
     {
         $isMultipart = str_starts_with(strtolower((string) $request->header('Content-Type')), 'multipart/form-data')
             || $request->allFiles() !== [];
 
-        return $isMultipart && $request->is(str_replace('{'.ApiRoutes::PARAM_COMMUNITY.'}', '*', ApiRoutes::path(ApiRoutes::COMMUNITY_UPLOADS)));
+        return $isMultipart && (
+            $request->is(str_replace('{'.ApiRoutes::PARAM_COMMUNITY.'}', '*', ApiRoutes::path(ApiRoutes::COMMUNITY_UPLOADS)))
+            // The avatar of the current user (#109)
+            || ($request->isMethod('POST') && $request->is(ApiRoutes::path(ApiRoutes::USER_AVATAR)))
+        );
     }
 }

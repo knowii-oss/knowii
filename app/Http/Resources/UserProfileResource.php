@@ -19,8 +19,6 @@ class UserProfileResource extends AbstractKnowiiJsonResource
             'cuid' => $this->cuid,
             'name' => $this->name,
             'username' => $this->username ?? '',
-            // FIXME: should the profile photo path be exposed to the client?
-            'profile_photo_path' => $this->profile_photo_path,
             'bio' => $this->bio ?? '', // Ensures the returned value is never null,
             'location' => $this->location ?? '', // Ensures the returned value is never null,
             'phone' => $this->phone ?? '', // Ensures the returned value is never null,

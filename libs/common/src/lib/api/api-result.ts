@@ -21,7 +21,7 @@ export function apiPath(path: string, params: Record<string, string>): string {
   return Object.entries(params).reduce((result, [placeholder, value]) => result.replace(placeholder, encodeURIComponent(value)), path);
 }
 
-function fieldErrors(value: unknown): Record<string, string[]> {
+export function fieldErrors(value: unknown): Record<string, string[]> {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
     return {};
   }

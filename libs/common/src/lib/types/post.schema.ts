@@ -9,6 +9,8 @@ export const authorSchema = z.object({
   cuid: z.string(),
   name: z.string(),
   username: z.string(),
+  // Null without an avatar: the initials show (#109)
+  avatar_url: z.string().nullable().optional(),
 });
 export type Author = z.infer<typeof authorSchema>;
 

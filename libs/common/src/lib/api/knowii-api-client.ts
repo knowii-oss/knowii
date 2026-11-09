@@ -1,5 +1,6 @@
 import {
   COMMUNITY_API_BASE_PATH,
+  USER_AVATAR_API_PATH,
   COMMUNITY_API_PATH,
   COMMUNITY_API_PATH_PARAM_COMMUNITY,
   COMMUNITY_SPACE_API_PATH,
@@ -51,7 +52,7 @@ import { joinWaitlistResponseSchema } from './waitlist/join-waitlist-response.sc
 import { z } from 'zod';
 import { HttpStatus } from '../types/http-status.intf';
 import type { ApiResult } from './api-result';
-import { apiPath, apiRequest } from './api-result';
+import { apiPath, apiRequest, fieldErrors } from './api-result';
 import type { Space, SpaceForm, SpaceGroup, SpaceGroupForm } from '../types/space.schema';
 import { spaceGroupSchema, spaceSchema } from '../types/space.schema';
 import type { Author, Paginated, Post, PostForm } from '../types/post.schema';
@@ -69,6 +70,8 @@ import type { ReactionKind, ReactionSummary, WhoReacted } from '../types/reactio
 import type { AssignableCommunityRole, CommunityInvitation, CommunityInvitationForm, CommunityMember } from '../types/member.schema';
 import { communityInvitationSchema, communityMemberSchema } from '../types/member.schema';
 import { reactionSummarySchema, whoReactedSchema } from '../types/reaction.schema';
+
+const avatarResponseSchema = z.object({ avatar_url: z.string().nullable() });
 
 /**
  * The item that comments are about: a post (#1175) or a resource of a resources space (#1034)
@@ -479,6 +482,32 @@ export const knowiiApiClient = {
       apiRequest('post', resourcesPath(communityCuid, spaceCuid), communityResourceSchema, 'Failed to add the resource.', input),
   },
   users: {
+    /**
+     * Replace the avatar of the current user (multipart, #109). Returns the URL of the new avatar.
+     */
+    updateAvatar: async (file: File): Promise<ApiResult<string | null>> => {
+      const failure = 'Failed to save the picture.';
+      const body = new FormData();
+      body.append('file', file);
+      try {
+        // No Content-Type header: the browser sets the multipart boundary
+        const response = await fetch(USER_AVATAR_API_PATH, { method: 'POST', headers: { Accept: 'application/json' }, body });
+        const json: unknown = await response.json();
+        const envelope = typeof json === 'object' && json !== null ? (json as Record<string, unknown>) : {};
+        const message = typeof envelope['message'] === 'string' && envelope['message'] !== '' ? envelope['message'] : failure;
+        const parsed = avatarResponseSchema.safeParse(envelope['data']);
+        if (!response.ok || !parsed.success) {
+          return { ok: false, status: response.status, message, errors: fieldErrors(envelope['errors']) };
+        }
+        return { ok: true, message, data: parsed.data.avatar_url };
+      } catch {
+        return { ok: false, status: 0, message: failure, errors: {} };
+      }
+    },
+    /**
+     * Remove the avatar of the current user (#109): the initials show again.
+     */
+    deleteAvatar: (): Promise<ApiResult<unknown>> => apiRequest('delete', USER_AVATAR_API_PATH, null, 'Failed to remove the picture.'),
     isUsernameAvailable: async (input: IsUsernameAvailableRequest, signal?: AbortSignal): Promise<IsUsernameAvailableResponse> => {
       try {
         const response = await fetch(USERS_API_IS_USERNAME_AVAILABLE_PATH, {

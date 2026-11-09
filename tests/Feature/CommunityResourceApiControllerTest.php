@@ -330,6 +330,6 @@ test('resources expose only the public summary of their curator (#1234)', functi
     foreach ([resourcesListPath($space) => 'data.0.curator', resourcePath($space, $resources[0]) => 'data.curator'] as $path => $key) {
         $curator = $this->actingAs($c['member'])->getJson($path)->assertOk()->json($key);
 
-        expect(array_keys($curator))->toEqualCanonicalizing(['cuid', 'name', 'username']);
+        expect(array_keys($curator))->toEqualCanonicalizing(['cuid', 'name', 'username', 'avatar_url']);
     }
 });

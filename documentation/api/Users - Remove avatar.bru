@@ -1,0 +1,19 @@
+meta {
+  name: Users - Remove avatar
+  type: http
+  seq: 72
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/user/avatar
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Removes the avatar of the current user (#109): avatar_url becomes null and the initials show again. Returns the current user.
+}
