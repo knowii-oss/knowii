@@ -30,6 +30,7 @@ export function PostCard({ post, href }: PostCardProps) {
         <p className="text-xs text-muted">
           {post.author ? post.author.name : 'Deleted member'} · <RelativeTime date={post.created_at} />
           {post.edited_at && ' · edited'}
+          {post.comments_count !== undefined && ` · ${post.comments_count === 1 ? '1 comment' : `${post.comments_count} comments`}`}
         </p>
       </header>
       <MarkdownContent html={post.body_html} className="line-clamp-4 text-sm" />

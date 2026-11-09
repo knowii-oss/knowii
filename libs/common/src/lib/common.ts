@@ -28,6 +28,7 @@ export * from './types/resource-text-article.schema';
 export * from './types/social-media-link.schema';
 export * from './types/space.schema';
 export * from './types/post.schema';
+export * from './types/comment.schema';
 export * from './types/toast.intf';
 export * from './types/url.schema';
 export * from './types/user.schema';

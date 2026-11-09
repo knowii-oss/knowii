@@ -108,6 +108,8 @@ export const MAX_LENGTH_POST_TITLE = 200;
 export const MAX_LENGTH_POST_BODY = 50000;
 export const POSTS_PER_PAGE = 20;
 export const POST_EDITOR_ROWS = 12;
+export const MAX_LENGTH_COMMENT_BODY = 10000;
+export const COMMENT_EDITOR_ROWS = 4;
 
 // Community resource collection
 export const MIN_LENGTH_COMMUNITY_RESOURCE_COLLECTION_NAME = 3;
@@ -172,3 +174,8 @@ export const COMMUNITY_SPACE_POST_PIN_API_PATH = `${COMMUNITY_SPACE_POST_API_PAT
 
 // Markdown preview (same rendering as the saved content)
 export const MARKDOWN_PREVIEW_API_PATH = `${API_BASE_PATH}/markdown/preview`;
+
+// Comments (#1175)
+export const SPACE_API_PARAM_COMMENT = '{commentCuid}';
+export const COMMUNITY_SPACE_POST_COMMENTS_API_PATH = `${COMMUNITY_SPACE_POST_API_PATH}/comments`;
+export const COMMUNITY_SPACE_POST_COMMENT_API_PATH = `${COMMUNITY_SPACE_POST_COMMENTS_API_PATH}/${SPACE_API_PARAM_COMMENT}`;

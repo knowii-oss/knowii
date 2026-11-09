@@ -7,9 +7,11 @@ use Carbon\Carbon;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Database\Factories\PostFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * A post in a discussion space (#1174).
@@ -31,6 +33,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read Community $community
  * @property-read Space $space
  * @property-read User|null $author
+ * @property-read Collection<int, Comment> $comments
+ * @property-read int|null $comments_count
  *
  * @method static \Database\Factories\PostFactory factory($count = null, $state = [])
  *
@@ -107,6 +111,16 @@ class Post extends Model
     final public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'author_id');
+    }
+
+    /**
+     * All the comments (top-level and replies), oldest first.
+     *
+     * @return HasMany<Comment, covariant $this>
+     */
+    final public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class)->orderBy('created_at')->orderBy('id');
     }
 
     /**

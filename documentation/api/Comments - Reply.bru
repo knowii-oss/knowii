@@ -1,0 +1,27 @@
+meta {
+  name: Comments - Reply
+  type: http
+  seq: 42
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a discussion space>/posts/<post cuid>/comments
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "body": "I agree.",
+    "parent_cuid": "<comment cuid>"
+  }
+}
+
+docs {
+  Replies to a comment. A reply to a reply goes to its top-level comment (one level only).
+}

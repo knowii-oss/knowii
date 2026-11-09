@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Actions\Comments\CreateComment;
+use App\Actions\Comments\DeleteComment;
+use App\Actions\Comments\UpdateComment;
 use App\Actions\Communities\CreateCommunity;
 use App\Actions\Communities\DeleteCommunity;
 use App\Actions\CommunityResourceCollections\CreateCommunityResourceCollection;
@@ -22,6 +25,9 @@ use App\Actions\Spaces\UpdateSpace;
 use App\Actions\Users\VerifyUsernameAvailability;
 use App\Actions\Waitlist\JoinWaitlist;
 use App\Constants;
+use App\Contracts\Comments\CreatesComments;
+use App\Contracts\Comments\DeletesComments;
+use App\Contracts\Comments\UpdatesComments;
 use App\Contracts\Communities\CreatesCommunities;
 use App\Contracts\Communities\DeletesCommunities;
 use App\Contracts\CommunityResourceCollections\CreatesCommunityResourceCollections;
@@ -87,6 +93,9 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(UpdatesPosts::class, UpdatePost::class);
         app()->singleton(DeletesPosts::class, DeletePost::class);
         app()->singleton(PinsPosts::class, PinPost::class);
+        app()->singleton(CreatesComments::class, CreateComment::class);
+        app()->singleton(UpdatesComments::class, UpdateComment::class);
+        app()->singleton(DeletesComments::class, DeleteComment::class);
 
         // Public waitlist endpoint: a few requests per minute and per IP address
         RateLimiter::for('waitlist', static function (Request $request) {
@@ -95,6 +104,10 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('posts', static function (Request $request) {
             return Limit::perMinute(Constants::POSTS_PER_MINUTE)->by(self::rateLimitKey($request));
+        });
+
+        RateLimiter::for('comments', static function (Request $request) {
+            return Limit::perMinute(Constants::COMMENTS_PER_MINUTE)->by(self::rateLimitKey($request));
         });
 
         RateLimiter::for('markdown-preview', static function (Request $request) {

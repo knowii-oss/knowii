@@ -35,6 +35,14 @@ class PostPolicy
         return $this->update($user, $post) || Gate::forUser($user)->check('moderate', $post->space);
     }
 
+    /**
+     * Members of the community who can read the post can comment it (also in spaces where only moderators post).
+     */
+    final public function comment(User $user, Post $post): bool
+    {
+        return $user->belongsToCommunity($post->community) && Gate::forUser($user)->check('view', $post->space);
+    }
+
     final public function pin(User $user, Post $post): bool
     {
         return Gate::forUser($user)->check('moderate', $post->space);

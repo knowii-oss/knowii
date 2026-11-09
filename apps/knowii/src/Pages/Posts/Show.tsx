@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { router } from '@inertiajs/react';
-import type { Community, Post, PostPermissions, Space, SpaceGroup } from '@knowii/common';
-import { COMMUNITY_URL, knowiiApiClient, SPACE_TYPE_LABELS, SPACE_URL, useAppData } from '@knowii/common';
+import type { Comment, Community, Post, PostPermissions, Space, SpaceGroup } from '@knowii/common';
+import { COMMUNITY_URL, knowiiApiClient, SPACE_TYPE_LABELS, SPACE_URL, useAppData, useTypedPage } from '@knowii/common';
 import { FaPen, FaThumbtack, FaTrash } from 'react-icons/fa6';
 import AppLayout from '@/Layouts/AppLayout';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
 import { CommunityShell } from '@/Components/Spaces/CommunityShell';
 import { PostComposer } from '@/Components/Posts/PostComposer';
+import { CommentSection } from '@/Components/Comments/CommentSection';
 import type { BreadcrumbItem } from '@/Components/ui';
 import { Button, Dialog, MarkdownContent, RelativeTime } from '@/Components/ui';
 
@@ -17,12 +18,14 @@ interface Props {
   space: Space;
   spaceGroups: SpaceGroup[];
   post: Post;
+  comments: Comment[];
   permissions: PostPermissions;
 }
 
 export default function PostPage(props: Props) {
   const { community, space } = props;
   const { showToast } = useAppData();
+  const page = useTypedPage();
   const [post, setPost] = useState<Post>(props.post);
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -113,6 +116,16 @@ export default function PostPage(props: Props) {
 
           <MarkdownContent html={post.body_html} />
         </article>
+
+        <CommentSection
+          communityCuid={community.cuid}
+          spaceCuid={space.cuid}
+          postCuid={post.cuid}
+          initialComments={props.comments}
+          currentUserCuid={page.props.auth.user?.cuid ?? null}
+          canComment={props.permissions.canComment}
+          canModerate={props.permissions.canModerate}
+        />
       </CommunityShell>
 
       <PostComposer
