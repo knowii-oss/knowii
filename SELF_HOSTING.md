@@ -91,7 +91,7 @@ Copy `.env.example` to `.env`, then change the values below. The other values in
 | `BROWSERLESS_TOKEN`                                               | A unique random value                                                                                                                                                               |
 | `ROBOTS_ALLOW_INDEXING`                                           | `true` lets search engines index the public pages (default in production). `false` on a test or private instance: `robots.txt` refuses every crawler and every page sends `noindex` |
 
-Crawlers (#104): `/robots.txt` is built from `config/robots.php`. It refuses a list of AI crawlers everywhere and keeps every crawler out of the member areas and the API. Pages of signed-in members and the API always send `X-Robots-Tag: noindex, nofollow`. `robots.txt` is only a request: if Cloudflare is in front of your instance, also turn on its "Block AI bots" setting.
+Crawlers (#104): `/robots.txt` is built from `config/robots.php`. It refuses a list of AI crawlers everywhere and keeps every crawler out of the member areas and the API. Pages of signed-in members and the API always send `X-Robots-Tag: noindex, nofollow`. `robots.txt` is only a request: if Cloudflare is in front of your instance, also turn on its "Block AI bots" setting (Security, Bots), which refuses them at the edge. On a test or private instance, set `ROBOTS_ALLOW_INDEXING=false`.
 
 Members upload images for their posts and comments. By default the files go to the `public` disk (`storage/app/public`), served from `/storage`: run `php artisan storage:link` once after the installation. To use an S3-compatible bucket (Cloudflare R2, Hetzner object storage), configure an S3 disk in `config/filesystems.php`, set `UPLOADS_DISK` to its name and `UPLOADS_PUBLIC_URL` to its public URL (the Content Security Policy allows that origin). Include the upload storage in your backups.
 
@@ -126,13 +126,14 @@ php artisan optimize
 
 ## 6. Run the processes
 
-Knowii needs three processes, in addition to PHP-FPM:
+Knowii needs four processes, in addition to PHP-FPM:
 
 - The web server (nginx with PHP-FPM), which serves the `public/` folder
 - The queue worker, which processes jobs. Knowii sends its real-time (WebSocket) events through the queue: without a worker, users get no live updates.
 - The WebSocket server (Laravel Reverb)
+- The scheduler, which runs the scheduled tasks of `routes/console.php` (see the list below). Without it, unused uploaded images are never deleted.
 
-Keep the queue worker and Reverb running with a process manager. This is an example for Supervisor (`/etc/supervisor/conf.d/knowii.conf`). Change the path and the user:
+Keep the queue worker, Reverb and the scheduler running with a process manager. This is an example for Supervisor (`/etc/supervisor/conf.d/knowii.conf`). Change the path and the user:
 
 ```ini
 [program:knowii-queue]
@@ -147,11 +148,17 @@ command=php /var/www/knowii/artisan reverb:start
 user=www-data
 autostart=true
 autorestart=true
+
+[program:knowii-scheduler]
+command=php /var/www/knowii/artisan schedule:work
+user=www-data
+autostart=true
+autorestart=true
 ```
 
 Reverb opens one file descriptor per connection. To let it accept many connections, set `minfds=10000` in the `[supervisord]` section of `/etc/supervisor/supervisord.conf`, then restart Supervisor.
 
-Knowii has scheduled tasks (`routes/console.php`). Add this cron entry for the `www-data` user (`crontab -u www-data -e`), so that the Laravel scheduler runs every minute:
+The `knowii-scheduler` program (`schedule:work`) runs the scheduler every minute. If your host has no process manager, use a cron entry for the `www-data` user instead (`crontab -u www-data -e`), never both:
 
 ```
 * * * * * cd /var/www/knowii && php artisan schedule:run >> /dev/null 2>&1
