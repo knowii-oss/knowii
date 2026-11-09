@@ -6,7 +6,7 @@ import {
   SOCIAL_MEDIA_LINK_NAMES,
   socialMediaLinkPropertySchema,
 } from '@knowii/common';
-import { FaLocationDot } from 'react-icons/fa6';
+import { FaLocationDot, FaPhone } from 'react-icons/fa6';
 import AppLayout from '@/Layouts/AppLayout';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
@@ -56,6 +56,12 @@ export default function MemberPage({ community, spaceGroups, member }: Props) {
           </header>
 
           <p className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
+            {member.phone && (
+              <a href={`tel:${member.phone.replace(/[^+\d]/g, '')}`} className="flex items-center gap-1 hover:underline">
+                <FaPhone aria-hidden="true" />
+                {member.phone}
+              </a>
+            )}
             {member.location && (
               <span className="flex items-center gap-1">
                 <FaLocationDot aria-hidden="true" />

@@ -24,6 +24,8 @@ class UserProfileResource extends AbstractKnowiiJsonResource
             'bio' => $this->bio ?? '', // Ensures the returned value is never null,
             'location' => $this->location ?? '', // Ensures the returned value is never null,
             'phone' => $this->phone ?? '', // Ensures the returned value is never null,
+            // What the other members see (#1076, ADR 0020)
+            'field_visibility' => $this->fieldVisibility(),
             'social_link_website' => $this->social_link_website ?? '', // Ensures the returned value is never null,
             'social_link_newsletter' => $this->social_link_newsletter ?? '', // Ensures the returned value is never null,
             'social_link_x' => $this->social_link_x ?? '', // Ensures the returned value is never null,

@@ -7,6 +7,7 @@ use App\Contracts\Users\VerifiesUsernameAvailability;
 use App\Exceptions\TechnicalException;
 use App\Models\User;
 use App\Models\UserProfile;
+use App\Support\ProfileFieldVisibility;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -36,11 +37,14 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'location' => ['nullable', 'string', 'max:'.Constants::MAX_LENGTH_USER_LOCATION],
             'phone' => ['nullable', 'string', 'max:'.Constants::MAX_LENGTH_USER_PHONE, 'regex:'.Constants::USER_PHONE_REGEX],
             ...array_fill_keys(Constants::SOCIAL_MEDIA_LINK_PROPERTIES, ['nullable', 'string', 'max:255']),
+            // What the other members see (#1076, ADR 0020): known fields only, unknown keys are dropped
+            'field_visibility' => ['sometimes', 'array'],
+            ...array_fill_keys(array_map(fn (string $field) => 'field_visibility.'.$field, ProfileFieldVisibility::fields()), ['sometimes', 'boolean']),
         ]);
 
         $validator->validateWithBag('updateProfileInformation');
 
-        /** @var array{name: string|null, username: string|null, email: string, photo:UploadedFile|null, bio: string|null, location: string|null, phone: string|null} $input */
+        /** @var array{name: string|null, username: string|null, email: string, photo:UploadedFile|null, bio: string|null, location: string|null, phone: string|null, field_visibility?: array<string, mixed>} $input */
         $input = $validator->validated();
 
         $userProfile = $user->profile;
@@ -88,6 +92,12 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             ])->save();
 
             $this->updateSocialLinks($userProfile, $input);
+
+            if (isset($input['field_visibility'])) {
+                $userProfile->forceFill([
+                    'field_visibility' => ProfileFieldVisibility::resolve([...$userProfile->fieldVisibility(), ...$input['field_visibility']]),
+                ])->save();
+            }
         });
     }
 

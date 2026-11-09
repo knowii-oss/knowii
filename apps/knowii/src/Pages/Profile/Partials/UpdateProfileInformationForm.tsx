@@ -1,5 +1,6 @@
-import type { CurrentUser, UserProfile } from '@knowii/common';
+import type { CurrentUser, ProfileFieldVisibility, ProfileVisibilityField, UserProfile } from '@knowii/common';
 import {
+  resolveProfileFieldVisibility,
   knowiiApiClient,
   MIN_ACTION_TIME,
   sleep,
@@ -26,7 +27,7 @@ import FormSection from '@/Components/FormSection';
 import InputLabel from '@/Components/InputLabel';
 import { FaAt, FaBookReader, FaMapMarkerAlt, FaPassport, FaPhone, FaUser } from 'react-icons/fa';
 import InputError from '@/Components/InputError';
-import { Button, Collapsible, Textarea, TextInput } from '@/Components/ui';
+import { Button, Checkbox, Collapsible, Textarea, TextInput } from '@/Components/ui';
 
 interface Props {
   user: CurrentUser;
@@ -36,7 +37,33 @@ type UpdateProfileInformationFormData = { photo: File | null } & Omit<
   CurrentUser,
   'created_at' | 'updated_at' | 'email_verified_at' | 'cuid' | 'two_factor_enabled' | 'two_factor_confirmed_at'
 > &
-  Omit<UserProfile, 'username'>;
+  Omit<UserProfile, 'username' | 'field_visibility'> & { field_visibility: ProfileFieldVisibility };
+
+/**
+ * "Visible to members" under a profile field (#1076, ADR 0020): the member chooses what the other members see
+ */
+function VisibleToMembers(props: {
+  field: ProfileVisibilityField;
+  // Name of the field, for screen readers: every switch has the same visible text
+  fieldLabel: string;
+  checked: boolean;
+  disabled: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <label className="mt-2 flex cursor-pointer items-center gap-2 text-sm text-muted">
+      <Checkbox
+        name={`field_visibility.${props.field}`}
+        checked={props.checked}
+        disabled={props.disabled}
+        onChange={(event) => props.onChange(event.target.checked)}
+      />
+      <span>
+        Visible to the members of my communities<span className="sr-only">, {props.fieldLabel}</span>
+      </span>
+    </label>
+  );
+}
 
 export default function UpdateProfileInformationForm(props: Props) {
   const route = useRoute();
@@ -49,13 +76,29 @@ export default function UpdateProfileInformationForm(props: Props) {
   const [verificationLinkSent, setVerificationLinkSent] = useState(false);
 
   // Some fields of the user profile are 1:1 copies of the user account, so they need to be ignored here
-  const { name: nameToIgnore, username: usernameToIgnore, ...userProfileFieldsToInclude } = page.props.userProfile;
+  const {
+    name: nameToIgnore,
+    username: usernameToIgnore,
+    field_visibility: storedFieldVisibility,
+    ...userProfileFieldsToInclude
+  } = page.props.userProfile;
 
   const form = useForm<UpdateProfileInformationFormData>({
     ...props.user,
     ...userProfileFieldsToInclude,
+    field_visibility: resolveProfileFieldVisibility(storedFieldVisibility),
     photo: null as File | null,
   });
+
+  const visibilityToggle = (field: ProfileVisibilityField, fieldLabel: string) => (
+    <VisibleToMembers
+      field={field}
+      fieldLabel={fieldLabel}
+      checked={form.data.field_visibility[field]}
+      disabled={form.processing || userEmailNotVerified}
+      onChange={(checked) => form.setData('field_visibility', { ...form.data.field_visibility, [field]: checked })}
+    />
+  );
 
   const [checkingUsernameAvailability, setCheckingUsernameAvailability] = useState(false);
   const usernameToCheck = useDebounce(form.data.username, 200);
@@ -275,6 +318,7 @@ export default function UpdateProfileInformationForm(props: Props) {
           disabled={form.processing || userEmailNotVerified}
           maxLength={MAX_LENGTH_USER_BIO}
         />
+        {visibilityToggle('bio', 'Bio')}
         <InputError className="mt-2" message={form.errors.bio} />
       </div>
 
@@ -291,6 +335,7 @@ export default function UpdateProfileInformationForm(props: Props) {
           disabled={form.processing || userEmailNotVerified}
           maxLength={MAX_LENGTH_USER_LOCATION}
         />
+        {visibilityToggle('location', 'Location')}
         <InputError className="mt-2" message={form.errors.location} />
       </div>
 
@@ -308,6 +353,7 @@ export default function UpdateProfileInformationForm(props: Props) {
           maxLength={MAX_LENGTH_USER_PHONE}
           allowedCharacters={USER_PHONE_REGEX}
         />
+        {visibilityToggle('phone', 'Phone')}
         <InputError className="mt-2" message={form.errors.phone} />
       </div>
 
@@ -328,6 +374,7 @@ export default function UpdateProfileInformationForm(props: Props) {
                 onChange={(e) => form.setData(link as keyof typeof form.data, e.target.value)}
                 disabled={form.processing || userEmailNotVerified}
               />
+              {visibilityToggle(link, SOCIAL_MEDIA_LINK_NAMES[link as keyof typeof SOCIAL_MEDIA_LINK_NAMES])}
               <InputError className="mt-2" message={form.errors[link as keyof typeof form.errors]} />
             </div>
           );

@@ -8,7 +8,8 @@ use App\Models\UserProfile;
 use Illuminate\Http\Request;
 
 /**
- * What a member shows to the other members of a community: no email, no phone (#1177).
+ * What a member shows to the other members of a community (#1177): never the email; the other fields as the member
+ * chose (#1076, ADR 0020), the phone hidden by default.
  *
  * @mixin User
  */
@@ -26,9 +27,9 @@ class MemberProfileResource extends AbstractKnowiiJsonResource
         $links = [];
         if ($profile !== null) {
             foreach (Constants::SOCIAL_MEDIA_LINK_PROPERTIES as $property) {
-                $value = $profile->{$property};
-                if (is_string($value) && $value !== '') {
-                    $links[$property] = $value;
+                // The member chooses what the other members see (#1076, ADR 0020)
+                if ($profile->showsField($property)) {
+                    $links[$property] = (string) $profile->{$property};
                 }
             }
         }
@@ -37,8 +38,10 @@ class MemberProfileResource extends AbstractKnowiiJsonResource
             'cuid' => $this->cuid,
             'name' => $this->name,
             'username' => $this->username,
-            'bio' => $profile->bio ?? '',
-            'location' => $profile->location ?? '',
+            'bio' => $profile?->showsField('bio') ? (string) $profile->bio : '',
+            'location' => $profile?->showsField('location') ? (string) $profile->location : '',
+            // Hidden unless the member shows it
+            'phone' => $profile?->showsField('phone') ? (string) $profile->phone : '',
             'social_links' => (object) $links,
             'member_since' => $this->created_at,
         ];
