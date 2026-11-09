@@ -19,7 +19,7 @@ User ──< CommunityMember >── Community ──< SpaceGroup ──< Space
  └── Reactions, Mentions, Uploads (polymorphic: they point to a post, comment, message or page)
 ```
 
-State on 2026-11-09: users, profiles, communities, members, invitations and resource collections exist. Space groups, spaces and the content in them are built for the MVP (milestones M1 to M4, see the GitHub milestones). This diagram shows the target of the MVP. Each feature updates it when it ships.
+State on 2026-11-09: users, profiles, communities, members, invitations, resource collections, space groups and spaces exist ([ADR 0012](../adr/0012-space-groups-and-typed-spaces.md)). The content of the spaces (posts, chat messages, pages, conversations) is built for the MVP (milestones M1 to M4, see the GitHub milestones). This diagram shows the target of the MVP. Each feature updates this paragraph when it ships.
 
 ### Concepts
 
@@ -62,6 +62,7 @@ Real time uses Reverb ([ADR 0009](../adr/0009-real-time-through-reverb.md)):
 1. Private channels carry data events. A channel exists per community and per space or conversation, and its authorization equals the read permission of that data.
 2. Presence channels show who is online and carry typing indicators (client events, never stored).
 3. Event payloads use the same API resources as the REST API, so the client handles one shape.
+4. When the payload would depend on the permissions of each member (the space tree), the event only names what changed (`community.space_tree.changed`) and the pages reload the data from the server.
 
 ## Security
 

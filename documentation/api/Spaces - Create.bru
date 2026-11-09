@@ -1,0 +1,32 @@
+meta {
+  name: Spaces - Create
+  type: http
+  seq: 26
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "space_group_cuid": "q8kspacegroupstarthere01",
+    "name": "Guides",
+    "description": "How-to guides",
+    "emoji": "📚",
+    "type": "pages",
+    "visibility": "members",
+    "posting_policy": "moderators"
+  }
+}
+
+docs {
+  Creates a space at the end of a space group. type: discussion, chat, pages or course (cannot change later). visibility: public or members. posting_policy: members or moderators.
+}

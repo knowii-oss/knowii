@@ -9,6 +9,7 @@ export * from './Collapsible';
 export * from './Dialog';
 export * from './Divider';
 export * from './Drawer';
+export * from './EmptyState';
 export * from './DropdownMenu';
 export * from './PasswordInput';
 export * from './SegmentedControl';

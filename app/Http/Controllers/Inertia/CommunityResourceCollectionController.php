@@ -39,6 +39,8 @@ class CommunityResourceCollectionController extends Controller
 
             // WARNING: The props passed here must remain aligned with the props defined in community.schema.ts
             'permissions' => [
+                'canManageCommunity' => Gate::check('manage', $community),
+                'canManageSpaces' => Gate::check('manageSpaces', $community),
                 'canUpdateCommunity' => Gate::check('update', $community),
                 'canDeleteCommunity' => Gate::check('delete', $community),
 

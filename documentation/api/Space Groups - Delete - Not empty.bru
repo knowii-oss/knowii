@@ -1,0 +1,19 @@
+meta {
+  name: Space Groups - Delete - Not empty
+  type: http
+  seq: 25
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/space-groups/q8kspacegroupstarthere01
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Returns 422 (business issue): only an empty space group can be deleted. Move or delete its spaces first.
+}

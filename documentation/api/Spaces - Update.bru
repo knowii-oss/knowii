@@ -1,0 +1,27 @@
+meta {
+  name: Spaces - Update
+  type: http
+  seq: 29
+}
+
+patch {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/q8kspacewelcome000000001
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "description": "Start here: how the community works",
+    "visibility": "public"
+  }
+}
+
+docs {
+  Partial update. Fields: name, description, emoji, visibility, posting_policy, space_group_cuid (moves the space to the end of that group). The type and the slug never change.
+}

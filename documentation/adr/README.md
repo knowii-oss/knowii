@@ -36,3 +36,4 @@ Do not write an ADR for a bug fix, a refactor that keeps the structure, or a fea
 | [0009](0009-real-time-through-reverb.md)       | Real time through Reverb                                                | Accepted |
 | [0010](0010-own-accounts-optional-oidc.md)     | Own accounts, the Knowii account as an optional OpenID Connect provider | Accepted |
 | [0011](0011-rest-api-design-guide.md)          | The REST API follows the NBB REST API Design Guide                      | Accepted |
+| [0012](0012-space-groups-and-typed-spaces.md)  | Space groups and typed spaces structure a community                     | Accepted |

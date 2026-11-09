@@ -6,7 +6,7 @@ The front-end is a React 19 application rendered through Inertia.js 3. Laravel d
 
 1. A page is a component in `apps/knowii/src/Pages/<Area>/<Name>.tsx`, rendered by an Inertia controller (`app/Http/Controllers/Inertia`) or by `Route::inertia(...)` in `routes/web.php` for static pages.
 2. The controller passes the initial data as props. The props interface of the page and the array in the controller must stay aligned (both carry a `WARNING` comment).
-3. Every page renders inside `<AppLayout>`, which gives the header, the breadcrumb, the page actions and the footer.
+3. Every page renders inside `<AppLayout>`, which gives the header, the breadcrumb, the page actions and the footer. Community pages also render `<CommunityShell>` (`Components/Spaces`): the space navigation in a sidebar on desktop and in a drawer on mobile, reloaded when the space tree changes.
 4. Further data and every change go through the Knowii API client, never through Inertia form posts. The API stays complete.
 5. Links use Inertia `<Link>`. A link that changes the URL without a reload sets `preserveState={true}`.
 
@@ -41,11 +41,11 @@ The policy has no `'unsafe-inline'` for scripts or styles ([ADR 0007](../adr/000
 
 1. Zod schemas in `libs/common/src/lib/types` describe the entities (`community.schema.ts`) and in `libs/common/src/lib/api` the requests and responses (`create-space-request.schema.ts`).
 2. Forms use react-hook-form with the Zod resolver. The limits come from `libs/common/src/lib/constants.ts`, aligned with `App\Constants`.
-3. The Knowii API client (`libs/common/src/lib/api/knowii-api-client.ts`) is the only place that calls `fetch` for the API. API paths are constants in `constants.ts`. Each method parses the response with Zod and returns a typed result, also on failure.
+3. The Knowii API client (`libs/common/src/lib/api/knowii-api-client.ts`) is the only place that calls `fetch` for the API. API paths are constants in `constants.ts`. New methods use `apiRequest()` (`api-result.ts`): it parses `data` with a Zod schema and returns an `ApiResult` (`ok`, `data` or `message` and field `errors`), never throws.
 
 ## Real time
 
-`useSocket` (`libs/common/src/lib/hooks/use-socket.ts`) wraps Laravel Echo. A page names a channel and the events it wants, and gets typed payloads. The event names match `broadcastAs()` on the back-end. Pages merge incoming events into their state (by `cuid`, so a duplicate is ignored) without losing what the member is typing.
+`useSocket` (`libs/common/src/lib/hooks/use-socket.ts`) wraps Laravel Echo. A page names a channel and the events it wants, and gets typed payloads. The event names match `broadcastAs()` on the back-end. Each hook removes only its own listeners when it unmounts, and the channel is left when its last user unmounts, so several components can listen on the same channel. Pages merge incoming events into their state (by `cuid`, so a duplicate is ignored) without losing what the member is typing.
 
 ## Tests
 

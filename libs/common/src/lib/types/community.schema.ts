@@ -45,6 +45,7 @@ export type Community = z.infer<typeof communitySchema>;
 export interface CommunityPermissions {
   // WARNING: The props defined here must remain aligned with the props defined in CommunityController.php
   canManageCommunity: boolean;
+  canManageSpaces: boolean;
   canUpdateCommunity: boolean;
   canDeleteCommunity: boolean;
 

@@ -8,6 +8,7 @@ export * from './constants';
 export * from './api/knowii-api-client';
 export * from './api/waitlist/join-waitlist-request.schema';
 export * from './api/waitlist/join-waitlist-response.schema';
+export * from './api/api-result';
 
 export * from './contexts/app-context';
 
@@ -25,6 +26,7 @@ export * from './types/jetstream/jetstream-inertia.intf';
 export * from './types/resource.schema';
 export * from './types/resource-text-article.schema';
 export * from './types/social-media-link.schema';
+export * from './types/space.schema';
 export * from './types/toast.intf';
 export * from './types/url.schema';
 export * from './types/user.schema';

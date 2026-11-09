@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Inertia;
 use App\Http\Resources\CommunityResource;
 use App\Http\Resources\CommunityResourceCollectionResource;
 use App\Http\Resources\CommunityResourceResource;
+use App\Http\Resources\SpaceGroupResource;
 use App\Models\Community;
+use App\Support\SpaceTree;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Routing\Controller;
@@ -45,6 +47,7 @@ class CommunityController extends Controller
 
             'resourceCollections' => CommunityResourceCollectionResource::collection($communityResourceCollections), // FIXME handle passing serializeLargeFields
             'recentResources' => CommunityResourceResource::collection($recentResources), // // FIXME handle passing serializeLargeFields
+            'spaceGroups' => SpaceGroupResource::collection(SpaceTree::for($community, $request->user())),
 
             'permissions' => $this->getCommunityPermissions($community),
         ]);
@@ -67,6 +70,7 @@ class CommunityController extends Controller
         return Jetstream::inertia()->render($request, 'Communities/Settings', [
             // WARNING: The props passed here must remain aligned with the props expected by the page
             'community' => new CommunityResource($community, true),
+            'spaceGroups' => SpaceGroupResource::collection(SpaceTree::for($community, $request->user())),
 
             'permissions' => $this->getCommunityPermissions($community),
         ]);
@@ -83,6 +87,7 @@ class CommunityController extends Controller
         // WARNING: The props passed here must remain aligned with the props defined in community.schema.ts
         return [
             'canManageCommunity' => Gate::check('manage', $community),
+            'canManageSpaces' => Gate::check('manageSpaces', $community),
             'canUpdateCommunity' => Gate::check('update', $community),
             'canDeleteCommunity' => Gate::check('delete', $community),
 

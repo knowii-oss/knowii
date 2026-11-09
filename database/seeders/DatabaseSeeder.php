@@ -33,5 +33,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Cool links',
             'description' => 'A collection of cool links',
         ]);
+
+        $this->call(SpaceSeeder::class);
     }
 }

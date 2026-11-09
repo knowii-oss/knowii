@@ -43,6 +43,9 @@ export const USER_PROFILE_PASSWORD_UPDATE_URL = 'user-password.update';
 export const COMMUNITY_URL = 'communities.show';
 export const COMMUNITY_SETTINGS_URL = 'communities.settings';
 
+// Spaces
+export const SPACE_URL = 'spaces.show';
+
 // Resource collections
 export const RESOURCE_COLLECTION_URL = 'resource-collections.show';
 
@@ -88,6 +91,14 @@ export const MAX_LENGTH_COMMUNITY_NAME = 64;
 export const MAX_LENGTH_COMMUNITY_DESCRIPTION = 255;
 export const ALLOWED_COMMUNITY_NAME_CHARACTERS_REGEX = /^[a-zA-Z0-9-@' ]+$/;
 
+// Space groups and spaces. WARNING: aligned with Constants.php
+export const MIN_LENGTH_SPACE_GROUP_NAME = 2;
+export const MAX_LENGTH_SPACE_GROUP_NAME = 64;
+export const MIN_LENGTH_SPACE_NAME = 2;
+export const MAX_LENGTH_SPACE_NAME = 64;
+export const MAX_LENGTH_SPACE_DESCRIPTION = 255;
+export const MAX_LENGTH_SPACE_EMOJI = 16;
+
 // Community resource collection
 export const MIN_LENGTH_COMMUNITY_RESOURCE_COLLECTION_NAME = 3;
 export const MAX_LENGTH_COMMUNITY_RESOURCE_COLLECTION_NAME = 64;
@@ -131,3 +142,14 @@ export const COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH_PARAM_COMMUNITY = CO
 export const COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH_PARAM_RESOURCE_COLLECTION =
   COMMUNITY_RESOURCE_COLLECTION_API_PATH_PARAM_RESOURCE_COLLECTION;
 export const COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH = `${COMMUNITY_RESOURCE_COLLECTION_API_PATH}/text-articles`;
+
+// Space groups and spaces (#1173). WARNING: aligned with ApiRoutes.php
+export const SPACE_API_PARAM_COMMUNITY = COMMUNITY_API_PATH_PARAM_COMMUNITY;
+export const SPACE_API_PARAM_SPACE_GROUP = '{spaceGroupCuid}';
+export const SPACE_API_PARAM_SPACE = '{spaceCuid}';
+export const COMMUNITY_SPACE_GROUPS_API_PATH = `${COMMUNITY_API_PATH}/space-groups`;
+export const COMMUNITY_SPACE_GROUPS_REORDER_API_PATH = `${COMMUNITY_SPACE_GROUPS_API_PATH}/reorder`;
+export const COMMUNITY_SPACE_GROUP_API_PATH = `${COMMUNITY_SPACE_GROUPS_API_PATH}/${SPACE_API_PARAM_SPACE_GROUP}`;
+export const COMMUNITY_SPACE_GROUP_SPACES_REORDER_API_PATH = `${COMMUNITY_SPACE_GROUP_API_PATH}/spaces/reorder`;
+export const COMMUNITY_SPACES_API_PATH = `${COMMUNITY_API_PATH}/spaces`;
+export const COMMUNITY_SPACE_API_PATH = `${COMMUNITY_SPACES_API_PATH}/${SPACE_API_PARAM_SPACE}`;

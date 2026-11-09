@@ -30,6 +30,8 @@ use Illuminate\Support\Collection;
  * @property Carbon $updated_at
  * @property-read Collection<int, CommunityResourceCollection> $communityResourceCollections
  * @property-read Collection<int, User> $users
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, SpaceGroup> $spaceGroups
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Space> $spaces
  * @property int $owner_id
  * @property-read \Illuminate\Database\Eloquent\Collection<int, CommunityInvitation> $communityInvitations
  * @property-read int|null $community_invitations_count
@@ -181,7 +183,27 @@ class Community extends Model
     }
 
     /**
-     * Get all of the pending user invitations for the community.
+     * Get the space groups of the community, in navigation order.
+     *
+     * @return HasMany<SpaceGroup, covariant $this>
+     */
+    final public function spaceGroups(): HasMany
+    {
+        return $this->hasMany(SpaceGroup::class)->orderBy('position')->orderBy('id');
+    }
+
+    /**
+     * Get all the spaces of the community.
+     *
+     * @return HasMany<Space, covariant $this>
+     */
+    final public function spaces(): HasMany
+    {
+        return $this->hasMany(Space::class);
+    }
+
+    /**
+     * Get the resource collections of the community.
      *
      * @return HasMany<CommunityResourceCollection, covariant $this>
      */

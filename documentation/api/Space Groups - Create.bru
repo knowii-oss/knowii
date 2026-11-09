@@ -1,0 +1,26 @@
+meta {
+  name: Space Groups - Create
+  type: http
+  seq: 22
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/space-groups
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Events"
+  }
+}
+
+docs {
+  Creates a space group at the end of the navigation. Owner and admins only (403 otherwise).
+}
