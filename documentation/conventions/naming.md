@@ -46,10 +46,11 @@ Names are in English. One concept has one name everywhere: in the database, the 
 
 ## API
 
-1. Paths are plural nouns in kebab-case, nested under the community: `/api/v1/communities/{community}/space-groups/{spaceGroup}`.
+1. Paths are plural nouns in kebab-case ([ADR 0011](../adr/0011-rest-api-design-guide.md)), nested under the community: `/api/v1/communities/{community}/space-groups/{spaceGroup}`.
 2. Path parameters are cuid values. Slugs are for the page URLs only.
 3. Methods: `GET` reads, `POST` creates or runs a command, `PATCH` updates, `DELETE` deletes. A command that is not a CRUD operation is a sub-resource: `POST .../spaces/reorder`.
-4. JSON fields are camelCase in requests and responses (`spaceGroupCuid`, `createdAt`).
+4. JSON fields are snake_case in requests and responses (`space_group_cuid`, `created_at`). Query parameters are camelCase (`sort=-createdAt`).
+5. The API follows the NBB REST API Design Guide, with the deviations listed in [ADR 0011](../adr/0011-rest-api-design-guide.md): pagination with `limit` and `offset`, sorting with `sort`, the status codes of the guide.
 
 ## Web routes
 

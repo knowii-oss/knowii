@@ -66,8 +66,7 @@ The global exception handlers are located in `bootstrap/app.php`. They must tran
 
 ### Design
 
-The API loosely takes inspiration from the following design guide: https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki
-Notably, the way errors are returned is different/simpler, and the root-level response structure is different.
+The API follows the [REST API Design Guide](https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki) of the National Bank of Belgium. [ADR 0011](../adr/0011-rest-api-design-guide.md) lists the rules we apply most (naming, methods, status codes, pagination, sorting, filtering) and our deviations (the response envelope below, snake_case JSON fields, cursor pagination for real-time feeds). Read both before you add an endpoint.
 
 The response data structure looks like this:
 

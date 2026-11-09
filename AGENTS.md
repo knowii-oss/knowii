@@ -26,7 +26,8 @@ In the same pull request as the code:
   the index) for a structural decision (see `documentation/adr/README.md`).
 - Update the architecture documents when the domain model, a flow or a runtime
   process changes.
-- For each new or changed API endpoint: Pest tests, a Bruno request in
+- For each new or changed API endpoint: follow the NBB REST API Design Guide
+  (ADR 0011: naming, methods, status codes, pagination, errors), Pest tests, a Bruno request in
   `documentation/api` (see its `README.md`), and a check that the generated
   OpenAPI document (`/docs/api`, Scramble) describes it correctly.
 - New configuration values go to `SELF_HOSTING.md` and `.env.example`.
