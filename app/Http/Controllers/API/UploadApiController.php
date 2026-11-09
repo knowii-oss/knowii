@@ -4,7 +4,6 @@ namespace App\Http\Controllers\API;
 
 use App\Contracts\Uploads\UploadsImages;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\UploadResource;
 use App\Models\Community;
 use App\Traits\ApiResponses;
 use Dedoc\Scramble\Attributes\BodyParameter;
@@ -33,6 +32,6 @@ class UploadApiController extends Controller
             'alt' => $request->input('alt'),
         ]);
 
-        return self::created(new UploadResource($upload), 'Image uploaded');
+        return self::created($upload->toResource(), 'Image uploaded');
     }
 }

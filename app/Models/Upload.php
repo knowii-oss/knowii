@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Http\Resources\UploadResource;
 use App\Traits\GeneratesCuid;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Attributes\UseResource;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
@@ -40,9 +42,11 @@ use Illuminate\Support\Facades\Storage;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Upload whereSizeBytes($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Upload whereUserId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Upload whereWidth($value)
+ * @method TResource toResource<TResource of \Illuminate\Http\Resources\Json\JsonResource = \App\Http\Resources\UploadResource>(class-string<TResource>|null $resourceClass = null)
  *
  * @mixin \Eloquent
  */
+#[UseResource(UploadResource::class)]
 class Upload extends Model
 {
     use GeneratesCuid;

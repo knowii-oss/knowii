@@ -6,7 +6,6 @@ use App\Contracts\Comments\CreatesComments;
 use App\Contracts\Comments\DeletesComments;
 use App\Contracts\Comments\UpdatesComments;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\CommentResource;
 use App\Models\Comment;
 use App\Models\Community;
 use App\Models\Post;
@@ -36,7 +35,7 @@ class CommentApiController extends Controller
 
         $comments = CommentThread::for($post);
 
-        return self::success('Comments', ['totalCount' => $post->comments()->count()], CommentResource::collection($comments));
+        return self::success('Comments', ['totalCount' => $post->comments()->count()], $comments->toResourceCollection());
     }
 
     /**
@@ -50,7 +49,7 @@ class CommentApiController extends Controller
     {
         $comment = app(CreatesComments::class)->create($request->user() ?? throw new AuthenticationException, $post, $request->only(['body', 'parent_cuid']));
 
-        return self::created(new CommentResource($comment->load(['author', 'parent', 'reactions'])), 'Comment published');
+        return self::created($comment->load(['author', 'parent', 'reactions'])->toResource(), 'Comment published');
     }
 
     /**
@@ -63,7 +62,7 @@ class CommentApiController extends Controller
     {
         $comment = app(UpdatesComments::class)->update($request->user() ?? throw new AuthenticationException, $comment, $request->only(['body']));
 
-        return self::success('Comment updated', null, new CommentResource($comment->load(['author', 'parent', 'reactions'])));
+        return self::success('Comment updated', null, $comment->load(['author', 'parent', 'reactions'])->toResource());
     }
 
     /**

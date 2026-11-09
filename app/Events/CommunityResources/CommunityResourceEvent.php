@@ -4,7 +4,6 @@ namespace App\Events\CommunityResources;
 
 use App\Constants;
 use App\Enums\KnowiiCommunityVisibility;
-use App\Http\Resources\CommunityResourceResource;
 use App\Models\CommunityResource;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
@@ -53,7 +52,7 @@ abstract class CommunityResourceEvent implements ShouldBroadcast, ShouldDispatch
             'collection',
         ]);
 
-        return (new CommunityResourceResource($this->communityResource, false))->toArray(request());
+        return $this->communityResource->toResource()->toArray(request());
     }
 
     /**

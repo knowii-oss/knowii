@@ -4,7 +4,6 @@ namespace App\Events\Communities;
 
 use App\Constants;
 use App\Enums\KnowiiCommunityVisibility;
-use App\Http\Resources\CommunityResource;
 use App\Models\Community;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
@@ -40,7 +39,7 @@ abstract class CommunityEvent implements ShouldBroadcast, ShouldDispatchAfterCom
      */
     public function broadcastWith(): array
     {
-        return (new CommunityResource($this->community))->toArray(request());
+        return $this->community->toResource()->toArray(request());
     }
 
     /**

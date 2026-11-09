@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Http\Resources\SpaceGroupResource;
 use App\Traits\GeneratesCuid;
 use Carbon\Carbon;
 use Database\Factories\SpaceGroupFactory;
+use Illuminate\Database\Eloquent\Attributes\UseResource;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -36,9 +38,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SpaceGroup whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SpaceGroup wherePosition($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SpaceGroup whereUpdatedAt($value)
+ * @method TResource toResource<TResource of \Illuminate\Http\Resources\Json\JsonResource = \App\Http\Resources\SpaceGroupResource>(class-string<TResource>|null $resourceClass = null)
  *
  * @mixin \Eloquent
  */
+#[UseResource(SpaceGroupResource::class)]
 class SpaceGroup extends Model
 {
     use GeneratesCuid;

@@ -23,26 +23,26 @@ Names are in English. One concept has one name everywhere: in the database, the 
 
 ## PHP
 
-| Element             | Convention                                         | Example                                                |
-| ------------------- | -------------------------------------------------- | ------------------------------------------------------ |
-| Model               | Singular, PascalCase                               | `Space`, `SpaceGroup`, `ChatMessage`                   |
-| Table               | Plural, snake_case                                 | `spaces`, `space_groups`, `chat_messages`              |
-| Pivot or link table | Both names, singular first, snake_case             | `community_members`, `conversation_participants`       |
-| Foreign key         | `<singular>_id`                                    | `space_group_id`, `author_id` (role name allowed)      |
-| Order column        | `position` (integer, 0-based, gaps allowed)        | `spaces.position`                                      |
-| Public identifier   | `cuid` (string, unique)                            | every table                                            |
-| URL slug            | `slug`, unique in its parent                       | `spaces.slug` unique per community                     |
-| Enum                | `Knowii<Concept>` in `app/Enums`, string-backed    | `KnowiiSpaceType`                                      |
-| Action              | Verb + noun, in `app/Actions/<Domain>/`            | `CreateSpace`, `ReorderSpaces`                         |
-| Contract            | Third-person verb + plural noun, `app/Contracts/`  | `CreatesSpaces`, `ReordersSpaces`                      |
-| API controller      | `<Model>ApiController` in `Http/Controllers/API`   | `SpaceApiController`                                   |
-| Inertia controller  | `<Model>Controller` in `Http/Controllers/Inertia`  | `SpaceController`                                      |
-| API resource        | `<Model>Resource` in `app/Http/Resources`          | `SpaceResource`                                        |
-| Policy              | `<Model>Policy`; abilities in camelCase            | `SpacePolicy::update`, `CommunityPolicy::manageSpaces` |
-| Event               | `<Model><PastTenseVerb>` in `app/Events/<Models>/` | `SpaceCreated`                                         |
-| Constant            | `UPPER_SNAKE_CASE` in `App\Constants`              | `MAX_LENGTH_SPACE_NAME`                                |
-| API route constant  | `UPPER_SNAKE_CASE` in `App\ApiRoutes`              | `COMMUNITY_SPACES`                                     |
-| Test file           | `<Subject>Test.php`                                | `CreateSpaceTest.php`, `SpaceApiControllerTest.php`    |
+| Element             | Convention                                                                             | Example                                                |
+| ------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| Model               | Singular, PascalCase                                                                   | `Space`, `SpaceGroup`, `ChatMessage`                   |
+| Table               | Plural, snake_case                                                                     | `spaces`, `space_groups`, `chat_messages`              |
+| Pivot or link table | Both names, singular first, snake_case                                                 | `community_members`, `conversation_participants`       |
+| Foreign key         | `<singular>_id`                                                                        | `space_group_id`, `author_id` (role name allowed)      |
+| Order column        | `position` (integer, 0-based, gaps allowed)                                            | `spaces.position`                                      |
+| Public identifier   | `cuid` (string, unique)                                                                | every table                                            |
+| URL slug            | `slug`, unique in its parent                                                           | `spaces.slug` unique per community                     |
+| Enum                | `Knowii<Concept>` in `app/Enums`, string-backed                                        | `KnowiiSpaceType`                                      |
+| Action              | Verb + noun, in `app/Actions/<Domain>/`                                                | `CreateSpace`, `ReorderSpaces`                         |
+| Contract            | Third-person verb + plural noun, `app/Contracts/`                                      | `CreatesSpaces`, `ReordersSpaces`                      |
+| API controller      | `<Model>ApiController` in `Http/Controllers/API`                                       | `SpaceApiController`                                   |
+| Inertia controller  | `<Model>Controller` in `Http/Controllers/Inertia`                                      | `SpaceController`                                      |
+| API resource        | `<Model>Resource` in `app/Http/Resources`, declared on the model with `#[UseResource]` | `SpaceResource`                                        |
+| Policy              | `<Model>Policy`; abilities in camelCase                                                | `SpacePolicy::update`, `CommunityPolicy::manageSpaces` |
+| Event               | `<Model><PastTenseVerb>` in `app/Events/<Models>/`                                     | `SpaceCreated`                                         |
+| Constant            | `UPPER_SNAKE_CASE` in `App\Constants`                                                  | `MAX_LENGTH_SPACE_NAME`                                |
+| API route constant  | `UPPER_SNAKE_CASE` in `App\ApiRoutes`                                                  | `COMMUNITY_SPACES`                                     |
+| Test file           | `<Subject>Test.php`                                                                    | `CreateSpaceTest.php`, `SpaceApiControllerTest.php`    |
 
 ## API
 

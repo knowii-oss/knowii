@@ -9,7 +9,7 @@ These rules keep the code structurally sound as it grows. Each rule has a reason
 3. **Permissions live in policies and are checked in the actions.** Controllers do not decide permissions. The UI only hides controls. WebSocket channels check the same rules as the data they carry.
 4. **The API is complete.** The UI changes data only through the REST API. Anything a member does in the UI, an API client can do.
 5. **Public identifiers are cuid2.** APIs, channels and events expose `cuid`, never `id`. Page URLs use slugs. Models hide `id` and foreign keys in serialization.
-6. **One serialization per model.** The API, the Inertia props and the broadcast events use the same API resource class (`app/Http/Resources`).
+6. **One serialization per model.** The API, the Inertia props and the broadcast events use the same API resource class (`app/Http/Resources`). The model declares it with `#[UseResource]`, and code calls `$model->toResource()` and `$collection->toResourceCollection()`, never `new XxxResource(...)` (`tests/Feature/ApiResourceArchitectureTest.php` checks it). An alternate view names its class: `$user->toResource(AuthorResource::class)`. Large fields (Markdown sources, article bodies) need `->withLargeFields()`.
 7. **Member content is Markdown, rendered on the server with HTML escaped** (`App\Support\Markdown`, [ADR 0013](../adr/0013-markdown-rendered-on-the-server.md)). No raw HTML from members reaches a page. `<MarkdownContent>` is the only place that sets inner HTML.
 8. **Real time goes through Reverb.** No polling. Payloads stay small: send the changed item, not lists.
 9. **No inline styles and no scheme-wide CSP sources.** Every new external origin is a configuration value ([ADR 0007](../adr/0007-strict-content-security-policy.md)).

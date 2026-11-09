@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use App\Constants;
+use App\Http\Resources\UserProfileResource;
 use App\Traits\GeneratesCuid;
 use Carbon\Carbon;
 use Database\Factories\UserProfileFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Attributes\UseResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\DatabaseNotification;
@@ -105,9 +107,11 @@ use Laravel\Jetstream\HasProfilePhoto;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkKofi($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkOrcid($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereSocialLinkWikipedia($value)
+ * @method TResource toResource<TResource of \Illuminate\Http\Resources\Json\JsonResource = \App\Http\Resources\UserProfileResource>(class-string<TResource>|null $resourceClass = null)
  *
  * @mixin \Eloquent
  */
+#[UseResource(UserProfileResource::class)]
 class UserProfile extends Authenticatable implements MustVerifyEmail
 {
     // Automatically generate cuid2 for the model

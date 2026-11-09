@@ -2,10 +2,6 @@
 
 namespace App\Http\Controllers\Inertia;
 
-use App\Http\Resources\CommunityResource;
-use App\Http\Resources\CommunityResourceCollectionResource;
-use App\Http\Resources\CommunityResourceResource;
-use App\Http\Resources\SpaceGroupResource;
 use App\Models\Community;
 use App\Support\SpaceTree;
 use Illuminate\Http\Request;
@@ -43,11 +39,11 @@ class CommunityController extends Controller
         // WARNING: The props passed here must remain aligned with the props expected by the page
         return Jetstream::inertia()->render($request, 'Communities/Show', [
             // WARNING: The props passed here must remain aligned with the props expected by the page
-            'community' => new CommunityResource($community, true),
+            'community' => $community->toResource()->withLargeFields(),
 
-            'resourceCollections' => CommunityResourceCollectionResource::collection($communityResourceCollections), // FIXME handle passing serializeLargeFields
-            'recentResources' => CommunityResourceResource::collection($recentResources), // // FIXME handle passing serializeLargeFields
-            'spaceGroups' => SpaceGroupResource::collection(SpaceTree::for($community, $request->user())),
+            'resourceCollections' => $communityResourceCollections->toResourceCollection(),
+            'recentResources' => $recentResources->toResourceCollection(),
+            'spaceGroups' => SpaceTree::for($community, $request->user())->toResourceCollection(),
 
             'permissions' => $this->getCommunityPermissions($community),
         ]);
@@ -69,8 +65,8 @@ class CommunityController extends Controller
         // WARNING: The props passed here must remain aligned with the props expected by the page
         return Jetstream::inertia()->render($request, 'Communities/Settings', [
             // WARNING: The props passed here must remain aligned with the props expected by the page
-            'community' => new CommunityResource($community, true),
-            'spaceGroups' => SpaceGroupResource::collection(SpaceTree::for($community, $request->user())),
+            'community' => $community->toResource()->withLargeFields(),
+            'spaceGroups' => SpaceTree::for($community, $request->user())->toResourceCollection(),
 
             'permissions' => $this->getCommunityPermissions($community),
         ]);

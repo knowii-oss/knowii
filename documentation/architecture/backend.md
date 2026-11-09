@@ -19,6 +19,11 @@ Each model has a class docblock that lists its columns, its relations and its qu
 3. Mark `id`, `cuid`, relations, `*_count` attributes and accessors with `@property-read`. Only the other columns are `@property`.
 4. Give a JSON column its real shape (`list<string> $keywords`), not `array`.
 5. When a relation or a cast changes, change its tag by hand: ide-helper does not change a tag that exists.
+6. A model with an API resource has a `@method` tag that types `toResource()`, so PHPStan knows the resource class (Larastan does not read `#[UseResource]`):
+
+   ```php
+   * @method TResource toResource<TResource of \Illuminate\Http\Resources\Json\JsonResource = \App\Http\Resources\PostResource>(class-string<TResource>|null $resourceClass = null)
+   ```
 
 ### Administration
 
@@ -116,6 +121,7 @@ Status codes follow the API design guide:
 - API Controllers should have accurate PHP types and docblocks (the OpenAPI documentation is generated from them). Validation lives in the actions, so Scramble cannot infer the request body: declare each body field with `#[BodyParameter(...)]` on the controller method (see `SpaceApiController`)
 - They should NOT validate the input (not their responsibility)
 - They should delegate operations to a dedicated action classes (e.g., CreateCommunity)
+- They return API resources from the model: `$post->toResource()->withLargeFields()` for one item, `$posts->toResourceCollection()` for a list. Each model declares its resource with `#[UseResource(PostResource::class)]` (rules, Architecture 6). Inside a resource, serialize a relation with `whenLoaded()` and a callback, so a relation that is not loaded leaves the field out: `'author' => $this->whenLoaded('author', fn (User $author) => $author->toResource(AuthorResource::class))`
 - They should not catch exceptions returned by the action classes (that handle validation). Those are handled by the global exception handler (without leaking sensitive information)
 - They should leverage the ApiResponses trait to return consistent responses
 
@@ -219,7 +225,7 @@ Example `broadcastWith` implementation:
   */
   final public function broadcastWith(): array
   {
-  return (new CommunityResource($this->community))->toArray(request());
+  return $this->community->toResource()->toArray(request());
   }
 ```
 

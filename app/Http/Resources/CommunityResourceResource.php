@@ -3,6 +3,10 @@
 namespace App\Http\Resources;
 
 use App\Models\CommunityResource;
+use App\Models\CommunityResourceCollection;
+use App\Models\Resource;
+use App\Models\ResourceTextArticle;
+use App\Models\UserProfile;
 use Illuminate\Http\Request;
 
 /** @mixin CommunityResource **/
@@ -20,10 +24,10 @@ class CommunityResourceResource extends AbstractKnowiiJsonResource
             'name' => $this->name,
             'description' => $this->description,
             'slug' => $this->slug,
-            'resource' => $this->whenLoaded('resource') ? new ResourceResource($this->whenLoaded('resource'), $this->serializeLargeFields) : null,
-            'resource_text_article' => $this->whenLoaded('textArticle') ? new ResourceTextArticleResource($this->whenLoaded('textArticle'), $this->serializeLargeFields) : null,
-            'curator' => $this->whenLoaded('curator') ? new UserProfileResource($this->whenLoaded('curator'), $this->serializeLargeFields) : null,
-            'collection' => $this->whenLoaded('collection') ? new CommunityResourceCollectionResource($this->whenLoaded('collection'), $this->serializeLargeFields) : null,
+            'resource' => $this->whenLoaded('resource', fn (Resource $resource) => $resource->toResource()->withLargeFields($this->serializeLargeFields)),
+            'resource_text_article' => $this->whenLoaded('textArticle', fn (ResourceTextArticle $textArticle) => $textArticle->toResource()->withLargeFields($this->serializeLargeFields)),
+            'curator' => $this->whenLoaded('curator', fn (UserProfile $curator) => $curator->toResource()->withLargeFields($this->serializeLargeFields)),
+            'collection' => $this->whenLoaded('collection', fn (CommunityResourceCollection $collection) => $collection->toResource()->withLargeFields($this->serializeLargeFields)),
             'is_featured' => $this->is_featured,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

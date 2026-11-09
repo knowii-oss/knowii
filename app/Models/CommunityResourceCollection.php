@@ -5,10 +5,12 @@ namespace App\Models;
 use App\Events\CommunityResourceCollections\CommunityResourceCollectionCreated;
 use App\Events\CommunityResourceCollections\CommunityResourceCollectionDeleted;
 use App\Events\CommunityResourceCollections\CommunityResourceCollectionUpdated;
+use App\Http\Resources\CommunityResourceCollectionResource;
 use App\Traits\GeneratesCuid;
 use Carbon\Carbon;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Database\Factories\CommunityResourceCollectionFactory;
+use Illuminate\Database\Eloquent\Attributes\UseResource;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -45,9 +47,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResourceCollection whereSlug($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResourceCollection whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResourceCollection withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array<mixed> $config, string $slug)
+ * @method TResource toResource<TResource of \Illuminate\Http\Resources\Json\JsonResource = \App\Http\Resources\CommunityResourceCollectionResource>(class-string<TResource>|null $resourceClass = null)
  *
  * @mixin \Eloquent
  */
+#[UseResource(CommunityResourceCollectionResource::class)]
 class CommunityResourceCollection extends Model
 {
     // Automatically generate cuid2 for the model

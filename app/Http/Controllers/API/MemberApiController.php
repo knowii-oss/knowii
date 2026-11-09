@@ -54,6 +54,6 @@ class MemberApiController extends Controller
             ->limit($limit)
             ->get();
 
-        return self::success('Members', null, AuthorResource::collection($members));
+        return self::success('Members', null, $members->toResourceCollection(AuthorResource::class));
     }
 }

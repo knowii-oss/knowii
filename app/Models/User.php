@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Http\Resources\UserResource;
 use App\Traits\GeneratesCuid;
 use App\Traits\HasCommunities;
 use Carbon\Carbon;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Attributes\UseResource;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -64,9 +66,11 @@ use TaylorNetwork\UsernameGenerator\GeneratesUsernames;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereTwoFactorSecret($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUsername($value)
+ * @method TResource toResource<TResource of \Illuminate\Http\Resources\Json\JsonResource = \App\Http\Resources\UserResource>(class-string<TResource>|null $resourceClass = null)
  *
  * @mixin \Eloquent
  */
+#[UseResource(UserResource::class)]
 class User extends Authenticatable implements MustVerifyEmail
 {
     use FindSimilarUsernames;

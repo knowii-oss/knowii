@@ -5,10 +5,12 @@ namespace App\Models;
 use App\Enums\KnowiiSpacePostingPolicy;
 use App\Enums\KnowiiSpaceType;
 use App\Enums\KnowiiSpaceVisibility;
+use App\Http\Resources\SpaceResource;
 use App\Traits\GeneratesCuid;
 use Carbon\Carbon;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Database\Factories\SpaceFactory;
+use Illuminate\Database\Eloquent\Attributes\UseResource;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -58,9 +60,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static Builder<static>|Space whereUpdatedAt($value)
  * @method static Builder<static>|Space whereVisibility($value)
  * @method static Builder<static>|Space withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array<mixed> $config, string $slug)
+ * @method TResource toResource<TResource of \Illuminate\Http\Resources\Json\JsonResource = \App\Http\Resources\SpaceResource>(class-string<TResource>|null $resourceClass = null)
  *
  * @mixin \Eloquent
  */
+#[UseResource(SpaceResource::class)]
 class Space extends Model
 {
     use GeneratesCuid;

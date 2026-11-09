@@ -5,9 +5,11 @@ namespace App\Models;
 use App\Events\Resources\TextArticles\ResourceTextArticleCreated;
 use App\Events\Resources\TextArticles\ResourceTextArticleDeleted;
 use App\Events\Resources\TextArticles\ResourceTextArticleUpdated;
+use App\Http\Resources\ResourceTextArticleResource;
 use App\Traits\GeneratesCuid;
 use Carbon\Carbon;
 use Database\Factories\ResourceTextArticleFactory;
+use Illuminate\Database\Eloquent\Attributes\UseResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -41,9 +43,11 @@ use Illuminate\Support\Collection;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ResourceTextArticle whereResourceId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ResourceTextArticle whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ResourceTextArticle whereWordCount($value)
+ * @method TResource toResource<TResource of \Illuminate\Http\Resources\Json\JsonResource = \App\Http\Resources\ResourceTextArticleResource>(class-string<TResource>|null $resourceClass = null)
  *
  * @mixin \Eloquent
  */
+#[UseResource(ResourceTextArticleResource::class)]
 class ResourceTextArticle extends Model
 {
     // Automatically generate cuid2 for the model

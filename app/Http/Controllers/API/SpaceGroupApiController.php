@@ -7,7 +7,6 @@ use App\Contracts\SpaceGroups\DeletesSpaceGroups;
 use App\Contracts\SpaceGroups\ReordersSpaceGroups;
 use App\Contracts\SpaceGroups\UpdatesSpaceGroups;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\SpaceGroupResource;
 use App\Models\Community;
 use App\Models\SpaceGroup;
 use App\Support\SpaceTree;
@@ -35,7 +34,7 @@ class SpaceGroupApiController extends Controller
 
         $groups = SpaceTree::for($community, $request->user());
 
-        return self::success('Space groups', null, SpaceGroupResource::collection($groups));
+        return self::success('Space groups', null, $groups->toResourceCollection());
     }
 
     /**
@@ -50,7 +49,7 @@ class SpaceGroupApiController extends Controller
 
         $spaceGroup = app(CreatesSpaceGroups::class)->create($request->user() ?? throw new AuthenticationException, $community, $input);
 
-        return self::created(new SpaceGroupResource($spaceGroup), 'Space group created successfully');
+        return self::created($spaceGroup->toResource(), 'Space group created successfully');
     }
 
     /**
@@ -65,7 +64,7 @@ class SpaceGroupApiController extends Controller
 
         $spaceGroup = app(UpdatesSpaceGroups::class)->update($request->user() ?? throw new AuthenticationException, $spaceGroup, $input);
 
-        return self::success('Space group updated successfully', null, new SpaceGroupResource($spaceGroup));
+        return self::success('Space group updated successfully', null, $spaceGroup->toResource());
     }
 
     /**
@@ -92,6 +91,6 @@ class SpaceGroupApiController extends Controller
 
         $groups = app(ReordersSpaceGroups::class)->reorder($request->user() ?? throw new AuthenticationException, $community, $input);
 
-        return self::success('Space groups reordered successfully', null, SpaceGroupResource::collection($groups));
+        return self::success('Space groups reordered successfully', null, $groups->toResourceCollection());
     }
 }

@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Http\Resources\CommentResource;
 use App\Traits\GeneratesCuid;
 use App\Traits\HasMentions;
 use App\Traits\HasReactions;
 use Carbon\Carbon;
 use Database\Factories\CommentFactory;
+use Illuminate\Database\Eloquent\Attributes\UseResource;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -53,9 +55,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Comment whereParentId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Comment wherePostId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Comment whereUpdatedAt($value)
+ * @method TResource toResource<TResource of \Illuminate\Http\Resources\Json\JsonResource = \App\Http\Resources\CommentResource>(class-string<TResource>|null $resourceClass = null)
  *
  * @mixin \Eloquent
  */
+#[UseResource(CommentResource::class)]
 class Comment extends Model
 {
     use GeneratesCuid;

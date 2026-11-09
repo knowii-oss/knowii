@@ -90,7 +90,7 @@ class ReactionApiController extends Controller
         foreach (KnowiiReactionKind::cases() as $kind) {
             $members = $reactions
                 ->filter(fn (Reaction $reaction) => $reaction->kind === $kind)
-                ->map(fn (Reaction $reaction) => (new AuthorResource($reaction->user))->toArray(request()))
+                ->map(fn (Reaction $reaction) => $reaction->user->toResource(AuthorResource::class)->toArray(request()))
                 ->values()
                 ->all();
 
