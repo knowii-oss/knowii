@@ -27,8 +27,8 @@ export function ResourceCard({ resource, href }: ResourceCardProps) {
       <Link href={href} preserveState={true} className="min-w-0 grow rounded">
         <h3 className="flex items-center gap-2 text-base font-bold">
           {favicon && <img src={favicon} alt="" loading="lazy" className="size-4 shrink-0 rounded-sm" />}
-          <span aria-hidden="true">{getIconForResourceLevel(resource.resource.level)}</span>
-          <ResourceTypeIcon type={resource.resource.type} className="shrink-0 text-sm text-muted" />
+          <span aria-hidden="true">{getIconForResourceLevel(resource.level)}</span>
+          <ResourceTypeIcon type={resource.type} className="shrink-0 text-sm text-muted" />
           <span className="min-w-0">{name}</span>
         </h3>
         {description && <p className="my-1 line-clamp-2 text-sm text-muted">{description}</p>}

@@ -4,7 +4,7 @@ namespace App\Http\Resources;
 
 use App\Models\CommunityResource;
 use App\Models\Resource;
-use App\Models\ResourceTextArticle;
+use App\Models\ResourceCapture;
 use App\Models\Space;
 use App\Models\UserProfile;
 use Illuminate\Http\Request;
@@ -25,7 +25,13 @@ class CommunityResourceResource extends AbstractKnowiiJsonResource
             'description' => $this->description,
             'slug' => $this->slug,
             'resource' => $this->whenLoaded('resource', fn (Resource $resource) => $resource->toResource()->withLargeFields($this->serializeLargeFields)),
-            'resource_text_article' => $this->whenLoaded('textArticle', fn (ResourceTextArticle $textArticle) => $textArticle->toResource()->withLargeFields($this->serializeLargeFields)),
+            // ADR 0018: what the community decided and the state of the capture
+            'type' => $this->type->value,
+            'level' => $this->level->value,
+            'capture_status' => $this->capture_status->value,
+            'capture_failure_reason' => $this->capture_failure_reason,
+            // The captured content: loaded for the single resource only, the Markdown with withLargeFields() only
+            'capture' => $this->whenLoaded('capture', fn (?ResourceCapture $capture) => $capture?->toResource()->withLargeFields($this->serializeLargeFields)),
             // The public summary only: never the phone, location or links of the profile (#1234)
             'curator' => $this->whenLoaded('curator', fn (?UserProfile $curator) => $curator?->toResource(AuthorResource::class)),
             'space' => $this->whenLoaded('space', fn (Space $space) => $space->toResource()),

@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { baseEntitySchema } from './base-entity.schema';
 import {
   ALLOWED_COMMUNITY_RESOURCE_NAME_CHARACTERS_REGEX,
   MAX_LENGTH_COMMUNITY_RESOURCE_DESCRIPTION,
@@ -9,8 +8,8 @@ import {
 import { resourceLevelSchema } from './resource.schema';
 import { urlSchema } from './url.schema';
 
-// WARNING: those rules must remain aligned with those in CreateTextResource.php
-export const newResourceTextArticleSchema = urlSchema.extend({
+// The input to add a link to a resources space. WARNING: those rules must remain aligned with CreateTextResource.php
+export const newCommunityResourceSchema = urlSchema.extend({
   // Optional: empty means "use the title of the page" (#1062)
   name: z.literal('').or(
     z
@@ -35,12 +34,4 @@ export const newResourceTextArticleSchema = urlSchema.extend({
   level: resourceLevelSchema,
 });
 
-export type NewResourceTextArticle = z.infer<typeof newResourceTextArticleSchema>;
-
-export const resourceTextArticleSchema = baseEntitySchema.extend({
-  markdown: z.string().nullable(),
-  word_count: z.number().int().nullable(),
-  reading_time: z.number().int().nullable(),
-});
-
-export type ResourceTextArticle = z.infer<typeof resourceTextArticleSchema>;
+export type NewCommunityResource = z.infer<typeof newCommunityResourceSchema>;

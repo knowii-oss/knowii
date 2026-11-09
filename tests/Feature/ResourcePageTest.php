@@ -2,7 +2,7 @@
 
 use App\Enums\KnowiiSpaceType;
 use App\Models\CommunityResource;
-use App\Models\ResourceTextArticle;
+use App\Models\ResourceCapture;
 use App\Models\Space;
 use App\Models\SpaceGroup;
 
@@ -11,14 +11,7 @@ beforeEach(function () {
     $group = SpaceGroup::factory()->create(['community_id' => $this->c['community']->id]);
     $this->space = Space::factory()->inGroup($group)->create(['type' => KnowiiSpaceType::Resources]);
     $this->resource = CommunityResource::factory()->create(['space_id' => $this->space->id]);
-    $article = ResourceTextArticle::create([
-        'resource_id' => $this->resource->resource_id,
-        'html' => '<p>Body</p>',
-        'markdown' => 'Body',
-        'word_count' => 1200,
-        'reading_time' => 6,
-    ]);
-    $this->resource->update(['resource_text_article_id' => $article->id]);
+    ResourceCapture::factory()->create(['community_resource_id' => $this->resource->id, 'markdown' => 'Body', 'word_count' => 1200, 'reading_time' => 6]);
 });
 
 function resourcePageUrl(Space $space, CommunityResource $resource): string
@@ -36,9 +29,8 @@ test('members see the page of a resource, without the large fields (#1133)', fun
         ->assertOk()
         ->assertInertia(fn ($page) => $page->component('Resources/Show')
             ->where('resource.cuid', $this->resource->cuid)
-            ->where('resource.resource_text_article.reading_time', 6)
-            ->where('resource.resource_text_article.markdown', null)
-            ->where('resource.resource.cover_image_base64', null)
+            ->where('resource.capture.reading_time', 6)
+            ->where('resource.capture.markdown', null)
             ->has('resource.curator', 4)
             ->where('space.cuid', $this->space->cuid)
             ->has('spaceGroups'));

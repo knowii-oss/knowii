@@ -24,8 +24,13 @@ final class ContentFiles
     /**
      * @param  list<array{disk: string, path: string}>  $uploads
      * @param  list<int>  $resourceIds
+     * @param  list<string>  $communityResourceCuids
      */
-    private function __construct(private readonly array $uploads, private readonly array $resourceIds) {}
+    private function __construct(
+        private readonly array $uploads,
+        private readonly array $resourceIds,
+        private readonly array $communityResourceCuids,
+    ) {}
 
     /**
      * The uploads of the community and the resources it shares.
@@ -35,6 +40,7 @@ final class ContentFiles
         return new self(
             self::uploads(Upload::query()->where('community_id', $community->id)),
             self::resourceIds(CommunityResource::query()->where('community_id', $community->id)),
+            self::communityResourceCuids(CommunityResource::query()->where('community_id', $community->id)),
         );
     }
 
@@ -44,7 +50,11 @@ final class ContentFiles
      */
     public static function ofSpace(Space $space): self
     {
-        return new self([], self::resourceIds(CommunityResource::query()->where('space_id', $space->id)));
+        return new self(
+            [],
+            self::resourceIds(CommunityResource::query()->where('space_id', $space->id)),
+            self::communityResourceCuids(CommunityResource::query()->where('space_id', $space->id)),
+        );
     }
 
     /**
@@ -61,6 +71,9 @@ final class ContentFiles
         foreach ($this->uploads as $upload) {
             Storage::disk($upload['disk'])->delete($upload['path']);
         }
+
+        // The captured content of the community resources (ADR 0018): the database deletes their rows by cascade
+        CommunityResourceFiles::delete($this->communityResourceCuids);
 
         // A resource is shared by communities: it goes with its images only when no community uses it any more
         $unused = Resource::query()
@@ -103,5 +116,21 @@ final class ContentFiles
         }
 
         return $ids;
+    }
+
+    /**
+     * @param  Builder<CommunityResource>  $query
+     * @return list<string>
+     */
+    private static function communityResourceCuids($query): array
+    {
+        $cuids = [];
+        foreach ($query->pluck('cuid') as $cuid) {
+            if (is_string($cuid)) {
+                $cuids[] = $cuid;
+            }
+        }
+
+        return $cuids;
     }
 }

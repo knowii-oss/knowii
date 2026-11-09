@@ -49,14 +49,12 @@ export const resourceSchema = baseEntitySchema.extend(slugSchema.shape).extend({
   modified_at: z.coerce.date().nullable(),
   language: z.string().nullable(),
   url: z.string().nullable(),
-  cover_image_url: z.string().nullable(),
   cover_image_alt: z.string().nullable(),
-  cover_image_base64: z.string().nullable(),
   // Stored by Knowii and served from its origin (#1063, ADR 0016). Lists carry them
   cover_image_thumbnail_url: z.string().nullable(),
   favicon_url: z.string().nullable(),
+  // The type detected at capture; the community resource has the type that its community uses
   type: resourceTypeSchema,
-  level: resourceLevelSchema,
   is_featured: z.boolean(),
   view_count: z.number().int().default(0),
   share_count: z.number().int().default(0),

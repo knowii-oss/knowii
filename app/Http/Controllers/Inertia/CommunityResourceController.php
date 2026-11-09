@@ -25,7 +25,7 @@ class CommunityResourceController extends Controller
 
         Gate::authorize('view', $space);
 
-        $resource = $space->resources()->where('slug', $resourceSlug)->with(['curator', 'resource', 'textArticle', 'space'])->firstOrFail();
+        $resource = $space->resources()->where('slug', $resourceSlug)->with(['curator', 'resource', 'capture', 'space'])->firstOrFail();
 
         JsonResource::withoutWrapping();
 

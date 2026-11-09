@@ -1,13 +1,13 @@
 import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { CommunityResource, NewResourceTextArticle, ResourceLevel, Space } from '@knowii/common';
+import type { CommunityResource, NewCommunityResource, ResourceLevel, Space } from '@knowii/common';
 import {
   DEFAULT_TEXTAREA_ROWS,
   knowiiApiClient,
   MAX_LENGTH_COMMUNITY_RESOURCE_DESCRIPTION,
   MAX_LENGTH_COMMUNITY_RESOURCE_NAME,
-  newResourceTextArticleSchema,
+  newCommunityResourceSchema,
   resourceLevelSchemaOptions,
   useAppData,
 } from '@knowii/common';
@@ -18,7 +18,7 @@ import { Button, Dialog, Select, Textarea, TextInput } from '@/Components/ui';
 
 const levelOptions = resourceLevelSchemaOptions.map((option) => ({ value: option.level, label: option.name, icon: option.icon }));
 
-const EMPTY_FORM: NewResourceTextArticle = { url: '', name: '', description: '', level: 'unknown' };
+const EMPTY_FORM: NewCommunityResource = { url: '', name: '', description: '', level: 'unknown' };
 
 interface CreateResourceDialogProps {
   open: boolean;
@@ -35,8 +35,8 @@ interface CreateResourceDialogProps {
  */
 export function CreateResourceDialog({ open, communityCuid, space, onClose, onResourceCreated }: CreateResourceDialogProps) {
   const { showToast } = useAppData();
-  const form = useForm<NewResourceTextArticle>({
-    resolver: zodResolver(newResourceTextArticleSchema),
+  const form = useForm<NewCommunityResource>({
+    resolver: zodResolver(newCommunityResourceSchema),
     defaultValues: EMPTY_FORM,
     mode: 'onTouched',
   });
@@ -60,7 +60,7 @@ export function CreateResourceDialog({ open, communityCuid, space, onClose, onRe
     // Validation errors go next to their field; business errors (video URL, duplicate) in the toast
     for (const [field, messages] of Object.entries(result.errors)) {
       if (field in EMPTY_FORM && messages[0]) {
-        form.setError(field as keyof NewResourceTextArticle, { message: messages[0] });
+        form.setError(field as keyof NewCommunityResource, { message: messages[0] });
       }
     }
     showToast({ severity: 'error', summary: result.message });

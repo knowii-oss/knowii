@@ -78,8 +78,7 @@ test('a captured page gets its cover and icon, and lists show their URLs (#1063)
 
     $resource = $created->resource->refresh();
     expect($resource->cover_image_path)->not->toBeNull()
-        ->and($resource->favicon_path)->not->toBeNull()
-        ->and($resource->cover_image_base64)->not->toBeNull();
+        ->and($resource->favicon_path)->not->toBeNull();
 
     $item = $this->actingAs($owner)
         ->getJson('api/v1/communities/'.$space->community->cuid.'/spaces/'.$space->cuid.'/resources')
@@ -87,7 +86,7 @@ test('a captured page gets its cover and icon, and lists show their URLs (#1063)
         ->json('data.0.resource');
     expect($item['cover_image_thumbnail_url'])->toBe(Storage::disk('public')->url($resource->cover_image_path))
         ->and($item['favicon_url'])->toBe(Storage::disk('public')->url($resource->favicon_path))
-        ->and($item['cover_image_base64'])->toBeNull();
+        ->and($item)->not->toHaveKey('cover_image_base64');
 });
 
 test('a page whose images are not images still gets saved (#1063)', function () {

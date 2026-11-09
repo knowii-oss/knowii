@@ -32,9 +32,9 @@ export function ResourceDetails({ communitySlug, resource, shareUrl }: ResourceD
   const name = resource.name || page.name;
   const articleUrl = safeHttpUrl(page.url);
   const host = hostOf(articleUrl);
-  const level = resourceLevelSchemaOptions.find((option) => option.level === page.level);
-  const type = resourceTypeSchemaOptions.find((option) => option.type === page.type);
-  const readingTime = resource.resource_text_article?.reading_time ?? null;
+  const level = resourceLevelSchemaOptions.find((option) => option.level === resource.level);
+  const type = resourceTypeSchemaOptions.find((option) => option.type === resource.type);
+  const readingTime = resource.capture?.reading_time ?? null;
   const curator = resource.curator;
 
   const copyLink = async () => {
