@@ -8,7 +8,7 @@ use App\Enums\KnowiiResourceLevel;
 use App\Enums\KnowiiSpaceType;
 use App\Models\Community;
 use App\Models\CommunityResource;
-use App\Models\ResourceTextArticle;
+use App\Models\ResourceCapture;
 use App\Models\Space;
 use App\Models\SpaceGroup;
 use App\Models\User;
@@ -255,8 +255,10 @@ test('the resources list never carries the large fields (#877)', function () {
 
     $response = $this->actingAs($c['member'])->getJson(resourcesListPath($space))->assertOk();
 
-    expect($response->json('data.0.resource.cover_image_base64'))->toBeNull()
-        ->and($response->json('data.0'))->not->toHaveKey('resource_text_article')
+    expect($response->json('data.0'))->not->toHaveKey('capture')
+        ->and($response->json('data.0.capture_status'))->toBe('captured')
+        ->and($response->json('data.0.level'))->toBe('beginner')
+        ->and($response->json('data.0.type'))->toBe('textArticle')
         ->and($response->json('data.0.resource.url'))->not->toBeEmpty();
 });
 
@@ -290,20 +292,13 @@ function resourcePath(Space $space, CommunityResource $resource): string
 
 test('members get one resource with its large fields (#876)', function () {
     [$c, $space, $resources] = resourcesSpaceWithResources(1);
-    $article = ResourceTextArticle::create([
-        'resource_id' => $resources[0]->resource_id,
-        'html' => '<p>Body</p>',
-        'markdown' => 'Body',
-        'word_count' => 1,
-        'reading_time' => 1,
-    ]);
-    $resources[0]->update(['resource_text_article_id' => $article->id]);
+    ResourceCapture::factory()->create(['community_resource_id' => $resources[0]->id, 'markdown' => 'Body']);
 
     $response = $this->actingAs($c['member'])->getJson(resourcePath($space, $resources[0]))->assertOk();
 
     expect($response->json('data.cuid'))->toBe($resources[0]->cuid)
-        ->and($response->json('data.resource.cover_image_base64'))->toBe(base64_encode('image'))
-        ->and($response->json('data.resource_text_article.markdown'))->toBe('Body')
+        ->and($response->json('data.capture.markdown'))->toBe('Body')
+        ->and($response->json('data.capture.source'))->toBe('server')
         ->and($response->json('data.space.cuid'))->toBe($space->cuid);
 });
 

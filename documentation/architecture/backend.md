@@ -25,6 +25,13 @@ Each model has a class docblock that lists its columns, its relations and its qu
    * @method TResource toResource<TResource of \Illuminate\Http\Resources\Json\JsonResource = \App\Http\Resources\PostResource>(class-string<TResource>|null $resourceClass = null)
    ```
 
+### Resources and captured content
+
+A link exists once in `resources` (one row per URL): the metadata of the page, its detected type, and its stored cover and icon ([ADR 0016](../adr/0016-resource-images-stored-by-knowii.md)). Each community that adds the link gets a row in `community_resources` with what the community decides and captured: its name, description, type, level, curator and capture status (`pending`, `capturing`, `captured`, `failed`, with `capture_failure_reason`). The captured Markdown is in `resource_captures`, one row per community resource ([ADR 0018](../adr/0018-content-capture.md), #1244). Content captured in one community never shows in another one, even for the same URL.
+
+- Only the single resource carries the capture (`->load('capture')`), and its Markdown only with `->withLargeFields()`. Lists never load it.
+- The files of a community resource (the images of its article) are under `community-resources/{cuid}/` on the uploads disk (`CommunityResourceFiles`). They go when the community resource goes: the model deletes them after the commit, and `ContentFiles` deletes them when a space or a community goes (the database deletes the rows by cascade, without model events).
+
 ### Administration
 
 If you want to look at the database during development, you can use the `npm run db:admin` command. It will start a container with PgAdmin.

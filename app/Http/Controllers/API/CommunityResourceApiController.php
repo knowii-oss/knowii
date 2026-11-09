@@ -46,7 +46,7 @@ class CommunityResourceApiController extends Controller
     {
         Gate::authorize('view', $space);
 
-        return self::success('Resource', null, $resource->load(['resource', 'curator', 'textArticle', 'space'])->toResource()->withLargeFields());
+        return self::success('Resource', null, $resource->load(['resource', 'curator', 'capture', 'space'])->toResource()->withLargeFields());
     }
 
     /**
@@ -67,7 +67,7 @@ class CommunityResourceApiController extends Controller
         );
 
         return self::created(
-            $resource->load(['resource', 'curator', 'textArticle', 'space'])->toResource()->withLargeFields(),
+            $resource->load(['resource', 'curator', 'capture', 'space'])->toResource()->withLargeFields(),
             'Resource created successfully'
         );
     }

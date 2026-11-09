@@ -2,6 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Enums\KnowiiCaptureStatus;
+use App\Enums\KnowiiResourceLevel;
+use App\Enums\KnowiiResourceType;
 use App\Enums\KnowiiSpaceType;
 use App\Models\CommunityResource;
 use App\Models\Resource;
@@ -34,6 +37,9 @@ class CommunityResourceFactory extends Factory
             'community_id' => fn (array $attributes) => Space::query()->whereKey($attributes['space_id'])->value('community_id'),
             'curator_id' => UserProfile::factory(),
             'is_featured' => $this->faker->boolean(),
+            'type' => KnowiiResourceType::TextArticle,
+            'level' => KnowiiResourceLevel::Beginner,
+            'capture_status' => KnowiiCaptureStatus::Captured,
         ];
     }
 }

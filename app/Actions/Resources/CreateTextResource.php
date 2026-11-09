@@ -4,6 +4,8 @@ namespace App\Actions\Resources;
 
 use App\Constants;
 use App\Contracts\Resources\CreatesTextResources;
+use App\Enums\KnowiiCaptureSource;
+use App\Enums\KnowiiCaptureStatus;
 use App\Enums\KnowiiResourceLevel;
 use App\Enums\KnowiiResourceType;
 use App\Enums\KnowiiSpaceType;
@@ -11,7 +13,7 @@ use App\Exceptions\BusinessException;
 use App\Exceptions\TechnicalException;
 use App\Models\CommunityResource;
 use App\Models\Resource;
-use App\Models\ResourceTextArticle;
+use App\Models\ResourceCapture;
 use App\Models\Space;
 use App\Models\User;
 use App\Support\ResourceImages;
@@ -145,9 +147,7 @@ class CreateTextResource implements CreatesTextResources
             'published_at' => null,
             'modified_at' => null,
             'language' => null, // FIXME identify the language
-            'cover_image_url' => null,
             'cover_image_alt' => null,
-            'cover_image_base64' => null,
         ];
 
         Log::debug('Loading the page HTML');
@@ -166,7 +166,6 @@ class CreateTextResource implements CreatesTextResources
             $pageContent['published_at'] = $this->getHtmlPublishedTime($pageContent['html']);
             $pageContent['modified_at'] = $this->getHtmlModifiedTime($pageContent['html']);
 
-            $pageContent['cover_image_url'] = $this->getHtmlCoverImage($pageContent['html'], $url);
             $pageContent['cover_image_alt'] = $this->getHtmlCoverImageAlt($pageContent['html']);
 
             $pageContent['language'] = $this->getHtmlLanguage($pageContent['html']);
@@ -174,9 +173,9 @@ class CreateTextResource implements CreatesTextResources
             $pageContent['keywords'] = $this->getHtmlKeywords($pageContent['html']);
 
             // Images: downloaded once, kept by Knowii, never hotlinked (#1063, ADR 0016)
-            if (! empty($pageContent['cover_image_url'])) {
-                $coverBytes = $this->downloadImage($pageContent['cover_image_url']);
-                $pageContent['cover_image_base64'] = $coverBytes === null ? null : base64_encode($coverBytes);
+            $coverImageUrl = $this->getHtmlCoverImage($pageContent['html'], $url);
+            if (! empty($coverImageUrl)) {
+                $coverBytes = $this->downloadImage($coverImageUrl);
             }
             $faviconBytes = $this->downloadImage($this->getHtmlFaviconUrl($pageContent['html'], $url));
 
@@ -243,11 +242,8 @@ class CreateTextResource implements CreatesTextResources
                     'modified_at' => $pageContent['modified_at'],
                     'language' => $pageContent['language'],
                     'url' => $url,
-                    'cover_image_url' => $pageContent['cover_image_url'],
                     'cover_image_alt' => $pageContent['cover_image_alt'],
-                    'cover_image_base64' => $pageContent['cover_image_base64'],
                     'type' => KnowiiResourceType::TextArticle->value,
-                    'level' => $level->value,
                     'is_featured' => false,
                     'view_count' => 0,
                     'share_count' => 0,
@@ -259,27 +255,6 @@ class CreateTextResource implements CreatesTextResources
 
                 $resource = Resource::findByUrlAndUpdateOrCreateNew($url, $resourceData);
 
-                $wordCount = null;
-                $readingTime = null;
-
-                if ($pageContent['markdown'] !== null) {
-                    $wordCount = str_word_count(strip_tags($pageContent['markdown']));
-                    $readingTime = ceil(str_word_count($pageContent['markdown']) / 200);
-                }
-
-                if ($wordCount === null && $pageContent['html'] !== null) {
-                    $wordCount = str_word_count(strip_tags($pageContent['html']));
-                    $readingTime = ceil(str_word_count($pageContent['html']) / 200);
-                }
-
-                $resourceTextArticle = ResourceTextArticle::findByResourceIdAndUpdateOrCreateNew($resource->id, [
-                    'resource_id' => $resource->id,
-                    'html' => $pageContent['html'],
-                    'markdown' => $pageContent['markdown'],
-                    'word_count' => $wordCount,
-                    'reading_time' => $readingTime,
-                ]);
-
                 $communityResource = CommunityResource::create([
                     'slug' => $resource->slug,
                     'name' => $name, // user-provided name for this specific community resource
@@ -287,11 +262,25 @@ class CreateTextResource implements CreatesTextResources
                     'resource_id' => $resource->id,
                     'community_id' => $space->community_id,
                     'space_id' => $space->id,
-                    'resource_text_article_id' => $resourceTextArticle->id,
+                    // ADR 0018: the community decides the level; the type starts as the detected one
+                    'type' => KnowiiResourceType::TextArticle->value,
+                    'level' => $level->value,
+                    'capture_status' => KnowiiCaptureStatus::Captured->value,
                     // We associate community resources with a user profile, not a user, so that when the user is deleted, the curation information remains
                     'curator_id' => $user->profile->id,
                     'is_featured' => false,
                 ]);
+
+                // The captured content belongs to this community resource only (ADR 0018); the HTML is not stored
+                if ($pageContent['markdown'] !== null && $pageContent['markdown'] !== '') {
+                    ResourceCapture::create([
+                        'community_resource_id' => $communityResource->id,
+                        'markdown' => $pageContent['markdown'],
+                        ...ResourceCapture::measure($pageContent['markdown']),
+                        'source' => KnowiiCaptureSource::Server,
+                        'captured_at' => now(),
+                    ]);
+                }
 
                 return $communityResource;
             });

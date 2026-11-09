@@ -26,10 +26,10 @@ function resource(images: { cover?: string | null; favicon?: string | null }, ur
     name: 'Smart notes',
     slug: 'a',
     description: 'Why it matters',
+    level: 'beginner',
     resource: {
       name: 'Generic title',
       url,
-      level: 'beginner',
       description: '',
       cover_image_thumbnail_url: images.cover ?? null,
       favicon_url: images.favicon ?? null,
@@ -64,12 +64,7 @@ describe('ResourceCard', () => {
   });
 
   it('names the type of the resource for screen readers (#1137)', () => {
-    render(
-      <ResourceCard
-        resource={{ ...resource({}), resource: { ...resource({}).resource, type: 'textArticle' } } as CommunityResource}
-        href="/r"
-      />,
-    );
+    render(<ResourceCard resource={{ ...resource({}), type: 'textArticle' } as CommunityResource} href="/r" />);
 
     expect(screen.getByTitle('Text article')).toHaveTextContent('Text article,');
   });

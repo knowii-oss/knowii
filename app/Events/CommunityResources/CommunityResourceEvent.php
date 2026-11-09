@@ -46,7 +46,7 @@ abstract class CommunityResourceEvent implements ShouldBroadcast, ShouldDispatch
         $this->communityResource->load([
             'resource',
             'curator',
-            'textArticle',
+            'capture',
             'space',
         ]);
 

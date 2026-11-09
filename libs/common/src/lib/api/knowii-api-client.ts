@@ -73,7 +73,7 @@ import type { CommunityResource } from '../types/community-resource.schema';
 import type { Community, ModeratorPermissions, NewCommunity } from '../types/community.schema';
 import { communitySchema } from '../types/community.schema';
 import { communityResourceSchema } from '../types/community-resource.schema';
-import type { NewResourceTextArticle } from '../types/resource-text-article.schema';
+import type { NewCommunityResource } from '../types/new-community-resource.schema';
 import type { ReactionKind, ReactionSummary, WhoReacted } from '../types/reaction.schema';
 import type { AssignableCommunityRole, CommunityInvitation, CommunityInvitationForm, CommunityMember } from '../types/member.schema';
 import { communityInvitationSchema, communityMemberSchema } from '../types/member.schema';
@@ -572,7 +572,7 @@ export const knowiiApiClient = {
     /**
      * Add a resource to a resources space, from the URL of a web article (ADR 0015)
      */
-    create: (communityCuid: string, spaceCuid: string, input: NewResourceTextArticle): Promise<ApiResult<CommunityResource>> =>
+    create: (communityCuid: string, spaceCuid: string, input: NewCommunityResource): Promise<ApiResult<CommunityResource>> =>
       apiRequest('post', resourcesPath(communityCuid, spaceCuid), communityResourceSchema, 'Failed to add the resource.', input),
   },
   users: {

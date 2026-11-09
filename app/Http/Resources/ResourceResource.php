@@ -28,14 +28,11 @@ class ResourceResource extends AbstractKnowiiJsonResource
             'modified_at' => $this->modified_at,
             'language' => $this->language ?? '', // Ensures the returned value is never null
             'url' => $this->url ?? '', // Ensures the returned value is never null
-            'cover_image_url' => $this->cover_image_url,
             'cover_image_alt' => $this->cover_image_alt, // Ensures the returned value is never null
-            'cover_image_base64' => $this->serializeLargeFields ? $this->cover_image_base64 : null,
             // Stored by Knowii, small: lists carry them (#1063, ADR 0016)
             'cover_image_thumbnail_url' => ResourceImages::url($this->cover_image_path),
             'favicon_url' => ResourceImages::url($this->favicon_path),
             'type' => $this->type->value,
-            'level' => $this->level->value,
             'is_featured' => $this->is_featured,
             'view_count' => $this->view_count,
             'share_count' => $this->share_count,

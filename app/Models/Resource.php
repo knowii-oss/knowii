@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\KnowiiResourceLevel;
 use App\Enums\KnowiiResourceType;
 use App\Events\Resources\ResourceCreated;
 use App\Events\Resources\ResourceDeleted;
@@ -13,10 +12,8 @@ use Carbon\Carbon;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Database\Factories\ResourceFactory;
 use Illuminate\Database\Eloquent\Attributes\UseResource;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * App\Models\Resource
@@ -33,13 +30,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property ?Carbon $modified_at
  * @property ?string $language
  * @property ?string $url
- * @property ?string $cover_image_url
  * @property ?string $cover_image_alt
- * @property ?string $cover_image_base64
  * @property ?string $cover_image_path
  * @property ?string $favicon_path
  * @property KnowiiResourceType $type
- * @property KnowiiResourceLevel $level
  * @property bool $is_featured
  * @property ?Carbon $last_captured_at
  * @property ?Carbon $last_checked_at
@@ -49,8 +43,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read int $view_count
  * @property-read int $share_count
  * @property-read ?int $check_failures_count
- * @property-read Collection<int, ResourceTextArticle> $textArticles
- * @property-read ?int $text_articles_count
  *
  * @method static \Database\Factories\ResourceFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource findSimilarSlugs(string $attribute, array<mixed> $config, string $slug)
@@ -60,8 +52,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereAiSummary($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereCheckFailuresCount($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereCoverImageAlt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereCoverImageBase64($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereCoverImageUrl($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereCuid($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereDescription($value)
@@ -73,7 +63,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereLanguage($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereLastCapturedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereLastCheckedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereLevel($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereModifiedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Resource wherePublishedAt($value)
@@ -119,13 +108,10 @@ class Resource extends Model
         'modified_at',
         'language',
         'url',
-        'cover_image_url',
         'cover_image_alt',
-        'cover_image_base64',
         'cover_image_path',
         'favicon_path',
         'type',
-        'level',
         'is_featured',
         'view_count',
         'share_count',
@@ -165,7 +151,6 @@ class Resource extends Model
         return [
             'keywords' => 'array', // Stored as JSONB and casted to array
             'type' => KnowiiResourceType::class,
-            'level' => KnowiiResourceLevel::class,
             'published_at' => 'datetime',
             'modified_at' => 'datetime',
             'last_captured_at' => 'datetime',
@@ -195,14 +180,6 @@ class Resource extends Model
                 'source' => 'name',
             ],
         ];
-    }
-
-    /**
-     * @return HasMany<ResourceTextArticle, covariant $this>
-     */
-    final public function textArticles(): HasMany
-    {
-        return $this->hasMany(ResourceTextArticle::class);
     }
 
     /**

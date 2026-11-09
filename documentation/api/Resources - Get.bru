@@ -15,5 +15,5 @@ headers {
 }
 
 docs {
-  One resource of a resources space (ADR 0015), with its large fields: the Markdown of the article (resource_text_article.markdown) and the base64 cover image (resource.cover_image_base64). Get a resource cuid with Resources - List. A resource of another space gives a 404.
+  One resource of a resources space (ADR 0015), with its large field: the captured Markdown (capture.markdown, ADR 0018). capture is null when the page gave no readable content; capture_status says where the capture is. Lists never carry capture. Get a resource cuid with Resources - List. A resource of another space gives a 404.
 }

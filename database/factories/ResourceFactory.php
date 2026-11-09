@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Enums\KnowiiResourceLevel;
 use App\Enums\KnowiiResourceType;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -31,11 +30,8 @@ class ResourceFactory extends Factory
             'language' => 'en',
             // Unique: a resource is one URL
             'url' => fake()->unique()->url(),
-            'cover_image_url' => fake()->imageUrl(),
             'cover_image_alt' => fake()->sentence(),
-            'cover_image_base64' => base64_encode('image'),
             'type' => KnowiiResourceType::TextArticle,
-            'level' => KnowiiResourceLevel::Beginner,
             'is_featured' => false,
             'view_count' => 0,
             'share_count' => 0,

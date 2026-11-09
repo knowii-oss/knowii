@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Enums\KnowiiCaptureStatus;
+use App\Enums\KnowiiResourceLevel;
+use App\Enums\KnowiiResourceType;
 use App\Events\CommunityResources\CommunityResourceCreated;
 use App\Events\CommunityResources\CommunityResourceDeleted;
 use App\Events\CommunityResources\CommunityResourceUpdated;
 use App\Http\Resources\CommunityResourceResource;
+use App\Support\CommunityResourceFiles;
 use App\Traits\GeneratesCuid;
 use Carbon\Carbon;
 use Database\Factories\CommunityResourceFactory;
@@ -16,6 +20,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\DB;
 
 /**
  * A resource added to a resources space of a community (ADR 0015).
@@ -27,7 +33,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property ?string $description
  * @property int $resource_id
  * @property int $community_id
- * @property ?int $resource_text_article_id
+ * @property KnowiiResourceType $type
+ * @property KnowiiResourceLevel $level
+ * @property KnowiiCaptureStatus $capture_status
+ * @property ?string $capture_failure_reason
  * @property ?int $curator_id
  * @property bool $is_featured
  * @property Carbon $created_at
@@ -37,7 +46,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Resource $resource
  * @property-read Space $space
  * @property-read ?UserProfile $curator
- * @property-read ?ResourceTextArticle $textArticle
+ * @property-read ?ResourceCapture $capture
  * @property-read Collection<int, Comment> $comments
  * @property-read ?int $comments_count
  *
@@ -55,7 +64,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereIsFeatured($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereResourceId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereResourceTextArticleId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereSlug($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereSpaceId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereUpdatedAt($value)
@@ -86,7 +94,10 @@ class CommunityResource extends Model
         'resource_id',
         'community_id',
         'space_id',
-        'resource_text_article_id',
+        'type',
+        'level',
+        'capture_status',
+        'capture_failure_reason',
         'curator_id',
         'is_featured',
     ];
@@ -101,7 +112,6 @@ class CommunityResource extends Model
         'resource_id',
         'community_id',
         'space_id',
-        'resource_text_article_id',
         'curator_id',
     ];
 
@@ -125,6 +135,9 @@ class CommunityResource extends Model
     {
         return [
             'is_featured' => 'boolean',
+            'type' => KnowiiResourceType::class,
+            'level' => KnowiiResourceLevel::class,
+            'capture_status' => KnowiiCaptureStatus::class,
         ];
     }
 
@@ -159,13 +172,13 @@ class CommunityResource extends Model
     }
 
     /**
-     *  Get the text article that this corresponds to (if any)
+     * The captured content (ADR 0018): for the members of this community only, never shared with another community
      *
-     * @return BelongsTo<ResourceTextArticle, covariant $this>
+     * @return HasOne<ResourceCapture, covariant $this>
      */
-    final public function textArticle(): BelongsTo
+    final public function capture(): HasOne
     {
-        return $this->belongsTo(ResourceTextArticle::class, 'resource_text_article_id');
+        return $this->hasOne(ResourceCapture::class);
     }
 
     // WARNING: do not delete. This is used via load(...) (e.g., TextResourceApiController and ResourceResource
@@ -207,6 +220,17 @@ class CommunityResource extends Model
     final public function scopeNewestFirst(Builder $query): Builder
     {
         return $query->latest()->latest('id');
+    }
+
+    /**
+     * A deleted community resource takes its files with it (ADR 0018), once the transaction commits
+     */
+    protected static function booted(): void
+    {
+        static::deleted(static function (CommunityResource $communityResource) {
+            $cuid = $communityResource->cuid;
+            DB::afterCommit(static fn () => CommunityResourceFiles::delete([$cuid]));
+        });
     }
 
     final public function getRouteKeyName(): string
