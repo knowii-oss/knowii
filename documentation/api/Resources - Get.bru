@@ -1,0 +1,19 @@
+meta {
+  name: Resources - Get
+  type: http
+  seq: 54
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/z40cggggsksggkgskkwocock/resources/<cuid of a resource>
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  One resource of a resources space (ADR 0015), with its large fields: the Markdown of the article (resource_text_article.markdown) and the base64 cover image (resource.cover_image_base64). Get a resource cuid with Resources - List. A resource of another space gives a 404.
+}

@@ -63,6 +63,7 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             // Resources of resources spaces (ADR 0015)
             Route::get(ApiRoutes::COMMUNITY_SPACE_RESOURCES, [CommunityResourceApiController::class, 'index']);
             Route::post(ApiRoutes::COMMUNITY_SPACE_RESOURCES, [CommunityResourceApiController::class, 'store']);
+            Route::get(ApiRoutes::COMMUNITY_SPACE_RESOURCE, [CommunityResourceApiController::class, 'show']);
 
             // Comments (#1175)
             Route::get(ApiRoutes::COMMUNITY_SPACE_POST_COMMENTS, [CommentApiController::class, 'index']);

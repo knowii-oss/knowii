@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Contracts\Resources\CreatesTextResources;
 use App\Http\Controllers\Controller;
 use App\Models\Community;
+use App\Models\CommunityResource;
 use App\Models\Space;
 use App\Support\Pagination;
 use App\Traits\ApiResponses;
@@ -35,6 +36,17 @@ class CommunityResourceApiController extends Controller
         $page = Pagination::fromRequest($request)->apply($space->resources()->with(['resource', 'curator'])->newestFirst());
 
         return self::success('Resources', $page['metadata'], $page['items']->toResourceCollection());
+    }
+
+    /**
+     * Get a resource of a resources space, with its large fields: the Markdown of the article and the base64 cover
+     * image.
+     */
+    final public function show(Community $community, Space $space, CommunityResource $resource): JsonResponse
+    {
+        Gate::authorize('view', $space);
+
+        return self::success('Resource', null, $resource->load(['resource', 'curator', 'textArticle', 'space'])->toResource()->withLargeFields());
     }
 
     /**
