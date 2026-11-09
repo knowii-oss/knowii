@@ -5,6 +5,7 @@ use App\Enums\KnowiiApiResponseType;
 use App\Enums\KnowiiCommunityMemberRole;
 use App\Enums\KnowiiModeratorPermission;
 use App\Events\CommunityMembers\CommunityMembersChanged;
+use App\Http\Middleware\HandleInertiaRequests;
 use App\Mail\CommunityInvitation as CommunityInvitationMail;
 use App\Models\Community;
 use App\Models\CommunityInvitation;
@@ -354,6 +355,31 @@ test('guests sign in before they accept (#1242)', function () {
     $invitation = $this->c['community']->communityInvitations()->create(['email' => 'grace@example.com', 'role' => KnowiiCommunityMemberRole::Member]);
 
     $this->get(acceptUrl($invitation))->assertRedirect(route('login'));
+});
+
+test('a guest who signs in from the link of an invitation lands in the community with the welcome message (#1251)', function () {
+    $community = $this->c['community'];
+    $grace = User::factory()->withUserProfile()->create(['email' => 'grace@example.com']);
+    $invitation = $community->communityInvitations()->create(['email' => 'grace@example.com', 'role' => KnowiiCommunityMemberRole::Member]);
+
+    // The link sends the guest to the login page and keeps the link as the intended URL
+    $this->get(acceptUrl($invitation))->assertRedirect(route('login'));
+
+    // The login form is an Inertia visit: the browser follows each redirect with the Inertia headers
+    $inertia = ['X-Inertia' => 'true', 'X-Inertia-Version' => (string) app(HandleInertiaRequests::class)->version(request()), 'X-Requested-With' => 'XMLHttpRequest'];
+    $login = $this->post(route('login'), ['email' => 'grace@example.com', 'password' => 'password'], $inertia);
+    expect($login->headers->get('Location'))->toBe(acceptUrl($invitation));
+
+    $accept = $this->get((string) $login->headers->get('Location'), $inertia)
+        ->assertRedirect(route('communities.show', ['communitySlug' => $community->slug]));
+
+    // Each browser request loads the user again; the test keeps the model of the guard, from before the join
+    $this->app['auth']->forgetGuards();
+    $page = $this->get((string) $accept->headers->get('Location'), $inertia)->assertOk();
+
+    expect($page->json('component'))->toBe('Communities/Show')
+        ->and($page->json('props.jetstream.flash.banner'))->toBe('Welcome to '.$community->name)
+        ->and(freshUser($grace)->belongsToCommunity($community))->toBeTrue();
 });
 
 test('the invitation email links to the signed accept route (#1242)', function () {
