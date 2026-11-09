@@ -90,6 +90,18 @@ Copy `.env.example` to `.env`, then change the values below. The other values in
 | `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`                      | Cloudflare Turnstile keys (bot check). Required by the waitlist form: without them, the form is hidden.   |
 | `BROWSERLESS_TOKEN`                                               | A unique random value                                                                                     |
 
+The Content Security Policy (`config/secure-headers.php`) lists every origin that the browser may load from or connect to. It never accepts a whole scheme such as `https:`. It allows the Reverb WebSocket origin from the `REVERB_*` values automatically. These optional values add origins:
+
+| Key                  | Value                                                                                            |
+| -------------------- | ------------------------------------------------------------------------------------------------ |
+| `UPLOADS_PUBLIC_URL` | The public URL of the uploaded files when another host serves them (S3-compatible bucket or CDN) |
+| `CSP_IMG_SRC`        | Comma-separated extra origins for images, for example `https://images.example.com`               |
+| `CSP_MEDIA_SRC`      | Comma-separated extra origins for audio and video files                                          |
+| `CSP_FRAME_SRC`      | Comma-separated extra origins for embedded frames                                                |
+| `CSP_CONNECT_SRC`    | Comma-separated extra origins for API calls and WebSockets                                       |
+
+Bare schemes (`https:`) and `*` in these values are ignored. In the `local` environment, the policy also allows the Vite dev server (`http://localhost:<VITE_PORT>`, or `VITE_DEV_SERVER_URL`).
+
 Do not set `SANCTUM_STATEFUL_DOMAINS` to an empty value. The front-end calls the API with the session cookie, so the API must treat requests from your domain as first-party ("stateful"). If the value is empty, every API call fails with `401 Unauthorized`. Leave the key out (the default includes the host of `APP_URL`), or set it to `<YOUR_DOMAIN>`.
 
 The `VITE_*` values are read when you build the front-end (step 5). If you change `APP_NAME` or a `REVERB_*` value later, build the front-end again.
