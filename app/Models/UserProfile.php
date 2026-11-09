@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Constants;
 use App\Http\Resources\UserProfileResource;
+use App\Support\ProfileFieldVisibility;
 use App\Traits\GeneratesCuid;
 use Carbon\Carbon;
 use Database\Factories\UserProfileFactory;
@@ -29,6 +30,7 @@ use Laravel\Jetstream\HasProfilePhoto;
  * @property ?string $bio
  * @property ?string $location
  * @property ?string $phone
+ * @property array<string, bool>|null $field_visibility
  * @property ?string $social_link_website
  * @property ?string $social_link_newsletter
  * @property ?string $social_link_x
@@ -176,7 +178,31 @@ class UserProfile extends Authenticatable implements MustVerifyEmail
     final public function casts(): array
     {
         return [
+            'field_visibility' => 'array',
         ];
+    }
+
+    /**
+     * Which fields the other members see (#1076, ADR 0020): every field, with the defaults for the ones never chosen.
+     *
+     * @return array<string, bool>
+     */
+    final public function fieldVisibility(): array
+    {
+        /** @var array<mixed>|null $stored */
+        $stored = $this->field_visibility;
+
+        return ProfileFieldVisibility::resolve($stored);
+    }
+
+    /**
+     * Whether the other members see a field (and it has a value).
+     */
+    final public function showsField(string $field): bool
+    {
+        $value = $this->getAttribute($field);
+
+        return ($this->fieldVisibility()[$field] ?? false) && is_string($value) && $value !== '';
     }
 
     final public function getRouteKeyName(): string

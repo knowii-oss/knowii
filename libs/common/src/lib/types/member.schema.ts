@@ -9,6 +9,8 @@ export const memberProfileSchema = z.object({
   username: z.string(),
   bio: z.string(),
   location: z.string(),
+  // Empty unless the member shows it (#1076)
+  phone: z.string().default(''),
   social_links: z.record(z.string(), z.string()),
   member_since: z.coerce.date(),
 });

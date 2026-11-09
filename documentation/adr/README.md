@@ -44,3 +44,4 @@ Do not write an ADR for a bug fix, a refactor that keeps the structure, or a fea
 | [0017](0017-roles-with-configurable-moderator-rights.md)               | Four fixed roles, with moderator rights configured per community        | Accepted |
 | [0018](0018-content-capture.md)                                        | Queued server capture of links, full captures from a browser extension  | Accepted |
 | [0019](0019-community-invitations-by-email.md)                         | Community invitations by email, for one address, with a signed link     | Accepted |
+| [0020](0020-members-choose-visible-profile-fields.md)                  | Members choose which profile fields the other members see               | Accepted |

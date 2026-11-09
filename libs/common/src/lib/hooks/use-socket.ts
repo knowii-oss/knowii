@@ -37,11 +37,7 @@ const SpaceTreeEvents = {
 type SpaceTreeEvent = (typeof SpaceTreeEvents)[keyof typeof SpaceTreeEvents];
 
 // The members or the invitations of the community changed (#1242): load them again (the payload only names the community)
-const MemberEvents = {
-  CHANGED: 'community.members.changed',
-} as const;
-
-type MemberEvent = (typeof MemberEvents)[keyof typeof MemberEvents];
+type MemberEvent = 'community.members.changed';
 
 type CommunityEvent = (typeof CommunityEvents)[keyof typeof CommunityEvents];
 type ResourceEvent = (typeof ResourceEvents)[keyof typeof ResourceEvents];
