@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { Comment } from '@knowii/common';
 import { knowiiApiClient, useAppData } from '@knowii/common';
 import { FaPen, FaReply, FaTrash } from 'react-icons/fa6';
-import { Button, Dialog, MarkdownContent, RelativeTime } from '@/Components/ui';
+import { Button, Dialog, ErrorBoundary, MarkdownContent, RelativeTime } from '@/Components/ui';
 import { CommentForm } from './CommentForm';
 import { ReactionBar } from '@/Components/Reactions/ReactionBar';
 
@@ -113,7 +113,7 @@ export function CommentSection(props: CommentSectionProps) {
             onCancel={() => setEditing(null)}
           />
         ) : (
-          <>
+          <ErrorBoundary variant="block" label={`the comment by ${authorName}`}>
             <MarkdownContent html={comment.body_html} className="text-sm" />
             <ReactionBar
               target={{ communityCuid, spaceCuid, postCuid, commentCuid: comment.cuid }}
@@ -121,7 +121,7 @@ export function CommentSection(props: CommentSectionProps) {
               canReact={canComment}
               itemLabel={`the comment by ${authorName}`}
             />
-          </>
+          </ErrorBoundary>
         )}
         {editing !== comment.cuid && (
           <div className="flex flex-wrap gap-1">

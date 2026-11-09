@@ -11,7 +11,7 @@ import PageContentWrapper from '@/Components/PageContentWrapper';
 import PageWrapper from '@/Components/PageWrapper';
 import PageTitle from '@/Components/PageTitle';
 import type { BreadcrumbItem } from '@/Components/ui';
-import { Avatar, Button, Drawer, DropdownMenu, DropdownMenuItem, dropdownMenuItemClasses } from '@/Components/ui';
+import { Avatar, Button, Drawer, DropdownMenu, DropdownMenuItem, dropdownMenuItemClasses, ErrorBoundary } from '@/Components/ui';
 
 interface Props {
   browserPageTitle: string;
@@ -118,7 +118,10 @@ export default function AppLayout(props: Props) {
           </div>
         </div>
 
-        <PageContentWrapper>{props.children}</PageContentWrapper>
+        <PageContentWrapper>
+          {/* A failing page keeps the header, the navigation and the footer; a visit to another URL clears the error */}
+          <ErrorBoundary resetKey={page.url}>{props.children}</ErrorBoundary>
+        </PageContentWrapper>
 
         <Footer />
       </PageWrapper>

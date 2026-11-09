@@ -7,7 +7,7 @@ import { createInertiaApp } from '@inertiajs/react';
 import type { ResolvedComponent } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { AppDataProvider } from '@knowii/common';
-import { Toaster } from '@/Components/ui';
+import { ErrorBoundary, Toaster } from '@/Components/ui';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -30,7 +30,10 @@ createInertiaApp({
         <AppDataProvider>
           {/* The single application toaster lives here (not in a page layout), so toasts survive Inertia page visits */}
           <Toaster />
-          <App {...props} />
+          {/* Last resort: a page that fails outside its content area (the layout) shows this instead of a blank screen */}
+          <ErrorBoundary className="mt-10">
+            <App {...props} />
+          </ErrorBoundary>
         </AppDataProvider>
       </StrictMode>,
     );

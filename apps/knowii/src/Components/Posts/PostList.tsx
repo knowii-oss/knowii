@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { Community, Paginated, Post, Space } from '@knowii/common';
 import { knowiiApiClient, POST_URL, POSTS_PER_PAGE, useAppData } from '@knowii/common';
 import { FaPen } from 'react-icons/fa6';
-import { Button, EmptyState } from '@/Components/ui';
+import { Button, EmptyState, ErrorBoundary } from '@/Components/ui';
 import { PostCard } from './PostCard';
 import { PostComposer } from './PostComposer';
 
@@ -71,7 +71,9 @@ export function PostList({ community, space, initialPosts, canContribute, canRea
         <ul className="flex flex-col gap-3">
           {posts.map((post) => (
             <li key={post.cuid}>
-              <PostCard post={post} href={href(post)} communityCuid={community.cuid} canReact={canReact} />
+              <ErrorBoundary variant="block" label={`the post "${post.title}"`}>
+                <PostCard post={post} href={href(post)} communityCuid={community.cuid} canReact={canReact} />
+              </ErrorBoundary>
             </li>
           ))}
         </ul>

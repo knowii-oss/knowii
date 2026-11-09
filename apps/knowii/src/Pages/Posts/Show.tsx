@@ -11,7 +11,7 @@ import { PostComposer } from '@/Components/Posts/PostComposer';
 import { CommentSection } from '@/Components/Comments/CommentSection';
 import { ReactionBar } from '@/Components/Reactions/ReactionBar';
 import type { BreadcrumbItem } from '@/Components/ui';
-import { Button, Dialog, MarkdownContent, RelativeTime } from '@/Components/ui';
+import { Button, Dialog, ErrorBoundary, MarkdownContent, RelativeTime } from '@/Components/ui';
 
 interface Props {
   // WARNING: aligned with PostController.php
@@ -115,13 +115,15 @@ export default function PostPage(props: Props) {
             )}
           </header>
 
-          <MarkdownContent html={post.body_html} />
-          <ReactionBar
-            target={{ communityCuid: community.cuid, spaceCuid: space.cuid, postCuid: post.cuid }}
-            initialReactions={post.reactions}
-            canReact={props.permissions.canComment}
-            itemLabel="this post"
-          />
+          <ErrorBoundary variant="block" label="this post">
+            <MarkdownContent html={post.body_html} />
+            <ReactionBar
+              target={{ communityCuid: community.cuid, spaceCuid: space.cuid, postCuid: post.cuid }}
+              initialReactions={post.reactions}
+              canReact={props.permissions.canComment}
+              itemLabel="this post"
+            />
+          </ErrorBoundary>
         </article>
 
         <CommentSection
