@@ -146,6 +146,8 @@ To export the OpenAPI document to a file, run `php artisan scramble:export`.
 
 Outside of the local environment, the documentation is only visible to users allowed by the `viewApiDocs` gate.
 
+`tests/Feature/OpenApiDocumentTest.php` exports the document and checks it: every API route has an operation, every operation documents a success response, and every `POST`, `PUT` or `PATCH` documents its request body. The older endpoints without a body are listed in the test until #1194 declares them. Remove an entry from that list when you declare its body.
+
 ### Testing
 
 Every endpoint has Pest feature tests (`tests/Feature/<Name>ApiControllerTest.php` for the HTTP layer, `tests/Feature/<Action>Test.php` for the action). The [Bruno collection](../api/README.md) in `documentation/api` holds an example request for every endpoint, including the main error cases.
