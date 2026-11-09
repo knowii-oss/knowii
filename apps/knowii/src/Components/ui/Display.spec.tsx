@@ -24,6 +24,34 @@ describe('Breadcrumb', () => {
     expect(within(nav).queryByRole('link', { name: 'Settings' })).not.toBeInTheDocument();
     expect(within(nav).getByText('Settings').closest('[aria-current]')).toHaveAttribute('aria-current', 'page');
   });
+
+  it('hides the middle of a long path on phones until the member asks for it (#909)', async () => {
+    render(
+      <Breadcrumb
+        items={[
+          { label: 'Home', href: '/dashboard' },
+          { label: 'My community', href: '/communities/mine' },
+          { label: 'General', href: '/communities/mine/general' },
+          { label: 'A post' },
+        ]}
+      />,
+    );
+    const nav = screen.getByRole('navigation', { name: 'Breadcrumb' });
+    // Only "My community" is between the first item and the parent of the open page
+    expect(within(nav).getByRole('link', { name: 'My community' }).closest('li')).toHaveAttribute('data-collapsed');
+    expect(within(nav).getByRole('link', { name: 'General' }).closest('li')).not.toHaveAttribute('data-collapsed');
+
+    await userEvent.click(within(nav).getByRole('button', { name: 'Show the full path' }));
+
+    expect(within(nav).getByRole('link', { name: 'My community' }).closest('li')).not.toHaveAttribute('data-collapsed');
+    expect(within(nav).queryByRole('button', { name: 'Show the full path' })).toBeNull();
+    expect(within(nav).getByRole('link', { name: 'My community' })).toHaveFocus();
+  });
+
+  it('keeps a short path complete', () => {
+    render(<Breadcrumb items={[{ label: 'Home', href: '/dashboard' }, { label: 'My community', href: '/c' }, { label: 'About' }]} />);
+    expect(screen.queryByRole('button', { name: 'Show the full path' })).toBeNull();
+  });
 });
 
 describe('Avatar', () => {
