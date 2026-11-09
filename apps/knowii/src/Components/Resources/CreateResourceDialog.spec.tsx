@@ -18,7 +18,9 @@ function renderDialog(onResourceCreated = vi.fn(), onClose = vi.fn()) {
 
 async function fill(url: string, name: string) {
   await userEvent.type(screen.getByLabelText('Link to the article'), url);
-  await userEvent.type(screen.getByLabelText('Name in this community'), name);
+  if (name !== '') {
+    await userEvent.type(screen.getByLabelText('Name in this community (optional)'), name);
+  }
 }
 
 describe('CreateResourceDialog', () => {
@@ -83,6 +85,18 @@ describe('CreateResourceDialog', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Reset' }));
 
     expect(screen.getByLabelText('Link to the article')).toHaveValue('');
-    expect(screen.getByLabelText('Name in this community')).toHaveValue('');
+    expect(screen.getByLabelText('Name in this community (optional)')).toHaveValue('');
+  });
+
+  it('adds a resource without a name: the server uses the title of the page (#1062)', async () => {
+    const create = vi
+      .spyOn(knowiiApiClient.resources, 'create')
+      .mockResolvedValue({ ok: true, message: '', data: { cuid: 'r2', name: 'Page title' } as CommunityResource });
+    renderDialog();
+
+    await fill('https://example.com/article', '');
+    await userEvent.click(screen.getByRole('button', { name: 'Add' }));
+
+    await waitFor(() => expect(create).toHaveBeenCalledWith('c1', 's1', expect.objectContaining({ name: '' })));
   });
 });

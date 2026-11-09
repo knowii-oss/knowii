@@ -11,17 +11,20 @@ import { urlSchema } from './url.schema';
 
 // WARNING: those rules must remain aligned with those in CreateTextResource.php
 export const newResourceTextArticleSchema = urlSchema.extend({
-  name: z
-    .string()
-    .min(MIN_LENGTH_COMMUNITY_RESOURCE_NAME, {
-      error: `Please choose a name for your new resource (between ${MIN_LENGTH_COMMUNITY_RESOURCE_NAME} and ${MAX_LENGTH_COMMUNITY_RESOURCE_NAME} characters)`,
-    })
-    .max(MAX_LENGTH_COMMUNITY_RESOURCE_NAME, {
-      error: `The name is too long (maximum ${MAX_LENGTH_COMMUNITY_RESOURCE_NAME} characters)`,
-    })
-    .regex(new RegExp(ALLOWED_COMMUNITY_RESOURCE_NAME_CHARACTERS_REGEX), {
-      error: 'Please use only letters, numbers, spaces, hyphens, or arobases',
-    }),
+  // Optional: empty means "use the title of the page" (#1062)
+  name: z.literal('').or(
+    z
+      .string()
+      .min(MIN_LENGTH_COMMUNITY_RESOURCE_NAME, {
+        error: `Please choose a name for your new resource (between ${MIN_LENGTH_COMMUNITY_RESOURCE_NAME} and ${MAX_LENGTH_COMMUNITY_RESOURCE_NAME} characters)`,
+      })
+      .max(MAX_LENGTH_COMMUNITY_RESOURCE_NAME, {
+        error: `The name is too long (maximum ${MAX_LENGTH_COMMUNITY_RESOURCE_NAME} characters)`,
+      })
+      .regex(new RegExp(ALLOWED_COMMUNITY_RESOURCE_NAME_CHARACTERS_REGEX), {
+        error: 'Please use only letters, numbers, spaces, hyphens, or arobases',
+      }),
+  ),
   description: z
     .string()
     .max(MAX_LENGTH_COMMUNITY_RESOURCE_DESCRIPTION, {

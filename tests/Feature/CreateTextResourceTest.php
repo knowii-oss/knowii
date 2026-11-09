@@ -80,17 +80,60 @@ test('text resource creation is rejected if the user is not authorized', functio
     (new CreateTextResource)->create($otherUser, $space, $input);
 });
 
-test('text resource creation is rejected if the name is missing', function () {
+test('without a name, the resource takes the title of the page (#1062)', function () {
     [$owner, $space] = makeOwnerWithResourcesSpace();
 
-    $input = [
+    $action = new CreateTextResource;
+    $action->setHttpHandlerStack(fakeTextResourceFetchHandler(ARTICLE_HTML));
+
+    $resource = $action->create($owner, $space, [
         'url' => 'https://example.com/some-article',
         'level' => KnowiiResourceLevel::Beginner->value,
-    ];
+    ]);
 
-    $this->expectException(ValidationException::class);
+    expect($resource->name)->toBe('Some Article Title');
+});
 
-    (new CreateTextResource)->create($owner, $space, $input);
+test('without a title in the page, the resource takes a title made from the URL (#1062)', function () {
+    [$owner, $space] = makeOwnerWithResourcesSpace();
+
+    $action = new CreateTextResource;
+    $action->setHttpHandlerStack(fakeTextResourceFetchHandler('<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"></head><body><p>Text</p></body></html>'));
+
+    $resource = $action->create($owner, $space, [
+        'name' => '',
+        'url' => 'https://example.com/blog/smart-notes_guide',
+        'level' => KnowiiResourceLevel::Beginner->value,
+    ]);
+
+    expect($resource->name)->toBe('Smart Notes Guide');
+});
+
+test('without a name and without any title, the resource is refused (#1062)', function () {
+    [$owner, $space] = makeOwnerWithResourcesSpace();
+
+    $action = new CreateTextResource;
+    $action->setHttpHandlerStack(fakeTextResourceFetchHandler('<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"></head><body><p>Text</p></body></html>'));
+
+    $action->create($owner, $space, [
+        'url' => 'https://example.com/',
+        'level' => KnowiiResourceLevel::Beginner->value,
+    ]);
+})->throws(BusinessException::class, 'Could not find the title of the page. Give the resource a name');
+
+test('a long page title is shortened to the maximum name length (#1062)', function () {
+    [$owner, $space] = makeOwnerWithResourcesSpace();
+    $title = str_repeat('Long title ', 10);
+
+    $action = new CreateTextResource;
+    $action->setHttpHandlerStack(fakeTextResourceFetchHandler('<!DOCTYPE html><html lang="en"><head><title>'.$title.'</title></head><body><p>Text</p></body></html>'));
+
+    $resource = $action->create($owner, $space, [
+        'url' => 'https://example.com/long',
+        'level' => KnowiiResourceLevel::Beginner->value,
+    ]);
+
+    expect(mb_strlen($resource->name))->toBe(Constants::MAX_LENGTH_COMMUNITY_RESOURCE_NAME);
 });
 
 test('text resource creation is rejected if the url is missing', function () {
