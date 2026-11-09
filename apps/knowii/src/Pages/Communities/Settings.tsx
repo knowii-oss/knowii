@@ -1,5 +1,5 @@
 import AppLayout from '@/Layouts/AppLayout';
-import type { Community, CommunityPermissions } from '@knowii/common';
+import type { Community, CommunityPermissions, SpaceGroup } from '@knowii/common';
 import { COMMUNITY_URL, DASHBOARD_URL, useSocket } from '@knowii/common';
 import { breadcrumbHome } from '../../Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
@@ -7,9 +7,12 @@ import { router } from '@inertiajs/react';
 import type { BreadcrumbItem } from '@/Components/ui';
 import { FaGear } from 'react-icons/fa6';
 import DeleteCommunityForm from '@/Pages/Communities/Partials/DeleteCommunityForm';
+import { SpaceTreeEditor } from '@/Components/Spaces/SpaceTreeEditor';
+import { useCallback } from 'react';
 
 interface Props {
   community: Community;
+  spaceGroups: SpaceGroup[];
   permissions: CommunityPermissions;
 }
 
@@ -28,6 +31,19 @@ export default function CommunitySettingsPage(props: Props) {
     },
   });
 
+  const reloadSpaceTree = useCallback(() => {
+    router.reload({ only: ['spaceGroups'] });
+  }, []);
+
+  useSocket({
+    channel: {
+      type: 'community',
+      communityCuid: props.community.cuid,
+    },
+    event: 'community.space_tree.changed',
+    callback: reloadSpaceTree,
+  });
+
   const breadcrumbItems: BreadcrumbItem[] = [
     {
       label: props.community.name,
@@ -39,6 +55,10 @@ export default function CommunitySettingsPage(props: Props) {
 
   return (
     <AppLayout browserPageTitle={`${props.community.name} - Settings`} breadcrumbItems={breadcrumbItems} breadcrumbHome={breadcrumbHome()}>
+      {props.permissions.canManageSpaces && (
+        <SpaceTreeEditor communityCuid={props.community.cuid} spaceGroups={props.spaceGroups} onChanged={reloadSpaceTree} />
+      )}
+
       {props.permissions.canDeleteCommunity && (
         <DeleteCommunityForm communityCuid={props.community.cuid} communityName={props.community.name} />
       )}

@@ -1,0 +1,19 @@
+meta {
+  name: Spaces - Get
+  type: http
+  seq: 28
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/q8kspacewelcome000000001
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Returns a space. Members-only spaces return 403 to people outside the community.
+}

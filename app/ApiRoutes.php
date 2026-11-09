@@ -32,6 +32,10 @@ final class ApiRoutes
 
     public const PARAM_COMMUNITY_RESOURCE_COLLECTION = 'communityResourceCollection';
 
+    public const PARAM_SPACE_GROUP = 'spaceGroup';
+
+    public const PARAM_SPACE = 'space';
+
     // Paths relative to the version prefix, used in routes/api.php.
     public const USER = 'user';
 
@@ -52,6 +56,18 @@ final class ApiRoutes
     public const COMMUNITY_RESOURCE_COLLECTION = self::COMMUNITY_RESOURCE_COLLECTIONS.'/{'.self::PARAM_COMMUNITY_RESOURCE_COLLECTION.'}';
 
     public const COMMUNITY_RESOURCE_TEXT_ARTICLES = self::COMMUNITY_RESOURCE_COLLECTION.'/text-articles';
+
+    public const COMMUNITY_SPACE_GROUPS = self::COMMUNITY.'/space-groups';
+
+    public const COMMUNITY_SPACE_GROUPS_REORDER = self::COMMUNITY_SPACE_GROUPS.'/reorder';
+
+    public const COMMUNITY_SPACE_GROUP = self::COMMUNITY_SPACE_GROUPS.'/{'.self::PARAM_SPACE_GROUP.'}';
+
+    public const COMMUNITY_SPACE_GROUP_SPACES_REORDER = self::COMMUNITY_SPACE_GROUP.'/spaces/reorder';
+
+    public const COMMUNITY_SPACES = self::COMMUNITY.'/spaces';
+
+    public const COMMUNITY_SPACE = self::COMMUNITY_SPACES.'/{'.self::PARAM_SPACE.'}';
 
     /**
      * Build a full, client-facing API path from a relative path, substituting

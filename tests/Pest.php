@@ -1,5 +1,9 @@
 <?php
 
+use App\Enums\KnowiiCommunityMemberRole;
+use App\Enums\KnowiiCommunityVisibility;
+use App\Models\Community;
+use App\Models\User;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
@@ -67,4 +71,28 @@ function fakeTextResourceFetchHandler(string $html): HandlerStack
         new Response(200, [], ''),
         new Response(200, [], $html),
     ]));
+}
+
+/**
+ * A community with one user per role, and a user outside of it.
+ *
+ * @return array{community: Community, owner: User, admin: User, moderator: User, member: User, outsider: User}
+ */
+function communityWithMembers(KnowiiCommunityVisibility $visibility = KnowiiCommunityVisibility::Private): array
+{
+    $owner = User::factory()->withUserProfile()->create();
+    $community = Community::factory()->create(['owner_id' => $owner->id, 'visibility' => $visibility]);
+
+    $users = ['community' => $community, 'owner' => $owner];
+
+    foreach (['admin' => KnowiiCommunityMemberRole::Admin, 'moderator' => KnowiiCommunityMemberRole::Moderator, 'member' => KnowiiCommunityMemberRole::Member] as $key => $role) {
+        $user = User::factory()->withUserProfile()->create();
+        $community->users()->attach($user, ['role' => $role]);
+        $users[$key] = $user;
+    }
+
+    $users['outsider'] = User::factory()->withUserProfile()->create();
+
+    /** @var array{community: Community, owner: User, admin: User, moderator: User, member: User, outsider: User} $users */
+    return $users;
 }

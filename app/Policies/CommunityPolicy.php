@@ -53,6 +53,15 @@ class CommunityPolicy
     }
 
     /**
+     * Determine whether the user can create, update, reorder and delete the space groups and spaces (#1173).
+     */
+    final public function manageSpaces(User $user, Community $community): bool
+    {
+        return $user->ownsCommunity($community)
+            || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Admin);
+    }
+
+    /**
      * Determine whether the user can add members.
      */
     final public function addCommunityMember(User $user, Community $community): bool

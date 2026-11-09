@@ -1,0 +1,29 @@
+meta {
+  name: Spaces - Reorder
+  type: http
+  seq: 30
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/space-groups/q8kspacegroupstarthere01/spaces/reorder
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "space_cuids": [
+      "q8kspacewelcome000000001",
+      "<cuid of the other spaces of the group>"
+    ]
+  }
+}
+
+docs {
+  Sets the order of the spaces of a space group. The list must contain every space of the group exactly once.
+}

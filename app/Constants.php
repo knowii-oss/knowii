@@ -61,6 +61,24 @@ class Constants
 
     public const int MAX_LENGTH_COMMUNITY_RESOURCE_DESCRIPTION = 255;
 
+    // Space groups and spaces (#1173). WARNING: aligned with constants.ts (libs/common)
+    public const int MIN_LENGTH_SPACE_GROUP_NAME = 2;
+
+    public const int MAX_LENGTH_SPACE_GROUP_NAME = 64;
+
+    public const int MIN_LENGTH_SPACE_NAME = 2;
+
+    public const int MAX_LENGTH_SPACE_NAME = 64;
+
+    public const int MAX_LENGTH_SPACE_DESCRIPTION = 255;
+
+    public const int MAX_LENGTH_SPACE_EMOJI = 16;
+
+    // Limits the size of a community navigation (Circle allows 40 spaces on our plan)
+    public const int MAX_SPACE_GROUPS_PER_COMMUNITY = 50;
+
+    public const int MAX_SPACES_PER_COMMUNITY = 200;
+
     /**
      * @var list<string>
      */
@@ -107,6 +125,12 @@ class Constants
     public const string WS_CHANNEL_COMMUNITY_RESOURCE_COLLECTION_PARAM_RESOURCE_COLLECTION_CUID = '{resourceCollectionCuid}';
 
     public const string WS_CHANNEL_COMMUNITY_RESOURCE_COLLECTION = 'community.{communityCuid}.resource_collection.{resourceCollectionCuid}';
+
+    public const string WS_CHANNEL_COMMUNITY_SPACE_PARAM_COMMUNITY_CUID = '{communityCuid}';
+
+    public const string WS_CHANNEL_COMMUNITY_SPACE_PARAM_SPACE_CUID = '{spaceCuid}';
+
+    public const string WS_CHANNEL_COMMUNITY_SPACE = 'community.{communityCuid}.space.{spaceCuid}';
 
     // Technical
     public const string BROWSERLESS_CONTENT_API_PATH = '/content';

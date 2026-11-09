@@ -1,7 +1,14 @@
 import { FaExternalLinkAlt, FaPlus } from 'react-icons/fa';
 import { useState } from 'react';
 import AppLayout from '@/Layouts/AppLayout';
-import type { Community, CommunityPermissions, CommunityResource, CommunityResourceCollection, Identifiable } from '@knowii/common';
+import type {
+  Community,
+  CommunityPermissions,
+  CommunityResource,
+  CommunityResourceCollection,
+  Identifiable,
+  SpaceGroup,
+} from '@knowii/common';
 import {
   COMMUNITY_SETTINGS_URL,
   DASHBOARD_URL,
@@ -26,12 +33,14 @@ import { FaGear } from 'react-icons/fa6';
 import { useImmer } from 'use-immer';
 import type { BreadcrumbItem } from '@/Components/ui';
 import { Button, buttonClasses, Card, CardBody, CardHeader } from '@/Components/ui';
+import { CommunityShell } from '@/Components/Spaces/CommunityShell';
 
 interface Props {
   community: Community;
   permissions: CommunityPermissions;
   resourceCollections: CommunityResourceCollection[];
   recentResources: CommunityResource[];
+  spaceGroups: SpaceGroup[];
 }
 
 export default function CommunityPage(props: Props) {
@@ -165,130 +174,132 @@ export default function CommunityPage(props: Props) {
         ) : null
       }
     >
-      <div className="flex flex-col gap-6 md:flex-row">
-        {/* First Column */}
-        <div className="flex flex-col gap-6 md:w-2/5">
-          {/* Recent resources */}
-          <Card aria-labelledby="recent-resources-title" className="overflow-hidden">
-            <CardHeader
-              title={<span id="recent-resources-title">Recent Resources</span>}
-              icon={<ResourceIcon />}
-              actions={
-                // Can only create resources if allowed, and if there are resource collections in this community
-                props.permissions.canCreateResource &&
-                resourceCollections.length > 0 && (
-                  <Button
-                    size="sm"
-                    iconOnly
-                    aria-label="Add a resource"
-                    onClick={() => openCreateResourceDialog(props.community.cuid, resourceCollections)}
-                  >
-                    <FaPlus aria-hidden="true" />
-                  </Button>
-                )
-              }
-            />
-            <CardBody>
-              {recentResources.length > 0 ? (
-                <ul className="flex flex-col gap-3">
-                  {recentResources.map((recentResource) => (
-                    <li
-                      key={recentResource.cuid}
-                      className="flex items-start gap-2 rounded-lg border border-border bg-well p-3 transition-colors hover:border-overlay/40"
+      <CommunityShell community={props.community} spaceGroups={props.spaceGroups}>
+        <div className="flex flex-col gap-6 lg:flex-row">
+          {/* First Column */}
+          <div className="flex flex-col gap-6 lg:w-2/5">
+            {/* Recent resources */}
+            <Card aria-labelledby="recent-resources-title" className="overflow-hidden">
+              <CardHeader
+                title={<span id="recent-resources-title">Recent Resources</span>}
+                icon={<ResourceIcon />}
+                actions={
+                  // Can only create resources if allowed, and if there are resource collections in this community
+                  props.permissions.canCreateResource &&
+                  resourceCollections.length > 0 && (
+                    <Button
+                      size="sm"
+                      iconOnly
+                      aria-label="Add a resource"
+                      onClick={() => openCreateResourceDialog(props.community.cuid, resourceCollections)}
                     >
-                      <Link
-                        href={route(RESOURCE_URL, {
-                          communitySlug: props.community.slug,
-                          resourceCollectionSlug: recentResource.collection.slug,
-                          resourceSlug: recentResource.slug,
-                        })}
-                        preserveState={true}
-                        className="min-w-0 grow rounded"
-                      >
-                        <h3 className="text-base font-bold">
-                          <span aria-hidden="true">{getIconForResourceLevel(recentResource.resource.level) + ' '}</span>
-                          {recentResource.name ? recentResource.name : recentResource.resource.name}
-                        </h3>
-                        <p className="my-1 truncate text-sm text-muted">
-                          {recentResource.description ? recentResource.description : recentResource.resource.description}
-                        </p>
-                      </Link>
-                      {recentResource.resource.type === 'textArticle' && recentResource.resource.url && (
-                        <a
-                          href={recentResource.resource.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          aria-label="Open the original article in a new tab"
-                          className={buttonClasses({ variant: 'secondary', size: 'sm', iconOnly: true })}
-                        >
-                          <FaExternalLinkAlt aria-hidden="true" />
-                        </a>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-sm text-muted">No resources yet.</p>
-              )}
-            </CardBody>
-          </Card>
-        </div>
-
-        {/* Second Column */}
-        <div className="flex flex-col gap-6 md:w-2/5">
-          {/* Resource collections */}
-          <Card aria-labelledby="resource-collections-title" className="overflow-hidden">
-            <CardHeader
-              title={<span id="resource-collections-title">Resource Collections</span>}
-              icon={<ResourceCollectionIcon />}
-              actions={
-                props.permissions.canCreateResourceCollection && (
-                  <Button
-                    size="sm"
-                    iconOnly
-                    aria-label="Add a resource collection"
-                    onClick={() => openResourceCollectionDialog(props.community.cuid)}
-                  >
-                    <FaPlus aria-hidden="true" />
-                  </Button>
-                )
-              }
-            />
-            <CardBody>
-              {resourceCollections.length > 0 ? (
-                <CardGroup className="gap-3">
-                  {resourceCollections.map((collection) => (
-                    <li className="w-full md:w-auto" key={collection.cuid}>
-                      <CommunityResourceCollectionBox
-                        resourceCollection={collection}
-                        link={route(RESOURCE_COLLECTION_URL, {
-                          communitySlug: props.community.slug,
-                          resourceCollectionSlug: collection.slug,
-                        })}
-                      />
-                    </li>
-                  ))}
-                </CardGroup>
-              ) : (
-                <p className="text-sm text-muted">No resource collections yet.</p>
-              )}
-            </CardBody>
-          </Card>
-        </div>
-
-        {/* Third Column */}
-        <div className="flex flex-col gap-6 md:h-full md:w-1/5">
-          {/* Members */}
-          {'personal' !== props.community.visibility && (
-            <Card aria-labelledby="members-title">
-              <CardHeader title={<span id="members-title">Members</span>} icon={<CommunityMembersIcon />} />
+                      <FaPlus aria-hidden="true" />
+                    </Button>
+                  )
+                }
+              />
               <CardBody>
-                <p className="text-sm text-muted">Coming soon...</p>
+                {recentResources.length > 0 ? (
+                  <ul className="flex flex-col gap-3">
+                    {recentResources.map((recentResource) => (
+                      <li
+                        key={recentResource.cuid}
+                        className="flex items-start gap-2 rounded-lg border border-border bg-well p-3 transition-colors hover:border-overlay/40"
+                      >
+                        <Link
+                          href={route(RESOURCE_URL, {
+                            communitySlug: props.community.slug,
+                            resourceCollectionSlug: recentResource.collection.slug,
+                            resourceSlug: recentResource.slug,
+                          })}
+                          preserveState={true}
+                          className="min-w-0 grow rounded"
+                        >
+                          <h3 className="text-base font-bold">
+                            <span aria-hidden="true">{getIconForResourceLevel(recentResource.resource.level) + ' '}</span>
+                            {recentResource.name ? recentResource.name : recentResource.resource.name}
+                          </h3>
+                          <p className="my-1 truncate text-sm text-muted">
+                            {recentResource.description ? recentResource.description : recentResource.resource.description}
+                          </p>
+                        </Link>
+                        {recentResource.resource.type === 'textArticle' && recentResource.resource.url && (
+                          <a
+                            href={recentResource.resource.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            aria-label="Open the original article in a new tab"
+                            className={buttonClasses({ variant: 'secondary', size: 'sm', iconOnly: true })}
+                          >
+                            <FaExternalLinkAlt aria-hidden="true" />
+                          </a>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-muted">No resources yet.</p>
+                )}
               </CardBody>
             </Card>
-          )}
+          </div>
+
+          {/* Second Column */}
+          <div className="flex flex-col gap-6 lg:w-2/5">
+            {/* Resource collections */}
+            <Card aria-labelledby="resource-collections-title" className="overflow-hidden">
+              <CardHeader
+                title={<span id="resource-collections-title">Resource Collections</span>}
+                icon={<ResourceCollectionIcon />}
+                actions={
+                  props.permissions.canCreateResourceCollection && (
+                    <Button
+                      size="sm"
+                      iconOnly
+                      aria-label="Add a resource collection"
+                      onClick={() => openResourceCollectionDialog(props.community.cuid)}
+                    >
+                      <FaPlus aria-hidden="true" />
+                    </Button>
+                  )
+                }
+              />
+              <CardBody>
+                {resourceCollections.length > 0 ? (
+                  <CardGroup className="gap-3">
+                    {resourceCollections.map((collection) => (
+                      <li className="w-full md:w-auto" key={collection.cuid}>
+                        <CommunityResourceCollectionBox
+                          resourceCollection={collection}
+                          link={route(RESOURCE_COLLECTION_URL, {
+                            communitySlug: props.community.slug,
+                            resourceCollectionSlug: collection.slug,
+                          })}
+                        />
+                      </li>
+                    ))}
+                  </CardGroup>
+                ) : (
+                  <p className="text-sm text-muted">No resource collections yet.</p>
+                )}
+              </CardBody>
+            </Card>
+          </div>
+
+          {/* Third Column */}
+          <div className="flex flex-col gap-6 lg:h-full lg:w-1/5">
+            {/* Members */}
+            {'personal' !== props.community.visibility && (
+              <Card aria-labelledby="members-title">
+                <CardHeader title={<span id="members-title">Members</span>} icon={<CommunityMembersIcon />} />
+                <CardBody>
+                  <p className="text-sm text-muted">Coming soon...</p>
+                </CardBody>
+              </Card>
+            )}
+          </div>
         </div>
-      </div>
+      </CommunityShell>
 
       <CommunityResourceCollectionDialog
         settings={resourceCollectionDialogSettings}

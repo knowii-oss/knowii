@@ -1,0 +1,19 @@
+meta {
+  name: Spaces - Delete
+  type: http
+  seq: 31
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<space cuid>
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Deletes a space and all its content. Returns 204.
+}

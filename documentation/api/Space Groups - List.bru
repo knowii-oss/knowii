@@ -1,0 +1,19 @@
+meta {
+  name: Space Groups - List
+  type: http
+  seq: 21
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/space-groups
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The space groups of the community, in order, with the spaces that the user can see. Members do not get empty groups; admins do.
+}

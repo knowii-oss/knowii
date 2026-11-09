@@ -1,0 +1,30 @@
+meta {
+  name: Space Groups - Reorder
+  type: http
+  seq: 24
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/space-groups/reorder
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "space_group_cuids": [
+      "q8kspacegroupstarthere01",
+      "<cuid of the second group>",
+      "<cuid of the third group>"
+    ]
+  }
+}
+
+docs {
+  Sets the order of all the space groups. The list must contain every group of the community exactly once (400 otherwise). Get the cuids with Space Groups - List.
+}

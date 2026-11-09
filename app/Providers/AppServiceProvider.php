@@ -7,6 +7,14 @@ use App\Actions\Communities\DeleteCommunity;
 use App\Actions\CommunityResourceCollections\CreateCommunityResourceCollection;
 use App\Actions\CommunityResourceCollections\DeleteCommunityResourceCollection;
 use App\Actions\Resources\CreateTextResource;
+use App\Actions\SpaceGroups\CreateSpaceGroup;
+use App\Actions\SpaceGroups\DeleteSpaceGroup;
+use App\Actions\SpaceGroups\ReorderSpaceGroups;
+use App\Actions\SpaceGroups\UpdateSpaceGroup;
+use App\Actions\Spaces\CreateSpace;
+use App\Actions\Spaces\DeleteSpace;
+use App\Actions\Spaces\ReorderSpaces;
+use App\Actions\Spaces\UpdateSpace;
 use App\Actions\Users\VerifyUsernameAvailability;
 use App\Actions\Waitlist\JoinWaitlist;
 use App\Constants;
@@ -15,6 +23,14 @@ use App\Contracts\Communities\DeletesCommunities;
 use App\Contracts\CommunityResourceCollections\CreatesCommunityResourceCollections;
 use App\Contracts\CommunityResourceCollections\DeletesCommunityResourceCollections;
 use App\Contracts\Resources\CreatesTextResources;
+use App\Contracts\SpaceGroups\CreatesSpaceGroups;
+use App\Contracts\SpaceGroups\DeletesSpaceGroups;
+use App\Contracts\SpaceGroups\ReordersSpaceGroups;
+use App\Contracts\SpaceGroups\UpdatesSpaceGroups;
+use App\Contracts\Spaces\CreatesSpaces;
+use App\Contracts\Spaces\DeletesSpaces;
+use App\Contracts\Spaces\ReordersSpaces;
+use App\Contracts\Spaces\UpdatesSpaces;
 use App\Contracts\Users\VerifiesUsernameAvailability;
 use App\Contracts\Waitlist\JoinsWaitlist;
 use Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider;
@@ -50,6 +66,14 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(DeletesCommunityResourceCollections::class, DeleteCommunityResourceCollection::class);
         app()->singleton(CreatesTextResources::class, CreateTextResource::class);
         app()->singleton(JoinsWaitlist::class, JoinWaitlist::class);
+        app()->singleton(CreatesSpaceGroups::class, CreateSpaceGroup::class);
+        app()->singleton(UpdatesSpaceGroups::class, UpdateSpaceGroup::class);
+        app()->singleton(DeletesSpaceGroups::class, DeleteSpaceGroup::class);
+        app()->singleton(ReordersSpaceGroups::class, ReorderSpaceGroups::class);
+        app()->singleton(CreatesSpaces::class, CreateSpace::class);
+        app()->singleton(UpdatesSpaces::class, UpdateSpace::class);
+        app()->singleton(DeletesSpaces::class, DeleteSpace::class);
+        app()->singleton(ReordersSpaces::class, ReorderSpaces::class);
 
         // Public waitlist endpoint: a few requests per minute and per IP address
         RateLimiter::for('waitlist', static function (Request $request) {

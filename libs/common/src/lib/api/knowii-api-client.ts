@@ -10,7 +10,16 @@ import {
   COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH,
   COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH_PARAM_COMMUNITY,
   COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH_PARAM_RESOURCE_COLLECTION,
+  COMMUNITY_SPACE_API_PATH,
+  COMMUNITY_SPACE_GROUP_API_PATH,
+  COMMUNITY_SPACE_GROUP_SPACES_REORDER_API_PATH,
+  COMMUNITY_SPACE_GROUPS_API_PATH,
+  COMMUNITY_SPACE_GROUPS_REORDER_API_PATH,
+  COMMUNITY_SPACES_API_PATH,
   PING_API_PATH,
+  SPACE_API_PARAM_COMMUNITY,
+  SPACE_API_PARAM_SPACE,
+  SPACE_API_PARAM_SPACE_GROUP,
   USERS_API_IS_USERNAME_AVAILABLE_PATH,
   WAITLIST_API_PATH,
 } from '../constants';
@@ -34,6 +43,17 @@ import type { DeleteCommunityRequest } from './communities/delete-community-requ
 import type { JoinWaitlistRequest } from './waitlist/join-waitlist-request.schema';
 import type { JoinWaitlistResponse } from './waitlist/join-waitlist-response.schema';
 import { joinWaitlistResponseSchema } from './waitlist/join-waitlist-response.schema';
+import { z } from 'zod';
+import type { ApiResult } from './api-result';
+import { apiPath, apiRequest } from './api-result';
+import type { Space, SpaceForm, SpaceGroup, SpaceGroupForm } from '../types/space.schema';
+import { spaceGroupSchema, spaceSchema } from '../types/space.schema';
+
+const spaceGroupPath = (communityCuid: string, spaceGroupCuid: string, path = COMMUNITY_SPACE_GROUP_API_PATH) =>
+  apiPath(path, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE_GROUP]: spaceGroupCuid });
+const spacePath = (communityCuid: string, spaceCuid: string) =>
+  apiPath(COMMUNITY_SPACE_API_PATH, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE]: spaceCuid });
+const communityPath = (path: string, communityCuid: string) => apiPath(path, { [SPACE_API_PARAM_COMMUNITY]: communityCuid });
 
 const defaultHeaders: Headers = new Headers({
   Accept: 'application/json',
@@ -110,6 +130,51 @@ export const knowiiApiClient = {
       } catch {
         return false;
       }
+    },
+    spaceGroups: {
+      list: (communityCuid: string): Promise<ApiResult<SpaceGroup[]>> =>
+        apiRequest(
+          'get',
+          communityPath(COMMUNITY_SPACE_GROUPS_API_PATH, communityCuid),
+          z.array(spaceGroupSchema),
+          'Failed to load the spaces.',
+        ),
+      create: (communityCuid: string, input: SpaceGroupForm): Promise<ApiResult<SpaceGroup>> =>
+        apiRequest(
+          'post',
+          communityPath(COMMUNITY_SPACE_GROUPS_API_PATH, communityCuid),
+          spaceGroupSchema,
+          'Failed to create the space group.',
+          input,
+        ),
+      update: (communityCuid: string, spaceGroupCuid: string, input: SpaceGroupForm): Promise<ApiResult<SpaceGroup>> =>
+        apiRequest('patch', spaceGroupPath(communityCuid, spaceGroupCuid), spaceGroupSchema, 'Failed to rename the space group.', input),
+      delete: (communityCuid: string, spaceGroupCuid: string): Promise<ApiResult<undefined>> =>
+        apiRequest('delete', spaceGroupPath(communityCuid, spaceGroupCuid), null, 'Failed to delete the space group.'),
+      reorder: (communityCuid: string, spaceGroupCuids: string[]): Promise<ApiResult<SpaceGroup[]>> =>
+        apiRequest(
+          'post',
+          communityPath(COMMUNITY_SPACE_GROUPS_REORDER_API_PATH, communityCuid),
+          z.array(spaceGroupSchema),
+          'Failed to reorder the space groups.',
+          { space_group_cuids: spaceGroupCuids },
+        ),
+    },
+    spaces: {
+      create: (communityCuid: string, input: SpaceForm): Promise<ApiResult<Space>> =>
+        apiRequest('post', communityPath(COMMUNITY_SPACES_API_PATH, communityCuid), spaceSchema, 'Failed to create the space.', input),
+      update: (communityCuid: string, spaceCuid: string, input: Partial<Omit<SpaceForm, 'type'>>): Promise<ApiResult<Space>> =>
+        apiRequest('patch', spacePath(communityCuid, spaceCuid), spaceSchema, 'Failed to update the space.', input),
+      delete: (communityCuid: string, spaceCuid: string): Promise<ApiResult<undefined>> =>
+        apiRequest('delete', spacePath(communityCuid, spaceCuid), null, 'Failed to delete the space.'),
+      reorder: (communityCuid: string, spaceGroupCuid: string, spaceCuids: string[]): Promise<ApiResult<Space[]>> =>
+        apiRequest(
+          'post',
+          spaceGroupPath(communityCuid, spaceGroupCuid, COMMUNITY_SPACE_GROUP_SPACES_REORDER_API_PATH),
+          z.array(spaceSchema),
+          'Failed to reorder the spaces.',
+          { space_cuids: spaceCuids },
+        ),
     },
     resourceCollections: {
       create: async (input: CreateCommunityResourceCollectionRequest): Promise<CreateCommunityResourceCollectionResponse> => {
