@@ -2,6 +2,8 @@
 
 namespace App\Traits;
 
+use Carbon\Exceptions\InvalidFormatException;
+use Dom\HTMLDocument;
 use Illuminate\Support\Carbon;
 use Mews\Purifier\Facades\Purifier;
 
@@ -26,231 +28,244 @@ trait ProcessHtml
     }
 
     /**
+     * The meta tags of the page, by lowercase name, property or http-equiv. The first tag wins
+     * (the primary og:image comes first). Attribute order, quotes and HTML entities do not matter.
+     *
      * @return array<string,string>
      */
     final public function getHtmlPageMeta(string $html): array
     {
         $metaArray = [];
-
-        // Match all meta tags
-        if (preg_match_all('/<meta\s+(?:[^>]*?\s+)?(?:name|property|http-equiv)=(["\'])(.*?)\1\s+content=(["\'])(.*?)\3[^>]*>/i', $html, $matches, PREG_SET_ORDER)) {
-            foreach ($matches as $match) {
-                $name = strtolower($match[2]);
-                $content = $match[4];
-                $metaArray[$name] = $content;
+        foreach ($this->getHtmlMetaTags($html) as [$key, $content]) {
+            if (! array_key_exists($key, $metaArray)) {
+                $metaArray[$key] = $content;
             }
         }
 
         return $metaArray;
     }
 
-    final public function getHtmlPageTitle(string $html): ?string
+    /**
+     * Every meta tag of the page, in document order, as [lowercase key, content].
+     *
+     * @return list<array{0: string, 1: string}>
+     */
+    final public function getHtmlMetaTags(string $html): array
     {
-        $retVal = null;
-
-        preg_match('/<title>(.*?)<\/title>/i', $html, $matches);
-        if (! empty($matches[1])) {
-            $retVal = trim($matches[1]);
+        $document = $this->parseHtml($html);
+        if ($document === null) {
+            return [];
         }
 
-        if (! empty($retVal)) {
-            return $retVal;
+        $tags = [];
+        foreach ($document->querySelectorAll('meta[content]') as $meta) {
+            $key = $meta->getAttribute('name') ?? $meta->getAttribute('property') ?? $meta->getAttribute('http-equiv');
+            if ($key === null || trim($key) === '') {
+                continue;
+            }
+            $tags[] = [mb_strtolower(trim($key)), (string) $meta->getAttribute('content')];
         }
 
-        // Fallback to page metadata
-        $metaArray = $this->getHtmlPageMeta($html);
-
-        if (! empty($metaArray['og:title'])) {
-            $retVal = trim($metaArray['og:title']);
-        }
-
-        if (empty($retVal) && ! empty($metaArray['twitter:title'])) {
-            $retVal = trim($metaArray['twitter:title']);
-        }
-
-        if (empty($retVal)) {
-            return null;
-        }
-
-        return $retVal;
+        return $tags;
     }
 
+    /**
+     * Title of the page: Open Graph, then Twitter, then the <title> element.
+     */
+    final public function getHtmlPageTitle(string $html): ?string
+    {
+        $metaArray = $this->getHtmlPageMeta($html);
+
+        return $this->firstNonEmpty([
+            $metaArray['og:title'] ?? null,
+            $metaArray['twitter:title'] ?? null,
+            $this->parseHtml($html)?->querySelector('title')?->textContent,
+        ]);
+    }
+
+    /**
+     * Description of the page: Open Graph, then Twitter, then <meta name="description">.
+     */
     final public function getHtmlPageDescription(string $html): ?string
     {
         $metaArray = $this->getHtmlPageMeta($html);
 
-        $retVal = null;
-
-        if (! empty($metaArray['description'])) {
-            $retVal = trim($metaArray['description']);
-        }
-
-        if (empty($retVal) && ! empty($metaArray['og:description'])) {
-            $retVal = trim($metaArray['og:description']);
-        }
-
-        if (empty($retVal) && ! empty($metaArray['twitter:description'])) {
-            $retVal = trim($metaArray['twitter:description']);
-        }
-
-        if (empty($retVal)) {
-            return null;
-        }
-
-        return $retVal;
+        return $this->firstNonEmpty([
+            $metaArray['og:description'] ?? null,
+            $metaArray['twitter:description'] ?? null,
+            $metaArray['description'] ?? null,
+        ]);
     }
 
+    /**
+     * Publication date: article:published_time, then datePublished in the JSON-LD data. Null when invalid.
+     */
     final public function getHtmlPublishedTime(string $html): ?string
     {
-        $metaArray = $this->getHtmlPageMeta($html);
-
-        $retVal = null;
-
-        if (! empty($metaArray['article:published_time'])) {
-            $retVal = trim($metaArray['article:published_time']);
-        }
-
-        if (empty($retVal)) {
-            return null;
-        }
-
-        if (! Carbon::parse($retVal)->isValid()) {
-            return null;
-        }
-
-        return $retVal;
+        return $this->validDate($this->getHtmlPageMeta($html)['article:published_time'] ?? $this->getHtmlJsonLdValue($html, 'datePublished'));
     }
 
+    /**
+     * Last modification date: article:modified_time, then dateModified in the JSON-LD data. Null when invalid.
+     */
     final public function getHtmlModifiedTime(string $html): ?string
     {
-        $metaArray = $this->getHtmlPageMeta($html);
-
-        $retVal = null;
-
-        if (! empty($metaArray['article:modified_time'])) {
-            $retVal = trim($metaArray['article:modified_time']);
-        }
-
-        if (empty($retVal)) {
-            return null;
-        }
-
-        if (! Carbon::parse($retVal)->isValid()) {
-            return null;
-        }
-
-        return $retVal;
+        return $this->validDate($this->getHtmlPageMeta($html)['article:modified_time'] ?? $this->getHtmlJsonLdValue($html, 'dateModified'));
     }
 
-    final public function getHtmlCoverImage(string $html): ?string
+    /**
+     * Cover image: og:image (and its secure_url and url variants), then twitter:image.
+     * A relative URL is resolved against $baseUrl (the URL of the page) when it is given.
+     */
+    final public function getHtmlCoverImage(string $html, ?string $baseUrl = null): ?string
     {
         $metaArray = $this->getHtmlPageMeta($html);
 
-        $retVal = null;
+        $image = $this->firstNonEmpty([
+            $metaArray['og:image'] ?? null,
+            $metaArray['og:image:secure_url'] ?? null,
+            $metaArray['og:image:url'] ?? null,
+            $metaArray['twitter:image'] ?? null,
+            $metaArray['twitter:image:src'] ?? null,
+        ]);
 
-        if (! empty($metaArray['og:image'])) {
-            $retVal = trim($metaArray['og:image']);
-        }
-
-        if (empty($retVal) && ! empty($metaArray['og:image:secure_url'])) {
-            $retVal = trim($metaArray['og:image:secure_url']);
-        }
-
-        if (empty($retVal) && ! empty($metaArray['og:image:url'])) {
-            $retVal = trim($metaArray['og:image:url']);
-        }
-
-        if (empty($retVal) && ! empty($metaArray['twitter:image'])) {
-            $retVal = trim($metaArray['twitter:image']);
-        }
-
-        if (empty($retVal)) {
-            return null;
-        }
-
-        return $retVal;
+        return $image === null || $baseUrl === null ? $image : $this->resolveUrl($image, $baseUrl);
     }
 
     final public function getHtmlCoverImageAlt(string $html): ?string
     {
         $metaArray = $this->getHtmlPageMeta($html);
 
-        $retVal = null;
-
-        if (! empty($metaArray['og:image:alt'])) {
-            $retVal = trim($metaArray['og:image:alt']);
-        }
-
-        if (empty($retVal)) {
-            return null;
-        }
-
-        return $retVal;
+        return $this->firstNonEmpty([$metaArray['og:image:alt'] ?? null, $metaArray['twitter:image:alt'] ?? null]);
     }
 
     final public function getHtmlOgType(string $html): ?string
     {
-        $metaArray = $this->getHtmlPageMeta($html);
-
-        $retVal = null;
-
-        if (! empty($metaArray['og:type'])) {
-            $retVal = trim($metaArray['og:type']);
-        }
-
-        if (empty($retVal)) {
-            return null;
-        }
-
-        return $retVal;
+        return $this->firstNonEmpty([$this->getHtmlPageMeta($html)['og:type'] ?? null]);
     }
 
+    /**
+     * Twitter (X) account of the author (twitter:creator), else of the site (twitter:site).
+     */
     final public function getHtmlTwitterUsername(string $html): ?string
     {
         $metaArray = $this->getHtmlPageMeta($html);
 
-        $retVal = null;
-
-        if (! empty($metaArray['twitter:creator'])) {
-            $retVal = trim($metaArray['twitter:creator']);
-        }
-
-        if (empty($retVal) && ! empty($metaArray['twitter:site'])) {
-            $retVal = trim($metaArray['twitter:site']);
-        }
-
-        if (empty($retVal)) {
-            return null;
-        }
-
-        return $retVal;
+        return $this->firstNonEmpty([$metaArray['twitter:creator'] ?? null, $metaArray['twitter:site'] ?? null]);
     }
 
+    /**
+     * Language of the page: <meta http-equiv="content-language">, then og:locale, then <html lang>.
+     */
     final public function getHtmlLanguage(string $html): ?string
     {
-        $retVal = null;
-
-        // Try to get language from meta http-equiv="content-language"
-        if (preg_match('/<meta\s+http-equiv=["\']content-language["\'][^>]*content=["\'](.+?)["\'][^>]*>/i', $html, $matches)) {
-            $retVal = trim($matches[1]);
-        }
-
-        // Fallback to other metadata
         $metaArray = $this->getHtmlPageMeta($html);
-        if (empty($retVal) && ! empty($metaArray['og:locale'])) {
-            $retVal = trim($metaArray['og:locale']);
-        }
 
-        // If still not found, try html lang attribute
-        if (empty($retVal) && preg_match('/<html[^>]+lang=["\'](.+?)["\'][^>]*>/i', $html, $matches)) {
-            $retVal = trim($matches[1]);
-        }
+        return $this->firstNonEmpty([
+            $metaArray['content-language'] ?? null,
+            $metaArray['og:locale'] ?? null,
+            $this->parseHtml($html)?->documentElement?->getAttribute('lang'),
+        ]);
+    }
 
-        if (empty($retVal)) {
+    /**
+     * A top-level value of the JSON-LD data of the page (also inside @graph and lists). Null when absent or not a string.
+     */
+    final public function getHtmlJsonLdValue(string $html, string $key): ?string
+    {
+        $document = $this->parseHtml($html);
+        if ($document === null) {
             return null;
         }
 
-        return $retVal;
+        foreach ($document->querySelectorAll('script[type="application/ld+json"]') as $script) {
+            $data = json_decode((string) $script->textContent, true);
+            if (! is_array($data)) {
+                continue;
+            }
+            $items = array_is_list($data) ? $data : [$data];
+            if (isset($data['@graph']) && is_array($data['@graph'])) {
+                $items = [...$items, ...$data['@graph']];
+            }
+            foreach ($items as $item) {
+                if (is_array($item) && isset($item[$key]) && is_string($item[$key]) && trim($item[$key]) !== '') {
+                    return trim($item[$key]);
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Parse the HTML with the HTML5 parser of PHP. Null for an empty page. Never throws on malformed HTML.
+     */
+    private function parseHtml(string $html): ?HTMLDocument
+    {
+        if (trim($html) === '') {
+            return null;
+        }
+
+        return HTMLDocument::createFromString($html, LIBXML_NOERROR);
+    }
+
+    /**
+     * The first value that is not empty after trimming and whitespace collapsing, or null.
+     *
+     * @param  list<string|null>  $values
+     */
+    private function firstNonEmpty(array $values): ?string
+    {
+        foreach ($values as $value) {
+            $value = trim((string) preg_replace('/\s+/u', ' ', (string) $value));
+            if ($value !== '') {
+                return $value;
+            }
+        }
+
+        return null;
+    }
+
+    private function validDate(?string $value): ?string
+    {
+        $value = $value === null ? null : trim($value);
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($value)->isValid() ? $value : null;
+        } catch (InvalidFormatException) {
+            return null;
+        }
+    }
+
+    /**
+     * Resolve a relative URL (/image.png, image.png, //cdn.example.com/image.png) against the URL of the page.
+     */
+    private function resolveUrl(string $url, string $baseUrl): string
+    {
+        if (preg_match('#^[a-z][a-z0-9+.-]*:#i', $url) === 1) {
+            return $url;
+        }
+
+        $base = parse_url($baseUrl);
+        if (! is_array($base) || ! isset($base['scheme'], $base['host'])) {
+            return $url;
+        }
+        $origin = $base['scheme'].'://'.$base['host'].(isset($base['port']) ? ':'.$base['port'] : '');
+
+        if (str_starts_with($url, '//')) {
+            return $base['scheme'].':'.$url;
+        }
+        if (str_starts_with($url, '/')) {
+            return $origin.$url;
+        }
+
+        $path = $base['path'] ?? '/';
+        $directory = str_ends_with($path, '/') ? $path : (dirname($path) === '/' || dirname($path) === '\\' ? '/' : dirname($path).'/');
+
+        return $origin.$directory.$url;
     }
 
     /**

@@ -171,7 +171,7 @@ class CreateTextResource implements CreatesTextResources
             $pageContent['published_at'] = $this->getHtmlPublishedTime($pageContent['html']);
             $pageContent['modified_at'] = $this->getHtmlModifiedTime($pageContent['html']);
 
-            $pageContent['cover_image_url'] = $this->getHtmlCoverImage($pageContent['html']);
+            $pageContent['cover_image_url'] = $this->getHtmlCoverImage($pageContent['html'], $url);
             $pageContent['cover_image_alt'] = $this->getHtmlCoverImageAlt($pageContent['html']);
 
             $pageContent['language'] = $this->getHtmlLanguage($pageContent['html']);
