@@ -20,6 +20,7 @@ use App\Actions\CommunityMembers\CancelCommunityInvitation;
 use App\Actions\CommunityMembers\InviteCommunityMember;
 use App\Actions\CommunityMembers\RemoveCommunityMember;
 use App\Actions\CommunityMembers\UpdateCommunityMemberRole;
+use App\Actions\Newsletter\SubscribeToNewsletter;
 use App\Actions\Posts\CreatePost;
 use App\Actions\Posts\DeletePost;
 use App\Actions\Posts\PinPost;
@@ -58,6 +59,7 @@ use App\Contracts\CommunityMembers\CancelsCommunityInvitations;
 use App\Contracts\CommunityMembers\InvitesCommunityMembers;
 use App\Contracts\CommunityMembers\RemovesCommunityMembers;
 use App\Contracts\CommunityMembers\UpdatesCommunityMemberRoles;
+use App\Contracts\Newsletter\SubscribesToNewsletter;
 use App\Contracts\Posts\CreatesPosts;
 use App\Contracts\Posts\DeletesPosts;
 use App\Contracts\Posts\PinsPosts;
@@ -123,6 +125,7 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(RemovesAccessGroupMembers::class, RemoveAccessGroupMember::class);
         app()->singleton(AcceptsCommunityInvitations::class, AcceptCommunityInvitation::class);
         app()->singleton(JoinsWaitlist::class, JoinWaitlist::class);
+        app()->singleton(SubscribesToNewsletter::class, SubscribeToNewsletter::class);
         app()->singleton(CreatesSpaceGroups::class, CreateSpaceGroup::class);
         app()->singleton(UpdatesSpaceGroups::class, UpdateSpaceGroup::class);
         app()->singleton(DeletesSpaceGroups::class, DeleteSpaceGroup::class);
@@ -143,6 +146,11 @@ class AppServiceProvider extends ServiceProvider
 
         // Public waitlist endpoint: a few requests per minute and per IP address
         RateLimiter::for('waitlist', static function (Request $request) {
+            return Limit::perMinute(Constants::WAITLIST_MAX_REQUESTS_PER_MINUTE)->by($request->ip());
+        });
+
+        // Public newsletter endpoint (#938): the same limit as the waitlist
+        RateLimiter::for('newsletter', static function (Request $request) {
             return Limit::perMinute(Constants::WAITLIST_MAX_REQUESTS_PER_MINUTE)->by($request->ip());
         });
 

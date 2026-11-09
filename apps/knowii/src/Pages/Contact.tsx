@@ -2,7 +2,7 @@ import { Head } from '@inertiajs/react';
 
 import PageHeader from '@/Components/PageHeader';
 import PageContentWrapper from '@/Components/PageContentWrapper';
-import FooterGuest from '@/Components/FooterGuest';
+import Footer from '@/Components/Footer';
 import PageWrapper from '@/Components/PageWrapper';
 
 export default function ContactPage() {
@@ -27,7 +27,7 @@ export default function ContactPage() {
               You can contact us at the following address: <a href="mailto:contact@knowii.net">contact@knowii.net</a>
             </div>
           </div>
-          <FooterGuest />
+          <Footer variant="compact" />
         </PageContentWrapper>
       </PageWrapper>
     </>

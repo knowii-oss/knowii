@@ -1,7 +1,7 @@
 import PageHeader from '@/Components/PageHeader';
 import PageContentWrapper from '@/Components/PageContentWrapper';
 import { Head } from '@inertiajs/react';
-import FooterGuest from '@/Components/FooterGuest';
+import Footer from '@/Components/Footer';
 import { HOME_URL } from '@knowii/common';
 import { buttonClasses } from '@/Components/ui';
 import { FaHome } from 'react-icons/fa';
@@ -59,7 +59,7 @@ export default function ErrorPage(props: Props) {
               </p>
             </div>
           </div>
-          <FooterGuest />
+          <Footer variant="compact" />
         </PageContentWrapper>
       </PageWrapper>
     </>

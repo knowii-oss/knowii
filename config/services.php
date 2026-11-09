@@ -21,6 +21,9 @@ return [
         'waitlist_list_id' => env('EMAILOCTOPUS_WAITLIST_LIST_ID'),
         // 'pending': EmailOctopus waits for the confirmation of the address (double opt-in) before the contact is subscribed
         'waitlist_contact_status' => env('EMAILOCTOPUS_WAITLIST_CONTACT_STATUS', 'pending'),
+        // Newsletter form of the footer (#938): hidden while no list ID is configured
+        'newsletter_list_id' => env('EMAILOCTOPUS_NEWSLETTER_LIST_ID'),
+        'newsletter_contact_status' => env('EMAILOCTOPUS_NEWSLETTER_CONTACT_STATUS', 'pending'),
     ],
 
     // Cloudflare Turnstile: bot check of the public forms (waitlist). https://developers.cloudflare.com/turnstile/

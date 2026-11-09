@@ -1,4 +1,4 @@
-import FooterGuest from '@/Components/FooterGuest';
+import Footer from '@/Components/Footer';
 import { Button, PasswordInput, TextInput } from '@/Components/ui';
 import AuthenticationCard from '@/Components/AuthenticationCard';
 import { Head, useForm } from '@inertiajs/react';
@@ -108,7 +108,7 @@ export default function ResetPasswordPage(props: Props) {
           </div>
         </form>
       </AuthenticationCard>
-      <FooterGuest />
+      <Footer variant="compact" />
     </>
   );
 }

@@ -1,4 +1,4 @@
-import FooterGuest from '@/Components/FooterGuest';
+import Footer from '@/Components/Footer';
 import { Button, Checkbox, PasswordInput, TextInput, Turnstile } from '@/Components/ui';
 import AuthenticationCard from '@/Components/AuthenticationCard';
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -203,7 +203,7 @@ export default function RegisterPage({ turnstileSiteKey = null }: Props) {
           </div>
         </form>
       </AuthenticationCard>
-      <FooterGuest />
+      <Footer variant="compact" />
     </>
   );
 }

@@ -11,6 +11,7 @@ use App\Http\Controllers\API\LoginApiController;
 use App\Http\Controllers\API\MarkdownApiController;
 use App\Http\Controllers\API\MemberApiController;
 use App\Http\Controllers\API\ModeratorPermissionApiController;
+use App\Http\Controllers\API\NewsletterApiController;
 use App\Http\Controllers\API\PingApiController;
 use App\Http\Controllers\API\PostApiController;
 use App\Http\Controllers\API\ReactionApiController;
@@ -31,6 +32,9 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
 
     // Waitlist (public, rate limited: see AppServiceProvider)
     Route::post(ApiRoutes::WAITLIST, [WaitlistApiController::class, 'join'])->middleware('throttle:waitlist');
+
+    // Newsletter of the footer (public, rate limited, #938)
+    Route::post(ApiRoutes::NEWSLETTER, [NewsletterApiController::class, 'subscribe'])->middleware('throttle:newsletter');
 
     // Every route names the token abilities that it needs (ADR 0022, #689). Session users pass every check
     Route::middleware('auth:sanctum')->group(function () {

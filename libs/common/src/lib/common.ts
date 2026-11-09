@@ -4,6 +4,7 @@ export function common(): string {
 
 // Constants
 export * from './constants';
+export * from './footer-links';
 
 export * from './api/knowii-api-client';
 export * from './api/waitlist/join-waitlist-request.schema';

@@ -1,4 +1,4 @@
-import FooterGuest from '@/Components/FooterGuest';
+import Footer from '@/Components/Footer';
 import { Button, TextInput } from '@/Components/ui';
 import { Head, useForm } from '@inertiajs/react';
 import type { FormEventHandler } from 'react';
@@ -67,7 +67,7 @@ export default function ForgotPasswordPage(props: Props) {
           </div>
         </form>
       </AuthenticationCard>
-      <FooterGuest />
+      <Footer variant="compact" />
     </>
   );
 }

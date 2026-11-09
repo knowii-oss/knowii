@@ -3,7 +3,7 @@ import type { FormEventHandler } from 'react';
 import AuthenticationCard from '@/Components/AuthenticationCard';
 import { useRoute } from 'ziggy-js';
 import { EMAIL_VERIFICATION_STATUS_LINK_SENT, EMAIL_VERIFICATION_URL, LOGOUT_URL, USER_PROFILE_URL } from '@knowii/common';
-import FooterGuest from '@/Components/FooterGuest';
+import Footer from '@/Components/Footer';
 import { Button } from '@/Components/ui';
 
 interface Props {
@@ -53,7 +53,7 @@ export default function VerifyEmailPage(props: Props) {
           </div>
         </form>
       </AuthenticationCard>
-      <FooterGuest />
+      <Footer variant="compact" />
     </>
   );
 }

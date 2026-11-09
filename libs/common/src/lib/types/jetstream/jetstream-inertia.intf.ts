@@ -29,6 +29,10 @@ export type InertiaSharedProps<T = NonNullable<unknown>> = T & {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   errors: any;
   userProfile: UserProfile;
+  /**
+   * The newsletter form of the footer (#938): it shows only when the instance configures a list
+   */
+  newsletter?: { enabled: boolean; turnstileSiteKey: string | null };
 };
 
 export interface Session {
