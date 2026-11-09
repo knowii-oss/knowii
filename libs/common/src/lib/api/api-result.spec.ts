@@ -23,6 +23,12 @@ describe('apiRequest', () => {
     expect(result).toEqual({ ok: false, status: 400, message: 'Invalid', errors: { name: ['Too short'] } });
   });
 
+  it('sends the HTTP method in uppercase (fetch does not normalize PATCH)', async () => {
+    respond(204);
+    await apiRequest('patch', '/api', null, 'Failed', {});
+    expect(vi.mocked(globalThis.fetch).mock.calls[0]?.[1]?.method).toBe('PATCH');
+  });
+
   it('accepts an empty 204 response', async () => {
     respond(204);
     expect(await apiRequest('delete', '/api', null, 'Failed')).toMatchObject({ ok: true });
