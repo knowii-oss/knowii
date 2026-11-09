@@ -5,6 +5,7 @@ use App\Constants;
 use Illuminate\Http\Client\Request as HttpRequest;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Testing\TestResponse;
 
 const TURNSTILE_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 const EMAILOCTOPUS_CONTACTS_URL = 'https://api.emailoctopus.com/lists/list-123/contacts';
@@ -24,7 +25,7 @@ beforeEach(function () {
     Http::preventStrayRequests();
 });
 
-function joinWaitlist(array $input): Illuminate\Testing\TestResponse
+function joinWaitlist(array $input): TestResponse
 {
     return test()->json('POST', ApiRoutes::path(ApiRoutes::WAITLIST), $input, [
         'Accept' => 'application/json',
