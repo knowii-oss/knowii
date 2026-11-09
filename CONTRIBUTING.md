@@ -66,7 +66,7 @@ Copy-Item .env.example .env
 
 Set `APP_URL=http://localhost:4200` in `.env`. Keep `WWWUSER=1000` and `WWWGROUP=1000` when using Compose directly. For local development without an email provider, set `MAIL_MAILER=log`; emails will be written to the application logs rather than delivered.
 
-If public container registries are restricted, set `SAIL_BASE_IMAGE`, `POSTGRES_IMAGE`, `REDIS_IMAGE`, and `BROWSERLESS_IMAGE` in `.env` to the equivalent image references from your approved registry. Defaults remain Ubuntu 24.04, PostgreSQL 18, Redis Alpine, and Browserless Chromium from GHCR. Authenticate using `docker login` if your registry requires it; never put registry credentials in tracked files. The application image build also needs access to its APT repositories and Composer/Node.js download sources.
+If public container registries are restricted, set `SAIL_BASE_IMAGE`, `POSTGRES_IMAGE` and `REDIS_IMAGE` in `.env` to the equivalent image references from your approved registry. Defaults remain Ubuntu 24.04, PostgreSQL 18 and Redis Alpine. Authenticate using `docker login` if your registry requires it; never put registry credentials in tracked files. The application image build also needs access to its APT repositories and Composer/Node.js download sources.
 
 If your organization uses HTTPS inspection, put its approved public CA certificates (PEM format, `.crt` extension) in `docker\8.5\certificates` before building. Files in that directory are ignored by Git. The image adds them to the system trust store and makes that store available to Node.js as well; TLS verification remains enabled. Never copy private keys into this directory or force-add certificates to Git. Images built with these certificates contain them, so keep those images within your organization's approved environment. Rebuild the application image after changing certificates.
 
@@ -78,7 +78,7 @@ docker compose run --rm --no-deps laravel.test composer install
 docker compose run --rm --no-deps laravel.test php artisan key:generate
 docker compose run --rm --no-deps laravel.test npm ci
 docker compose run --rm --no-deps laravel.test npm run build
-docker compose up -d --wait pgsql redis chrome
+docker compose up -d --wait pgsql redis
 docker compose run --rm --no-deps laravel.test php artisan migrate
 docker compose up -d laravel.test
 ```

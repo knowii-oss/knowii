@@ -51,7 +51,7 @@ export function CreateResourceDialog({ open, communityCuid, space, onClose, onRe
     const result = await knowiiApiClient.resources.create(communityCuid, space.cuid, data);
 
     if (result.ok) {
-      showToast({ severity: 'success', summary: 'Resource added' });
+      showToast({ severity: 'success', summary: 'Resource added', detail: 'Knowii captures the page now.' });
       onResourceCreated(result.data);
       onClose();
       return;
@@ -80,7 +80,7 @@ export function CreateResourceDialog({ open, communityCuid, space, onClose, onRe
           Add a resource
         </>
       }
-      description={`Share a web article in ${space.name}. Knowii reads the page to get its title, summary and cover image.`}
+      description={`Share a link in ${space.name}. Knowii then reads the page to get its title, summary, cover image and article.`}
       footer={
         <>
           <Button variant="ghost" onClick={() => form.reset(EMPTY_FORM)} disabled={submitting}>
@@ -97,7 +97,7 @@ export function CreateResourceDialog({ open, communityCuid, space, onClose, onRe
     >
       <form id="resource-form" onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
         <div>
-          <InputLabel htmlFor="resource-url">Link to the article</InputLabel>
+          <InputLabel htmlFor="resource-url">Link</InputLabel>
           <Controller
             name="url"
             control={form.control}

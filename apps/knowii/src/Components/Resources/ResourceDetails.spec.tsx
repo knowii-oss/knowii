@@ -58,10 +58,10 @@ function resource(
   } as unknown as CommunityResource;
 }
 
-function renderDetails(item: CommunityResource) {
+function renderDetails(item: CommunityResource, onCaptureAgain?: () => void) {
   render(
     <AppDataProvider>
-      <ResourceDetails communitySlug="tests" resource={item} shareUrl="https://knowii.test/r" />
+      <ResourceDetails communitySlug="tests" resource={item} shareUrl="https://knowii.test/r" onCaptureAgain={onCaptureAgain} />
     </AppDataProvider>,
   );
 }
@@ -96,5 +96,29 @@ describe('ResourceDetails', () => {
     expect(screen.queryByRole('link', { name: 'Open the article' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Ada' })).not.toBeInTheDocument();
     expect(screen.getByText(/Added by/)).toHaveTextContent('Added by Deleted member');
+  });
+
+  it('shows a failed capture with its reason, and "Capture again" to the members who may (ADR 0018)', async () => {
+    const onCaptureAgain = vi.fn();
+    renderDetails(
+      { ...resource(), capture_status: 'failed', capture_failure_reason: 'The page does not exist any more' } as CommunityResource,
+      onCaptureAgain,
+    );
+
+    expect(screen.getByRole('heading', { name: 'Capture failed' })).toBeInTheDocument();
+    expect(screen.getByText('The page does not exist any more')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Capture again' }));
+    expect(onCaptureAgain).toHaveBeenCalledOnce();
+  });
+
+  it('hides "Capture again" from the other members, and shows a running capture', () => {
+    renderDetails({ ...resource(), capture_status: 'failed', capture_failure_reason: null } as CommunityResource);
+    expect(screen.queryByRole('button', { name: 'Capture again' })).toBeNull();
+  });
+
+  it('shows a capture that runs', () => {
+    renderDetails({ ...resource(), capture_status: 'capturing', capture: null } as CommunityResource);
+    expect(screen.getByText('Capturing the page…')).toBeInTheDocument();
   });
 });

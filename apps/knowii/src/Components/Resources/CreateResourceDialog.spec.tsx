@@ -17,7 +17,7 @@ function renderDialog(onResourceCreated = vi.fn(), onClose = vi.fn()) {
 }
 
 async function fill(url: string, name: string) {
-  await userEvent.type(screen.getByLabelText('Link to the article'), url);
+  await userEvent.type(screen.getByLabelText('Link'), url);
   if (name !== '') {
     await userEvent.type(screen.getByLabelText('Name in this community (optional)'), name);
   }
@@ -27,8 +27,8 @@ describe('CreateResourceDialog', () => {
   it('starts on the link field and names the space', () => {
     renderDialog();
 
-    expect(screen.getByLabelText('Link to the article')).toHaveFocus();
-    expect(screen.getByRole('dialog')).toHaveTextContent('Share a web article in Cool links.');
+    expect(screen.getByLabelText('Link')).toHaveFocus();
+    expect(screen.getByRole('dialog')).toHaveTextContent('Share a link in Cool links.');
   });
 
   it('refuses an address that is not a web page', async () => {
@@ -84,7 +84,7 @@ describe('CreateResourceDialog', () => {
     await fill('https://example.com/article', 'Some article');
     await userEvent.click(screen.getByRole('button', { name: 'Reset' }));
 
-    expect(screen.getByLabelText('Link to the article')).toHaveValue('');
+    expect(screen.getByLabelText('Link')).toHaveValue('');
     expect(screen.getByLabelText('Name in this community (optional)')).toHaveValue('');
   });
 

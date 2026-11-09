@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Contracts\Resources\CreatesTextResources;
+use App\Contracts\Resources\CreatesCommunityResources;
+use App\Enums\KnowiiCaptureStatus;
+use App\Exceptions\BusinessException;
 use App\Http\Controllers\Controller;
+use App\Jobs\CaptureCommunityResource;
 use App\Models\Community;
 use App\Models\CommunityResource;
 use App\Models\Space;
@@ -25,7 +28,7 @@ class CommunityResourceApiController extends Controller
 
     /**
      * List the resources of a resources space, newest first. Offset pagination (ADR 0011). Lists never carry the
-     * large fields (article Markdown, base64 cover images): get one resource for them.
+     * captured content: get one resource for it.
      */
     #[QueryParameter('limit', description: 'Number of resources (default 10, maximum 100)', type: 'int', example: 10)]
     #[QueryParameter('offset', description: 'Number of resources to skip (default 0)', type: 'int', example: 0)]
@@ -39,8 +42,7 @@ class CommunityResourceApiController extends Controller
     }
 
     /**
-     * Get a resource of a resources space, with its large fields: the Markdown of the article and the base64 cover
-     * image.
+     * Get a resource of a resources space, with its large field: the captured Markdown (ADR 0018).
      */
     final public function show(Community $community, Space $space, CommunityResource $resource): JsonResponse
     {
@@ -50,17 +52,19 @@ class CommunityResourceApiController extends Controller
     }
 
     /**
-     * Add a resource to a resources space, from the URL of a web article. The posting policy of the space decides who can add one.
+     * Add a link to a resources space. The posting policy of the space decides who can add one. The answer comes at once
+     * with the capture status "pending": a queued job captures the page and the space channel announces each change
+     * (ADR 0018).
      *
      * @throws AuthenticationException
      */
     #[BodyParameter('name', description: 'Name of the resource in the community (3 to 64 characters). Empty: the title of the page', required: false, type: 'string', example: 'How to take smart notes')]
-    #[BodyParameter('url', description: 'Absolute URL of the article. Video and streaming platforms are refused', required: true, type: 'string', format: 'uri', example: 'https://example.com/some-article')]
+    #[BodyParameter('url', description: 'Absolute http or https URL of the page', required: true, type: 'string', format: 'uri', example: 'https://example.com/some-article')]
     #[BodyParameter('level', description: 'beginner, intermediate, advanced, expert or unknown', required: true, type: 'string', example: 'beginner')]
     #[BodyParameter('description', description: 'Why the resource is useful (up to 255 characters)', required: false, type: 'string')]
     final public function store(Request $request, Community $community, Space $space): JsonResponse
     {
-        $resource = app(CreatesTextResources::class)->create(
+        $resource = app(CreatesCommunityResources::class)->create(
             $request->user() ?? throw new AuthenticationException,
             $space,
             $request->only(['name', 'description', 'level', 'url'])
@@ -70,5 +74,23 @@ class CommunityResourceApiController extends Controller
             $resource->load(['resource', 'curator', 'capture', 'space'])->toResource()->withLargeFields(),
             'Resource created successfully'
         );
+    }
+
+    /**
+     * Start the capture of a resource again (ADR 0018): the curator, or a member who manages the spaces. Refused while
+     * a capture runs. The answer comes at once with the status "pending".
+     */
+    final public function capture(Community $community, Space $space, CommunityResource $resource): JsonResponse
+    {
+        Gate::authorize('capture', $resource);
+
+        if (in_array($resource->capture_status, [KnowiiCaptureStatus::Pending, KnowiiCaptureStatus::Capturing], true)) {
+            throw new BusinessException('The capture of this resource is already running');
+        }
+
+        $resource->update(['capture_status' => KnowiiCaptureStatus::Pending, 'capture_failure_reason' => null]);
+        CaptureCommunityResource::dispatch($resource);
+
+        return self::success('Capture started', null, $resource->load(['resource', 'curator', 'capture', 'space'])->toResource());
     }
 }

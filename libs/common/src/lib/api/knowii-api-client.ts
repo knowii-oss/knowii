@@ -5,6 +5,7 @@ import {
   COMMUNITY_API_PATH_PARAM_COMMUNITY,
   COMMUNITY_SPACE_API_PATH,
   COMMUNITY_SPACE_RESOURCE_API_PATH,
+  COMMUNITY_SPACE_RESOURCE_CAPTURE_API_PATH,
   COMMUNITY_SPACE_RESOURCE_COMMENT_API_PATH,
   COMMUNITY_SPACE_RESOURCE_COMMENTS_API_PATH,
   COMMUNITY_SPACE_RESOURCES_API_PATH,
@@ -556,7 +557,7 @@ export const knowiiApiClient = {
       }
     },
     /**
-     * One resource, with the Markdown of the article and the base64 cover image
+     * One resource, with its captured Markdown (ADR 0018)
      */
     get: (communityCuid: string, spaceCuid: string, resourceCuid: string): Promise<ApiResult<CommunityResource>> =>
       apiRequest(
@@ -570,10 +571,25 @@ export const knowiiApiClient = {
         'Failed to load the resource.',
       ),
     /**
-     * Add a resource to a resources space, from the URL of a web article (ADR 0015)
+     * Add a link to a resources space (ADR 0015). The answer comes at once, "pending": a queued job captures the page
+     * (ADR 0018)
      */
     create: (communityCuid: string, spaceCuid: string, input: NewCommunityResource): Promise<ApiResult<CommunityResource>> =>
       apiRequest('post', resourcesPath(communityCuid, spaceCuid), communityResourceSchema, 'Failed to add the resource.', input),
+    /**
+     * Start the capture of a resource again (ADR 0018): the curator, or a member who manages the spaces
+     */
+    capture: (communityCuid: string, spaceCuid: string, resourceCuid: string): Promise<ApiResult<CommunityResource>> =>
+      apiRequest(
+        'post',
+        apiPath(COMMUNITY_SPACE_RESOURCE_CAPTURE_API_PATH, {
+          [SPACE_API_PARAM_COMMUNITY]: communityCuid,
+          [SPACE_API_PARAM_SPACE]: spaceCuid,
+          [SPACE_API_PARAM_RESOURCE]: resourceCuid,
+        }),
+        communityResourceSchema,
+        'Failed to start the capture.',
+      ),
   },
   users: {
     /**

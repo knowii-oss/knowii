@@ -39,6 +39,11 @@ export function ResourceList({ community, space, initialResources, canContribute
     setResources((current) => (current.some((item) => item.cuid === resource.cuid) ? current : [resource, ...current]));
   }, []);
 
+  // The capture job saves the resource at each step (ADR 0018): the card follows its status, name and images
+  const replaceResource = useCallback((updated: CommunityResource) => {
+    setResources((current) => current.map((item) => (item.cuid === updated.cuid ? { ...item, ...updated } : item)));
+  }, []);
+
   const removeResource = useCallback((deleted: Identifiable) => {
     if (!removed.current.has(deleted.cuid)) {
       removed.current.add(deleted.cuid);
@@ -54,10 +59,12 @@ export function ResourceList({ community, space, initialResources, canContribute
 
   useSocket({
     channel,
-    event: ['community.resource.created', 'community.resource.deleted'],
+    event: ['community.resource.created', 'community.resource.updated', 'community.resource.deleted'],
     callback: (event, payload) => {
       if (event === 'community.resource.created') {
         addResource(payload as CommunityResource);
+      } else if (event === 'community.resource.updated') {
+        replaceResource(payload as CommunityResource);
       } else {
         removeResource(payload);
       }

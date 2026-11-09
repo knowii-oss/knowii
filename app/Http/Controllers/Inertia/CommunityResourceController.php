@@ -34,13 +34,15 @@ class CommunityResourceController extends Controller
             'community' => $community->toResource()->withLargeFields(),
             'space' => $space->toResource()->withLargeFields(),
             'spaceGroups' => SpaceTree::for($community, $request->user())->toResourceCollection(),
-            // Not the large fields: the page does not show the captured article yet (#1230), nor the base64 cover
+            // Not the large fields: the page does not show the captured article yet (#1247)
             'resource' => $resource->toResource(),
             // Comments on the resource (#1034)
             'comments' => CommentThread::for($resource)->toResourceCollection(),
             'permissions' => [
                 'canComment' => Gate::check('comment', $resource),
                 'canModerate' => Gate::check('moderate', $space),
+                // "Capture again" (ADR 0018)
+                'canCapture' => Gate::check('capture', $resource),
             ],
         ]);
     }

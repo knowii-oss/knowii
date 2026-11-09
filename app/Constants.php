@@ -105,6 +105,14 @@ class Constants
     // Largest page or image that the server downloads from an external address (#1231)
     public const int MAX_FETCH_SIZE_BYTES = 10 * 1024 * 1024;
 
+    // Capture of resources (ADR 0018): a plain HTTP fetch in a queued job
+    public const int CAPTURE_TIMEOUT_SECONDS = 15;
+
+    public const string CAPTURE_USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36 Knowii/1.0 (+https://knowii.net)';
+
+    // Manual captures ("Capture again") per member and per minute
+    public const int CAPTURES_PER_MINUTE = 6;
+
     // Stored resource images (#1063): largest side in pixels
     public const int RESOURCE_COVER_MAX_DIMENSION = 800;
 
@@ -188,9 +196,4 @@ class Constants
     public const string WS_CHANNEL_COMMUNITY_SPACE_PARAM_SPACE_CUID = '{spaceCuid}';
 
     public const string WS_CHANNEL_COMMUNITY_SPACE = 'community.{communityCuid}.space.{spaceCuid}';
-
-    // Technical
-    public const string BROWSERLESS_CONTENT_API_PATH = '/content';
-
-    public const string BROWSERLESS_TOKEN_API_PARAMETER = 'token';
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Resources\CaptureResourcePage;
 use App\Enums\KnowiiCommunityMemberRole;
 use App\Enums\KnowiiCommunityVisibility;
 use App\Models\Community;
@@ -55,22 +56,20 @@ function something()
 }
 
 /**
- * Build a Guzzle handler stack that fakes the HTTP calls made by the text
- * resource creation flow (FetchUrl trait), in order:
- *   1. getFinalUrlAfterRedirects (GET) — no redirect history
- *   2. isUrlAvailable (HEAD)
- *   3. fetchUrl (POST to Browserless) — returns the given HTML
+ * A capturer (ADR 0018) whose HTTP calls are faked, in order: the page (GET), then the icon of the site. The HTML
+ * must not reference a cover image, else add its answer.
  *
- * The provided HTML should not reference a cover image, so no extra image
- * requests are made.
+ * @param  list<Response>  $more  Answers after the page (default: the icon is missing)
  */
-function fakeTextResourceFetchHandler(string $html): HandlerStack
+function fakeCapturer(string $html, string $contentType = 'text/html; charset=utf-8', int $status = 200, array $more = []): CaptureResourcePage
 {
-    return HandlerStack::create(new MockHandler([
-        new Response(200, [], ''),
-        new Response(200, [], ''),
-        new Response(200, [], $html),
-    ]));
+    $capturer = new CaptureResourcePage;
+    $capturer->setHttpHandlerStack(HandlerStack::create(new MockHandler([
+        new Response($status, ['Content-Type' => $contentType], $html),
+        ...($more === [] ? [new Response(404, [], '')] : $more),
+    ])));
+
+    return $capturer;
 }
 
 /**

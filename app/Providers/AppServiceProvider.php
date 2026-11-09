@@ -26,7 +26,8 @@ use App\Actions\Posts\DeletePost;
 use App\Actions\Posts\PinPost;
 use App\Actions\Posts\UpdatePost;
 use App\Actions\Reactions\ToggleReaction;
-use App\Actions\Resources\CreateTextResource;
+use App\Actions\Resources\CaptureResourcePage;
+use App\Actions\Resources\CreateCommunityResource;
 use App\Actions\SpaceGroups\CreateSpaceGroup;
 use App\Actions\SpaceGroups\DeleteSpaceGroup;
 use App\Actions\SpaceGroups\ReorderSpaceGroups;
@@ -65,7 +66,8 @@ use App\Contracts\Posts\DeletesPosts;
 use App\Contracts\Posts\PinsPosts;
 use App\Contracts\Posts\UpdatesPosts;
 use App\Contracts\Reactions\TogglesReactions;
-use App\Contracts\Resources\CreatesTextResources;
+use App\Contracts\Resources\CapturesResourcePages;
+use App\Contracts\Resources\CreatesCommunityResources;
 use App\Contracts\SpaceGroups\CreatesSpaceGroups;
 use App\Contracts\SpaceGroups\DeletesSpaceGroups;
 use App\Contracts\SpaceGroups\ReordersSpaceGroups;
@@ -110,7 +112,8 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(DeletesCommunities::class, DeleteCommunity::class);
         app()->singleton(UpdatesCommunities::class, UpdateCommunity::class);
         app()->singleton(UpdatesAvatars::class, UpdateAvatar::class);
-        app()->singleton(CreatesTextResources::class, CreateTextResource::class);
+        app()->singleton(CreatesCommunityResources::class, CreateCommunityResource::class);
+        app()->bind(CapturesResourcePages::class, CaptureResourcePage::class);
         app()->singleton(UpdatesModeratorPermissions::class, UpdateModeratorPermissions::class);
         app()->singleton(SendsMagicLinks::class, MagicLinks::class);
         app()->singleton(ConsumesMagicLinks::class, MagicLinks::class);
@@ -152,6 +155,11 @@ class AppServiceProvider extends ServiceProvider
         // Public newsletter endpoint (#938): the same limit as the waitlist
         RateLimiter::for('newsletter', static function (Request $request) {
             return Limit::perMinute(Constants::WAITLIST_MAX_REQUESTS_PER_MINUTE)->by($request->ip());
+        });
+
+        // "Capture again" (ADR 0018): each capture fetches a site
+        RateLimiter::for('captures', static function (Request $request) {
+            return Limit::perMinute(Constants::CAPTURES_PER_MINUTE)->by(self::rateLimitKey($request));
         });
 
         RateLimiter::for('posts', static function (Request $request) {

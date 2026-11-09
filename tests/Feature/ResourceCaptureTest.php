@@ -1,20 +1,14 @@
 <?php
 
-use App\Actions\Resources\CreateTextResource;
 use App\ApiRoutes;
 use App\Contracts\Spaces\DeletesSpaces;
-use App\Enums\KnowiiCaptureStatus;
 use App\Enums\KnowiiResourceLevel;
 use App\Enums\KnowiiSpaceType;
 use App\Models\CommunityResource;
 use App\Models\ResourceCapture;
 use App\Models\Space;
 use App\Models\SpaceGroup;
-use App\Models\User;
 use App\Support\CommunityResourceFiles;
-use GuzzleHttp\Handler\MockHandler;
-use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Psr7\Response;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
@@ -93,28 +87,17 @@ test('deleting a resources space deletes the files of its community resources (#
     Storage::disk('public')->assertMissing($file);
 });
 
-test('adding a link stores its Markdown on the community resource, not the HTML (#1244)', function () {
-    $owner = User::factory()->withUserProfile()->withPersonalCommunity()->create();
-    $space = Space::factory()
-        ->inGroup(SpaceGroup::factory()->create(['community_id' => $owner->ownedCommunities()->first()->id]))
-        ->create(['type' => KnowiiSpaceType::Resources]);
+test('a capture stores its Markdown on the community resource, not the HTML (#1244)', function () {
+    [, $space] = captureResourcesSpace();
     $paragraph = str_repeat('Smart notes help you think and write better every single day. ', 20);
     $html = '<!DOCTYPE html><html lang="en"><head><title>Captured</title></head><body><article><h1>Captured</h1>'
         ."<p>{$paragraph}</p><p>{$paragraph}</p></article></body></html>";
+    $created = CommunityResource::factory()->create(['space_id' => $space->id, 'level' => KnowiiResourceLevel::Advanced]);
 
-    $action = new CreateTextResource;
-    $action->setHttpHandlerStack(HandlerStack::create(new MockHandler([
-        new Response(200, [], ''),     // final URL
-        new Response(200, [], ''),     // availability (HEAD)
-        new Response(200, [], $html),  // page
-        new Response(404, [], ''),     // icon
-    ])));
-
-    $created = $action->create($owner, $space, ['url' => 'https://example.com/captured', 'level' => KnowiiResourceLevel::Advanced->value]);
+    fakeCapturer($html)->capture($created);
 
     $created->refresh();
     expect($created->level)->toBe(KnowiiResourceLevel::Advanced)
-        ->and($created->capture_status)->toBe(KnowiiCaptureStatus::Captured)
         ->and($created->capture)->not->toBeNull()
         ->and($created->capture->markdown)->toContain('Smart notes help you think')
         ->and($created->capture->markdown)->not->toContain('<p>')
