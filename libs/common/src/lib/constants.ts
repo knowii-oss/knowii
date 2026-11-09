@@ -1,4 +1,4 @@
-import { ToastProps } from 'primereact/toast';
+import type { ToastProps } from 'primereact/toast';
 
 /**
  * Meta

@@ -1,17 +1,18 @@
 import AppLayout from '@/Layouts/AppLayout';
-import {
+import type {
   Community,
   CommunityPermissions,
   CommunityResourceCollection,
+  CommunityResource} from '@knowii/common';
+import {
   COMMUNITY_URL,
-  CommunityResource,
   RESOURCE_COLLECTION_URL,
   useSocket,
   DASHBOARD_URL,
 } from '@knowii/common';
 import { Link, router } from '@inertiajs/react';
-import { MenuItem } from 'primereact/menuitem';
-import { breadcrumbHome } from '@/Components/BreadcrumbHome';
+import type { MenuItem } from 'primereact/menuitem';
+import { breadcrumbHome } from '../../Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
 import ResourceCollectionIcon from '@/Components/ResourceCollections/ResourceCollectionIcon';
 import ResourceIcon from '@/Components/Resources/ResourceIcon';

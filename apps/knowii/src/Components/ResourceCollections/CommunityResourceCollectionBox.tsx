@@ -1,5 +1,5 @@
 import React from 'react';
-import { CommunityResourceCollection } from '@knowii/common';
+import type { CommunityResourceCollection } from '@knowii/common';
 import { FaChevronRight } from 'react-icons/fa';
 import { Link } from '@inertiajs/react';
 

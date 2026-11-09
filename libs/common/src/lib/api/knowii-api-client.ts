@@ -13,24 +13,29 @@ import {
   PING_API_PATH,
   USERS_API_IS_USERNAME_AVAILABLE_PATH,
 } from '../constants';
-import { PingResponse, pingResponseSchema } from './ping-response.schema';
-import { CreateCommunityResponse, createCommunityResponseSchema } from './communities/create-community-response.schema';
-import { CreateCommunityRequest } from './communities/create-community-request.schema';
-import { IsUsernameAvailableRequest } from './users/is-username-available-request.schema';
-import { IsUsernameAvailableResponse, isUsernameAvailableResponseSchema } from './users/is-username-available-response.schema';
-import { CreateCommunityResourceCollectionRequest } from './community-resource-collections/create-community-resource-collection-request.schema';
+import type { PingResponse} from './ping-response.schema';
+import { pingResponseSchema } from './ping-response.schema';
+import type { CreateCommunityResponse} from './communities/create-community-response.schema';
+import { createCommunityResponseSchema } from './communities/create-community-response.schema';
+import type { CreateCommunityRequest } from './communities/create-community-request.schema';
+import type { IsUsernameAvailableRequest } from './users/is-username-available-request.schema';
+import type { IsUsernameAvailableResponse} from './users/is-username-available-response.schema';
+import { isUsernameAvailableResponseSchema } from './users/is-username-available-response.schema';
+import type { CreateCommunityResourceCollectionRequest } from './community-resource-collections/create-community-resource-collection-request.schema';
+import type {
+  CreateCommunityResourceCollectionResponse} from './community-resource-collections/create-community-resource-collection-response.schema';
 import {
-  CreateCommunityResourceCollectionResponse,
   createCommunityResourceCollectionResponseSchema,
 } from './community-resource-collections/create-community-resource-collection-response.schema';
-import { CreateResourceTextArticleRequest } from './resources/create-resource-text-article-request.schema';
+import type { CreateResourceTextArticleRequest } from './resources/create-resource-text-article-request.schema';
+import type {
+  CreateResourceTextArticleResponse} from './resources/create-resource-text-article-response.schema';
 import {
-  CreateResourceTextArticleResponse,
   createResourceTextArticleResponseSchema,
 } from './resources/create-resource-text-article-response.schema';
 import { HttpStatus } from '../types/http-status.intf';
-import { DeleteResourceCollectionRequest } from './community-resource-collections/delete-community-resource-collection-request.schema';
-import { DeleteCommunityRequest } from './communities/delete-community-request.schema';
+import type { DeleteResourceCollectionRequest } from './community-resource-collections/delete-community-resource-collection-request.schema';
+import type { DeleteCommunityRequest } from './communities/delete-community-request.schema';
 
 const defaultHeaders: Headers = new Headers({
   Accept: 'application/json',

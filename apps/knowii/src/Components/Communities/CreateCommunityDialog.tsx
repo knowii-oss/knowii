@@ -9,11 +9,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import { SelectButton } from 'primereact/selectbutton';
+import type {
+  NewCommunity,
+  Community} from '@knowii/common';
 import {
   communityVisibilityOptions,
-  NewCommunity,
   newCommunitySchema,
-  Community,
   knowiiApiClient,
   MIN_ACTION_TIME,
   sleep,

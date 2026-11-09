@@ -1,6 +1,7 @@
 import { Divider } from 'primereact/divider';
 import { Card } from 'primereact/card';
-import { Community, communityVisibilityOptions } from '@knowii/common';
+import type { Community} from '@knowii/common';
+import { communityVisibilityOptions } from '@knowii/common';
 import { FaPlus } from 'react-icons/fa';
 import { Link } from '@inertiajs/react';
 import CommunityIcon from './CommunityIcon';
@@ -44,7 +45,6 @@ export default function CommunityBox(props: Props) {
   );
 
   return props.creationMode ? (
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
     <div
       className="w-full sm:w-[450px] h-[250px] rounded-md flex flex-col justify-center items-center outline-dashed outline-2 outline-offset-[-2px] text-gray-800 cursor-pointer hover:text-primary-500 hover:outline-4 hover:outline-primary-500 hover:outline-offset-[0px] hover:rounded-md"
       onClick={

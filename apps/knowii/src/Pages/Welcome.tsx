@@ -32,7 +32,7 @@ export default function WelcomePage(props: Props) {
     return () => {
       try {
         document.getElementById('waitlist-container')?.removeChild(script);
-      } catch (e) {
+      } catch {
         /* empty */
       }
     };

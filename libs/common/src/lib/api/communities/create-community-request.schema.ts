@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import type { z } from 'zod';
 import { newCommunitySchema } from '../../types/community.schema';
 
 export const createCommunityRequestSchema = newCommunitySchema;

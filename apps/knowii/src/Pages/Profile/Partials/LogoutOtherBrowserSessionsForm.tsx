@@ -1,4 +1,5 @@
-import { DESTROY_OTHER_BROWSER_SESSIONS_URL, Session, useAppData } from '@knowii/common';
+import type { Session} from '@knowii/common';
+import { DESTROY_OTHER_BROWSER_SESSIONS_URL, useAppData } from '@knowii/common';
 import { useForm } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
 import { useRef, useState } from 'react';

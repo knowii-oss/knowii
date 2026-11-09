@@ -1,4 +1,5 @@
-import { FormEventHandler, useRef, useState } from 'react';
+import type { FormEventHandler} from 'react';
+import { useRef, useState } from 'react';
 import { Button } from 'primereact/button';
 import { FaLock } from 'react-icons/fa';
 import { InputText } from 'primereact/inputtext';

@@ -1,4 +1,3 @@
-/* eslint-disable */
 module.exports = {
   displayName: 'knowii',
   preset: '../../jest.preset.js',

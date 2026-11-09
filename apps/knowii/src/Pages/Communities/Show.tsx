@@ -3,32 +3,33 @@ import { Divider } from 'primereact/divider';
 import { Button } from 'primereact/button';
 import { FaExternalLinkAlt, FaPlus } from 'react-icons/fa';
 import { useState } from 'react';
-import { MenuItem } from 'primereact/menuitem';
+import type { MenuItem } from 'primereact/menuitem';
 import AppLayout from '@/Layouts/AppLayout';
-import {
+import type {
   Community,
-  COMMUNITY_SETTINGS_URL,
   CommunityPermissions,
   CommunityResource,
   CommunityResourceCollection,
+  Identifiable} from '@knowii/common';
+import {
+  COMMUNITY_SETTINGS_URL,
   DASHBOARD_URL,
   getIconForResourceLevel,
-  Identifiable,
   RESOURCE_COLLECTION_URL,
   RESOURCE_URL,
   useSocket,
 } from '@knowii/common';
-import CommunityResourceCollectionDialog, {
-  CreateResourceCollectionDialogSettings,
-} from '@/Components/ResourceCollections/CreateResourceCollectionDialog';
+import type { CreateResourceCollectionDialogSettings } from '../../Components/ResourceCollections/CreateResourceCollectionDialog';
+import CommunityResourceCollectionDialog from '@/Components/ResourceCollections/CreateResourceCollectionDialog';
 import CommunityResourceCollectionBox from '@/Components/ResourceCollections/CommunityResourceCollectionBox';
 import CardGroup from '@/Components/CardGroup';
-import { breadcrumbHome } from '@/Components/BreadcrumbHome';
+import { breadcrumbHome } from '../../Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
 import ResourceIcon from '@/Components/Resources/ResourceIcon';
 import ResourceCollectionIcon from '@/Components/ResourceCollections/ResourceCollectionIcon';
 import CommunityMembersIcon from '@/Components/Communities/CommunityMembersIcon';
-import { CreateResourceDialog, CreateResourceDialogSettings } from '@/Components/Resources/CreateResourceDialog';
+import type { CreateResourceDialogSettings } from '../../Components/Resources/CreateResourceDialog';
+import { CreateResourceDialog } from '../../Components/Resources/CreateResourceDialog';
 import { Link, router } from '@inertiajs/react';
 import { FaGear } from 'react-icons/fa6';
 import { useImmer } from 'use-immer';

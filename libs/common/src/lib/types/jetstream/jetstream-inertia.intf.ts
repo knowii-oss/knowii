@@ -1,6 +1,6 @@
-import { DateTime } from '../date-time.intf';
-import { Nullable } from '../nullable.intf';
-import { CurrentUser, UserProfile } from '../user.schema';
+import type { DateTime } from '../date-time.intf';
+import type { Nullable } from '../nullable.intf';
+import type { CurrentUser, UserProfile } from '../user.schema';
 
 export interface Auth {
   user: Nullable<CurrentUser>;

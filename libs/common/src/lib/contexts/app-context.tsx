@@ -1,5 +1,5 @@
 import React, { createContext, useContext } from 'react';
-import { Toast } from 'primereact/toast';
+import type { Toast } from 'primereact/toast';
 
 interface AppData {
   toast: Toast | null;
