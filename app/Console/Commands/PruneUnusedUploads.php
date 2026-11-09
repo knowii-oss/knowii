@@ -11,9 +11,10 @@ use Illuminate\Support\Facades\Storage;
 
 /**
  * Deletes the uploaded images that no post or comment uses (#1201): the member cancelled the post, removed the image
- * from the text, or deleted the post. Recent uploads stay: they can be in a post being written.
+ * from the text, or deleted the post. Uploads of the last 7 days stay (#1273): they can be in a post that a member
+ * keeps open for days before saving it.
  */
-#[Signature('uploads:prune {--hours=24 : Keep the uploads younger than this} {--dry-run : List the uploads without deleting them}')]
+#[Signature('uploads:prune {--hours=168 : Keep the uploads younger than this (7 days)} {--dry-run : List the uploads without deleting them}')]
 #[Description('Delete the uploaded images that no post or comment uses')]
 class PruneUnusedUploads extends Command
 {

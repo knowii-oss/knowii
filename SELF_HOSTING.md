@@ -166,7 +166,7 @@ The `knowii-scheduler` program (`schedule:work`) runs the scheduler every minute
 
 The scheduled tasks:
 
-1. `uploads:prune`, every day at 03:30: deletes the uploaded images that no post or comment used for 24 hours (the member removed them from the text, cancelled the post, or deleted it). Run `php artisan uploads:prune --dry-run` to see the list first.
+1. `uploads:prune`, every day at 03:30: deletes the uploaded images that no post or comment used for 7 days (the member removed them from the text, cancelled the post, or deleted it). The 7 days protect a post that a member keeps open for days before saving it (#1273). Run `php artisan uploads:prune --dry-run` to see the list first.
 
 If you want automatic backups, schedule `php artisan backup:run` too (the `spatie/laravel-backup` package is installed; see `config/backup.php`).
 
