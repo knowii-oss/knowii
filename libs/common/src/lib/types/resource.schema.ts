@@ -52,6 +52,9 @@ export const resourceSchema = baseEntitySchema.extend(slugSchema.shape).extend({
   cover_image_url: z.string().nullable(),
   cover_image_alt: z.string().nullable(),
   cover_image_base64: z.string().nullable(),
+  // Stored by Knowii and served from its origin (#1063, ADR 0016). Lists carry them
+  cover_image_thumbnail_url: z.string().nullable(),
+  favicon_url: z.string().nullable(),
   type: resourceTypeSchema,
   level: resourceLevelSchema,
   is_featured: z.boolean(),

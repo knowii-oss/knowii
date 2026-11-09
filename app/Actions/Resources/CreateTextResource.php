@@ -14,6 +14,7 @@ use App\Models\Resource;
 use App\Models\ResourceTextArticle;
 use App\Models\Space;
 use App\Models\User;
+use App\Support\ResourceImages;
 use App\Traits\FetchUrl;
 use App\Traits\HtmlToMarkdown;
 use App\Traits\ProcessHtml;
@@ -129,6 +130,9 @@ class CreateTextResource implements CreatesTextResources
             throw new BusinessException('This resource is already in this space');
         }
 
+        $coverBytes = null;
+        $faviconBytes = null;
+
         $pageContent = [
             'html' => null,
             'readable_content' => null,
@@ -159,22 +163,6 @@ class CreateTextResource implements CreatesTextResources
             $pageContent['description'] = $this->getHtmlPageDescription($pageContent['html']);
             $pageContent['title'] = $this->getHtmlPageTitle($pageContent['html']);
 
-            // If title is still empty, generate it from the URL
-            if (empty($pageContent['title'])) {
-                $urlParts = parse_url($url);
-                $path = $urlParts['path'] ?? '';
-                $path = trim($path, '/');
-                $pathParts = explode('/', $path);
-                $lastPart = end($pathParts);
-                $inferredTitle = str_replace(['-', '_'], ' ', $lastPart);
-                $inferredTitle = ucwords($inferredTitle);
-
-                // The condition was inverted before #1062: the inferred title was only used when it was empty
-                if (! empty($inferredTitle)) {
-                    $pageContent['title'] = $inferredTitle;
-                }
-            }
-
             $pageContent['published_at'] = $this->getHtmlPublishedTime($pageContent['html']);
             $pageContent['modified_at'] = $this->getHtmlModifiedTime($pageContent['html']);
 
@@ -185,14 +173,12 @@ class CreateTextResource implements CreatesTextResources
 
             $pageContent['keywords'] = $this->getHtmlKeywords($pageContent['html']);
 
-            if (! empty($pageContent['cover_image_url'] && $this->isUrlAvailableAndIsAnImage($pageContent['cover_image_url']))) {
-                try {
-                    $coverImageAsBase64 = $this->loadImageAsBase64($pageContent['cover_image_url']);
-                    $pageContent['cover_image_base64'] = $coverImageAsBase64;
-                } catch (Exception $e) {
-                    Log::debug('Could not fetch the cover image', [$e]);
-                }
+            // Images: downloaded once, kept by Knowii, never hotlinked (#1063, ADR 0016)
+            if (! empty($pageContent['cover_image_url'])) {
+                $coverBytes = $this->downloadImage($pageContent['cover_image_url']);
+                $pageContent['cover_image_base64'] = $coverBytes === null ? null : base64_encode($coverBytes);
             }
+            $faviconBytes = $this->downloadImage($this->getHtmlFaviconUrl($pageContent['html'], $url));
 
             Log::debug('Trying to extract readable content from the page');
             try {
@@ -231,6 +217,11 @@ class CreateTextResource implements CreatesTextResources
             }
         }
 
+        // No title in the page, or no page at all (Browserless failed): a title made from the URL (#1062)
+        if (empty($pageContent['title'])) {
+            $pageContent['title'] = self::titleFromUrl($url);
+        }
+
         // Without a name from the member, the community uses the title of the page (#1062)
         if ($name === null) {
             $title = trim((string) ($pageContent['title'] ?? ''));
@@ -241,7 +232,7 @@ class CreateTextResource implements CreatesTextResources
         }
 
         try {
-            return DB::transaction(static function () use ($user, $space, $url, $level, $name, $description, $pageContent) {
+            $communityResource = DB::transaction(static function () use ($user, $space, $url, $level, $name, $description, $pageContent) {
                 $resourceData = [
                     'name' => $pageContent['title'] ?? $name, // title identified by parsing the page, or user-provided one otherwise
                     'description' => $pageContent['description'] ?? $description,
@@ -308,5 +299,22 @@ class CreateTextResource implements CreatesTextResources
             Log::warning('Could not save the resource', [$e]);
             throw new TechnicalException('Could not save the resource');
         }
+
+        // After the commit: the files need the cuid of the resource, and a failure only loses the images
+        ResourceImages::store($communityResource->resource, $coverBytes, $faviconBytes);
+
+        return $communityResource;
+    }
+
+    /**
+     * "https://example.com/blog/smart-notes_guide/" gives "Smart Notes Guide". Null without a path.
+     */
+    private static function titleFromUrl(string $url): ?string
+    {
+        $path = trim((string) parse_url($url, PHP_URL_PATH), '/');
+        $segments = explode('/', $path);
+        $title = ucwords(str_replace(['-', '_'], ' ', (string) end($segments)));
+
+        return trim($title) === '' ? null : trim($title);
     }
 }

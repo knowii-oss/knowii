@@ -9,6 +9,9 @@ use App\Exceptions\BusinessException;
 use App\Models\Space;
 use App\Models\SpaceGroup;
 use App\Models\User;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Psr7\Response;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 
@@ -311,3 +314,22 @@ test('the same URL cannot be added twice to a space', function () {
     $action->setHttpHandlerStack(fakeTextResourceFetchHandler(ARTICLE_HTML));
     $action->create($owner, $space, $input);
 })->throws(BusinessException::class, 'This resource is already in this space');
+
+test('when the page cannot be fetched, the resource takes a title made from the URL (#1062)', function () {
+    [$owner, $space] = makeOwnerWithResourcesSpace();
+
+    $action = new CreateTextResource;
+    // Browserless fails: the page content request gets a 500
+    $action->setHttpHandlerStack(HandlerStack::create(new MockHandler([
+        new Response(200, [], ''),
+        new Response(200, [], ''),
+        new Response(500, [], ''),
+    ])));
+
+    $resource = $action->create($owner, $space, [
+        'url' => 'https://example.com/pick-a-tool-and-stick-with-it/',
+        'level' => KnowiiResourceLevel::Beginner->value,
+    ]);
+
+    expect($resource->name)->toBe('Pick A Tool And Stick With It');
+});

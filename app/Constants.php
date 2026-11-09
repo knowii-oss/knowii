@@ -99,6 +99,11 @@ class Constants
     // Largest page or image that the server downloads from an external address (#1231)
     public const int MAX_FETCH_SIZE_BYTES = 10 * 1024 * 1024;
 
+    // Stored resource images (#1063): largest side in pixels
+    public const int RESOURCE_COVER_MAX_DIMENSION = 800;
+
+    public const int RESOURCE_FAVICON_MAX_DIMENSION = 64;
+
     public const int MAX_LENGTH_UPLOAD_ALT = 500;
 
     public const int UPLOADS_PER_MINUTE = 20;

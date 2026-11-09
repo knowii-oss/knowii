@@ -17,7 +17,7 @@ final class ImageProcessor
      *
      * @throws BusinessException When the file is not a supported image or is too large in pixels
      */
-    public static function process(string $sourcePath): array
+    public static function process(string $sourcePath, int $maxDimension = Constants::MAX_UPLOAD_IMAGE_DIMENSION): array
     {
         $info = @getimagesize($sourcePath);
         if ($info === false || ! in_array($info[2], [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_WEBP, IMAGETYPE_GIF], true)) {
@@ -40,7 +40,7 @@ final class ImageProcessor
             $image = self::applyExifOrientation($image, $sourcePath);
         }
 
-        $image = self::scaleDown($image, Constants::MAX_UPLOAD_IMAGE_DIMENSION);
+        $image = self::scaleDown($image, $maxDimension);
         imagepalettetotruecolor($image);
         imagealphablending($image, false);
         imagesavealpha($image, true);

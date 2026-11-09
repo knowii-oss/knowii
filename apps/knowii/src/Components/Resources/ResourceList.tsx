@@ -1,18 +1,10 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Link } from '@inertiajs/react';
 import type { Community, CommunityResource, Identifiable, Paginated, Space } from '@knowii/common';
-import {
-  getIconForResourceLevel,
-  knowiiApiClient,
-  RESOURCE_URL,
-  RESOURCES_PER_PAGE,
-  safeHttpUrl,
-  useAppData,
-  useSocket,
-} from '@knowii/common';
-import { FaArrowUpRightFromSquare, FaPlus } from 'react-icons/fa6';
-import { Button, buttonClasses, EmptyState } from '@/Components/ui';
+import { knowiiApiClient, RESOURCE_URL, RESOURCES_PER_PAGE, useAppData, useSocket } from '@knowii/common';
+import { FaPlus } from 'react-icons/fa6';
+import { Button, EmptyState } from '@/Components/ui';
 import { CreateResourceDialog } from './CreateResourceDialog';
+import { ResourceCard } from './ResourceCard';
 
 export interface ResourceListProps {
   community: Community;
@@ -95,37 +87,11 @@ export function ResourceList({ community, space, initialResources, canContribute
         />
       ) : (
         <ul className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-          {resources.map((resource) => {
-            const name = resource.name || resource.resource.name;
-            const description = resource.description || resource.resource.description;
-            const externalUrl = safeHttpUrl(resource.resource.url);
-
-            return (
-              <li
-                key={resource.cuid}
-                className="flex items-start gap-2 rounded-lg border border-border bg-well p-3 transition-colors hover:border-overlay/40"
-              >
-                <Link href={href(resource)} preserveState={true} className="min-w-0 grow rounded">
-                  <h3 className="text-base font-bold">
-                    <span aria-hidden="true">{getIconForResourceLevel(resource.resource.level) + ' '}</span>
-                    {name}
-                  </h3>
-                  {description && <p className="my-1 line-clamp-2 text-sm text-muted">{description}</p>}
-                </Link>
-                {externalUrl && (
-                  <a
-                    href={externalUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label={`Open "${name}" in a new tab`}
-                    className={buttonClasses({ variant: 'secondary', size: 'sm', iconOnly: true })}
-                  >
-                    <FaArrowUpRightFromSquare aria-hidden="true" />
-                  </a>
-                )}
-              </li>
-            );
-          })}
+          {resources.map((resource) => (
+            <li key={resource.cuid}>
+              <ResourceCard resource={resource} href={href(resource)} />
+            </li>
+          ))}
         </ul>
       )}
 
