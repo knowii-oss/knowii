@@ -33,7 +33,8 @@ class CommunityResourceController extends Controller
             'community' => $community->toResource()->withLargeFields(),
             'space' => $space->toResource()->withLargeFields(),
             'spaceGroups' => SpaceTree::for($community, $request->user())->toResourceCollection(),
-            'resource' => $resource->toResource()->withLargeFields(),
+            // Not the large fields: the page does not show the captured article yet (#1230), nor the base64 cover
+            'resource' => $resource->toResource(),
         ]);
     }
 }

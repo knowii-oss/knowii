@@ -1,11 +1,11 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Community, CommunityResource, Space, SpaceGroup } from '@knowii/common';
-import { COMMUNITY_URL, SPACE_TYPE_LABELS, SPACE_URL } from '@knowii/common';
+import { COMMUNITY_URL, RESOURCE_URL, SPACE_TYPE_LABELS, SPACE_URL } from '@knowii/common';
 import type { BreadcrumbItem } from '@/Components/ui';
-import { EmptyState } from '@/Components/ui';
 import { breadcrumbHome } from '../../Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
 import ResourceIcon from '@/Components/Resources/ResourceIcon';
+import { ResourceDetails } from '@/Components/Resources/ResourceDetails';
 import { CommunityShell } from '@/Components/Spaces/CommunityShell';
 
 interface Props {
@@ -17,7 +17,7 @@ interface Props {
 }
 
 /**
- * A resource of a resources space (ADR 0015). The full page (article, cover image, comments) is #1133.
+ * A resource of a resources space (ADR 0015, #1133).
  */
 export default function ResourcePage(props: Props) {
   const { community, space, resource } = props;
@@ -44,8 +44,11 @@ export default function ResourcePage(props: Props) {
       breadcrumbHome={breadcrumbHome()}
     >
       <CommunityShell community={community} spaceGroups={props.spaceGroups} activeSpaceCuid={space.cuid}>
-        <h1 className="mb-4 text-2xl font-extrabold">{name}</h1>
-        <EmptyState icon="🔗" title="Coming soon" description="The page of a resource is not ready yet." />
+        <ResourceDetails
+          communitySlug={community.slug}
+          resource={resource}
+          shareUrl={route(RESOURCE_URL, { communitySlug: community.slug, spaceSlug: space.slug, resourceSlug: resource.slug })}
+        />
       </CommunityShell>
     </AppLayout>
   );
