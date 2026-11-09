@@ -104,6 +104,7 @@ export function CommentSection(props: CommentSectionProps) {
         </p>
         {editing === comment.cuid ? (
           <CommentForm
+            communityCuid={communityCuid}
             label="Edit your comment"
             submitLabel="Save"
             initialBody={comment.body}
@@ -178,6 +179,7 @@ export function CommentSection(props: CommentSectionProps) {
                 {replyingTo === comment.cuid && (
                   <li>
                     <CommentForm
+                      communityCuid={communityCuid}
                       label={`Reply to ${comment.author?.name ?? 'the comment'}`}
                       submitLabel="Reply"
                       autoFocus
@@ -192,7 +194,14 @@ export function CommentSection(props: CommentSectionProps) {
         ))}
       </ol>
 
-      {canComment && <CommentForm label="Write a comment" submitLabel="Comment" onSubmit={(values) => create(values.body, null)} />}
+      {canComment && (
+        <CommentForm
+          communityCuid={communityCuid}
+          label="Write a comment"
+          submitLabel="Comment"
+          onSubmit={(values) => create(values.body, null)}
+        />
+      )}
 
       <Dialog
         open={pendingDeletion !== null}

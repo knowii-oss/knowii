@@ -1,12 +1,17 @@
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useId } from 'react';
+import { useEffect, useId, useMemo } from 'react';
 import type { CommentForm as CommentFormValues } from '@knowii/common';
 import { COMMENT_EDITOR_ROWS, commentFormSchema, knowiiApiClient, MAX_LENGTH_COMMENT_BODY } from '@knowii/common';
 import InputError from '@/Components/InputError';
 import { Button, MarkdownEditor } from '@/Components/ui';
+import { useMentionSource } from '@/Components/Members/use-mention-source';
 
 export interface CommentFormProps {
+  /**
+   * Community of the post: members to mention and mentions in the preview
+   */
+  communityCuid: string;
   /**
    * Accessible name of the editor ("Write a comment", "Reply to Ada")
    */
@@ -21,13 +26,24 @@ export interface CommentFormProps {
   onCancel?: () => void;
 }
 
-const renderPreview = (markdown: string, signal: AbortSignal) => knowiiApiClient.markdown.preview(markdown, signal);
-
 /**
  * Comment, reply and edit form: a compact Markdown editor with its buttons.
  */
-export function CommentForm({ label, submitLabel, initialBody = '', autoFocus = false, onSubmit, onCancel }: CommentFormProps) {
+export function CommentForm({
+  communityCuid,
+  label,
+  submitLabel,
+  initialBody = '',
+  autoFocus = false,
+  onSubmit,
+  onCancel,
+}: CommentFormProps) {
   const id = useId();
+  const mentions = useMentionSource(communityCuid);
+  const renderPreview = useMemo(
+    () => (markdown: string, signal: AbortSignal) => knowiiApiClient.markdown.preview(markdown, signal, communityCuid),
+    [communityCuid],
+  );
   const form = useForm<CommentFormValues>({
     resolver: zodResolver(commentFormSchema),
     defaultValues: { body: initialBody },
@@ -67,6 +83,7 @@ export function CommentForm({ label, submitLabel, initialBody = '', autoFocus = 
             onBlur={field.onBlur}
             ref={field.ref}
             renderPreview={renderPreview}
+            mentions={mentions}
             rows={COMMENT_EDITOR_ROWS}
             maxLength={MAX_LENGTH_COMMENT_BODY}
             invalid={!!error}

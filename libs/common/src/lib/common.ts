@@ -30,11 +30,13 @@ export * from './types/space.schema';
 export * from './types/post.schema';
 export * from './types/comment.schema';
 export * from './types/reaction.schema';
+export * from './types/member.schema';
 export * from './types/toast.intf';
 export * from './types/url.schema';
 export * from './types/user.schema';
 export * from './types/username.schema';
 
 export * from './utils/sleep.fn';
+export * from './utils/safe-url.fn';
 
 export { default as metadata } from './metadata.json';

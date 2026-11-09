@@ -6,7 +6,7 @@ use App\Constants;
 use App\Contracts\Comments\UpdatesComments;
 use App\Models\Comment;
 use App\Models\User;
-use App\Support\Markdown;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 
@@ -24,11 +24,11 @@ class UpdateComment implements UpdatesComments
             'body' => ['required', 'string', 'min:1', 'max:'.Constants::MAX_LENGTH_COMMENT_BODY],
         ])->validate();
 
-        $comment->update([
+        DB::transaction(fn () => $comment->update([
             'body' => $validated['body'],
-            'body_html' => Markdown::render($validated['body']),
+            'body_html' => $comment->renderBodyAndSyncMentions($validated['body'], $comment->author),
             'edited_at' => now(),
-        ]);
+        ]));
 
         return $comment;
     }

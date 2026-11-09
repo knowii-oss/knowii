@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\KnowiiCommunityMemberRole;
 use App\Enums\KnowiiCommunityVisibility;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -33,6 +34,15 @@ class DatabaseSeeder extends Seeder
             'name' => 'Cool links',
             'description' => 'A collection of cool links',
         ]);
+
+        // A second member, to check mentions, reactions and real time with two browsers
+        $member = User::factory()->withUserProfile()->create([
+            'name' => 'Ada Lovelace',
+            'username' => 'ada-lovelace',
+            'email' => 'ada@example.com',
+            'password' => Hash::make('foo'),
+        ]);
+        $community->users()->attach($member, ['role' => KnowiiCommunityMemberRole::Member]);
 
         $this->call(SpaceSeeder::class);
     }

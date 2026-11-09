@@ -32,8 +32,9 @@ These rules keep the code structurally sound as it grows. Each rule has a reason
 2. Use the components in `apps/knowii/src/Components/ui`. A new building block goes there with a test.
 3. Keyboard support and a visible focus for every interactive element. Check every screen in the dark and the light themes.
 4. Use the brand tokens only. No raw hex values, no Tailwind palette colors.
-5. Inertia props are not parsed by Zod: their dates are ISO strings even when the type says `Date`. Components that format dates accept both (see `RelativeTime`).
-6. Call the API through `apiRequest()`: it sends uppercase HTTP methods (`fetch` does not uppercase `patch`, and servers reject it).
+5. Never put text written by a member in an `href` without `safeHttpUrl()` (libs/common): only absolute http and https URLs become links.
+6. Inertia props are not parsed by Zod: their dates are ISO strings even when the type says `Date`. Components that format dates accept both (see `RelativeTime`).
+7. Call the API through `apiRequest()`: it sends uppercase HTTP methods (`fetch` does not uppercase `patch`, and servers reject it).
 
 ## Definition of done
 

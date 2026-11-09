@@ -1,0 +1,27 @@
+meta {
+  name: Markdown - Preview with mentions
+  type: http
+  seq: 50
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/markdown/preview
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "markdown": "Thanks @ada-lovelace!",
+    "community_cuid": "nswswk8w8wso0ko8owwk8k0w"
+  }
+}
+
+docs {
+  With community_cuid, @username of the members of that community become links to their profile, like in saved posts and comments.
+}

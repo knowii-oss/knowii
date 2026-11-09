@@ -5,7 +5,7 @@ namespace App\Actions\Posts;
 use App\Contracts\Posts\UpdatesPosts;
 use App\Models\Post;
 use App\Models\User;
-use App\Support\Markdown;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -30,11 +30,11 @@ class UpdatePost implements UpdatesPosts
         }
         if (array_key_exists('body', $validated)) {
             $changes['body'] = $validated['body'];
-            $changes['body_html'] = Markdown::render($validated['body']);
+            $changes['body_html'] = $post->renderBodyAndSyncMentions($validated['body'], $post->author);
         }
 
         if ($changes !== []) {
-            $post->update([...$changes, 'edited_at' => now()]);
+            DB::transaction(fn () => $post->update([...$changes, 'edited_at' => now()]));
         }
 
         return $post;

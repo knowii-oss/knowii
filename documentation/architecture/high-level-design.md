@@ -19,7 +19,7 @@ User ──< CommunityMember >── Community ──< SpaceGroup ──< Space
  └── Reactions, Mentions, Uploads (one nullable foreign key per kind of item: post, comment, message, page; ADR 0014)
 ```
 
-State on 2026-11-09: users, profiles, communities, members, invitations, resource collections, space groups and spaces ([ADR 0012](../adr/0012-space-groups-and-typed-spaces.md)) posts, comments (one level of replies) and reactions exist. The rest of the content of the spaces (chat messages, pages, conversations) is built for the MVP (milestones M1 to M4, see the GitHub milestones). This diagram shows the target of the MVP. Each feature updates this paragraph when it ships.
+State on 2026-11-09: users, profiles, communities, members, invitations, resource collections, space groups and spaces ([ADR 0012](../adr/0012-space-groups-and-typed-spaces.md)) posts, comments (one level of replies), reactions, mentions and member pages exist. The rest of the content of the spaces (chat messages, pages, conversations) is built for the MVP (milestones M1 to M4, see the GitHub milestones). This diagram shows the target of the MVP. Each feature updates this paragraph when it ships.
 
 ### Concepts
 
