@@ -96,6 +96,9 @@ class Constants
 
     public const int UPLOAD_IMAGE_QUALITY = 82;
 
+    // Largest page or image that the server downloads from an external address (#1231)
+    public const int MAX_FETCH_SIZE_BYTES = 10 * 1024 * 1024;
+
     public const int MAX_LENGTH_UPLOAD_ALT = 500;
 
     public const int UPLOADS_PER_MINUTE = 20;
