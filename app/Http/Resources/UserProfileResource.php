@@ -48,6 +48,10 @@ class UserProfileResource extends AbstractKnowiiJsonResource
             'social_link_producthunt' => $this->social_link_producthunt ?? '', // Ensures the returned value is never null,
             'social_link_github' => $this->social_link_github ?? '', // Ensures the returned value is never null,
             'social_link_gitlab' => $this->social_link_gitlab ?? '', // Ensures the returned value is never null,
+            'social_link_wikipedia' => $this->social_link_wikipedia ?? '', // Ensures the returned value is never null,
+            'social_link_google_scholar' => $this->social_link_google_scholar ?? '', // Ensures the returned value is never null,
+            'social_link_orcid' => $this->social_link_orcid ?? '', // Ensures the returned value is never null,
+            'social_link_kofi' => $this->social_link_kofi ?? '', // Ensures the returned value is never null,
         ];
     }
 }

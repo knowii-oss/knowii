@@ -89,6 +89,10 @@ class Constants
         'social_link_producthunt',
         'social_link_github',
         'social_link_gitlab',
+        'social_link_wikipedia',
+        'social_link_google_scholar',
+        'social_link_orcid',
+        'social_link_kofi',
     ];
 
     // WebSockets
