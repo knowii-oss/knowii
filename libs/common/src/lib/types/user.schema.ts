@@ -4,7 +4,7 @@ import { socialMediaLinksSchema } from './social-media-link.schema';
 export const currentUserSchema = z.object({
   cuid: z.string(),
   name: z.string(),
-  email: z.string().email(),
+  email: z.email(),
   username: z.string(),
   two_factor_enabled: z.boolean(),
   two_factor_confirmed_at: z.coerce.date().nullable(),
@@ -23,6 +23,6 @@ export const userProfileSchema = z
     location: z.string().nullable(),
     phone: z.string().nullable(),
   })
-  .merge(socialMediaLinksSchema);
+  .extend(socialMediaLinksSchema.shape);
 
 export type UserProfile = z.infer<typeof userProfileSchema>;

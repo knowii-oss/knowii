@@ -76,7 +76,7 @@ export default function UpdateProfileInformationForm(props: Props) {
 
     const usernameValidationResults = usernameSchema.safeParse(form.data.username);
     if (!usernameValidationResults.success) {
-      form.setError('username', usernameValidationResults.error.errors[0].message);
+      form.setError('username', usernameValidationResults.error.issues[0]?.message ?? 'Invalid username');
       return;
     }
 

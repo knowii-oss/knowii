@@ -9,7 +9,7 @@ import {
 import { slugSchema } from './slug.schema';
 
 const communityVisibilitySchema = z.enum(['personal', 'private', 'public'], {
-  message: 'Please select the visibility level for your community',
+  error: 'Please select the visibility level for your community',
 });
 export type CommunityVisibility = z.infer<typeof communityVisibilitySchema>;
 
@@ -24,21 +24,21 @@ export const newCommunitySchema = z.object({
   name: z
     .string()
     .min(MIN_LENGTH_COMMUNITY_NAME, {
-      message: `Please choose a name for your new community (between ${MIN_LENGTH_COMMUNITY_NAME} and ${MAX_LENGTH_COMMUNITY_NAME} characters)`,
+      error: `Please choose a name for your new community (between ${MIN_LENGTH_COMMUNITY_NAME} and ${MAX_LENGTH_COMMUNITY_NAME} characters)`,
     })
-    .max(MAX_LENGTH_COMMUNITY_NAME, { message: `The name is too long (maximum ${MAX_LENGTH_COMMUNITY_NAME} characters)` })
+    .max(MAX_LENGTH_COMMUNITY_NAME, { error: `The name is too long (maximum ${MAX_LENGTH_COMMUNITY_NAME} characters)` })
     .regex(new RegExp(ALLOWED_COMMUNITY_NAME_CHARACTERS_REGEX), {
-      message: 'Please use only letters, numbers, spaces, hyphens, or arobases',
+      error: 'Please use only letters, numbers, spaces, hyphens, or arobases',
     }),
   description: z.string().max(MAX_LENGTH_COMMUNITY_DESCRIPTION, {
-    message: `Your description is too long (maximum ${MAX_LENGTH_COMMUNITY_DESCRIPTION} characters)`,
+    error: `Your description is too long (maximum ${MAX_LENGTH_COMMUNITY_DESCRIPTION} characters)`,
   }),
   visibility: communityVisibilitySchema,
 });
 
 export type NewCommunity = z.infer<typeof newCommunitySchema>;
 
-export const communitySchema = baseEntitySchema.merge(newCommunitySchema).merge(slugSchema);
+export const communitySchema = baseEntitySchema.extend(newCommunitySchema.shape).extend(slugSchema.shape);
 
 export type Community = z.infer<typeof communitySchema>;
 

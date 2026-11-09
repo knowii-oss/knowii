@@ -56,11 +56,11 @@ export const knowiiApiClient = {
 
         return {
           message: responseAsJson.message ? responseAsJson.message : 'Failed to create the community. Please try again later.',
-          errors: parsedResponse.error.errors,
+          errors: parsedResponse.error.issues,
           type: responseAsJson.type ? responseAsJson.type : 'internalError',
           category: responseAsJson.category ? responseAsJson.category : 'technical',
         };
-      } catch (error) {
+      } catch {
         return {
           message: 'Failed to create the community. Please try again later.',
           errors: [],
@@ -79,7 +79,7 @@ export const knowiiApiClient = {
         });
 
         return response.status === HttpStatus.NO_CONTENT;
-      } catch (error) {
+      } catch {
         return false;
       }
     },
@@ -107,11 +107,11 @@ export const knowiiApiClient = {
 
           return {
             message: responseAsJson.message ? responseAsJson.message : 'Failed to create the resource collection. Please try again later.',
-            errors: parsedResponse.error.errors,
+            errors: parsedResponse.error.issues,
             type: responseAsJson.type ? responseAsJson.type : 'internalError',
             category: responseAsJson.category ? responseAsJson.category : 'technical',
           };
-        } catch (error) {
+        } catch {
           return {
             message: 'Failed to create the resource collection. Please try again later.',
             errors: [],
@@ -133,7 +133,7 @@ export const knowiiApiClient = {
           });
 
           return response.status === HttpStatus.NO_CONTENT;
-        } catch (error) {
+        } catch {
           return false;
         }
       },
@@ -163,11 +163,11 @@ export const knowiiApiClient = {
 
         return {
           message: responseAsJson.message ? responseAsJson.message : 'Failed to create the text article. Please try again later.',
-          errors: parsedResponse.error.errors,
+          errors: parsedResponse.error.issues,
           type: responseAsJson.type ? responseAsJson.type : 'internalError',
           category: responseAsJson.category ? responseAsJson.category : 'technical',
         };
-      } catch (error) {
+      } catch {
         return {
           message: 'Failed to create the text article. Please try again later.',
           errors: [],
@@ -190,7 +190,7 @@ export const knowiiApiClient = {
         const responseAsJson = await response.json();
 
         return isUsernameAvailableResponseSchema.parse(responseAsJson);
-      } catch (error) {
+      } catch {
         return {
           message: 'Failed to check if the username is available. Please try again later.',
           errors: [],
@@ -211,7 +211,7 @@ export const knowiiApiClient = {
         const responseAsJson = await response.json();
 
         return pingResponseSchema.parse(responseAsJson);
-      } catch (error) {
+      } catch {
         return {
           message: 'Failed to ping the server. Please try again later.',
           errors: [],
