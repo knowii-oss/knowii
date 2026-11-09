@@ -88,4 +88,9 @@ export interface CommunityPermissions {
   canAddCommunityMembers: boolean;
   canUpdateCommunityMembers: boolean;
   canRemoveCommunityMembers: boolean;
+
+  // Access groups (#1241)
+  canManageAccessGroups: boolean;
+  canManageAccessGroupMembers: boolean;
+  canViewAccessGroups: boolean;
 }

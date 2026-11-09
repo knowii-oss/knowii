@@ -1,6 +1,6 @@
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { Space, SpaceForm, SpaceGroup, SpacePostingPolicy, SpaceType, SpaceVisibility } from '@knowii/common';
+import type { AccessGroup, Space, SpaceForm, SpaceGroup, SpacePostingPolicy, SpaceType, SpaceVisibility } from '@knowii/common';
 import {
   DEFAULT_TEXTAREA_ROWS,
   knowiiApiClient,
@@ -10,13 +10,13 @@ import {
   SPACE_TYPES,
   SPACE_VISIBILITIES,
   SPACE_VISIBILITY_LABELS,
-  spaceFormSchema,
+  spaceFormWithGroupsSchema,
   useAppData,
 } from '@knowii/common';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
-import { Button, Dialog, Select, Textarea, TextInput } from '@/Components/ui';
+import { Button, Checkbox, Dialog, Select, Textarea, TextInput } from '@/Components/ui';
 
 export interface SpaceDialogProps {
   open: boolean;
@@ -48,13 +48,14 @@ function initialValues(space: Space | undefined, defaultSpaceGroupCuid: string |
     visibility: space?.visibility ?? 'members',
     posting_policy: space?.posting_policy ?? 'members',
     space_group_cuid: space?.space_group_cuid ?? defaultSpaceGroupCuid ?? '',
+    access_groups: (space?.access_groups ?? []).map((group) => group.cuid),
   };
 }
 
 export function SpaceDialog({ open, communityCuid, spaceGroups, space, defaultSpaceGroupCuid, onClose, onSaved }: SpaceDialogProps) {
   const { showToast } = useAppData();
   const form = useForm<SpaceForm>({
-    resolver: zodResolver(spaceFormSchema),
+    resolver: zodResolver(spaceFormWithGroupsSchema),
     defaultValues: initialValues(space, defaultSpaceGroupCuid),
     mode: 'onChange',
   });
@@ -65,6 +66,24 @@ export function SpaceDialog({ open, communityCuid, spaceGroups, space, defaultSp
     }
   }, [open, space, defaultSpaceGroupCuid, form]);
 
+  // The access groups of the community, for a "groups" space (#1241)
+  const visibility = useWatch({ control: form.control, name: 'visibility' });
+  const [accessGroups, setAccessGroups] = useState<AccessGroup[] | null>(null);
+  useEffect(() => {
+    if (!open || visibility !== 'groups' || accessGroups !== null) {
+      return;
+    }
+    let active = true;
+    void knowiiApiClient.communities.accessGroups.list(communityCuid).then((result) => {
+      if (active) {
+        setAccessGroups(result.ok ? result.data : []);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [open, visibility, accessGroups, communityCuid]);
+
   const onSubmit = form.handleSubmit(async (data) => {
     const result = space
       ? await knowiiApiClient.communities.spaces.update(communityCuid, space.cuid, {
@@ -74,6 +93,7 @@ export function SpaceDialog({ open, communityCuid, spaceGroups, space, defaultSp
           visibility: data.visibility,
           posting_policy: data.posting_policy,
           space_group_cuid: data.space_group_cuid,
+          ...(data.visibility === 'groups' ? { access_groups: data.access_groups } : {}),
         })
       : await knowiiApiClient.communities.spaces.create(communityCuid, data);
 
@@ -221,11 +241,52 @@ export function SpaceDialog({ open, communityCuid, spaceGroups, space, defaultSp
                 className="mt-1"
                 options={visibilityOptions}
                 value={field.value}
-                onChange={field.onChange}
+                onChange={(value) => {
+                  field.onChange(value);
+                  void form.trigger('access_groups');
+                }}
               />
             )}
           />
         </div>
+
+        {visibility === 'groups' && (
+          <fieldset className="sm:col-span-6" aria-describedby="space-access-groups-help">
+            <legend className="block text-sm font-bold text-primary">Access groups that can read</legend>
+            <p id="space-access-groups-help" className="text-xs text-muted">
+              The owner and the admins always see the space. Manage the groups in the settings of the community.
+            </p>
+            {accessGroups === null ? (
+              <p className="mt-2 text-sm text-muted">Loading the access groups…</p>
+            ) : accessGroups.length === 0 ? (
+              <p className="mt-2 text-sm">This community has no access group yet. Create one in the settings first.</p>
+            ) : (
+              <Controller
+                name="access_groups"
+                control={form.control}
+                render={({ field }) => (
+                  <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                    {accessGroups.map((group) => (
+                      <label key={group.cuid} className="flex cursor-pointer items-center gap-2 text-sm">
+                        <Checkbox
+                          name={`access-group-${group.cuid}`}
+                          checked={field.value.includes(group.cuid)}
+                          onChange={(event) => {
+                            field.onChange(
+                              event.target.checked ? [...field.value, group.cuid] : field.value.filter((cuid) => cuid !== group.cuid),
+                            );
+                          }}
+                        />
+                        <span className="font-bold">{group.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              />
+            )}
+            <InputError className="mt-2" message={errors.access_groups?.message} />
+          </fieldset>
+        )}
 
         <div className="sm:col-span-6">
           <InputLabel htmlFor="space-posting-policy">Who can post</InputLabel>

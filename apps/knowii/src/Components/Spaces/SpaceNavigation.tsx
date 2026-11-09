@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react';
 import type { Space, SpaceGroup } from '@knowii/common';
 import { SPACE_TYPE_LABELS } from '@knowii/common';
-import { FaLock } from 'react-icons/fa6';
+import { FaLock, FaUserLock } from 'react-icons/fa6';
 import { cn } from '@/Components/ui';
 
 export interface SpaceNavigationProps {
@@ -55,6 +55,9 @@ export function SpaceNavigation({ spaceGroups, activeSpaceCuid, getSpaceHref, on
                       </span>
                       <span className="min-w-0 grow truncate">{space.name}</span>
                       {space.visibility === 'members' && <FaLock aria-label="Members only" className="size-3 shrink-0 text-muted" />}
+                      {space.visibility === 'groups' && (
+                        <FaUserLock aria-label="Access groups only" className="size-3 shrink-0 text-muted" />
+                      )}
                     </Link>
                   </li>
                 );

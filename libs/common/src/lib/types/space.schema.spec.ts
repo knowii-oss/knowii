@@ -1,4 +1,4 @@
-import { moveItem, spaceFormSchema } from './space.schema';
+import { moveItem, spaceFormSchema, spaceFormWithGroupsSchema } from './space.schema';
 
 describe('moveItem', () => {
   it('moves an item one step up or down', () => {
@@ -23,6 +23,7 @@ describe('spaceFormSchema', () => {
     visibility: 'public',
     posting_policy: 'moderators',
     space_group_cuid: 'abc',
+    access_groups: [] as string[],
   };
 
   it('accepts a valid space', () => {
@@ -34,5 +35,11 @@ describe('spaceFormSchema', () => {
     expect(spaceFormSchema.safeParse({ ...valid, emoji: 'hi' }).success).toBe(false);
     expect(spaceFormSchema.safeParse({ ...valid, type: 'forum' }).success).toBe(false);
     expect(spaceFormSchema.safeParse({ ...valid, space_group_cuid: '' }).success).toBe(false);
+  });
+
+  it('needs an access group for a groups space (#1241)', () => {
+    expect(spaceFormWithGroupsSchema.safeParse({ ...valid, visibility: 'groups' }).success).toBe(false);
+    expect(spaceFormWithGroupsSchema.safeParse({ ...valid, visibility: 'groups', access_groups: ['g1'] }).success).toBe(true);
+    expect(spaceFormWithGroupsSchema.safeParse({ ...valid, visibility: 'members' }).success).toBe(true);
   });
 });

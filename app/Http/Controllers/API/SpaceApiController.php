@@ -25,7 +25,7 @@ class SpaceApiController extends Controller
 {
     use ApiResponses;
 
-    private const array EDITABLE_FIELDS = ['name', 'description', 'emoji', 'visibility', 'posting_policy', 'space_group_cuid'];
+    private const array EDITABLE_FIELDS = ['name', 'description', 'emoji', 'visibility', 'posting_policy', 'space_group_cuid', 'access_groups'];
 
     /**
      * Get a space.
@@ -34,7 +34,7 @@ class SpaceApiController extends Controller
     {
         Gate::authorize('view', $space);
 
-        return self::success('Space', null, $space->toResource());
+        return self::success('Space', null, $space->load('accessGroups')->toResource());
     }
 
     /**
@@ -45,7 +45,8 @@ class SpaceApiController extends Controller
     #[BodyParameter('name', description: 'Name of the space (2 to 64 characters)', required: true, type: 'string', example: 'Announcements')]
     #[BodyParameter('description', description: 'Short description (up to 255 characters)', required: false, type: 'string')]
     #[BodyParameter('emoji', description: 'One emoji shown in the navigation', required: false, type: 'string', example: '📣')]
-    #[BodyParameter('visibility', description: 'public (anyone can read) or members', required: true, type: 'string', example: 'members')]
+    #[BodyParameter('visibility', description: 'public (anyone can read), members, or groups (the members of its access groups, the owner and the admins)', required: true, type: 'string', example: 'members')]
+    #[BodyParameter('access_groups', description: 'Cuids of access groups of the community. Required with the groups visibility', required: false, type: 'array', example: ['k2j4h6g8f0d2s4a6p8o0i2u4'])]
     #[BodyParameter('posting_policy', description: 'members or moderators (who can post)', required: true, type: 'string', example: 'members')]
     #[BodyParameter('space_group_cuid', description: 'Space group of the community. On update: moves the space to the end of that group', required: true, type: 'string')]
     #[BodyParameter('type', description: 'discussion, chat, pages or course. Cannot change later', required: true, type: 'string', example: 'discussion')]
@@ -55,7 +56,7 @@ class SpaceApiController extends Controller
 
         $space = app(CreatesSpaces::class)->create($request->user() ?? throw new AuthenticationException, $community, $input);
 
-        return self::created($space->toResource(), 'Space created successfully');
+        return self::created($space->load('accessGroups')->toResource(), 'Space created successfully');
     }
 
     /**
@@ -66,7 +67,8 @@ class SpaceApiController extends Controller
     #[BodyParameter('name', description: 'Name of the space (2 to 64 characters)', required: false, type: 'string', example: 'Announcements')]
     #[BodyParameter('description', description: 'Short description (up to 255 characters)', required: false, type: 'string')]
     #[BodyParameter('emoji', description: 'One emoji shown in the navigation', required: false, type: 'string', example: '📣')]
-    #[BodyParameter('visibility', description: 'public (anyone can read) or members', required: false, type: 'string', example: 'members')]
+    #[BodyParameter('visibility', description: 'public (anyone can read), members, or groups (the members of its access groups, the owner and the admins)', required: false, type: 'string', example: 'members')]
+    #[BodyParameter('access_groups', description: 'Cuids of access groups of the community: replaces the groups of a groups space', required: false, type: 'array', example: ['k2j4h6g8f0d2s4a6p8o0i2u4'])]
     #[BodyParameter('posting_policy', description: 'members or moderators (who can post)', required: false, type: 'string', example: 'members')]
     #[BodyParameter('space_group_cuid', description: 'Space group of the community. On update: moves the space to the end of that group', required: false, type: 'string')]
     final public function update(Request $request, Community $community, Space $space): JsonResponse
@@ -75,7 +77,7 @@ class SpaceApiController extends Controller
 
         $space = app(UpdatesSpaces::class)->update($request->user() ?? throw new AuthenticationException, $space, $input);
 
-        return self::success('Space updated successfully', null, $space->toResource());
+        return self::success('Space updated successfully', null, $space->load('accessGroups')->toResource());
     }
 
     /**

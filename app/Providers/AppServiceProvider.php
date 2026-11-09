@@ -2,6 +2,11 @@
 
 namespace App\Providers;
 
+use App\Actions\AccessGroups\AddAccessGroupMember;
+use App\Actions\AccessGroups\CreateAccessGroup;
+use App\Actions\AccessGroups\DeleteAccessGroup;
+use App\Actions\AccessGroups\RemoveAccessGroupMember;
+use App\Actions\AccessGroups\UpdateAccessGroup;
 use App\Actions\Auth\MagicLinks;
 use App\Actions\Comments\CreateComment;
 use App\Actions\Comments\DeleteComment;
@@ -34,6 +39,11 @@ use App\Actions\Users\UpdateAvatar;
 use App\Actions\Users\VerifyUsernameAvailability;
 use App\Actions\Waitlist\JoinWaitlist;
 use App\Constants;
+use App\Contracts\AccessGroups\AddsAccessGroupMembers;
+use App\Contracts\AccessGroups\CreatesAccessGroups;
+use App\Contracts\AccessGroups\DeletesAccessGroups;
+use App\Contracts\AccessGroups\RemovesAccessGroupMembers;
+use App\Contracts\AccessGroups\UpdatesAccessGroups;
 use App\Contracts\Auth\ConsumesMagicLinks;
 use App\Contracts\Auth\SendsMagicLinks;
 use App\Contracts\Comments\CreatesComments;
@@ -106,6 +116,11 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(RemovesCommunityMembers::class, RemoveCommunityMember::class);
         app()->singleton(InvitesCommunityMembers::class, InviteCommunityMember::class);
         app()->singleton(CancelsCommunityInvitations::class, CancelCommunityInvitation::class);
+        app()->singleton(CreatesAccessGroups::class, CreateAccessGroup::class);
+        app()->singleton(UpdatesAccessGroups::class, UpdateAccessGroup::class);
+        app()->singleton(DeletesAccessGroups::class, DeleteAccessGroup::class);
+        app()->singleton(AddsAccessGroupMembers::class, AddAccessGroupMember::class);
+        app()->singleton(RemovesAccessGroupMembers::class, RemoveAccessGroupMember::class);
         app()->singleton(AcceptsCommunityInvitations::class, AcceptCommunityInvitation::class);
         app()->singleton(JoinsWaitlist::class, JoinWaitlist::class);
         app()->singleton(CreatesSpaceGroups::class, CreateSpaceGroup::class);

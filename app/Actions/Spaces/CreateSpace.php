@@ -28,7 +28,7 @@ class CreateSpace implements CreatesSpaces
 
         Gate::forUser($user)->authorize('manageSpaces', $community);
 
-        /** @var array{name: string, description?: string|null, emoji?: string|null, type: string, visibility: string, posting_policy: string, space_group_cuid: string} $validated */
+        /** @var array{name: string, description?: string|null, emoji?: string|null, type: string, visibility: string, posting_policy: string, space_group_cuid: string, access_groups?: list<string>} $validated */
         $validated = Validator::make($input, SpaceInputRules::create())->validate();
 
         $spaceGroup = self::findSpaceGroup($community, $validated['space_group_cuid']);
@@ -40,7 +40,7 @@ class CreateSpace implements CreatesSpaces
         $space = DB::transaction(function () use ($community, $spaceGroup, $validated) {
             $position = Positions::next($spaceGroup->spaces());
 
-            return Space::create([
+            $space = Space::create([
                 'community_id' => $community->id,
                 'space_group_id' => $spaceGroup->id,
                 'name' => trim($validated['name']),
@@ -51,6 +51,9 @@ class CreateSpace implements CreatesSpaces
                 'posting_policy' => $validated['posting_policy'],
                 'position' => $position,
             ]);
+            SpaceAccessGroups::sync($space, $validated['access_groups'] ?? null);
+
+            return $space;
         });
 
         SpaceTreeChanged::dispatch($community->cuid);

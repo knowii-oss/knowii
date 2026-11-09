@@ -7,6 +7,8 @@ enum KnowiiSpaceVisibility: string
 {
     case Public = 'public';
     case Members = 'members';
+    // Only the members of the access groups of the space, plus the owner and the admins (#1241, ADR 0025)
+    case Groups = 'groups';
 
     public static function toCommaSeparatedString(): string
     {

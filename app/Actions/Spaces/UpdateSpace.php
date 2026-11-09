@@ -27,7 +27,7 @@ class UpdateSpace implements UpdatesSpaces
 
         Gate::forUser($user)->authorize('manageSpaces', $community);
 
-        /** @var array{name?: string, description?: string|null, emoji?: string|null, visibility?: string, posting_policy?: string, space_group_cuid?: string} $validated */
+        /** @var array{name?: string, description?: string|null, emoji?: string|null, visibility?: string, posting_policy?: string, space_group_cuid?: string, access_groups?: list<string>} $validated */
         $validated = Validator::make($input, SpaceInputRules::editable(false))->validate();
 
         DB::transaction(function () use ($space, $community, $validated) {
@@ -56,6 +56,7 @@ class UpdateSpace implements UpdatesSpaces
             }
 
             $space->update($changes);
+            SpaceAccessGroups::sync($space, $validated['access_groups'] ?? null);
         });
 
         SpaceTreeChanged::dispatch($community->cuid);

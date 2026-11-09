@@ -28,7 +28,16 @@ class SpacePolicy
             return true;
         }
 
-        return $user !== null && $user->belongsToCommunity($space->community);
+        if ($user === null || ! $user->belongsToCommunity($space->community)) {
+            return false;
+        }
+
+        if ($space->visibility === KnowiiSpaceVisibility::Members) {
+            return true;
+        }
+
+        // groups (#1241, ADR 0025): the owner and the admins see every space, to manage it; the others need a group
+        return CommunityRoles::isOwnerOrAdmin($user, $space->community) || $user->isInAccessGroupOf($space);
     }
 
     /**
@@ -38,7 +47,8 @@ class SpacePolicy
     {
         $community = $space->community;
 
-        if (! $user->belongsToCommunity($community)) {
+        // A member who cannot read the space cannot write in it (groups visibility, #1241)
+        if (! $user->belongsToCommunity($community) || ! $this->view($user, $space)) {
             return false;
         }
 

@@ -15,6 +15,11 @@ import {
   COMMUNITY_INVITATION_API_PATH,
   COMMUNITY_API_PARAM_INVITATION,
   COMMUNITY_MODERATOR_PERMISSIONS_API_PATH,
+  COMMUNITY_ACCESS_GROUPS_API_PATH,
+  COMMUNITY_ACCESS_GROUP_API_PATH,
+  COMMUNITY_ACCESS_GROUP_MEMBERS_API_PATH,
+  COMMUNITY_ACCESS_GROUP_MEMBER_API_PATH,
+  COMMUNITY_API_PARAM_ACCESS_GROUP,
   COMMUNITY_UPLOADS_API_PATH,
   COMMUNITY_SPACE_GROUP_API_PATH,
   COMMUNITY_SPACE_GROUP_SPACES_REORDER_API_PATH,
@@ -50,6 +55,8 @@ import type { JoinWaitlistRequest } from './waitlist/join-waitlist-request.schem
 import type { JoinWaitlistResponse } from './waitlist/join-waitlist-response.schema';
 import { joinWaitlistResponseSchema } from './waitlist/join-waitlist-response.schema';
 import { z } from 'zod';
+import type { AccessGroup, AccessGroupForm, AccessGroupMemberInput } from '../types/access-group.schema';
+import { accessGroupSchema } from '../types/access-group.schema';
 import { HttpStatus } from '../types/http-status.intf';
 import type { ApiResult } from './api-result';
 import { apiPath, apiRequest, fieldErrors } from './api-result';
@@ -93,6 +100,12 @@ const spacePath = (communityCuid: string, spaceCuid: string) =>
 const communityPath = (path: string, communityCuid: string) => apiPath(path, { [SPACE_API_PARAM_COMMUNITY]: communityCuid });
 const memberPath = (communityCuid: string, memberCuid: string) =>
   apiPath(COMMUNITY_MEMBER_API_PATH, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [COMMUNITY_API_PARAM_MEMBER]: memberCuid });
+const accessGroupPath = (communityCuid: string, groupCuid: string, path = COMMUNITY_ACCESS_GROUP_API_PATH, memberCuid = '') =>
+  apiPath(path, {
+    [SPACE_API_PARAM_COMMUNITY]: communityCuid,
+    [COMMUNITY_API_PARAM_ACCESS_GROUP]: groupCuid,
+    [COMMUNITY_API_PARAM_MEMBER]: memberCuid,
+  });
 const postsPath = (communityCuid: string, spaceCuid: string, postCuid = '', path = COMMUNITY_SPACE_POSTS_API_PATH) =>
   apiPath(path, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE]: spaceCuid, [SPACE_API_PARAM_POST]: postCuid });
 
@@ -424,6 +437,68 @@ export const knowiiApiClient = {
         } catch {
           return [];
         }
+      },
+    },
+    accessGroups: {
+      /**
+       * The access groups of the community, by name, with their counts (#1241).
+       */
+      list: (communityCuid: string): Promise<ApiResult<AccessGroup[]>> =>
+        apiRequest(
+          'get',
+          communityPath(COMMUNITY_ACCESS_GROUPS_API_PATH, communityCuid),
+          z.array(accessGroupSchema),
+          'Failed to load the access groups.',
+        ),
+      create: (communityCuid: string, input: AccessGroupForm): Promise<ApiResult<AccessGroup>> =>
+        apiRequest(
+          'post',
+          communityPath(COMMUNITY_ACCESS_GROUPS_API_PATH, communityCuid),
+          accessGroupSchema,
+          'Failed to create the access group.',
+          input,
+        ),
+      update: (communityCuid: string, groupCuid: string, input: Partial<AccessGroupForm>): Promise<ApiResult<AccessGroup>> =>
+        apiRequest('patch', accessGroupPath(communityCuid, groupCuid), accessGroupSchema, 'Failed to save the access group.', input),
+      delete: (communityCuid: string, groupCuid: string): Promise<ApiResult<void>> =>
+        apiRequest('delete', accessGroupPath(communityCuid, groupCuid), null, 'Failed to delete the access group.'),
+      members: {
+        /**
+         * A page of the members of a group, by name (#1241).
+         */
+        list: async (communityCuid: string, groupCuid: string, limit: number, offset: number): Promise<ApiResult<Paginated<Author>>> => {
+          const url = `${accessGroupPath(communityCuid, groupCuid, COMMUNITY_ACCESS_GROUP_MEMBERS_API_PATH)}?limit=${limit}&offset=${offset}`;
+          try {
+            const response = await fetch(url, { headers: { Accept: 'application/json' } });
+            const parsed = z
+              .object({ data: z.array(authorSchema), metadata: z.object({ pagination: paginationSchema }) })
+              .safeParse(await response.json());
+            if (!response.ok || !parsed.success) {
+              return { ok: false, status: response.status, message: 'Failed to load the members of the group.', errors: {} };
+            }
+            return { ok: true, message: '', data: { items: parsed.data.data, pagination: parsed.data.metadata.pagination } };
+          } catch {
+            return { ok: false, status: 0, message: 'Failed to load the members of the group.', errors: {} };
+          }
+        },
+        /**
+         * Add a member of the community, named by cuid, username or email (#1241). Adding twice changes nothing.
+         */
+        add: (communityCuid: string, groupCuid: string, input: AccessGroupMemberInput): Promise<ApiResult<Author>> =>
+          apiRequest(
+            'post',
+            accessGroupPath(communityCuid, groupCuid, COMMUNITY_ACCESS_GROUP_MEMBERS_API_PATH),
+            authorSchema,
+            'Failed to add the member.',
+            input,
+          ),
+        remove: (communityCuid: string, groupCuid: string, memberCuid: string): Promise<ApiResult<void>> =>
+          apiRequest(
+            'delete',
+            accessGroupPath(communityCuid, groupCuid, COMMUNITY_ACCESS_GROUP_MEMBER_API_PATH, memberCuid),
+            null,
+            'Failed to remove the member.',
+          ),
       },
     },
     reactions: {

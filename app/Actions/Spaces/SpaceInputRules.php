@@ -28,6 +28,9 @@ final class SpaceInputRules
             'visibility' => [$presence, Rule::enum(KnowiiSpaceVisibility::class)],
             'posting_policy' => [$presence, Rule::enum(KnowiiSpacePostingPolicy::class)],
             'space_group_cuid' => [$presence, 'string'],
+            // The access groups of a "groups" space (#1241): cuids of groups of the community
+            'access_groups' => ['sometimes', 'array', 'max:20'],
+            'access_groups.*' => ['string'],
         ];
     }
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Space, SpaceGroup } from '@knowii/common';
-import { knowiiApiClient, moveItem, SPACE_TYPE_LABELS, useAppData } from '@knowii/common';
+import { knowiiApiClient, moveItem, SPACE_TYPE_LABELS, SPACE_VISIBILITY_LABELS, useAppData } from '@knowii/common';
 import { FaArrowDown, FaArrowUp, FaPen, FaPlus, FaTrash } from 'react-icons/fa6';
 import { Button, Card, CardBody, CardHeader, Dialog, EmptyState } from '@/Components/ui';
 import { SpaceDialog } from './SpaceDialog';
@@ -170,7 +170,7 @@ export function SpaceTreeEditor({ communityCuid, spaceGroups, onChanged }: Space
                       <span className="min-w-0 grow">
                         <span className="font-bold">{space.name}</span>
                         <span className="ml-2 text-xs text-muted">
-                          {SPACE_TYPE_LABELS[space.type].name} · {space.visibility === 'public' ? 'Public' : 'Members only'}
+                          {SPACE_TYPE_LABELS[space.type].name} · {SPACE_VISIBILITY_LABELS[space.visibility]}
                           {space.posting_policy === 'moderators' ? ' · Moderators post' : ''}
                         </span>
                       </span>

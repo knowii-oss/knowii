@@ -105,6 +105,32 @@ class CommunityPolicy
     }
 
     /**
+     * Create, rename and delete access groups (#1241, ADR 0025): owner and admins. Groups decide paid access.
+     */
+    final public function manageAccessGroups(User $user, Community $community): bool
+    {
+        return CommunityRoles::isOwnerOrAdmin($user, $community);
+    }
+
+    /**
+     * Add members to access groups and remove them (#1241): owner, admins, and moderators with the "manage members"
+     * right.
+     */
+    final public function manageAccessGroupMembers(User $user, Community $community): bool
+    {
+        return CommunityRoles::allows($user, $community, KnowiiModeratorPermission::ManageMembers);
+    }
+
+    /**
+     * See the access groups (#1241): those who manage their members, and those who manage spaces (to give a space its
+     * groups).
+     */
+    final public function viewAccessGroups(User $user, Community $community): bool
+    {
+        return $this->manageAccessGroupMembers($user, $community) || $this->manageSpaces($user, $community);
+    }
+
+    /**
      * Determine whether the user can delete the model.
      */
     final public function delete(User $user, Community $community): bool

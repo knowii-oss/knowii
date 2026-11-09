@@ -49,3 +49,4 @@ Do not write an ADR for a bug fix, a refactor that keeps the structure, or a fea
 | [0022](0022-api-token-abilities.md)                                    | API token abilities, read and write per area, checked on every route    | Accepted |
 | [0023](0023-sign-in-links.md)                                          | Sign-in links by email, used once, confirmed with a button              | Accepted |
 | [0024](0024-account-deletion-removes-personal-data.md)                 | Deleting an account removes the personal data, the content stays        | Accepted |
+| [0025](0025-access-groups.md)                                          | Access groups open spaces to some members, by hand or by an API sync    | Accepted |

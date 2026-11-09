@@ -1,0 +1,19 @@
+meta {
+  name: Access groups - List
+  type: http
+  seq: 74
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/access-groups
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The access groups of the community, by name, with members_count and spaces_count (#1241, ADR 0025). Owner, admins, moderators with the manage members or manage spaces right. Token ability: groups:read.
+}

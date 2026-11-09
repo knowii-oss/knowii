@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 /**
  * App\Models\Community
@@ -227,6 +228,16 @@ class Community extends Model
     }
 
     /**
+     * The access groups of the community (#1241, ADR 0025).
+     *
+     * @return HasMany<AccessGroup, covariant $this>
+     */
+    final public function accessGroups(): HasMany
+    {
+        return $this->hasMany(AccessGroup::class);
+    }
+
+    /**
      * Get all the spaces of the community.
      *
      * @return HasMany<Space, covariant $this>
@@ -279,6 +290,11 @@ class Community extends Model
     final public function removeUser(User $user): void
     {
         $this->users()->detach($user);
+        // A former member keeps no access group of the community (#1241)
+        DB::table('access_group_members')
+            ->where('user_id', $user->id)
+            ->whereIn('access_group_id', $this->accessGroups()->select('id'))
+            ->delete();
     }
 
     /**

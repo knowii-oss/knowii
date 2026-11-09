@@ -1,0 +1,26 @@
+meta {
+  name: Access groups - Add a member
+  type: http
+  seq: 79
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/access-groups/<group cuid>/members
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "ada@example.com"
+  }
+}
+
+docs {
+  Adds a member of the community to the group (#1241), named by exactly one of member (user cuid), username or email. Adding a member twice changes nothing, so a sync from another system can send its list again. Someone who is not a member of the community gives a validation issue. Owner, admins, moderators with the manage members right. Token ability: groups:write.
+}

@@ -1,6 +1,7 @@
 <?php
 
 use App\ApiRoutes;
+use App\Http\Controllers\API\AccessGroupApiController;
 use App\Http\Controllers\API\CommentApiController;
 use App\Http\Controllers\API\CommunityApiController;
 use App\Http\Controllers\API\CommunityInvitationApiController;
@@ -99,6 +100,17 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
         Route::get(ApiRoutes::COMMUNITY_MEMBERS, [MemberApiController::class, 'index'])->middleware('ability:communities:read')->middleware('throttle:markdown-preview');
         Route::patch(ApiRoutes::COMMUNITY_MEMBER, [MemberApiController::class, 'update'])->middleware('ability:communities:write');
         Route::delete(ApiRoutes::COMMUNITY_MEMBER, [MemberApiController::class, 'destroy'])->middleware('ability:communities:write');
+
+        // Access groups (#1241, ADR 0025). scopeBindings: a group of another community gives a 404
+        Route::scopeBindings()->group(function () {
+            Route::get(ApiRoutes::COMMUNITY_ACCESS_GROUPS, [AccessGroupApiController::class, 'index'])->middleware('ability:groups:read');
+            Route::post(ApiRoutes::COMMUNITY_ACCESS_GROUPS, [AccessGroupApiController::class, 'store'])->middleware('ability:groups:write');
+            Route::patch(ApiRoutes::COMMUNITY_ACCESS_GROUP, [AccessGroupApiController::class, 'update'])->middleware('ability:groups:write');
+            Route::delete(ApiRoutes::COMMUNITY_ACCESS_GROUP, [AccessGroupApiController::class, 'destroy'])->middleware('ability:groups:write');
+            Route::get(ApiRoutes::COMMUNITY_ACCESS_GROUP_MEMBERS, [AccessGroupApiController::class, 'members'])->middleware('ability:groups:read');
+            Route::post(ApiRoutes::COMMUNITY_ACCESS_GROUP_MEMBERS, [AccessGroupApiController::class, 'addMember'])->middleware('ability:groups:write');
+            Route::delete(ApiRoutes::COMMUNITY_ACCESS_GROUP_MEMBER, [AccessGroupApiController::class, 'removeMember'])->middleware('ability:groups:write');
+        });
 
         // Invitations (#1242). scopeBindings: an invitation of another community gives a 404
         Route::scopeBindings()->group(function () {

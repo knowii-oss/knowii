@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\AccessGroup;
 use App\Models\Space;
 use Illuminate\Http\Request;
 
@@ -26,6 +27,8 @@ class SpaceResource extends AbstractKnowiiJsonResource
             'type' => $this->type,
             'visibility' => $this->visibility,
             'posting_policy' => $this->posting_policy,
+            // The groups that open a "groups" space (#1241): cuid and name, when loaded
+            'access_groups' => $this->whenLoaded('accessGroups', fn () => $this->accessGroups->map(fn (AccessGroup $group) => ['cuid' => $group->cuid, 'name' => $group->name])->values()->all(), []),
             'position' => $this->position,
             'space_group_cuid' => $this->relationLoaded('spaceGroup') ? $this->spaceGroup->cuid : $this->spaceGroup()->value('cuid'),
             'created_at' => $this->created_at,
