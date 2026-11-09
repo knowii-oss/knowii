@@ -75,7 +75,7 @@
       "sail php artisan test"
     ],
     "lint": [
-      "./vendor/bin/phpstan analyze"
+      "./vendor/bin/phpstan analyze --memory-limit=1G"
     ],
     "format": [
       "./vendor/bin/pint"
