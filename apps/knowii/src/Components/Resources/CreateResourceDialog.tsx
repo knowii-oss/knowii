@@ -1,29 +1,24 @@
-import { useState } from 'react';
-import type { CommunityResource, ResourceLevel, ResourceType, Space } from '@knowii/common';
+import { useEffect } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import type { CommunityResource, NewResourceTextArticle, ResourceLevel, Space } from '@knowii/common';
 import {
-  ALLOWED_COMMUNITY_RESOURCE_NAME_CHARACTERS_REGEX,
   DEFAULT_TEXTAREA_ROWS,
   knowiiApiClient,
   MAX_LENGTH_COMMUNITY_RESOURCE_DESCRIPTION,
   MAX_LENGTH_COMMUNITY_RESOURCE_NAME,
-  MIN_ACTION_TIME,
-  MIN_LENGTH_COMMUNITY_RESOURCE_NAME,
   newResourceTextArticleSchema,
   resourceLevelSchemaOptions,
-  resourceTypeSchemaOptions,
-  sleep,
-  urlSchema,
   useAppData,
 } from '@knowii/common';
 import ResourceIcon from '@/Components/Resources/ResourceIcon';
+import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-import { Button, Dialog, Select, Spinner, Stepper, Textarea, TextInput } from '@/Components/ui';
+import { Button, Dialog, Select, Textarea, TextInput } from '@/Components/ui';
 
-const STEPS = ['Overview', 'Details'] as const;
+const levelOptions = resourceLevelSchemaOptions.map((option) => ({ value: option.level, label: option.name, icon: option.icon }));
 
-const resourceTypeOptions = resourceTypeSchemaOptions.map((option) => ({ value: option.type, label: option.name }));
-const resourceLevelOptions = resourceLevelSchemaOptions.map((option) => ({ value: option.level, label: option.name, icon: option.icon }));
+const EMPTY_FORM: NewResourceTextArticle = { url: '', name: '', description: '', level: 'unknown' };
 
 interface CreateResourceDialogProps {
   open: boolean;
@@ -34,219 +29,157 @@ interface CreateResourceDialogProps {
   onResourceCreated: (newResource: CommunityResource) => void;
 }
 
-export function CreateResourceDialog(props: CreateResourceDialogProps) {
+/**
+ * Add a web article to a resources space. The server fetches the page (title, description, cover image, readable
+ * content), which takes a few seconds (#1131).
+ */
+export function CreateResourceDialog({ open, communityCuid, space, onClose, onResourceCreated }: CreateResourceDialogProps) {
   const { showToast } = useAppData();
+  const form = useForm<NewResourceTextArticle>({
+    resolver: zodResolver(newResourceTextArticleSchema),
+    defaultValues: EMPTY_FORM,
+    mode: 'onTouched',
+  });
 
-  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    if (open) {
+      form.reset(EMPTY_FORM);
+    }
+  }, [open, form]);
 
-  const [resourceType, setResourceType] = useState<ResourceType>('textArticle');
-  const [level, setLevel] = useState<ResourceLevel>('unknown');
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [url, setUrl] = useState('');
+  const onSubmit = form.handleSubmit(async (data) => {
+    const result = await knowiiApiClient.resources.create(communityCuid, space.cuid, data);
 
-  // Requirements for step 1:
-  // - Select a type of resource
-  // - Select the resource level
-  // - Select a name for the resource
-  // TODO once there is more than one type of resource, the user should select one explicitly
-  const isStepOneValid = resourceType && name && level;
-  const isStepTwoValid =
-    resourceType === 'textArticle' &&
-    newResourceTextArticleSchema.safeParse({
-      url,
-      name,
-      description,
-      level,
-    }).success;
+    if (result.ok) {
+      showToast({ severity: 'success', summary: 'Resource added' });
+      onResourceCreated(result.data);
+      onClose();
+      return;
+    }
 
-  const [step, setStep] = useState(0);
-
-  const goToNextStep = () => {
-    setStep((current) => Math.min(current + 1, STEPS.length - 1));
-  };
-
-  const goToPreviousStep = () => {
-    setStep((current) => Math.max(current - 1, 0));
-  };
-
-  const handleSubmit = async () => {
-    setLoading(true);
-
-    await sleep(MIN_ACTION_TIME);
-
-    if (resourceType === 'textArticle') {
-      const result = await knowiiApiClient.resources.create(props.communityCuid, props.space.cuid, { url, name, description, level });
-
-      if (result.ok) {
-        showToast({
-          severity: 'success',
-          summary: 'Resource added',
-        });
-        props.onResourceCreated(result.data);
-
-        // The form is reset once the dialog is closed (onAfterClose)
-        props.onClose();
-      } else {
-        showToast({
-          severity: 'error',
-          summary: result.message,
-        });
+    // Validation errors go next to their field; business errors (video URL, duplicate) in the toast
+    for (const [field, messages] of Object.entries(result.errors)) {
+      if (field in EMPTY_FORM && messages[0]) {
+        form.setError(field as keyof NewResourceTextArticle, { message: messages[0] });
       }
     }
-    setLoading(false);
-  };
+    showToast({ severity: 'error', summary: result.message });
+  });
 
-  const resetForm = () => {
-    setResourceType('textArticle');
-    setLevel('unknown');
-    setName('');
-    setDescription('');
-    setUrl('');
-    setStep(0);
-  };
-
-  const urlIsValid = urlSchema.safeParse({ url }).success;
+  const errors = form.formState.errors;
+  const submitting = form.formState.isSubmitting;
 
   return (
     <Dialog
-      open={props.open}
-      onClose={props.onClose}
+      open={open}
+      onClose={submitting ? () => undefined : onClose}
+      size="lg"
       title={
         <>
           <ResourceIcon />
-          New resource
+          Add a resource
         </>
       }
-      description={`Add a resource to ${props.space.name}.`}
-      onAfterClose={resetForm}
-    >
-      {loading ? (
-        <div className="flex flex-row items-center justify-center py-8">
-          <Spinner size="lg" label="Creating the resource" />
-        </div>
-      ) : (
+      description={`Share a web article in ${space.name}. Knowii reads the page to get its title, summary and cover image.`}
+      footer={
         <>
-          <Stepper steps={STEPS} currentStep={step} className="mb-2" />
-
-          {step === 0 && (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (isStepOneValid) {
-                  goToNextStep();
-                }
-              }}
-              noValidate
-            >
-              {/* Name */}
-              <div className="mt-4">
-                <InputLabel htmlFor="resourceName">Name</InputLabel>
-                <TextInput
-                  id="resourceName"
-                  wrapperClassName="mt-1"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  minLength={MIN_LENGTH_COMMUNITY_RESOURCE_NAME}
-                  maxLength={MAX_LENGTH_COMMUNITY_RESOURCE_NAME}
-                  allowedCharacters={ALLOWED_COMMUNITY_RESOURCE_NAME_CHARACTERS_REGEX}
-                  autoFocus
-                  required
-                  placeholder="Choose a name for this resource"
-                />
-              </div>
-
-              {/* Type */}
-              <div className="mt-4">
-                <InputLabel htmlFor="resourceType">Type</InputLabel>
-                <Select<ResourceType>
-                  id="resourceType"
-                  className="mt-1"
-                  options={resourceTypeOptions}
-                  value={resourceType}
-                  onChange={setResourceType}
-                  placeholder="Select Resource Type"
-                />
-              </div>
-
-              {/* Level */}
-              <div className="mt-4">
-                <InputLabel htmlFor="resourceLevel">Level</InputLabel>
-                <Select<ResourceLevel>
-                  id="resourceLevel"
-                  className="mt-1"
-                  options={resourceLevelOptions}
-                  value={level}
-                  onChange={setLevel}
-                  placeholder="Select Resource Level"
-                />
-              </div>
-
-              {/* Description */}
-              <div className="mt-4">
-                <InputLabel htmlFor="resourceDescription">Description (optional)</InputLabel>
-                <Textarea
-                  id="resourceDescription"
-                  wrapperClassName="mt-1"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={DEFAULT_TEXTAREA_ROWS}
-                  maxLength={MAX_LENGTH_COMMUNITY_RESOURCE_DESCRIPTION}
-                  placeholder="Why is it useful/important? What is it about?"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 border-t border-border pt-4 mt-6">
-                <Button variant="secondary" onClick={props.onClose}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={!isStepOneValid} rightIcon={<FaChevronRight aria-hidden="true" />}>
-                  Next
-                </Button>
-              </div>
-            </form>
-          )}
-
-          {step === 1 && (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (isStepOneValid && isStepTwoValid) {
-                  void handleSubmit();
-                }
-              }}
-              noValidate
-            >
-              {resourceType === 'textArticle' && (
-                <div className="mt-4">
-                  {/* URL */}
-                  <InputLabel htmlFor="resourceUrl">Link</InputLabel>
-                  <TextInput
-                    id="resourceUrl"
-                    type="url"
-                    wrapperClassName="mt-1"
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    invalid={url.length > 0 && !urlIsValid}
-                    autoFocus
-                    required
-                    placeholder="https://..."
-                  />
-                </div>
-              )}
-
-              <div className="flex justify-end gap-2 border-t border-border pt-4 mt-6">
-                <Button variant="secondary" onClick={goToPreviousStep} leftIcon={<FaChevronLeft aria-hidden="true" />}>
-                  Back
-                </Button>
-                <Button type="submit" disabled={!isStepOneValid || !isStepTwoValid}>
-                  Create 🚀
-                </Button>
-              </div>
-            </form>
-          )}
+          <Button variant="ghost" onClick={() => form.reset(EMPTY_FORM)} disabled={submitting}>
+            Reset
+          </Button>
+          <Button variant="secondary" onClick={onClose} disabled={submitting}>
+            Cancel
+          </Button>
+          <Button type="submit" form="resource-form" loading={submitting}>
+            {submitting ? 'Reading the page…' : 'Add'}
+          </Button>
         </>
-      )}
+      }
+    >
+      <form id="resource-form" onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
+        <div>
+          <InputLabel htmlFor="resource-url">Link to the article</InputLabel>
+          <Controller
+            name="url"
+            control={form.control}
+            render={({ field }) => (
+              <TextInput
+                id="resource-url"
+                type="url"
+                wrapperClassName="mt-1"
+                {...field}
+                autoFocus
+                required
+                placeholder="https://"
+                invalid={!!errors.url}
+                aria-describedby={errors.url ? 'resource-url-error' : undefined}
+              />
+            )}
+          />
+          <InputError id="resource-url-error" className="mt-2" message={errors.url?.message} />
+        </div>
+
+        <div>
+          <InputLabel htmlFor="resource-name">Name in this community</InputLabel>
+          <Controller
+            name="name"
+            control={form.control}
+            render={({ field }) => (
+              <TextInput
+                id="resource-name"
+                wrapperClassName="mt-1"
+                {...field}
+                required
+                maxLength={MAX_LENGTH_COMMUNITY_RESOURCE_NAME}
+                invalid={!!errors.name}
+                aria-describedby={errors.name ? 'resource-name-error resource-name-hint' : 'resource-name-hint'}
+              />
+            )}
+          />
+          <p id="resource-name-hint" className="mt-1 text-xs text-muted">
+            The article keeps its own title. This name is the one members see here.
+          </p>
+          <InputError id="resource-name-error" className="mt-2" message={errors.name?.message} />
+        </div>
+
+        <div>
+          <InputLabel htmlFor="resource-level">Level</InputLabel>
+          <Controller
+            name="level"
+            control={form.control}
+            render={({ field }) => (
+              <Select<ResourceLevel>
+                id="resource-level"
+                className="mt-1"
+                options={levelOptions}
+                value={field.value}
+                onChange={field.onChange}
+              />
+            )}
+          />
+          <InputError className="mt-2" message={errors.level?.message} />
+        </div>
+
+        <div>
+          <InputLabel htmlFor="resource-description">Why it is useful (optional)</InputLabel>
+          <Controller
+            name="description"
+            control={form.control}
+            render={({ field }) => (
+              <Textarea
+                id="resource-description"
+                wrapperClassName="mt-1"
+                {...field}
+                value={field.value ?? ''}
+                rows={DEFAULT_TEXTAREA_ROWS}
+                maxLength={MAX_LENGTH_COMMUNITY_RESOURCE_DESCRIPTION}
+                invalid={!!errors.description}
+                aria-describedby={errors.description ? 'resource-description-error' : undefined}
+              />
+            )}
+          />
+          <InputError id="resource-description-error" className="mt-2" message={errors.description?.message} />
+        </div>
+      </form>
     </Dialog>
   );
 }
