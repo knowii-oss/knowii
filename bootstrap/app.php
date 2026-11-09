@@ -9,8 +9,6 @@ use App\Http\Middleware\HandleInertiaRequests;
 use App\Traits\ApiResponses;
 use Bepsvpt\SecureHeaders\SecureHeadersMiddleware;
 use Illuminate\Auth\AuthenticationException;
-use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
-use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Database\Eloquent\RelationNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
@@ -23,11 +21,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Middleware\SubstituteBindings;
-use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
-use Laravel\Sanctum\Http\Middleware\AuthenticateSession;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -49,11 +45,10 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->api([
-            // Included in statefulApi()
-            EncryptCookies::class,
-            AddQueuedCookiesToResponse::class,
-            StartSession::class,
-            AuthenticateSession::class,
+            // WARNING: Do NOT add EncryptCookies, AddQueuedCookiesToResponse, StartSession or AuthenticateSession here.
+            // statefulApi() (below) already runs them for first-party (stateful) requests through Sanctum's
+            // EnsureFrontendRequestsAreStateful middleware. Running them twice starts a second session from the
+            // already-decrypted cookie, which replaces the user's session cookie and logs them out.
             HandleCors::class,
 
             // Reject non-JSON request bodies (the API only accepts JSON input)
