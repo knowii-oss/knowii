@@ -1,0 +1,30 @@
+meta {
+  name: Waitlist - Join
+  type: http
+  seq: 20
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/waitlist
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "someone@example.com",
+    "turnstileToken": "XXXX.DUMMY.TOKEN.XXXX",
+    "website": ""
+  }
+}
+
+docs {
+  Public endpoint, rate limited (5 requests per minute per IP address).
+  `turnstileToken` comes from the Cloudflare Turnstile widget. With the Cloudflare test secret key, the dummy token passes.
+  `website` is the honeypot field: it must stay empty.
+}
