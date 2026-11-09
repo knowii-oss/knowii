@@ -9,6 +9,12 @@
   <meta name="robots" content="index,follow,max-image-preview:large" />
 
   <!--
+    Per-request nonce for the <style> elements that scripts inject (Inertia progress bar and error dialog, Vite dev server).
+    style-src does not allow 'unsafe-inline': read by main.tsx (Inertia) and by the Vite client.
+  -->
+  <meta property="csp-nonce" nonce="{{ csp_nonce('style') }}" />
+
+  <!--
     Theme: applied before the first paint to avoid a flash of the wrong theme.
     Saved choice first, then the system preference. Dark when nothing is known.
     WARNING: the storage key and the colors MUST remain aligned with THEME_STORAGE_KEY and THEME_BACKGROUND_COLORS (libs/common constants.ts)

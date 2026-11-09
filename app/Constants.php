@@ -16,6 +16,17 @@ class Constants
 
     public const int MAX_LENGTH_USER_EMAIL = 255;
 
+    public const int MAX_LENGTH_WAITLIST_EMAIL = 255;
+
+    // Name of the hidden field that only bots fill in. WARNING: aligned with WAITLIST_HONEYPOT_FIELD (libs/common constants.ts)
+    public const string WAITLIST_HONEYPOT_FIELD = 'website';
+
+    // Waitlist requests allowed per minute and per IP address
+    public const int WAITLIST_MAX_REQUESTS_PER_MINUTE = 5;
+
+    // Cloudflare documents a maximum length of 2048 characters for Turnstile tokens
+    public const int MAX_LENGTH_TURNSTILE_TOKEN = 2048;
+
     public const int MAX_LENGTH_USER_BIO = 512;
 
     public const int MAX_LENGTH_USER_LOCATION = 128;

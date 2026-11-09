@@ -7,6 +7,7 @@ use App\Http\Controllers\API\LoginApiController;
 use App\Http\Controllers\API\PingApiController;
 use App\Http\Controllers\API\ResourceTextArticleApiController;
 use App\Http\Controllers\API\UserApiController;
+use App\Http\Controllers\API\WaitlistApiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -20,6 +21,9 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
 
     // Utils
     Route::get(ApiRoutes::PING, [PingApiController::class, 'ping']);
+
+    // Waitlist (public, rate limited: see AppServiceProvider)
+    Route::post(ApiRoutes::WAITLIST, [WaitlistApiController::class, 'join'])->middleware('throttle:waitlist');
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post(ApiRoutes::USERS_IS_USERNAME_AVAILABLE, [UserApiController::class, 'isUsernameAvailable']);

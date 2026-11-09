@@ -207,8 +207,3 @@
   color: transparent;
   filter: drop-shadow(0 0 18px rgba(255, 20, 147, 0.35));
 }
-
-/* The EmailOctopus waitlist form is injected by a third-party script */
-#waitlist-container > div.inline-container {
-  @apply mb-0! rounded-xl! pb-0! shadow-md! outline-4! -outline-offset-4! outline-secondary! transition-all! duration-300! ease-in-out! outline-solid! hover:-outline-offset-2! hover:shadow-lg!;
-}
