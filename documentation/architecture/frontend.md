@@ -10,6 +10,14 @@ The front-end is a React 19 application rendered through Inertia.js 3. Laravel d
 4. Further data and every change go through the Knowii API client, never through Inertia form posts. The API stays complete.
 5. Links use Inertia `<Link>`. A link that changes the URL without a reload sets `preserveState={true}`.
 
+## Rendering errors
+
+A component that throws while rendering does not blank the page. `<ErrorBoundary>` (`@/Components/ui`) catches the error, logs it to the console and shows a fallback:
+
+1. `<AppLayout>` wraps the page content: the header, the navigation and the footer stay, the content shows "Something went wrong on this page" with "Try again" and "Reload the page". An Inertia visit to another URL clears the error (`resetKey={page.url}`).
+2. `main.tsx` wraps the whole application, for an error in the layout itself.
+3. Member content uses the block variant, so one broken item does not hide the others: each post card, the post body, each comment (`<ErrorBoundary variant="block" label="this post">`). Wrap new member content the same way (chat messages, pages, lessons).
+
 ## Global data
 
 1. Data that every page needs (the current user, the communities of the user) comes from `HandleInertiaRequests`.
