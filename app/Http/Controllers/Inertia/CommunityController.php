@@ -140,6 +140,10 @@ class CommunityController extends Controller
             'canAddCommunityMembers' => Gate::check('addCommunityMember', $community),
             'canUpdateCommunityMembers' => Gate::check('updateCommunityMember', $community),
             'canRemoveCommunityMembers' => Gate::check('removeCommunityMember', $community),
+
+            'canManageAccessGroups' => Gate::check('manageAccessGroups', $community),
+            'canManageAccessGroupMembers' => Gate::check('manageAccessGroupMembers', $community),
+            'canViewAccessGroups' => Gate::check('viewAccessGroups', $community),
         ];
     }
 }

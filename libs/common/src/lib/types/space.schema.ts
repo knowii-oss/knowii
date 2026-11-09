@@ -17,7 +17,7 @@ export const SPACE_TYPES = ['discussion', 'chat', 'pages', 'course', 'resources'
 export const spaceTypeSchema = z.enum(SPACE_TYPES);
 export type SpaceType = z.infer<typeof spaceTypeSchema>;
 
-export const SPACE_VISIBILITIES = ['public', 'members'] as const;
+export const SPACE_VISIBILITIES = ['public', 'members', 'groups'] as const;
 export const spaceVisibilitySchema = z.enum(SPACE_VISIBILITIES);
 export type SpaceVisibility = z.infer<typeof spaceVisibilitySchema>;
 
@@ -36,6 +36,8 @@ export const SPACE_TYPE_LABELS: Record<SpaceType, { name: string; description: s
 export const SPACE_VISIBILITY_LABELS: Record<SpaceVisibility, string> = {
   public: 'Public: anyone can read',
   members: 'Members only',
+  // #1241, ADR 0025: the members of the chosen access groups, the owner and the admins
+  groups: 'Access groups only',
 };
 
 export const SPACE_POSTING_POLICY_LABELS: Record<SpacePostingPolicy, string> = {
@@ -73,8 +75,16 @@ export const spaceFormSchema = z.object({
   visibility: spaceVisibilitySchema,
   posting_policy: spacePostingPolicySchema,
   space_group_cuid: z.string().min(1, { error: 'Choose a space group' }),
+  // Cuids of the access groups of a "groups" space (#1241)
+  access_groups: z.array(z.string()),
 });
 export type SpaceForm = z.infer<typeof spaceFormSchema>;
+
+// A "groups" space needs at least one group (#1241). WARNING: aligned with SpaceAccessGroups.php
+export const spaceFormWithGroupsSchema = spaceFormSchema.refine((form) => form.visibility !== 'groups' || form.access_groups.length > 0, {
+  error: 'Choose at least one access group',
+  path: ['access_groups'],
+});
 
 export const spaceSchema = baseEntitySchema.extend({
   name: z.string(),
@@ -86,6 +96,8 @@ export const spaceSchema = baseEntitySchema.extend({
   posting_policy: spacePostingPolicySchema,
   position: z.number().int(),
   space_group_cuid: z.string(),
+  // The groups that open a "groups" space (#1241)
+  access_groups: z.array(z.object({ cuid: z.string(), name: z.string() })).optional(),
 });
 export type Space = z.infer<typeof spaceSchema>;
 

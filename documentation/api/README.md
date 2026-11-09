@@ -28,6 +28,8 @@ A personal API token (created on the "API tokens" page of the user menu) has abi
 | `resources:read`    | Read resources, their comments and reactions                          |
 | `resources:write`   | Add resources, comment and react on them                              |
 | `resources:create`  | Add resources, nothing else (the browser extension, ADR 0018)         |
+| `groups:read`       | Read access groups and their members                                  |
+| `groups:write`      | Manage access groups and their members (a sync from another system)   |
 
 ## Keep it current
 

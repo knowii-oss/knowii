@@ -39,11 +39,14 @@ type SpaceTreeEvent = (typeof SpaceTreeEvents)[keyof typeof SpaceTreeEvents];
 // The members or the invitations of the community changed (#1242): load them again (the payload only names the community)
 type MemberEvent = 'community.members.changed';
 
+// The access groups of the community changed (#1241): load them again (the payload only names the community)
+type AccessGroupEvent = 'community.access_groups.changed';
+
 type CommunityEvent = (typeof CommunityEvents)[keyof typeof CommunityEvents];
 type ResourceEvent = (typeof ResourceEvents)[keyof typeof ResourceEvents];
 
 type CommunitiesChannelEvent = CommunityEvent;
-type CommunityChannelEvent = Exclude<CommunityEvent, typeof CommunityEvents.CREATED> | SpaceTreeEvent | MemberEvent;
+type CommunityChannelEvent = Exclude<CommunityEvent, typeof CommunityEvents.CREATED> | SpaceTreeEvent | MemberEvent | AccessGroupEvent;
 // The resources of a resources space go to the channel of the space only (ADR 0015)
 type SpaceChannelEvent = ResourceEvent;
 
@@ -60,6 +63,8 @@ type EventPayloadMap = {
   [K in SpaceTreeEvent]: { community_cuid: string };
 } & {
   [K in MemberEvent]: { community_cuid: string };
+} & {
+  [K in AccessGroupEvent]: { community_cuid: string };
 };
 
 // Define the hook options with improved type safety

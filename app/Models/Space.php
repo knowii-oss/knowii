@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
@@ -31,6 +32,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property ?string $emoji
  * @property KnowiiSpaceType $type
  * @property KnowiiSpaceVisibility $visibility
+ * @property-read Collection<int, AccessGroup> $accessGroups
  * @property KnowiiSpacePostingPolicy $posting_policy
  * @property int $position
  * @property Carbon $created_at
@@ -122,6 +124,16 @@ class Space extends Model
     final public function community(): BelongsTo
     {
         return $this->belongsTo(Community::class);
+    }
+
+    /**
+     * The access groups that open the space when its visibility is "groups" (#1241, ADR 0025).
+     *
+     * @return BelongsToMany<AccessGroup, covariant $this>
+     */
+    final public function accessGroups(): BelongsToMany
+    {
+        return $this->belongsToMany(AccessGroup::class, 'access_group_space');
     }
 
     /**

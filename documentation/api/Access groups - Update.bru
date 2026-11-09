@@ -1,0 +1,26 @@
+meta {
+  name: Access groups - Update
+  type: http
+  seq: 76
+}
+
+patch {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/access-groups/<group cuid>
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Supporters"
+  }
+}
+
+docs {
+  Renames an access group or changes its description (#1241): owner and admins. Token ability: groups:write.
+}

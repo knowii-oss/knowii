@@ -59,6 +59,9 @@ class JetstreamServiceProvider extends ServiceProvider
             'resources:read',
             'resources:write',
             'resources:create',
+            // Access groups (#1241, ADR 0025): a sync token from another system needs groups:write only
+            'groups:read',
+            'groups:write',
         ];
 
         Jetstream::permissions($allPermissions);

@@ -49,6 +49,9 @@ final class ApiRoutes
     // Named after Community::communityInvitations() for the scoped binding
     public const PARAM_INVITATION = 'communityInvitation';
 
+    // Named after Community::accessGroups() for the scoped binding (#1241)
+    public const PARAM_ACCESS_GROUP = 'accessGroup';
+
     // Paths relative to the version prefix, used in routes/api.php.
     public const USER = 'user';
 
@@ -119,6 +122,15 @@ final class ApiRoutes
     public const COMMUNITY_INVITATION = self::COMMUNITY_INVITATIONS.'/{'.self::PARAM_INVITATION.'}';
 
     public const COMMUNITY_UPLOADS = self::COMMUNITY.'/uploads';
+
+    // Access groups (#1241, ADR 0025)
+    public const COMMUNITY_ACCESS_GROUPS = self::COMMUNITY.'/access-groups';
+
+    public const COMMUNITY_ACCESS_GROUP = self::COMMUNITY_ACCESS_GROUPS.'/{'.self::PARAM_ACCESS_GROUP.'}';
+
+    public const COMMUNITY_ACCESS_GROUP_MEMBERS = self::COMMUNITY_ACCESS_GROUP.'/members';
+
+    public const COMMUNITY_ACCESS_GROUP_MEMBER = self::COMMUNITY_ACCESS_GROUP_MEMBERS.'/{'.self::PARAM_MEMBER.'}';
 
     /**
      * Build a full, client-facing API path from a relative path, substituting

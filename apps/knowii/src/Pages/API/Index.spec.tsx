@@ -35,9 +35,15 @@ beforeAll(() => {
 });
 
 const available: Permission[] = ['communities:read', 'resources:create', 'resources:read'];
-const tokens: ApiToken[] = [
-  { id: 7, name: 'Extension', abilities: ['resources:create'], last_used_ago: null, created_at: '2026-11-09T10:00:00Z', expires_at: null },
-];
+const extension: ApiToken = {
+  id: 7,
+  name: 'Extension',
+  abilities: ['resources:create'],
+  last_used_ago: null,
+  created_at: '2026-11-09T10:00:00Z',
+  expires_at: null,
+};
+const tokens: ApiToken[] = [extension];
 
 function renderPage() {
   render(
@@ -78,8 +84,8 @@ describe('ApiTokensPage', () => {
         <ApiTokensPage
           tokens={[
             ...tokens,
-            { ...tokens[0]!, id: 8, name: 'Old', expires_at: '2020-01-01T10:00:00Z' },
-            { ...tokens[0]!, id: 9, name: 'Script', expires_at: '2999-01-01T10:00:00Z' },
+            { ...extension, id: 8, name: 'Old', expires_at: '2020-01-01T10:00:00Z' },
+            { ...extension, id: 9, name: 'Script', expires_at: '2999-01-01T10:00:00Z' },
           ]}
           availablePermissions={available}
           defaultPermissions={[]}

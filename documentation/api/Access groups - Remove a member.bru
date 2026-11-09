@@ -1,0 +1,19 @@
+meta {
+  name: Access groups - Remove a member
+  type: http
+  seq: 80
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/access-groups/<group cuid>/members/<user cuid>
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Removes a member from the group (#1241). A member who is not in the group gives a 404. Returns 204. Token ability: groups:write.
+}

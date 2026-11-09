@@ -116,6 +116,15 @@ class Constants
 
     public const int INVITATIONS_PER_MINUTE = 10;
 
+    // Access groups (#1241, ADR 0025). WARNING: aligned with access-group.schema.ts
+    public const int MIN_LENGTH_ACCESS_GROUP_NAME = 2;
+
+    public const int MAX_LENGTH_ACCESS_GROUP_NAME = 64;
+
+    public const int MAX_LENGTH_ACCESS_GROUP_DESCRIPTION = 500;
+
+    public const int MAX_ACCESS_GROUPS_PER_COMMUNITY = 50;
+
     // Lifetimes of a personal API token, in days, or "never" (#1267, ADR 0022)
     // WARNING: aligned with API_TOKEN_EXPIRY_CHOICES (jetstream-inertia.intf.ts)
     public const array API_TOKEN_EXPIRY_CHOICES = ['30', '90', '365', 'never'];

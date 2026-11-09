@@ -1,0 +1,27 @@
+meta {
+  name: Access groups - Create
+  type: http
+  seq: 75
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/access-groups
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Paid members",
+    "description": "Members with a paid plan"
+  }
+}
+
+docs {
+  Creates an access group (#1241): owner and admins. The name is unique in the community (2 to 64 characters). Token ability: groups:write.
+}

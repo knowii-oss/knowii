@@ -78,7 +78,7 @@ export default function SpacePage(props: Props) {
           <p className="flex flex-wrap gap-2 text-xs text-muted">
             <span className="rounded-full border border-border px-2 py-0.5">{typeLabel.name}</span>
             <span className="rounded-full border border-border px-2 py-0.5">
-              {space.visibility === 'public' ? 'Public' : 'Members only'}
+              {space.visibility === 'public' ? 'Public' : space.visibility === 'groups' ? 'Access groups only' : 'Members only'}
             </span>
             {space.posting_policy === 'moderators' && (
               <span className="rounded-full border border-border px-2 py-0.5">{SPACE_POSTING_POLICY_LABELS.moderators}</span>

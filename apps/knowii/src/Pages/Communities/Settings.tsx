@@ -3,6 +3,7 @@ import type { Community, CommunityPermissions, CommunityRole, SpaceGroup } from 
 import { COMMUNITY_URL, DASHBOARD_URL, useSocket } from '@knowii/common';
 import { breadcrumbHome } from '../../Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
+import { AccessGroupsManager } from '@/Components/Communities/AccessGroupsManager';
 import { router } from '@inertiajs/react';
 import type { BreadcrumbItem } from '@/Components/ui';
 import { FaGear } from 'react-icons/fa6';
@@ -62,6 +63,18 @@ export default function CommunitySettingsPage(props: Props) {
 
   const canManageMembers = props.permissions.canAddCommunityMembers;
 
+  // The access groups changed (#1241): the list loads again
+  const [accessGroupsVersion, setAccessGroupsVersion] = useState(0);
+  useSocket({
+    channel: {
+      type: 'community',
+      communityCuid: props.community.cuid,
+    },
+    event: 'community.access_groups.changed',
+    callback: () => setAccessGroupsVersion((version) => version + 1),
+  });
+  const canSeeAccessGroups = props.permissions.canManageAccessGroups || props.permissions.canManageAccessGroupMembers;
+
   const breadcrumbItems: BreadcrumbItem[] = [
     {
       label: props.community.name,
@@ -109,7 +122,14 @@ export default function CommunitySettingsPage(props: Props) {
         </>
       )}
 
-      {(props.permissions.canManageSpaces || props.permissions.canManageModeratorPermissions || canManageMembers) &&
+      {canSeeAccessGroups && (
+        <>
+          {(props.permissions.canManageSpaces || props.permissions.canManageModeratorPermissions || canManageMembers) && <Separator />}
+          <AccessGroupsManager communityCuid={props.community.cuid} permissions={props.permissions} refreshKey={accessGroupsVersion} />
+        </>
+      )}
+
+      {(props.permissions.canManageSpaces || props.permissions.canManageModeratorPermissions || canManageMembers || canSeeAccessGroups) &&
         props.permissions.canDeleteCommunity && <Separator />}
 
       {props.permissions.canDeleteCommunity && (

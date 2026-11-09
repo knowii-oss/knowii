@@ -73,6 +73,8 @@ export const API_TOKEN_PERMISSIONS = [
   'resources:read',
   'resources:write',
   'resources:create',
+  'groups:read',
+  'groups:write',
 ] as const;
 export type Permission = (typeof API_TOKEN_PERMISSIONS)[number];
 
@@ -86,6 +88,8 @@ export const API_TOKEN_PERMISSION_LABELS: Record<Permission, string> = {
   'resources:read': 'Read resources and their comments',
   'resources:write': 'Add resources, comment and react on them',
   'resources:create': 'Add resources only (browser extension)',
+  'groups:read': 'Read access groups and their members',
+  'groups:write': 'Manage access groups and their members',
 };
 
 /**
