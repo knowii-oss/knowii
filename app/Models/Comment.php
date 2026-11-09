@@ -6,6 +6,7 @@ use App\Http\Resources\CommentResource;
 use App\Traits\GeneratesCuid;
 use App\Traits\HasMentions;
 use App\Traits\HasReactions;
+use App\Traits\UsesUploads;
 use Carbon\Carbon;
 use Database\Factories\CommentFactory;
 use Illuminate\Database\Eloquent\Attributes\UseResource;
@@ -72,6 +73,7 @@ class Comment extends Model
 
     use HasMentions;
     use HasReactions;
+    use UsesUploads;
 
     /**
      * @var list<string>

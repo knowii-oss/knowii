@@ -148,7 +148,17 @@ autorestart=true
 
 Reverb opens one file descriptor per connection. To let it accept many connections, set `minfds=10000` in the `[supervisord]` section of `/etc/supervisor/supervisord.conf`, then restart Supervisor.
 
-Knowii has no scheduled tasks today, so you do not need a cron entry. If you want automatic backups, schedule `php artisan backup:run` (the `spatie/laravel-backup` package is installed; see `config/backup.php`).
+Knowii has scheduled tasks (`routes/console.php`). Add this cron entry for the `www-data` user (`crontab -u www-data -e`), so that the Laravel scheduler runs every minute:
+
+```
+* * * * * cd /var/www/knowii && php artisan schedule:run >> /dev/null 2>&1
+```
+
+The scheduled tasks:
+
+1. `uploads:prune`, every day at 03:30: deletes the uploaded images that no post or comment used for 24 hours (the member removed them from the text, cancelled the post, or deleted it). Run `php artisan uploads:prune --dry-run` to see the list first.
+
+If you want automatic backups, schedule `php artisan backup:run` too (the `spatie/laravel-backup` package is installed; see `config/backup.php`).
 
 ## 7. Configure nginx
 

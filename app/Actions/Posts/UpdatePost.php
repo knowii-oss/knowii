@@ -31,6 +31,7 @@ class UpdatePost implements UpdatesPosts
         if (array_key_exists('body', $validated)) {
             $changes['body'] = $validated['body'];
             $changes['body_html'] = $post->renderBodyAndSyncMentions($validated['body'], $post->author);
+            $post->syncUploadUsages($validated['body']);
         }
 
         if ($changes !== []) {

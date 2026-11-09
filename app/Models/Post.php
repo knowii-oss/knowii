@@ -6,6 +6,7 @@ use App\Http\Resources\PostResource;
 use App\Traits\GeneratesCuid;
 use App\Traits\HasMentions;
 use App\Traits\HasReactions;
+use App\Traits\UsesUploads;
 use Carbon\Carbon;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Database\Factories\PostFactory;
@@ -80,6 +81,7 @@ class Post extends Model
     use HasMentions;
     use HasReactions;
     use Sluggable;
+    use UsesUploads;
 
     /**
      * @var list<string>

@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Attributes\UseResource;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -69,6 +70,16 @@ class Upload extends Model
     final public function community(): BelongsTo
     {
         return $this->belongsTo(Community::class);
+    }
+
+    /**
+     * The posts and comments that show this upload (#1201). Without one for a day, `uploads:prune` deletes it.
+     *
+     * @return HasMany<UploadUsage, covariant $this>
+     */
+    final public function usages(): HasMany
+    {
+        return $this->hasMany(UploadUsage::class);
     }
 
     /**
