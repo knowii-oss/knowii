@@ -89,7 +89,7 @@ describe('ResourceList', () => {
     renderList([resource('a', 'Smart notes')]);
 
     const list = screen.getByRole('list');
-    expect(within(list).getByRole('link', { name: /^Smart notes Smart notes description$/ })).toHaveAttribute(
+    expect(within(list).getByRole('link', { name: /^Text article.*Smart notes Smart notes description$/ })).toHaveAttribute(
       'href',
       '/community/tests/space/cool-links/resource/a',
     );
@@ -146,5 +146,18 @@ describe('ResourceList', () => {
     expect(list).toHaveBeenCalledWith('c1', 's1', 24, 1);
     expect(screen.getAllByRole('listitem')).toHaveLength(2);
     expect(screen.queryByRole('button', { name: 'Load more resources' })).not.toBeInTheDocument();
+  });
+
+  it('shows the number of resources and keeps it current (#1137)', () => {
+    renderList([resource('a', 'First')]);
+    expect(screen.getByText('1 resource')).toBeInTheDocument();
+
+    act(() => handlers.get('.community.resource.created')?.(resource('b', 'Second')));
+    // The same resource announced twice (dialog and event) counts once
+    act(() => handlers.get('.community.resource.created')?.(resource('b', 'Second')));
+    expect(screen.getByText('2 resources')).toBeInTheDocument();
+
+    act(() => handlers.get('.community.resource.deleted')?.({ cuid: 'a' }));
+    expect(screen.getByText('1 resource')).toBeInTheDocument();
   });
 });

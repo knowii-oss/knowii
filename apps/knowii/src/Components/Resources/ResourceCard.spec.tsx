@@ -62,4 +62,15 @@ describe('ResourceCard', () => {
     expect(screen.getByText('🌱')).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /new tab/ })).not.toBeInTheDocument();
   });
+
+  it('names the type of the resource for screen readers (#1137)', () => {
+    render(
+      <ResourceCard
+        resource={{ ...resource({}), resource: { ...resource({}).resource, type: 'textArticle' } } as CommunityResource}
+        href="/r"
+      />,
+    );
+
+    expect(screen.getByTitle('Text article')).toHaveTextContent('Text article,');
+  });
 });

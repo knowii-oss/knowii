@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import type { Community, CommunityResource, Identifiable, Paginated, Space } from '@knowii/common';
 import { knowiiApiClient, RESOURCE_URL, RESOURCES_PER_PAGE, useAppData, useSocket } from '@knowii/common';
 import { FaPlus } from 'react-icons/fa6';
@@ -21,14 +21,29 @@ export function ResourceList({ community, space, initialResources, canContribute
   const { showToast } = useAppData();
   const [resources, setResources] = useState<CommunityResource[]>(initialResources.items);
   const [nextOffset, setNextOffset] = useState<number | null>(initialResources.pagination.nextOffset);
+  // Total in the space, kept current by the resource events (#1137)
+  const [totalCount, setTotalCount] = useState<number>(initialResources.pagination.totalCount);
   const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  // The dialog and the event both announce a new resource, and a deleted one can be on a page not loaded yet:
+  // count each cuid once
+  const counted = useRef(new Set(initialResources.items.map((item) => item.cuid)));
+  const removed = useRef(new Set<string>());
+
   const addResource = useCallback((resource: CommunityResource) => {
+    if (!counted.current.has(resource.cuid)) {
+      counted.current.add(resource.cuid);
+      setTotalCount((count) => count + 1);
+    }
     setResources((current) => (current.some((item) => item.cuid === resource.cuid) ? current : [resource, ...current]));
   }, []);
 
   const removeResource = useCallback((deleted: Identifiable) => {
+    if (!removed.current.has(deleted.cuid)) {
+      removed.current.add(deleted.cuid);
+      setTotalCount((count) => Math.max(0, count - 1));
+    }
     setResources((current) => current.filter((item) => item.cuid !== deleted.cuid));
   }, []);
 
@@ -58,6 +73,8 @@ export function ResourceList({ community, space, initialResources, canContribute
     setLoading(false);
     if (result.ok) {
       // A resource can move between pages when new ones arrive: skip the ones already shown
+      // Already in the total of the space
+      result.data.items.forEach((item) => counted.current.add(item.cuid));
       setResources((current) => [...current, ...result.data.items.filter((item) => !current.some((shown) => shown.cuid === item.cuid))]);
       setNextOffset(result.data.pagination.nextOffset);
     } else {
@@ -70,14 +87,17 @@ export function ResourceList({ community, space, initialResources, canContribute
 
   return (
     <section aria-label={`Resources in ${space.name}`} className="flex flex-col gap-4">
-      {canContribute && (
-        <div className="flex justify-end">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm text-muted" aria-live="polite">
+          {totalCount === 1 ? '1 resource' : `${totalCount} resources`}
+        </p>
+        {canContribute && (
           <Button onClick={() => setDialogOpen(true)}>
             <FaPlus aria-hidden="true" />
             Add a resource
           </Button>
-        </div>
-      )}
+        )}
+      </div>
 
       {resources.length === 0 ? (
         <EmptyState
