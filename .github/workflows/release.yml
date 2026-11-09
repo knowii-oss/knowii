@@ -15,7 +15,7 @@ jobs:
   main:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Fetch all history for all tags and branches
           # This is necessary to calculate the version bump
@@ -23,20 +23,20 @@ jobs:
           fetch-depth: 0
 
       # Cache node_modules
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: 'npm'
       - run: |
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci
       # Create and switch to a new branch before the release
       # This is necessary because the main branch is protected
       - run: |
           git switch --create release-${GITHUB_SHA}
           git push --set-upstream origin release-${GITHUB_SHA}
-      - uses: nrwl/nx-set-shas@v4
+      - uses: nrwl/nx-set-shas@v5
       - run: NX_NO_CLOUD=true && npm run release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
