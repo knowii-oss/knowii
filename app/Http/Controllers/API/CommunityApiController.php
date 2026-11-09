@@ -7,6 +7,7 @@ use App\Contracts\Communities\DeletesCommunities;
 use App\Http\Controllers\Controller;
 use App\Models\Community;
 use App\Traits\ApiResponses;
+use Dedoc\Scramble\Attributes\BodyParameter;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,6 +21,9 @@ class CommunityApiController extends Controller
     /**
      * @throws AuthenticationException
      */
+    #[BodyParameter('name', description: 'Name of the community (3 to 64 characters: letters, digits, spaces, dashes, apostrophes, @)', required: true, type: 'string', example: 'Knowledge Builders')]
+    #[BodyParameter('description', description: 'Short description (up to 255 characters)', required: false, type: 'string')]
+    #[BodyParameter('visibility', description: 'personal, private or public', required: true, type: 'string', example: 'public')]
     final public function store(Request $request): JsonResponse
     {
         Log::info('Processing API request to create a new community.');
