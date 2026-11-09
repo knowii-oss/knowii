@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\Inertia;
 
+use App\Enums\KnowiiResourceType;
 use App\Enums\KnowiiSpaceType;
 use App\Models\Community;
+use App\Models\CommunityResource;
 use App\Support\CommentThread;
+use App\Support\Markdown;
 use App\Support\SpaceTree;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -34,8 +37,10 @@ class CommunityResourceController extends Controller
             'community' => $community->toResource()->withLargeFields(),
             'space' => $space->toResource()->withLargeFields(),
             'spaceGroups' => SpaceTree::for($community, $request->user())->toResourceCollection(),
-            // Not the large fields: the page does not show the captured article yet (#1247)
+            // Not the large fields: the captured Markdown comes rendered, in 'article'
             'resource' => $resource->toResource(),
+            // The captured article (#1247): members of the community only, never visitors (ADR 0018)
+            'article' => $this->article($request, $community, $resource),
             // Comments on the resource (#1034)
             'comments' => CommentThread::for($resource)->toResourceCollection(),
             'permissions' => [
@@ -47,5 +52,27 @@ class CommunityResourceController extends Controller
                 'canUpdate' => Gate::check('update', $resource),
             ],
         ]);
+    }
+
+    /**
+     * The captured article of an article resource, rendered on the server (ADR 0013: raw HTML escaped). Null for other
+     * types, without a capture, and for readers who are not members of the community.
+     *
+     * @return array{html: string, word_count: int, reading_time: int, source: string, captured_at: string}|null
+     */
+    private function article(Request $request, Community $community, CommunityResource $resource): ?array
+    {
+        $capture = $resource->capture;
+        if ($capture === null || $resource->type !== KnowiiResourceType::Article || ! ($request->user()?->belongsToCommunity($community) ?? false)) {
+            return null;
+        }
+
+        return [
+            'html' => Markdown::render($capture->markdown),
+            'word_count' => $capture->word_count,
+            'reading_time' => $capture->reading_time,
+            'source' => $capture->source->value,
+            'captured_at' => $capture->captured_at->toIso8601String(),
+        ];
     }
 }

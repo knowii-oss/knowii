@@ -9,6 +9,7 @@ use App\Exceptions\BusinessException;
 use App\Exceptions\CaptureFailedException;
 use App\Models\CommunityResource;
 use App\Models\ResourceCapture;
+use App\Support\ArticleImages;
 use App\Support\ResourceImages;
 use App\Support\ResourceTypeDetector;
 use App\Traits\FetchUrl;
@@ -83,6 +84,14 @@ class CaptureResourcePage implements CapturesResourcePages
 
         [$markdown, $excerpt] = $this->readableContent($html, $url);
         $type = $this->detector->detect($html, $url, $page['content_type'], $markdown !== null);
+
+        // The images of an article that the community keeps are stored by Knowii (#1247), before the transaction
+        // (they need the network)
+        $fromExtension = $communityResource->capture()->first()?->source === KnowiiCaptureSource::Extension;
+        $effectiveType = $communityResource->type_chosen ? $communityResource->type : $type;
+        if ($markdown !== null && $effectiveType === KnowiiResourceType::Article && ! $fromExtension) {
+            $markdown = ArticleImages::store($communityResource, $markdown, fn (string $imageUrl): ?string => $this->downloadImage($imageUrl));
+        }
 
         DB::transaction(function () use ($resource, $communityResource, $html, $title, $excerpt, $markdown, $type) {
             $resource->update(array_filter([

@@ -171,6 +171,13 @@ export function ResourceDetails({ communitySlug, resource, shareUrl, onCaptureAg
           <FaLink aria-hidden="true" />
           Copy the link
         </Button>
+        {onCaptureAgain && resource.capture_status === 'captured' && (
+          // A new copy of the page, for example after the site changed it (#1247)
+          <Button variant="ghost" onClick={onCaptureAgain} loading={captureStarting}>
+            <FaRotateRight aria-hidden="true" />
+            Capture again
+          </Button>
+        )}
       </div>
     </article>
   );

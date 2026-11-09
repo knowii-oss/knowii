@@ -110,6 +110,9 @@ class Constants
 
     public const string CAPTURE_USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36 Knowii/1.0 (+https://knowii.net)';
 
+    // Images of a captured article stored by Knowii (ADR 0018): the first ones, the others become their alternative text
+    public const int CAPTURE_MAX_IMAGES = 20;
+
     // Manual captures ("Capture again") per member and per minute
     public const int CAPTURES_PER_MINUTE = 6;
 

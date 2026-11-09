@@ -16,6 +16,8 @@ import type { BreadcrumbItem } from '@/Components/ui';
 import { breadcrumbHome } from '../../Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
 import ResourceIcon from '@/Components/Resources/ResourceIcon';
+import type { CapturedArticleData } from '@/Components/Resources/CapturedArticle';
+import { CapturedArticle } from '@/Components/Resources/CapturedArticle';
 import { ResourceChangesForm } from '@/Components/Resources/ResourceChangesForm';
 import { ResourceDetails } from '@/Components/Resources/ResourceDetails';
 import { CommunityShell } from '@/Components/Spaces/CommunityShell';
@@ -29,6 +31,8 @@ interface Props {
   resource: CommunityResource;
   // Comments on the resource (#1034)
   comments: Comment[];
+  // The captured article (#1247): members only, null otherwise
+  article: CapturedArticleData | null;
   permissions: { canComment: boolean; canModerate: boolean; canCapture: boolean; canUpdate: boolean };
 }
 
@@ -112,6 +116,8 @@ export default function ResourcePage(props: Props) {
             onSaved={() => router.reload({ only: ['resource'] })}
           />
         )}
+
+        <CapturedArticle article={props.article} excerpt={resource.resource.excerpt} />
 
         <CommentSection
           subject={{ communityCuid: community.cuid, spaceCuid: space.cuid, resourceCuid: resource.cuid }}
