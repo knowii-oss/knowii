@@ -44,7 +44,7 @@ A pull request is done when all of these are true:
 2. Pest tests cover the actions, the policies and the API endpoints (success and main failures). Vitest tests cover the new components.
 3. `npm run tsc`, `npx nx run-many -t lint typecheck test`, `composer lint` and `php artisan test` pass.
 4. The Bruno collection (`documentation/api`) has a request for each new or changed endpoint.
-5. The generated OpenAPI document (`/docs/api`) describes the new endpoints correctly (Scramble reads the controllers, the validation rules and the resources).
+5. The generated OpenAPI document (`/docs/api`) describes the new endpoints correctly (Scramble reads the controllers, the validation rules and the resources). `OpenApiDocumentTest` fails when a route, a success response or a request body is missing.
 6. The documentation in `documentation/` is current, and a structural decision has an ADR.
 7. `SELF_HOSTING.md` and `.env.example` list each new configuration value.
 8. The commits follow Conventional Commits with an allowed scope.
