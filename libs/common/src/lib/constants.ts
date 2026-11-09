@@ -69,6 +69,9 @@ export const PASSWORD_CONFIRM_URL = 'password.confirm';
 // URL for sending password forgotten requests
 export const EMAIL_PASSWORD_URL = 'password.email';
 export const PASSWORD_CONFIRMATION_URL = 'password.confirmation';
+// Sign in with a link sent by email (#703)
+export const LOGIN_LINK_STORE_URL = 'login.link.store';
+export const LOGIN_LINK_CONSUME_URL = 'login.link.consume';
 // Two-factor authentication (#690): Fortify routes. WARNING: aligned with `php artisan route:list`
 export const TWO_FACTOR_ENABLE_URL = 'two-factor.enable';
 export const TWO_FACTOR_CONFIRM_URL = 'two-factor.confirm';

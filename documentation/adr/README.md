@@ -47,3 +47,4 @@ Do not write an ADR for a bug fix, a refactor that keeps the structure, or a fea
 | [0020](0020-members-choose-visible-profile-fields.md)                  | Members choose which profile fields the other members see               | Accepted |
 | [0021](0021-avatars-stored-by-knowii-on-the-user.md)                   | Avatars are square images stored by Knowii, on the user                 | Accepted |
 | [0022](0022-api-token-abilities.md)                                    | API token abilities, read and write per area, checked on every route    | Accepted |
+| [0023](0023-sign-in-links.md)                                          | Sign-in links by email, used once, confirmed with a button              | Accepted |
