@@ -163,3 +163,26 @@ test('text resource creation is rejected for video and streaming platforms', fun
 
     (new CreateTextResource)->create($owner, $community, $collection, $input);
 });
+
+test('the keywords of the page are stored on the resource', function () {
+    [$owner, $community, $collection] = makeOwnerWithCollection();
+
+    $html = '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Notes</title>'
+        .'<meta name="keywords" content="PKM, Smart Notes"><meta property="article:tag" content="Zettelkasten">'
+        .'</head><body><article><h1>Notes</h1>'
+        .'<p>This is a sufficiently long paragraph of readable content so that the parser has '
+        .'something meaningful to extract. It discusses note taking and knowledge management, '
+        .'with enough words to be considered an article rather than boilerplate.</p>'
+        .'</article></body></html>';
+
+    $action = new CreateTextResource;
+    $action->setHttpHandlerStack(fakeTextResourceFetchHandler($html));
+
+    $resource = $action->create($owner, $community, $collection, [
+        'name' => 'Notes',
+        'url' => 'https://example.com/notes',
+        'level' => KnowiiResourceLevel::Beginner->value,
+    ]);
+
+    expect($resource->resource->fresh()->keywords)->toBe(['pkm', 'smart notes', 'zettelkasten']);
+});

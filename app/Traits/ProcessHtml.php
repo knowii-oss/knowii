@@ -14,6 +14,11 @@ use Mews\Purifier\Facades\Purifier;
 trait ProcessHtml
 {
     /**
+     * Longest keyword kept from the page metadata.
+     */
+    private const int KEYWORD_MAX_LENGTH = 100;
+
+    /**
      * Clean the HTML using HTMLPurifier
      *
      * @param  string  $html
@@ -269,34 +274,34 @@ trait ProcessHtml
     }
 
     /**
+     * Keywords of the page: the comma-separated keywords meta tag, then every article:tag meta tag.
+     * Lowercase (multibyte safe), trimmed, entities decoded, without duplicates, in document order.
+     * A keyword longer than KEYWORD_MAX_LENGTH characters is dropped.
+     *
      * @return list<string>
      */
     final public function getHtmlKeywords(string $html): array
     {
-        $retVal = [];
-        $metaArray = $this->getHtmlPageMeta($html);
-
-        // Process keywords meta tag
-        if (! empty($metaArray['keywords'])) {
-            $keywords = explode(',', $metaArray['keywords']);
-            foreach ($keywords as $keyword) {
-                $keyword = trim(strtolower($keyword));
-                if (! empty($keyword) && ! in_array($keyword, $retVal) && strlen($keyword) <= 100) {
-                    $retVal[] = $keyword;
-                }
+        $candidates = [];
+        foreach ($this->getHtmlMetaTags($html) as [$key, $content]) {
+            if ($key === 'keywords') {
+                array_push($candidates, ...explode(',', $content));
+            }
+        }
+        foreach ($this->getHtmlMetaTags($html) as [$key, $content]) {
+            if ($key === 'article:tag') {
+                $candidates[] = $content;
             }
         }
 
-        // Process article:tag meta tags (if present)
-        if (preg_match_all('/<meta\s+(?:[^>]*?\s+)?property=(["\'])article:tag\1\s+content=(["\'])(.*?)\2[^>]*>/i', $html, $matches, PREG_SET_ORDER)) {
-            foreach ($matches as $match) {
-                $tag = trim(strtolower($match[3]));
-                if (! empty($tag) && ! in_array($tag, $retVal)) {
-                    $retVal[] = $tag;
-                }
+        $keywords = [];
+        foreach ($candidates as $candidate) {
+            $keyword = mb_strtolower(trim((string) preg_replace('/\s+/u', ' ', $candidate)));
+            if ($keyword !== '' && mb_strlen($keyword) <= self::KEYWORD_MAX_LENGTH && ! in_array($keyword, $keywords, true)) {
+                $keywords[] = $keyword;
             }
         }
 
-        return $retVal;
+        return $keywords;
     }
 }
