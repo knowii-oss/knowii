@@ -78,7 +78,7 @@
   <!--  <link href="/static/site.webmanifest" rel="manifest" />-->
   <!--  <meta content="/browserconfig.xml" name="msapplication-config" />-->
 
-  <title inertia>{{ config('app.name', 'Laravel') }}</title>
+  <title data-inertia>{{ config('app.name', 'Laravel') }}</title>
 
   <!-- Scripts -->
   @routes(nonce: csp_nonce('script'))

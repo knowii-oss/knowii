@@ -25091,6 +25091,15 @@ namespace Illuminate\Http {
      */
     class RedirectResponse extends \Symfony\Component\HttpFoundation\RedirectResponse {
         /**
+         * @see \Inertia\ServiceProvider::registerRedirectMacro()
+         * @static
+         */
+        public static function preserveFragment()
+        {
+            return \Illuminate\Http\RedirectResponse::preserveFragment();
+        }
+
+        /**
          * @see \Laravel\Jetstream\JetstreamServiceProvider::boot()
          * @param mixed $message
          * @return \Illuminate\Http\RedirectResponse

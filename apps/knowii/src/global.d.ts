@@ -9,7 +9,7 @@ declare global {
 
     // WARNING: Required for WebSockets (Laravel Reverb/Pusher protocol/Laravel Echo)
     Pusher: typeof Pusher;
-    Echo: Echo;
+    Echo: Echo<'reverb'>;
   }
 
   let route: typeof ziggyRoute;
