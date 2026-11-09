@@ -21,7 +21,7 @@ class ResourceFactory extends Factory
     final public function definition(): array
     {
         return [
-            'cuid' => new Cuid2,
+            'cuid' => (new Cuid2)->toString(),
             'name' => fake()->sentence(),
             'excerpt' => fake()->sentence(),
             'keywords' => fake()->words(10),

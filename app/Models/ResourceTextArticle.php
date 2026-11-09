@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Events\Resources\TextArticles\ResourceTextArticleCreated;
 use App\Events\Resources\TextArticles\ResourceTextArticleDeleted;
 use App\Events\Resources\TextArticles\ResourceTextArticleUpdated;
+use App\Traits\GeneratesCuid;
 use Carbon\Carbon;
 use Database\Factories\ResourceTextArticleFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,7 +13,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
-use Parables\Cuid\GeneratesCuid;
 
 /**
  * @property int $id
@@ -47,7 +47,6 @@ use Parables\Cuid\GeneratesCuid;
 class ResourceTextArticle extends Model
 {
     // Automatically generate cuid2 for the model
-    // Reference: https://github.com/Parables/laravel-cuid2
     use GeneratesCuid;
 
     /** @use HasFactory<ResourceTextArticleFactory> */

@@ -6,6 +6,7 @@ use App\Enums\KnowiiCommunityVisibility;
 use App\Events\Communities\CommunityCreated;
 use App\Events\Communities\CommunityDeleted;
 use App\Events\Communities\CommunityUpdated;
+use App\Traits\GeneratesCuid;
 use Carbon\Carbon;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Database\Factories\CommunityFactory;
@@ -16,7 +17,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Support\Collection;
-use Parables\Cuid\GeneratesCuid;
 
 /**
  * App\Models\Community
@@ -60,7 +60,6 @@ use Parables\Cuid\GeneratesCuid;
 class Community extends Model
 {
     // Automatically generate cuid2 for the model
-    // Reference: https://github.com/Parables/laravel-cuid2
     use GeneratesCuid;
 
     /** @use HasFactory<CommunityFactory> */

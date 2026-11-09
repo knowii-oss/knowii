@@ -20,7 +20,7 @@ class ResourceTextArticleFactory extends Factory
     final public function definition(): array
     {
         return [
-            'cuid' => new Cuid2,
+            'cuid' => (new Cuid2)->toString(),
             'resource_id' => Resource::factory(),
             'html' => $this->faker->randomHtml(),
             'word_count' => $this->faker->numberBetween(300, 1000),

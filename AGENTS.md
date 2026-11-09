@@ -1,8 +1,7 @@
 # AGENTS.md
 
 Guidance for AI agents and contributors working in this repository. This is the
-single source of truth for project conventions; `CLAUDE.md` and `.cursorrules`
-both point here.
+single source of truth for project conventions; `CLAUDE.md` points here.
 
 ## Project
 

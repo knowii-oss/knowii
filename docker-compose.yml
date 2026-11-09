@@ -1,14 +1,14 @@
 services:
   laravel.test:
     build:
-      context: ./docker/8.3
+      context: ./docker/8.5
       dockerfile: Dockerfile
       args:
-        BASE_IMAGE: '${SAIL_BASE_IMAGE:-ubuntu:22.04}'
+        BASE_IMAGE: '${SAIL_BASE_IMAGE:-ubuntu:24.04}'
         WWWGROUP: '${WWWGROUP}'
         # Force a specific node version
-        NODE_VERSION: '20'
-    image: sail-8.3/app
+        NODE_VERSION: '24'
+    image: sail-8.5/app
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     ports:

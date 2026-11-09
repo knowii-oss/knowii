@@ -28,7 +28,7 @@ class CommunityResourceFactory extends Factory
         $resource = Resource::factory()->create();
 
         return [
-            'cuid' => new Cuid2,
+            'cuid' => (new Cuid2)->toString(),
             'slug' => $resource->slug,
             'resource_id' => $resource->id,
             'community_id' => $community->id,

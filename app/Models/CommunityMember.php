@@ -3,9 +3,9 @@
 namespace App\Models;
 
 use App\Enums\KnowiiCommunityMemberRole;
+use App\Traits\GeneratesCuid;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Relations\Pivot;
-use Parables\Cuid\GeneratesCuid;
 
 /**
  * App\Models\CommunityMember
@@ -34,7 +34,6 @@ use Parables\Cuid\GeneratesCuid;
 class CommunityMember extends Pivot
 {
     // Automatically generate cuid2 for the model
-    // Reference: https://github.com/Parables/laravel-cuid2
     use GeneratesCuid;
 
     /**
