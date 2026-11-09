@@ -3,12 +3,13 @@
 namespace Database\Factories;
 
 use App\Models\User;
+use App\Models\UserProfile;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use TaylorNetwork\UsernameGenerator\Generator;
 use Visus\Cuid2\Cuid2;
 
 /**
- * @extends Factory<User>
+ * @extends Factory<UserProfile>
  */
 class UserProfileFactory extends Factory
 {
@@ -26,6 +27,8 @@ class UserProfileFactory extends Factory
 
         return [
             'cuid' => (new Cuid2)->toString(),
+            // A profile always belongs to an account (#1261, ADR 0024)
+            'user_id' => User::factory(),
             'name' => $name,
             'username' => $username,
             'email' => fake()->unique()->safeEmail(),

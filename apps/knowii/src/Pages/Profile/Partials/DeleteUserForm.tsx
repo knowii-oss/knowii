@@ -46,8 +46,9 @@ export default function DeleteUserForm() {
   return (
     <ActionSection title={'Delete Account'} description={'Permanently delete your account.'}>
       <div className="max-w-xl text-sm text-muted">
-        Once your account is deleted, your own communities, resources, and interactions will all be permanently removed. Only your public
-        profile will remain. If you create a new user account later, you will be able to re-claim your profile, but not the account data.
+        When you delete your account, we delete your profile, your avatar, your own communities, your memberships, your reactions and your
+        API tokens. The posts, comments and resources that you added to the communities of other members stay, with &quot;Deleted
+        member&quot; as the author. You cannot undo this.
       </div>
 
       <div className="mt-5 flex items-center">

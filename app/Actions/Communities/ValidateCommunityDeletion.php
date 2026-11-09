@@ -17,8 +17,8 @@ class ValidateCommunityDeletion
      */
     public function validate(User $user, Community $community): void
     {
-        Log::info('Verifying community deletion authorization', ['community' => $community, 'user' => $user]);
+        Log::info('Verifying community deletion authorization', ['community' => $community->cuid, 'user' => $user->cuid]);
         Gate::forUser($user)->authorize('delete', $community);
-        Log::info('Community deletion authorized', ['community' => $community, 'user' => $user]);
+        Log::info('Community deletion authorized', ['community' => $community->cuid, 'user' => $user->cuid]);
     }
 }

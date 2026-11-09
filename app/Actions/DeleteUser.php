@@ -2,12 +2,24 @@
 
 namespace App\Actions;
 
+use App\Actions\Users\UpdateAvatar;
 use App\Contracts\Communities\DeletesCommunities;
+use App\Models\CommunityInvitation;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Jetstream\Contracts\DeletesUsers;
 
+/**
+ * Deletes an account and the personal data of the member (#1261, ADR 0024).
+ *
+ * What the member wrote in the communities of others stays, with "Deleted member" as its author: the author of the
+ * posts and comments and the curator of the resources become null (foreign keys with nullOnDelete). The images in
+ * that content stay too, without an uploader. Everything else goes: the profile, the avatar, the owned communities,
+ * the memberships, the reactions, the mentions, the invitations sent to the address, the API tokens, the sessions and
+ * the password reset tokens.
+ */
 class DeleteUser implements DeletesUsers
 {
     /**
@@ -20,22 +32,33 @@ class DeleteUser implements DeletesUsers
      */
     final public function delete(User $user): void
     {
-        Log::info('Deleting user', ['user' => $user]);
-        DB::transaction(function () use ($user) {
+        // Only the cuid: the logs must not keep the personal data of a deleted account
+        $cuid = $user->cuid;
+        $email = $user->email;
+        Log::info('Deleting user', ['user' => $cuid]);
+
+        DB::transaction(function () use ($user, $email) {
             // Remove the user's communities and associated elements
             $this->deleteCommunities($user);
 
-            // When a user deletes their account, their user profile remains available, but is not associated with them anymore
-            // This ensures that associated resources are not lost
-            $user->detachProfile();
+            // The profile holds the email, the name and every field of the member
+            $user->profile()->delete();
+
+            CommunityInvitation::query()->where('email', $email)->delete();
+            DB::table('password_reset_tokens')->where('email', $email)->delete();
+            DB::table('sessions')->where('user_id', $user->id)->delete();
 
             // Remove tokens
-            $user->tokens->each->delete();
+            $user->tokens()->delete();
 
             // Remove the user account
             $user->delete();
         });
-        Log::info('User deleted', ['user' => $user]);
+
+        // Files are not part of the transaction: they go once the account is gone
+        Storage::disk(UpdateAvatar::disk())->deleteDirectory('avatars/'.$cuid);
+
+        Log::info('User deleted', ['user' => $cuid]);
     }
 
     /**

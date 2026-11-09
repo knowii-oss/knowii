@@ -94,6 +94,6 @@ describe('ResourceDetails', () => {
 
     expect(screen.queryByRole('link', { name: 'Open the article' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Ada' })).not.toBeInTheDocument();
-    expect(screen.getByText(/Added/)).toBeInTheDocument();
+    expect(screen.getByText(/Added by/)).toHaveTextContent('Added by Deleted member');
   });
 });
