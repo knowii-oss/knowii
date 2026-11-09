@@ -2,7 +2,7 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import react from '@vitejs/plugin-react';
-import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
+import { nxReadySignal } from '@nx/vite/plugins/nx-ready-signal.plugin';
 import type { UserConfig } from 'vite';
 
 //console.log("Launching Vite build. Current directory: ", __dirname);
@@ -55,7 +55,8 @@ const viteConfig = defineConfig({
   },
 
   plugins: [
-    nxViteTsPaths(),
+    // Lets Nx know when the dev and preview servers are ready
+    nxReadySignal(),
     // WARNING: MUST be aligned with the config in app.blade.php
     // Reference: https://github.com/laravel/vite-plugin
     laravel({
@@ -72,6 +73,8 @@ const viteConfig = defineConfig({
   // MUST be aligned with the entry in the "paths" property of tsconfig.base.json
   // Reference: Mention that mandatory to override the default alias defined by the Laravel plugin
   resolve: {
+    // Resolve the TypeScript path mappings (e.g., @knowii/common, ziggy-js) natively
+    tsconfigPaths: true,
     alias: {
       '@': `${import.meta.dirname}/src`,
     },
