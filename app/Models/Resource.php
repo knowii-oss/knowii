@@ -36,6 +36,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property ?string $cover_image_url
  * @property ?string $cover_image_alt
  * @property ?string $cover_image_base64
+ * @property ?string $cover_image_path
+ * @property ?string $favicon_path
  * @property KnowiiResourceType $type
  * @property KnowiiResourceLevel $level
  * @property bool $is_featured
@@ -120,6 +122,8 @@ class Resource extends Model
         'cover_image_url',
         'cover_image_alt',
         'cover_image_base64',
+        'cover_image_path',
+        'favicon_path',
         'type',
         'level',
         'is_featured',

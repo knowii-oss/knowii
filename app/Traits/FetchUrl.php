@@ -187,56 +187,26 @@ trait FetchUrl
     }
 
     /**
-     * Check if the given URL is available and points to an image.
-     *
-     * @param  string  $url  The URL to check
-     * @return bool True if the URL is available and points to an image, false otherwise
+     * Download an image from an external address (cover image, icon of the site). Null when the address is refused,
+     * unavailable or not an image: images are a bonus, they never stop a capture (#1063).
      */
-    final public function isUrlAvailableAndIsAnImage(string $url): bool
+    final public function downloadImage(string $url): ?string
     {
-        $client = $this->getClient();
         try {
-            $response = $client->head($url, $this->externalRequestOptions($url));
-            $statusCode = $response->getStatusCode();
-            $contentType = $response->getHeaderLine('Content-Type');
+            $response = $this->getClient()->get($url, $this->externalRequestOptions($url, ['http_errors' => false]));
+            $isImage = str_starts_with(strtolower($response->getHeaderLine('Content-Type')), 'image/');
 
-            return $statusCode >= 200 && $statusCode < 300 && str_starts_with($contentType, 'image/');
-        } catch (\RuntimeException|GuzzleException $e) {
-            return false;
-        }
-    }
-
-    /**
-     * Load an image from a URL and return it as a base64 encoded string.
-     *
-     * @param  string  $url  The URL of the image file
-     * @return string Base64 encoded image data
-     *
-     * @throws Exception If the image cannot be loaded or encoded
-     */
-    final public function loadImageAsBase64(string $url): string
-    {
-        $client = $this->getClient();
-
-        try {
-            $response = $client->get($url, $this->externalRequestOptions($url));
-
-            if ($response->getStatusCode() !== 200) {
-                throw new Exception('Failed to fetch the image. Status code: '.$response->getStatusCode());
+            if ($response->getStatusCode() !== 200 || ! $isImage) {
+                return null;
             }
 
-            $contentType = $response->getHeaderLine('Content-Type');
-            if (! str_starts_with($contentType, 'image/')) {
-                throw new Exception('The URL does not point to an image file. Content-Type: '.$contentType);
-            }
+            $bytes = $response->getBody()->getContents();
 
-            $imageData = $response->getBody()->getContents();
-            $base64Image = base64_encode($imageData);
+            return $bytes === '' || strlen($bytes) > Constants::MAX_FETCH_SIZE_BYTES ? null : $bytes;
+        } catch (Exception $e) {
+            Log::debug('Image not downloaded', ['url' => $url, 'reason' => $e->getMessage()]);
 
-            return $base64Image;
-        } catch (GuzzleException $e) {
-            Log::error('Error while loading the image: '.$e->getMessage());
-            throw new Exception('Failed to fetch the image', 0, $e);
+            return null;
         }
     }
 

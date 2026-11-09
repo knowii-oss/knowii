@@ -1,10 +1,10 @@
-import { FaExternalLinkAlt } from 'react-icons/fa';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Community, CommunityPermissions, CommunityResource, SpaceGroup } from '@knowii/common';
-import { COMMUNITY_SETTINGS_URL, DASHBOARD_URL, getIconForResourceLevel, RESOURCE_URL, safeHttpUrl, useSocket } from '@knowii/common';
+import { COMMUNITY_SETTINGS_URL, DASHBOARD_URL, RESOURCE_URL, useSocket } from '@knowii/common';
 import { breadcrumbHome } from '../../Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
 import ResourceIcon from '@/Components/Resources/ResourceIcon';
+import { ResourceCard } from '@/Components/Resources/ResourceCard';
 import CommunityMembersIcon from '@/Components/Communities/CommunityMembersIcon';
 import { Link, router } from '@inertiajs/react';
 import { FaGear } from 'react-icons/fa6';
@@ -70,38 +70,15 @@ export default function CommunityPage(props: Props) {
                 {recentResources.length > 0 ? (
                   <ul className="flex flex-col gap-3">
                     {recentResources.map((recentResource) => (
-                      <li
-                        key={recentResource.cuid}
-                        className="flex items-start gap-2 rounded-lg border border-border bg-well p-3 transition-colors hover:border-overlay/40"
-                      >
-                        <Link
+                      <li key={recentResource.cuid}>
+                        <ResourceCard
+                          resource={recentResource}
                           href={route(RESOURCE_URL, {
                             communitySlug: props.community.slug,
                             spaceSlug: recentResource.space?.slug ?? '',
                             resourceSlug: recentResource.slug,
                           })}
-                          preserveState={true}
-                          className="min-w-0 grow rounded"
-                        >
-                          <h3 className="text-base font-bold">
-                            <span aria-hidden="true">{getIconForResourceLevel(recentResource.resource.level) + ' '}</span>
-                            {recentResource.name ? recentResource.name : recentResource.resource.name}
-                          </h3>
-                          <p className="my-1 truncate text-sm text-muted">
-                            {recentResource.description ? recentResource.description : recentResource.resource.description}
-                          </p>
-                        </Link>
-                        {recentResource.resource.type === 'textArticle' && safeHttpUrl(recentResource.resource.url) && (
-                          <a
-                            href={safeHttpUrl(recentResource.resource.url) ?? undefined}
-                            target="_blank"
-                            rel="noreferrer"
-                            aria-label="Open the original article in a new tab"
-                            className={buttonClasses({ variant: 'secondary', size: 'sm', iconOnly: true })}
-                          >
-                            <FaExternalLinkAlt aria-hidden="true" />
-                          </a>
-                        )}
+                        />
                       </li>
                     ))}
                   </ul>

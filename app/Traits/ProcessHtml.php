@@ -137,6 +137,43 @@ trait ProcessHtml
         return $image === null || $baseUrl === null ? $image : $this->resolveUrl($image, $baseUrl);
     }
 
+    /**
+     * Icon of the site: the largest declared PNG, JPEG, WebP or GIF icon (apple-touch-icon and icon links), then
+     * /favicon.png. ICO and SVG files are skipped: the image processing cannot read them (#1063).
+     * The URL is resolved against $baseUrl (the URL of the page).
+     */
+    final public function getHtmlFaviconUrl(string $html, string $baseUrl): string
+    {
+        $document = $this->parseHtml($html);
+        $candidates = [];
+
+        foreach ($document?->querySelectorAll('link[rel][href]') ?? [] as $link) {
+            $rel = ' '.strtolower(trim((string) $link->getAttribute('rel'))).' ';
+            $href = trim((string) $link->getAttribute('href'));
+            if ($href === '' || (! str_contains($rel, ' icon ') && ! str_contains($rel, ' apple-touch-icon '))) {
+                continue;
+            }
+
+            $type = strtolower((string) $link->getAttribute('type'));
+            $extension = strtolower(pathinfo((string) parse_url($href, PHP_URL_PATH), PATHINFO_EXTENSION));
+            if (in_array($extension, ['ico', 'svg'], true) || str_contains($type, 'icon') || str_contains($type, 'svg')) {
+                continue;
+            }
+
+            // "180x180" or "32x32 64x64": keep the largest size; unknown sizes rank last
+            preg_match_all('/(\d+)x\d+/i', (string) $link->getAttribute('sizes'), $sizes);
+            $candidates[] = ['url' => $this->resolveUrl($href, $baseUrl), 'size' => $sizes[1] === [] ? 0 : max(array_map('intval', $sizes[1]))];
+        }
+
+        if ($candidates !== []) {
+            usort($candidates, static fn (array $a, array $b) => $b['size'] <=> $a['size']);
+
+            return $candidates[0]['url'];
+        }
+
+        return $this->resolveUrl('/favicon.png', $baseUrl);
+    }
+
     final public function getHtmlCoverImageAlt(string $html): ?string
     {
         $metaArray = $this->getHtmlPageMeta($html);

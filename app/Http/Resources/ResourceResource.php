@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Resource;
+use App\Support\ResourceImages;
 use Illuminate\Http\Request;
 
 /** @mixin Resource **/
@@ -30,6 +31,9 @@ class ResourceResource extends AbstractKnowiiJsonResource
             'cover_image_url' => $this->cover_image_url,
             'cover_image_alt' => $this->cover_image_alt, // Ensures the returned value is never null
             'cover_image_base64' => $this->serializeLargeFields ? $this->cover_image_base64 : null,
+            // Stored by Knowii, small: lists carry them (#1063, ADR 0016)
+            'cover_image_thumbnail_url' => ResourceImages::url($this->cover_image_path),
+            'favicon_url' => ResourceImages::url($this->favicon_path),
             'type' => $this->type->value,
             'level' => $this->level->value,
             'is_featured' => $this->is_featured,
