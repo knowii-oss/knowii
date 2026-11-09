@@ -6,6 +6,7 @@ use App\Exceptions\TechnicalException;
 use App\Http\Middleware\AddViteContentSecurityPolicyNonce;
 use App\Http\Middleware\EnsureRequestIsJson;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\RequireTokenAbility;
 use App\Traits\ApiResponses;
 use Bepsvpt\SecureHeaders\SecureHeadersMiddleware;
 use Illuminate\Auth\AuthenticationException;
@@ -64,6 +65,11 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->statefulApi();
+
+        // Token abilities on the API routes (ADR 0022, #689): `ability:a,b` passes with any of them
+        $middleware->alias([
+            'ability' => RequireTokenAbility::class,
+        ]);
 
         // Might need this later if we still get redirects with the API
         //    $middleware->redirectTo(function (Request $request) {

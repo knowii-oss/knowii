@@ -43,6 +43,11 @@ export const USER_PROFILE_PASSWORD_UPDATE_URL = 'user-password.update';
 export const COMMUNITY_URL = 'communities.show';
 export const COMMUNITY_SETTINGS_URL = 'communities.settings';
 export const COMMUNITY_ABOUT_URL = 'communities.about';
+// API tokens (#689): Jetstream routes
+export const API_TOKENS_URL = 'api-tokens.index';
+export const API_TOKENS_STORE_URL = 'api-tokens.store';
+export const API_TOKENS_UPDATE_URL = 'api-tokens.update';
+export const API_TOKENS_DESTROY_URL = 'api-tokens.destroy';
 
 // Spaces
 export const SPACE_URL = 'spaces.show';

@@ -60,13 +60,42 @@ export interface Role {
   permissions: Permission[];
 }
 
-// WARNING MUST remain aligned with permissions defined in JetstreamServiceProvider.php
-export type Permission =
-  | 'community:create'
-  | 'community:read'
-  | 'community:update'
-  | 'community:delete'
-  | 'resource:create'
-  | 'resource:read'
-  | 'resource:update'
-  | 'resource:delete';
+/**
+ * The abilities of API tokens (ADR 0022, #689). WARNING: aligned with JetstreamServiceProvider.php
+ */
+export const API_TOKEN_PERMISSIONS = [
+  'user:read',
+  'user:write',
+  'communities:read',
+  'communities:write',
+  'posts:read',
+  'posts:write',
+  'resources:read',
+  'resources:write',
+  'resources:create',
+] as const;
+export type Permission = (typeof API_TOKEN_PERMISSIONS)[number];
+
+export const API_TOKEN_PERMISSION_LABELS: Record<Permission, string> = {
+  'user:read': 'Read your account',
+  'user:write': 'Change your account (picture)',
+  'communities:read': 'Read communities, spaces and members',
+  'communities:write': 'Manage communities, spaces and members',
+  'posts:read': 'Read posts, comments and reactions',
+  'posts:write': 'Write posts, comments and reactions, upload images',
+  'resources:read': 'Read resources and their comments',
+  'resources:write': 'Add resources, comment and react on them',
+  'resources:create': 'Add resources only (browser extension)',
+};
+
+/**
+ * A personal access token as Jetstream lists it (API/Index)
+ */
+export interface ApiToken {
+  id: number;
+  name: string;
+  abilities: string[];
+  last_used_ago: string | null;
+  created_at: string;
+  expires_at: string | null;
+}

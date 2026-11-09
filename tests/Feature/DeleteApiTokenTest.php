@@ -10,7 +10,7 @@ test('api tokens can be deleted', function () {
     $token = $user->tokens()->create([
         'name' => 'Test Token',
         'token' => Str::random(40),
-        'abilities' => ['community:create', 'community:read'],
+        'abilities' => ['resources:create', 'communities:read'],
     ]);
 
     $this->delete('/user/api-tokens/'.$token->id);

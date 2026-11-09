@@ -9,16 +9,16 @@ test('api tokens can be created', function () {
     $this->post('/user/api-tokens', [
         'name' => 'Test Token',
         'permissions' => [
-            'community:read',
-            'community:update',
+            'communities:read',
+            'communities:write',
         ],
     ]);
 
     expect($user->fresh()->tokens)->toHaveCount(1);
     expect($user->fresh()->tokens->first())
         ->name->toEqual('Test Token')
-        ->can('community:delete')->toBeFalse()
-        ->can('community:read')->toBeTrue();
+        ->can('posts:write')->toBeFalse()
+        ->can('communities:read')->toBeTrue();
 })->skip(function () {
     return ! Features::hasApiFeatures();
 }, 'API support is not enabled.');
