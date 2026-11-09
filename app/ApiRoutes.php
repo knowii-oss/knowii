@@ -36,6 +36,8 @@ final class ApiRoutes
 
     public const PARAM_POST = 'post';
 
+    public const PARAM_PAGE = 'page';
+
     public const PARAM_COMMENT = 'comment';
 
     // Named after Space::resources() for the scoped binding
@@ -101,6 +103,13 @@ final class ApiRoutes
     public const COMMUNITY_SPACE_RESOURCE_COMMENT_REACTIONS = self::COMMUNITY_SPACE_RESOURCE_COMMENT.'/reactions';
 
     public const COMMUNITY_SPACE_POSTS = self::COMMUNITY_SPACE.'/posts';
+
+    // Pages of page spaces (#1179)
+    public const COMMUNITY_SPACE_PAGES = self::COMMUNITY_SPACE.'/pages';
+
+    public const COMMUNITY_SPACE_PAGES_ORDER = self::COMMUNITY_SPACE_PAGES.'/order';
+
+    public const COMMUNITY_SPACE_PAGE = self::COMMUNITY_SPACE_PAGES.'/{'.self::PARAM_PAGE.'}';
 
     public const COMMUNITY_SPACE_POST = self::COMMUNITY_SPACE_POSTS.'/{'.self::PARAM_POST.'}';
 

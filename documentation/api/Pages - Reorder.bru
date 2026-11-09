@@ -1,0 +1,26 @@
+meta {
+  name: Pages - Reorder
+  type: http
+  seq: 89
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a page space>/pages/order
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "pages": ["<cuid of page 2>", "<cuid of page 1>"]
+  }
+}
+
+docs {
+  Puts the pages in a new order: the cuids of every page of the space, once (else a validation issue). Ability pages:write.
+}

@@ -1,0 +1,19 @@
+meta {
+  name: Pages - Get
+  type: http
+  seq: 85
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a page space>/pages/<cuid of a page>
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  One page with its Markdown (body) and its HTML (body_html). Ability pages:read.
+}

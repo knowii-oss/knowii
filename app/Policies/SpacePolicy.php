@@ -5,6 +5,7 @@ namespace App\Policies;
 use App\Enums\KnowiiCommunityMemberRole;
 use App\Enums\KnowiiModeratorPermission;
 use App\Enums\KnowiiSpacePostingPolicy;
+use App\Enums\KnowiiSpaceType;
 use App\Enums\KnowiiSpaceVisibility;
 use App\Models\Space;
 use App\Models\User;
@@ -66,6 +67,18 @@ class SpacePolicy
     final public function moderate(User $user, Space $space): bool
     {
         return CommunityRoles::allows($user, $space->community, KnowiiModeratorPermission::DeleteContent);
+    }
+
+    /**
+     * Whether the user creates, edits, reorders and deletes the pages of a page space (#1179): the owner, the admins and
+     * the moderators who can read it.
+     */
+    final public function managePages(User $user, Space $space): bool
+    {
+        return $space->type === KnowiiSpaceType::Pages
+            && $user->belongsToCommunity($space->community)
+            && $this->view($user, $space)
+            && self::isModerator($user, $space);
     }
 
     private static function isModerator(User $user, Space $space): bool

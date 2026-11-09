@@ -27,6 +27,9 @@ import {
   COMMUNITY_SPACE_GROUPS_API_PATH,
   COMMUNITY_SPACE_GROUPS_REORDER_API_PATH,
   COMMUNITY_SPACES_API_PATH,
+  COMMUNITY_SPACE_PAGE_API_PATH,
+  COMMUNITY_SPACE_PAGES_API_PATH,
+  COMMUNITY_SPACE_PAGES_ORDER_API_PATH,
   COMMUNITY_SPACE_POST_API_PATH,
   COMMUNITY_SPACE_POST_COMMENT_API_PATH,
   COMMUNITY_SPACE_POST_COMMENTS_API_PATH,
@@ -34,6 +37,7 @@ import {
   COMMUNITY_SPACE_POST_PIN_API_PATH,
   COMMUNITY_SPACE_POSTS_API_PATH,
   MARKDOWN_PREVIEW_API_PATH,
+  SPACE_API_PARAM_PAGE,
   SPACE_API_PARAM_POST,
   SPACE_API_PARAM_RESOURCE,
   PING_API_PATH,
@@ -74,6 +78,8 @@ import type { CommunityResource } from '../types/community-resource.schema';
 import type { Community, ModeratorPermissions, NewCommunity } from '../types/community.schema';
 import { communitySchema } from '../types/community.schema';
 import { communityResourceSchema } from '../types/community-resource.schema';
+import type { Page, PageForm } from '../types/page.schema';
+import { pageSchema } from '../types/page.schema';
 import type { CommunityResourceChanges, NewCommunityResource } from '../types/new-community-resource.schema';
 import type { ReactionKind, ReactionSummary, WhoReacted } from '../types/reaction.schema';
 import type { AssignableCommunityRole, CommunityInvitation, CommunityInvitationForm, CommunityMember } from '../types/member.schema';
@@ -112,6 +118,9 @@ const postsPath = (communityCuid: string, spaceCuid: string, postCuid = '', path
   apiPath(path, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE]: spaceCuid, [SPACE_API_PARAM_POST]: postCuid });
 
 const postListSchema = z.array(postSchema);
+const pagesPath = (communityCuid: string, spaceCuid: string, pageCuid = '', path = COMMUNITY_SPACE_PAGES_API_PATH) =>
+  apiPath(path, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE]: spaceCuid, [SPACE_API_PARAM_PAGE]: pageCuid });
+const pageListSchema = z.array(pageSchema);
 const reactionsPath = (target: ReactionTarget) =>
   target.commentCuid
     ? `${commentsPath(target, target.commentCuid)}/reactions`
@@ -336,6 +345,45 @@ export const knowiiApiClient = {
           postSchema,
           pinned ? 'Failed to pin the post.' : 'Failed to unpin the post.',
           { pinned },
+        ),
+    },
+    /**
+     * The pages of page spaces (#1179): the owner, the admins and the moderators manage them
+     */
+    pages: {
+      list: (communityCuid: string, spaceCuid: string): Promise<ApiResult<Page[]>> =>
+        apiRequest('get', pagesPath(communityCuid, spaceCuid), pageListSchema, 'Failed to load the pages.'),
+      get: (communityCuid: string, spaceCuid: string, pageCuid: string): Promise<ApiResult<Page>> =>
+        apiRequest(
+          'get',
+          pagesPath(communityCuid, spaceCuid, pageCuid, COMMUNITY_SPACE_PAGE_API_PATH),
+          pageSchema,
+          'Failed to load the page.',
+        ),
+      create: (communityCuid: string, spaceCuid: string, input: PageForm): Promise<ApiResult<Page>> =>
+        apiRequest('post', pagesPath(communityCuid, spaceCuid), pageSchema, 'Failed to create the page.', input),
+      update: (communityCuid: string, spaceCuid: string, pageCuid: string, input: Partial<PageForm>): Promise<ApiResult<Page>> =>
+        apiRequest(
+          'patch',
+          pagesPath(communityCuid, spaceCuid, pageCuid, COMMUNITY_SPACE_PAGE_API_PATH),
+          pageSchema,
+          'Failed to save the page.',
+          input,
+        ),
+      delete: (communityCuid: string, spaceCuid: string, pageCuid: string): Promise<ApiResult<undefined>> =>
+        apiRequest(
+          'delete',
+          pagesPath(communityCuid, spaceCuid, pageCuid, COMMUNITY_SPACE_PAGE_API_PATH),
+          null,
+          'Failed to delete the page.',
+        ),
+      reorder: (communityCuid: string, spaceCuid: string, pageCuids: string[]): Promise<ApiResult<Page[]>> =>
+        apiRequest(
+          'post',
+          pagesPath(communityCuid, spaceCuid, '', COMMUNITY_SPACE_PAGES_ORDER_API_PATH),
+          pageListSchema,
+          'Failed to move the page.',
+          { pages: pageCuids },
         ),
     },
     comments: {

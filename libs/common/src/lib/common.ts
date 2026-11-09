@@ -29,6 +29,7 @@ export * from './types/resource-capture.schema';
 export * from './types/social-media-link.schema';
 export * from './types/space.schema';
 export * from './types/post.schema';
+export * from './types/page.schema';
 export * from './types/comment.schema';
 export * from './types/reaction.schema';
 export * from './types/member.schema';
