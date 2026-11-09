@@ -51,6 +51,10 @@ use Laravel\Jetstream\HasProfilePhoto;
  * @property string|null $social_link_producthunt
  * @property string|null $social_link_github
  * @property string|null $social_link_gitlab
+ * @property string|null $social_link_wikipedia
+ * @property string|null $social_link_google_scholar
+ * @property string|null $social_link_orcid
+ * @property string|null $social_link_kofi
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read DatabaseNotificationCollection<int, DatabaseNotification> $notifications
