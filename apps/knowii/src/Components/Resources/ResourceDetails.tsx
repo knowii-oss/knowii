@@ -3,6 +3,7 @@ import type { CommunityResource } from '@knowii/common';
 import { MEMBER_URL, resourceLevelSchemaOptions, resourceTypeSchemaOptions, safeHttpUrl, useAppData } from '@knowii/common';
 import { FaArrowUpRightFromSquare, FaLink } from 'react-icons/fa6';
 import { Button, buttonClasses, RelativeTime } from '@/Components/ui';
+import { ResourceTypeIcon } from './ResourceTypeIcon';
 
 export interface ResourceDetailsProps {
   communitySlug: string;
@@ -70,7 +71,12 @@ export function ResourceDetails({ communitySlug, resource, shareUrl }: ResourceD
               {level.name}
             </span>
           )}
-          {type && <span className={chipClasses}>{type.name}</span>}
+          {type && (
+            <span className={`${chipClasses} inline-flex items-center gap-1`}>
+              <ResourceTypeIcon type={type.type} />
+              <span aria-hidden="true">{type.name}</span>
+            </span>
+          )}
           {readingTime !== null && readingTime > 0 && <span className={chipClasses}>{readingTime} min read</span>}
         </p>
       </header>
