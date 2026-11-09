@@ -26,7 +26,8 @@ class CommunityResourceResource extends AbstractKnowiiJsonResource
             'slug' => $this->slug,
             'resource' => $this->whenLoaded('resource', fn (Resource $resource) => $resource->toResource()->withLargeFields($this->serializeLargeFields)),
             'resource_text_article' => $this->whenLoaded('textArticle', fn (ResourceTextArticle $textArticle) => $textArticle->toResource()->withLargeFields($this->serializeLargeFields)),
-            'curator' => $this->whenLoaded('curator', fn (UserProfile $curator) => $curator->toResource()->withLargeFields($this->serializeLargeFields)),
+            // The public summary only: never the phone, location or links of the profile (#1234)
+            'curator' => $this->whenLoaded('curator', fn (?UserProfile $curator) => $curator?->toResource(AuthorResource::class)),
             'space' => $this->whenLoaded('space', fn (Space $space) => $space->toResource()),
             'is_featured' => $this->is_featured,
             'created_at' => $this->created_at,

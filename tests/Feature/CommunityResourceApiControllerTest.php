@@ -322,3 +322,14 @@ test('a resource of another space gives a 404 (#876)', function () {
 
     $this->actingAs($c['member'])->getJson(resourcePath($otherSpace, $resources[0]))->assertNotFound();
 });
+
+test('resources expose only the public summary of their curator (#1234)', function () {
+    [$c, $space, $resources] = resourcesSpaceWithResources(1);
+    $resources[0]->curator->forceFill(['phone' => '+32 470 00 00 00', 'location' => 'Brussels', 'bio' => 'Private bio'])->save();
+
+    foreach ([resourcesListPath($space) => 'data.0.curator', resourcePath($space, $resources[0]) => 'data.curator'] as $path => $key) {
+        $curator = $this->actingAs($c['member'])->getJson($path)->assertOk()->json($key);
+
+        expect(array_keys($curator))->toEqualCanonicalizing(['cuid', 'name', 'username']);
+    }
+});
