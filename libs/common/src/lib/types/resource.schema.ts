@@ -4,7 +4,7 @@ import { slugSchema } from './slug.schema';
 
 // Resource type
 export const resourceTypeSchema = z.enum(['textArticle'], {
-  message: 'Please select the type of resource',
+  error: 'Please select the type of resource',
 });
 
 export type ResourceType = z.infer<typeof resourceTypeSchema>;
@@ -18,7 +18,7 @@ export const resourceTypeSchemaOptions: Array<{ name: string; type: ResourceType
 
 // Resource level
 export const resourceLevelSchema = z.enum(['beginner', 'intermediate', 'advanced', 'expert', 'unknown'], {
-  message: 'Please select the level of the resource',
+  error: 'Please select the level of the resource',
 });
 
 export type ResourceLevel = z.infer<typeof resourceLevelSchema>;
@@ -43,30 +43,28 @@ export const getIconForResourceLevel = (level: ResourceLevel): string => {
   return retVal;
 };
 
-export const resourceSchema = baseEntitySchema.merge(slugSchema).merge(
-  z.object({
-    name: z.string(),
-    description: z.string().nullable(),
-    excerpt: z.string().nullable(),
-    keywords: z.array(z.string()),
-    ai_summary: z.string().nullable(),
-    published_at: z.coerce.date().nullable(),
-    modified_at: z.coerce.date().nullable(),
-    language: z.string().nullable(),
-    url: z.string().nullable(),
-    cover_image_url: z.string().nullable(),
-    cover_image_alt: z.string().nullable(),
-    cover_image_base64: z.string().nullable(),
-    type: resourceTypeSchema,
-    level: resourceLevelSchema,
-    is_featured: z.boolean(),
-    view_count: z.number().int().default(0),
-    share_count: z.number().int().default(0),
-    last_captured_at: z.coerce.date().nullable(),
-    last_checked_at: z.coerce.date().nullable(),
-    check_failures_count: z.number().int().default(0).nullable(),
-    is_unavailable: z.boolean().nullable(),
-  }),
-);
+export const resourceSchema = baseEntitySchema.extend(slugSchema.shape).extend({
+  name: z.string(),
+  description: z.string().nullable(),
+  excerpt: z.string().nullable(),
+  keywords: z.array(z.string()),
+  ai_summary: z.string().nullable(),
+  published_at: z.coerce.date().nullable(),
+  modified_at: z.coerce.date().nullable(),
+  language: z.string().nullable(),
+  url: z.string().nullable(),
+  cover_image_url: z.string().nullable(),
+  cover_image_alt: z.string().nullable(),
+  cover_image_base64: z.string().nullable(),
+  type: resourceTypeSchema,
+  level: resourceLevelSchema,
+  is_featured: z.boolean(),
+  view_count: z.number().int().default(0),
+  share_count: z.number().int().default(0),
+  last_captured_at: z.coerce.date().nullable(),
+  last_checked_at: z.coerce.date().nullable(),
+  check_failures_count: z.number().int().default(0).nullable(),
+  is_unavailable: z.boolean().nullable(),
+});
 
 export type Resource = z.infer<typeof resourceSchema>;

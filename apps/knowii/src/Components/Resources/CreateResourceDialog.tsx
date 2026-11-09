@@ -17,7 +17,6 @@ import {
 } from '@knowii/common';
 import ResourceIcon from '@/Components/Resources/ResourceIcon';
 import { Dialog } from 'primereact/dialog';
-import type { StepperRefAttributes } from 'primereact/stepper';
 import { Stepper } from 'primereact/stepper';
 import { Button } from 'primereact/button';
 import { StepperPanel } from 'primereact/stepperpanel';
@@ -77,7 +76,7 @@ export function CreateResourceDialog(props: CreateResourceDialogProps) {
       level,
     }).success;
 
-  const stepperRef = useRef<StepperRefAttributes>(null);
+  const stepperRef = useRef<Stepper>(null);
 
   const goToNextStep = () => {
     stepperRef.current?.nextCallback();
