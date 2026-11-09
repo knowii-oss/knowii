@@ -38,6 +38,14 @@ final class ResourceImages
     }
 
     /**
+     * Delete the image folder of a resource that no community uses any more (#1265).
+     */
+    public static function deleteAll(Resource $resource): void
+    {
+        Storage::disk(self::disk())->deleteDirectory('resources/'.$resource->cuid);
+    }
+
+    /**
      * Public URL of a stored image, or null.
      */
     public static function url(?string $path): ?string

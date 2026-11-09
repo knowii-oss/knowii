@@ -6,6 +6,7 @@ use App\Contracts\Communities\DeletesCommunities;
 use App\Exceptions\TechnicalException;
 use App\Models\Community;
 use App\Models\User;
+use App\Support\ContentFiles;
 use Exception;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Log;
@@ -24,12 +25,16 @@ class DeleteCommunity implements DeletesCommunities
     {
         Log::info('Deleting community', [$community->cuid]);
         app(ValidateCommunityDeletion::class)->validate($user, $community);
+        // Read before the rows go: the files are deleted after (#1265)
+        $files = ContentFiles::ofCommunity($community);
         try {
             $community->purge();
         } catch (Exception $e) {
             Log::warning('Failed to delete the community', ['exception' => $e]);
             throw new TechnicalException('Failed to delete the community', null, $e);
         }
+
+        $files->deleteAfterCommit();
 
         Log::info('Community deleted', ['communityCuid' => $community->cuid]);
     }
