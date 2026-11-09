@@ -30,6 +30,8 @@ In the same pull request as the code:
   (ADR 0011: naming, methods, status codes, pagination, errors), Pest tests, a Bruno request in
   `documentation/api` (see its `README.md`), and a check that the generated
   OpenAPI document (`/docs/api`, Scramble) describes it correctly.
+  `OpenApiDocumentTest` and `BrunoCollectionTest` fail when a route has no
+  OpenAPI operation, request body or Bruno request.
 - New configuration values go to `SELF_HOSTING.md` and `.env.example`.
 
 ## Project

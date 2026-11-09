@@ -19,5 +19,7 @@ Each pull request that adds or changes an endpoint adds or updates the requests 
 
 1. File name: `<Area> - <Operation>.bru`, and `<Area> - <Operation> - <Case>.bru` for an error case. Example: `Spaces - Create.bru`, `Spaces - Create - Invalid type.bru`.
 2. One request for the success case, and one for each main failure (validation, permission) when it shows something the success case does not.
-3. Bodies use the field names of the API (camelCase) and realistic values.
+3. Bodies use the field names of the API and realistic values. The fields are snake_case. A few older request fields are camelCase (`turnstileToken`, `includeToken`), see [ADR 0011](../adr/0011-rest-api-design-guide.md).
 4. Never commit a secret: credentials come from `.env` through `{{process.env.*}}`.
+
+`tests/Feature/BrunoCollectionTest.php` fails when an `/api/v1` route has no request here, or when a request targets a route that does not exist.
