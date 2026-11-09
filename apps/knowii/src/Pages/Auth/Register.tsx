@@ -102,6 +102,7 @@ export default function RegisterPage({ turnstileSiteKey = null }: Props) {
               wrapperClassName="mt-1"
               showStrength
               id="password"
+              name="password"
               value={form.data.password}
               onChange={(e) => form.setData('password', e.target.value)}
               autoComplete="new-password"
@@ -119,6 +120,7 @@ export default function RegisterPage({ turnstileSiteKey = null }: Props) {
               size="lg"
               wrapperClassName="mt-1"
               id="password_confirmation"
+              name="password_confirmation"
               value={form.data.password_confirmation}
               onChange={(e) => form.setData('password_confirmation', e.target.value)}
               autoComplete="new-password"
