@@ -63,5 +63,5 @@
     "types": ["node", "jest"],
     "typeRoots": ["node_modules/@types"]
   },
-  "exclude": ["dist", "node_modules", "resources", "tools", "tmp", "vendor", "vitest.workspace.ts"]
+  "exclude": ["dist", "node_modules", "resources", "tools", "tmp", "vendor", "vitest.config.mts"]
 }
