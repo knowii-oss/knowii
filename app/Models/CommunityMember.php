@@ -51,6 +51,17 @@ class CommunityMember extends Pivot
     public $incrementing = true;
 
     /**
+     * The attributes that are mass assignable. The community and the user are set by
+     * attach() on the relation (which bypasses this list), never by fill().
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'cuid',
+        'role',
+    ];
+
+    /**
      * The attributes that should be hidden for serialization.
      *
      * @var list<string>
