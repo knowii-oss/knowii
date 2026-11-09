@@ -46,7 +46,7 @@ class SpaceController extends Controller
         // Resources spaces: the first page of resources, newest first (ADR 0015)
         $resources = null;
         if ($space->type === KnowiiSpaceType::Resources) {
-            $page = (new Pagination(self::RESOURCES_PER_PAGE, 0))->apply($space->resources()->with(['resource', 'curator'])->latest()->latest('id'));
+            $page = (new Pagination(self::RESOURCES_PER_PAGE, 0))->apply($space->resources()->with(['resource', 'curator'])->newestFirst());
             $resources = [
                 'items' => $page['items']->toResourceCollection(),
                 'pagination' => $page['metadata']['pagination'],

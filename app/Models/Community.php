@@ -229,8 +229,7 @@ class Community extends Model
         return $this->communityResources()
             ->whereIn('space_id', $spaceIds)
             ->with(['resource', 'curator', 'space'])
-            ->latest()
-            ->latest('id')
+            ->newestFirst()
             ->limit(10)
             ->get();
     }

@@ -10,6 +10,7 @@ use App\Traits\GeneratesCuid;
 use Carbon\Carbon;
 use Database\Factories\CommunityResourceFactory;
 use Illuminate\Database\Eloquent\Attributes\UseResource;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -38,6 +39,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *
  * @method static \Database\Factories\CommunityResourceFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource newestFirst()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource whereCommunityId($value)
@@ -180,6 +182,17 @@ class CommunityResource extends Model
     final public function purge(): void
     {
         $this->delete();
+    }
+
+    /**
+     * The order of the resources of a space: newest first (ADR 0015).
+     *
+     * @param  Builder<CommunityResource>  $query
+     * @return Builder<CommunityResource>
+     */
+    final public function scopeNewestFirst(Builder $query): Builder
+    {
+        return $query->latest()->latest('id');
     }
 
     final public function getRouteKeyName(): string

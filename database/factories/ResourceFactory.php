@@ -29,8 +29,11 @@ class ResourceFactory extends Factory
             'ai_summary' => null,
             'published_at' => fake()->dateTime(),
             'language' => 'en',
-            'url' => fake()->url(),
-            'thumbnail_url' => fake()->url(),
+            // Unique: a resource is one URL
+            'url' => fake()->unique()->url(),
+            'cover_image_url' => fake()->imageUrl(),
+            'cover_image_alt' => fake()->sentence(),
+            'cover_image_base64' => base64_encode('image'),
             'type' => KnowiiResourceType::TextArticle,
             'level' => KnowiiResourceLevel::Beginner,
             'is_featured' => false,

@@ -6,6 +6,7 @@ use App\Contracts\Resources\CreatesTextResources;
 use App\Enums\KnowiiApiResponseType;
 use App\Enums\KnowiiResourceLevel;
 use App\Enums\KnowiiSpaceType;
+use App\Models\Community;
 use App\Models\CommunityResource;
 use App\Models\Space;
 use App\Models\SpaceGroup;
@@ -200,4 +201,78 @@ test('the resources API refuses a space of another type with a business issue', 
 
     $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
     expect($response->json('type'))->toBe(KnowiiApiResponseType::BusinessIssue->value);
+});
+
+/**
+ * A resources space of a community with members, and its resources (oldest first).
+ *
+ * @return array{0: array{community: Community, owner: User, admin: User, moderator: User, member: User, outsider: User}, 1: Space, 2: list<CommunityResource>}
+ */
+function resourcesSpaceWithResources(int $count): array
+{
+    $c = communityWithMembers();
+    $space = Space::factory()
+        ->inGroup(SpaceGroup::factory()->create(['community_id' => $c['community']->id]))
+        ->create(['type' => KnowiiSpaceType::Resources]);
+
+    $resources = [];
+    for ($i = 0; $i < $count; $i++) {
+        $resources[] = CommunityResource::factory()->create([
+            'space_id' => $space->id,
+            'created_at' => now()->subMinutes($count - $i),
+        ]);
+    }
+
+    return [$c, $space, $resources];
+}
+
+function resourcesListPath(Space $space): string
+{
+    return ApiRoutes::path(ApiRoutes::COMMUNITY_SPACE_RESOURCES, [
+        ApiRoutes::PARAM_COMMUNITY => $space->community->cuid,
+        ApiRoutes::PARAM_SPACE => $space->cuid,
+    ]);
+}
+
+test('members list the resources of a space, newest first, with offset pagination (#877)', function () {
+    [$c, $space, $resources] = resourcesSpaceWithResources(3);
+
+    $response = $this->actingAs($c['member'])->getJson(resourcesListPath($space).'?limit=2&offset=0')->assertOk();
+
+    expect($response->json('data.*.cuid'))->toBe([$resources[2]->cuid, $resources[1]->cuid])
+        ->and($response->json('metadata.pagination.totalCount'))->toBe(3)
+        ->and($response->json('metadata.pagination.nextOffset'))->toBe(2);
+
+    $next = $this->getJson(resourcesListPath($space).'?limit=2&offset=2')->assertOk();
+    expect($next->json('data.*.cuid'))->toBe([$resources[0]->cuid])
+        ->and($next->json('metadata.pagination.nextOffset'))->toBeNull();
+});
+
+test('the resources list never carries the large fields (#877)', function () {
+    [$c, $space] = resourcesSpaceWithResources(1);
+
+    $response = $this->actingAs($c['member'])->getJson(resourcesListPath($space))->assertOk();
+
+    expect($response->json('data.0.resource.cover_image_base64'))->toBeNull()
+        ->and($response->json('data.0'))->not->toHaveKey('resource_text_article')
+        ->and($response->json('data.0.resource.url'))->not->toBeEmpty();
+});
+
+test('only the readers of a space list its resources (#877)', function () {
+    [$c, $space] = resourcesSpaceWithResources(1);
+
+    $this->getJson(resourcesListPath($space))->assertUnauthorized();
+    $this->actingAs($c['outsider'])->getJson(resourcesListPath($space))->assertForbidden();
+});
+
+test('the resources list refuses a space of another community (#877)', function () {
+    [$c, $space] = resourcesSpaceWithResources(1);
+    $other = User::factory()->withUserProfile()->withPersonalCommunity()->create();
+
+    $path = ApiRoutes::path(ApiRoutes::COMMUNITY_SPACE_RESOURCES, [
+        ApiRoutes::PARAM_COMMUNITY => $other->ownedCommunities()->first()->cuid,
+        ApiRoutes::PARAM_SPACE => $space->cuid,
+    ]);
+
+    $this->actingAs($other)->getJson($path)->assertNotFound();
 });

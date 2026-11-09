@@ -1,0 +1,19 @@
+meta {
+  name: Resources - List
+  type: http
+  seq: 53
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/z40cggggsksggkgskkwocock/resources?limit=10&offset=0
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Resources of a resources space (ADR 0015), newest first. Offset pagination (ADR 0011): metadata.pagination has limit, offset, previousOffset, nextOffset, currentPage, pageCount, totalCount. The list never carries the large fields (article Markdown, base64 cover image). The seeded "Cool links" space has the cuid z40cggggsksggkgskkwocock.
+}
