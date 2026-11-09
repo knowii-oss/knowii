@@ -35,7 +35,7 @@ class UserFactory extends Factory
         $username = $usernameGenerator->generate($name);
 
         return [
-            'cuid' => new Cuid2,
+            'cuid' => (new Cuid2)->toString(),
             'name' => $name,
             'username' => $username,
             'email' => fake()->unique()->safeEmail(),

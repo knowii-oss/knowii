@@ -12,7 +12,6 @@ documentation/api
 /public
 /tmp
 /vendor
-.cursorrules
 .env.*
 *.sh
 composer.lock

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\GeneratesCuid;
 use App\Traits\HasCommunities;
 use Carbon\Carbon;
 use Database\Factories\UserFactory;
@@ -16,7 +17,6 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Laravel\Sanctum\PersonalAccessToken;
-use Parables\Cuid\GeneratesCuid;
 use TaylorNetwork\UsernameGenerator\FindSimilarUsernames;
 use TaylorNetwork\UsernameGenerator\GeneratesUsernames;
 
@@ -72,7 +72,6 @@ class User extends Authenticatable implements MustVerifyEmail
     use FindSimilarUsernames;
 
     // Automatically generate cuid2 for the model
-    // Reference: https://github.com/Parables/laravel-cuid2
     use GeneratesCuid;
     use GeneratesUsernames;
     use HasApiTokens;

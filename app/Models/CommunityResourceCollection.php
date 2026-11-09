@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Events\CommunityResourceCollections\CommunityResourceCollectionCreated;
 use App\Events\CommunityResourceCollections\CommunityResourceCollectionDeleted;
 use App\Events\CommunityResourceCollections\CommunityResourceCollectionUpdated;
+use App\Traits\GeneratesCuid;
 use Carbon\Carbon;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Database\Factories\CommunityResourceCollectionFactory;
@@ -14,7 +15,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Parables\Cuid\GeneratesCuid;
 
 /**
  * App\Models\CommunityResourceCollection
@@ -51,7 +51,6 @@ use Parables\Cuid\GeneratesCuid;
 class CommunityResourceCollection extends Model
 {
     // Automatically generate cuid2 for the model
-    // Reference: https://github.com/Parables/laravel-cuid2
     use GeneratesCuid;
 
     /** @use HasFactory<CommunityResourceCollectionFactory> */

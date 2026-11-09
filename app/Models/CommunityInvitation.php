@@ -4,8 +4,8 @@ namespace App\Models;
 
 use App\CommunityInvitation as KnowiiCommunityInvitation;
 use App\Enums\KnowiiCommunityMemberRole;
+use App\Traits\GeneratesCuid;
 use Carbon\Carbon;
-use Parables\Cuid\GeneratesCuid;
 
 /**
  * Community invitations
@@ -35,7 +35,6 @@ use Parables\Cuid\GeneratesCuid;
 class CommunityInvitation extends KnowiiCommunityInvitation
 {
     // Automatically generate cuid2 for the model
-    // Reference: https://github.com/Parables/laravel-cuid2
     use GeneratesCuid;
 
     /**

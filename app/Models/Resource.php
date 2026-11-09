@@ -7,6 +7,7 @@ use App\Enums\KnowiiResourceType;
 use App\Events\Resources\ResourceCreated;
 use App\Events\Resources\ResourceDeleted;
 use App\Events\Resources\ResourceUpdated;
+use App\Traits\GeneratesCuid;
 use Carbon\Carbon;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Database\Factories\ResourceFactory;
@@ -14,7 +15,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
-use Parables\Cuid\GeneratesCuid;
 
 /**
  * App\Models\Resource
@@ -86,7 +86,6 @@ use Parables\Cuid\GeneratesCuid;
 class Resource extends Model
 {
     // Automatically generate cuid2 for the model
-    // Reference: https://github.com/Parables/laravel-cuid2
     use GeneratesCuid;
 
     /** @use HasFactory<ResourceFactory> */

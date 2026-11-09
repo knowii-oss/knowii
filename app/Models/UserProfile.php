@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Constants;
+use App\Traits\GeneratesCuid;
 use Carbon\Carbon;
 use Database\Factories\UserProfileFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -12,7 +13,6 @@ use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\DatabaseNotificationCollection;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Jetstream\HasProfilePhoto;
-use Parables\Cuid\GeneratesCuid;
 
 /**
  * App\Models\UserProfile
@@ -103,7 +103,6 @@ use Parables\Cuid\GeneratesCuid;
 class UserProfile extends Authenticatable implements MustVerifyEmail
 {
     // Automatically generate cuid2 for the model
-    // Reference: https://github.com/Parables/laravel-cuid2
     use GeneratesCuid;
 
     /** @use HasFactory<UserProfileFactory> */
