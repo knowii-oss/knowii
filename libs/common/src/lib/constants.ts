@@ -101,6 +101,8 @@ export const MAX_LENGTH_USER_PHONE = 48;
 // Waitlist. WARNING: aligned with Constants.php
 export const MAX_LENGTH_WAITLIST_EMAIL = 255;
 export const WAITLIST_HONEYPOT_FIELD = 'website';
+// The hidden field of the sign-up form (#737). WARNING: aligned with SIGNUP_HONEYPOT_FIELD (Constants.php)
+export const SIGNUP_HONEYPOT_FIELD = 'website';
 export const USER_PHONE_REGEX = /^[0-9-+()./ ]+$/;
 
 // Community

@@ -21,6 +21,9 @@ class Constants
     // Name of the hidden field that only bots fill in. WARNING: aligned with WAITLIST_HONEYPOT_FIELD (libs/common constants.ts)
     public const string WAITLIST_HONEYPOT_FIELD = 'website';
 
+    // The sign-up form has the same kind of hidden field (#737)
+    public const string SIGNUP_HONEYPOT_FIELD = 'website';
+
     // Waitlist requests allowed per minute and per IP address
     public const int WAITLIST_MAX_REQUESTS_PER_MINUTE = 5;
 

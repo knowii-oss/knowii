@@ -8,8 +8,10 @@ use App\Knowii;
 use App\Models\Community;
 use App\Models\User;
 use App\Models\UserProfile;
+use App\Support\Turnstile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -35,9 +37,23 @@ class CreateNewUser implements CreatesNewUsers
             'email' => ['required', 'email', 'max:'.Constants::MAX_LENGTH_USER_EMAIL, Rule::unique('users')],
             'password' => $this->passwordRules(),
             'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature() ? ['accepted', 'required'] : '',
+            // Bot checks (#737): the Turnstile token when the instance has Turnstile keys, and a honeypot
+            'turnstile_token' => ['nullable', 'string', 'max:'.Constants::MAX_LENGTH_TURNSTILE_TOKEN],
+            Constants::SIGNUP_HONEYPOT_FIELD => ['nullable', 'string', 'max:255'],
         ]);
 
         $validator->validate();
+
+        if (filled($input[Constants::SIGNUP_HONEYPOT_FIELD] ?? null)) {
+            Log::notice('Sign-up refused: the honeypot field is filled');
+            throw ValidationException::withMessages(['email' => 'We could not create this account. Please try again.']);
+        }
+
+        // Instances without Turnstile keys (self-hosted, development) have no bot check on the sign-up
+        if (Turnstile::isConfigured()) {
+            $token = $input['turnstile_token'] ?? null;
+            Turnstile::verify(is_string($token) ? $token : null, request()->ip(), 'turnstile_token');
+        }
 
         /** @var array{name: string, email: string, password: string, terms: string} $input */
         $input = $validator->validated();
