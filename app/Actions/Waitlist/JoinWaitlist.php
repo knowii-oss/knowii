@@ -5,6 +5,7 @@ namespace App\Actions\Waitlist;
 use App\Constants;
 use App\Contracts\Waitlist\JoinsWaitlist;
 use App\Exceptions\TechnicalException;
+use App\Support\Turnstile;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
@@ -61,49 +62,9 @@ class JoinWaitlist implements JoinsWaitlist
             throw new TechnicalException('The waitlist is not available right now. Please try again later.');
         }
 
-        $this->verifyTurnstileToken($validated['turnstileToken'], $ipAddress);
+        Turnstile::verify($validated['turnstileToken'], $ipAddress, 'turnstileToken');
 
         $this->addContact($apiKey, $listId, $validated['email']);
-    }
-
-    /**
-     * Verify the Turnstile token with Cloudflare. Fails closed: without a secret key, nothing is accepted.
-     *
-     * @throws ValidationException|TechnicalException
-     */
-    private function verifyTurnstileToken(string $token, ?string $ipAddress): void
-    {
-        $secretKey = config('services.turnstile.secret_key');
-        $verifyUrl = config('services.turnstile.verify_url');
-        if (! is_string($secretKey) || $secretKey === '' || ! is_string($verifyUrl)) {
-            Log::error('Waitlist request refused: Cloudflare Turnstile is not configured (TURNSTILE_SECRET_KEY)');
-            throw new TechnicalException('The waitlist is not available right now. Please try again later.');
-        }
-
-        try {
-            $response = Http::asForm()
-                ->timeout(self::HTTP_TIMEOUT_SECONDS)
-                ->post($verifyUrl, array_filter([
-                    'secret' => $secretKey,
-                    'response' => $token,
-                    'remoteip' => $ipAddress,
-                ]));
-        } catch (ConnectionException $e) {
-            Log::warning('Could not reach Cloudflare Turnstile', ['exception' => $e]);
-            throw new TechnicalException('The bot check is not available right now. Please try again later.', null, $e);
-        }
-
-        if (! $response->successful()) {
-            Log::warning('Cloudflare Turnstile verification failed', ['status' => $response->status()]);
-            throw new TechnicalException('The bot check is not available right now. Please try again later.');
-        }
-
-        if ($response->json('success') !== true) {
-            Log::notice('Waitlist request refused: invalid Turnstile token', ['errorCodes' => $response->json('error-codes')]);
-            throw ValidationException::withMessages([
-                'turnstileToken' => 'The bot check failed. Please try again.',
-            ]);
-        }
     }
 
     /**

@@ -1,9 +1,10 @@
 import FooterGuest from '@/Components/FooterGuest';
-import { Button, Checkbox, PasswordInput, TextInput } from '@/Components/ui';
+import { Button, Checkbox, PasswordInput, TextInput, Turnstile } from '@/Components/ui';
 import AuthenticationCard from '@/Components/AuthenticationCard';
 import { Head, Link, useForm } from '@inertiajs/react';
 import type { FormEventHandler } from 'react';
-import { LOGIN_URL, PRIVACY_POLICY_URL, REGISTER_URL, TERMS_OF_SERVICE_URL, useTypedPage } from '@knowii/common';
+import { useState } from 'react';
+import { LOGIN_URL, PRIVACY_POLICY_URL, REGISTER_URL, SIGNUP_HONEYPOT_FIELD, TERMS_OF_SERVICE_URL, useTypedPage } from '@knowii/common';
 import { useRoute } from 'ziggy-js';
 import InputLabel from '@/Components/InputLabel';
 import { FaAt, FaLock, FaUser } from 'react-icons/fa';
@@ -15,9 +16,16 @@ interface RegisterFormData {
   password: string;
   password_confirmation: string;
   terms: boolean;
+  turnstile_token: string;
+  website: string;
 }
 
-export default function RegisterPage() {
+interface Props {
+  // Null when the instance has no Turnstile keys: no bot check then (#737)
+  turnstileSiteKey?: string | null;
+}
+
+export default function RegisterPage({ turnstileSiteKey = null }: Props) {
   const page = useTypedPage();
   const route = useRoute();
 
@@ -27,12 +35,19 @@ export default function RegisterPage() {
     password: '',
     password_confirmation: '',
     terms: false,
+    turnstile_token: '',
+    website: '',
   });
+  // A Turnstile token works once: a new key mounts a new widget after each attempt
+  const [turnstileKey, setTurnstileKey] = useState(0);
 
   const submit: FormEventHandler = (e) => {
     e.preventDefault();
     form.post(route(REGISTER_URL), {
-      onFinish: () => form.reset('password', 'password_confirmation'),
+      onFinish: () => {
+        form.reset('password', 'password_confirmation', 'turnstile_token');
+        setTurnstileKey((current) => current + 1);
+      },
     });
   };
 
@@ -141,6 +156,32 @@ export default function RegisterPage() {
             </div>
           )}
 
+          {/* Honeypot (#737): hidden from people and from screen readers, bots fill it in */}
+          <div aria-hidden="true" className="absolute -left-[10000px] h-px w-px overflow-hidden">
+            <label htmlFor="register-website">Website</label>
+            <input
+              id="register-website"
+              type="text"
+              name={SIGNUP_HONEYPOT_FIELD}
+              tabIndex={-1}
+              autoComplete="off"
+              value={form.data.website}
+              onChange={(event) => form.setData('website', event.target.value)}
+            />
+          </div>
+
+          {/* Bot check (#737) */}
+          {turnstileSiteKey && (
+            <div className="mt-4">
+              <Turnstile
+                key={turnstileKey}
+                siteKey={turnstileSiteKey}
+                onTokenChange={(token) => form.setData('turnstile_token', token ?? '')}
+              />
+              <InputError className="mt-2" message={form.errors.turnstile_token} />
+            </div>
+          )}
+
           {/* Actions */}
           <div className="mt-4 flex items-center justify-end">
             {/* Login */}
@@ -149,7 +190,12 @@ export default function RegisterPage() {
             </Link>
 
             {/* Register */}
-            <Button type="submit" className="ml-4" loading={form.processing}>
+            <Button
+              type="submit"
+              className="ml-4"
+              loading={form.processing}
+              disabled={!!turnstileSiteKey && form.data.turnstile_token === ''}
+            >
               Register
             </Button>
           </div>
