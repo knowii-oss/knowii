@@ -38,62 +38,68 @@ export default function PageHeader(props: PropsWithChildren<Props>) {
   const logoAndMark = props.compact ? compactLogoAndMark : normalLogoAndMark;
 
   return (
-    <header
-      className={cn(
-        'flex flex-col flex-wrap items-center border-b border-border bg-well sm:justify-center md:flex-row md:justify-between',
-        props.compact ? 'flex-row justify-between gap-3 px-4 py-3 sm:justify-between sm:px-6' : 'p-4 md:p-6 lg:p-12',
-      )}
-    >
-      {props.addLinkOnLogo ? (
-        <a href={HOME_URL} aria-label="Knowii home page" className="rounded-lg">
-          {logoAndMark}
-        </a>
-      ) : (
-        logoAndMark
-      )}
-
-      <nav aria-label="Main" className={cn('flex flex-row flex-wrap items-center justify-center gap-3', !props.compact && 'mt-6 md:mt-0')}>
-        <ThemeToggle />
-        {props.showDashboardButton && (
-          <LinkButton
-            href={route(DASHBOARD_URL)}
-            preserveState={true}
-            size={props.compact ? 'md' : 'lg'}
-            className={cn(!props.compact && 'min-w-48')}
-          >
-            Dashboard
-          </LinkButton>
+    <header className="border-b border-border bg-well">
+      {/* The same frame as the content (page-container, #1264): the logo lines up with the page on wide screens */}
+      <div
+        className={cn(
+          'page-container flex flex-col flex-wrap items-center sm:justify-center md:flex-row md:justify-between',
+          props.compact ? 'flex-row justify-between gap-3 py-3 sm:justify-between' : 'py-4 md:py-6 lg:py-12',
         )}
-        {props.showLogoutButton && (
-          <LinkButton
-            href={route(LOGOUT_URL)}
-            method="post"
-            variant="secondary"
-            size={props.compact ? 'md' : 'lg'}
-            iconOnly
-            aria-label="Log out"
-          >
-            <FaSignOutAlt aria-hidden="true" />
-          </LinkButton>
-        )}
-        {props.showLoginButton && (
-          <LinkButton
-            href={route(LOGIN_URL)}
-            variant="secondary"
-            size={props.compact ? 'md' : 'lg'}
-            className={cn(!props.compact && 'min-w-48')}
-          >
-            Log in
-          </LinkButton>
-        )}
-        {props.showRegisterButton && (
-          <LinkButton href={route(REGISTER_URL)} size={props.compact ? 'md' : 'lg'} className={cn(!props.compact && 'min-w-48')}>
-            Register
-          </LinkButton>
+      >
+        {props.addLinkOnLogo ? (
+          <a href={HOME_URL} aria-label="Knowii home page" className="rounded-lg">
+            {logoAndMark}
+          </a>
+        ) : (
+          logoAndMark
         )}
 
-        {props.children}
-      </nav>
+        <nav
+          aria-label="Main"
+          className={cn('flex flex-row flex-wrap items-center justify-center gap-3', !props.compact && 'mt-6 md:mt-0')}
+        >
+          <ThemeToggle />
+          {props.showDashboardButton && (
+            <LinkButton
+              href={route(DASHBOARD_URL)}
+              preserveState={true}
+              size={props.compact ? 'md' : 'lg'}
+              className={cn(!props.compact && 'min-w-48')}
+            >
+              Dashboard
+            </LinkButton>
+          )}
+          {props.showLogoutButton && (
+            <LinkButton
+              href={route(LOGOUT_URL)}
+              method="post"
+              variant="secondary"
+              size={props.compact ? 'md' : 'lg'}
+              iconOnly
+              aria-label="Log out"
+            >
+              <FaSignOutAlt aria-hidden="true" />
+            </LinkButton>
+          )}
+          {props.showLoginButton && (
+            <LinkButton
+              href={route(LOGIN_URL)}
+              variant="secondary"
+              size={props.compact ? 'md' : 'lg'}
+              className={cn(!props.compact && 'min-w-48')}
+            >
+              Log in
+            </LinkButton>
+          )}
+          {props.showRegisterButton && (
+            <LinkButton href={route(REGISTER_URL)} size={props.compact ? 'md' : 'lg'} className={cn(!props.compact && 'min-w-48')}>
+              Register
+            </LinkButton>
+          )}
+
+          {props.children}
+        </nav>
+      </div>
     </header>
   );
 }

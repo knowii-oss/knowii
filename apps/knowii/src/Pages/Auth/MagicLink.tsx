@@ -41,7 +41,7 @@ export default function MagicLinkPage({ token, valid, email }: Props) {
         ) : (
           <div className="flex flex-col gap-4">
             <p>This sign-in link expired or was already used.</p>
-            <Link href={route(LOGIN_URL)} className="simple-link">
+            <Link href={route(LOGIN_URL)} className="simple-link touch-target">
               Ask for a new link
             </Link>
           </div>

@@ -16,7 +16,7 @@ interface Props {
   link?: string;
 }
 
-const boxSizeClasses = 'w-full sm:w-[450px] h-[250px]';
+const boxSizeClasses = 'w-full h-56 sm:h-60';
 
 export default function CommunityBox(props: Props) {
   if (props.creationMode) {
@@ -61,7 +61,12 @@ export default function CommunityBox(props: Props) {
       className={cn(boxSizeClasses, 'relative shrink-0 overflow-hidden')}
     >
       {props.link ? (
-        <Link href={props.link} preserveState={true} className="block h-full rounded-xl p-5">
+        <Link
+          href={props.link}
+          preserveState={true}
+          // Inset focus ring: the card clips what goes outside it (overflow-hidden)
+          className="block h-full rounded-xl p-5 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary"
+        >
           {content}
         </Link>
       ) : props.clickHandler ? (

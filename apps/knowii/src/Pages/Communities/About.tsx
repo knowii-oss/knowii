@@ -117,7 +117,7 @@ export default function CommunityAboutPage(props: Props) {
             <CardHeader title={<span id="about-title">About {community.name}</span>} icon={<FaCircleInfo aria-hidden="true" />} />
             <CardBody className="flex flex-col gap-4">
               <p className="whitespace-pre-line">{community.description || 'No description yet.'}</p>
-              <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <dl className="grid gap-4 @md:grid-cols-2 @3xl:grid-cols-4">
                 <div>
                   <dt className="text-sm text-muted">Visibility</dt>
                   <dd className="font-bold">
@@ -143,7 +143,7 @@ export default function CommunityAboutPage(props: Props) {
             </CardBody>
           </Card>
 
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-6 @3xl:grid-cols-2">
             <Card as="section" aria-labelledby="team-title">
               <CardHeader title={<span id="team-title">Team</span>} icon={<FaUsers aria-hidden="true" />} />
               <CardBody>

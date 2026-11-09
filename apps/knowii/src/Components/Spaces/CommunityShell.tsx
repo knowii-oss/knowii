@@ -11,6 +11,11 @@ export interface CommunityShellProps {
   community: Community;
   spaceGroups: SpaceGroup[];
   activeSpaceCuid?: string | undefined;
+  /**
+   * wide (default): the content uses the full width next to the navigation (grids, settings). readable: about 75
+   * characters per line, for posts, comments and profiles (#1264).
+   */
+  contentWidth?: 'wide' | 'readable';
   children: ReactNode;
 }
 
@@ -18,7 +23,7 @@ export interface CommunityShellProps {
  * Community pages: the space navigation in a sidebar (desktop) or a drawer (mobile), next to the content.
  * The navigation reloads when the space tree of the community changes (SpaceTreeChanged event).
  */
-export function CommunityShell({ community, spaceGroups, activeSpaceCuid, children }: CommunityShellProps) {
+export function CommunityShell({ community, spaceGroups, activeSpaceCuid, contentWidth = 'wide', children }: CommunityShellProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const channel = useMemo(() => ({ type: 'community' as const, communityCuid: community.cuid }), [community.cuid]);
@@ -58,7 +63,10 @@ export function CommunityShell({ community, spaceGroups, activeSpaceCuid, childr
         </Drawer>
       </div>
 
-      <div className="min-w-0 grow">{children}</div>
+      {/* A container: the layouts inside adapt to the width left by the navigation, not to the window (#1264) */}
+      <div className="@container min-w-0 grow">
+        {contentWidth === 'readable' ? <div className="readable-width">{children}</div> : children}
+      </div>
     </div>
   );
 }

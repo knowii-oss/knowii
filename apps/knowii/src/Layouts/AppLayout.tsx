@@ -7,7 +7,7 @@ import { FaBars, FaHome, FaKey, FaSignOutAlt, FaUser } from 'react-icons/fa';
 import PageHeader from '@/Components/PageHeader';
 import ApplicationMark from '@/Components/ApplicationMark';
 import Footer from '@/Components/Footer';
-import PageContentWrapper from '@/Components/PageContentWrapper';
+import PageContentWrapper, { type PageContentWidth } from '@/Components/PageContentWrapper';
 import PageWrapper from '@/Components/PageWrapper';
 import PageTitle from '@/Components/PageTitle';
 import type { BreadcrumbItem } from '@/Components/ui';
@@ -22,6 +22,11 @@ interface Props {
   breadcrumbItems?: BreadcrumbItem[];
   breadcrumbHome?: BreadcrumbItem;
   pageActions?: ReactElement | null;
+  /**
+   * wide (default): the full page frame, for lists, grids and community pages. form: a narrower centered column, for
+   * the settings pages (#1264), so that forms do not stretch over a large screen.
+   */
+  contentWidth?: PageContentWidth;
   children: ReactNode;
 }
 
@@ -132,7 +137,7 @@ export default function AppLayout(props: Props) {
         </PageHeader>
 
         <div className="border-b border-border bg-surface">
-          <div className="mx-auto flex justify-center px-4 py-3 sm:px-6 lg:px-8">
+          <div className="page-container flex justify-center py-3">
             <PageTitle
               pageTitle={props.pageTitle}
               breadcrumbItems={props.breadcrumbItems}
@@ -142,7 +147,7 @@ export default function AppLayout(props: Props) {
           </div>
         </div>
 
-        <PageContentWrapper>
+        <PageContentWrapper width={props.contentWidth}>
           {/* A failing page keeps the header, the navigation and the footer; a visit to another URL clears the error */}
           <ErrorBoundary resetKey={page.url}>{props.children}</ErrorBoundary>
         </PageContentWrapper>

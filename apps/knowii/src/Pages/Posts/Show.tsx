@@ -70,7 +70,7 @@ export default function PostPage(props: Props) {
 
   return (
     <AppLayout browserPageTitle={`${post.title} - ${space.name}`} breadcrumbItems={breadcrumbItems} breadcrumbHome={breadcrumbHome()}>
-      <CommunityShell community={community} spaceGroups={props.spaceGroups} activeSpaceCuid={space.cuid}>
+      <CommunityShell community={community} spaceGroups={props.spaceGroups} activeSpaceCuid={space.cuid} contentWidth="readable">
         <article aria-labelledby="post-title" className="flex flex-col gap-4">
           <header className="flex flex-col gap-2 border-b border-border pb-4">
             {post.is_pinned && (

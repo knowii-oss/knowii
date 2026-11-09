@@ -187,7 +187,7 @@ export default function RegisterPage({ turnstileSiteKey = null }: Props) {
           {/* Actions */}
           <div className="mt-4 flex items-center justify-end">
             {/* Login */}
-            <Link href={route(LOGIN_URL)} className="simple-link">
+            <Link href={route(LOGIN_URL)} className="simple-link touch-target">
               Already registered?
             </Link>
 

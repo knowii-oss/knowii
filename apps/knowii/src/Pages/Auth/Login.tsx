@@ -140,16 +140,16 @@ export default function LoginPage({ canResetPassword, status }: Props) {
 
             {/* Actions */}
             <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4">
                 {/* Password reset */}
                 {canResetPassword && (
-                  <Link href={route(FORGOT_PASSWORD_URL)} className="simple-link">
+                  <Link href={route(FORGOT_PASSWORD_URL)} className="simple-link touch-target">
                     Forgot your password?
                   </Link>
                 )}
 
                 {/* Register */}
-                <Link href={route(REGISTER_URL)} className="simple-link">
+                <Link href={route(REGISTER_URL)} className="simple-link touch-target">
                   Need an account?
                 </Link>
               </div>
