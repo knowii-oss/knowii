@@ -30,9 +30,7 @@ function renderSection(overrides: Partial<Parameters<typeof CommentSection>[0]> 
   render(
     <AppDataProvider>
       <CommentSection
-        communityCuid="community"
-        spaceCuid="space"
-        postCuid="post"
+        subject={{ communityCuid: 'community', spaceCuid: 'space', postCuid: 'post' }}
         initialComments={initial}
         currentUserCuid="ada"
         canComment={true}
@@ -79,7 +77,10 @@ describe('CommentSection', () => {
     await userEvent.type(editor, 'Me too');
     await userEvent.click(screen.getByRole('button', { name: 'Reply' }));
 
-    expect(create).toHaveBeenCalledWith('community', 'space', 'post', { body: 'Me too', parent_cuid: 'c1' });
+    expect(create).toHaveBeenCalledWith(
+      { communityCuid: 'community', spaceCuid: 'space', postCuid: 'post' },
+      { body: 'Me too', parent_cuid: 'c1' },
+    );
     expect(await screen.findByText('Me too', { selector: 'p' })).toBeInTheDocument();
     expect(onCountChange).toHaveBeenLastCalledWith(4);
   });
@@ -93,7 +94,7 @@ describe('CommentSection', () => {
     expect(dialog).toHaveAccessibleDescription('Its replies are deleted too. This cannot be undone.');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));
 
-    expect(remove).toHaveBeenCalledWith('community', 'space', 'post', 'c1');
+    expect(remove).toHaveBeenCalledWith({ communityCuid: 'community', spaceCuid: 'space', postCuid: 'post' }, 'c1');
     expect(onCountChange).toHaveBeenLastCalledWith(1);
     expect(screen.getByRole('heading', { name: '1 comment' })).toBeInTheDocument();
   });
@@ -102,5 +103,20 @@ describe('CommentSection', () => {
     renderSection({ canComment: false });
     expect(screen.queryByRole('form', { name: 'Write a comment' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^Reply/ })).not.toBeInTheDocument();
+  });
+
+  it('comments a resource through the resource endpoints (#1034)', async () => {
+    const create = vi
+      .spyOn(knowiiApiClient.communities.comments, 'create')
+      .mockResolvedValue({ ok: true, message: '', data: comment('n1', ada, 'Useful') });
+    renderSection({ subject: { communityCuid: 'community', spaceCuid: 'space', resourceCuid: 'resource' } });
+
+    await userEvent.type(screen.getByRole('combobox', { name: 'Write a comment' }), 'Useful');
+    await userEvent.click(screen.getByRole('button', { name: 'Comment' }));
+
+    expect(create).toHaveBeenCalledWith(
+      { communityCuid: 'community', spaceCuid: 'space', resourceCuid: 'resource' },
+      { body: 'Useful', parent_cuid: null },
+    );
   });
 });

@@ -127,9 +127,7 @@ export default function PostPage(props: Props) {
         </article>
 
         <CommentSection
-          communityCuid={community.cuid}
-          spaceCuid={space.cuid}
-          postCuid={post.cuid}
+          subject={{ communityCuid: community.cuid, spaceCuid: space.cuid, postCuid: post.cuid }}
           initialComments={props.comments}
           currentUserCuid={page.props.auth.user?.cuid ?? null}
           canComment={props.permissions.canComment}

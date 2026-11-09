@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Inertia;
 
 use App\Enums\KnowiiSpaceType;
 use App\Models\Community;
+use App\Support\CommentThread;
 use App\Support\SpaceTree;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -35,6 +36,12 @@ class CommunityResourceController extends Controller
             'spaceGroups' => SpaceTree::for($community, $request->user())->toResourceCollection(),
             // Not the large fields: the page does not show the captured article yet (#1230), nor the base64 cover
             'resource' => $resource->toResource(),
+            // Comments on the resource (#1034)
+            'comments' => CommentThread::for($resource)->toResourceCollection(),
+            'permissions' => [
+                'canComment' => Gate::check('comment', $resource),
+                'canModerate' => Gate::check('moderate', $space),
+            ],
         ]);
     }
 }

@@ -4,6 +4,8 @@ import {
   COMMUNITY_API_PATH_PARAM_COMMUNITY,
   COMMUNITY_SPACE_API_PATH,
   COMMUNITY_SPACE_RESOURCE_API_PATH,
+  COMMUNITY_SPACE_RESOURCE_COMMENT_API_PATH,
+  COMMUNITY_SPACE_RESOURCE_COMMENTS_API_PATH,
   COMMUNITY_SPACE_RESOURCES_API_PATH,
   COMMUNITY_MEMBERS_API_PATH,
   COMMUNITY_UPLOADS_API_PATH,
@@ -59,14 +61,17 @@ import type { ReactionKind, ReactionSummary, WhoReacted } from '../types/reactio
 import { reactionSummarySchema, whoReactedSchema } from '../types/reaction.schema';
 
 /**
- * The item a reaction targets: a post, or a comment of a post
+ * The item that comments are about: a post (#1175) or a resource of a resources space (#1034)
  */
-export interface ReactionTarget {
-  communityCuid: string;
-  spaceCuid: string;
-  postCuid: string;
-  commentCuid?: string | undefined;
-}
+export type CommentSubject =
+  { communityCuid: string; spaceCuid: string; postCuid: string } | { communityCuid: string; spaceCuid: string; resourceCuid: string };
+
+/**
+ * The item a reaction targets: a post, a comment of a post, or a comment of a resource
+ */
+export type ReactionTarget =
+  | { communityCuid: string; spaceCuid: string; postCuid: string; commentCuid?: string | undefined }
+  | { communityCuid: string; spaceCuid: string; resourceCuid: string; commentCuid: string };
 
 const spaceGroupPath = (communityCuid: string, spaceGroupCuid: string, path = COMMUNITY_SPACE_GROUP_API_PATH) =>
   apiPath(path, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE_GROUP]: spaceGroupCuid });
@@ -79,15 +84,22 @@ const postsPath = (communityCuid: string, spaceCuid: string, postCuid = '', path
 const postListSchema = z.array(postSchema);
 const reactionsPath = (target: ReactionTarget) =>
   target.commentCuid
-    ? `${commentsPath(target.communityCuid, target.spaceCuid, target.postCuid, target.commentCuid)}/reactions`
-    : `${postsPath(target.communityCuid, target.spaceCuid, target.postCuid, COMMUNITY_SPACE_POST_API_PATH)}/reactions`;
-const commentsPath = (communityCuid: string, spaceCuid: string, postCuid: string, commentCuid?: string) =>
-  apiPath(commentCuid ? COMMUNITY_SPACE_POST_COMMENT_API_PATH : COMMUNITY_SPACE_POST_COMMENTS_API_PATH, {
-    [SPACE_API_PARAM_COMMUNITY]: communityCuid,
-    [SPACE_API_PARAM_SPACE]: spaceCuid,
-    [SPACE_API_PARAM_POST]: postCuid,
-    [SPACE_API_PARAM_COMMENT]: commentCuid ?? '',
-  });
+    ? `${commentsPath(target, target.commentCuid)}/reactions`
+    : `${postsPath(target.communityCuid, target.spaceCuid, 'postCuid' in target ? target.postCuid : '', COMMUNITY_SPACE_POST_API_PATH)}/reactions`;
+const commentsPath = (subject: CommentSubject, commentCuid?: string) =>
+  'resourceCuid' in subject
+    ? apiPath(commentCuid ? COMMUNITY_SPACE_RESOURCE_COMMENT_API_PATH : COMMUNITY_SPACE_RESOURCE_COMMENTS_API_PATH, {
+        [SPACE_API_PARAM_COMMUNITY]: subject.communityCuid,
+        [SPACE_API_PARAM_SPACE]: subject.spaceCuid,
+        [SPACE_API_PARAM_RESOURCE]: subject.resourceCuid,
+        [SPACE_API_PARAM_COMMENT]: commentCuid ?? '',
+      })
+    : apiPath(commentCuid ? COMMUNITY_SPACE_POST_COMMENT_API_PATH : COMMUNITY_SPACE_POST_COMMENTS_API_PATH, {
+        [SPACE_API_PARAM_COMMUNITY]: subject.communityCuid,
+        [SPACE_API_PARAM_SPACE]: subject.spaceCuid,
+        [SPACE_API_PARAM_POST]: subject.postCuid,
+        [SPACE_API_PARAM_COMMENT]: commentCuid ?? '',
+      });
 const resourcesPath = (communityCuid: string, spaceCuid: string) =>
   apiPath(COMMUNITY_SPACE_RESOURCES_API_PATH, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE]: spaceCuid });
 const htmlSchema = z.object({ html: z.string() });
@@ -258,31 +270,14 @@ export const knowiiApiClient = {
         ),
     },
     comments: {
-      list: (communityCuid: string, spaceCuid: string, postCuid: string): Promise<ApiResult<Comment[]>> =>
-        apiRequest('get', commentsPath(communityCuid, spaceCuid, postCuid), z.array(commentSchema), 'Failed to load the comments.'),
-      create: (
-        communityCuid: string,
-        spaceCuid: string,
-        postCuid: string,
-        input: CommentForm & { parent_cuid?: string | null },
-      ): Promise<ApiResult<Comment>> =>
-        apiRequest('post', commentsPath(communityCuid, spaceCuid, postCuid), commentSchema, 'Failed to publish the comment.', input),
-      update: (
-        communityCuid: string,
-        spaceCuid: string,
-        postCuid: string,
-        commentCuid: string,
-        input: CommentForm,
-      ): Promise<ApiResult<Comment>> =>
-        apiRequest(
-          'patch',
-          commentsPath(communityCuid, spaceCuid, postCuid, commentCuid),
-          commentSchema,
-          'Failed to save the comment.',
-          input,
-        ),
-      delete: (communityCuid: string, spaceCuid: string, postCuid: string, commentCuid: string): Promise<ApiResult<undefined>> =>
-        apiRequest('delete', commentsPath(communityCuid, spaceCuid, postCuid, commentCuid), null, 'Failed to delete the comment.'),
+      list: (subject: CommentSubject): Promise<ApiResult<Comment[]>> =>
+        apiRequest('get', commentsPath(subject), z.array(commentSchema), 'Failed to load the comments.'),
+      create: (subject: CommentSubject, input: CommentForm & { parent_cuid?: string | null }): Promise<ApiResult<Comment>> =>
+        apiRequest('post', commentsPath(subject), commentSchema, 'Failed to publish the comment.', input),
+      update: (subject: CommentSubject, commentCuid: string, input: CommentForm): Promise<ApiResult<Comment>> =>
+        apiRequest('patch', commentsPath(subject, commentCuid), commentSchema, 'Failed to save the comment.', input),
+      delete: (subject: CommentSubject, commentCuid: string): Promise<ApiResult<undefined>> =>
+        apiRequest('delete', commentsPath(subject, commentCuid), null, 'Failed to delete the comment.'),
     },
     uploads: {
       /**

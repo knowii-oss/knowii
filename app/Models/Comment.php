@@ -16,12 +16,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * A comment on a post. A reply has a parent (a top-level comment): one level of nesting only (#1175).
+ * A comment on a post (#1175) or on a resource of a resources space (#1034): exactly one of post_id and
+ * community_resource_id is set (ADR 0014). A reply has a parent (a top-level comment): one level of nesting only.
  *
  * @property-read int $id
  * @property-read string $cuid
  * @property int $community_id
- * @property int $post_id
+ * @property ?int $post_id
+ * @property ?int $community_resource_id
  * @property ?int $author_id
  * @property ?int $parent_id
  * @property string $body
@@ -30,7 +32,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read Community $community
- * @property-read Post $post
+ * @property-read ?Post $post
+ * @property-read ?CommunityResource $communityResource
  * @property-read ?User $author
  * @property-read ?Comment $parent
  * @property-read Collection<int, Comment> $replies
@@ -78,6 +81,7 @@ class Comment extends Model
         'cuid',
         'community_id',
         'post_id',
+        'community_resource_id',
         'author_id',
         'parent_id',
         'body',
@@ -92,6 +96,7 @@ class Comment extends Model
         'id',
         'community_id',
         'post_id',
+        'community_resource_id',
         'author_id',
         'parent_id',
     ];
@@ -120,6 +125,23 @@ class Comment extends Model
     final public function post(): BelongsTo
     {
         return $this->belongsTo(Post::class);
+    }
+
+    /**
+     * @return BelongsTo<CommunityResource, covariant $this>
+     */
+    final public function communityResource(): BelongsTo
+    {
+        return $this->belongsTo(CommunityResource::class);
+    }
+
+    /**
+     * The item the comment is about: a post or a resource.
+     */
+    final public function subject(): Post|CommunityResource
+    {
+        /** @var Post|CommunityResource */
+        return $this->post ?? $this->communityResource;
     }
 
     /**

@@ -11,7 +11,7 @@ User ──< CommunityMember >── Community ──< SpaceGroup ──< Space
  │                               │                         ├──< Post ──< Comment (one level of replies)
  │                               │                         ├──< ChatMessage (thread replies: parent)
  │                               │                         ├──< Page (ordered; lessons in course spaces)
- │                               │                         └──< CommunityResource ──> Resource (resources spaces)
+ │                               │                         └──< CommunityResource ──> Resource (resources spaces; comments as on posts, #1034)
  │                               ├──< Conversation ──< ConversationParticipant (direct messages)
  │                               │         └──< DirectMessage
  │                               └──< CommunityInvitation

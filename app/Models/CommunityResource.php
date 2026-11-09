@@ -11,9 +11,11 @@ use Carbon\Carbon;
 use Database\Factories\CommunityResourceFactory;
 use Illuminate\Database\Eloquent\Attributes\UseResource;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * A resource added to a resources space of a community (ADR 0015).
@@ -36,6 +38,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read Space $space
  * @property-read ?UserProfile $curator
  * @property-read ?ResourceTextArticle $textArticle
+ * @property-read Collection<int, Comment> $comments
+ * @property-read ?int $comments_count
  *
  * @method static \Database\Factories\CommunityResourceFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityResource newModelQuery()
@@ -174,6 +178,16 @@ class CommunityResource extends Model
     final public function curator(): BelongsTo
     {
         return $this->belongsTo(UserProfile::class, 'curator_id');
+    }
+
+    /**
+     * Comments on the resource (#1034), oldest first.
+     *
+     * @return HasMany<Comment, covariant $this>
+     */
+    final public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class)->orderBy('created_at')->orderBy('id');
     }
 
     /**

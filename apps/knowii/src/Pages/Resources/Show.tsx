@@ -1,12 +1,13 @@
 import AppLayout from '@/Layouts/AppLayout';
-import type { Community, CommunityResource, Space, SpaceGroup } from '@knowii/common';
-import { COMMUNITY_URL, RESOURCE_URL, SPACE_TYPE_LABELS, SPACE_URL } from '@knowii/common';
+import type { Comment, Community, CommunityResource, Space, SpaceGroup } from '@knowii/common';
+import { COMMUNITY_URL, RESOURCE_URL, SPACE_TYPE_LABELS, SPACE_URL, useTypedPage } from '@knowii/common';
 import type { BreadcrumbItem } from '@/Components/ui';
 import { breadcrumbHome } from '../../Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
 import ResourceIcon from '@/Components/Resources/ResourceIcon';
 import { ResourceDetails } from '@/Components/Resources/ResourceDetails';
 import { CommunityShell } from '@/Components/Spaces/CommunityShell';
+import { CommentSection } from '@/Components/Comments/CommentSection';
 
 interface Props {
   // WARNING: aligned with CommunityResourceController.php
@@ -14,6 +15,9 @@ interface Props {
   space: Space;
   spaceGroups: SpaceGroup[];
   resource: CommunityResource;
+  // Comments on the resource (#1034)
+  comments: Comment[];
+  permissions: { canComment: boolean; canModerate: boolean };
 }
 
 /**
@@ -22,6 +26,7 @@ interface Props {
 export default function ResourcePage(props: Props) {
   const { community, space, resource } = props;
   const name = resource.name || resource.resource.name;
+  const page = useTypedPage();
 
   const breadcrumbItems: BreadcrumbItem[] = [
     {
@@ -48,6 +53,14 @@ export default function ResourcePage(props: Props) {
           communitySlug={community.slug}
           resource={resource}
           shareUrl={route(RESOURCE_URL, { communitySlug: community.slug, spaceSlug: space.slug, resourceSlug: resource.slug })}
+        />
+
+        <CommentSection
+          subject={{ communityCuid: community.cuid, spaceCuid: space.cuid, resourceCuid: resource.cuid }}
+          initialComments={props.comments}
+          currentUserCuid={page.props.auth.user?.cuid ?? null}
+          canComment={props.permissions.canComment}
+          canModerate={props.permissions.canModerate}
         />
       </CommunityShell>
     </AppLayout>

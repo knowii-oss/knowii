@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Comment } from '@knowii/common';
+import type { Comment, CommentSubject } from '@knowii/common';
 import { knowiiApiClient, useAppData } from '@knowii/common';
 import { FaPen, FaReply, FaTrash } from 'react-icons/fa6';
 import { Button, Dialog, ErrorBoundary, MarkdownContent, RelativeTime } from '@/Components/ui';
@@ -7,9 +7,8 @@ import { CommentForm } from './CommentForm';
 import { ReactionBar } from '@/Components/Reactions/ReactionBar';
 
 export interface CommentSectionProps {
-  communityCuid: string;
-  spaceCuid: string;
-  postCuid: string;
+  // The post or the resource that the comments are about (#1034)
+  subject: CommentSubject;
   initialComments: Comment[];
   currentUserCuid: string | null;
   canComment: boolean;
@@ -23,11 +22,11 @@ export interface CommentSectionProps {
 const countAll = (comments: Comment[]) => comments.reduce((total, comment) => total + 1 + (comment.replies?.length ?? 0), 0);
 
 /**
- * Comments of a post, oldest first, with one level of replies. Authors edit their comments; authors and moderators
+ * Comments of a post or a resource, oldest first, with one level of replies. Authors edit their comments; authors and moderators
  * delete them (a deleted comment takes its replies with it).
  */
 export function CommentSection(props: CommentSectionProps) {
-  const { communityCuid, spaceCuid, postCuid, currentUserCuid, canComment, canModerate, onCountChange } = props;
+  const { subject, currentUserCuid, canComment, canModerate, onCountChange } = props;
   const { showToast } = useAppData();
   const [comments, setComments] = useState<Comment[]>(props.initialComments);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
@@ -41,7 +40,7 @@ export function CommentSection(props: CommentSectionProps) {
   };
 
   const create = async (body: string, parentCuid: string | null): Promise<string | null> => {
-    const result = await knowiiApiClient.communities.comments.create(communityCuid, spaceCuid, postCuid, { body, parent_cuid: parentCuid });
+    const result = await knowiiApiClient.communities.comments.create(subject, { body, parent_cuid: parentCuid });
     if (!result.ok) {
       showToast({ severity: 'error', summary: result.message });
       return result.errors['body']?.[0] ?? result.message;
@@ -59,7 +58,7 @@ export function CommentSection(props: CommentSectionProps) {
   };
 
   const save = async (target: Comment, body: string): Promise<string | null> => {
-    const result = await knowiiApiClient.communities.comments.update(communityCuid, spaceCuid, postCuid, target.cuid, { body });
+    const result = await knowiiApiClient.communities.comments.update(subject, target.cuid, { body });
     if (!result.ok) {
       showToast({ severity: 'error', summary: result.message });
       return result.errors['body']?.[0] ?? result.message;
@@ -78,7 +77,7 @@ export function CommentSection(props: CommentSectionProps) {
       return;
     }
     setDeleting(true);
-    const result = await knowiiApiClient.communities.comments.delete(communityCuid, spaceCuid, postCuid, pendingDeletion.cuid);
+    const result = await knowiiApiClient.communities.comments.delete(subject, pendingDeletion.cuid);
     setDeleting(false);
     if (!result.ok) {
       showToast({ severity: 'error', summary: result.message });
@@ -104,7 +103,7 @@ export function CommentSection(props: CommentSectionProps) {
         </p>
         {editing === comment.cuid ? (
           <CommentForm
-            communityCuid={communityCuid}
+            communityCuid={subject.communityCuid}
             label="Edit your comment"
             submitLabel="Save"
             initialBody={comment.body}
@@ -116,7 +115,7 @@ export function CommentSection(props: CommentSectionProps) {
           <ErrorBoundary variant="block" label={`the comment by ${authorName}`}>
             <MarkdownContent html={comment.body_html} className="text-sm" />
             <ReactionBar
-              target={{ communityCuid, spaceCuid, postCuid, commentCuid: comment.cuid }}
+              target={{ ...subject, commentCuid: comment.cuid }}
               initialReactions={comment.reactions}
               canReact={canComment}
               itemLabel={`the comment by ${authorName}`}
@@ -179,7 +178,7 @@ export function CommentSection(props: CommentSectionProps) {
                 {replyingTo === comment.cuid && (
                   <li>
                     <CommentForm
-                      communityCuid={communityCuid}
+                      communityCuid={subject.communityCuid}
                       label={`Reply to ${comment.author?.name ?? 'the comment'}`}
                       submitLabel="Reply"
                       autoFocus
@@ -196,7 +195,7 @@ export function CommentSection(props: CommentSectionProps) {
 
       {canComment && (
         <CommentForm
-          communityCuid={communityCuid}
+          communityCuid={subject.communityCuid}
           label="Write a comment"
           submitLabel="Comment"
           onSubmit={(values) => create(values.body, null)}

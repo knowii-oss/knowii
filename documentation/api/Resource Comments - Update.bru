@@ -1,0 +1,24 @@
+meta {
+  name: Resource Comments - Update
+  type: http
+  seq: 57
+}
+
+patch {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/z40cggggsksggkgskkwocock/resources/<resource cuid>/comments/<comment cuid>
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  { "body": "Edited comment" }
+}
+
+docs {
+  Edits a comment on a resource. Only its author can edit it.
+}

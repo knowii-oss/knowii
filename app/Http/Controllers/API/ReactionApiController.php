@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\AuthorResource;
 use App\Models\Comment;
 use App\Models\Community;
+use App\Models\CommunityResource;
 use App\Models\Post;
 use App\Models\Reaction;
 use App\Models\Space;
@@ -47,6 +48,27 @@ class ReactionApiController extends Controller
     final public function toggleComment(Request $request, Community $community, Space $space, Post $post, Comment $comment): JsonResponse
     {
         return $this->toggle($request, $comment);
+    }
+
+    /**
+     * Add or remove the reaction of the member to a comment on a resource (#1034). Returns the new summary.
+     *
+     * @throws AuthenticationException
+     */
+    #[BodyParameter('kind', description: self::KIND_DESCRIPTION, required: true, type: 'string', example: 'like')]
+    final public function toggleResourceComment(Request $request, Community $community, Space $space, CommunityResource $resource, Comment $comment): JsonResponse
+    {
+        return $this->toggle($request, $comment);
+    }
+
+    /**
+     * Who reacted to a comment on a resource, per kind (#1034).
+     */
+    final public function listResourceComment(Community $community, Space $space, CommunityResource $resource, Comment $comment): JsonResponse
+    {
+        Gate::authorize('view', $comment);
+
+        return self::success('Reactions', null, self::whoReacted($comment));
     }
 
     /**
