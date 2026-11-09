@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c671a1999e54d885cd6c3eeb7cf9327a",
+    "content-hash": "c9e1452707f4db152f6e3f6271a90ff1",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -2762,7 +2762,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-10-31T13:35:37+00:00"
+            "time": "2026-10-31T13:35:37+00:00",
+            "published-time": "2026-10-31T13:35:57+00:00"
         },
         {
             "name": "league/config",
@@ -14961,5 +14962,5 @@
         "ext-curl": "*"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.11.0"
 }

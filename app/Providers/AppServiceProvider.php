@@ -6,6 +6,10 @@ use App\Actions\Communities\CreateCommunity;
 use App\Actions\Communities\DeleteCommunity;
 use App\Actions\CommunityResourceCollections\CreateCommunityResourceCollection;
 use App\Actions\CommunityResourceCollections\DeleteCommunityResourceCollection;
+use App\Actions\Posts\CreatePost;
+use App\Actions\Posts\DeletePost;
+use App\Actions\Posts\PinPost;
+use App\Actions\Posts\UpdatePost;
 use App\Actions\Resources\CreateTextResource;
 use App\Actions\SpaceGroups\CreateSpaceGroup;
 use App\Actions\SpaceGroups\DeleteSpaceGroup;
@@ -22,6 +26,10 @@ use App\Contracts\Communities\CreatesCommunities;
 use App\Contracts\Communities\DeletesCommunities;
 use App\Contracts\CommunityResourceCollections\CreatesCommunityResourceCollections;
 use App\Contracts\CommunityResourceCollections\DeletesCommunityResourceCollections;
+use App\Contracts\Posts\CreatesPosts;
+use App\Contracts\Posts\DeletesPosts;
+use App\Contracts\Posts\PinsPosts;
+use App\Contracts\Posts\UpdatesPosts;
 use App\Contracts\Resources\CreatesTextResources;
 use App\Contracts\SpaceGroups\CreatesSpaceGroups;
 use App\Contracts\SpaceGroups\DeletesSpaceGroups;
@@ -33,6 +41,7 @@ use App\Contracts\Spaces\ReordersSpaces;
 use App\Contracts\Spaces\UpdatesSpaces;
 use App\Contracts\Users\VerifiesUsernameAvailability;
 use App\Contracts\Waitlist\JoinsWaitlist;
+use App\Models\User;
 use Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
@@ -74,10 +83,22 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(UpdatesSpaces::class, UpdateSpace::class);
         app()->singleton(DeletesSpaces::class, DeleteSpace::class);
         app()->singleton(ReordersSpaces::class, ReorderSpaces::class);
+        app()->singleton(CreatesPosts::class, CreatePost::class);
+        app()->singleton(UpdatesPosts::class, UpdatePost::class);
+        app()->singleton(DeletesPosts::class, DeletePost::class);
+        app()->singleton(PinsPosts::class, PinPost::class);
 
         // Public waitlist endpoint: a few requests per minute and per IP address
         RateLimiter::for('waitlist', static function (Request $request) {
             return Limit::perMinute(Constants::WAITLIST_MAX_REQUESTS_PER_MINUTE)->by($request->ip());
+        });
+
+        RateLimiter::for('posts', static function (Request $request) {
+            return Limit::perMinute(Constants::POSTS_PER_MINUTE)->by(self::rateLimitKey($request));
+        });
+
+        RateLimiter::for('markdown-preview', static function (Request $request) {
+            return Limit::perMinute(Constants::MARKDOWN_PREVIEWS_PER_MINUTE)->by(self::rateLimitKey($request));
         });
 
         // Enable strict mode during development
@@ -94,5 +115,15 @@ class AppServiceProvider extends ServiceProvider
                 info("Attempted lazy loading [{$relation}] on model [{$class}].");
             });
         }
+    }
+
+    /**
+     * Rate limits count per member, or per IP address for visitors.
+     */
+    private static function rateLimitKey(Request $request): string
+    {
+        $user = $request->user();
+
+        return $user instanceof User ? 'user:'.$user->id : 'ip:'.$request->ip();
     }
 }

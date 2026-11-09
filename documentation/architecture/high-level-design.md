@@ -19,7 +19,7 @@ User ──< CommunityMember >── Community ──< SpaceGroup ──< Space
  └── Reactions, Mentions, Uploads (polymorphic: they point to a post, comment, message or page)
 ```
 
-State on 2026-11-09: users, profiles, communities, members, invitations, resource collections, space groups and spaces exist ([ADR 0012](../adr/0012-space-groups-and-typed-spaces.md)). The content of the spaces (posts, chat messages, pages, conversations) is built for the MVP (milestones M1 to M4, see the GitHub milestones). This diagram shows the target of the MVP. Each feature updates this paragraph when it ships.
+State on 2026-11-09: users, profiles, communities, members, invitations, resource collections, space groups and spaces ([ADR 0012](../adr/0012-space-groups-and-typed-spaces.md)) and posts exist. The rest of the content of the spaces (comments, chat messages, pages, conversations) is built for the MVP (milestones M1 to M4, see the GitHub milestones). This diagram shows the target of the MVP. Each feature updates this paragraph when it ships.
 
 ### Concepts
 
@@ -68,7 +68,7 @@ Real time uses Reverb ([ADR 0009](../adr/0009-real-time-through-reverb.md)):
 
 1. Sessions: the front-end calls the API with the session cookie (Sanctum, stateful domains). API clients use tokens.
 2. Content Security Policy: no `'unsafe-inline'` for scripts or styles, per-request nonces, no scheme-wide sources ([ADR 0007](../adr/0007-strict-content-security-policy.md)).
-3. Member content (Markdown) is rendered on the server with raw HTML escaped, then shown as HTML. Members never inject HTML.
+3. Member content (Markdown) is rendered on the server with raw HTML escaped, then shown as HTML. Members never inject HTML ([ADR 0013](../adr/0013-markdown-rendered-on-the-server.md)).
 4. Rate limits on public and write endpoints. Cloudflare Turnstile on public forms.
 5. Identifiers in URLs and APIs are cuid2 strings, never the integer keys ([ADR 0005](../adr/0005-cuid2-public-identifiers.md)).
 

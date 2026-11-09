@@ -1,0 +1,27 @@
+meta {
+  name: Posts - Create
+  type: http
+  seq: 33
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a discussion space>/posts
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Welcome to the community",
+    "body": "Hello **everyone**! Read the [guide](https://example.com)."
+  }
+}
+
+docs {
+  Writes a post (Markdown body, raw HTML is escaped). The space posting policy decides who can post. Rate limited: 5 posts per minute per member.
+}

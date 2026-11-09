@@ -10,7 +10,7 @@ These rules keep the code structurally sound as it grows. Each rule has a reason
 4. **The API is complete.** The UI changes data only through the REST API. Anything a member does in the UI, an API client can do.
 5. **Public identifiers are cuid2.** APIs, channels and events expose `cuid`, never `id`. Page URLs use slugs. Models hide `id` and foreign keys in serialization.
 6. **One serialization per model.** The API, the Inertia props and the broadcast events use the same API resource class (`app/Http/Resources`).
-7. **Member content is Markdown, rendered on the server with HTML escaped.** No raw HTML from members reaches a page.
+7. **Member content is Markdown, rendered on the server with HTML escaped** (`App\Support\Markdown`, [ADR 0013](../adr/0013-markdown-rendered-on-the-server.md)). No raw HTML from members reaches a page. `<MarkdownContent>` is the only place that sets inner HTML.
 8. **Real time goes through Reverb.** No polling. Payloads stay small: send the changed item, not lists.
 9. **No inline styles and no scheme-wide CSP sources.** Every new external origin is a configuration value ([ADR 0007](../adr/0007-strict-content-security-policy.md)).
 10. **PostgreSQL only.** Use its features (JSONB, full-text search, partial indexes) where they help. Do not write code for SQLite or MySQL ([ADR 0008](../adr/0008-postgresql-only.md)).
@@ -24,6 +24,7 @@ These rules keep the code structurally sound as it grows. Each rule has a reason
 4. Slugs are unique within their parent (a space slug is unique in its community), not globally.
 5. Migrations never change data in a way that cannot be undone without a backup. Destructive migrations (drop a column with data) need an issue and a note in the pull request.
 6. Limits (lengths, counts) are constants in `App\Constants`, mirrored in `libs/common/src/lib/constants.ts`.
+7. An API resource returns every field of the client schema, also the ones with a database default: set them in the action or refresh the model after `create()` (a new model does not hold database defaults).
 
 ## Front-end
 
@@ -31,6 +32,8 @@ These rules keep the code structurally sound as it grows. Each rule has a reason
 2. Use the components in `apps/knowii/src/Components/ui`. A new building block goes there with a test.
 3. Keyboard support and a visible focus for every interactive element. Check every screen in the dark and the light themes.
 4. Use the brand tokens only. No raw hex values, no Tailwind palette colors.
+5. Inertia props are not parsed by Zod: their dates are ISO strings even when the type says `Date`. Components that format dates accept both (see `RelativeTime`).
+6. Call the API through `apiRequest()`: it sends uppercase HTTP methods (`fetch` does not uppercase `patch`, and servers reject it).
 
 ## Definition of done
 

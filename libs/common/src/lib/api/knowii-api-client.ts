@@ -16,6 +16,11 @@ import {
   COMMUNITY_SPACE_GROUPS_API_PATH,
   COMMUNITY_SPACE_GROUPS_REORDER_API_PATH,
   COMMUNITY_SPACES_API_PATH,
+  COMMUNITY_SPACE_POST_API_PATH,
+  COMMUNITY_SPACE_POST_PIN_API_PATH,
+  COMMUNITY_SPACE_POSTS_API_PATH,
+  MARKDOWN_PREVIEW_API_PATH,
+  SPACE_API_PARAM_POST,
   PING_API_PATH,
   SPACE_API_PARAM_COMMUNITY,
   SPACE_API_PARAM_SPACE,
@@ -48,12 +53,19 @@ import type { ApiResult } from './api-result';
 import { apiPath, apiRequest } from './api-result';
 import type { Space, SpaceForm, SpaceGroup, SpaceGroupForm } from '../types/space.schema';
 import { spaceGroupSchema, spaceSchema } from '../types/space.schema';
+import type { Paginated, Post, PostForm } from '../types/post.schema';
+import { paginationSchema, postSchema } from '../types/post.schema';
 
 const spaceGroupPath = (communityCuid: string, spaceGroupCuid: string, path = COMMUNITY_SPACE_GROUP_API_PATH) =>
   apiPath(path, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE_GROUP]: spaceGroupCuid });
 const spacePath = (communityCuid: string, spaceCuid: string) =>
   apiPath(COMMUNITY_SPACE_API_PATH, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE]: spaceCuid });
 const communityPath = (path: string, communityCuid: string) => apiPath(path, { [SPACE_API_PARAM_COMMUNITY]: communityCuid });
+const postsPath = (communityCuid: string, spaceCuid: string, postCuid = '', path = COMMUNITY_SPACE_POSTS_API_PATH) =>
+  apiPath(path, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE]: spaceCuid, [SPACE_API_PARAM_POST]: postCuid });
+
+const postListSchema = z.array(postSchema);
+const htmlSchema = z.object({ html: z.string() });
 
 const defaultHeaders: Headers = new Headers({
   Accept: 'application/json',
@@ -176,6 +188,50 @@ export const knowiiApiClient = {
           { space_cuids: spaceCuids },
         ),
     },
+    posts: {
+      /**
+       * A page of posts, with the pagination metadata of the guide (ADR 0011)
+       */
+      list: async (communityCuid: string, spaceCuid: string, limit: number, offset: number): Promise<ApiResult<Paginated<Post>>> => {
+        const url = `${postsPath(communityCuid, spaceCuid)}?limit=${limit}&offset=${offset}`;
+        try {
+          const response = await fetch(url, { headers: { Accept: 'application/json' } });
+          const json: unknown = await response.json();
+          const parsed = z.object({ data: postListSchema, metadata: z.object({ pagination: paginationSchema }) }).safeParse(json);
+          if (!response.ok || !parsed.success) {
+            return { ok: false, status: response.status, message: 'Failed to load the posts.', errors: {} };
+          }
+          return { ok: true, message: '', data: { items: parsed.data.data, pagination: parsed.data.metadata.pagination } };
+        } catch {
+          return { ok: false, status: 0, message: 'Failed to load the posts.', errors: {} };
+        }
+      },
+      create: (communityCuid: string, spaceCuid: string, input: PostForm): Promise<ApiResult<Post>> =>
+        apiRequest('post', postsPath(communityCuid, spaceCuid), postSchema, 'Failed to publish the post.', input),
+      update: (communityCuid: string, spaceCuid: string, postCuid: string, input: Partial<PostForm>): Promise<ApiResult<Post>> =>
+        apiRequest(
+          'patch',
+          postsPath(communityCuid, spaceCuid, postCuid, COMMUNITY_SPACE_POST_API_PATH),
+          postSchema,
+          'Failed to save the post.',
+          input,
+        ),
+      delete: (communityCuid: string, spaceCuid: string, postCuid: string): Promise<ApiResult<undefined>> =>
+        apiRequest(
+          'delete',
+          postsPath(communityCuid, spaceCuid, postCuid, COMMUNITY_SPACE_POST_API_PATH),
+          null,
+          'Failed to delete the post.',
+        ),
+      pin: (communityCuid: string, spaceCuid: string, postCuid: string, pinned: boolean): Promise<ApiResult<Post>> =>
+        apiRequest(
+          'post',
+          postsPath(communityCuid, spaceCuid, postCuid, COMMUNITY_SPACE_POST_PIN_API_PATH),
+          postSchema,
+          pinned ? 'Failed to pin the post.' : 'Failed to unpin the post.',
+          { pinned },
+        ),
+    },
     resourceCollections: {
       create: async (input: CreateCommunityResourceCollectionRequest): Promise<CreateCommunityResourceCollectionResponse> => {
         const requestUrl = COMMUNITY_RESOURCE_COLLECTION_API_BASE_PATH.replace(
@@ -290,6 +346,25 @@ export const knowiiApiClient = {
           type: 'internalError',
           category: 'technical',
         };
+      }
+    },
+  },
+  markdown: {
+    /**
+     * Render Markdown with the server renderer, so the preview equals the published content
+     */
+    preview: async (markdown: string, signal?: AbortSignal): Promise<string | null> => {
+      try {
+        const response = await fetch(MARKDOWN_PREVIEW_API_PATH, {
+          method: 'post',
+          headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+          body: JSON.stringify({ markdown }),
+          signal: signal ?? null,
+        });
+        const parsed = z.object({ data: htmlSchema }).safeParse(await response.json());
+        return response.ok && parsed.success ? parsed.data.data.html : null;
+      } catch {
+        return null;
       }
     },
   },

@@ -1,0 +1,26 @@
+meta {
+  name: Markdown - Preview
+  type: http
+  seq: 39
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/markdown/preview
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "markdown": "**bold** <script>alert(1)</script>"
+  }
+}
+
+docs {
+  Renders Markdown with the same renderer as the saved content (ADR 0013). Raw HTML comes back escaped. Rate limited: 60 per minute.
+}

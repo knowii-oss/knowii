@@ -46,6 +46,9 @@ export const COMMUNITY_SETTINGS_URL = 'communities.settings';
 // Spaces
 export const SPACE_URL = 'spaces.show';
 
+// Posts
+export const POST_URL = 'posts.show';
+
 // Resource collections
 export const RESOURCE_COLLECTION_URL = 'resource-collections.show';
 
@@ -98,6 +101,13 @@ export const MIN_LENGTH_SPACE_NAME = 2;
 export const MAX_LENGTH_SPACE_NAME = 64;
 export const MAX_LENGTH_SPACE_DESCRIPTION = 255;
 export const MAX_LENGTH_SPACE_EMOJI = 16;
+
+// Posts. WARNING: aligned with Constants.php and SpaceController::POSTS_PER_PAGE
+export const MIN_LENGTH_POST_TITLE = 3;
+export const MAX_LENGTH_POST_TITLE = 200;
+export const MAX_LENGTH_POST_BODY = 50000;
+export const POSTS_PER_PAGE = 20;
+export const POST_EDITOR_ROWS = 12;
 
 // Community resource collection
 export const MIN_LENGTH_COMMUNITY_RESOURCE_COLLECTION_NAME = 3;
@@ -153,3 +163,12 @@ export const COMMUNITY_SPACE_GROUP_API_PATH = `${COMMUNITY_SPACE_GROUPS_API_PATH
 export const COMMUNITY_SPACE_GROUP_SPACES_REORDER_API_PATH = `${COMMUNITY_SPACE_GROUP_API_PATH}/spaces/reorder`;
 export const COMMUNITY_SPACES_API_PATH = `${COMMUNITY_API_PATH}/spaces`;
 export const COMMUNITY_SPACE_API_PATH = `${COMMUNITY_SPACES_API_PATH}/${SPACE_API_PARAM_SPACE}`;
+
+// Posts (#1174)
+export const SPACE_API_PARAM_POST = '{postCuid}';
+export const COMMUNITY_SPACE_POSTS_API_PATH = `${COMMUNITY_SPACE_API_PATH}/posts`;
+export const COMMUNITY_SPACE_POST_API_PATH = `${COMMUNITY_SPACE_POSTS_API_PATH}/${SPACE_API_PARAM_POST}`;
+export const COMMUNITY_SPACE_POST_PIN_API_PATH = `${COMMUNITY_SPACE_POST_API_PATH}/pin`;
+
+// Markdown preview (same rendering as the saved content)
+export const MARKDOWN_PREVIEW_API_PATH = `${API_BASE_PATH}/markdown/preview`;

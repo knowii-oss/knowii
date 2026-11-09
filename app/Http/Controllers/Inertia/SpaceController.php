@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\Inertia;
 
+use App\Enums\KnowiiSpaceType;
 use App\Http\Resources\CommunityResource;
+use App\Http\Resources\PostResource;
 use App\Http\Resources\SpaceGroupResource;
 use App\Http\Resources\SpaceResource;
 use App\Models\Community;
+use App\Support\Pagination;
 use App\Support\SpaceTree;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -16,6 +19,9 @@ use Laravel\Jetstream\Jetstream;
 
 class SpaceController extends Controller
 {
+    // WARNING: aligned with POSTS_PER_PAGE (constants.ts)
+    public const int POSTS_PER_PAGE = 20;
+
     /**
      * Show a space of a community.
      */
@@ -28,8 +34,19 @@ class SpaceController extends Controller
 
         JsonResource::withoutWrapping();
 
+        // Discussion spaces: the first page of posts (the page loads more through the API)
+        $posts = null;
+        if ($space->type === KnowiiSpaceType::Discussion) {
+            $page = (new Pagination(self::POSTS_PER_PAGE, 0))->apply($space->posts()->with(['author', 'space'])->forSpacePage());
+            $posts = [
+                'items' => PostResource::collection($page['items']),
+                'pagination' => $page['metadata']['pagination'],
+            ];
+        }
+
         // WARNING: The props passed here must remain aligned with the props expected by the page (Pages/Spaces/Show.tsx)
         return Jetstream::inertia()->render($request, 'Spaces/Show', [
+            'posts' => $posts,
             'community' => new CommunityResource($community, true),
             'space' => new SpaceResource($space, true),
             'spaceGroups' => SpaceGroupResource::collection(SpaceTree::for($community, $request->user())),

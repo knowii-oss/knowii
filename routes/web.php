@@ -4,6 +4,7 @@ use App\Http\Controllers\Inertia\CommunityController;
 use App\Http\Controllers\Inertia\CommunityResourceCollectionController;
 use App\Http\Controllers\Inertia\CommunityResourceController;
 use App\Http\Controllers\Inertia\DashboardController;
+use App\Http\Controllers\Inertia\PostController;
 use App\Http\Controllers\Inertia\SpaceController;
 use App\Http\Controllers\PrivacyPolicyController;
 use App\Http\Controllers\TermsOfServiceController;
@@ -37,6 +38,7 @@ Route::middleware([
     Route::get('/community/{communitySlug}/settings', [CommunityController::class, 'settings'])->name('communities.settings');
 
     Route::get('/community/{communitySlug}/space/{spaceSlug}', [SpaceController::class, 'show'])->name('spaces.show');
+    Route::get('/community/{communitySlug}/space/{spaceSlug}/post/{postSlug}', [PostController::class, 'show'])->name('posts.show');
 
     Route::get('/community/{communitySlug}/resource-collection/{resourceCollectionSlug}', [CommunityResourceCollectionController::class, 'show'])->name('resource-collections.show');
 

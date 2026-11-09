@@ -4,7 +4,9 @@ use App\ApiRoutes;
 use App\Http\Controllers\API\CommunityApiController;
 use App\Http\Controllers\API\CommunityResourceCollectionApiController;
 use App\Http\Controllers\API\LoginApiController;
+use App\Http\Controllers\API\MarkdownApiController;
 use App\Http\Controllers\API\PingApiController;
+use App\Http\Controllers\API\PostApiController;
 use App\Http\Controllers\API\ResourceTextArticleApiController;
 use App\Http\Controllers\API\SpaceApiController;
 use App\Http\Controllers\API\SpaceGroupApiController;
@@ -50,6 +52,16 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::get(ApiRoutes::COMMUNITY_SPACE, [SpaceApiController::class, 'show']);
             Route::patch(ApiRoutes::COMMUNITY_SPACE, [SpaceApiController::class, 'update']);
             Route::delete(ApiRoutes::COMMUNITY_SPACE, [SpaceApiController::class, 'destroy']);
+
+            // Posts (#1174)
+            Route::get(ApiRoutes::COMMUNITY_SPACE_POSTS, [PostApiController::class, 'index']);
+            Route::post(ApiRoutes::COMMUNITY_SPACE_POSTS, [PostApiController::class, 'store'])->middleware('throttle:posts');
+            Route::get(ApiRoutes::COMMUNITY_SPACE_POST, [PostApiController::class, 'show']);
+            Route::patch(ApiRoutes::COMMUNITY_SPACE_POST, [PostApiController::class, 'update']);
+            Route::delete(ApiRoutes::COMMUNITY_SPACE_POST, [PostApiController::class, 'destroy']);
+            Route::post(ApiRoutes::COMMUNITY_SPACE_POST_PIN, [PostApiController::class, 'pin']);
         });
+
+        Route::post(ApiRoutes::MARKDOWN_PREVIEW, [MarkdownApiController::class, 'preview'])->middleware('throttle:markdown-preview');
     });
 });

@@ -36,6 +36,8 @@ final class ApiRoutes
 
     public const PARAM_SPACE = 'space';
 
+    public const PARAM_POST = 'post';
+
     // Paths relative to the version prefix, used in routes/api.php.
     public const USER = 'user';
 
@@ -68,6 +70,14 @@ final class ApiRoutes
     public const COMMUNITY_SPACES = self::COMMUNITY.'/spaces';
 
     public const COMMUNITY_SPACE = self::COMMUNITY_SPACES.'/{'.self::PARAM_SPACE.'}';
+
+    public const COMMUNITY_SPACE_POSTS = self::COMMUNITY_SPACE.'/posts';
+
+    public const COMMUNITY_SPACE_POST = self::COMMUNITY_SPACE_POSTS.'/{'.self::PARAM_POST.'}';
+
+    public const COMMUNITY_SPACE_POST_PIN = self::COMMUNITY_SPACE_POST.'/pin';
+
+    public const MARKDOWN_PREVIEW = 'markdown/preview';
 
     /**
      * Build a full, client-facing API path from a relative path, substituting

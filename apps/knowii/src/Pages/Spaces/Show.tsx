@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import type { Community, Space, SpaceGroup, SpacePermissions } from '@knowii/common';
+import type { Community, Paginated, Post, Space, SpaceGroup, SpacePermissions } from '@knowii/common';
 import { COMMUNITY_SETTINGS_URL, COMMUNITY_URL, SPACE_POSTING_POLICY_LABELS, SPACE_TYPE_LABELS } from '@knowii/common';
 import { FaGear } from 'react-icons/fa6';
 import AppLayout from '@/Layouts/AppLayout';
@@ -8,6 +8,7 @@ import CommunityIcon from '@/Components/Communities/CommunityIcon';
 import { CommunityShell } from '@/Components/Spaces/CommunityShell';
 import type { BreadcrumbItem } from '@/Components/ui';
 import { buttonClasses, EmptyState } from '@/Components/ui';
+import { PostList } from '@/Components/Posts/PostList';
 
 interface Props {
   // WARNING: aligned with SpaceController.php
@@ -15,6 +16,8 @@ interface Props {
   space: Space;
   spaceGroups: SpaceGroup[];
   permissions: SpacePermissions;
+  // Discussion spaces only: the first page of posts
+  posts: Paginated<Post> | null;
 }
 
 const EMPTY_STATES: Record<Space['type'], { title: string; description: string }> = {
@@ -73,7 +76,11 @@ export default function SpacePage(props: Props) {
           </p>
         </header>
 
-        <EmptyState icon={typeLabel.emoji} title={EMPTY_STATES[space.type].title} description={EMPTY_STATES[space.type].description} />
+        {space.type === 'discussion' && props.posts ? (
+          <PostList community={community} space={space} initialPosts={props.posts} canContribute={props.permissions.canContribute} />
+        ) : (
+          <EmptyState icon={typeLabel.emoji} title={EMPTY_STATES[space.type].title} description={EMPTY_STATES[space.type].description} />
+        )}
       </CommunityShell>
     </AppLayout>
   );
