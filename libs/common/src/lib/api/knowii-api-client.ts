@@ -11,6 +11,7 @@ import {
   COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH_PARAM_COMMUNITY,
   COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH_PARAM_RESOURCE_COLLECTION,
   COMMUNITY_SPACE_API_PATH,
+  COMMUNITY_MEMBERS_API_PATH,
   COMMUNITY_SPACE_GROUP_API_PATH,
   COMMUNITY_SPACE_GROUP_SPACES_REORDER_API_PATH,
   COMMUNITY_SPACE_GROUPS_API_PATH,
@@ -56,8 +57,8 @@ import type { ApiResult } from './api-result';
 import { apiPath, apiRequest } from './api-result';
 import type { Space, SpaceForm, SpaceGroup, SpaceGroupForm } from '../types/space.schema';
 import { spaceGroupSchema, spaceSchema } from '../types/space.schema';
-import type { Paginated, Post, PostForm } from '../types/post.schema';
-import { paginationSchema, postSchema } from '../types/post.schema';
+import type { Author, Paginated, Post, PostForm } from '../types/post.schema';
+import { authorSchema, paginationSchema, postSchema } from '../types/post.schema';
 import type { Comment, CommentForm } from '../types/comment.schema';
 import { commentSchema } from '../types/comment.schema';
 import type { ReactionKind, ReactionSummary, WhoReacted } from '../types/reaction.schema';
@@ -287,6 +288,21 @@ export const knowiiApiClient = {
       delete: (communityCuid: string, spaceCuid: string, postCuid: string, commentCuid: string): Promise<ApiResult<undefined>> =>
         apiRequest('delete', commentsPath(communityCuid, spaceCuid, postCuid, commentCuid), null, 'Failed to delete the comment.'),
     },
+    members: {
+      /**
+       * Members whose username or name starts with the query (mention autocomplete). Returns an empty list on failure.
+       */
+      search: async (communityCuid: string, query: string, limit: number, signal?: AbortSignal): Promise<Author[]> => {
+        const url = `${communityPath(COMMUNITY_MEMBERS_API_PATH, communityCuid)}?query=${encodeURIComponent(query)}&limit=${limit}`;
+        try {
+          const response = await fetch(url, { headers: { Accept: 'application/json' }, signal: signal ?? null });
+          const parsed = z.object({ data: z.array(authorSchema) }).safeParse(await response.json());
+          return response.ok && parsed.success ? parsed.data.data : [];
+        } catch {
+          return [];
+        }
+      },
+    },
     reactions: {
       /**
        * Add the reaction of the member, or remove it. Returns the new summary.
@@ -417,12 +433,12 @@ export const knowiiApiClient = {
     /**
      * Render Markdown with the server renderer, so the preview equals the published content
      */
-    preview: async (markdown: string, signal?: AbortSignal): Promise<string | null> => {
+    preview: async (markdown: string, signal?: AbortSignal, communityCuid?: string): Promise<string | null> => {
       try {
         const response = await fetch(MARKDOWN_PREVIEW_API_PATH, {
           method: 'post',
           headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-          body: JSON.stringify({ markdown }),
+          body: JSON.stringify({ markdown, community_cuid: communityCuid ?? null }),
           signal: signal ?? null,
         });
         const parsed = z.object({ data: htmlSchema }).safeParse(await response.json());

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\GeneratesCuid;
+use App\Traits\HasMentions;
 use App\Traits\HasReactions;
 use Carbon\Carbon;
 use Cviebrock\EloquentSluggable\Sluggable;
@@ -50,6 +51,7 @@ class Post extends Model
     /** @use HasFactory<PostFactory> */
     use HasFactory;
 
+    use HasMentions;
     use HasReactions;
     use Sluggable;
 
@@ -163,7 +165,10 @@ class Post extends Model
         return $query->where('space_id', $model->space_id);
     }
 
-    protected function reactionForeignKey(): string
+    /**
+     * The column that points to this kind of item in the reactions and mentions tables (ADR 0014).
+     */
+    protected function itemForeignKey(): string
     {
         return 'post_id';
     }

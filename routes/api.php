@@ -6,6 +6,7 @@ use App\Http\Controllers\API\CommunityApiController;
 use App\Http\Controllers\API\CommunityResourceCollectionApiController;
 use App\Http\Controllers\API\LoginApiController;
 use App\Http\Controllers\API\MarkdownApiController;
+use App\Http\Controllers\API\MemberApiController;
 use App\Http\Controllers\API\PingApiController;
 use App\Http\Controllers\API\PostApiController;
 use App\Http\Controllers\API\ReactionApiController;
@@ -75,6 +76,8 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::get(ApiRoutes::COMMUNITY_SPACE_POST_COMMENT_REACTIONS, [ReactionApiController::class, 'listComment']);
             Route::post(ApiRoutes::COMMUNITY_SPACE_POST_COMMENT_REACTIONS, [ReactionApiController::class, 'toggleComment'])->middleware('throttle:reactions');
         });
+
+        Route::get(ApiRoutes::COMMUNITY_MEMBERS, [MemberApiController::class, 'search'])->middleware('throttle:markdown-preview');
 
         Route::post(ApiRoutes::MARKDOWN_PREVIEW, [MarkdownApiController::class, 'preview'])->middleware('throttle:markdown-preview');
     });

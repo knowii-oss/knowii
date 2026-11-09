@@ -29,10 +29,39 @@ export interface MarkdownEditorProps {
    * Extra buttons at the end of the toolbar (for example an image upload)
    */
   toolbarExtra?: ReactNode;
+  /**
+   * Suggests members after "@" (combobox pattern). Absent: no suggestions.
+   */
+  mentions?: MentionSource | undefined;
   ref?: Ref<HTMLTextAreaElement>;
 }
 
 type Tab = 'write' | 'preview';
+
+export interface MentionSuggestion {
+  username: string;
+  name: string;
+}
+
+export interface MentionSource {
+  search: (query: string, signal: AbortSignal) => Promise<MentionSuggestion[]>;
+}
+
+// "@" at the start or after a space or an opening parenthesis, then the beginning of a username
+const MENTION_TRIGGER = /(?:^|[\s(])@([a-zA-Z0-9-]{0,36})$/;
+const MENTION_SEARCH_DELAY = 150;
+
+/**
+ * The mention being typed before the caret, or null.
+ */
+export function findMentionQuery(value: string, caret: number): { start: number; query: string } | null {
+  const match = MENTION_TRIGGER.exec(value.slice(0, caret));
+  if (!match) {
+    return null;
+  }
+  const query = match[1] ?? '';
+  return { start: caret - query.length - 1, query };
+}
 
 const TOOLBAR: { format: MarkdownFormat; label: string; icon: ReactNode; shortcut?: string }[] = [
   { format: 'bold', label: 'Bold', icon: <FaBold />, shortcut: 'Ctrl+B' },
@@ -61,6 +90,7 @@ export function MarkdownEditor({
   invalid = false,
   'aria-describedby': ariaDescribedBy,
   toolbarExtra,
+  mentions,
   ref,
 }: MarkdownEditorProps) {
   const baseId = useId();
@@ -70,6 +100,12 @@ export function MarkdownEditor({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const pendingSelection = useRef<TextSelection | null>(null);
   const writeTabRef = useRef<HTMLButtonElement>(null);
+  const [mention, setMention] = useState<{ start: number; query: string } | null>(null);
+  const [suggestions, setSuggestions] = useState<{ query: string; items: MentionSuggestion[] }>({ query: '', items: [] });
+  const [activeSuggestion, setActiveSuggestion] = useState(0);
+  const listboxId = `${baseId}-mentions`;
+  const visibleSuggestions = mention !== null && suggestions.query === mention.query ? suggestions.items : [];
+  const suggestionsOpen = visibleSuggestions.length > 0;
   const previewTabRef = useRef<HTMLButtonElement>(null);
 
   const writeTabId = `${baseId}-write-tab`;
@@ -87,6 +123,26 @@ export function MarkdownEditor({
       pendingSelection.current = null;
     }
   }, [value]);
+
+  useEffect(() => {
+    if (!mentions || mention === null || mention.query === '') {
+      return;
+    }
+    const controller = new AbortController();
+    const query = mention.query;
+    const timer = window.setTimeout(() => {
+      mentions.search(query, controller.signal).then((items) => {
+        if (!controller.signal.aborted) {
+          setSuggestions({ query, items });
+          setActiveSuggestion(0);
+        }
+      });
+    }, MENTION_SEARCH_DELAY);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [mention, mentions]);
 
   useEffect(() => {
     if (tab !== 'preview') {
@@ -111,7 +167,54 @@ export function MarkdownEditor({
     onChange(result.value);
   };
 
+  const updateMention = (text: string, caret: number) => {
+    if (!mentions) {
+      return;
+    }
+    const found = findMentionQuery(text, caret);
+    setMention((current) => (current?.start === found?.start && current?.query === found?.query ? current : found));
+  };
+
+  const insertMention = (suggestion: MentionSuggestion) => {
+    const textarea = textareaRef.current;
+    if (!textarea || mention === null) {
+      return;
+    }
+    const caret = textarea.selectionStart;
+    const inserted = `@${suggestion.username} `;
+    const next = `${value.slice(0, mention.start)}${inserted}${value.slice(caret)}`;
+    const position = mention.start + inserted.length;
+    pendingSelection.current = { value: next, selectionStart: position, selectionEnd: position };
+    setMention(null);
+    onChange(next);
+  };
+
   const onTextareaKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (suggestionsOpen) {
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        const step = event.key === 'ArrowDown' ? 1 : -1;
+        setActiveSuggestion((current) => (current + step + visibleSuggestions.length) % visibleSuggestions.length);
+        return;
+      }
+      if (event.key === 'Enter' || event.key === 'Tab') {
+        const suggestion = visibleSuggestions[activeSuggestion];
+        if (suggestion) {
+          event.preventDefault();
+          insertMention(suggestion);
+        }
+        return;
+      }
+      if (event.key === 'Escape') {
+        // Close the suggestions, not the dialog around the editor
+        event.preventDefault();
+        event.stopPropagation();
+        event.nativeEvent.stopImmediatePropagation();
+        setMention(null);
+        return;
+      }
+    }
+
     if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey) {
       return;
     }
@@ -205,9 +308,26 @@ export function MarkdownEditor({
           ref={mergeRefs(textareaRef, ref)}
           id={id}
           value={value}
-          onChange={(event) => onChange(event.target.value)}
-          onBlur={onBlur}
+          onChange={(event) => {
+            onChange(event.target.value);
+            updateMention(event.target.value, event.target.selectionStart);
+          }}
+          onSelect={(event) => updateMention(event.currentTarget.value, event.currentTarget.selectionStart)}
+          onBlur={() => {
+            // Let a click on a suggestion land before closing the list
+            window.setTimeout(() => setMention(null), 150);
+            onBlur?.();
+          }}
           onKeyDown={onTextareaKeyDown}
+          {...(mentions
+            ? {
+                role: 'combobox',
+                'aria-autocomplete': 'list' as const,
+                'aria-expanded': suggestionsOpen,
+                'aria-controls': listboxId,
+                ...(suggestionsOpen ? { 'aria-activedescendant': `${listboxId}-${activeSuggestion}` } : {}),
+              }
+            : {})}
           rows={rows}
           maxLength={maxLength}
           placeholder={placeholder}
@@ -216,7 +336,39 @@ export function MarkdownEditor({
           aria-describedby={ariaDescribedBy}
           className={cn(formControlClasses, 'block w-full resize-y rounded-t-none border-0 bg-transparent px-3 py-2 font-mono text-sm')}
         />
-        <p className="px-3 pb-2 text-xs text-muted">Markdown: **bold**, _italic_, [link](https://…), `code`, - list, &gt; quote.</p>
+        {mentions && (
+          <ul
+            id={listboxId}
+            role="listbox"
+            aria-label="Members to mention"
+            hidden={!suggestionsOpen}
+            className="mx-2 mb-2 flex max-h-56 flex-col overflow-y-auto rounded-lg border border-border bg-surface-elevated p-1 shadow-xl"
+          >
+            {visibleSuggestions.map((suggestion, index) => (
+              <li
+                key={suggestion.username}
+                id={`${listboxId}-${index}`}
+                role="option"
+                aria-selected={index === activeSuggestion}
+                onMouseDown={(event) => {
+                  // Keep the focus in the textarea
+                  event.preventDefault();
+                  insertMention(suggestion);
+                }}
+                className={cn(
+                  'flex cursor-pointer items-baseline gap-2 rounded-md px-3 py-1.5 text-sm',
+                  index === activeSuggestion ? 'bg-overlay/15 text-primary' : 'text-primary/90',
+                )}
+              >
+                <span className="font-bold">@{suggestion.username}</span>{' '}
+                <span className="truncate text-xs text-muted">{suggestion.name}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className="px-3 pb-2 text-xs text-muted">
+          Markdown: **bold**, _italic_, [link](https://…), `code`, - list, &gt; quote{mentions ? ', @name to mention a member' : ''}.
+        </p>
       </div>
 
       <div id={previewPanelId} role="tabpanel" aria-labelledby={previewTabId} hidden={tab !== 'preview'} className="min-h-32 px-3 py-2">

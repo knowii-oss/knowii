@@ -7,7 +7,7 @@ use App\Contracts\Comments\CreatesComments;
 use App\Models\Comment;
 use App\Models\Post;
 use App\Models\User;
-use App\Support\Markdown;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -37,14 +37,19 @@ class CreateComment implements CreatesComments
             $parentId = $parent->parent_id ?? $parent->id;
         }
 
-        return Comment::create([
-            'community_id' => $post->community_id,
-            'post_id' => $post->id,
-            'author_id' => $user->id,
-            'parent_id' => $parentId,
-            'body' => $validated['body'],
-            'body_html' => Markdown::render($validated['body']),
-            'edited_at' => null,
-        ]);
+        return DB::transaction(function () use ($post, $user, $parentId, $validated) {
+            $comment = Comment::create([
+                'community_id' => $post->community_id,
+                'post_id' => $post->id,
+                'author_id' => $user->id,
+                'parent_id' => $parentId,
+                'body' => $validated['body'],
+                'body_html' => '',
+                'edited_at' => null,
+            ]);
+            $comment->update(['body_html' => $comment->renderBodyAndSyncMentions($validated['body'], $user)]);
+
+            return $comment;
+        });
     }
 }

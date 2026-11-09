@@ -13,16 +13,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 trait HasReactions
 {
     /**
-     * The column of the reactions table that points to this kind of item (post_id, comment_id).
+     * The column of the reactions and mentions tables that points to this kind of item (post_id, comment_id).
      */
-    abstract protected function reactionForeignKey(): string;
+    abstract protected function itemForeignKey(): string;
 
     /**
      * @return HasMany<Reaction, covariant $this>
      */
     final public function reactions(): HasMany
     {
-        return $this->hasMany(Reaction::class, $this->reactionForeignKey());
+        return $this->hasMany(Reaction::class, $this->itemForeignKey());
     }
 
     /**

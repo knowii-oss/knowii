@@ -49,6 +49,9 @@ export const SPACE_URL = 'spaces.show';
 // Posts
 export const POST_URL = 'posts.show';
 
+// Members
+export const MEMBER_URL = 'members.show';
+
 // Resource collections
 export const RESOURCE_COLLECTION_URL = 'resource-collections.show';
 
@@ -179,3 +182,7 @@ export const MARKDOWN_PREVIEW_API_PATH = `${API_BASE_PATH}/markdown/preview`;
 export const SPACE_API_PARAM_COMMENT = '{commentCuid}';
 export const COMMUNITY_SPACE_POST_COMMENTS_API_PATH = `${COMMUNITY_SPACE_POST_API_PATH}/comments`;
 export const COMMUNITY_SPACE_POST_COMMENT_API_PATH = `${COMMUNITY_SPACE_POST_COMMENTS_API_PATH}/${SPACE_API_PARAM_COMMENT}`;
+
+// Members (#1177: mention autocomplete)
+export const COMMUNITY_MEMBERS_API_PATH = `${COMMUNITY_API_PATH}/members`;
+export const MENTION_SUGGESTIONS_LIMIT = 8;

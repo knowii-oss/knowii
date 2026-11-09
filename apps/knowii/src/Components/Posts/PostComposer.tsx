@@ -1,8 +1,9 @@
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import type { Post, PostForm } from '@knowii/common';
 import { knowiiApiClient, MAX_LENGTH_POST_BODY, MAX_LENGTH_POST_TITLE, POST_EDITOR_ROWS, postFormSchema, useAppData } from '@knowii/common';
+import { useMentionSource } from '@/Components/Members/use-mention-source';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import { Button, Dialog, MarkdownEditor, TextInput } from '@/Components/ui';
@@ -20,10 +21,13 @@ export interface PostComposerProps {
   onSaved: (post: Post) => void;
 }
 
-const renderPreview = (markdown: string, signal: AbortSignal) => knowiiApiClient.markdown.preview(markdown, signal);
-
 export function PostComposer({ open, communityCuid, spaceCuid, spaceName, post, onClose, onSaved }: PostComposerProps) {
   const { showToast } = useAppData();
+  const mentions = useMentionSource(communityCuid);
+  const renderPreview = useMemo(
+    () => (markdown: string, signal: AbortSignal) => knowiiApiClient.markdown.preview(markdown, signal, communityCuid),
+    [communityCuid],
+  );
   const form = useForm<PostForm>({
     resolver: zodResolver(postFormSchema),
     defaultValues: { title: post?.title ?? '', body: post?.body ?? '' },
@@ -110,6 +114,7 @@ export function PostComposer({ open, communityCuid, spaceCuid, spaceName, post, 
                   onBlur={field.onBlur}
                   ref={field.ref}
                   renderPreview={renderPreview}
+                  mentions={mentions}
                   rows={POST_EDITOR_ROWS}
                   maxLength={MAX_LENGTH_POST_BODY}
                   invalid={!!errors.body}

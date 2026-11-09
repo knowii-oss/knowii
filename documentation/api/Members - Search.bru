@@ -1,0 +1,19 @@
+meta {
+  name: Members - Search
+  type: http
+  seq: 49
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/members?query=ada&limit=8
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Members of the community whose username, or a word of their name, starts with the query (mention autocomplete). Name and username only. Members of the community only.
+}

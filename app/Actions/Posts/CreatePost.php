@@ -9,7 +9,7 @@ use App\Exceptions\BusinessException;
 use App\Models\Post;
 use App\Models\Space;
 use App\Models\User;
-use App\Support\Markdown;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -32,15 +32,21 @@ class CreatePost implements CreatesPosts
         /** @var array{title: string, body: string} $validated */
         $validated = Validator::make($input, self::rules(true))->validate();
 
-        $post = Post::create([
-            'community_id' => $space->community_id,
-            'space_id' => $space->id,
-            'author_id' => $user->id,
-            'title' => trim($validated['title']),
-            'body' => $validated['body'],
-            'body_html' => Markdown::render($validated['body']),
-            'is_pinned' => false,
-        ]);
+        $post = DB::transaction(function () use ($space, $user, $validated) {
+            $post = Post::create([
+                'community_id' => $space->community_id,
+                'space_id' => $space->id,
+                'author_id' => $user->id,
+                'title' => trim($validated['title']),
+                'body' => $validated['body'],
+                'body_html' => '',
+                'is_pinned' => false,
+            ]);
+            // Mentions need the post id: render once the post exists
+            $post->update(['body_html' => $post->renderBodyAndSyncMentions($validated['body'], $user)]);
+
+            return $post;
+        });
 
         Log::info('Post created', ['post' => $post->cuid]);
 

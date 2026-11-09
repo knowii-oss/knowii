@@ -17,7 +17,7 @@ Members write posts, comments, chat messages, direct messages and pages. The con
    - links to other sites open in a new tab with `rel="nofollow noopener noreferrer"`.
 3. The front-end shows `body_html` with `<MarkdownContent>` (the only `dangerouslySetInnerHTML` of the app) and never renders Markdown itself.
 4. The editor preview calls `POST /api/v1/markdown/preview`, which uses the same renderer, so the preview equals the result.
-5. Later extensions (mentions #1177, image uploads #1178) are CommonMark extensions in the same renderer.
+5. Extensions live in the same renderer. Mentions (#1177): `@username` becomes a link to the member page only when the username is a member of the community of the text (`Markdown::renderWithMentions()`, one query for the candidates); other `@names` stay text. Image uploads (#1178) come next.
 
 ## Consequences
 

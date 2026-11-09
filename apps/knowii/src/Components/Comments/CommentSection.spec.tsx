@@ -74,7 +74,7 @@ describe('CommentSection', () => {
 
     const thread = screen.getByRole('list', { name: 'Replies to the comment by Ada' });
     await userEvent.click(within(thread).getByRole('button', { name: 'Reply to Bob' }));
-    const editor = screen.getByRole('textbox', { name: 'Reply to Ada' });
+    const editor = screen.getByRole('combobox', { name: 'Reply to Ada' });
     expect(editor).toHaveFocus();
     await userEvent.type(editor, 'Me too');
     await userEvent.click(screen.getByRole('button', { name: 'Reply' }));

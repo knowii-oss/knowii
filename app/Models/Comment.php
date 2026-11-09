@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\GeneratesCuid;
+use App\Traits\HasMentions;
 use App\Traits\HasReactions;
 use Carbon\Carbon;
 use Database\Factories\CommentFactory;
@@ -45,6 +46,7 @@ class Comment extends Model
     /** @use HasFactory<CommentFactory> */
     use HasFactory;
 
+    use HasMentions;
     use HasReactions;
 
     /**
@@ -123,7 +125,10 @@ class Comment extends Model
         return $this->hasMany(Comment::class, 'parent_id')->orderBy('created_at')->orderBy('id');
     }
 
-    protected function reactionForeignKey(): string
+    /**
+     * The column that points to this kind of item in the reactions and mentions tables (ADR 0014).
+     */
+    protected function itemForeignKey(): string
     {
         return 'comment_id';
     }

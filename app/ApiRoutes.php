@@ -89,6 +89,8 @@ final class ApiRoutes
 
     public const MARKDOWN_PREVIEW = 'markdown/preview';
 
+    public const COMMUNITY_MEMBERS = self::COMMUNITY.'/members';
+
     /**
      * Build a full, client-facing API path from a relative path, substituting
      * any route parameters.
