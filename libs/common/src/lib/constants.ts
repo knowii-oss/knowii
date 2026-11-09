@@ -6,12 +6,6 @@ import type { ToastProps } from 'primereact/toast';
 export const BUILD_TIME = new Date().toISOString();
 export const BUILD_TIMESTAMP = Date.now();
 
-/**
- * Utils
- */
-export const IS_PROD = process.env.NODE_ENV === 'production';
-export const IS_DEV = process.env.NODE_ENV === 'development';
-export const IS_TEST = process.env.NODE_ENV === 'test';
 
 /**
  * UI/UX

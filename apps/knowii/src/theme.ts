@@ -1,4 +1,5 @@
-module.exports = {
+// Tailwind theme values, loaded by tailwind.config.ts
+const themeConfig = {
   theme: {
     // Those are the default colors of the Prime React theme: primereact/resources/themes/lara-light-pink/theme.css
     colors: {
@@ -189,4 +190,6 @@ module.exports = {
       },
     },
   },
-};
+} as const;
+
+export const theme = themeConfig.theme;

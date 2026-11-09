@@ -11,7 +11,11 @@ export type InertiaSharedProps<T = NonNullable<unknown>> = T & {
     canManageTwoFactorAuthentication: boolean;
     canUpdatePassword: boolean;
     canUpdateProfileInformation: boolean;
-    flash: Record<string, string>;
+    flash: {
+      banner?: string;
+      bannerStyle?: 'success' | 'danger';
+      [key: string]: string | undefined;
+    };
     hasAccountDeletionFeatures: boolean;
     hasApiFeatures: boolean;
     hasTermsAndPrivacyPolicyFeature: boolean;
