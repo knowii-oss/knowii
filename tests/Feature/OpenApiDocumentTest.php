@@ -70,17 +70,8 @@ test('every documented operation documents its success response', function () {
     }
 });
 
-test('every write operation documents its request body, except the older endpoints listed for #1194', function () {
-    // Validation lives in the actions (ADR 0006), so these bodies need #[BodyParameter] on the controller (#1194).
-    // Remove an entry when its body is declared: the test fails if the list is not current.
-    $knownWithoutBody = [
-        'POST /v1/communities',
-        'POST /v1/communities/{community}/resource-collections',
-        'POST /v1/communities/{community}/resource-collections/{communityResourceCollection}/text-articles',
-        'POST /v1/users/is-username-available',
-        'POST /v1/waitlist',
-    ];
-
+test('every write operation documents its request body', function () {
+    // Validation lives in the actions (ADR 0006), so a body needs #[BodyParameter] on the controller method
     $withoutBody = [];
     foreach (openApiDocument()['paths'] as $path => $operations) {
         foreach ($operations as $method => $operation) {
@@ -90,5 +81,17 @@ test('every write operation documents its request body, except the older endpoin
         }
     }
 
-    expect($withoutBody)->toEqualCanonicalizing($knownWithoutBody);
+    expect($withoutBody)->toBe([]);
 });
+
+test('the older endpoints document their required body fields', function (string $path, array $required) {
+    $schema = openApiDocument()['paths'][$path]['post']['requestBody']['content']['application/json']['schema'] ?? [];
+
+    expect($schema['required'] ?? [])->toEqualCanonicalizing($required);
+})->with([
+    'communities' => ['/v1/communities', ['name', 'visibility']],
+    'resource collections' => ['/v1/communities/{community}/resource-collections', ['name']],
+    'text articles' => ['/v1/communities/{community}/resource-collections/{communityResourceCollection}/text-articles', ['name', 'url', 'level']],
+    'username availability' => ['/v1/users/is-username-available', ['usernameToCheck']],
+    'waitlist' => ['/v1/waitlist', ['email', 'turnstileToken']],
+]);

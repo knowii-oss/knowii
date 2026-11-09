@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Community;
 use App\Models\CommunityResourceCollection;
 use App\Traits\ApiResponses;
+use Dedoc\Scramble\Attributes\BodyParameter;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,6 +22,9 @@ class ResourceTextArticleApiController extends Controller
      *
      * @throws AuthenticationException
      */
+    #[BodyParameter('name', description: 'Name of the resource in the community (3 to 64 characters)', required: true, type: 'string', example: 'How to take smart notes')]
+    #[BodyParameter('url', description: 'Absolute URL of the article. Video and streaming platforms are refused', required: true, type: 'string', format: 'uri', example: 'https://example.com/some-article')]
+    #[BodyParameter('level', description: 'beginner, intermediate, advanced, expert or unknown', required: true, type: 'string', example: 'beginner')]
     final public function store(Request $request, Community $community, CommunityResourceCollection $communityResourceCollection): JsonResponse
     {
         Log::info('Processing API request to create a new text article resource.');
