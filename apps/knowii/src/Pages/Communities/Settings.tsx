@@ -8,6 +8,7 @@ import type { BreadcrumbItem } from '@/Components/ui';
 import { FaGear } from 'react-icons/fa6';
 import DeleteCommunityForm from '@/Pages/Communities/Partials/DeleteCommunityForm';
 import { SpaceTreeEditor } from '@/Components/Spaces/SpaceTreeEditor';
+import Separator from '@/Components/Separator';
 import { useCallback } from 'react';
 
 interface Props {
@@ -58,6 +59,8 @@ export default function CommunitySettingsPage(props: Props) {
       {props.permissions.canManageSpaces && (
         <SpaceTreeEditor communityCuid={props.community.cuid} spaceGroups={props.spaceGroups} onChanged={reloadSpaceTree} />
       )}
+
+      {props.permissions.canManageSpaces && props.permissions.canDeleteCommunity && <Separator />}
 
       {props.permissions.canDeleteCommunity && (
         <DeleteCommunityForm communityCuid={props.community.cuid} communityName={props.community.name} />

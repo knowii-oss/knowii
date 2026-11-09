@@ -44,7 +44,7 @@ export interface CardHeaderProps {
  */
 export function CardHeader({ title, icon, actions, titleAs: Title = 'h2', className }: CardHeaderProps) {
   return (
-    <div className={cn('flex items-start justify-between gap-4 px-5 pt-5', className)}>
+    <div className={cn('flex flex-wrap items-start justify-between gap-4 px-5 pt-5', className)}>
       <div className="min-w-0">
         <Title className="flex items-center gap-2 text-lg leading-tight font-extrabold">
           {icon && (
@@ -56,7 +56,8 @@ export function CardHeader({ title, icon, actions, titleAs: Title = 'h2', classN
         </Title>
         <span aria-hidden="true" className="mt-2 block h-1 w-12 rounded-full bg-secondary" />
       </div>
-      {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
+      {/* The actions move under the title when the card is too narrow, instead of overflowing it */}
+      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </div>
   );
 }
