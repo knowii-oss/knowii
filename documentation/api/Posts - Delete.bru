@@ -1,0 +1,19 @@
+meta {
+  name: Posts - Delete
+  type: http
+  seq: 38
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a discussion space>/posts/<post cuid>
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The author or a moderator deletes a post. Returns 204.
+}

@@ -1,0 +1,19 @@
+meta {
+  name: Posts - List
+  type: http
+  seq: 32
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a discussion space>/posts?limit=10&offset=0
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Posts of a discussion space: pinned first, then the newest. Offset pagination (ADR 0011): metadata.pagination has limit, offset, previousOffset, nextOffset, currentPage, pageCount, totalCount. Get a space cuid with Space Groups - List (the seeded "Announcements" space is a discussion space).
+}

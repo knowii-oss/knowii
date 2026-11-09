@@ -1,0 +1,27 @@
+meta {
+  name: Posts - Create - Not a discussion space
+  type: http
+  seq: 34
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a chat space>/posts
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Hello",
+    "body": "x"
+  }
+}
+
+docs {
+  Returns 422 (business issue): posts only go to discussion spaces.
+}

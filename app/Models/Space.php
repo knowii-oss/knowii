@@ -10,9 +10,11 @@ use Carbon\Carbon;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Database\Factories\SpaceFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * A place in a community where members do one kind of thing. Its type decides what it holds (#1173, ADR 0012).
@@ -33,6 +35,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property Carbon $updated_at
  * @property-read Community $community
  * @property-read SpaceGroup $spaceGroup
+ * @property-read Collection<int, Post> $posts
  *
  * @method static \Database\Factories\SpaceFactory factory($count = null, $state = [])
  *
@@ -101,6 +104,14 @@ class Space extends Model
     final public function spaceGroup(): BelongsTo
     {
         return $this->belongsTo(SpaceGroup::class);
+    }
+
+    /**
+     * @return HasMany<Post, covariant $this>
+     */
+    final public function posts(): HasMany
+    {
+        return $this->hasMany(Post::class);
     }
 
     /**

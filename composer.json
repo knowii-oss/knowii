@@ -20,6 +20,7 @@
     "laravel/reverb": "^1.12",
     "laravel/sanctum": "^4.3",
     "laravel/tinker": "^3.0",
+    "league/commonmark": "^2.7",
     "league/html-to-markdown": "^5.1",
     "mews/purifier": "^3.4",
     "resend/resend-php": "^1.18",

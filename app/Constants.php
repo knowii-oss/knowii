@@ -79,6 +79,24 @@ class Constants
 
     public const int MAX_SPACES_PER_COMMUNITY = 200;
 
+    // Posts (#1174). WARNING: aligned with constants.ts (libs/common)
+    public const int MIN_LENGTH_POST_TITLE = 3;
+
+    public const int MAX_LENGTH_POST_TITLE = 200;
+
+    public const int MAX_LENGTH_POST_BODY = 50000;
+
+    // Markdown preview requests (editor) per minute and per user
+    public const int MARKDOWN_PREVIEWS_PER_MINUTE = 60;
+
+    // Posts created per minute and per user
+    public const int POSTS_PER_MINUTE = 5;
+
+    // Pagination (ADR 0011: limit and offset, defaults of the NBB guide)
+    public const int PAGINATION_DEFAULT_LIMIT = 10;
+
+    public const int PAGINATION_MAX_LIMIT = 100;
+
     /**
      * @var list<string>
      */

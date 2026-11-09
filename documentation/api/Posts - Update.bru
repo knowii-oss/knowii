@@ -1,0 +1,26 @@
+meta {
+  name: Posts - Update
+  type: http
+  seq: 36
+}
+
+patch {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a discussion space>/posts/<post cuid>
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "body": "Hello **everyone**, welcome!"
+  }
+}
+
+docs {
+  The author edits the title or the body. The slug does not change. edited_at is set.
+}
