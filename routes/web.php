@@ -9,9 +9,13 @@ use App\Http\Controllers\Inertia\MemberController;
 use App\Http\Controllers\Inertia\PostController;
 use App\Http\Controllers\Inertia\SpaceController;
 use App\Http\Controllers\PrivacyPolicyController;
+use App\Http\Controllers\RobotsController;
 use App\Http\Controllers\TermsOfServiceController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+
+// Built from config/robots.php (#104): AI crawlers refused, member areas never crawled
+Route::get('/robots.txt', RobotsController::class)->name('robots');
 
 Route::get('/', function () {
     // Render the homepage

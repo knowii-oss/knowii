@@ -3,6 +3,7 @@
 use App\Exceptions\AlreadyAuthenticatedException;
 use App\Exceptions\BusinessException;
 use App\Exceptions\TechnicalException;
+use App\Http\Middleware\AddRobotsHeader;
 use App\Http\Middleware\AddViteContentSecurityPolicyNonce;
 use App\Http\Middleware\EnsureRequestIsJson;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -44,6 +45,8 @@ return Application::configure(basePath: dirname(__DIR__))
             AddLinkHeadersForPreloadedAssets::class,
             SecureHeadersMiddleware::class,
             AddViteContentSecurityPolicyNonce::class,
+            // noindex for members and private instances (#104)
+            AddRobotsHeader::class,
         ]);
 
         $middleware->api([
@@ -62,6 +65,9 @@ return Application::configure(basePath: dirname(__DIR__))
             SubstituteBindings::class,
 
             SecureHeadersMiddleware::class,
+
+            // The API is never indexed (#104)
+            AddRobotsHeader::class,
         ]);
 
         $middleware->statefulApi();
