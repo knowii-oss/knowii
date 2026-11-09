@@ -104,10 +104,9 @@ export function ResourceDetails({ communitySlug, resource, shareUrl }: ResourceD
       )}
 
       <p className="text-sm text-muted">
-        Added{' '}
-        {curator && (
+        Added by{' '}
+        {curator ? (
           <>
-            by{' '}
             {curator.username ? (
               <Link
                 href={route(MEMBER_URL, { communitySlug, username: curator.username })}
@@ -120,6 +119,9 @@ export function ResourceDetails({ communitySlug, resource, shareUrl }: ResourceD
               <span className="font-bold text-primary">{curator.name}</span>
             )}{' '}
           </>
+        ) : (
+          // The curator deleted the account (#1261): the resource stays
+          <span className="font-bold">Deleted member </span>
         )}
         <RelativeTime date={resource.created_at} />
         {page.published_at && (

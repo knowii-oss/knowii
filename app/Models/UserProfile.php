@@ -21,7 +21,7 @@ use Illuminate\Notifications\Notifiable;
  *
  * @property-read int $id
  * @property-read string $cuid
- * @property ?int $user_id
+ * @property int $user_id
  * @property ?string $username
  * @property string $name
  * @property ?string $email

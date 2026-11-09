@@ -64,7 +64,7 @@ class CreateCommunity implements CreatesCommunities
                 'visibility' => $input['visibility'],
             ]);
 
-            Log::info('New community created successfully', ['community' => $retVal]);
+            Log::info('New community created successfully', ['community' => $retVal->cuid]);
 
             return $retVal;
         } catch (\Exception $e) {

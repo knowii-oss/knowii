@@ -170,19 +170,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(UserProfile::class);
     }
 
-    /**
-     * Detach the user profile from this account.
-     */
-    final public function detachProfile(): void
-    {
-        $profile = $this->profile;
-        $profile->user_id = null;
-
-        // WARNING: the username and email fields should NOT be cleared when detaching the user profile
-        // This will enable re-claiming past user profiles
-        $profile->save();
-    }
-
     final public function getRouteKeyName(): string
     {
         return 'cuid';
