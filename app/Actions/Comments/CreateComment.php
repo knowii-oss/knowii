@@ -51,6 +51,7 @@ class CreateComment implements CreatesComments
                 'edited_at' => null,
             ]);
             $comment->update(['body_html' => $comment->renderBodyAndSyncMentions($validated['body'], $user)]);
+            $comment->syncUploadUsages($validated['body']);
 
             return $comment;
         });

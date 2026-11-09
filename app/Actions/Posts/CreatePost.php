@@ -44,6 +44,7 @@ class CreatePost implements CreatesPosts
             ]);
             // Mentions need the post id: render once the post exists
             $post->update(['body_html' => $post->renderBodyAndSyncMentions($validated['body'], $user)]);
+            $post->syncUploadUsages($validated['body']);
 
             return $post;
         });
