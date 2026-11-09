@@ -23,6 +23,7 @@ use App\Actions\Spaces\CreateSpace;
 use App\Actions\Spaces\DeleteSpace;
 use App\Actions\Spaces\ReorderSpaces;
 use App\Actions\Spaces\UpdateSpace;
+use App\Actions\Uploads\UploadImage;
 use App\Actions\Users\VerifyUsernameAvailability;
 use App\Actions\Waitlist\JoinWaitlist;
 use App\Constants;
@@ -47,6 +48,7 @@ use App\Contracts\Spaces\CreatesSpaces;
 use App\Contracts\Spaces\DeletesSpaces;
 use App\Contracts\Spaces\ReordersSpaces;
 use App\Contracts\Spaces\UpdatesSpaces;
+use App\Contracts\Uploads\UploadsImages;
 use App\Contracts\Users\VerifiesUsernameAvailability;
 use App\Contracts\Waitlist\JoinsWaitlist;
 use App\Models\User;
@@ -99,6 +101,7 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(UpdatesComments::class, UpdateComment::class);
         app()->singleton(DeletesComments::class, DeleteComment::class);
         app()->singleton(TogglesReactions::class, ToggleReaction::class);
+        app()->singleton(UploadsImages::class, UploadImage::class);
 
         // Public waitlist endpoint: a few requests per minute and per IP address
         RateLimiter::for('waitlist', static function (Request $request) {
@@ -115,6 +118,10 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('reactions', static function (Request $request) {
             return Limit::perMinute(Constants::REACTIONS_PER_MINUTE)->by(self::rateLimitKey($request));
+        });
+
+        RateLimiter::for('uploads', static function (Request $request) {
+            return Limit::perMinute(Constants::UPLOADS_PER_MINUTE)->by(self::rateLimitKey($request));
         });
 
         RateLimiter::for('markdown-preview', static function (Request $request) {

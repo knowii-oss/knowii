@@ -90,6 +90,8 @@ Copy `.env.example` to `.env`, then change the values below. The other values in
 | `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`                      | Cloudflare Turnstile keys (bot check). Required by the waitlist form: without them, the form is hidden.   |
 | `BROWSERLESS_TOKEN`                                               | A unique random value                                                                                     |
 
+Members upload images for their posts and comments. By default the files go to the `public` disk (`storage/app/public`), served from `/storage`: run `php artisan storage:link` once after the installation. To use an S3-compatible bucket (Cloudflare R2, Hetzner object storage), configure an S3 disk in `config/filesystems.php`, set `UPLOADS_DISK` to its name and `UPLOADS_PUBLIC_URL` to its public URL (the Content Security Policy allows that origin). Include the upload storage in your backups.
+
 The Content Security Policy (`config/secure-headers.php`) lists every origin that the browser may load from or connect to. It never accepts a whole scheme such as `https:`. It allows the Reverb WebSocket origin from the `REVERB_*` values automatically. These optional values add origins:
 
 | Key                  | Value                                                                                            |

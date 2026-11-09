@@ -91,6 +91,8 @@ final class ApiRoutes
 
     public const COMMUNITY_MEMBERS = self::COMMUNITY.'/members';
 
+    public const COMMUNITY_UPLOADS = self::COMMUNITY.'/uploads';
+
     /**
      * Build a full, client-facing API path from a relative path, substituting
      * any route parameters.

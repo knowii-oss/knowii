@@ -28,6 +28,12 @@ return [
     |
     */
 
+    /*
+    | Disk of the images that members upload (#1178). Use an S3-compatible disk (R2, Hetzner object storage) and set
+    | UPLOADS_PUBLIC_URL so the Content Security Policy allows its host.
+    */
+    'uploads_disk' => env('UPLOADS_DISK', 'public'),
+
     'disks' => [
 
         'local' => [

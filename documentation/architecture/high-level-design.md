@@ -19,7 +19,7 @@ User ──< CommunityMember >── Community ──< SpaceGroup ──< Space
  └── Reactions, Mentions, Uploads (one nullable foreign key per kind of item: post, comment, message, page; ADR 0014)
 ```
 
-State on 2026-11-09: users, profiles, communities, members, invitations, resource collections, space groups and spaces ([ADR 0012](../adr/0012-space-groups-and-typed-spaces.md)) posts, comments (one level of replies), reactions, mentions and member pages exist. The rest of the content of the spaces (chat messages, pages, conversations) is built for the MVP (milestones M1 to M4, see the GitHub milestones). This diagram shows the target of the MVP. Each feature updates this paragraph when it ships.
+State on 2026-11-09: users, profiles, communities, members, invitations, resource collections, space groups and spaces ([ADR 0012](../adr/0012-space-groups-and-typed-spaces.md)) posts, comments (one level of replies), reactions, mentions, member pages and image uploads exist. The rest of the content of the spaces (chat messages, pages, conversations) is built for the MVP (milestones M1 to M4, see the GitHub milestones). This diagram shows the target of the MVP. Each feature updates this paragraph when it ships.
 
 ### Concepts
 
@@ -70,7 +70,8 @@ Real time uses Reverb ([ADR 0009](../adr/0009-real-time-through-reverb.md)):
 2. Content Security Policy: no `'unsafe-inline'` for scripts or styles, per-request nonces, no scheme-wide sources ([ADR 0007](../adr/0007-strict-content-security-policy.md)).
 3. Member content (Markdown) is rendered on the server with raw HTML escaped, then shown as HTML. Members never inject HTML ([ADR 0013](../adr/0013-markdown-rendered-on-the-server.md)).
 4. Rate limits on public and write endpoints. Cloudflare Turnstile on public forms.
-5. Identifiers in URLs and APIs are cuid2 strings, never the integer keys ([ADR 0005](../adr/0005-cuid2-public-identifiers.md)).
+5. Uploaded images are decoded and re-encoded on the server (GD, WebP): metadata is dropped, the size and the pixel count are limited, and the files are served from the uploads disk, never executed.
+6. Identifiers in URLs and APIs are cuid2 strings, never the integer keys ([ADR 0005](../adr/0005-cuid2-public-identifiers.md)).
 
 ## Accounts
 

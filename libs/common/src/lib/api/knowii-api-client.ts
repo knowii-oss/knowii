@@ -12,6 +12,7 @@ import {
   COMMUNITY_RESOURCE_TEXT_ARTICLES_API_BASE_PATH_PARAM_RESOURCE_COLLECTION,
   COMMUNITY_SPACE_API_PATH,
   COMMUNITY_MEMBERS_API_PATH,
+  COMMUNITY_UPLOADS_API_PATH,
   COMMUNITY_SPACE_GROUP_API_PATH,
   COMMUNITY_SPACE_GROUP_SPACES_REORDER_API_PATH,
   COMMUNITY_SPACE_GROUPS_API_PATH,
@@ -61,6 +62,8 @@ import type { Author, Paginated, Post, PostForm } from '../types/post.schema';
 import { authorSchema, paginationSchema, postSchema } from '../types/post.schema';
 import type { Comment, CommentForm } from '../types/comment.schema';
 import { commentSchema } from '../types/comment.schema';
+import type { Upload } from '../types/upload.schema';
+import { uploadSchema } from '../types/upload.schema';
 import type { ReactionKind, ReactionSummary, WhoReacted } from '../types/reaction.schema';
 import { reactionSummarySchema, whoReactedSchema } from '../types/reaction.schema';
 
@@ -287,6 +290,35 @@ export const knowiiApiClient = {
         ),
       delete: (communityCuid: string, spaceCuid: string, postCuid: string, commentCuid: string): Promise<ApiResult<undefined>> =>
         apiRequest('delete', commentsPath(communityCuid, spaceCuid, postCuid, commentCuid), null, 'Failed to delete the comment.'),
+    },
+    uploads: {
+      /**
+       * Upload an image with its alt text (multipart). The server re-encodes it and scales it down.
+       */
+      image: async (communityCuid: string, file: File, alt: string): Promise<ApiResult<Upload>> => {
+        const failure = 'Failed to upload the image.';
+        const body = new FormData();
+        body.append('file', file);
+        body.append('alt', alt);
+        try {
+          // No Content-Type header: the browser sets the multipart boundary
+          const response = await fetch(communityPath(COMMUNITY_UPLOADS_API_PATH, communityCuid), {
+            method: 'POST',
+            headers: { Accept: 'application/json' },
+            body,
+          });
+          const json: unknown = await response.json();
+          const envelope = typeof json === 'object' && json !== null ? (json as Record<string, unknown>) : {};
+          const message = typeof envelope['message'] === 'string' && envelope['message'] !== '' ? envelope['message'] : failure;
+          const parsed = uploadSchema.safeParse(envelope['data']);
+          if (!response.ok || !parsed.success) {
+            return { ok: false, status: response.status, message, errors: {} };
+          }
+          return { ok: true, message, data: parsed.data };
+        } catch {
+          return { ok: false, status: 0, message: failure, errors: {} };
+        }
+      },
     },
     members: {
       /**

@@ -31,6 +31,7 @@ export * from './types/post.schema';
 export * from './types/comment.schema';
 export * from './types/reaction.schema';
 export * from './types/member.schema';
+export * from './types/upload.schema';
 export * from './types/toast.intf';
 export * from './types/url.schema';
 export * from './types/user.schema';

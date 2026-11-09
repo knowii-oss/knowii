@@ -62,6 +62,14 @@ class CommunityPolicy
     }
 
     /**
+     * Members upload images for their posts and comments (#1178).
+     */
+    final public function uploadImage(User $user, Community $community): bool
+    {
+        return $user->belongsToCommunity($community);
+    }
+
+    /**
      * Determine whether the user can add members.
      */
     final public function addCommunityMember(User $user, Community $community): bool
