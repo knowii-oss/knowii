@@ -20,8 +20,7 @@ interface UpdatePasswordFormData {
 export default function UpdatePasswordForm() {
   const route = useRoute();
 
-  const appData = useAppData();
-  const toast = appData.toast;
+  const { showToast } = useAppData();
 
   const form = useForm<UpdatePasswordFormData>({
     current_password: '',
@@ -39,7 +38,7 @@ export default function UpdatePasswordForm() {
       preserveScroll: true,
       onSuccess: () => {
         form.reset();
-        toast?.show({ severity: 'success', summary: 'Success', detail: 'Password updated successfully.' });
+        showToast({ severity: 'success', summary: 'Success', detail: 'Password updated successfully.' });
       },
       onError: () => {
         if (form.errors.password) {

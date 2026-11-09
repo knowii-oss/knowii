@@ -21,7 +21,7 @@ import {
 import { Link, useForm } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
 import type { FormEventHandler } from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from 'primereact/button';
 import FormSection from '@/Components/FormSection';
 import classNames from 'classnames';
@@ -48,8 +48,7 @@ export default function UpdateProfileInformationForm(props: Props) {
 
   const userEmailNotVerified = page.props.jetstream.hasEmailVerification && props.user.email_verified_at === null;
 
-  const appData = useAppData();
-  const toast = appData.toast;
+  const { showToast } = useAppData();
 
   const [verificationLinkSent, setVerificationLinkSent] = useState(false);
 
@@ -65,35 +64,27 @@ export default function UpdateProfileInformationForm(props: Props) {
   const [checkingUsernameAvailability, setCheckingUsernameAvailability] = useState(false);
   const usernameToCheck = useDebounce(form.data.username, 200);
 
-  const lastAbortController = useRef<AbortController | null>(null);
-
-  const verifyUsernameAvailability = async (abortController: AbortController) => {
-    if (props.user && form.data.username === props.user.username) {
+  /**
+   * Synchronous username checks, run when the username changes (event handler).
+   * Returns true if the username must be checked against the server.
+   */
+  const validateUsernameLocally = (username: string): boolean => {
+    if (props.user && username === props.user.username) {
       // No need to check if the username is the same as the current one
       form.clearErrors('username');
-      return;
+      setCheckingUsernameAvailability(false);
+      return false;
     }
 
-    const usernameValidationResults = usernameSchema.safeParse(form.data.username);
+    const usernameValidationResults = usernameSchema.safeParse(username);
     if (!usernameValidationResults.success) {
       form.setError('username', usernameValidationResults.error.issues[0]?.message ?? 'Invalid username');
-      return;
+      setCheckingUsernameAvailability(false);
+      return false;
     }
 
     setCheckingUsernameAvailability(true);
-
-    const checkResult = await checkIfUsernameIsAvailable(form.data.username, abortController.signal);
-    if (!checkResult) {
-      form.setError('username', 'The username is already taken.');
-    } else {
-      form.clearErrors('username');
-    }
-
-    if (lastAbortController.current) {
-      lastAbortController.current = null;
-    }
-
-    setCheckingUsernameAvailability(false);
+    return true;
   };
 
   const checkIfUsernameIsAvailable = async (username: string, signal?: AbortSignal): Promise<boolean> => {
@@ -115,21 +106,40 @@ export default function UpdateProfileInformationForm(props: Props) {
     return false;
   };
 
-  useEffect(
-    () => {
-      // When a new request is going to be issued,
-      // the first thing to do is cancel the previous one
-      lastAbortController.current?.abort();
+  // Check the (debounced) username against the server. State is only updated once the request completes.
+  useEffect(() => {
+    if (props.user && usernameToCheck === props.user.username) {
+      return;
+    }
+    if (!usernameSchema.safeParse(usernameToCheck).success) {
+      return;
+    }
 
-      // Create new AbortController for the new request and store it in the ref
-      const currentAbortController = new AbortController();
-      lastAbortController.current = currentAbortController;
+    const abortController = new AbortController();
 
-      verifyUsernameAvailability(currentAbortController);
-    },
+    void checkIfUsernameIsAvailable(usernameToCheck, abortController.signal)
+      .then((isAvailable) => {
+        if (abortController.signal.aborted) {
+          // A newer username is being checked
+          return;
+        }
+        if (isAvailable) {
+          form.clearErrors('username');
+        } else {
+          form.setError('username', 'The username is already taken.');
+        }
+        setCheckingUsernameAvailability(false);
+      })
+      .catch(() => {
+        if (!abortController.signal.aborted) {
+          setCheckingUsernameAvailability(false);
+        }
+      });
+
+    // Cancel the request if the username changes before it completes
+    return () => abortController.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [usernameToCheck],
-  );
+  }, [usernameToCheck]);
 
   const updateProfileInformation: FormEventHandler = (e) => {
     e.preventDefault();
@@ -137,7 +147,7 @@ export default function UpdateProfileInformationForm(props: Props) {
     form.put(route(USER_PROFILE_INFORMATION_UPDATE_URL), {
       preserveScroll: true,
       onSuccess: () => {
-        toast?.show({ severity: 'success', summary: 'Success', detail: 'Profile updated successfully.' });
+        showToast({ severity: 'success', summary: 'Success', detail: 'Profile updated successfully.' });
       },
     });
   };
@@ -258,7 +268,10 @@ export default function UpdateProfileInformationForm(props: Props) {
             type="username"
             className="mt-1 block w-full"
             value={form.data.username}
-            onChange={(e) => form.setData('username', e.target.value)}
+            onChange={(e) => {
+              form.setData('username', e.target.value);
+              validateUsernameLocally(e.target.value);
+            }}
             autoComplete="username"
             disabled={form.processing || userEmailNotVerified}
             required

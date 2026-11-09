@@ -30,8 +30,7 @@ interface CreateCommunityDialogProps {
 
 export default function CreateCommunityDialog(props: CreateCommunityDialogProps) {
   const [loading, setLoading] = useState(false);
-  const appData = useAppData();
-  const toast = appData.toast;
+  const { showToast } = useAppData();
 
   const form = useForm<NewCommunity>({
     resolver: zodResolver(newCommunitySchema),
@@ -52,7 +51,7 @@ export default function CreateCommunityDialog(props: CreateCommunityDialogProps)
     const response = await knowiiApiClient.communities.create(data);
 
     if ('success' === response.type && !response.errors) {
-      toast?.show({
+      showToast({
         severity: 'success',
         summary: 'Community created successfully',
       });
@@ -64,7 +63,7 @@ export default function CreateCommunityDialog(props: CreateCommunityDialogProps)
       form.reset();
       props.onHide();
     } else {
-      toast?.show({
+      showToast({
         severity: 'error',
         summary: response.message ? response.message : 'Failed to create the community',
         detail: response.message ? response.message : 'Please try again later.',
