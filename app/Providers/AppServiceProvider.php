@@ -8,6 +8,11 @@ use App\Actions\Comments\UpdateComment;
 use App\Actions\Communities\CreateCommunity;
 use App\Actions\Communities\DeleteCommunity;
 use App\Actions\Communities\UpdateModeratorPermissions;
+use App\Actions\CommunityMembers\AcceptCommunityInvitation;
+use App\Actions\CommunityMembers\CancelCommunityInvitation;
+use App\Actions\CommunityMembers\InviteCommunityMember;
+use App\Actions\CommunityMembers\RemoveCommunityMember;
+use App\Actions\CommunityMembers\UpdateCommunityMemberRole;
 use App\Actions\Posts\CreatePost;
 use App\Actions\Posts\DeletePost;
 use App\Actions\Posts\PinPost;
@@ -32,6 +37,11 @@ use App\Contracts\Comments\UpdatesComments;
 use App\Contracts\Communities\CreatesCommunities;
 use App\Contracts\Communities\DeletesCommunities;
 use App\Contracts\Communities\UpdatesModeratorPermissions;
+use App\Contracts\CommunityMembers\AcceptsCommunityInvitations;
+use App\Contracts\CommunityMembers\CancelsCommunityInvitations;
+use App\Contracts\CommunityMembers\InvitesCommunityMembers;
+use App\Contracts\CommunityMembers\RemovesCommunityMembers;
+use App\Contracts\CommunityMembers\UpdatesCommunityMemberRoles;
 use App\Contracts\Posts\CreatesPosts;
 use App\Contracts\Posts\DeletesPosts;
 use App\Contracts\Posts\PinsPosts;
@@ -81,6 +91,11 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(DeletesCommunities::class, DeleteCommunity::class);
         app()->singleton(CreatesTextResources::class, CreateTextResource::class);
         app()->singleton(UpdatesModeratorPermissions::class, UpdateModeratorPermissions::class);
+        app()->singleton(UpdatesCommunityMemberRoles::class, UpdateCommunityMemberRole::class);
+        app()->singleton(RemovesCommunityMembers::class, RemoveCommunityMember::class);
+        app()->singleton(InvitesCommunityMembers::class, InviteCommunityMember::class);
+        app()->singleton(CancelsCommunityInvitations::class, CancelCommunityInvitation::class);
+        app()->singleton(AcceptsCommunityInvitations::class, AcceptCommunityInvitation::class);
         app()->singleton(JoinsWaitlist::class, JoinWaitlist::class);
         app()->singleton(CreatesSpaceGroups::class, CreateSpaceGroup::class);
         app()->singleton(UpdatesSpaceGroups::class, UpdateSpaceGroup::class);
@@ -119,6 +134,11 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('uploads', static function (Request $request) {
             return Limit::perMinute(Constants::UPLOADS_PER_MINUTE)->by(self::rateLimitKey($request));
+        });
+
+        // Each invitation sends an email (#1242)
+        RateLimiter::for('invitations', static function (Request $request) {
+            return Limit::perMinute(Constants::INVITATIONS_PER_MINUTE)->by(self::rateLimitKey($request));
         });
 
         RateLimiter::for('markdown-preview', static function (Request $request) {

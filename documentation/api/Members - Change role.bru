@@ -1,0 +1,26 @@
+meta {
+  name: Members - Change role
+  type: http
+  seq: 64
+}
+
+patch {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/members/<member user cuid>
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "role": "moderator"
+  }
+}
+
+docs {
+  Changes the role of a member (#1242): admin, moderator or member. Owner, admins, and moderators with the manage_members right (ADR 0017). Role hierarchy: nobody changes the owner; nobody acts on a member with their own role or a higher one; the new role is lower than the role of the caller (only the owner makes admins). Get a member cuid with Members - List. Returns the member with the new role.
+}

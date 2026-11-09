@@ -1,0 +1,19 @@
+meta {
+  name: Members - Remove
+  type: http
+  seq: 65
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/members/<member user cuid>
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Removes a member from the community (#1242), within the role hierarchy of Members - Change role. What they wrote stays. Returns 204.
+}

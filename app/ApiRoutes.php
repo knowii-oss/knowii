@@ -43,6 +43,12 @@ final class ApiRoutes
 
     public const PARAM_RESOURCE_COMMENT = 'comment';
 
+    // The user cuid of a member (#1242)
+    public const PARAM_MEMBER = 'member';
+
+    // Named after Community::communityInvitations() for the scoped binding
+    public const PARAM_INVITATION = 'communityInvitation';
+
     // Paths relative to the version prefix, used in routes/api.php.
     public const USER = 'user';
 
@@ -101,6 +107,13 @@ final class ApiRoutes
     public const MARKDOWN_PREVIEW = 'markdown/preview';
 
     public const COMMUNITY_MEMBERS = self::COMMUNITY.'/members';
+
+    // Member management (#1242)
+    public const COMMUNITY_MEMBER = self::COMMUNITY_MEMBERS.'/{'.self::PARAM_MEMBER.'}';
+
+    public const COMMUNITY_INVITATIONS = self::COMMUNITY.'/invitations';
+
+    public const COMMUNITY_INVITATION = self::COMMUNITY_INVITATIONS.'/{'.self::PARAM_INVITATION.'}';
 
     public const COMMUNITY_UPLOADS = self::COMMUNITY.'/uploads';
 

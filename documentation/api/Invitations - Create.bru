@@ -1,0 +1,27 @@
+meta {
+  name: Invitations - Create
+  type: http
+  seq: 67
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/invitations
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "grace@example.com",
+    "role": "member"
+  }
+}
+
+docs {
+  Invites an email address with a role lower than the role of the caller, and sends the invitation email (#1242). The signed link of the email works for 7 days, for an account with this email address only. Inviting the same address again replaces its invitation. A member of the community gives a validation issue. Rate limited (10 per minute).
+}

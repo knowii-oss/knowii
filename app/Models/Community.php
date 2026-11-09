@@ -209,8 +209,10 @@ class Community extends Model
      */
     final public function hasUserWithEmail(string $email): bool
     {
+        $email = mb_strtolower($email);
+
         return $this->allUsers()->contains(function ($user) use ($email) {
-            return $user->email === $email;
+            return mb_strtolower($user->email) === $email;
         });
     }
 

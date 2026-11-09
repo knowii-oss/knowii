@@ -1,0 +1,19 @@
+meta {
+  name: Invitations - List
+  type: http
+  seq: 66
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/invitations
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The pending invitations of the community, newest first (#1242): email, role, created_at, expires_at, is_expired. Owner, admins, and moderators with the manage_members right.
+}

@@ -108,6 +108,8 @@ class Constants
 
     public const int UPLOADS_PER_MINUTE = 20;
 
+    public const int INVITATIONS_PER_MINUTE = 10;
+
     // Markdown preview requests (editor) per minute and per user
     public const int MARKDOWN_PREVIEWS_PER_MINUTE = 60;
 

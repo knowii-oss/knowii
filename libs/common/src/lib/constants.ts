@@ -179,8 +179,14 @@ export const SPACE_API_PARAM_COMMENT = '{commentCuid}';
 export const COMMUNITY_SPACE_POST_COMMENTS_API_PATH = `${COMMUNITY_SPACE_POST_API_PATH}/comments`;
 export const COMMUNITY_SPACE_POST_COMMENT_API_PATH = `${COMMUNITY_SPACE_POST_COMMENTS_API_PATH}/${SPACE_API_PARAM_COMMENT}`;
 
-// Members (#1177: mention autocomplete)
+// Members (#1177: mention autocomplete, #1242: member management). WARNING: aligned with ApiRoutes.php
 export const COMMUNITY_MEMBERS_API_PATH = `${COMMUNITY_API_PATH}/members`;
+export const COMMUNITY_API_PARAM_MEMBER = '{memberCuid}';
+export const COMMUNITY_MEMBER_API_PATH = `${COMMUNITY_MEMBERS_API_PATH}/${COMMUNITY_API_PARAM_MEMBER}`;
+export const COMMUNITY_INVITATIONS_API_PATH = `${COMMUNITY_API_PATH}/invitations`;
+export const COMMUNITY_API_PARAM_INVITATION = '{invitationCuid}';
+export const COMMUNITY_INVITATION_API_PATH = `${COMMUNITY_INVITATIONS_API_PATH}/${COMMUNITY_API_PARAM_INVITATION}`;
+export const COMMUNITY_MEMBERS_PAGE_SIZE = 20;
 export const MENTION_SUGGESTIONS_LIMIT = 8;
 
 // Image uploads (#1178)

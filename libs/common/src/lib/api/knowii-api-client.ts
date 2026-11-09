@@ -8,6 +8,11 @@ import {
   COMMUNITY_SPACE_RESOURCE_COMMENTS_API_PATH,
   COMMUNITY_SPACE_RESOURCES_API_PATH,
   COMMUNITY_MEMBERS_API_PATH,
+  COMMUNITY_MEMBER_API_PATH,
+  COMMUNITY_API_PARAM_MEMBER,
+  COMMUNITY_INVITATIONS_API_PATH,
+  COMMUNITY_INVITATION_API_PATH,
+  COMMUNITY_API_PARAM_INVITATION,
   COMMUNITY_MODERATOR_PERMISSIONS_API_PATH,
   COMMUNITY_UPLOADS_API_PATH,
   COMMUNITY_SPACE_GROUP_API_PATH,
@@ -61,6 +66,8 @@ import { communitySchema } from '../types/community.schema';
 import { communityResourceSchema } from '../types/community-resource.schema';
 import type { NewResourceTextArticle } from '../types/resource-text-article.schema';
 import type { ReactionKind, ReactionSummary, WhoReacted } from '../types/reaction.schema';
+import type { AssignableCommunityRole, CommunityInvitation, CommunityInvitationForm, CommunityMember } from '../types/member.schema';
+import { communityInvitationSchema, communityMemberSchema } from '../types/member.schema';
 import { reactionSummarySchema, whoReactedSchema } from '../types/reaction.schema';
 
 /**
@@ -81,6 +88,8 @@ const spaceGroupPath = (communityCuid: string, spaceGroupCuid: string, path = CO
 const spacePath = (communityCuid: string, spaceCuid: string) =>
   apiPath(COMMUNITY_SPACE_API_PATH, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE]: spaceCuid });
 const communityPath = (path: string, communityCuid: string) => apiPath(path, { [SPACE_API_PARAM_COMMUNITY]: communityCuid });
+const memberPath = (communityCuid: string, memberCuid: string) =>
+  apiPath(COMMUNITY_MEMBER_API_PATH, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [COMMUNITY_API_PARAM_MEMBER]: memberCuid });
 const postsPath = (communityCuid: string, spaceCuid: string, postCuid = '', path = COMMUNITY_SPACE_POSTS_API_PATH) =>
   apiPath(path, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE]: spaceCuid, [SPACE_API_PARAM_POST]: postCuid });
 
@@ -322,7 +331,74 @@ export const knowiiApiClient = {
         }
       },
     },
+    invitations: {
+      /**
+       * The pending invitations, newest first (#1242).
+       */
+      list: (communityCuid: string): Promise<ApiResult<CommunityInvitation[]>> =>
+        apiRequest(
+          'get',
+          communityPath(COMMUNITY_INVITATIONS_API_PATH, communityCuid),
+          z.array(communityInvitationSchema),
+          'Failed to load the invitations.',
+        ),
+      /**
+       * Invite an email address with a role, and send the invitation email (#1242).
+       */
+      create: (communityCuid: string, input: CommunityInvitationForm): Promise<ApiResult<CommunityInvitation>> =>
+        apiRequest(
+          'post',
+          communityPath(COMMUNITY_INVITATIONS_API_PATH, communityCuid),
+          communityInvitationSchema,
+          'Failed to send the invitation.',
+          input,
+        ),
+      /**
+       * Cancel a pending invitation (#1242).
+       */
+      cancel: (communityCuid: string, invitationCuid: string): Promise<ApiResult<void>> =>
+        apiRequest(
+          'delete',
+          apiPath(COMMUNITY_INVITATION_API_PATH, {
+            [SPACE_API_PARAM_COMMUNITY]: communityCuid,
+            [COMMUNITY_API_PARAM_INVITATION]: invitationCuid,
+          }),
+          null,
+          'Failed to cancel the invitation.',
+        ),
+    },
     members: {
+      /**
+       * A page of the members with their role (#1242): owner first, then admins, moderators and members. An optional
+       * query keeps the members whose username or a word of their name starts with it.
+       */
+      list: async (communityCuid: string, limit: number, offset: number, query = ''): Promise<ApiResult<Paginated<CommunityMember>>> => {
+        const search = query === '' ? '' : `&query=${encodeURIComponent(query)}`;
+        const url = `${communityPath(COMMUNITY_MEMBERS_API_PATH, communityCuid)}?limit=${limit}&offset=${offset}${search}`;
+        try {
+          const response = await fetch(url, { headers: { Accept: 'application/json' } });
+          const json: unknown = await response.json();
+          const parsed = z
+            .object({ data: z.array(communityMemberSchema), metadata: z.object({ pagination: paginationSchema }) })
+            .safeParse(json);
+          if (!response.ok || !parsed.success) {
+            return { ok: false, status: response.status, message: 'Failed to load the members.', errors: {} };
+          }
+          return { ok: true, message: '', data: { items: parsed.data.data, pagination: parsed.data.metadata.pagination } };
+        } catch {
+          return { ok: false, status: 0, message: 'Failed to load the members.', errors: {} };
+        }
+      },
+      /**
+       * Change the role of a member, within the role hierarchy (#1242). Returns the member with the new role.
+       */
+      updateRole: (communityCuid: string, memberCuid: string, role: AssignableCommunityRole): Promise<ApiResult<CommunityMember>> =>
+        apiRequest('patch', memberPath(communityCuid, memberCuid), communityMemberSchema, 'Failed to change the role.', { role }),
+      /**
+       * Remove a member from the community, within the role hierarchy (#1242).
+       */
+      remove: (communityCuid: string, memberCuid: string): Promise<ApiResult<void>> =>
+        apiRequest('delete', memberPath(communityCuid, memberCuid), null, 'Failed to remove the member.'),
       /**
        * Members whose username or name starts with the query (mention autocomplete). Returns an empty list on failure.
        */

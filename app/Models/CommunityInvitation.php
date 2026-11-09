@@ -4,11 +4,14 @@ namespace App\Models;
 
 use App\CommunityInvitation as KnowiiCommunityInvitation;
 use App\Enums\KnowiiCommunityMemberRole;
+use App\Http\Resources\CommunityInvitationResource;
 use App\Traits\GeneratesCuid;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Attributes\UseResource;
 
 /**
- * Community invitations
+ * Community invitations (#1242): an email address invited with a role. The link of the email is valid for
+ * VALIDITY_DAYS days; inviting the same address again replaces the invitation.
  *
  * @property-read int $id
  * @property-read string $cuid
@@ -32,8 +35,11 @@ use Carbon\Carbon;
  *
  * @mixin \Eloquent
  */
+#[UseResource(CommunityInvitationResource::class)]
 class CommunityInvitation extends KnowiiCommunityInvitation
 {
+    public const int VALIDITY_DAYS = 7;
+
     // Automatically generate cuid2 for the model
     use GeneratesCuid;
 
@@ -73,5 +79,15 @@ class CommunityInvitation extends KnowiiCommunityInvitation
     final public function getRouteKeyName(): string
     {
         return 'cuid';
+    }
+
+    final public function expiresAt(): Carbon
+    {
+        return $this->created_at->copy()->addDays(self::VALIDITY_DAYS);
+    }
+
+    final public function isExpired(): bool
+    {
+        return $this->expiresAt()->isPast();
     }
 }
