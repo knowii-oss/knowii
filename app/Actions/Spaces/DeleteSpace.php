@@ -6,6 +6,7 @@ use App\Contracts\Spaces\DeletesSpaces;
 use App\Events\Spaces\SpaceTreeChanged;
 use App\Models\Space;
 use App\Models\User;
+use App\Support\ContentFiles;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 
@@ -22,7 +23,10 @@ class DeleteSpace implements DeletesSpaces
 
         Gate::forUser($user)->authorize('manageSpaces', $community);
 
+        // Read before the rows go: the images of the resources that no community uses any more are deleted after (#1265)
+        $files = ContentFiles::ofSpace($space);
         $space->delete();
+        $files->deleteAfterCommit();
 
         SpaceTreeChanged::dispatch($community->cuid);
     }

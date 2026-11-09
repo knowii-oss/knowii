@@ -23,7 +23,7 @@ Under the GDPR, deleting an account must delete the personal data, and logs must
 1. A deleted account cannot be restored. The delete form says so.
 2. The text of the posts and comments that stay can still name the member (a signature, a mention written by hand). The member can edit or delete their content before they delete the account.
 3. The privacy policy (#77) must describe this.
-4. The files of a deleted community (uploads, resource images) are not deleted from the disk yet (#1265).
+4. The files of a deleted community go after the commit: its uploads, and the images of the resources that no other community shares (#1265, `App\Support\ContentFiles`). Images that the member uploaded to communities of others stay with the content; `uploads:prune` (#1201) deletes the ones that nothing uses.
 
 ## Alternatives considered
 
