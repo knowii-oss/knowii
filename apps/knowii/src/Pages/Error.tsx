@@ -3,7 +3,7 @@ import PageContentWrapper from '@/Components/PageContentWrapper';
 import { Head } from '@inertiajs/react';
 import FooterGuest from '@/Components/FooterGuest';
 import { HOME_URL } from '@knowii/common';
-import { Button } from 'primereact/button';
+import { buttonClasses } from '@/Components/ui';
 import { FaHome } from 'react-icons/fa';
 import PageWrapper from '@/Components/PageWrapper';
 
@@ -44,15 +44,13 @@ export default function ErrorPage(props: Props) {
 
         <PageContentWrapper>
           <div className="flex flex-col items-center">
-            <div className="min-w-full md:min-w-[75%] xl:min-w-[50%] p-6 mt-6 overflow-hidden prose bg-white shadow-md sm:max-w-2xl sm:rounded-lg">
+            <div className="prose dark:prose-invert mt-6 w-full max-w-none overflow-hidden rounded-xl border border-border bg-surface p-6 prose-a:text-primary prose-a:underline-offset-4 md:w-3/4 md:p-8 xl:w-1/2">
               <h1>{errorTitle}</h1>
               <h2>{errorDescription}</h2>
               <div className="mt-12 flex flex-row justify-center">
-                <a href={HOME_URL} className="">
-                  <Button aria-label={'Go back to the homepage'} className="">
-                    <FaHome />
-                    &nbsp;Go back to the homepage
-                  </Button>
+                <a href={HOME_URL} className={buttonClasses({ size: 'lg' }) + ' no-underline'}>
+                  <FaHome aria-hidden="true" />
+                  Go back to the homepage
                 </a>
               </div>
               <p className="mt-12 text-center">

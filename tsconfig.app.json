@@ -9,7 +9,6 @@
     "libs/common/src/**/*.ts",
     "libs/common/src/**/*.tsx",
     "apps/*/vite.config.mts",
-    "apps/*/tailwind.config.ts",
     "libs/*/vite.config.mts",
     "vitest.config.mts"
   ],

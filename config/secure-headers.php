@@ -697,9 +697,6 @@ return [
             'schemes' => [
                 'https:',
             ],
-            'nonces' => [
-                'nonce-knowii-primereact',
-            ],
         ],
 
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/style-src-attr

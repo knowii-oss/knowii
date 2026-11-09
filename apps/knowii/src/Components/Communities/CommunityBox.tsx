@@ -1,10 +1,9 @@
-import { Divider } from 'primereact/divider';
-import { Card } from 'primereact/card';
 import type { Community } from '@knowii/common';
 import { communityVisibilityOptions } from '@knowii/common';
 import { FaPlus } from 'react-icons/fa';
 import { Link } from '@inertiajs/react';
 import CommunityIcon from './CommunityIcon';
+import { Card, cn } from '@/Components/ui';
 
 interface Props {
   community?: Community;
@@ -17,55 +16,61 @@ interface Props {
   link?: string;
 }
 
-export default function CommunityBox(props: Props) {
-  const visibilityLabel = props.community?.visibility
-    ? communityVisibilityOptions.find((v) => v.visibility === props.community?.visibility)?.name
-    : '';
+const boxSizeClasses = 'w-full sm:w-[450px] h-[250px]';
 
-  const normalModeCard = props.community && (
-    <Card
-      title={
-        <span className="text-[1.2rem] text-primary-500 leading-none flex items-center gap-2">
-          <CommunityIcon visibility={props.community.visibility} />
-          {props.community.name}
-        </span>
-      }
-      subTitle={<Divider className="p-0 m-0" />}
-      className="h-[250px] relative"
-      onClick={
-        props.clickHandler
-          ? props.clickHandler
-          : // eslint-disable-next-line @typescript-eslint/no-empty-function
-            () => {}
-      }
-    >
-      <p className="text-sm text-gray-800 text-ellipsis line-clamp-4 md:line-clamp-5 min-h-6">{props.community.description}</p>
-      <span className="absolute bottom-2 right-4 text-xs text-gray-600 font-bold">{visibilityLabel}</span>
-    </Card>
+export default function CommunityBox(props: Props) {
+  if (props.creationMode) {
+    return (
+      <button
+        type="button"
+        onClick={props.clickHandler}
+        className={cn(
+          boxSizeClasses,
+          'flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border-strong text-muted',
+          'transition-colors hover:border-primary hover:bg-overlay/5 hover:text-primary',
+        )}
+      >
+        <FaPlus aria-hidden="true" className="text-3xl" />
+        <span className="text-xl font-bold">New community</span>
+      </button>
+    );
+  }
+
+  if (!props.community) {
+    return null;
+  }
+
+  const visibilityLabel = communityVisibilityOptions.find((v) => v.visibility === props.community?.visibility)?.name ?? '';
+
+  const content = (
+    <>
+      <h3 className="flex items-center gap-2 text-lg leading-tight font-extrabold">
+        <CommunityIcon visibility={props.community.visibility} />
+        <span className="truncate">{props.community.name}</span>
+      </h3>
+      <span aria-hidden="true" className="mt-2 block h-1 w-12 rounded-full bg-secondary" />
+      <p className="mt-4 line-clamp-4 min-h-6 text-sm text-ellipsis text-muted md:line-clamp-5">{props.community.description}</p>
+      <span className="absolute right-5 bottom-4 rounded-lg bg-overlay/10 px-2 py-0.5 text-xs font-medium">{visibilityLabel}</span>
+    </>
   );
 
-  return props.creationMode ? (
-    <div
-      className="w-full sm:w-[450px] h-[250px] rounded-md flex flex-col justify-center items-center outline-dashed outline-2 outline-offset-[-2px] text-gray-800 cursor-pointer hover:text-primary-500 hover:outline-4 hover:outline-primary-500 hover:outline-offset-[0px] hover:rounded-md"
-      onClick={
-        props.clickHandler
-          ? props.clickHandler
-          : // eslint-disable-next-line @typescript-eslint/no-empty-function
-            () => {}
-      }
+  return (
+    <Card
+      as="article"
+      interactive={!!(props.link || props.clickHandler)}
+      className={cn(boxSizeClasses, 'relative shrink-0 overflow-hidden')}
     >
-      <FaPlus className="text-3xl" />
-      <span className="text-xl font-bold">New</span>
-    </div>
-  ) : (
-    <div className="w-full sm:w-[450px] h-[250px] rounded-lg hover:outline hover:outline-primary-500 hover:outline-offset-2 hover:rounded-md shadow-lg overflow-hidden shrink-0">
       {props.link ? (
-        <Link href={props.link} preserveState={true}>
-          {normalModeCard}
+        <Link href={props.link} preserveState={true} className="block h-full rounded-xl p-5">
+          {content}
         </Link>
+      ) : props.clickHandler ? (
+        <button type="button" onClick={props.clickHandler} className="block h-full w-full cursor-pointer rounded-xl p-5 text-left">
+          {content}
+        </button>
       ) : (
-        normalModeCard
+        <div className="h-full p-5">{content}</div>
       )}
-    </div>
+    </Card>
   );
 }

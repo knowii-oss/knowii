@@ -29,7 +29,7 @@ export default function ApplicationMark(props: Props) {
         fillRule="evenodd"
         clipRule="evenodd"
         d="M137.111 379.943C116.837 358.057 103.016 332.976 95.6087 304.754C90.0787 283.705 70.7358 269 48.5922 269C15.6273 269 -7.43138 300.394 2.21222 331.343C7.97291 349.853 15.874 367.879 25.9234 385.412C49.5709 426.675 81.6684 459.475 122.224 483.791C141.527 495.37 161.642 504.16 182.56 510.208C211.276 518.506 240 496.917 240 467.523C240 448.154 227.253 430.855 208.372 425.307C181.621 417.455 157.854 402.352 137.111 379.943Z"
-        fill={props.bottomLeftColor ? props.bottomLeftColor : '#FFFFFF'}
+        fill={props.bottomLeftColor ? props.bottomLeftColor : 'currentColor'}
       />
       {/* Bottom right */}
       <path

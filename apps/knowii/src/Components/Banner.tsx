@@ -13,8 +13,8 @@ export default function Banner() {
       {show && message ? (
         <div
           className={classNames({
-            'bg-indigo-500': style === 'success',
-            'bg-red-700': style === 'danger',
+            'bg-surface-elevated': style === 'success',
+            'bg-danger-hover': style === 'danger',
           })}
         >
           <div className="max-w-screen-xl mx-auto py-2 px-3 sm:px-6 lg:px-8">
@@ -22,8 +22,8 @@ export default function Banner() {
               <div className="w-0 flex-1 flex items-center min-w-0">
                 <span
                   className={classNames('flex p-2 rounded-lg', {
-                    'bg-indigo-600': style === 'success',
-                    'bg-red-600': style === 'danger',
+                    'bg-overlay/10': style === 'success',
+                    'bg-danger': style === 'danger',
                   })}
                 >
                   {(() => {
@@ -75,8 +75,8 @@ export default function Banner() {
                 <button
                   type="button"
                   className={classNames('-mr-1 flex p-2 rounded-md focus:outline-hidden sm:-mr-2 transition', {
-                    'hover:bg-indigo-600 focus:bg-indigo-600': style === 'success',
-                    'hover:bg-red-600 focus:bg-red-600': style === 'danger',
+                    'hover:bg-overlay/10 focus:bg-overlay/10': style === 'success',
+                    'hover:bg-danger focus:bg-danger': style === 'danger',
                   })}
                   aria-label="Dismiss"
                   onClick={(e) => {

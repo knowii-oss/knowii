@@ -1,12 +1,10 @@
 import type { PropsWithChildren } from 'react';
-import classNames from 'classnames';
+import { cn } from '@/Components/ui';
 
 interface Props {
   className?: string;
 }
 
 export default function CardGroup(props: PropsWithChildren<Props>) {
-  return (
-    <ul className={classNames('flex flex-wrap gap-6 justify-center md:justify-start list-none', props.className)}>{props.children}</ul>
-  );
+  return <ul className={cn('flex list-none flex-wrap justify-center gap-6 md:justify-start', props.className)}>{props.children}</ul>;
 }

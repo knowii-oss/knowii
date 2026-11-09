@@ -54,21 +54,21 @@ export default function WelcomePage(props: Props) {
 
         <PageContentWrapper>
           <div className="flex flex-col items-center">
-            <h1 className="text-primary-500">
-              Coming soon&nbsp;
+            <h1 className="text-center">
+              <span className="text-gradient-brand">Coming soon</span>&nbsp;
               <span role={'img'} aria-label="waving hand">
                 👋
               </span>
             </h1>
-            <h2 className="mt-4">
-              Know<span className="text-primary-500">ii</span> is a place for your community's Knowledge, Ideas and Inspiration.
+            <h2 className="mt-6 text-center">
+              Know<span className="text-secondary-text">ii</span> is a place for your community's Knowledge, Ideas and Inspiration.
             </h2>
-            <div className="mt-8 text-xl">
+            <div className="mt-8 text-center text-xl text-muted">
               Get ready for a <i>revolutionary</i> knowledge-sharing experience!
             </div>
           </div>
 
-          <div id="waitlist-container" className="mt-20 flex flex-col items-center mt-8 border-primary-500 border-6"></div>
+          <div id="waitlist-container" className="mt-20 flex flex-col items-center"></div>
         </PageContentWrapper>
         <Footer />
       </PageWrapper>

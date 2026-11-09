@@ -1,15 +1,11 @@
-import type { FormEventHandler } from 'react';
-import { useRef, useState } from 'react';
-import { Button } from 'primereact/button';
+import { useState } from 'react';
 import { FaLock } from 'react-icons/fa';
-import { InputText } from 'primereact/inputtext';
 import InputError from '@/Components/InputError';
 import ActionSection from '@/Components/ActionSection';
-import { Dialog } from 'primereact/dialog';
+import { Button, Dialog, Spinner, TextInput } from '@/Components/ui';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
-import { ProgressSpinner } from 'primereact/progressspinner';
 import { DASHBOARD_URL, knowiiApiClient, useAppData } from '@knowii/common';
 import { router } from '@inertiajs/react';
 
@@ -70,12 +66,8 @@ export default function DeleteCommunityForm(props: Props) {
 
   const [loading, setLoading] = useState(false);
 
-  const communityNameRef = useRef<HTMLInputElement | null>(null);
-
-  const confirmCommunityDeletion: FormEventHandler = () => {
+  const confirmCommunityDeletion = () => {
     setConfirmingCommunityDeletion(true);
-
-    setTimeout(() => communityNameRef.current?.focus(), 250);
   };
 
   const closeModal = () => {
@@ -85,68 +77,67 @@ export default function DeleteCommunityForm(props: Props) {
 
   return (
     <ActionSection title={'Delete Community'} description={'Permanently delete this community.'}>
-      <div className="max-w-xl text-sm text-gray-600">
+      <div className="max-w-xl text-sm text-muted">
         Once your community is deleted, the collections, resources, and interactions will all be permanently removed.
       </div>
 
-      <div className="flex items-center mt-5">
-        <Button label="Delete Community" severity="danger" onClick={confirmCommunityDeletion} />
+      <div className="mt-5 flex items-center">
+        <Button variant="danger" onClick={confirmCommunityDeletion}>
+          Delete Community
+        </Button>
       </div>
 
       <Dialog
-        header="Are you sure you want to delete this community?"
-        closeOnEscape={true}
-        visible={confirmingCommunityDeletion}
-        className="w-full sm:w-[75vw] md:w-[60vw] lg:w-[40vw] xl:w-[30vw]"
-        onHide={() => closeModal()}
+        open={confirmingCommunityDeletion}
+        onClose={closeModal}
+        title="Are you sure you want to delete this community?"
         footer={
           <>
-            <Button severity="secondary" label="Cancel" onClick={closeModal} />
+            <Button variant="secondary" onClick={closeModal}>
+              Cancel
+            </Button>
             <Button
-              severity="danger"
-              label="Go ahead!"
-              onClick={deleteCommunity}
-              disabled={!deleteCommunityForm.formState.isValid || loading}
-              className="ml-2"
-            />
+              type="submit"
+              form="delete-community-form"
+              variant="danger"
+              disabled={!deleteCommunityForm.formState.isValid}
+              loading={loading}
+            >
+              Go ahead!
+            </Button>
           </>
         }
       >
         {loading ? (
-          <div className="flex flex-row justify-center items-center">
-            <ProgressSpinner />
+          <div className="flex flex-row items-center justify-center py-8">
+            <Spinner size="lg" label="Deleting the community" />
           </div>
         ) : (
-          <>
-            Please enter the full community name to confirm you would like to permanently delete it: "{props.communityName}".
-            <form onSubmit={deleteCommunity}>
-              <div className="mt-4">
-                <div className="p-inputgroup mt-1">
-                  <span className="p-inputgroup-addon mt-1">
-                    <FaLock />
-                  </span>
-
-                  <Controller
-                    name="communityName"
-                    control={deleteCommunityForm.control}
-                    render={({ field }) => (
-                      <InputText
-                        {...field}
-                        type="text"
-                        className="mt-1 w-full"
-                        required
-                        aria-invalid={deleteCommunityForm.formState.errors.communityName ? true : false}
-                        disabled={deleteCommunityForm.formState.isSubmitting || loading}
-                      />
-                    )}
+          <form id="delete-community-form" onSubmit={deleteCommunity} noValidate>
+            <label htmlFor="confirm-community-name" className="text-sm">
+              Please enter the full community name to confirm you would like to permanently delete it: "{props.communityName}".
+            </label>
+            <div className="mt-4">
+              <Controller
+                name="communityName"
+                control={deleteCommunityForm.control}
+                render={({ field }) => (
+                  <TextInput
+                    {...field}
+                    id="confirm-community-name"
+                    type="text"
+                    icon={<FaLock />}
+                    autoFocus
+                    autoComplete="off"
+                    required
+                    invalid={!!deleteCommunityForm.formState.errors.communityName}
+                    disabled={deleteCommunityForm.formState.isSubmitting || loading}
                   />
-                </div>
-                {deleteCommunityForm.formState.errors.communityName && (
-                  <InputError className="mt-2" message={deleteCommunityForm.formState.errors.communityName.message} />
                 )}
-              </div>
-            </form>
-          </>
+              />
+              <InputError className="mt-2" message={deleteCommunityForm.formState.errors.communityName?.message} />
+            </div>
+          </form>
         )}
       </Dialog>
     </ActionSection>

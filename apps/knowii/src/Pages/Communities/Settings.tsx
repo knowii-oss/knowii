@@ -1,10 +1,10 @@
-import type { MenuItem } from 'primereact/menuitem';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Community, CommunityPermissions } from '@knowii/common';
 import { COMMUNITY_URL, DASHBOARD_URL, useSocket } from '@knowii/common';
 import { breadcrumbHome } from '../../Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
-import { Link, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
+import type { BreadcrumbItem } from '@/Components/ui';
 import { FaGear } from 'react-icons/fa6';
 import DeleteCommunityForm from '@/Pages/Communities/Partials/DeleteCommunityForm';
 
@@ -28,31 +28,17 @@ export default function CommunitySettingsPage(props: Props) {
     },
   });
 
-  const breadcrumbItems: MenuItem[] = [
+  const breadcrumbItems: BreadcrumbItem[] = [
     {
       label: props.community.name,
-      template: (item) => (
-        <Link href={route(COMMUNITY_URL, { communitySlug: props.community.slug })} preserveState={true}>
-          <span className="flex items-center gap-2">
-            <CommunityIcon visibility={props.community.visibility} />
-            {item.label}
-          </span>
-        </Link>
-      ),
+      href: route(COMMUNITY_URL, { communitySlug: props.community.slug }),
+      icon: <CommunityIcon visibility={props.community.visibility} />,
     },
-    {
-      label: 'Settings',
-      template: (item) => (
-        <span className="flex items-center gap-2">
-          <FaGear />
-          {item.label}
-        </span>
-      ),
-    },
+    { label: 'Settings', icon: <FaGear /> },
   ];
 
   return (
-    <AppLayout browserPageTitle={`${props.community.name} - Settings`} breadcrumbItems={breadcrumbItems} breadcrumbHome={breadcrumbHome}>
+    <AppLayout browserPageTitle={`${props.community.name} - Settings`} breadcrumbItems={breadcrumbItems} breadcrumbHome={breadcrumbHome()}>
       {props.permissions.canDeleteCommunity && (
         <DeleteCommunityForm communityCuid={props.community.cuid} communityName={props.community.name} />
       )}

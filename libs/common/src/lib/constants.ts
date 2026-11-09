@@ -1,5 +1,3 @@
-import type { ToastProps } from 'primereact/toast';
-
 /**
  * Meta
  */
@@ -10,7 +8,18 @@ export const BUILD_TIMESTAMP = Date.now();
  * UI/UX
  */
 export const MIN_ACTION_TIME = 250;
-export const DEFAULT_TOAST_POSITION: ToastProps['position'] = 'top-center';
+export const DEFAULT_TOAST_LIFE = 3000;
+export const MAX_VISIBLE_TOASTS = 5;
+
+/**
+ * Themes
+ * WARNING: the storage key and the colors MUST remain aligned with the inline theme script in resources/views/app.blade.php
+ */
+export const THEME_STORAGE_KEY = 'knowii-theme';
+export const THEME_BACKGROUND_COLORS = {
+  dark: '#37404c',
+  light: '#f5f7fa',
+} as const;
 export const DEFAULT_TEXTAREA_ROWS = 3;
 export const USER_PROFILE_BIO_TEXTAREA_ROWS = 8;
 

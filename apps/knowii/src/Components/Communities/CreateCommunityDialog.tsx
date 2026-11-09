@@ -1,15 +1,9 @@
-import { Button } from 'primereact/button';
-import { Dialog } from 'primereact/dialog';
-import { InputText } from 'primereact/inputtext';
-import { InputTextarea } from 'primereact/inputtextarea';
-import { ProgressSpinner } from 'primereact/progressspinner';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
-import { SelectButton } from 'primereact/selectbutton';
-import type { NewCommunity, Community } from '@knowii/common';
+import type { NewCommunity, Community, CommunityVisibility } from '@knowii/common';
 import {
   communityVisibilityOptions,
   newCommunitySchema,
@@ -21,12 +15,19 @@ import {
 } from '@knowii/common';
 import { useState } from 'react';
 import CommunityIcon from './CommunityIcon';
+import { Button, Dialog, SegmentedControl, Spinner, Textarea, TextInput } from '@/Components/ui';
 
 interface CreateCommunityDialogProps {
   visible: boolean;
   onHide: () => void;
   onCommunityCreated: (community: Community) => void;
 }
+
+const visibilityOptions = communityVisibilityOptions.map((option) => ({
+  value: option.visibility,
+  label: option.name,
+  icon: <CommunityIcon visibility={option.visibility} />,
+}));
 
 export default function CreateCommunityDialog(props: CreateCommunityDialogProps) {
   const [loading, setLoading] = useState(false);
@@ -75,102 +76,98 @@ export default function CreateCommunityDialog(props: CreateCommunityDialogProps)
 
   return (
     <Dialog
-      header={
-        <span className="flex items-center gap-2">
+      open={props.visible}
+      onClose={props.onHide}
+      title={
+        <>
           <CommunityIcon visibility={null} />
           New community
-        </span>
+        </>
       }
-      closeOnEscape={true}
-      visible={props.visible}
-      className="w-full sm:w-[75vw] md:w-[60vw] lg:w-[40vw] xl:w-[30vw]"
-      onHide={props.onHide}
+      description="Provide the details of your new community."
       footer={
         <>
-          <Button severity="secondary" label="Cancel" onClick={props.onHide} />
-          <Button onClick={handleSubmit} label="Go ahead!" disabled={!form.formState.isValid || loading} className="ml-2" />
+          <Button variant="secondary" onClick={props.onHide}>
+            Cancel
+          </Button>
+          <Button type="submit" form="create-community-form" disabled={!form.formState.isValid} loading={loading}>
+            Go ahead!
+          </Button>
         </>
       }
     >
       {loading ? (
-        <div className="flex flex-row justify-center items-center">
-          <ProgressSpinner />
+        <div className="flex flex-row items-center justify-center py-8">
+          <Spinner size="lg" label="Creating the community" />
         </div>
       ) : (
-        <>
-          <span>Provide the details of your new community.</span>
-          <form onSubmit={handleSubmit}>
-            {/* Name */}
-            <div className="mt-4 col-span-6 sm:col-span-4">
-              <InputLabel htmlFor="name">Name</InputLabel>
-              <div className="p-inputgroup mt-1">
-                <Controller
-                  name="name"
-                  control={form.control}
-                  render={({ field }) => (
-                    <InputText
-                      id="name"
-                      type="text"
-                      className="mt-1 block w-full"
-                      {...field}
-                      aria-invalid={form.formState.errors.name ? true : false}
-                      required
-                      disabled={form.formState.isSubmitting || loading}
-                    />
-                  )}
+        <form id="create-community-form" onSubmit={handleSubmit} noValidate>
+          {/* Name */}
+          <div>
+            <InputLabel htmlFor="name">Name</InputLabel>
+            <Controller
+              name="name"
+              control={form.control}
+              render={({ field }) => (
+                <TextInput
+                  id="name"
+                  type="text"
+                  wrapperClassName="mt-1"
+                  {...field}
+                  autoFocus
+                  invalid={!!form.formState.errors.name}
+                  aria-describedby={form.formState.errors.name ? 'name-error' : undefined}
+                  required
+                  disabled={form.formState.isSubmitting || loading}
                 />
-              </div>
-              {form.formState.errors.name && <InputError className="mt-2" message={form.formState.errors.name.message} />}
-            </div>
+              )}
+            />
+            <InputError id="name-error" className="mt-2" message={form.formState.errors.name?.message} />
+          </div>
 
-            {/* Description */}
-            <div className="mt-4 col-span-6 sm:col-span-4">
-              <InputLabel htmlFor="description">Description</InputLabel>
-              <div className="p-inputgroup mt-1">
-                <Controller
-                  name="description"
-                  control={form.control}
-                  render={({ field }) => (
-                    <InputTextarea
-                      id="description"
-                      className="mt-1 block w-full"
-                      {...field}
-                      rows={DEFAULT_TEXTAREA_ROWS}
-                      aria-invalid={form.formState.errors.description ? true : false}
-                      disabled={loading}
-                    />
-                  )}
+          {/* Description */}
+          <div className="mt-4">
+            <InputLabel htmlFor="description">Description</InputLabel>
+            <Controller
+              name="description"
+              control={form.control}
+              render={({ field }) => (
+                <Textarea
+                  id="description"
+                  wrapperClassName="mt-1"
+                  {...field}
+                  rows={DEFAULT_TEXTAREA_ROWS}
+                  invalid={!!form.formState.errors.description}
+                  aria-describedby={form.formState.errors.description ? 'description-error' : undefined}
+                  disabled={loading}
                 />
-              </div>
-              {form.formState.errors.description && <InputError className="mt-2" message={form.formState.errors.description.message} />}
-            </div>
+              )}
+            />
+            <InputError id="description-error" className="mt-2" message={form.formState.errors.description?.message} />
+          </div>
 
-            {/* Visibility */}
-            <div className="mt-4">
-              <InputLabel htmlFor="visibility">Community visibility</InputLabel>
-              <div className="p-inputgroup mt-1">
-                <Controller
-                  name="visibility"
-                  control={form.control}
-                  render={({ field }) => (
-                    <SelectButton
-                      id="visibility"
-                      className="mt-1 block"
-                      options={communityVisibilityOptions}
-                      optionLabel="name"
-                      optionValue="visibility"
-                      required
-                      {...field}
-                      aria-invalid={form.formState.errors.visibility ? true : false}
-                      disabled={loading}
-                    />
-                  )}
+          {/* Visibility */}
+          <div className="mt-4">
+            <InputLabel id="visibility-label">Community visibility</InputLabel>
+            <Controller
+              name="visibility"
+              control={form.control}
+              render={({ field }) => (
+                <SegmentedControl<CommunityVisibility>
+                  aria-labelledby="visibility-label"
+                  className="mt-1"
+                  name={field.name}
+                  options={visibilityOptions}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  disabled={loading}
                 />
-              </div>
-              {form.formState.errors.visibility && <InputError className="mt-2" message={form.formState.errors.visibility.message} />}
-            </div>
-          </form>
-        </>
+              )}
+            />
+            <InputError className="mt-2" message={form.formState.errors.visibility?.message} />
+          </div>
+        </form>
       )}
     </Dialog>
   );

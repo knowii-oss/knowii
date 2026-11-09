@@ -1,17 +1,13 @@
 import { Link, useForm, Head } from '@inertiajs/react';
-import classNames from 'classnames';
 import type { FormEventHandler } from 'react';
 import AuthenticationCard from '@/Components/AuthenticationCard';
 import InputLabel from '@/Components/InputLabel';
 import InputError from '@/Components/InputError';
 import { useRoute } from 'ziggy-js';
 import { FORGOT_PASSWORD_URL, LOGIN_URL, REGISTER_URL } from '@knowii/common';
-import { InputText } from 'primereact/inputtext';
-import { Button } from 'primereact/button';
 import { FaAt, FaLock } from 'react-icons/fa';
-import { Checkbox } from 'primereact/checkbox';
 import FooterGuest from '@/Components/FooterGuest';
-import { Password } from 'primereact/password';
+import { Button, Checkbox, PasswordInput, TextInput } from '@/Components/ui';
 
 interface LoginFormData {
   email: string;
@@ -44,64 +40,59 @@ export default function LoginPage({ canResetPassword, status }: Props) {
     <>
       <Head title="Log in" />
       <AuthenticationCard>
-        {status && <div className="mb-4 font-medium text-sm text-green-600">{status}</div>}
+        {status && (
+          <div role="status" className="mb-4 text-sm font-medium text-success">
+            {status}
+          </div>
+        )}
 
         <form onSubmit={submit}>
           {/* Email */}
           <div>
             <InputLabel htmlFor="email">Email</InputLabel>
-            <div className="p-inputgroup mt-1">
-              <span className="p-inputgroup-addon mt-1">
-                <FaAt />
-              </span>
-              <InputText
-                id="email"
-                type="email"
-                className="mt-1 block w-full p-inputtext-lg"
-                value={form.data.email}
-                onChange={(e) => form.setData('email', e.target.value)}
-                autoComplete="username"
-                autoFocus={true}
-                required
-                disabled={form.processing}
-              />
-            </div>
+            <TextInput
+              icon={<FaAt />}
+              size="lg"
+              wrapperClassName="mt-1"
+              id="email"
+              type="email"
+              value={form.data.email}
+              onChange={(e) => form.setData('email', e.target.value)}
+              autoComplete="username"
+              autoFocus={true}
+              required
+              disabled={form.processing}
+            />
             <InputError className="mt-2" message={form.errors.email} />
           </div>
 
           {/* Password */}
           <div className="mt-4">
             <InputLabel htmlFor="password">Password</InputLabel>
-            <div className="p-inputgroup mt-1">
-              <span className="p-inputgroup-addon mt-1">
-                <FaLock />
-              </span>
-              <Password
-                id="password"
-                className="mt-1 block w-full"
-                feedback={false}
-                pt={{ input: { className: 'w-full p-inputtext-lg' } }}
-                value={form.data.password}
-                onChange={(e) => form.setData('password', e.target.value)}
-                toggleMask
-                required
-                autoComplete="current-password"
-                disabled={form.processing}
-              />
-            </div>
+            <PasswordInput
+              icon={<FaLock />}
+              size="lg"
+              wrapperClassName="mt-1"
+              id="password"
+              value={form.data.password}
+              onChange={(e) => form.setData('password', e.target.value)}
+              required
+              autoComplete="current-password"
+              disabled={form.processing}
+            />
             <InputError className="mt-2" message={form.errors.password} />
           </div>
 
           {/* Remember me */}
           <div className="mt-4">
-            <label className="flex items-center">
+            <label className="flex w-fit cursor-pointer items-center gap-2">
               <Checkbox
                 name="remember"
                 checked={form.data.remember === 'on'}
                 onChange={(e) => form.setData('remember', e.target.checked ? 'on' : '')}
                 disabled={form.processing}
               />
-              <span className="ms-2 text-sm text-gray-600">Remember me</span>
+              <span className="text-sm text-muted">Remember me</span>
             </label>
           </div>
 
@@ -123,11 +114,9 @@ export default function LoginPage({ canResetPassword, status }: Props) {
 
             <div className="mt-4 sm:mt-0 flex justify-center sm:justify-start">
               {/* Log in */}
-              <Button
-                label="Log in"
-                className={classNames('w-full sm:w-auto text-lg', { 'opacity-25': form.processing })}
-                disabled={form.processing}
-              />
+              <Button type="submit" size="lg" className="w-full sm:w-auto" loading={form.processing}>
+                Log in
+              </Button>
             </div>
           </div>
         </form>

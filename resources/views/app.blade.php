@@ -8,13 +8,32 @@
   <meta name="description" content="Knowii is a place for your community's Knowledge, Ideas and Inspiration." />
   <meta name="robots" content="index,follow,max-image-preview:large" />
 
+  <!--
+    Theme: applied before the first paint to avoid a flash of the wrong theme.
+    Saved choice first, then the system preference. Dark when nothing is known.
+    WARNING: the storage key and the colors MUST remain aligned with THEME_STORAGE_KEY and THEME_BACKGROUND_COLORS (libs/common constants.ts)
+  -->
+  <script nonce="{{ csp_nonce('script') }}">
+    (function () {
+      var theme = 'dark';
+      try {
+        var saved = window.localStorage.getItem('knowii-theme');
+        if (saved === 'light' || saved === 'dark') {
+          theme = saved;
+        } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+          theme = 'light';
+        }
+      } catch (e) {
+        // Storage not available: keep the default
+      }
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap"
-    rel="stylesheet"
-  />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700;1,900&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap"
     rel="stylesheet"
   />
 
@@ -28,8 +47,9 @@
 
   <link href="/icons/favicon.ico" rel="shortcut icon" />
 
-  <meta name="theme-color" content="#ffffff" />
-  <meta name="msapplication-TileColor" content="#ffffff" />
+  <!-- Updated to the active theme by the front-end (theme.ts) -->
+  <meta name="theme-color" content="#37404c" />
+  <meta name="msapplication-TileColor" content="#37404c" />
   <!-- Safari Pinned Tab Icon: https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/pinnedTabs/pinnedTabs.html -->
   <link color="#37404c" href="/icons/favicon.svg" rel="mask-icon" />
 

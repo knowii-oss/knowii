@@ -1,8 +1,8 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Community, CommunityPermissions, CommunityResourceCollection } from '@knowii/common';
 import { COMMUNITY_URL, useSocket, DASHBOARD_URL } from '@knowii/common';
-import { Link, router } from '@inertiajs/react';
-import type { MenuItem } from 'primereact/menuitem';
+import { router } from '@inertiajs/react';
+import type { BreadcrumbItem } from '@/Components/ui';
 import { breadcrumbHome } from '../../Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
 import ResourceCollectionIcon from '@/Components/ResourceCollections/ResourceCollectionIcon';
@@ -43,36 +43,22 @@ export default function ResourceCollectionPage(props: Props) {
     },
   });
 
-  const breadcrumbItems: MenuItem[] = [
+  const breadcrumbItems: BreadcrumbItem[] = [
     {
       label: props.community.name,
-      template: (item) => (
-        <Link href={route(COMMUNITY_URL, { communitySlug: props.community.slug })} preserveState={true}>
-          <span className="flex items-center gap-2">
-            <CommunityIcon visibility={props.community.visibility} />
-            {item.label}
-          </span>
-        </Link>
-      ),
+      href: route(COMMUNITY_URL, { communitySlug: props.community.slug }),
+      icon: <CommunityIcon visibility={props.community.visibility} />,
     },
-    {
-      label: props.resourceCollection.name,
-      template: (item) => (
-        <span className="flex items-center gap-2">
-          <ResourceCollectionIcon />
-          {item.label}
-        </span>
-      ),
-    },
+    { label: props.resourceCollection.name, icon: <ResourceCollectionIcon /> },
   ];
 
   return (
     <AppLayout
       browserPageTitle={`${props.community.name} - ${props.resourceCollection.name}`}
       breadcrumbItems={breadcrumbItems}
-      breadcrumbHome={breadcrumbHome}
+      breadcrumbHome={breadcrumbHome()}
     >
-      Coming soon...
+      <p className="text-muted">Coming soon...</p>
     </AppLayout>
   );
 }

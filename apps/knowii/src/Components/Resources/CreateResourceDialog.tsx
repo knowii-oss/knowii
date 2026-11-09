@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import type { CommunityResource, CommunityResourceCollection, ResourceLevel, ResourceType } from '@knowii/common';
 import {
   ALLOWED_COMMUNITY_RESOURCE_NAME_CHARACTERS_REGEX,
@@ -16,16 +16,14 @@ import {
   useAppData,
 } from '@knowii/common';
 import ResourceIcon from '@/Components/Resources/ResourceIcon';
-import { Dialog } from 'primereact/dialog';
-import { Stepper } from 'primereact/stepper';
-import { Button } from 'primereact/button';
-import { StepperPanel } from 'primereact/stepperpanel';
-import { ProgressSpinner } from 'primereact/progressspinner';
 import InputLabel from '@/Components/InputLabel';
-import { Dropdown } from 'primereact/dropdown';
-import { InputTextarea } from 'primereact/inputtextarea';
-import { InputText } from 'primereact/inputtext';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { Button, Dialog, Select, Spinner, Stepper, Textarea, TextInput } from '@/Components/ui';
+
+const STEPS = ['Overview', 'Details'] as const;
+
+const resourceTypeOptions = resourceTypeSchemaOptions.map((option) => ({ value: option.type, label: option.name }));
+const resourceLevelOptions = resourceLevelSchemaOptions.map((option) => ({ value: option.level, label: option.name, icon: option.icon }));
 
 export interface CreateResourceDialogSettings {
   visible: boolean;
@@ -75,14 +73,14 @@ export function CreateResourceDialog(props: CreateResourceDialogProps) {
       level,
     }).success;
 
-  const stepperRef = useRef<Stepper>(null);
+  const [step, setStep] = useState(0);
 
   const goToNextStep = () => {
-    stepperRef.current?.nextCallback();
+    setStep((current) => Math.min(current + 1, STEPS.length - 1));
   };
 
   const goToPreviousStep = () => {
-    stepperRef.current?.prevCallback();
+    setStep((current) => Math.max(current - 1, 0));
   };
 
   const handleSubmit = async () => {
@@ -91,6 +89,7 @@ export function CreateResourceDialog(props: CreateResourceDialogProps) {
     await sleep(MIN_ACTION_TIME);
 
     if (!resourceCollection || !resourceType) {
+      setLoading(false);
       return;
     }
 
@@ -107,7 +106,7 @@ export function CreateResourceDialog(props: CreateResourceDialogProps) {
       if ('success' === response.type && !response.errors) {
         showToast({
           severity: 'success',
-          summary: 'Resource collection created successfully',
+          summary: 'Resource created successfully',
         });
 
         if (response.data) {
@@ -115,20 +114,13 @@ export function CreateResourceDialog(props: CreateResourceDialogProps) {
           props.onResourceCreated(createdResource);
         }
 
+        // The form is reset once the dialog is closed (onAfterClose)
         props.onHide();
-        resetForm();
       } else {
         showToast({
           severity: 'error',
-          summary: response.message ? response.message : 'Failed to create the resource collection',
+          summary: response.message ? response.message : 'Failed to create the resource',
           detail: response.message ? response.message : 'Please try again later.',
-        });
-        // FIXME ugly workaround to force the stepper to go back to the second step
-        // The problem is that at this point in time, the dialog still only contains the loading spinner
-        // The stepper is gone, and will only be back once we leave this function
-        // So we need to wait a bit before we can call the stepper to move to the next state
-        sleep(1).then(() => {
-          goToNextStep();
         });
       }
       setLoading(false);
@@ -136,184 +128,174 @@ export function CreateResourceDialog(props: CreateResourceDialogProps) {
   };
 
   const resetForm = () => {
-    setResourceCollection(null);
+    setResourceCollection(props.settings.resourceCollection ?? null);
     setResourceType('textArticle');
     setLevel('unknown');
     setName('');
     setDescription('');
     setUrl('');
+    setStep(0);
   };
+
+  const urlIsValid = urlSchema.safeParse({ url }).success;
 
   return (
     <Dialog
-      header={
-        <span className="flex items-center gap-2">
+      open={props.settings.visible}
+      onClose={props.onHide}
+      title={
+        <>
           <ResourceIcon />
           New resource
-        </span>
+        </>
       }
-      closeOnEscape={true}
-      visible={props.settings.visible}
-      className="w-full sm:w-[75vw] md:w-[60vw] lg:w-[40vw] xl:w-[30vw]"
-      onHide={props.onHide}
-      footer={null}
+      description="Provide the details of your new resource."
+      onAfterClose={resetForm}
     >
       {loading ? (
-        <div className="flex flex-row justify-center items-center">
-          <ProgressSpinner />
+        <div className="flex flex-row items-center justify-center py-8">
+          <Spinner size="lg" label="Creating the resource" />
         </div>
       ) : (
         <>
-          <span>Provide the details of your new resource.</span>
-          <Stepper ref={stepperRef} linear={true} orientation="horizontal">
-            <StepperPanel header="Overview">
+          <Stepper steps={STEPS} currentStep={step} className="mb-2" />
+
+          {step === 0 && (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (isStepOneValid) {
+                  goToNextStep();
+                }
+              }}
+              noValidate
+            >
               {/* Name */}
-              <div className="mt-4 col-span-6 sm:col-span-4">
+              <div className="mt-4">
                 <InputLabel htmlFor="resourceName">Name</InputLabel>
-                <div className="p-inputgroup mt-1">
-                  <InputText
-                    id="resourceName"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    minLength={MIN_LENGTH_COMMUNITY_RESOURCE_NAME}
-                    maxLength={MAX_LENGTH_COMMUNITY_RESOURCE_NAME}
-                    keyfilter={ALLOWED_COMMUNITY_RESOURCE_NAME_CHARACTERS_REGEX}
-                    disabled={loading}
-                    required
-                    placeholder="Choose a name for this resource"
-                  />
-                </div>
+                <TextInput
+                  id="resourceName"
+                  wrapperClassName="mt-1"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  minLength={MIN_LENGTH_COMMUNITY_RESOURCE_NAME}
+                  maxLength={MAX_LENGTH_COMMUNITY_RESOURCE_NAME}
+                  allowedCharacters={ALLOWED_COMMUNITY_RESOURCE_NAME_CHARACTERS_REGEX}
+                  autoFocus
+                  required
+                  placeholder="Choose a name for this resource"
+                />
               </div>
 
               {
                 // Collection
                 // Only shown if no specific collection was given
                 !props.settings.resourceCollection && props.settings.resourceCollections && (
-                  <div className="mt-4 col-span-6 sm:col-span-4">
+                  <div className="mt-4">
                     <InputLabel htmlFor="resourceCollection">Resource collection</InputLabel>
-                    <div className="p-inputgroup mt-1">
-                      <Dropdown
-                        id="resourceCollection"
-                        value={resourceCollection}
-                        options={props.settings.resourceCollections}
-                        optionLabel={'name'}
-                        // the optionValue is the whole resource collection object
-                        onChange={(e) => setResourceCollection(e.value)}
-                        placeholder="Where to store the new resource?"
-                        required
-                        disabled={loading}
-                      />
-                    </div>
+                    <Select
+                      id="resourceCollection"
+                      className="mt-1"
+                      options={props.settings.resourceCollections.map((collection) => ({ value: collection.cuid, label: collection.name }))}
+                      value={resourceCollection ? resourceCollection.cuid : null}
+                      onChange={(cuid) =>
+                        setResourceCollection(props.settings.resourceCollections.find((collection) => collection.cuid === cuid) ?? null)
+                      }
+                      placeholder="Where to store the new resource?"
+                    />
                   </div>
                 )
               }
 
               {/* Type */}
-              <div className="mt-4 col-span-6 sm:col-span-4">
+              <div className="mt-4">
                 <InputLabel htmlFor="resourceType">Type</InputLabel>
-                <div className="p-inputgroup mt-1">
-                  <Dropdown
-                    id="resourceType"
-                    value={resourceType}
-                    options={resourceTypeSchemaOptions}
-                    optionLabel={'name'}
-                    optionValue={'type'}
-                    onChange={(e) => setResourceType(e.value)}
-                    placeholder="Select Resource Type"
-                    required
-                    disabled={loading}
-                  />
-                </div>
+                <Select<ResourceType>
+                  id="resourceType"
+                  className="mt-1"
+                  options={resourceTypeOptions}
+                  value={resourceType}
+                  onChange={setResourceType}
+                  placeholder="Select Resource Type"
+                />
               </div>
 
               {/* Level */}
-              <div className="mt-4 col-span-6 sm:col-span-4">
+              <div className="mt-4">
                 <InputLabel htmlFor="resourceLevel">Level</InputLabel>
-                <div className="p-inputgroup mt-1">
-                  <Dropdown
-                    id="resourceLevel"
-                    value={level}
-                    options={resourceLevelSchemaOptions}
-                    optionLabel={'name'}
-                    optionValue={'level'}
-                    onChange={(e) => setLevel(e.value)}
-                    placeholder="Select Resource Level"
-                    required
-                    disabled={loading}
-                    itemTemplate={(option) => (
-                      <div className="flex items-center gap-2">
-                        <span>{option.icon}</span>
-                        <span>{option.name}</span>
-                      </div>
-                    )}
-                    valueTemplate={(option) => (
-                      <div className="flex items-center gap-2">
-                        <span>{option.icon}</span>
-                        <span>{option.name}</span>
-                      </div>
-                    )}
-                  />
-                </div>
+                <Select<ResourceLevel>
+                  id="resourceLevel"
+                  className="mt-1"
+                  options={resourceLevelOptions}
+                  value={level}
+                  onChange={setLevel}
+                  placeholder="Select Resource Level"
+                />
               </div>
 
               {/* Description */}
-              <div className="mt-4 col-span-6 sm:col-span-4">
+              <div className="mt-4">
                 <InputLabel htmlFor="resourceDescription">Description (optional)</InputLabel>
-                <div className="p-inputgroup mt-1">
-                  <InputTextarea
-                    id="resourceDescription"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    rows={DEFAULT_TEXTAREA_ROWS}
-                    maxLength={MAX_LENGTH_COMMUNITY_RESOURCE_DESCRIPTION}
-                    disabled={loading}
-                    placeholder="Why is it useful/important? What is it about?"
+                <Textarea
+                  id="resourceDescription"
+                  wrapperClassName="mt-1"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={DEFAULT_TEXTAREA_ROWS}
+                  maxLength={MAX_LENGTH_COMMUNITY_RESOURCE_DESCRIPTION}
+                  placeholder="Why is it useful/important? What is it about?"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 border-t border-border pt-4 mt-6">
+                <Button variant="secondary" onClick={props.onHide}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={!isStepOneValid} rightIcon={<FaChevronRight aria-hidden="true" />}>
+                  Next
+                </Button>
+              </div>
+            </form>
+          )}
+
+          {step === 1 && (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (isStepOneValid && isStepTwoValid) {
+                  void handleSubmit();
+                }
+              }}
+              noValidate
+            >
+              {resourceType === 'textArticle' && (
+                <div className="mt-4">
+                  {/* URL */}
+                  <InputLabel htmlFor="resourceUrl">Link</InputLabel>
+                  <TextInput
+                    id="resourceUrl"
+                    type="url"
+                    wrapperClassName="mt-1"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    invalid={url.length > 0 && !urlIsValid}
+                    autoFocus
+                    required
+                    placeholder="https://..."
                   />
                 </div>
-              </div>
-
-              <div className="flex pt-4 justify-end">
-                <Button onClick={goToNextStep} disabled={!isStepOneValid || loading}>
-                  <span className="flex flex-row items-center gap-2">
-                    Next
-                    <FaChevronRight />
-                  </span>
-                </Button>
-              </div>
-            </StepperPanel>
-
-            <StepperPanel header="Details">
-              {resourceType === 'textArticle' && (
-                <>
-                  {/* URL */}
-                  <div className="mt-4 col-span-6 sm:col-span-4">
-                    <InputLabel htmlFor="resourceUrl">Link</InputLabel>
-                    <div className="p-inputgroup mt-1">
-                      <InputText
-                        id="resourceUrl"
-                        value={url}
-                        onChange={(e) => setUrl(e.target.value)}
-                        disabled={loading}
-                        invalid={!urlSchema.safeParse({ url }).success}
-                        required
-                        placeholder="https://..."
-                      />
-                    </div>
-                  </div>
-                </>
               )}
 
-              <div className="flex pt-4 justify-end gap-2">
-                <Button onClick={goToPreviousStep} severity="secondary" disabled={loading}>
-                  <span className="flex flex-row items-center gap-2">
-                    <FaChevronLeft />
-                    Back
-                  </span>
+              <div className="flex justify-end gap-2 border-t border-border pt-4 mt-6">
+                <Button variant="secondary" onClick={goToPreviousStep} leftIcon={<FaChevronLeft aria-hidden="true" />}>
+                  Back
                 </Button>
-                <Button label="Create 🚀" onClick={handleSubmit} disabled={!isStepOneValid || !isStepTwoValid || loading} />
+                <Button type="submit" disabled={!isStepOneValid || !isStepTwoValid}>
+                  Create 🚀
+                </Button>
               </div>
-            </StepperPanel>
-          </Stepper>
+            </form>
+          )}
         </>
       )}
     </Dialog>

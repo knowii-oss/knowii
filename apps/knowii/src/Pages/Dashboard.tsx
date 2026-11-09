@@ -1,18 +1,22 @@
 import AppLayout from '@/Layouts/AppLayout';
 import { useCallback, useState } from 'react';
 import CommunityBox from '@/Components/Communities/CommunityBox';
-import type { Community, Identifiable } from '@knowii/common';
+import type { Community, CommunityVisibility, Identifiable } from '@knowii/common';
 import { COMMUNITY_URL, communityVisibilityOptions, useSocket } from '@knowii/common';
 import CardGroup from '@/Components/CardGroup';
 import { useImmer } from 'use-immer';
 import { useRoute } from 'ziggy-js';
 import CreateCommunityDialog from '@/Components/Communities/CreateCommunityDialog';
-import type { MenuItem } from 'primereact/menuitem';
-import { FaHome } from 'react-icons/fa';
-import { InputText } from 'primereact/inputtext';
-import { Dropdown } from 'primereact/dropdown';
-import { Button } from 'primereact/button';
+import { FaHome, FaSearch } from 'react-icons/fa';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
+import type { BreadcrumbItem } from '@/Components/ui';
+import { Button, Select, TextInput } from '@/Components/ui';
+
+const visibilityFilterOptions = communityVisibilityOptions.map((option) => ({
+  value: option.visibility,
+  label: option.name,
+  icon: <CommunityIcon visibility={option.visibility} />,
+}));
 
 interface Props {
   communities: Community[];
@@ -59,22 +63,12 @@ export default function DashboardPage(props: Props) {
     },
   });
 
-  const breadcrumbItems: MenuItem[] = [
-    {
-      label: 'Home',
-      template: (item) => (
-        <span className="flex items-center gap-2">
-          <FaHome />
-          {item.label}
-        </span>
-      ),
-    },
-  ];
+  const breadcrumbItems: BreadcrumbItem[] = [{ label: 'Home', icon: <FaHome /> }];
 
   const [creatingCommunity, setCreatingCommunity] = useState(false);
   const [communities, setCommunities] = useImmer<Community[]>(props.communities);
   const [searchTerm, setSearchTerm] = useState('');
-  const [visibilityFilter, setVisibilityFilter] = useState('');
+  const [visibilityFilter, setVisibilityFilter] = useState<CommunityVisibility | null>(null);
 
   const openCreateCommunityModal = () => {
     setCreatingCommunity(true);
@@ -96,38 +90,36 @@ export default function DashboardPage(props: Props) {
 
   const clearFilters = () => {
     setSearchTerm('');
-    setVisibilityFilter('');
+    setVisibilityFilter(null);
   };
 
   return (
     <>
       <AppLayout browserPageTitle="Dashboard" breadcrumbItems={breadcrumbItems}>
-        <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b-2 border-primary-500 pb-2 block text-center sm:text-left">
-          My Communities
-        </h2>
-        <div className="flex flex-col sm:flex-row sm:justify-center md:justify-start gap-4 mb-4">
-          <InputText
+        <h2 className="mb-6 text-center text-2xl font-extrabold sm:text-left">My Communities</h2>
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-center md:justify-start">
+          <TextInput
+            type="search"
+            size="sm"
+            icon={<FaSearch />}
+            aria-label="Search communities"
             placeholder="Search communities..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="p-inputtext-sm md:w-[34rem] lg:w-[48rem]"
+            wrapperClassName="md:w-[34rem] lg:w-[48rem]"
           />
-          <Dropdown
-            options={communityVisibilityOptions}
-            optionLabel="name"
-            optionValue="visibility"
-            itemTemplate={(option) => (
-              <span className="text-sm flex items-center gap-2">
-                <CommunityIcon visibility={option.visibility} />
-                {option.name}
-              </span>
-            )}
+          <Select<CommunityVisibility>
+            size="sm"
+            aria-label="Filter by visibility"
+            options={visibilityFilterOptions}
             value={visibilityFilter}
-            onChange={(e) => setVisibilityFilter(e.value)}
+            onChange={setVisibilityFilter}
             placeholder="Filter by visibility"
-            className="p-inputtext-sm"
+            className="sm:w-52"
           />
-          <Button severity="secondary" label="Clear Filters" onClick={clearFilters} className="p-button-sm" />
+          <Button variant="secondary" size="sm" onClick={clearFilters} className="h-9">
+            Clear filters
+          </Button>
         </div>
         <CardGroup className="mt-4">
           {filteredCommunities().map((item) => (

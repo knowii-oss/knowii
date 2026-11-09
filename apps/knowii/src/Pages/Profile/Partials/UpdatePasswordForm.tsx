@@ -3,13 +3,11 @@ import { useForm } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
 import type { FormEventHandler } from 'react';
 import { useRef } from 'react';
-import { Button } from 'primereact/button';
 import FormSection from '@/Components/FormSection';
-import classNames from 'classnames';
 import InputLabel from '@/Components/InputLabel';
 import { FaLock } from 'react-icons/fa';
-import { InputText } from 'primereact/inputtext';
 import InputError from '@/Components/InputError';
+import { Button, PasswordInput } from '@/Components/ui';
 
 interface UpdatePasswordFormData {
   current_password: string;
@@ -60,7 +58,7 @@ export default function UpdatePasswordForm() {
       title={'Update Password'}
       description={`Ensure your account is using a long, random password to stay secure.`}
       renderActions={() => (
-        <Button className={classNames({ 'opacity-25': form.processing })} disabled={form.processing}>
+        <Button type="submit" loading={form.processing}>
           Save
         </Button>
       )}
@@ -68,65 +66,51 @@ export default function UpdatePasswordForm() {
       {/* Current password */}
       <div className="col-span-6 sm:col-span-4">
         <InputLabel htmlFor="current_password">Current Password</InputLabel>
-        <div className="p-inputgroup mt-1">
-          <span className="p-inputgroup-addon mt-1">
-            <FaLock />
-          </span>
-          <InputText
-            id="current_password"
-            type="password"
-            className="mt-1 block w-full"
-            ref={currentPasswordRef}
-            value={form.data.current_password}
-            onChange={(e) => form.setData('current_password', e.target.value)}
-            required
-            autoComplete="current-password"
-            disabled={form.processing}
-          />
-        </div>
+        <PasswordInput
+          icon={<FaLock />}
+          wrapperClassName="mt-1"
+          id="current_password"
+          ref={currentPasswordRef}
+          value={form.data.current_password}
+          onChange={(e) => form.setData('current_password', e.target.value)}
+          required
+          autoComplete="current-password"
+          disabled={form.processing}
+        />
         <InputError className="mt-2" message={form.errors.current_password} />
       </div>
 
       {/* New password */}
       <div className="col-span-6 sm:col-span-4">
         <InputLabel htmlFor="password">New Password</InputLabel>
-        <div className="p-inputgroup mt-1">
-          <span className="p-inputgroup-addon mt-1">
-            <FaLock />
-          </span>
-          <InputText
-            id="password"
-            type="password"
-            className="mt-1 block w-full"
-            ref={passwordRef}
-            value={form.data.password}
-            onChange={(e) => form.setData('password', e.target.value)}
-            required
-            autoComplete="new-password"
-            disabled={form.processing}
-          />
-        </div>
+        <PasswordInput
+          icon={<FaLock />}
+          wrapperClassName="mt-1"
+          id="password"
+          showStrength
+          ref={passwordRef}
+          value={form.data.password}
+          onChange={(e) => form.setData('password', e.target.value)}
+          required
+          autoComplete="new-password"
+          disabled={form.processing}
+        />
         <InputError className="mt-2" message={form.errors.password} />
       </div>
 
       {/* New password confirmation */}
       <div className="col-span-6 sm:col-span-4">
         <InputLabel htmlFor="password_confirmation">Confirm Password</InputLabel>
-        <div className="p-inputgroup mt-1">
-          <span className="p-inputgroup-addon mt-1">
-            <FaLock />
-          </span>
-          <InputText
-            id="password_confirmation"
-            type="password"
-            className="mt-1 block w-full"
-            value={form.data.password_confirmation}
-            onChange={(e) => form.setData('password_confirmation', e.target.value)}
-            required
-            autoComplete="new-password"
-            disabled={form.processing}
-          />
-        </div>
+        <PasswordInput
+          icon={<FaLock />}
+          wrapperClassName="mt-1"
+          id="password_confirmation"
+          value={form.data.password_confirmation}
+          onChange={(e) => form.setData('password_confirmation', e.target.value)}
+          required
+          autoComplete="new-password"
+          disabled={form.processing}
+        />
         <InputError className="mt-2" message={form.errors.password_confirmation} />
       </div>
     </FormSection>

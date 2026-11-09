@@ -3,12 +3,10 @@ import type { FormEventHandler } from 'react';
 import { useRef, useState } from 'react';
 import { useForm } from '@inertiajs/react';
 import { DELETE_USER_URL } from '@knowii/common';
-import { Button } from 'primereact/button';
 import { FaLock } from 'react-icons/fa';
-import { InputText } from 'primereact/inputtext';
 import InputError from '@/Components/InputError';
 import ActionSection from '@/Components/ActionSection';
-import { Dialog } from 'primereact/dialog';
+import { Button, Dialog, PasswordInput } from '@/Components/ui';
 
 interface DeleteUserFormProps {
   password: string;
@@ -25,10 +23,8 @@ export default function DeleteUserForm() {
 
   const passwordRef = useRef<HTMLInputElement | null>(null);
 
-  const confirmUserDeletion: FormEventHandler = () => {
+  const confirmUserDeletion = () => {
     setConfirmingUserDeletion(true);
-
-    setTimeout(() => passwordRef.current?.focus(), 250);
   };
 
   const deleteUser: FormEventHandler = (e) => {
@@ -49,46 +45,51 @@ export default function DeleteUserForm() {
 
   return (
     <ActionSection title={'Delete Account'} description={'Permanently delete your account.'}>
-      <div className="max-w-xl text-sm text-gray-600">
+      <div className="max-w-xl text-sm text-muted">
         Once your account is deleted, your own communities, resources, and interactions will all be permanently removed. Only your public
         profile will remain. If you create a new user account later, you will be able to re-claim your profile, but not the account data.
       </div>
 
-      <div className="flex items-center mt-5">
-        <Button label="Delete Account" severity="danger" onClick={confirmUserDeletion} />
+      <div className="mt-5 flex items-center">
+        <Button variant="danger" onClick={confirmUserDeletion}>
+          Delete Account
+        </Button>
       </div>
 
       <Dialog
-        header="Are you sure you want to delete your account?"
-        closeOnEscape={true}
-        visible={confirmingUserDeletion}
-        className="w-full sm:w-[75vw] md:w-[60vw] lg:w-[40vw] xl:w-[30vw]"
-        onHide={() => closeModal()}
+        open={confirmingUserDeletion}
+        onClose={closeModal}
+        title="Are you sure you want to delete your account?"
         footer={
           <>
-            <Button severity="secondary" label="Cancel" onClick={closeModal} />
-            <Button severity="danger" label="Go ahead!" onClick={deleteUser} disabled={form.processing} className="ml-2" />
+            <Button variant="secondary" onClick={closeModal}>
+              Cancel
+            </Button>
+            <Button type="submit" form="delete-user-form" variant="danger" loading={form.processing}>
+              Go ahead!
+            </Button>
           </>
         }
       >
-        Please enter your password to confirm you would like to permanently delete your account.
-        <div className="mt-4">
-          <div className="p-inputgroup mt-1">
-            <span className="p-inputgroup-addon mt-1">
-              <FaLock />
-            </span>
-            <InputText
-              type="password"
-              className="mt-1 w-full"
+        <form id="delete-user-form" onSubmit={deleteUser}>
+          <label htmlFor="delete-user-password" className="text-sm">
+            Please enter your password to confirm you would like to permanently delete your account.
+          </label>
+          <div className="mt-4">
+            <PasswordInput
+              id="delete-user-password"
+              icon={<FaLock />}
               ref={passwordRef}
               value={form.data.password}
               onChange={(e) => form.setData('password', e.target.value)}
+              autoFocus
               required
               autoComplete="current-password"
+              invalid={!!form.errors.password}
             />
+            <InputError className="mt-2" message={form.errors.password} />
           </div>
-          <InputError className="mt-2" message={form.errors.password} />
-        </div>
+        </form>
       </Dialog>
     </ActionSection>
   );
