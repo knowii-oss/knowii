@@ -1,4 +1,4 @@
-import { useAppData, USER_PROFILE_PASSWORD_UPDATE_URL } from '@knowii/common';
+import { useAppData, USER_PROFILE_PASSWORD_UPDATE_URL, useTypedPage } from '@knowii/common';
 import { useForm } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
 import type { FormEventHandler } from 'react';
@@ -16,6 +16,7 @@ interface UpdatePasswordFormData {
 }
 
 export default function UpdatePasswordForm() {
+  const page = useTypedPage();
   const route = useRoute();
 
   const { showToast } = useAppData();
@@ -63,6 +64,9 @@ export default function UpdatePasswordForm() {
         </Button>
       )}
     >
+      {/* The account of the password, for password managers: they save and suggest passwords per username (#813) */}
+      <input type="text" name="username" autoComplete="username" value={page.props.auth.user?.email ?? ''} readOnly hidden />
+
       {/* Current password */}
       <div className="col-span-6 sm:col-span-4">
         <InputLabel htmlFor="current_password">Current Password</InputLabel>
@@ -70,6 +74,7 @@ export default function UpdatePasswordForm() {
           icon={<FaLock />}
           wrapperClassName="mt-1"
           id="current_password"
+          name="current_password"
           ref={currentPasswordRef}
           value={form.data.current_password}
           onChange={(e) => form.setData('current_password', e.target.value)}
@@ -87,6 +92,7 @@ export default function UpdatePasswordForm() {
           icon={<FaLock />}
           wrapperClassName="mt-1"
           id="password"
+          name="password"
           showStrength
           ref={passwordRef}
           value={form.data.password}
@@ -105,6 +111,7 @@ export default function UpdatePasswordForm() {
           icon={<FaLock />}
           wrapperClassName="mt-1"
           id="password_confirmation"
+          name="password_confirmation"
           value={form.data.password_confirmation}
           onChange={(e) => form.setData('password_confirmation', e.target.value)}
           required
