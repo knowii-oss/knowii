@@ -11,35 +11,24 @@ jobs:
   main:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
-      # This enables task distribution via Nx Cloud
-      # Run this command as early as possible, before dependencies are installed
-      # Learn more at https://nx.dev/ci/reference/nx-cloud-cli#npx-nxcloud-startcirun
-      #- name: Enable Nx Cloud task distribution
-      #  run: npx nx-cloud start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="build" || true
-
-      # Cache node_modules
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: 'npm'
       - name: Install front-end dependencies
-        run: npm run install:linux
+        run: npm ci
+      - name: Audit front-end dependencies security
+        run: npm audit --audit-level=moderate
 
-      - uses: nrwl/nx-set-shas@v4
-
-      # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
-      # - run: npx nx-cloud record -- echo Hello World
-      # Nx Affected runs only tasks affected by the changes in this PR/commit. Learn more: https://nx.dev/ci/features/affected
-      - name: Execute front-end tests
-        run: npx nx affected -t lint test || true
+      - uses: nrwl/nx-set-shas@v5
 
       # Cache composer dependencies
       - name: Cache composer dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v6
         with:
           path: vendor
           key: composer-${{ hashFiles('**/composer.lock') }}
@@ -59,11 +48,20 @@ jobs:
       - name: Audit PHP dependencies security
         run: composer audit
 
+      # Runs after composer install: the type check resolves `ziggy-js` from vendor/tightenco/ziggy
+      # Nx Affected runs only tasks affected by the changes in this PR. Learn more: https://nx.dev/ci/features/affected
+      - name: Lint, type-check and test the front-end
+        run: npx nx affected -t lint typecheck test
+        env:
+          NX_NO_CLOUD: true
+      - name: Type-check the whole front-end (app, library, and configuration files)
+        run: npm run tsc
+
       # Build the front-end assets so the Vite manifest
       # (public/build/.vite/manifest.json) exists for the back-end tests below.
       # Runs after composer install because the build resolves the `ziggy-js`
       # tsconfig alias from vendor/tightenco/ziggy. The manifest is no longer
-      # committed to Git; it is generated here (and on deploy via Forge).
+      # committed to Git; it is generated here (and on deploy).
       - name: Build front-end assets
         run: npm run build
       - name: Generate Laravel key
