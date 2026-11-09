@@ -314,7 +314,10 @@ npm run setup
 
 That script runs `git config --local --replace-all include.path ../.gitconfig` — the path is relative to `.git/`, so `../.gitconfig` resolves to the repo root. Git then reads the tracked `.gitconfig`, picking up:
 
-- **`pre-commit` → `scripts/git-hooks/pre-commit.sh`** — runs `npm run lint`, `npm run format:affected` and `composer audit`.
+- **`pre-commit` → `scripts/git-hooks/format-staged.sh`**: formats only the staged files (Prettier, and Pint for `.php` files) and stages them again, in a few seconds. A file that also has unstaged changes is skipped with a message, because staging it again would stage those changes too: format it with `npm run format`. The hook never leaves new changes in the working tree.
+
+Lint (ESLint, PHPStan), the formatting check, the tests and the dependency audits run in CI. Run them before you open a pull request (see `AGENTS.md`).
+
 - **`commit-msg` → `npx --no -- commitlint --edit`** — validates the commit message against `commitlint.config.js`.
 
 Confirm the hooks are wired up:

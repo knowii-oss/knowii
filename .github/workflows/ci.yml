@@ -71,6 +71,14 @@ jobs:
           NX_NO_CLOUD: true
       - name: Type-check the whole front-end (app, library, and configuration files)
         run: npm run tsc
+      - name: Check the formatting (Prettier and Pint)
+        run: |
+          npx nx format:check --all
+          ./vendor/bin/pint --test
+        env:
+          NX_NO_CLOUD: true
+      - name: Static analysis of the back-end (PHPStan)
+        run: composer lint
 
       # Build the front-end assets so the Vite manifest
       # (public/build/manifest.json) exists for the back-end tests below.

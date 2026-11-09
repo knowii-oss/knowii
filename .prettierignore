@@ -22,3 +22,6 @@ tsconfig.*.json
 
 # Test fixtures keep their exact formatting (quotes, whitespace, malformed markup)
 tests/Fixtures/
+
+# Local runtime data (ignored by Git)
+storage/
