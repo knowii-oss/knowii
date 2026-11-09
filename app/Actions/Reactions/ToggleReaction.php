@@ -5,6 +5,7 @@ namespace App\Actions\Reactions;
 use App\Contracts\Reactions\TogglesReactions;
 use App\Enums\KnowiiReactionKind;
 use App\Events\Spaces\SpaceContentChanged;
+use App\Models\ChatMessage;
 use App\Models\Comment;
 use App\Models\Post;
 use App\Models\User;
@@ -18,7 +19,7 @@ class ToggleReaction implements TogglesReactions
      * Add the reaction of the member, or remove it when it exists (one of each kind per member and item).
      * Returns the new summary of the item.
      */
-    final public function toggle(User $user, Post|Comment $reactable, array $input): array
+    final public function toggle(User $user, Post|Comment|ChatMessage $reactable, array $input): array
     {
         Gate::forUser($user)->authorize('react', $reactable);
 

@@ -38,6 +38,8 @@ final class ApiRoutes
 
     public const PARAM_PAGE = 'page';
 
+    public const PARAM_MESSAGE = 'message';
+
     public const PARAM_COMMENT = 'comment';
 
     // Named after Space::resources() for the scoped binding
@@ -103,6 +105,17 @@ final class ApiRoutes
     public const COMMUNITY_SPACE_RESOURCE_COMMENT_REACTIONS = self::COMMUNITY_SPACE_RESOURCE_COMMENT.'/reactions';
 
     public const COMMUNITY_SPACE_POSTS = self::COMMUNITY_SPACE.'/posts';
+
+    // Messages of chat spaces (#1185)
+    public const COMMUNITY_SPACE_MESSAGES = self::COMMUNITY_SPACE.'/messages';
+
+    public const COMMUNITY_SPACE_MESSAGES_READ = self::COMMUNITY_SPACE_MESSAGES.'/read';
+
+    public const COMMUNITY_SPACE_MESSAGE = self::COMMUNITY_SPACE_MESSAGES.'/{'.self::PARAM_MESSAGE.'}';
+
+    public const COMMUNITY_SPACE_MESSAGE_THREAD = self::COMMUNITY_SPACE_MESSAGE.'/thread';
+
+    public const COMMUNITY_SPACE_MESSAGE_REACTIONS = self::COMMUNITY_SPACE_MESSAGE.'/reactions';
 
     // Pages of page spaces (#1179)
     public const COMMUNITY_SPACE_PAGES = self::COMMUNITY_SPACE.'/pages';

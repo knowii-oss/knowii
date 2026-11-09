@@ -25,6 +25,8 @@ A personal API token (created on the "API tokens" page of the user menu) has abi
 | `communities:write` | Create, change and delete communities, spaces, members, invitations   |
 | `posts:read`        | Read posts, comments and reactions, preview Markdown                  |
 | `posts:write`       | Write posts and comments, pin, react, upload images                   |
+| `chat:read`         | Read the messages and threads of chat spaces, mark them as read       |
+| `chat:write`        | Write, edit and delete messages, react to them                        |
 | `pages:read`        | Read the pages of page spaces                                         |
 | `pages:write`       | Create, change, reorder and delete pages (owner, admins, moderators)  |
 | `resources:read`    | Read resources, their comments and reactions                          |

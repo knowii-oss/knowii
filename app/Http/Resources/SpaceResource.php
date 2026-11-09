@@ -30,9 +30,23 @@ class SpaceResource extends AbstractKnowiiJsonResource
             // The groups that open a "groups" space (#1241): cuid and name, when loaded
             'access_groups' => $this->whenLoaded('accessGroups', fn () => $this->accessGroups->map(fn (AccessGroup $group) => ['cuid' => $group->cuid, 'name' => $group->name])->values()->all(), []),
             'position' => $this->position,
+            // Chat spaces in the navigation (#1185): the messages that the member did not read yet
+            'unread_count' => $this->when($this->unreadCount() !== null, fn () => $this->unreadCount()),
             'space_group_cuid' => $this->relationLoaded('spaceGroup') ? $this->spaceGroup->cuid : $this->spaceGroup()->value('cuid'),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
+    }
+
+    /**
+     * Set by SpaceTree on the chat spaces of a member (#1185); null elsewhere
+     */
+    private function unreadCount(): ?int
+    {
+        /** @var Space $space */
+        $space = $this->resource;
+        $value = $space->getAttributes()['unread_count'] ?? null;
+
+        return is_numeric($value) ? (int) $value : null;
     }
 }

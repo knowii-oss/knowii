@@ -1,0 +1,19 @@
+meta {
+  name: Chat - Who reacted
+  type: http
+  seq: 98
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a chat space>/messages/<cuid of a message>/reactions
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Who reacted to a message, per kind. Ability chat:read.
+}

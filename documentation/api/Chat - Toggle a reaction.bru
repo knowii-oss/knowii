@@ -1,0 +1,26 @@
+meta {
+  name: Chat - Toggle a reaction
+  type: http
+  seq: 97
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a chat space>/messages/<cuid of a message>/reactions
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "kind": "like"
+  }
+}
+
+docs {
+  Adds the reaction of the member, or removes it when it exists. Returns the summary. Ability chat:write.
+}

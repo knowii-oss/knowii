@@ -8,6 +8,10 @@ use App\Actions\AccessGroups\DeleteAccessGroup;
 use App\Actions\AccessGroups\RemoveAccessGroupMember;
 use App\Actions\AccessGroups\UpdateAccessGroup;
 use App\Actions\Auth\MagicLinks;
+use App\Actions\Chat\CreateChatMessage;
+use App\Actions\Chat\DeleteChatMessage;
+use App\Actions\Chat\MarkChatAsRead;
+use App\Actions\Chat\UpdateChatMessage;
 use App\Actions\Comments\CreateComment;
 use App\Actions\Comments\DeleteComment;
 use App\Actions\Comments\UpdateComment;
@@ -53,6 +57,10 @@ use App\Contracts\AccessGroups\RemovesAccessGroupMembers;
 use App\Contracts\AccessGroups\UpdatesAccessGroups;
 use App\Contracts\Auth\ConsumesMagicLinks;
 use App\Contracts\Auth\SendsMagicLinks;
+use App\Contracts\Chat\CreatesChatMessages;
+use App\Contracts\Chat\DeletesChatMessages;
+use App\Contracts\Chat\MarksChatAsRead;
+use App\Contracts\Chat\UpdatesChatMessages;
 use App\Contracts\Comments\CreatesComments;
 use App\Contracts\Comments\DeletesComments;
 use App\Contracts\Comments\UpdatesComments;
@@ -149,6 +157,10 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(DeletesSpaces::class, DeleteSpace::class);
         app()->singleton(ReordersSpaces::class, ReorderSpaces::class);
         app()->singleton(CreatesPosts::class, CreatePost::class);
+        app()->singleton(CreatesChatMessages::class, CreateChatMessage::class);
+        app()->singleton(UpdatesChatMessages::class, UpdateChatMessage::class);
+        app()->singleton(DeletesChatMessages::class, DeleteChatMessage::class);
+        app()->singleton(MarksChatAsRead::class, MarkChatAsRead::class);
         app()->singleton(CreatesPages::class, CreatePage::class);
         app()->singleton(UpdatesPages::class, UpdatePage::class);
         app()->singleton(DeletesPages::class, DeletePage::class);
@@ -175,6 +187,11 @@ class AppServiceProvider extends ServiceProvider
         // "Capture again" (ADR 0018): each capture fetches a site
         RateLimiter::for('captures', static function (Request $request) {
             return Limit::perMinute(Constants::CAPTURES_PER_MINUTE)->by(self::rateLimitKey($request));
+        });
+
+        // Chat messages (#1185): a burst is normal in a chat, a flood is not
+        RateLimiter::for('messages', static function (Request $request) {
+            return Limit::perMinute(Constants::CHAT_MESSAGES_PER_MINUTE)->by(self::rateLimitKey($request));
         });
 
         RateLimiter::for('posts', static function (Request $request) {

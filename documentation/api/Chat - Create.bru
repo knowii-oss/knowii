@@ -1,0 +1,26 @@
+meta {
+  name: Chat - Create
+  type: http
+  seq: 93
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a chat space>/messages
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "body": "Hello everyone!"
+  }
+}
+
+docs {
+  Writes a message. Add parent_cuid (a first-level message) to reply in its thread; threads have one level. The posting policy of the space decides who writes. Rate limited. Ability chat:write.
+}

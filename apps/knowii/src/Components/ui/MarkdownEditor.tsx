@@ -39,6 +39,15 @@ export interface MarkdownEditorProps {
    * Uploads images (toolbar button, paste, drag and drop). Absent: no image upload.
    */
   images?: ImageUploader | undefined;
+  /**
+   * Keys of the text field, after the mention suggestions (they keep Enter, arrows and Escape while open). Call
+   * preventDefault() to stop the default handling (for example Enter sends a chat message, #1185).
+   */
+  onKeyDown?: ((event: KeyboardEvent<HTMLTextAreaElement>) => void) | undefined;
+  /**
+   * The first field of a dialog or a drawer: Headless UI gives it the focus when it opens (data-autofocus)
+   */
+  autoFocus?: boolean;
   ref?: Ref<HTMLTextAreaElement>;
 }
 
@@ -117,6 +126,8 @@ export function MarkdownEditor({
   toolbarExtra,
   mentions,
   images,
+  onKeyDown,
+  autoFocus = false,
   ref,
 }: MarkdownEditorProps) {
   const baseId = useId();
@@ -318,6 +329,11 @@ export function MarkdownEditor({
       }
     }
 
+    onKeyDown?.(event);
+    if (event.defaultPrevented) {
+      return;
+    }
+
     if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey) {
       return;
     }
@@ -451,6 +467,7 @@ export function MarkdownEditor({
             onBlur?.();
           }}
           onKeyDown={onTextareaKeyDown}
+          {...(autoFocus ? { 'data-autofocus': true } : {})}
           onPaste={(event) => {
             const file = Array.from(event.clipboardData.files).find((item) => item.type.startsWith('image/'));
             if (images && file) {

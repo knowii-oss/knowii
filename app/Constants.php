@@ -81,6 +81,13 @@ class Constants
 
     public const int MAX_LENGTH_POST_BODY = 50000;
 
+    // Chat messages (#1185). WARNING: aligned with constants.ts
+    public const int MAX_LENGTH_CHAT_MESSAGE = 10000;
+
+    public const int CHAT_MESSAGES_PER_PAGE = 50;
+
+    public const int CHAT_MESSAGES_PER_MINUTE = 30;
+
     public const int MAX_LENGTH_COMMENT_BODY = 10000;
 
     // Comments created per minute and per user

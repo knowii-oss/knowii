@@ -1,0 +1,19 @@
+meta {
+  name: Chat - List
+  type: http
+  seq: 90
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a chat space>/messages
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The newest first-level messages of a chat space (#1185), oldest first in the page. Add ?before=<cuid of a message> for the older ones; metadata.has_more says whether more exist. Ability chat:read.
+}

@@ -2,8 +2,13 @@
 
 namespace App\Http\Controllers\Inertia;
 
+use App\Constants;
 use App\Enums\KnowiiSpaceType;
+use App\Models\ChatMessage;
+use App\Models\ChatRead;
 use App\Models\Community;
+use App\Models\Space;
+use App\Models\User;
 use App\Support\Pagination;
 use App\Support\SpaceTree;
 use Illuminate\Http\Request;
@@ -53,6 +58,9 @@ class SpaceController extends Controller
             ];
         }
 
+        // Chat spaces: the newest messages, oldest first, and where the unread ones start (#1185)
+        $chat = $space->type === KnowiiSpaceType::Chat ? self::chat($space, $request->user()) : null;
+
         // Page spaces: the titles of the pages, in their order (#1179)
         $pages = $space->type === KnowiiSpaceType::Pages ? $space->pages()->get()->toResourceCollection() : null;
 
@@ -61,6 +69,7 @@ class SpaceController extends Controller
             'posts' => $posts,
             'resources' => $resources,
             'pages' => $pages,
+            'chat' => $chat,
             'community' => $community->toResource()->withLargeFields(),
             'space' => $space->toResource()->withLargeFields(),
             'spaceGroups' => SpaceTree::for($community, $request->user())->toResourceCollection(),
@@ -73,5 +82,28 @@ class SpaceController extends Controller
                 'canReact' => $request->user()?->belongsToCommunity($community) ?? false,
             ],
         ]);
+    }
+
+    /**
+     * @return array{messages: mixed, has_more: bool, first_unread_cuid: string|null}
+     */
+    private static function chat(Space $space, ?User $user): array
+    {
+        $items = $space->chatMessages()->whereNull('parent_id')->with(['author', 'reactions'])
+            ->orderByDesc('id')->limit(Constants::CHAT_MESSAGES_PER_PAGE + 1)->get();
+        $page = $items->take(Constants::CHAT_MESSAGES_PER_PAGE)->reverse()->values();
+
+        $firstUnread = null;
+        if ($user !== null && $user->belongsToCommunity($space->community)) {
+            $value = ChatRead::query()->where('user_id', $user->id)->where('space_id', $space->id)->value('last_read_message_id');
+            $lastRead = is_numeric($value) ? (int) $value : 0;
+            $firstUnread = $page->first(fn (ChatMessage $message) => $message->id > $lastRead && $message->author_id !== $user->id)?->cuid;
+        }
+
+        return [
+            'messages' => $page->toResourceCollection(),
+            'has_more' => $items->count() > Constants::CHAT_MESSAGES_PER_PAGE,
+            'first_unread_cuid' => $firstUnread,
+        ];
     }
 }

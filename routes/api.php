@@ -2,6 +2,7 @@
 
 use App\ApiRoutes;
 use App\Http\Controllers\API\AccessGroupApiController;
+use App\Http\Controllers\API\ChatMessageApiController;
 use App\Http\Controllers\API\CommentApiController;
 use App\Http\Controllers\API\CommunityApiController;
 use App\Http\Controllers\API\CommunityInvitationApiController;
@@ -72,6 +73,17 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::patch(ApiRoutes::COMMUNITY_SPACE_POST, [PostApiController::class, 'update'])->middleware('ability:posts:write');
             Route::delete(ApiRoutes::COMMUNITY_SPACE_POST, [PostApiController::class, 'destroy'])->middleware('ability:posts:write');
             Route::post(ApiRoutes::COMMUNITY_SPACE_POST_PIN, [PostApiController::class, 'pin'])->middleware('ability:posts:write');
+
+            // Messages of chat spaces (#1185)
+            Route::get(ApiRoutes::COMMUNITY_SPACE_MESSAGES, [ChatMessageApiController::class, 'index'])->middleware('ability:chat:read');
+            Route::post(ApiRoutes::COMMUNITY_SPACE_MESSAGES, [ChatMessageApiController::class, 'store'])->middleware('ability:chat:write')->middleware('throttle:messages');
+            Route::post(ApiRoutes::COMMUNITY_SPACE_MESSAGES_READ, [ChatMessageApiController::class, 'read'])->middleware('ability:chat:read');
+            Route::get(ApiRoutes::COMMUNITY_SPACE_MESSAGE, [ChatMessageApiController::class, 'show'])->middleware('ability:chat:read');
+            Route::patch(ApiRoutes::COMMUNITY_SPACE_MESSAGE, [ChatMessageApiController::class, 'update'])->middleware('ability:chat:write');
+            Route::delete(ApiRoutes::COMMUNITY_SPACE_MESSAGE, [ChatMessageApiController::class, 'destroy'])->middleware('ability:chat:write');
+            Route::get(ApiRoutes::COMMUNITY_SPACE_MESSAGE_THREAD, [ChatMessageApiController::class, 'thread'])->middleware('ability:chat:read');
+            Route::get(ApiRoutes::COMMUNITY_SPACE_MESSAGE_REACTIONS, [ReactionApiController::class, 'listMessage'])->middleware('ability:chat:read');
+            Route::post(ApiRoutes::COMMUNITY_SPACE_MESSAGE_REACTIONS, [ReactionApiController::class, 'toggleMessage'])->middleware('ability:chat:write')->middleware('throttle:reactions');
 
             // Pages of page spaces (#1179)
             Route::get(ApiRoutes::COMMUNITY_SPACE_PAGES, [PageApiController::class, 'index'])->middleware('ability:pages:read');
