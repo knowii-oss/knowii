@@ -10,6 +10,21 @@ permissions:
 jobs:
   main:
     runs-on: ubuntu-latest
+    # Same database engine and major version as docker-compose.yml and production (SELF_HOSTING.md)
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: sail
+          POSTGRES_PASSWORD: secret
+          POSTGRES_DB: testing
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U sail -d testing"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v7
         with:
@@ -39,7 +54,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
-          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, pgsql, pdo_pgsql, bcmath, soap, intl, gd, exif, iconv
       - name: Create .env file
         run: |
           php -r "file_exists('.env') || copy('.env.example', '.env');"
@@ -58,7 +73,7 @@ jobs:
         run: npm run tsc
 
       # Build the front-end assets so the Vite manifest
-      # (public/build/.vite/manifest.json) exists for the back-end tests below.
+      # (public/build/manifest.json) exists for the back-end tests below.
       # Runs after composer install because the build resolves the `ziggy-js`
       # tsconfig alias from vendor/tightenco/ziggy. The manifest is no longer
       # committed to Git; it is generated here (and on deploy).
@@ -68,17 +83,15 @@ jobs:
         run: php artisan key:generate
       - name: Configure FS permissions
         run: chmod -R 777 storage bootstrap/cache
-      - name: Create test database
-        run: |
-          mkdir -p database
-          touch database/database.sqlite
       - name: Run database migrations
-        env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: database/database.sqlite
+        env: &postgres-env
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: testing
+          DB_USERNAME: sail
+          DB_PASSWORD: secret
         run: php artisan migrate --force
       - name: Execute back-end tests
-        env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: database/database.sqlite
+        env: *postgres-env
         run: php artisan test

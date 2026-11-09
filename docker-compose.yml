@@ -30,7 +30,7 @@ services:
       - pgsql
       - redis
   pgsql:
-    image: '${POSTGRES_IMAGE:-postgres:17}'
+    image: '${POSTGRES_IMAGE:-postgres:18}'
     ports:
       - '${FORWARD_DB_PORT:-5432}:5432'
     environment:
@@ -39,7 +39,8 @@ services:
       POSTGRES_USER: '${DB_USERNAME}'
       POSTGRES_PASSWORD: '${DB_PASSWORD:-secret}'
     volumes:
-      - 'sail-pgsql:/var/lib/postgresql/data'
+      # PostgreSQL 18+ images keep their data under /var/lib/postgresql/<major>/docker: mount the parent directory
+      - 'sail-pgsql-18:/var/lib/postgresql'
       - './docker/pgsql/create-testing-database.sql:/docker-entrypoint-initdb.d/10-create-testing-database.sql'
     networks:
       - sail
@@ -85,7 +86,7 @@ networks:
   sail:
     driver: bridge
 volumes:
-  sail-pgsql:
+  sail-pgsql-18:
     driver: local
   sail-redis:
     driver: local
