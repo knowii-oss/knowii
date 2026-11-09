@@ -2,7 +2,7 @@
   "recommendations": [
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
-    "firsttris.vscode-jest-runner",
+    "vitest.explorer",
     "ms-playwright.playwright",
     "nrwl.angular-console",
     "amiralizadeh9480.laravel-extra-intellisense",

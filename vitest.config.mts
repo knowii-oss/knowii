@@ -4,7 +4,6 @@ import { defineConfig } from 'vitest/config';
 // Nx runs each project's tests through its own Vite configuration; this file is used when running `npx vitest` from the root.
 export default defineConfig({
   test: {
-    // apps/knowii uses Jest, not Vitest
-    projects: ['libs/*/vite.config.mts'],
+    projects: ['libs/*/vite.config.mts', 'apps/knowii/vitest.config.mts'],
   },
 });
