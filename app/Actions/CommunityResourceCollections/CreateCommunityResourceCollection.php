@@ -4,11 +4,13 @@ namespace App\Actions\CommunityResourceCollections;
 
 use App\Constants;
 use App\Contracts\CommunityResourceCollections\CreatesCommunityResourceCollections;
+use App\Exceptions\BusinessException;
 use App\Exceptions\TechnicalException;
 use App\Models\Community;
 use App\Models\CommunityResourceCollection;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -16,6 +18,8 @@ use Illuminate\Validation\ValidationException;
 
 class CreateCommunityResourceCollection implements CreatesCommunityResourceCollections
 {
+    public const string NAME_TAKEN = 'This community already has a resource collection with this name';
+
     /**
      * Validate and create a new resource collection for the given community.
      *
@@ -47,6 +51,10 @@ class CreateCommunityResourceCollection implements CreatesCommunityResourceColle
         $input = $validator->validated();
         Log::debug('Input validated');
 
+        if (CommunityResourceCollection::nameIsTaken($community, $input['name'])) {
+            throw new BusinessException(self::NAME_TAKEN);
+        }
+
         Log::debug('Saving the new community resource collection');
 
         try {
@@ -58,6 +66,9 @@ class CreateCommunityResourceCollection implements CreatesCommunityResourceColle
             Log::info('New community resource collection created successfully', ['collection' => $collection]);
 
             return $collection;
+        } catch (UniqueConstraintViolationException) {
+            // Another request created the same name in the meantime (the unique index is the last guard)
+            throw new BusinessException(self::NAME_TAKEN);
         } catch (\Exception $e) {
             Log::warning('Failed to create the community resource collection', ['exception' => $e]);
             throw new TechnicalException('Failed to create the community resource collection', null, $e);

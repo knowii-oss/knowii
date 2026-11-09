@@ -64,6 +64,9 @@ export default function CreateResourceCollectionDialog(props: CreateResourceColl
       }
       form.reset();
       props.onHide();
+    } else if ('businessIssue' === response.type && response.message) {
+      // The name is already used in this community (#925): show it on the field, where the member fixes it
+      form.setError('name', { type: 'server', message: response.message }, { shouldFocus: true });
     } else {
       showToast({
         severity: 'error',

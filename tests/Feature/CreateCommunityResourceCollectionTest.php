@@ -145,8 +145,9 @@ test('resource collection slug generation avoids duplicate slugs', function () {
         'description' => 'Awesome collection',
     ];
 
+    // A different name (names are unique in the community, #925) that gives the same slug
     $input2 = [
-        'name' => 'Test',
+        'name' => 'Test-',
         'description' => 'Awesome collection',
     ];
 
