@@ -40,6 +40,11 @@ final class ApiRoutes
 
     public const PARAM_MESSAGE = 'message';
 
+    // Direct messages (#1186): named after Community::conversations() for the scoped binding
+    public const PARAM_CONVERSATION = 'conversation';
+
+    public const PARAM_USER_CUID = 'userCuid';
+
     public const PARAM_COMMENT = 'comment';
 
     // Named after Space::resources() for the scoped binding
@@ -64,6 +69,11 @@ final class ApiRoutes
 
     // Show or hide when the current user is online (#1187)
     public const USER_ONLINE_STATUS = 'user/online-status';
+
+    // The members the current user blocked (#1186)
+    public const USER_BLOCKS = 'user/blocks';
+
+    public const USER_BLOCK = self::USER_BLOCKS.'/{'.self::PARAM_USER_CUID.'}';
 
     public const AUTH_LOGIN = 'auth/login';
 
@@ -160,6 +170,19 @@ final class ApiRoutes
     public const COMMUNITY_ACCESS_GROUP_MEMBERS = self::COMMUNITY_ACCESS_GROUP.'/members';
 
     public const COMMUNITY_ACCESS_GROUP_MEMBER = self::COMMUNITY_ACCESS_GROUP_MEMBERS.'/{'.self::PARAM_MEMBER.'}';
+
+    // Direct messages (#1186, ADR 0028)
+    public const COMMUNITY_CONVERSATIONS = self::COMMUNITY.'/conversations';
+
+    public const COMMUNITY_CONVERSATION = self::COMMUNITY_CONVERSATIONS.'/{'.self::PARAM_CONVERSATION.'}';
+
+    public const COMMUNITY_CONVERSATION_MESSAGES = self::COMMUNITY_CONVERSATION.'/messages';
+
+    public const COMMUNITY_CONVERSATION_READ = self::COMMUNITY_CONVERSATION.'/read';
+
+    public const COMMUNITY_CONVERSATION_MESSAGE = self::COMMUNITY_CONVERSATION_MESSAGES.'/{'.self::PARAM_MESSAGE.'}';
+
+    public const COMMUNITY_CONVERSATION_MESSAGE_REACTIONS = self::COMMUNITY_CONVERSATION_MESSAGE.'/reactions';
 
     // Who is online now (#1187, ADR 0027)
     public const COMMUNITY_ONLINE_MEMBERS = self::COMMUNITY.'/online-members';

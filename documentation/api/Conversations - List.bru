@@ -1,0 +1,19 @@
+meta {
+  name: Conversations - List
+  type: http
+  seq: 107
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/conversations?limit=20&offset=0
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Your conversations in the community (#1186, ADR 0028), newest first: participants, last_message (short text), unread_count. metadata.unread_total counts every unread message. Members only. Needs messages:read.
+}

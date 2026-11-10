@@ -3,6 +3,7 @@
 use App\Http\Controllers\Inertia\CommunityController;
 use App\Http\Controllers\Inertia\CommunityInvitationController;
 use App\Http\Controllers\Inertia\CommunityResourceController;
+use App\Http\Controllers\Inertia\ConversationController;
 use App\Http\Controllers\Inertia\DashboardController;
 use App\Http\Controllers\Inertia\MagicLinkController;
 use App\Http\Controllers\Inertia\MemberController;
@@ -49,6 +50,9 @@ Route::middleware([
     Route::get('/community-invitations/{invitation}', [CommunityInvitationController::class, 'accept'])->middleware('signed')->name('community-invitations.accept');
 
     Route::get('/community/{communitySlug}/member/{username}', [MemberController::class, 'show'])->name('members.show');
+    // Direct messages (#1186)
+    Route::get('/community/{communitySlug}/messages', [ConversationController::class, 'index'])->name('messages.index');
+    Route::get('/community/{communitySlug}/messages/{conversationCuid}', [ConversationController::class, 'show'])->name('messages.show');
     Route::get('/community/{communitySlug}/space/{spaceSlug}', [SpaceController::class, 'show'])->name('spaces.show');
     Route::get('/community/{communitySlug}/space/{spaceSlug}/post/{postSlug}', [PostController::class, 'show'])->name('posts.show');
     // Pages of page spaces (#1179)

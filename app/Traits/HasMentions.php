@@ -32,12 +32,21 @@ trait HasMentions
 
         $this->mentions()->delete();
         foreach ($rendered->mentioned as $member) {
-            if ($author !== null && $member->id === $author->id) {
+            if (($author !== null && $member->id === $author->id) || ! $this->canMention($member)) {
                 continue;
             }
             $this->mentions()->create(['community_id' => $this->community_id, 'user_id' => $member->id]);
         }
 
         return $rendered->html;
+    }
+
+    /**
+     * Whether a member can be mentioned in this item: every member of the community, unless the item says otherwise
+     * (a direct message mentions its participants only, #1186)
+     */
+    protected function canMention(User $member): bool
+    {
+        return true;
     }
 }

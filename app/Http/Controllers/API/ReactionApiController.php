@@ -10,6 +10,7 @@ use App\Models\ChatMessage;
 use App\Models\Comment;
 use App\Models\Community;
 use App\Models\CommunityResource;
+use App\Models\Conversation;
 use App\Models\Post;
 use App\Models\Reaction;
 use App\Models\Space;
@@ -109,6 +110,27 @@ class ReactionApiController extends Controller
     final public function listMessage(Community $community, Space $space, ChatMessage $message): JsonResponse
     {
         Gate::authorize('view', $space);
+
+        return self::success('Reactions', null, self::whoReacted($message));
+    }
+
+    /**
+     * Add or remove a reaction of the current member on a direct message (#1186).
+     *
+     * @throws AuthenticationException
+     */
+    #[BodyParameter('kind', description: self::KIND_DESCRIPTION, required: true, type: 'string', example: 'like')]
+    final public function toggleDirectMessage(Request $request, Community $community, Conversation $conversation, ChatMessage $message): JsonResponse
+    {
+        return $this->toggle($request, $message);
+    }
+
+    /**
+     * Who reacted to a direct message, per kind (#1186).
+     */
+    final public function listDirectMessage(Community $community, Conversation $conversation, ChatMessage $message): JsonResponse
+    {
+        Gate::authorize('view', $conversation);
 
         return self::success('Reactions', null, self::whoReacted($message));
     }

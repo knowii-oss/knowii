@@ -28,11 +28,22 @@ class MemberController extends Controller
 
         JsonResource::withoutWrapping();
 
+        // Direct messages (#1186): what the current member can do with this member
+        $viewer = $request->user();
+        $isSelf = $viewer !== null && $viewer->is($member);
+        $blockedByMe = $viewer !== null && ! $isSelf && $viewer->blockedUsers()->whereKey($member->id)->exists();
+
         // WARNING: aligned with the props of Pages/Members/Show.tsx
         return Jetstream::inertia()->render($request, 'Members/Show', [
             'community' => $community->toResource()->withLargeFields(),
             'spaceGroups' => SpaceTree::for($community, $request->user())->toResourceCollection(),
             'member' => $member->toResource(MemberProfileResource::class),
+            'messaging' => [
+                'isSelf' => $isSelf,
+                'blockedByMe' => $blockedByMe,
+                'canMessage' => $viewer !== null && ! $isSelf && $viewer->belongsToCommunity($community)
+                    && $community->allowsDirectMessages() && ! $viewer->hasBlockWith($member),
+            ],
         ]);
     }
 }

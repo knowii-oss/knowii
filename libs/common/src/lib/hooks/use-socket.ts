@@ -11,9 +11,21 @@ const SPACE_CHANNEL_PARAM_COMMUNITY_CUID = '{communityCuid}';
 const SPACE_CHANNEL_PARAM_SPACE_CUID = '{spaceCuid}';
 const SPACE_CHANNEL = `community.${SPACE_CHANNEL_PARAM_COMMUNITY_CUID}.space.${SPACE_CHANNEL_PARAM_SPACE_CUID}`;
 
+// Direct messages (#1186). WARNING: aligned with WS_CHANNEL_CONVERSATION and WS_CHANNEL_USER (Constants.php)
+const CONVERSATION_CHANNEL_PARAM = '{conversationCuid}';
+const CONVERSATION_CHANNEL = `conversation.${CONVERSATION_CHANNEL_PARAM}`;
+const USER_CHANNEL_PARAM = '{userCuid}';
+const USER_CHANNEL = `user.${USER_CHANNEL_PARAM}`;
+
 // Define the channel types
 type Channel =
-  { type: 'communities' } | { type: 'community'; communityCuid: string } | { type: 'space'; communityCuid: string; spaceCuid: string };
+  | { type: 'communities' }
+  | { type: 'community'; communityCuid: string }
+  | { type: 'space'; communityCuid: string; spaceCuid: string }
+  // The messages of one conversation (#1186)
+  | { type: 'conversation'; conversationCuid: string }
+  // The conversations of the current member, in every community (#1186)
+  | { type: 'user'; userCuid: string };
 
 // Define the event types
 // WARNING: those MUST match the names defined using broadcastAs on the back-end event classes
@@ -64,6 +76,21 @@ export const SPACE_CONTENT_EVENTS = [
 ] as const;
 export type SpaceContentEvent = (typeof SPACE_CONTENT_EVENTS)[number];
 
+// Direct messages (#1186): identifiers only, the page loads the message through the API. WARNING: aligned with ConversationChanged.php
+export const CONVERSATION_EVENTS = [
+  'conversation.message.created',
+  'conversation.message.updated',
+  'conversation.message.deleted',
+  'conversation.reactions.changed',
+] as const;
+export type ConversationEvent = (typeof CONVERSATION_EVENTS)[number];
+
+export interface ConversationPayload {
+  conversation_cuid: string;
+  message_cuid: string;
+  author_cuid: string | null;
+}
+
 export interface SpaceContentPayload {
   space_cuid: string;
   post_cuid?: string | null;
@@ -84,7 +111,7 @@ type CommunityChannelEvent = Exclude<CommunityEvent, typeof CommunityEvents.CREA
 // The resources of a resources space go to the channel of the space only (ADR 0015)
 type SpaceChannelEvent = ResourceEvent | SpaceContentEvent;
 
-type AllEvents = CommunitiesChannelEvent | CommunityChannelEvent | SpaceChannelEvent;
+type AllEvents = CommunitiesChannelEvent | CommunityChannelEvent | SpaceChannelEvent | ConversationEvent;
 
 // Map events to their payload types
 type EventPayloadMap = {
@@ -101,6 +128,8 @@ type EventPayloadMap = {
   [K in AccessGroupEvent]: { community_cuid: string };
 } & {
   [K in SpaceContentEvent]: SpaceContentPayload;
+} & {
+  [K in ConversationEvent]: ConversationPayload;
 };
 
 // Define the hook options with improved type safety
@@ -108,7 +137,9 @@ type ChannelEvent<ChannelType extends Channel> = ChannelType['type'] extends 'co
   ? CommunitiesChannelEvent
   : ChannelType['type'] extends 'community'
     ? CommunityChannelEvent
-    : SpaceChannelEvent;
+    : ChannelType['type'] extends 'space'
+      ? SpaceChannelEvent
+      : ConversationEvent;
 
 type UseSocketOptions<ChannelType extends Channel, EventType extends ChannelEvent<ChannelType>> = {
   channel: ChannelType;
@@ -128,6 +159,10 @@ const getChannelString = (channel: Channel): string => {
         SPACE_CHANNEL_PARAM_SPACE_CUID,
         channel.spaceCuid,
       );
+    case 'conversation':
+      return CONVERSATION_CHANNEL.replace(CONVERSATION_CHANNEL_PARAM, channel.conversationCuid);
+    case 'user':
+      return USER_CHANNEL.replace(USER_CHANNEL_PARAM, channel.userCuid);
   }
 };
 
@@ -139,6 +174,10 @@ const getAllEventsForChannelType = (channelType: Channel['type']): AllEvents[] =
 
   if (channelType === 'community') {
     return [...Object.values(CommunityEvents).filter((event) => event !== CommunityEvents.CREATED), ...Object.values(SpaceTreeEvents)];
+  }
+
+  if (channelType === 'conversation' || channelType === 'user') {
+    return [...CONVERSATION_EVENTS];
   }
 
   return [...Object.values(ResourceEvents), ...SPACE_CONTENT_EVENTS];

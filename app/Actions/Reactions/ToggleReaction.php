@@ -9,6 +9,7 @@ use App\Models\ChatMessage;
 use App\Models\Comment;
 use App\Models\Post;
 use App\Models\User;
+use App\Support\ChatMessageEvents;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -41,7 +42,11 @@ class ToggleReaction implements TogglesReactions
             );
         }
 
-        event(SpaceContentChanged::forReactions($reactable));
+        if ($reactable instanceof ChatMessage) {
+            ChatMessageEvents::dispatch(ChatMessageEvents::REACTIONS, $reactable);
+        } else {
+            event(SpaceContentChanged::forReactions($reactable));
+        }
 
         return $reactable->load('reactions')->reactionSummary($user);
     }

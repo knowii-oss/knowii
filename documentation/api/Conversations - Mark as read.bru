@@ -1,0 +1,26 @@
+meta {
+  name: Conversations - Mark as read
+  type: http
+  seq: 112
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/conversations/k3conversationexample001/read
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "message_cuid": "m7directmessageexample01"
+  }
+}
+
+docs {
+  Remember the last message you read in the conversation (#1186): the unread counts start after it, and the marker never goes back. Needs messages:read.
+}

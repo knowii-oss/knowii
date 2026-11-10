@@ -1,0 +1,19 @@
+meta {
+  name: Blocks - Unblock
+  type: http
+  seq: 106
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/user/blocks/v76f8v6cw1zyl5wqxoucchmp
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Unblock a member by user cuid (#1186). Returns 204. Needs user:write.
+}

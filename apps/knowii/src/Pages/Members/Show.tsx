@@ -1,30 +1,54 @@
+import { useState } from 'react';
+import { Link, router } from '@inertiajs/react';
 import type { Community, MemberProfile, SocialMediaLinkProperty, SpaceGroup } from '@knowii/common';
 import {
   COMMUNITY_URL,
+  knowiiApiClient,
+  MESSAGES_URL,
+  useAppData,
   safeHttpUrl,
   SOCIAL_MEDIA_LINK_ICONS,
   SOCIAL_MEDIA_LINK_NAMES,
   socialMediaLinkPropertySchema,
 } from '@knowii/common';
-import { FaLocationDot, FaPhone } from 'react-icons/fa6';
+import { FaBan, FaEnvelope, FaLocationDot, FaPhone } from 'react-icons/fa6';
 import AppLayout from '@/Layouts/AppLayout';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
 import { CommunityShell } from '@/Components/Spaces/CommunityShell';
 import type { BreadcrumbItem } from '@/Components/ui';
-import { Avatar, Card, RelativeTime } from '@/Components/ui';
+import { Avatar, Button, buttonClasses, Card, RelativeTime } from '@/Components/ui';
 
 interface Props {
   // WARNING: aligned with MemberController.php
   community: Community;
   spaceGroups: SpaceGroup[];
   member: MemberProfile;
+  // Direct messages (#1186)
+  messaging: { isSelf: boolean; blockedByMe: boolean; canMessage: boolean };
 }
 
 /**
  * The profile of a member, as the other members of the community see it (mentions link here).
  */
-export default function MemberPage({ community, spaceGroups, member }: Props) {
+export default function MemberPage({ community, spaceGroups, member, messaging }: Props) {
+  const { showToast } = useAppData();
+  const [busy, setBusy] = useState(false);
+
+  const toggleBlock = async () => {
+    setBusy(true);
+    const result = messaging.blockedByMe
+      ? await knowiiApiClient.users.blocks.unblock(member.cuid)
+      : await knowiiApiClient.users.blocks.block(member.cuid);
+    setBusy(false);
+    if (!result.ok) {
+      showToast({ severity: 'error', summary: result.message });
+      return;
+    }
+    showToast({ severity: 'success', summary: messaging.blockedByMe ? `${member.name} is unblocked` : `${member.name} is blocked` });
+    router.reload({ only: ['messaging'] });
+  };
+
   const breadcrumbItems: BreadcrumbItem[] = [
     {
       label: community.name,
@@ -72,6 +96,27 @@ export default function MemberPage({ community, spaceGroups, member }: Props) {
               Member since <RelativeTime date={member.member_since} />
             </span>
           </p>
+
+          {!messaging.isSelf && (
+            <div className="flex flex-wrap gap-2">
+              {messaging.canMessage && (
+                <Link
+                  href={`${route(MESSAGES_URL, { communitySlug: community.slug })}?to=${encodeURIComponent(member.username)}`}
+                  className={buttonClasses({ variant: 'primary', size: 'sm' })}
+                >
+                  <FaEnvelope aria-hidden="true" />
+                  Send a message
+                </Link>
+              )}
+              <Button variant="ghost" size="sm" onClick={() => void toggleBlock()} loading={busy} aria-describedby="member-block-hint">
+                <FaBan aria-hidden="true" />
+                {messaging.blockedByMe ? 'Unblock' : 'Block'}
+              </Button>
+              <p id="member-block-hint" className="sr-only">
+                A blocked member cannot write to you, and you cannot write to them. They are not told.
+              </p>
+            </div>
+          )}
 
           {member.bio && <p className="whitespace-pre-line">{member.bio}</p>}
 

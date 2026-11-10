@@ -3,9 +3,9 @@
 namespace App\Actions\Chat;
 
 use App\Contracts\Chat\UpdatesChatMessages;
-use App\Events\Spaces\SpaceContentChanged;
 use App\Models\ChatMessage;
 use App\Models\User;
+use App\Support\ChatMessageEvents;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -33,7 +33,7 @@ class UpdateChatMessage implements UpdatesChatMessages
         });
 
         Log::info('Chat message updated', ['message' => $message->cuid]);
-        event(SpaceContentChanged::forMessage(SpaceContentChanged::MESSAGE_UPDATED, $message, $user->cuid));
+        ChatMessageEvents::dispatch(ChatMessageEvents::UPDATED, $message, $user->cuid);
 
         return $message;
     }

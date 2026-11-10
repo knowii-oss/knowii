@@ -7,7 +7,7 @@ import { HttpStatus } from '../types/http-status.intf';
 export type ApiResult<T> =
   { ok: true; message: string; data: T } | { ok: false; status: number; message: string; errors: Record<string, string[]> };
 
-export type ApiMethod = 'get' | 'post' | 'patch' | 'delete';
+export type ApiMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
 
 const jsonHeaders: Record<string, string> = {
   Accept: 'application/json',

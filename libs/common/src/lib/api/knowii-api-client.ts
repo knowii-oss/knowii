@@ -1,6 +1,14 @@
 import {
   COMMUNITY_API_BASE_PATH,
   USER_AVATAR_API_PATH,
+  USER_BLOCKS_API_PATH,
+  CONVERSATION_API_PARAM_CONVERSATION,
+  COMMUNITY_CONVERSATIONS_API_PATH,
+  COMMUNITY_CONVERSATION_API_PATH,
+  COMMUNITY_CONVERSATION_MESSAGES_API_PATH,
+  COMMUNITY_CONVERSATION_READ_API_PATH,
+  COMMUNITY_CONVERSATION_MESSAGE_API_PATH,
+  COMMUNITY_CONVERSATION_MESSAGE_REACTIONS_API_PATH,
   USER_ONLINE_STATUS_API_PATH,
   COMMUNITY_ONLINE_MEMBERS_API_PATH,
   COMMUNITY_SPACE_ONLINE_MEMBERS_API_PATH,
@@ -81,6 +89,8 @@ import type { Author, Paginated, Post, PostForm } from '../types/post.schema';
 import { authorSchema, paginationSchema, postSchema } from '../types/post.schema';
 import type { Comment, CommentForm } from '../types/comment.schema';
 import { commentSchema } from '../types/comment.schema';
+import type { Conversation, NewConversationForm } from '../types/conversation.schema';
+import { conversationSchema } from '../types/conversation.schema';
 import type { PresenceMember } from '../types/presence.schema';
 import { presenceMemberSchema } from '../types/presence.schema';
 import type { Upload } from '../types/upload.schema';
@@ -114,7 +124,9 @@ export type ReactionTarget =
   | { communityCuid: string; spaceCuid: string; postCuid: string; commentCuid?: string | undefined }
   | { communityCuid: string; spaceCuid: string; resourceCuid: string; commentCuid: string }
   // A chat message (#1185)
-  | { communityCuid: string; spaceCuid: string; messageCuid: string; commentCuid?: undefined };
+  | { communityCuid: string; spaceCuid: string; messageCuid: string; commentCuid?: undefined }
+  // A direct message (#1186)
+  | { communityCuid: string; conversationCuid: string; messageCuid: string; commentCuid?: undefined };
 
 const spaceGroupPath = (communityCuid: string, spaceGroupCuid: string, path = COMMUNITY_SPACE_GROUP_API_PATH) =>
   apiPath(path, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE_GROUP]: spaceGroupCuid });
@@ -138,12 +150,20 @@ const pagesPath = (communityCuid: string, spaceCuid: string, pageCuid = '', path
 const pageListSchema = z.array(pageSchema);
 const messagesPath = (communityCuid: string, spaceCuid: string, messageCuid = '', path = COMMUNITY_SPACE_MESSAGES_API_PATH) =>
   apiPath(path, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE]: spaceCuid, [SPACE_API_PARAM_MESSAGE]: messageCuid });
+const conversationPath = (communityCuid: string, conversationCuid: string, path = COMMUNITY_CONVERSATION_API_PATH, messageCuid = '') =>
+  apiPath(path, {
+    [SPACE_API_PARAM_COMMUNITY]: communityCuid,
+    [CONVERSATION_API_PARAM_CONVERSATION]: conversationCuid,
+    [SPACE_API_PARAM_MESSAGE]: messageCuid,
+  });
 const reactionsPath = (target: ReactionTarget) =>
-  'messageCuid' in target
-    ? messagesPath(target.communityCuid, target.spaceCuid, target.messageCuid, COMMUNITY_SPACE_MESSAGE_REACTIONS_API_PATH)
-    : target.commentCuid
-      ? `${commentsPath(target, target.commentCuid)}/reactions`
-      : `${postsPath(target.communityCuid, target.spaceCuid, 'postCuid' in target ? target.postCuid : '', COMMUNITY_SPACE_POST_API_PATH)}/reactions`;
+  'conversationCuid' in target
+    ? conversationPath(target.communityCuid, target.conversationCuid, COMMUNITY_CONVERSATION_MESSAGE_REACTIONS_API_PATH, target.messageCuid)
+    : 'messageCuid' in target
+      ? messagesPath(target.communityCuid, target.spaceCuid, target.messageCuid, COMMUNITY_SPACE_MESSAGE_REACTIONS_API_PATH)
+      : target.commentCuid
+        ? `${commentsPath(target, target.commentCuid)}/reactions`
+        : `${postsPath(target.communityCuid, target.spaceCuid, 'postCuid' in target ? target.postCuid : '', COMMUNITY_SPACE_POST_API_PATH)}/reactions`;
 const commentsPath = (subject: CommentSubject, commentCuid?: string) =>
   'resourceCuid' in subject
     ? apiPath(commentCuid ? COMMUNITY_SPACE_RESOURCE_COMMENT_API_PATH : COMMUNITY_SPACE_RESOURCE_COMMENTS_API_PATH, {
@@ -209,7 +229,7 @@ export const knowiiApiClient = {
     /**
      * Change the name, the description or the visibility of a community (owner only, #1129). The slug stays the same.
      */
-    update: (communityCuid: string, input: Partial<NewCommunity>): Promise<ApiResult<Community>> =>
+    update: (communityCuid: string, input: Partial<NewCommunity> & { direct_messages_enabled?: boolean }): Promise<ApiResult<Community>> =>
       apiRequest('patch', communityPath(COMMUNITY_API_PATH, communityCuid), communitySchema, 'Failed to save the community.', input),
     /**
      * Switch some rights of the moderators (owner and admins, #1240). Returns the community.
@@ -458,6 +478,104 @@ export const knowiiApiClient = {
           {
             message_cuid: messageCuid,
           },
+        ),
+    },
+    /**
+     * Direct messages (#1186, ADR 0028): the conversations of the current member and their messages
+     */
+    conversations: {
+      list: async (
+        communityCuid: string,
+        limit = 50,
+        offset = 0,
+      ): Promise<ApiResult<{ conversations: Conversation[]; unreadTotal: number }>> => {
+        const url = `${conversationPath(communityCuid, '', COMMUNITY_CONVERSATIONS_API_PATH)}?limit=${limit}&offset=${offset}`;
+        try {
+          const response = await fetch(url, { headers: { Accept: 'application/json' } });
+          const json: unknown = await response.json();
+          const parsed = z
+            .object({ data: z.array(conversationSchema), metadata: z.object({ unread_total: z.number().int() }) })
+            .safeParse(json);
+          if (!response.ok || !parsed.success) {
+            return { ok: false, status: response.status, message: 'Failed to load your conversations.', errors: {} };
+          }
+          return { ok: true, message: '', data: { conversations: parsed.data.data, unreadTotal: parsed.data.metadata.unread_total } };
+        } catch {
+          return { ok: false, status: 0, message: 'Failed to load your conversations.', errors: {} };
+        }
+      },
+      start: (communityCuid: string, input: NewConversationForm): Promise<ApiResult<Conversation>> =>
+        apiRequest(
+          'post',
+          conversationPath(communityCuid, '', COMMUNITY_CONVERSATIONS_API_PATH),
+          conversationSchema,
+          'Failed to send the message.',
+          input,
+        ),
+      get: (communityCuid: string, conversationCuid: string): Promise<ApiResult<Conversation>> =>
+        apiRequest('get', conversationPath(communityCuid, conversationCuid), conversationSchema, 'Failed to load the conversation.'),
+      messages: async (
+        communityCuid: string,
+        conversationCuid: string,
+        before?: string,
+      ): Promise<ApiResult<{ messages: ChatMessage[]; hasMore: boolean }>> => {
+        const url = `${conversationPath(communityCuid, conversationCuid, COMMUNITY_CONVERSATION_MESSAGES_API_PATH)}${
+          before ? `?before=${encodeURIComponent(before)}` : ''
+        }`;
+        try {
+          const response = await fetch(url, { headers: { Accept: 'application/json' } });
+          const json: unknown = await response.json();
+          const parsed = z.object({ data: z.array(chatMessageSchema), metadata: z.object({ has_more: z.boolean() }) }).safeParse(json);
+          if (!response.ok || !parsed.success) {
+            return { ok: false, status: response.status, message: 'Failed to load the messages.', errors: {} };
+          }
+          return { ok: true, message: '', data: { messages: parsed.data.data, hasMore: parsed.data.metadata.has_more } };
+        } catch {
+          return { ok: false, status: 0, message: 'Failed to load the messages.', errors: {} };
+        }
+      },
+      message: (communityCuid: string, conversationCuid: string, messageCuid: string): Promise<ApiResult<ChatMessage>> =>
+        apiRequest(
+          'get',
+          conversationPath(communityCuid, conversationCuid, COMMUNITY_CONVERSATION_MESSAGE_API_PATH, messageCuid),
+          chatMessageSchema,
+          'Failed to load the message.',
+        ),
+      send: (communityCuid: string, conversationCuid: string, input: ChatMessageForm): Promise<ApiResult<ChatMessage>> =>
+        apiRequest(
+          'post',
+          conversationPath(communityCuid, conversationCuid, COMMUNITY_CONVERSATION_MESSAGES_API_PATH),
+          chatMessageSchema,
+          'Failed to send the message.',
+          input,
+        ),
+      update: (
+        communityCuid: string,
+        conversationCuid: string,
+        messageCuid: string,
+        input: ChatMessageForm,
+      ): Promise<ApiResult<ChatMessage>> =>
+        apiRequest(
+          'patch',
+          conversationPath(communityCuid, conversationCuid, COMMUNITY_CONVERSATION_MESSAGE_API_PATH, messageCuid),
+          chatMessageSchema,
+          'Failed to save the message.',
+          input,
+        ),
+      delete: (communityCuid: string, conversationCuid: string, messageCuid: string): Promise<ApiResult<undefined>> =>
+        apiRequest(
+          'delete',
+          conversationPath(communityCuid, conversationCuid, COMMUNITY_CONVERSATION_MESSAGE_API_PATH, messageCuid),
+          null,
+          'Failed to delete the message.',
+        ),
+      markAsRead: (communityCuid: string, conversationCuid: string, messageCuid: string): Promise<ApiResult<undefined>> =>
+        apiRequest(
+          'post',
+          conversationPath(communityCuid, conversationCuid, COMMUNITY_CONVERSATION_READ_API_PATH),
+          null,
+          'Failed to save what you read.',
+          { message_cuid: messageCuid },
         ),
     },
     /**
@@ -802,6 +920,17 @@ export const knowiiApiClient = {
     /**
      * Show or hide when the current user is online (#1187, ADR 0027)
      */
+    /**
+     * The members the current user blocked (#1186): they cannot write to each other
+     */
+    blocks: {
+      list: (): Promise<ApiResult<Author[]>> =>
+        apiRequest('get', USER_BLOCKS_API_PATH, z.array(authorSchema), 'Failed to load the blocked members.'),
+      block: (userCuid: string): Promise<ApiResult<unknown>> =>
+        apiRequest('put', `${USER_BLOCKS_API_PATH}/${encodeURIComponent(userCuid)}`, null, 'Failed to block the member.'),
+      unblock: (userCuid: string): Promise<ApiResult<unknown>> =>
+        apiRequest('delete', `${USER_BLOCKS_API_PATH}/${encodeURIComponent(userCuid)}`, null, 'Failed to unblock the member.'),
+    },
     updateOnlineStatus: (show: boolean): Promise<ApiResult<unknown>> =>
       apiRequest('patch', USER_ONLINE_STATUS_API_PATH, null, 'Failed to change your online status.', { show_online_status: show }),
     isUsernameAvailable: async (input: IsUsernameAvailableRequest, signal?: AbortSignal): Promise<IsUsernameAvailableResponse> => {

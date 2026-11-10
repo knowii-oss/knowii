@@ -8,6 +8,7 @@ use App\Http\Controllers\API\CommunityApiController;
 use App\Http\Controllers\API\CommunityInvitationApiController;
 use App\Http\Controllers\API\CommunityResourceApiController;
 use App\Http\Controllers\API\CommunityResourceCommentApiController;
+use App\Http\Controllers\API\ConversationApiController;
 use App\Http\Controllers\API\LoginApiController;
 use App\Http\Controllers\API\MarkdownApiController;
 use App\Http\Controllers\API\MemberApiController;
@@ -22,6 +23,7 @@ use App\Http\Controllers\API\SpaceApiController;
 use App\Http\Controllers\API\SpaceGroupApiController;
 use App\Http\Controllers\API\UploadApiController;
 use App\Http\Controllers\API\UserApiController;
+use App\Http\Controllers\API\UserBlockApiController;
 use App\Http\Controllers\API\WaitlistApiController;
 use Illuminate\Support\Facades\Route;
 
@@ -46,6 +48,10 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
         Route::post(ApiRoutes::USER_AVATAR, [UserApiController::class, 'updateAvatar'])->middleware('ability:user:write')->middleware('throttle:uploads');
         Route::delete(ApiRoutes::USER_AVATAR, [UserApiController::class, 'deleteAvatar'])->middleware('ability:user:write');
         Route::patch(ApiRoutes::USER_ONLINE_STATUS, [UserApiController::class, 'updateOnlineStatus'])->middleware('ability:user:write');
+        // Blocked members (#1186)
+        Route::get(ApiRoutes::USER_BLOCKS, [UserBlockApiController::class, 'index'])->middleware('ability:user:read');
+        Route::put(ApiRoutes::USER_BLOCK, [UserBlockApiController::class, 'store'])->middleware('ability:user:write');
+        Route::delete(ApiRoutes::USER_BLOCK, [UserBlockApiController::class, 'destroy'])->middleware('ability:user:write');
         Route::post(ApiRoutes::USERS_IS_USERNAME_AVAILABLE, [UserApiController::class, 'isUsernameAvailable'])->middleware('ability:user:read');
 
         Route::post(ApiRoutes::COMMUNITIES, [CommunityApiController::class, 'store'])->middleware('ability:communities:write');
@@ -126,6 +132,22 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
         Route::post(ApiRoutes::COMMUNITY_UPLOADS, [UploadApiController::class, 'store'])->middleware('ability:posts:write')->middleware('throttle:uploads');
 
         // Members (#1177 search, #1242 management)
+        // Direct messages (#1186, ADR 0028). scopeBindings: a conversation of another community, or a message of another
+        // conversation, gives a 404
+        Route::get(ApiRoutes::COMMUNITY_CONVERSATIONS, [ConversationApiController::class, 'index'])->middleware('ability:messages:read');
+        Route::post(ApiRoutes::COMMUNITY_CONVERSATIONS, [ConversationApiController::class, 'store'])->middleware('ability:messages:write')->middleware('throttle:messages');
+        Route::scopeBindings()->group(function () {
+            Route::get(ApiRoutes::COMMUNITY_CONVERSATION, [ConversationApiController::class, 'show'])->middleware('ability:messages:read');
+            Route::get(ApiRoutes::COMMUNITY_CONVERSATION_MESSAGES, [ConversationApiController::class, 'messages'])->middleware('ability:messages:read');
+            Route::post(ApiRoutes::COMMUNITY_CONVERSATION_MESSAGES, [ConversationApiController::class, 'send'])->middleware('ability:messages:write')->middleware('throttle:messages');
+            Route::post(ApiRoutes::COMMUNITY_CONVERSATION_READ, [ConversationApiController::class, 'read'])->middleware('ability:messages:read');
+            Route::get(ApiRoutes::COMMUNITY_CONVERSATION_MESSAGE, [ConversationApiController::class, 'message'])->middleware('ability:messages:read');
+            Route::patch(ApiRoutes::COMMUNITY_CONVERSATION_MESSAGE, [ConversationApiController::class, 'updateMessage'])->middleware('ability:messages:write');
+            Route::delete(ApiRoutes::COMMUNITY_CONVERSATION_MESSAGE, [ConversationApiController::class, 'destroyMessage'])->middleware('ability:messages:write');
+            Route::get(ApiRoutes::COMMUNITY_CONVERSATION_MESSAGE_REACTIONS, [ReactionApiController::class, 'listDirectMessage'])->middleware('ability:messages:read');
+            Route::post(ApiRoutes::COMMUNITY_CONVERSATION_MESSAGE_REACTIONS, [ReactionApiController::class, 'toggleDirectMessage'])->middleware('ability:messages:write')->middleware('throttle:reactions');
+        });
+
         // Who is online now (#1187, ADR 0027)
         Route::get(ApiRoutes::COMMUNITY_ONLINE_MEMBERS, [OnlineMemberApiController::class, 'community'])->middleware('ability:communities:read');
         Route::scopeBindings()->group(function () {

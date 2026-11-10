@@ -78,6 +78,9 @@ export const communitySchema = baseEntitySchema
     member_count: z.number().int().optional(),
     // Whether the current user belongs to the community (#1187); absent without a signed-in user
     is_member: z.boolean().optional(),
+    // Direct messages (#1186): whether members can write them; what the member did not read (community pages only)
+    direct_messages_enabled: z.boolean().optional(),
+    unread_direct_messages: z.number().int().optional(),
   });
 
 export type Community = z.infer<typeof communitySchema>;

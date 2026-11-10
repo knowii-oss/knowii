@@ -1,0 +1,19 @@
+meta {
+  name: Conversations - Messages
+  type: http
+  seq: 110
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/conversations/k3conversationexample001/messages
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The messages of the conversation, oldest first in the page; ?before=<message cuid> for older ones, metadata.has_more (cursor pagination, ADR 0011). Needs messages:read.
+}

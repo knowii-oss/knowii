@@ -39,7 +39,11 @@ abstract class CommunityEvent implements ShouldBroadcast, ShouldDispatchAfterCom
      */
     public function broadcastWith(): array
     {
-        return $this->community->toResource()->toArray(request());
+        // resolve(), not toArray(): fields left out with when() must not go out as empty objects
+        /** @var array<string, mixed> $payload */
+        $payload = $this->community->toResource()->resolve(request());
+
+        return $payload;
     }
 
     /**

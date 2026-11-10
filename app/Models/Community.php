@@ -31,6 +31,7 @@ use Illuminate\Support\Facades\DB;
  * @property ?string $description
  * @property KnowiiCommunityVisibility $visibility
  * @property array<string, bool> $moderator_permissions
+ * @property bool $direct_messages_enabled The owner turns direct messages off (#1186)
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property int $owner_id
@@ -92,6 +93,7 @@ class Community extends Model
         'visibility',
         'owner_id',
         'moderator_permissions',
+        'direct_messages_enabled',
     ];
 
     /**
@@ -126,6 +128,7 @@ class Community extends Model
         return [
             'visibility' => KnowiiCommunityVisibility::class,
             'moderator_permissions' => 'array',
+            'direct_messages_enabled' => 'boolean',
         ];
     }
 
@@ -215,6 +218,26 @@ class Community extends Model
         return $this->allUsers()->contains(function ($user) use ($email) {
             return mb_strtolower($user->email) === $email;
         });
+    }
+
+    /**
+     * The conversations of direct messages in the community (#1186). Named after the route parameter, for scoped
+     * bindings.
+     *
+     * @return HasMany<Conversation, covariant $this>
+     */
+    final public function conversations(): HasMany
+    {
+        return $this->hasMany(Conversation::class);
+    }
+
+    /**
+     * Whether members can start conversations and send direct messages (#1186). A model built in memory does not
+     * hold the column yet: on by default.
+     */
+    final public function allowsDirectMessages(): bool
+    {
+        return filter_var($this->getAttributes()['direct_messages_enabled'] ?? true, FILTER_VALIDATE_BOOLEAN);
     }
 
     /**

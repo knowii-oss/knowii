@@ -6,6 +6,7 @@ use App\Constants;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
 
@@ -33,10 +34,10 @@ final class Pagination
      *
      * @template TModel of Model
      *
-     * @param  Builder<TModel>|HasMany<TModel, *>  $query
+     * @param  Builder<TModel>|HasMany<TModel, *>|BelongsToMany<TModel, *>  $query
      * @return array{items: Collection<int, TModel>, metadata: array{pagination: array<string, int|null>}}
      */
-    public function apply(Builder|HasMany $query): array
+    public function apply(Builder|HasMany|BelongsToMany $query): array
     {
         $totalCount = (clone $query)->count();
         /** @var Collection<int, TModel> $items */

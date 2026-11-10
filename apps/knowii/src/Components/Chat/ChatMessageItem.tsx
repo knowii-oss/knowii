@@ -1,4 +1,4 @@
-import type { ChatMessage } from '@knowii/common';
+import type { ChatMessage, ReactionTarget } from '@knowii/common';
 import { FaComments, FaPen, FaTrash } from 'react-icons/fa6';
 import { ReactionBar } from '@/Components/Reactions/ReactionBar';
 import { Avatar, Button, MarkdownContent, RelativeTime } from '@/Components/ui';
@@ -7,7 +7,8 @@ import { ChatComposer } from './ChatComposer';
 export interface ChatMessageItemProps {
   message: ChatMessage;
   communityCuid: string;
-  spaceCuid: string;
+  // The reaction endpoint of a message: in a chat space or in a conversation (#1186)
+  reactionTargetFor: (messageCuid: string) => ReactionTarget;
   currentUserCuid: string | null;
   canReact: boolean;
   canModerate: boolean;
@@ -73,7 +74,7 @@ export function ChatMessageItem(props: ChatMessageItemProps) {
 
         <div className="flex flex-wrap items-center gap-2">
           <ReactionBar
-            target={{ communityCuid: props.communityCuid, spaceCuid: props.spaceCuid, messageCuid: message.cuid }}
+            target={props.reactionTargetFor(message.cuid)}
             initialReactions={message.reactions}
             canReact={props.canReact}
             itemLabel={`the message by ${authorName}`}
