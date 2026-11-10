@@ -183,3 +183,31 @@ test('the API login is rate limited like the web login (#1256)', function () {
 
     apiLogin(['email' => $user->email, 'password' => 'password'])->assertStatus(Response::HTTP_TOO_MANY_REQUESTS);
 });
+
+test('the login API refuses an account whose email address is not verified: no session, no token (#1323)', function () {
+    $user = User::factory()->unverified()->withUserProfile()->withPersonalCommunity()->create();
+
+    $response = $this->json('POST', ApiRoutes::path(ApiRoutes::AUTH_LOGIN), [
+        'email' => $user->email,
+        'password' => 'password',
+        'includeToken' => true,
+    ], ['Accept' => 'application/json']);
+
+    $response->assertStatus(Response::HTTP_UNAUTHORIZED);
+    expect($response->json('type'))->toBe(KnowiiApiResponseType::AuthenticationIssue->value)
+        ->and($response->json('metadata.email_verification_required'))->toBeTrue()
+        ->and($user->tokens()->count())->toBe(0);
+    $this->assertGuest();
+});
+
+test('an unverified account cannot use the API, even with a token (#1323)', function () {
+    $user = User::factory()->unverified()->withUserProfile()->withPersonalCommunity()->create();
+    $token = $user->createToken('old', ['*'])->plainTextToken;
+
+    $this->withToken($token)->getJson(ApiRoutes::path(ApiRoutes::USER))->assertForbidden();
+    $this->withToken($token)->postJson(ApiRoutes::path(ApiRoutes::COMMUNITIES), ['name' => 'Squatters', 'visibility' => 'public'])->assertForbidden();
+
+    $user->markEmailAsVerified();
+    $this->app['auth']->forgetGuards();
+    $this->withToken($token)->getJson(ApiRoutes::path(ApiRoutes::USER))->assertOk();
+});
