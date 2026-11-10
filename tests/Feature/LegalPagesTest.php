@@ -109,3 +109,19 @@ test('a sub-processor of an optional feature says that only the communities that
             && str_contains($html, 'at least 14 days before'))
     );
 });
+
+test('the terms of service name DeveloPassion SRL, Belgian law and the public contact address (#1309)', function () {
+    $this->get('/terms-of-service')->assertInertia(fn ($page) => $page
+        ->where('draft', true)
+        ->where('html', fn (string $html) => str_contains($html, 'DeveloPassion SRL')
+            && str_contains($html, 'Belgian law applies')
+            && str_contains($html, 'mailto:contact@developassion.be')
+            && ! str_contains($html, 'knowii.net</a>')
+            && ! str_contains($html, '@knowii.net')
+            && ! str_contains(strtolower($html), 'arbitration'))
+    );
+});
+
+test('every legal page shows the same public contact address (#1309)', function (string $url) {
+    $this->get($url)->assertInertia(fn ($page) => $page->where('html', fn (string $html) => ! str_contains($html, '@knowii.net')));
+})->with('legal pages');
