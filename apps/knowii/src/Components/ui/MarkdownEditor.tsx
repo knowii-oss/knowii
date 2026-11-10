@@ -1,6 +1,7 @@
 import type { KeyboardEvent, ReactNode, Ref } from 'react';
 import { useEffect, useId, useRef, useState } from 'react';
-import { FaBold, FaCode, FaImage, FaItalic, FaLink, FaListOl, FaListUl, FaQuoteRight } from 'react-icons/fa6';
+import { FaBold, FaCode, FaImage, FaItalic, FaLink, FaListOl, FaListUl, FaQuoteRight, FaVideo } from 'react-icons/fa6';
+import { parseVideoUrl } from '@knowii/common';
 import { cn } from './cn';
 import { MarkdownContent } from './MarkdownContent';
 import type { MarkdownFormat, TextSelection } from './markdown-format';
@@ -140,6 +141,8 @@ export function MarkdownEditor({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pendingImage, setPendingImage] = useState<PendingImage | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
+  // A video address being added (#1206): it goes alone on its line, where the server turns it into a player
+  const [pendingVideo, setPendingVideo] = useState<{ url: string; error: string | null; position: number } | null>(null);
   const [mention, setMention] = useState<{ start: number; query: string } | null>(null);
   const [suggestions, setSuggestions] = useState<{ query: string; items: MentionSuggestion[] }>({ query: '', items: [] });
   const [activeSuggestion, setActiveSuggestion] = useState(0);
@@ -277,6 +280,32 @@ export function MarkdownEditor({
     const caret = before.length + prefix.length + markdown.length + suffix.length;
     URL.revokeObjectURL(pendingImage.previewUrl);
     setPendingImage(null);
+    pendingSelection.current = { value: next, selectionStart: caret, selectionEnd: caret };
+    onChange(next);
+  };
+
+  const cancelVideo = () => {
+    setPendingVideo(null);
+    textareaRef.current?.focus();
+  };
+
+  const insertVideo = () => {
+    if (!pendingVideo) {
+      return;
+    }
+    const url = pendingVideo.url.trim();
+    if (parseVideoUrl(url) === null) {
+      setPendingVideo({ ...pendingVideo, error: 'Enter the address of a YouTube or Vimeo video.' });
+      return;
+    }
+    // A blank line before and after: a link alone in its paragraph becomes the video
+    const before = value.slice(0, pendingVideo.position);
+    const after = value.slice(pendingVideo.position);
+    const prefix = before === '' || before.endsWith('\n\n') ? '' : before.endsWith('\n') ? '\n' : '\n\n';
+    const suffix = after === '' ? '\n' : after.startsWith('\n\n') ? '' : after.startsWith('\n') ? '\n' : '\n\n';
+    const next = `${before}${prefix}${url}${suffix}${after}`;
+    const caret = before.length + prefix.length + url.length + suffix.length;
+    setPendingVideo(null);
     pendingSelection.current = { value: next, selectionStart: caret, selectionEnd: caret };
     onChange(next);
   };
@@ -446,6 +475,16 @@ export function MarkdownEditor({
                 />
               </>
             )}
+            <button
+              type="button"
+              aria-label="Add a video"
+              title="Add a YouTube or Vimeo video"
+              disabled={disabled}
+              onClick={() => setPendingVideo({ url: '', error: null, position: textareaRef.current?.selectionStart ?? value.length })}
+              className="flex size-8 cursor-pointer items-center justify-center rounded-md text-muted transition-colors hover:bg-overlay/10 hover:text-primary focus-visible:outline-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <FaVideo aria-hidden="true" />
+            </button>
             {toolbarExtra}
           </div>
         )}
@@ -562,6 +601,57 @@ export function MarkdownEditor({
             </div>
           </div>
         )}
+        {pendingVideo && (
+          <div
+            role="group"
+            aria-label="Add a video"
+            className="mx-2 mb-2 flex flex-col gap-2 rounded-lg border border-border bg-surface p-3"
+          >
+            <label htmlFor={`${baseId}-video-url`} className="text-sm font-bold">
+              Video address (YouTube or Vimeo)
+            </label>
+            <TextInput
+              id={`${baseId}-video-url`}
+              type="url"
+              autoFocus
+              value={pendingVideo.url}
+              maxLength={500}
+              placeholder="https://www.youtube.com/watch?v=..."
+              aria-describedby={`${baseId}-video-url-hint`}
+              invalid={pendingVideo.error !== null}
+              onChange={(event) => setPendingVideo({ ...pendingVideo, url: event.target.value, error: null })}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+                  insertVideo();
+                }
+                if (event.key === 'Escape') {
+                  // Cancel the video, not the dialog around the editor
+                  event.preventDefault();
+                  event.stopPropagation();
+                  event.nativeEvent.stopImmediatePropagation();
+                  cancelVideo();
+                }
+              }}
+            />
+            <p id={`${baseId}-video-url-hint`} className="text-xs text-muted">
+              The video plays in the text. Nothing loads from YouTube or Vimeo before a reader presses Play.
+            </p>
+            {pendingVideo.error && (
+              <p role="alert" className="text-sm text-danger-text">
+                {pendingVideo.error}
+              </p>
+            )}
+            <div className="flex justify-end gap-2">
+              <Button size="sm" variant="secondary" onClick={cancelVideo}>
+                Cancel
+              </Button>
+              <Button size="sm" onClick={insertVideo}>
+                Insert the video
+              </Button>
+            </div>
+          </div>
+        )}
         {mentions && (
           <ul
             id={listboxId}
@@ -593,7 +683,8 @@ export function MarkdownEditor({
           </ul>
         )}
         <p className="px-3 pb-2 text-xs text-muted">
-          Markdown: **bold**, _italic_, [link](https://…), `code`, - list, &gt; quote{mentions ? ', @name to mention a member' : ''}.
+          Markdown: **bold**, _italic_, [link](https://…), `code`, - list, &gt; quote{mentions ? ', @name to mention a member' : ''}. A
+          YouTube or Vimeo link alone on its line becomes a video.
         </p>
       </div>
 

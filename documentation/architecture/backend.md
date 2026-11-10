@@ -348,6 +348,8 @@ Broadcast::channel(Constants::WS_CHANNEL_COMMUNITY, static function (User $user,
 
 A lesson is a page of a course space with an optional `video_url`; a section is a page row of kind `section`, the heading of the rows after it ([ADR 0029](../adr/0029-course-spaces.md), #1188). `App\Support\VideoEmbed` accepts YouTube and Vimeo addresses only and gives the privacy-friendly player address; `frame-src` and the Permissions-Policy allow exactly those two player origins (`VideoEmbed::PLAYER_HOSTS`).
 
+Videos in member content (#1206, [ADR 0031](../adr/0031-videos-in-member-content.md)): `App\Support\MarkdownVideos\VideoEmbedExtension` marks a YouTube or Vimeo link alone in its paragraph as a `div.video-embed` block with data attributes from `VideoEmbed::parse`. `MarkdownContent` turns the block into the `VideoPlayer` of the lessons.
+
 ### Direct messages
 
 Direct messages (#1186, [ADR 0028](../adr/0028-direct-messages.md)) are chat messages with a `conversation_id`. `App\Events\Conversations\ConversationChanged` (`conversation.message.created`, `.updated`, `.deleted`, `conversation.reactions.changed`, with `conversation_cuid`, `message_cuid`, `author_cuid`) goes to `conversation.{conversationCuid}` (participants) and to `user.{userCuid}` of each participant (their lists and unread counts). `App\Support\ChatMessageEvents` sends the event of a chat message to its place: the space channel or the conversation channels.
