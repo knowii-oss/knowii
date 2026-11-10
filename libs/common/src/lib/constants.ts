@@ -36,6 +36,7 @@ export const PRIVACY_POLICY_URL = 'privacy-policy.show';
 export const DPA_URL = 'dpa.show';
 export const IMPRINT_URL = 'imprint.show';
 export const CONTENT_POLICY_URL = 'content-policy.show';
+export const SECURITY_URL = 'security.show';
 
 // User profile
 export const USER_PROFILE_URL = 'profile.show';

@@ -26,6 +26,7 @@ final class LegalPages
         'dpa' => 'dpa',
         'imprint' => 'imprint',
         'content-policy' => 'content-policy',
+        'security' => 'security',
     ];
 
     /**

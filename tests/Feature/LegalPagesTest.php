@@ -13,6 +13,7 @@ dataset('legal pages', [
     'data processing agreement' => ['/dpa', 'Data processing agreement'],
     'imprint' => ['/imprint', 'Imprint'],
     'content policy' => ['/content-policy', 'Content policy'],
+    'security' => ['/security', 'Security'],
 ]);
 
 test('every legal page is public and rendered on the server', function (string $url, string $title) {
@@ -129,9 +130,22 @@ test('every legal page shows the same public contact address (#1309)', function 
 
 test('every approved legal page is final (#1319)', function (string $url) {
     $this->get($url)->assertInertia(fn ($page) => $page->where('draft', false));
-})->with('legal pages');
+})->with(['/privacy-policy', '/terms-of-service', '/imprint', '/dpa', '/content-policy']);
 
 test('the DPA sends any legal action to the Belgian courts (#1319)', function () {
     $this->get('/dpa')->assertInertia(fn ($page) => $page
         ->where('html', fn (string $html) => str_contains($html, 'Any legal action about this DPA goes to the Belgian courts, which have exclusive jurisdiction')));
+});
+
+test('the security page tells how we protect the platform, with the periods of the configuration and how to report a vulnerability (#207)', function () {
+    config(['retention.expired_api_tokens_days' => 30]);
+
+    $this->get('/security')->assertInertia(fn ($page) => $page
+        ->where('title', 'Security')
+        ->where('html', fn (string $html) => str_contains($html, 'Germany')
+            && str_contains($html, 'valid for 15 minutes and work once')
+            && str_contains($html, 'expire after 90 days by default')
+            && str_contains($html, 'Report a vulnerability')
+            && str_contains($html, 'mailto:contact@developassion.be'))
+    );
 });
