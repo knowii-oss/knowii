@@ -65,6 +65,12 @@ Three rules hold for every ability (authorization audit, 2026-11-10):
 2. A rule on authored content applies to members only: a curator or an author who left the community loses the rights on what they wrote (#1324).
 3. Nobody moderates, changes or deletes a space that they cannot read: a moderator outside the groups of a groups space has no right on it (#1325, ADR 0025).
 
+Decided on purpose after the audit (Sébastien, 2026-11-10):
+
+1. A public space is readable by everyone, also in a private community: the visibility of the space decides, not the one of the community.
+2. Moderators with `manage_members` may add themselves to an access group, paid groups included (ADR 0025).
+3. Group members can be added by email, so these moderators can check which member uses an address.
+
 ## Role hierarchy
 
 Member management (#1242) adds a rule on top of the abilities above. `CommunityRoles::canActOn()` and `canGrant()` apply it in the member actions.
