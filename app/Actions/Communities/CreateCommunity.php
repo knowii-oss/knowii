@@ -47,7 +47,7 @@ class CreateCommunity implements CreatesCommunities
 
         $validator->validate();
 
-        /** @var array{name: string, description: string|null, visibility: string|null} $input */
+        /** @var array{name: string, description?: string|null, visibility: string|null} $input */
         $input = $validator->validated();
 
         Log::debug('Input validated');
@@ -60,7 +60,7 @@ class CreateCommunity implements CreatesCommunities
             $retVal = $user->ownedCommunities()->create([
                 'name' => $communityName,
                 // Slug is generated automatically
-                'description' => $input['description'],
+                'description' => $input['description'] ?? null,
                 'visibility' => $input['visibility'],
             ]);
 
