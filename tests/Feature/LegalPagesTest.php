@@ -60,10 +60,19 @@ test('the privacy policy and the DPA list every sub-processor of the configurati
     $this->get($url)->assertInertia(fn ($page) => $page
         ->where('html', fn (string $html) => str_contains($html, '<td>Example AI, Inc.</td>') && ! str_contains($html, 'Hetzner Online GmbH</td>'))
     );
-})->with(['/dpa']);
+})->with(['/privacy-policy', '/dpa']);
 
 test('the configured sub-processors include the services that Knowii calls (#904)', function () {
     $names = implode(' ', array_column(LegalPages::subprocessors(), 'name'));
 
     expect($names)->toContain('Hetzner')->toContain('Cloudflare')->toContain('Resend')->toContain('EmailOctopus')->toContain('Plausible');
+});
+
+test('the privacy policy shows the retention periods of the configuration (ADR 0030)', function () {
+    config(['session.lifetime' => 45, 'retention.waitlist_months' => 6]);
+
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, 'Sessions: 45 minutes after your last activity')
+            && str_contains($html, 'at most 6 months after you join it'))
+    );
 });

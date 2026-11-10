@@ -27,6 +27,7 @@ These rules keep the code structurally sound as it grows. Each rule has a reason
 7. An API resource returns every field of the client schema, also the ones with a database default: set them in the action or refresh the model after `create()` (a new model does not hold database defaults).
 8. Data with a limited life (tokens, invitations, logs, contacts in a third-party list) has a retention period in `config/retention.php` (or the Laravel key that controls it), a scheduled prune step with a test, and a line in the privacy policy, in the same pull request. The policy shows the period through a placeholder, never a typed number ([ADR 0030](../adr/0030-retention-periods-enforced-by-scheduled-tasks.md)).
 9. A third-party service that receives personal data (an AI provider such as OpenRouter, OpenAI or Anthropic, an email, analytics or storage service) is added to the sub-processors in `config/legal.php` in the same pull request. The privacy policy and the data processing agreement show that list, and the DPA promises 30 days of notice to the community owners before a new sub-processor applies: tell Sébastien before the merge.
+10. A new table or column with personal data updates the list of collected data in the privacy policy (`resources/markdown/policy.md`, section 2) in the same pull request (#77).
 
 ## Front-end
 
