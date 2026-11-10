@@ -15,6 +15,8 @@ import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import { Button, Card, CardBody, CardHeader, SegmentedControl, Textarea, TextInput } from '@/Components/ui';
 import CommunityIcon from './CommunityIcon';
+import { CommunityNameStatus } from './CommunityNameStatus';
+import { useCommunityNameAvailability } from './use-community-name-availability';
 
 export interface UpdateCommunityFormProps {
   community: Community;
@@ -36,6 +38,15 @@ export function UpdateCommunityForm({ community, onSaved }: UpdateCommunityFormP
   const values = { name: community.name, description: community.description, visibility: community.visibility };
   const form = useForm<NewCommunity>({ resolver: zodResolver(newCommunitySchema), defaultValues: values });
   const { errors } = form.formState;
+
+  // A personal community never takes a name, and the current name stays available to its community (ADR 0033)
+  const name = form.watch('name');
+  const nameStatus = useCommunityNameAvailability(
+    name,
+    community.visibility !== 'personal' && name.trim() !== community.name,
+    community.cuid,
+  );
+  const nameBlocked = nameStatus === 'checking' || nameStatus === 'taken';
 
   useEffect(() => {
     form.reset({ name: community.name, description: community.description, visibility: community.visibility });
@@ -78,11 +89,16 @@ export function UpdateCommunityForm({ community, onSaved }: UpdateCommunityFormP
                   wrapperClassName="mt-1"
                   {...field}
                   required
-                  invalid={!!errors.name}
-                  aria-describedby={errors.name ? 'community-name-error community-name-hint' : 'community-name-hint'}
+                  invalid={!!errors.name || nameStatus === 'taken'}
+                  aria-describedby={
+                    errors.name
+                      ? 'community-name-error community-name-status community-name-hint'
+                      : 'community-name-status community-name-hint'
+                  }
                 />
               )}
             />
+            <CommunityNameStatus id="community-name-status" status={nameStatus} />
             <p id="community-name-hint" className="mt-1 text-xs text-muted">
               The address of the community stays the same, so links keep working.
             </p>
@@ -136,7 +152,7 @@ export function UpdateCommunityForm({ community, onSaved }: UpdateCommunityFormP
           </div>
 
           <div className="flex justify-end">
-            <Button type="submit" disabled={!form.formState.isDirty} loading={form.formState.isSubmitting}>
+            <Button type="submit" disabled={!form.formState.isDirty || nameBlocked} loading={form.formState.isSubmitting}>
               Save
             </Button>
           </div>

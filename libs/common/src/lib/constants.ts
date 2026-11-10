@@ -183,6 +183,8 @@ export const USER_ONLINE_STATUS_API_PATH = `${API_BASE_PATH}/user/online-status`
 export const USER_BLOCKS_API_PATH = `${API_BASE_PATH}/user/blocks`;
 export const USER_FREQUENT_EMOJI_API_PATH = `${API_BASE_PATH}/user/frequent-emoji`;
 export const COMMUNITY_API_BASE_PATH = `${API_BASE_PATH}/communities`;
+// Whether a shared community can take a name (#1136). WARNING: aligned with ApiRoutes.php
+export const COMMUNITY_API_IS_NAME_AVAILABLE_PATH = `${COMMUNITY_API_BASE_PATH}/is-name-available`;
 
 export const COMMUNITY_API_PATH_PARAM_COMMUNITY = '{communityCuid}';
 export const COMMUNITY_API_PATH = `${API_BASE_PATH}/communities/${COMMUNITY_API_PATH_PARAM_COMMUNITY}`;

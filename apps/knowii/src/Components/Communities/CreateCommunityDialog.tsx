@@ -15,6 +15,8 @@ import {
 } from '@knowii/common';
 import { useState } from 'react';
 import CommunityIcon from './CommunityIcon';
+import { CommunityNameStatus } from './CommunityNameStatus';
+import { useCommunityNameAvailability } from './use-community-name-availability';
 import { Button, Dialog, SegmentedControl, Spinner, Textarea, TextInput } from '@/Components/ui';
 
 interface CreateCommunityDialogProps {
@@ -43,6 +45,10 @@ export default function CreateCommunityDialog(props: CreateCommunityDialogProps)
     mode: 'onChange',
     reValidateMode: 'onChange',
   });
+
+  // Personal communities never take a name (ADR 0033): no check for them
+  const nameStatus = useCommunityNameAvailability(form.watch('name'), form.watch('visibility') !== 'personal');
+  const nameBlocked = nameStatus === 'checking' || nameStatus === 'taken';
 
   const handleSubmit = form.handleSubmit(async (data: NewCommunity) => {
     setLoading(true);
@@ -90,7 +96,7 @@ export default function CreateCommunityDialog(props: CreateCommunityDialogProps)
           <Button variant="secondary" onClick={props.onHide}>
             Cancel
           </Button>
-          <Button type="submit" form="create-community-form" disabled={!form.formState.isValid} loading={loading}>
+          <Button type="submit" form="create-community-form" disabled={!form.formState.isValid || nameBlocked} loading={loading}>
             Go ahead!
           </Button>
         </>
@@ -115,13 +121,14 @@ export default function CreateCommunityDialog(props: CreateCommunityDialogProps)
                   wrapperClassName="mt-1"
                   {...field}
                   autoFocus
-                  invalid={!!form.formState.errors.name}
-                  aria-describedby={form.formState.errors.name ? 'name-error' : undefined}
+                  invalid={!!form.formState.errors.name || nameStatus === 'taken'}
+                  aria-describedby={form.formState.errors.name ? 'name-error name-status' : 'name-status'}
                   required
                   disabled={form.formState.isSubmitting || loading}
                 />
               )}
             />
+            <CommunityNameStatus id="name-status" status={nameStatus} />
             <InputError id="name-error" className="mt-2" message={form.formState.errors.name?.message} />
           </div>
 

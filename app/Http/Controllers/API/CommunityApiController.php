@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Contracts\Communities\CreatesCommunities;
 use App\Contracts\Communities\DeletesCommunities;
 use App\Contracts\Communities\UpdatesCommunities;
+use App\Contracts\Communities\VerifiesCommunityNameAvailability;
 use App\Enums\KnowiiCommunityVisibility;
 use App\Http\Controllers\Controller;
 use App\Models\Community;
@@ -52,6 +53,24 @@ class CommunityApiController extends Controller
         $page = Pagination::fromRequest($request)->apply($communities);
 
         return self::success('Communities', $page['metadata'], $page['items']->toResourceCollection());
+    }
+
+    /**
+     * Check whether a shared (private or public) community can take a name (#1136, ADR 0033): no other shared community
+     * has this name, whatever the case, or the address that it gives. The answer never tells which community took it.
+     * To check a new name for a community that you own, send its cuid in `community`: its own name stays available.
+     *
+     * @throws AuthenticationException
+     */
+    #[BodyParameter('name', description: 'Name to check (3 to 64 characters: letters, digits, spaces, dashes, apostrophes, @)', required: true, type: 'string', example: 'Knowledge Builders')]
+    #[BodyParameter('community', description: 'cuid of the community that you rename (its owner only)', required: false, type: 'string')]
+    final public function isNameAvailable(Request $request): JsonResponse
+    {
+        $user = $request->user() ?? throw new AuthenticationException;
+
+        $available = app(VerifiesCommunityNameAvailability::class)->verify($user, $request->only(['name', 'community']));
+
+        return self::success('Community name availability checked', null, ['available' => $available]);
     }
 
     /**

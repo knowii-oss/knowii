@@ -44,6 +44,7 @@ export async function apiRequest<T>(
   schema: z.ZodType<T> | null,
   failureMessage: string,
   body?: unknown,
+  signal?: AbortSignal,
 ): Promise<ApiResult<T>> {
   try {
     const response = await fetch(url, {
@@ -51,6 +52,7 @@ export async function apiRequest<T>(
       method: method.toUpperCase(),
       headers: jsonHeaders,
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      ...(signal === undefined ? {} : { signal }),
     });
 
     if (response.status === HttpStatus.NO_CONTENT) {

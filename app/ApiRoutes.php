@@ -92,6 +92,9 @@ final class ApiRoutes
 
     public const COMMUNITY = self::COMMUNITIES.'/{'.self::PARAM_COMMUNITY.'}';
 
+    // Whether a shared community can take a name (#1136)
+    public const COMMUNITIES_IS_NAME_AVAILABLE = self::COMMUNITIES.'/is-name-available';
+
     // The rights of the moderators (#1240)
     public const COMMUNITY_MODERATOR_PERMISSIONS = self::COMMUNITY.'/moderator-permissions';
 

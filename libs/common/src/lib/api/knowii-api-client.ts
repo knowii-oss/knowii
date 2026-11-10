@@ -1,5 +1,6 @@
 import {
   COMMUNITY_API_BASE_PATH,
+  COMMUNITY_API_IS_NAME_AVAILABLE_PATH,
   USER_AVATAR_API_PATH,
   USER_BLOCKS_API_PATH,
   USER_FREQUENT_EMOJI_API_PATH,
@@ -182,6 +183,7 @@ const commentsPath = (subject: CommentSubject, commentCuid?: string) =>
 const resourcesPath = (communityCuid: string, spaceCuid: string) =>
   apiPath(COMMUNITY_SPACE_RESOURCES_API_PATH, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE]: spaceCuid });
 const htmlSchema = z.object({ html: z.string() });
+const nameAvailabilitySchema = z.object({ available: z.boolean() });
 
 const defaultHeaders: Headers = new Headers({
   Accept: 'application/json',
@@ -222,6 +224,12 @@ export const knowiiApiClient = {
       subscribeToList(NEWSLETTER_API_PATH, input, 'Failed to subscribe to the newsletter. Please try again later.'),
   },
   communities: {
+    /**
+     * Whether a shared community can take this name (#1136, ADR 0033). Pass `community` (a cuid) to check a new name
+     * for a community that you own: its own name stays available to it.
+     */
+    isNameAvailable: (input: { name: string; community?: string }, signal?: AbortSignal): Promise<ApiResult<{ available: boolean }>> =>
+      apiRequest('post', COMMUNITY_API_IS_NAME_AVAILABLE_PATH, nameAvailabilitySchema, 'Failed to check the name.', input, signal),
     /**
      * A community with its moderator rights and its number of members (#1135). Members only.
      */
