@@ -25,6 +25,7 @@ final class LegalPages
         'terms-of-service' => 'terms',
         'dpa' => 'dpa',
         'imprint' => 'imprint',
+        'content-policy' => 'content-policy',
     ];
 
     /**
