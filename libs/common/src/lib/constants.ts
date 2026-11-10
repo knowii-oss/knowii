@@ -34,6 +34,7 @@ export const CONTACT_URL = '/contact';
 export const TERMS_OF_SERVICE_URL = 'terms-of-service.show';
 export const PRIVACY_POLICY_URL = 'privacy-policy.show';
 export const DPA_URL = 'dpa.show';
+export const IMPRINT_URL = 'imprint.show';
 
 // User profile
 export const USER_PROFILE_URL = 'profile.show';

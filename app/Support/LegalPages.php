@@ -24,6 +24,7 @@ final class LegalPages
         'privacy-policy' => 'policy',
         'terms-of-service' => 'terms',
         'dpa' => 'dpa',
+        'imprint' => 'imprint',
     ];
 
     /**
