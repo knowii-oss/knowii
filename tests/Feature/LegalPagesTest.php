@@ -12,6 +12,7 @@ dataset('legal pages', [
     'terms of service' => ['/terms-of-service', 'Terms of service'],
     'data processing agreement' => ['/dpa', 'Data processing agreement'],
     'imprint' => ['/imprint', 'Imprint'],
+    'content policy' => ['/content-policy', 'Content policy'],
 ]);
 
 test('every legal page is public and rendered on the server', function (string $url, string $title) {
@@ -86,5 +87,14 @@ test('the imprint names the publisher, the responsible person, the contact and t
             && str_contains($html, 'Sébastien Dubois')
             && str_contains($html, 'mailto:contact@developassion.be')
             && str_contains($html, 'Hetzner Online GmbH'))
+    );
+});
+
+test('the content policy tells how to report illegal content, with the point of contact of the DSA (#902)', function () {
+    $this->get('/content-policy')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, 'How to report content')
+            && str_contains($html, 'mailto:contact@developassion.be')
+            && str_contains($html, 'Digital Services Act')
+            && str_contains($html, 'href="/terms-of-service"'))
     );
 });
