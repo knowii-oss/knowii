@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Dialog as HeadlessDialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
 import { FaXmark } from 'react-icons/fa6';
 import { cn } from './cn';
+import { useReturnFocus } from './use-return-focus';
 
 export interface DrawerProps {
   open: boolean;
@@ -19,6 +20,8 @@ export interface DrawerProps {
  * Panel that slides in from the side of the screen (navigation menus). Modal: same keyboard behavior as the Dialog.
  */
 export function Drawer({ open, onClose, title, side = 'left', children, className }: DrawerProps) {
+  useReturnFocus(open);
+
   return (
     <HeadlessDialog open={open} onClose={onClose} className="relative z-50">
       <DialogBackdrop
