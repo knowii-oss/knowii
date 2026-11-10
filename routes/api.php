@@ -56,6 +56,8 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
         Route::delete(ApiRoutes::USER_BLOCK, [UserBlockApiController::class, 'destroy'])->middleware('ability:user:write');
         Route::post(ApiRoutes::USERS_IS_USERNAME_AVAILABLE, [UserApiController::class, 'isUsernameAvailable'])->middleware('ability:user:read');
 
+        // The communities of the current member (#828)
+        Route::get(ApiRoutes::COMMUNITIES, [CommunityApiController::class, 'index'])->middleware('ability:communities:read');
         Route::post(ApiRoutes::COMMUNITIES, [CommunityApiController::class, 'store'])->middleware('ability:communities:write');
         Route::get(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'show'])->middleware('ability:communities:read');
         Route::patch(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'update'])->middleware('ability:communities:write');
