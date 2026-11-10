@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\Community;
 use App\Models\User;
+use App\Support\MarkdownVideos\VideoEmbedExtension;
 use League\CommonMark\Environment\Environment;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
 use League\CommonMark\Extension\ExternalLink\ExternalLinkExtension;
@@ -18,6 +19,7 @@ use League\CommonMark\MarkdownConverter;
  * Raw HTML is escaped (never passed through), unsafe links (javascript:, vbscript:, file:, data: except images) are
  * removed, and links to other sites open in a new tab with rel="nofollow noopener noreferrer".
  * `@username` becomes a link to the member's profile when the username is a member of the community (#1177).
+ * A YouTube or Vimeo link alone on its line becomes a click-to-load video (#1206, ADR 0031).
  */
 final class Markdown
 {
@@ -158,6 +160,7 @@ final class Markdown
         $environment->addExtension(new GithubFlavoredMarkdownExtension);
         $environment->addExtension(new ExternalLinkExtension);
         $environment->addExtension(new MentionExtension);
+        $environment->addExtension(new VideoEmbedExtension);
 
         return self::$converter = new MarkdownConverter($environment);
     }

@@ -146,4 +146,34 @@ describe('MarkdownEditor', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(/too large/);
     expect(screen.queryByRole('group', { name: 'Add an image' })).not.toBeInTheDocument();
   });
+
+  it('adds a YouTube or Vimeo video alone on its line, and refuses other addresses (#1206)', async () => {
+    render(<Harness renderPreview={vi.fn().mockResolvedValue('')} />);
+    const textarea = screen.getByRole('textbox', { name: 'Body' });
+    await userEvent.type(textarea, 'Watch this:');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Add a video' }));
+    const address = screen.getByRole('textbox', { name: 'Video address (YouTube or Vimeo)' });
+    expect(address).toHaveFocus();
+
+    await userEvent.type(address, 'https://example.com/video{Enter}');
+    expect(screen.getByRole('alert')).toHaveTextContent('Enter the address of a YouTube or Vimeo video.');
+
+    await userEvent.clear(address);
+    await userEvent.type(address, 'https://youtu.be/dQw4w9WgXcQ{Enter}');
+
+    expect(screen.queryByRole('group', { name: 'Add a video' })).not.toBeInTheDocument();
+    expect(textarea).toHaveValue('Watch this:\n\nhttps://youtu.be/dQw4w9WgXcQ\n');
+    await waitFor(() => expect(textarea).toHaveFocus());
+  });
+
+  it('cancels the video with Escape and gives the focus back to the text (#1206)', async () => {
+    render(<Harness renderPreview={vi.fn().mockResolvedValue('')} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Add a video' }));
+    await userEvent.keyboard('{Escape}');
+
+    expect(screen.queryByRole('group', { name: 'Add a video' })).not.toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Body' })).toHaveFocus();
+  });
 });
