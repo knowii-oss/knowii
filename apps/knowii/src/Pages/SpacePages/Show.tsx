@@ -16,6 +16,7 @@ import AppLayout from '@/Layouts/AppLayout';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
 import { CommunityShell } from '@/Components/Spaces/CommunityShell';
+import { VideoPlayer } from '@/Components/Video/VideoPlayer';
 import { PageEditor } from '@/Components/SpacePages/PageEditor';
 import type { BreadcrumbItem } from '@/Components/ui';
 import { Button, Dialog, MarkdownContent, RelativeTime } from '@/Components/ui';
@@ -29,16 +30,21 @@ interface Props {
   previous: PageNeighbour | null;
   next: PageNeighbour | null;
   position: { current: number; total: number };
+  // Course spaces (#1188): the section of the lesson, when the course has sections
+  section: string | null;
   permissions: { canManagePages: boolean };
 }
 
 /**
- * A page of a page space (#1179): the text, then links to the previous and the next page, so members read them in order.
+ * A page of a page space (#1179), or a lesson of a course space with its video (#1188): the text, then links to the
+ * previous and the next one, so members read them in order.
  */
 export default function SpacePage(props: Props) {
   const { community, space, page, previous, next, position } = props;
   const { showToast } = useAppData();
   const currentUser = useTypedPage().props.auth.user;
+  const isCourse = space.type === 'course';
+  const noun = isCourse ? 'Lesson' : 'Page';
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -65,7 +71,7 @@ export default function SpacePage(props: Props) {
         return;
       }
       if (!editing) {
-        router.reload({ only: ['page', 'previous', 'next', 'position'] });
+        router.reload({ only: ['page', 'previous', 'next', 'position', 'section'] });
       }
     },
   });
@@ -75,7 +81,7 @@ export default function SpacePage(props: Props) {
     const result = await knowiiApiClient.communities.pages.delete(community.cuid, space.cuid, page.cuid);
     setBusy(false);
     if (result.ok) {
-      showToast({ severity: 'success', summary: 'Page deleted' });
+      showToast({ severity: 'success', summary: `${noun} deleted` });
       router.visit(spaceHref);
     } else {
       showToast({ severity: 'error', summary: result.message });
@@ -98,7 +104,8 @@ export default function SpacePage(props: Props) {
         <article className="flex flex-col gap-4">
           <header className="flex flex-col gap-2">
             <p className="text-sm text-muted">
-              Page {position.current} of {position.total}
+              {noun} {position.current} of {position.total}
+              {props.section ? ` · ${props.section}` : ''}
             </p>
             <h1 className="text-2xl font-extrabold">{page.title}</h1>
             <p className="text-xs text-muted">
@@ -119,9 +126,14 @@ export default function SpacePage(props: Props) {
             )}
           </header>
 
+          {page.video && <VideoPlayer video={page.video} title={page.title} />}
+
           <MarkdownContent html={page.body_html ?? ''} className="break-words" />
 
-          <nav aria-label="Pages of the space" className="mt-6 grid gap-3 border-t border-border pt-4 @md:grid-cols-2">
+          <nav
+            aria-label={isCourse ? 'Lessons of the course' : 'Pages of the space'}
+            className="mt-6 grid gap-3 border-t border-border pt-4 @md:grid-cols-2"
+          >
             {previous ? (
               <Link
                 href={pageHref(previous)}
@@ -161,8 +173,9 @@ export default function SpacePage(props: Props) {
           spaceCuid={space.cuid}
           spaceName={space.name}
           page={page}
+          mode={isCourse ? 'lesson' : 'page'}
           onClose={() => setEditing(false)}
-          onSaved={() => router.reload({ only: ['page', 'previous', 'next', 'position'] })}
+          onSaved={() => router.reload({ only: ['page', 'previous', 'next', 'position', 'section'] })}
         />
       )}
 
@@ -170,8 +183,8 @@ export default function SpacePage(props: Props) {
         open={confirmDelete}
         onClose={() => setConfirmDelete(false)}
         size="sm"
-        title="Delete this page?"
-        description="The page is deleted. This cannot be undone."
+        title={isCourse ? 'Delete this lesson?' : 'Delete this page?'}
+        description={`The ${noun.toLowerCase()} is deleted. This cannot be undone.`}
         footer={
           <>
             <Button variant="secondary" onClick={() => setConfirmDelete(false)} autoFocus>

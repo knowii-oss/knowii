@@ -61,8 +61,8 @@ class SpaceController extends Controller
         // Chat spaces: the newest messages, oldest first, and where the unread ones start (#1185)
         $chat = $space->type === KnowiiSpaceType::Chat ? self::chat($space, $request->user()) : null;
 
-        // Page spaces: the titles of the pages, in their order (#1179)
-        $pages = $space->type === KnowiiSpaceType::Pages ? $space->pages()->get()->toResourceCollection() : null;
+        // Page spaces and course spaces: the titles of the pages, lessons and sections, in their order (#1179, #1188)
+        $pages = $space->type->holdsPages() ? $space->pages()->get()->toResourceCollection() : null;
 
         // WARNING: The props passed here must remain aligned with the props expected by the page (Pages/Spaces/Show.tsx)
         return Jetstream::inertia()->render($request, 'Spaces/Show', [

@@ -13,6 +13,14 @@ enum KnowiiSpaceType: string
     // A navigation link to a page outside Knowii (#1294, ADR 0026): no content, the navigation opens its URL
     case Link = 'link';
 
+    /**
+     * Page spaces and course spaces hold ordered pages: a lesson of a course is a page (#1188, ADR 0029)
+     */
+    public function holdsPages(): bool
+    {
+        return $this === self::Pages || $this === self::Course;
+    }
+
     public static function toCommaSeparatedString(): string
     {
         return implode(',', array_column(self::cases(), 'value'));

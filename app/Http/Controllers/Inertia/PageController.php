@@ -14,21 +14,26 @@ use Inertia\Response;
 use Laravel\Jetstream\Jetstream;
 
 /**
- * A page of a page space (#1179), with links to the previous and the next page.
+ * A page of a page space (#1179), or a lesson of a course space (#1188), with links to the previous and the next one.
+ * Sections are headings: they have no page, and the navigation skips them.
  */
 class PageController extends Controller
 {
     public function show(Request $request, string $communitySlug, string $spaceSlug, string $pageSlug): Response
     {
         $community = Community::where('slug', $communitySlug)->firstOrFail();
-        $space = $community->spaces()->where('slug', $spaceSlug)->where('type', KnowiiSpaceType::Pages)->firstOrFail();
+        $space = $community->spaces()->where('slug', $spaceSlug)->whereIn('type', [KnowiiSpaceType::Pages, KnowiiSpaceType::Course])->firstOrFail();
 
         Gate::authorize('view', $space);
 
-        $pages = $space->pages()->get(['id', 'cuid', 'title', 'slug', 'position']);
+        $rows = $space->pages()->get(['id', 'cuid', 'kind', 'title', 'slug', 'position']);
+        $pages = $rows->reject(fn (Page $page) => $page->isSection())->values();
         $index = $pages->search(fn (Page $page) => $page->slug === $pageSlug);
         $found = $index === false ? null : $pages->get($index);
         abort_if($found === null, 404);
+
+        // The section of the page: the last section heading before it (#1188)
+        $section = $rows->takeUntil(fn (Page $row) => $row->id === $found->id)->filter(fn (Page $row) => $row->isSection())->last();
 
         $page = $space->pages()->with('author')->findOrFail($found->id);
         $neighbour = static fn (?Page $other) => $other === null ? null : ['title' => $other->title, 'slug' => $other->slug];
@@ -44,6 +49,7 @@ class PageController extends Controller
             'previous' => $neighbour($pages->get($index - 1)),
             'next' => $neighbour($pages->get($index + 1)),
             'position' => ['current' => $index + 1, 'total' => $pages->count()],
+            'section' => $section?->title,
             'permissions' => [
                 'canManagePages' => Gate::check('managePages', $space),
             ],

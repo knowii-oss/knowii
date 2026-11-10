@@ -1,0 +1,28 @@
+meta {
+  name: Pages - Create - Lesson with video
+  type: http
+  seq: 118
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a course space>/pages
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Install Obsidian",
+    "body": "Download Obsidian and open your first vault.",
+    "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+  }
+}
+
+docs {
+  A lesson of a course space (#1188, ADR 0029): a page with an optional video. video_url accepts YouTube (watch, youtu.be, shorts, embed) and Vimeo addresses only; the answer gives video.embed_url (youtube-nocookie.com, or Vimeo with dnt=1). 400 for another host, or for a video in a page space or on a section. Needs pages:write.
+}

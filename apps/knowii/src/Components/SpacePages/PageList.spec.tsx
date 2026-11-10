@@ -27,6 +27,7 @@ const community = { cuid: 'c1', slug: 'tests', name: 'Tests' } as Community;
 const space = { cuid: 's1', slug: 'start-here', name: 'Start here', type: 'pages' } as Space;
 const page = (cuid: string, title: string, position: number): Page => ({
   cuid,
+  kind: 'page',
   title,
   slug: cuid,
   position,

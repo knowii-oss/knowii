@@ -75,12 +75,12 @@ class SpacePolicy
     }
 
     /**
-     * Whether the user creates, edits, reorders and deletes the pages of a page space (#1179): the owner, the admins and
-     * the moderators who can read it.
+     * Whether the user creates, edits, reorders and deletes the pages of a page space (#1179), or the lessons and
+     * sections of a course space (#1188): the owner, the admins and the moderators who can read it.
      */
     final public function managePages(User $user, Space $space): bool
     {
-        return $space->type === KnowiiSpaceType::Pages
+        return $space->type->holdsPages()
             && $user->belongsToCommunity($space->community)
             && $this->view($user, $space)
             && self::isModerator($user, $space);

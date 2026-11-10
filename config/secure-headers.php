@@ -1,6 +1,7 @@
 <?php
 
 use App\Support\ContentSecurityPolicySources as Sources;
+use App\Support\VideoEmbed;
 
 /*
  * Origins that the Content Security Policy allows next to 'self'. The policy never accepts a whole scheme
@@ -260,7 +261,8 @@ return [
             'none' => false,
             '*' => false,
             'self' => true,
-            'origins' => [],
+            // The video players of course lessons need it in their frame (#1188)
+            'origins' => VideoEmbed::PLAYER_HOSTS,
         ],
 
         'bluetooth' => [
@@ -316,14 +318,16 @@ return [
             'none' => false,
             '*' => false,
             'self' => false,
-            'origins' => [],
+            // The video players of course lessons need it in their frame (#1188)
+            'origins' => VideoEmbed::PLAYER_HOSTS,
         ],
 
         'fullscreen' => [
             'none' => false,
             '*' => false,
             'self' => true,
-            'origins' => [],
+            // The video players of course lessons need it in their frame (#1188)
+            'origins' => VideoEmbed::PLAYER_HOSTS,
         ],
 
         'gamepad' => [
@@ -414,7 +418,8 @@ return [
             'none' => false,
             '*' => false,
             'self' => true,
-            'origins' => [],
+            // The video players of course lessons need it in their frame (#1188)
+            'origins' => VideoEmbed::PLAYER_HOSTS,
         ],
 
         'publickey-credentials-create' => [
@@ -581,6 +586,9 @@ return [
             'allow' => Sources::unique([
                 // Cloudflare Turnstile (bot check of the waitlist form)
                 'https://challenges.cloudflare.com',
+                // Video players of course lessons (#1188, App\Support\VideoEmbed::PLAYER_HOSTS)
+                'https://www.youtube-nocookie.com',
+                'https://player.vimeo.com',
                 ...Sources::list(env('CSP_FRAME_SRC')),
             ]),
         ],
