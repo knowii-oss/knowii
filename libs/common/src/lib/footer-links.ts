@@ -1,5 +1,5 @@
 import metadata from './metadata.json';
-import { CONTACT_URL, PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL } from './constants';
+import { CONTACT_URL, DPA_URL, PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL } from './constants';
 
 /**
  * A link of the footer (#938): an external URL (`href`), a path of the app (`path`) or a named Laravel route (`routeName`)
@@ -15,7 +15,6 @@ const repositoryFile = (file: string) => `${metadata.repositoryUrl}/blob/main/${
 
 /**
  * The link columns of the footer. One list for the whole app: a self-hosted instance changes its footer here.
- * The legal pages that do not exist yet (imprint #903, DPA #904, content policy #902) are added with their page.
  */
 export const FOOTER_LINK_GROUPS: readonly FooterLinkGroup[] = [
   {
@@ -49,6 +48,7 @@ export const FOOTER_LINK_GROUPS: readonly FooterLinkGroup[] = [
     links: [
       { label: 'Terms of service', routeName: TERMS_OF_SERVICE_URL },
       { label: 'Privacy policy', routeName: PRIVACY_POLICY_URL },
+      { label: 'Data processing agreement', routeName: DPA_URL },
     ],
   },
 ];

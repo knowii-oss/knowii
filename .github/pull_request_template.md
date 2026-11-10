@@ -5,6 +5,7 @@ Please check if your PR fulfills the following requirements:
 - [ ] The commit message follows our guidelines
 - [ ] Tests for the changes have been added (for bug fixes / features)
 - [ ] Docs have been added / updated (for bug fixes / features)
+- [ ] A new third-party service that receives personal data (AI provider, email, analytics, storage) is in the sub-processors of `config/legal.php` (DPA and privacy policy)
 
 ## PR Type
 

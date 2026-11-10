@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\LegalPages;
 use Illuminate\Support\Facades\File;
 
 /**
@@ -9,6 +10,7 @@ use Illuminate\Support\Facades\File;
 dataset('legal pages', [
     'privacy policy' => ['/privacy-policy', 'Privacy policy'],
     'terms of service' => ['/terms-of-service', 'Terms of service'],
+    'data processing agreement' => ['/dpa', 'Data processing agreement'],
 ]);
 
 test('every legal page is public and rendered on the server', function (string $url, string $title) {
@@ -48,4 +50,20 @@ Example <b>Ltd</b>, {{retention.session}}.');
     } finally {
         File::delete($override);
     }
+});
+
+test('the privacy policy and the DPA list every sub-processor of the configuration (#904)', function (string $url) {
+    config(['legal.subprocessors' => [
+        ['name' => 'Example AI, Inc.', 'country' => 'United States', 'purpose' => 'Summaries', 'safeguard' => 'Standard contractual clauses'],
+    ]]);
+
+    $this->get($url)->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, '<td>Example AI, Inc.</td>') && ! str_contains($html, 'Hetzner Online GmbH</td>'))
+    );
+})->with(['/dpa']);
+
+test('the configured sub-processors include the services that Knowii calls (#904)', function () {
+    $names = implode(' ', array_column(LegalPages::subprocessors(), 'name'));
+
+    expect($names)->toContain('Hetzner')->toContain('Cloudflare')->toContain('Resend')->toContain('EmailOctopus')->toContain('Plausible');
 });
