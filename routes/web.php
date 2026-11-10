@@ -10,9 +10,9 @@ use App\Http\Controllers\Inertia\MemberController;
 use App\Http\Controllers\Inertia\PageController;
 use App\Http\Controllers\Inertia\PostController;
 use App\Http\Controllers\Inertia\SpaceController;
-use App\Http\Controllers\PrivacyPolicyController;
+use App\Http\Controllers\LegalPageController;
 use App\Http\Controllers\RobotsController;
-use App\Http\Controllers\TermsOfServiceController;
+use App\Support\LegalPages;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -70,5 +70,7 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::inertia('/contact', 'Contact');
-Route::get('/privacy-policy', [PrivacyPolicyController::class, 'show'])->name('privacy-policy.show');
-Route::get('/terms-of-service', [TermsOfServiceController::class, 'show'])->name('terms-of-service.show');
+// The legal pages (#904): one controller, one Markdown file per page (App\Support\LegalPages)
+foreach (array_keys(LegalPages::PAGES) as $legalPage) {
+    Route::get('/'.$legalPage, [LegalPageController::class, 'show'])->defaults('page', $legalPage)->name($legalPage.'.show');
+}

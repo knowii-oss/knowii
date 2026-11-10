@@ -1,8 +1,12 @@
+---
+title: Terms of service
+updated: 2023-04-08
+draft: false
+---
+
 # Terms of Service
 
 ## Introduction
-
-**LAST UPDATED**: 2023-04-08
 
 Thanks for using the Knowii services (including its website, and mobile and web-based applications, and any other tools, products, or services provided by DeveloPassion SRL that link to or reference these Terms) (collectively, the "Services"). The Services are provided by DeveloPassion SRL ("DeveloPassion", "Knowii", "we," "our," or "us"), located at 126, route de Mons, 7130 Binche, Belgium, Belgium.
 
