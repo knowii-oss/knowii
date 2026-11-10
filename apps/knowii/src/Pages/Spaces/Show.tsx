@@ -144,6 +144,8 @@ export default function SpacePage(props: Props) {
             canWrite={props.permissions.canContribute}
             canReact={props.permissions.canReact}
             canModerate={props.permissions.canModerate}
+            presenceEnabled={community.is_member === true}
+            showsOnlineStatus={page.props.auth.user?.show_online_status !== false}
           />
         ) : space.type === 'pages' && props.pages ? (
           <PageList community={community} space={space} pages={props.pages} canManagePages={props.permissions.canManagePages} />

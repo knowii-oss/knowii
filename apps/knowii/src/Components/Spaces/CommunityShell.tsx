@@ -2,9 +2,10 @@ import type { ReactNode } from 'react';
 import { useCallback, useMemo, useState } from 'react';
 import { router } from '@inertiajs/react';
 import type { Community, Space, SpaceGroup } from '@knowii/common';
-import { SPACE_URL, useSocket } from '@knowii/common';
+import { communityOnlineChannel, knowiiApiClient, SPACE_URL, usePresence, useSocket, useTypedPage } from '@knowii/common';
 import { FaBars } from 'react-icons/fa6';
 import { Button, Drawer } from '@/Components/ui';
+import { OnlineMembers } from '@/Components/Presence/OnlineMembers';
 import { SpaceNavigation } from './SpaceNavigation';
 
 export interface CommunityShellProps {
@@ -21,10 +22,21 @@ export interface CommunityShellProps {
 
 /**
  * Community pages: the space navigation in a sidebar (desktop) or a drawer (mobile), next to the content.
- * The navigation reloads when the space tree of the community changes (SpaceTreeChanged event).
+ * The navigation reloads when the space tree of the community changes (SpaceTreeChanged event). Members see who is
+ * online under it (#1187).
  */
 export function CommunityShell({ community, spaceGroups, activeSpaceCuid, contentWidth = 'wide', children }: CommunityShellProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const user = useTypedPage().props.auth.user;
+  const isMember = community.is_member === true && !!user;
+  const showsOnlineStatus = user?.show_online_status !== false;
+  const fetchOnlineMembers = useCallback(() => knowiiApiClient.communities.onlineMembers(community.cuid), [community.cuid]);
+  const online = usePresence({
+    channel: isMember ? communityOnlineChannel(community.cuid) : null,
+    visible: showsOnlineStatus,
+    fetchMembers: fetchOnlineMembers,
+    currentUserCuid: user?.cuid ?? null,
+  });
 
   const channel = useMemo(() => ({ type: 'community' as const, communityCuid: community.cuid }), [community.cuid]);
   // The navigation changed, or the current space (renamed, moved, other visibility): load both again (#1180, #1128).
@@ -54,7 +66,17 @@ export function CommunityShell({ community, spaceGroups, activeSpaceCuid, conten
   return (
     <div className="flex flex-col gap-6 md:flex-row">
       <aside aria-label={`${community.name} spaces`} className="hidden w-60 shrink-0 md:block">
-        <SpaceNavigation spaceGroups={spaceGroups} activeSpaceCuid={activeSpaceCuid} getSpaceHref={getSpaceHref} className="sticky top-4" />
+        <div className="sticky top-4 flex flex-col gap-6">
+          <SpaceNavigation spaceGroups={spaceGroups} activeSpaceCuid={activeSpaceCuid} getSpaceHref={getSpaceHref} />
+          {isMember && (
+            <OnlineMembers
+              communitySlug={community.slug}
+              members={online.members}
+              hidden={!showsOnlineStatus}
+              headingId="online-now-sidebar"
+            />
+          )}
+        </div>
       </aside>
 
       <div className="md:hidden">
@@ -69,6 +91,15 @@ export function CommunityShell({ community, spaceGroups, activeSpaceCuid, conten
             getSpaceHref={getSpaceHref}
             onNavigate={() => setDrawerOpen(false)}
           />
+          {isMember && (
+            <OnlineMembers
+              communitySlug={community.slug}
+              members={online.members}
+              hidden={!showsOnlineStatus}
+              headingId="online-now-drawer"
+              className="mt-6"
+            />
+          )}
         </Drawer>
       </div>
 

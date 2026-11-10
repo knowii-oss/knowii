@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
-import type { ChatMessage } from '@knowii/common';
+import type { ChatMessage, PresenceMember } from '@knowii/common';
+import { TypingIndicator } from '@/Components/Presence/TypingIndicator';
 import { Drawer, Spinner } from '@/Components/ui';
 import { ChatComposer } from './ChatComposer';
 import type { ChatMessageItemProps } from './ChatMessageItem';
@@ -18,13 +19,28 @@ export interface ThreadPanelProps {
    */
   item: Omit<ChatMessageItemProps, 'message' | 'editing' | 'onOpenThread'>;
   editingCuid: string | null;
+  // Typing indicators of the thread (#1187)
+  typists?: PresenceMember[];
+  onTypingChange?: ((typing: boolean) => void) | undefined;
 }
 
 /**
  * The thread of a message in a side panel (#1185): the first message, its replies, and a field to reply. Escape closes
  * it (Drawer). One level: replies have no thread.
  */
-export function ThreadPanel({ open, onClose, communityCuid, parent, replies, canWrite, onReply, item, editingCuid }: ThreadPanelProps) {
+export function ThreadPanel({
+  open,
+  onClose,
+  communityCuid,
+  parent,
+  replies,
+  canWrite,
+  onReply,
+  item,
+  editingCuid,
+  typists = [],
+  onTypingChange,
+}: ThreadPanelProps) {
   const repliesRef = useRef<HTMLOListElement>(null);
   // The newest reply at the bottom, in view
   useEffect(() => {
@@ -57,8 +73,16 @@ export function ThreadPanel({ open, onClose, communityCuid, parent, replies, can
               ))
             )}
           </ol>
+          <TypingIndicator typists={typists} />
           {canWrite && !parent.deleted_at && (
-            <ChatComposer id="thread-composer" communityCuid={communityCuid} label="Reply in the thread" onSend={onReply} autoFocus />
+            <ChatComposer
+              id="thread-composer"
+              communityCuid={communityCuid}
+              label="Reply in the thread"
+              onSend={onReply}
+              autoFocus
+              onTypingChange={onTypingChange}
+            />
           )}
         </div>
       )}

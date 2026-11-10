@@ -73,7 +73,12 @@ export const communitySchema = baseEntitySchema
   .extend(newCommunitySchema.shape)
   .extend(slugSchema.shape)
   // member_count: only where the server counts the members (community page, details page, GET community, #1135)
-  .extend({ moderator_permissions: moderatorPermissionsSchema, member_count: z.number().int().optional() });
+  .extend({
+    moderator_permissions: moderatorPermissionsSchema,
+    member_count: z.number().int().optional(),
+    // Whether the current user belongs to the community (#1187); absent without a signed-in user
+    is_member: z.boolean().optional(),
+  });
 
 export type Community = z.infer<typeof communitySchema>;
 

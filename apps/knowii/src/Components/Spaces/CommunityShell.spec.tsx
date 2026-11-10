@@ -11,6 +11,7 @@ vi.mock('@inertiajs/react', () => ({
     </a>
   ),
   router: { reload: vi.fn() },
+  usePage: () => ({ props: { auth: { user: null } } }),
 }));
 
 beforeAll(() => {

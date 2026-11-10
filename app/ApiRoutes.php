@@ -62,6 +62,9 @@ final class ApiRoutes
     // The avatar of the current user (#109)
     public const USER_AVATAR = 'user/avatar';
 
+    // Show or hide when the current user is online (#1187)
+    public const USER_ONLINE_STATUS = 'user/online-status';
+
     public const AUTH_LOGIN = 'auth/login';
 
     public const PING = 'ping';
@@ -157,6 +160,11 @@ final class ApiRoutes
     public const COMMUNITY_ACCESS_GROUP_MEMBERS = self::COMMUNITY_ACCESS_GROUP.'/members';
 
     public const COMMUNITY_ACCESS_GROUP_MEMBER = self::COMMUNITY_ACCESS_GROUP_MEMBERS.'/{'.self::PARAM_MEMBER.'}';
+
+    // Who is online now (#1187, ADR 0027)
+    public const COMMUNITY_ONLINE_MEMBERS = self::COMMUNITY.'/online-members';
+
+    public const COMMUNITY_SPACE_ONLINE_MEMBERS = self::COMMUNITY_SPACE.'/online-members';
 
     /**
      * Build a full, client-facing API path from a relative path, substituting

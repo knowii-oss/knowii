@@ -1,0 +1,26 @@
+meta {
+  name: User - Online status
+  type: http
+  seq: 103
+}
+
+patch {
+  url: {{BASE_URL}}/api/v1/user/online-status
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "show_online_status": false
+  }
+}
+
+docs {
+  Show or hide when the current user is online (#1187, ADR 0027). false: the member never joins a presence channel, never appears in the online lists and sends no typing indicator; they still read the lists through the online-members endpoints. Returns the current user with show_online_status. Needs user:write.
+}

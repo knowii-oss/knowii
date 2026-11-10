@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 namespace App\Http\Controllers\API;
 
 use App\Contracts\Users\UpdatesAvatars;
+use App\Contracts\Users\UpdatesOnlineStatus;
 use App\Contracts\Users\VerifiesUsernameAvailability;
 use App\Http\Controllers\Controller;
 use App\Traits\ApiResponses;
@@ -41,6 +42,20 @@ class UserApiController extends Controller
         $user = app(UpdatesAvatars::class)->update($request->user() ?? throw new AuthenticationException, $request->only(['file']));
 
         return self::success('Avatar updated', null, $user->refresh()->load('profile')->toResource());
+    }
+
+    /**
+     * Show or hide when the current user is online (#1187, ADR 0027). Hidden, the member never appears in the online
+     * lists, and still sees the other members there. Returns the current user.
+     *
+     * @throws AuthenticationException
+     */
+    #[BodyParameter('show_online_status', description: 'true: the other members see when you are online. false: you never appear online', required: true, type: 'boolean', example: false)]
+    final public function updateOnlineStatus(Request $request): JsonResponse
+    {
+        $user = app(UpdatesOnlineStatus::class)->update($request->user() ?? throw new AuthenticationException, $request->only(['show_online_status']));
+
+        return self::success('Online status updated', null, $user->refresh()->load('profile')->toResource());
     }
 
     /**

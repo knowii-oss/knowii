@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ChatMessage, Community, Space, SpaceContentPayload } from '@knowii/common';
-import { knowiiApiClient, useAppData, useSocket } from '@knowii/common';
+import { knowiiApiClient, spacePresenceChannel, useAppData, usePresence, useSocket } from '@knowii/common';
+import { PresenceAvatars } from '@/Components/Presence/PresenceAvatars';
+import { TypingIndicator } from '@/Components/Presence/TypingIndicator';
 import { Button, Dialog, EmptyState } from '@/Components/ui';
 import { ChatComposer } from './ChatComposer';
 import { ChatMessageItem } from './ChatMessageItem';
@@ -18,6 +20,12 @@ export interface ChatSpaceProps {
   canWrite: boolean;
   canReact: boolean;
   canModerate: boolean;
+  /**
+   * Presence (#1187): the current user is a member. False for visitors of a public space: no presence for them
+   */
+  presenceEnabled?: boolean;
+  // The current member shows their online status (they join the presence channel)
+  showsOnlineStatus?: boolean;
 }
 
 const sortByTime = (messages: ChatMessage[]) =>
@@ -25,7 +33,8 @@ const sortByTime = (messages: ChatMessage[]) =>
 
 /**
  * A chat space (#1185): messages in order, newest at the bottom, older ones on demand, threads in a side panel, live
- * through the space channel (identifiers only, the message loads through the API), and unread markers.
+ * through the space channel (identifiers only, the message loads through the API), and unread markers. Members see who
+ * is in the space and who is typing (#1187).
  */
 export function ChatSpace(props: ChatSpaceProps) {
   const { community, space, currentUserCuid } = props;
@@ -40,6 +49,22 @@ export function ChatSpace(props: ChatSpaceProps) {
   const [replies, setReplies] = useState<ChatMessage[] | null>(null);
   const logRef = useRef<HTMLOListElement>(null);
   const stickToBottom = useRef(true);
+
+  const fetchMembers = useCallback(
+    () => knowiiApiClient.communities.spaces.onlineMembers(community.cuid, space.cuid),
+    [community.cuid, space.cuid],
+  );
+  const presence = usePresence({
+    channel: props.presenceEnabled && currentUserCuid ? spacePresenceChannel(community.cuid, space.cuid) : null,
+    visible: props.showsOnlineStatus !== false,
+    fetchMembers,
+    currentUserCuid,
+  });
+  const { notifyTyping, stopTyping } = presence;
+  const onTypingChange = useCallback(
+    (scope: string, typing: boolean) => (typing ? notifyTyping(scope) : stopTyping(scope)),
+    [notifyTyping, stopTyping],
+  );
 
   // The newest message at the bottom: scroll there on load and when a message arrives, unless the member reads older ones
   useEffect(() => {
@@ -222,6 +247,14 @@ export function ChatSpace(props: ChatSpaceProps) {
 
   return (
     <section aria-label={`Chat of ${space.name}`} className="flex h-[70vh] min-h-96 flex-col gap-3">
+      {props.presenceEnabled && presence.members.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span id="chat-here-now" className="text-xs font-bold text-muted">
+            Here now ({presence.members.length})
+          </span>
+          <PresenceAvatars communitySlug={community.slug} members={presence.members} max={8} labelledBy="chat-here-now" />
+        </div>
+      )}
       {hasMore && (
         <div className="flex justify-center">
           <Button variant="secondary" size="sm" onClick={() => void loadOlder()} loading={loadingOlder}>
@@ -273,6 +306,7 @@ export function ChatSpace(props: ChatSpaceProps) {
         </ol>
       )}
 
+      <TypingIndicator typists={presence.typists('')} />
       {props.canWrite && (
         <ChatComposer
           id="chat-composer"
@@ -280,6 +314,7 @@ export function ChatSpace(props: ChatSpaceProps) {
           label={`Message ${space.name}`}
           onSend={(body) => send(body)}
           onEditLast={editLast}
+          onTypingChange={(typing) => onTypingChange('', typing)}
         />
       )}
 
@@ -296,6 +331,8 @@ export function ChatSpace(props: ChatSpaceProps) {
         onReply={(body) => (threadOf ? send(body, threadOf.cuid) : Promise.resolve(false))}
         item={item}
         editingCuid={editingCuid}
+        typists={threadOf ? presence.typists(threadOf.cuid) : []}
+        onTypingChange={(typing) => threadOf && onTypingChange(threadOf.cuid, typing)}
       />
 
       <Dialog

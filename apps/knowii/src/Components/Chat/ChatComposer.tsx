@@ -28,6 +28,10 @@ export interface ChatComposerProps {
    * Take the focus when shown, with the caret at the end (an edit opened with the Up arrow)
    */
   autoFocus?: boolean;
+  /**
+   * The member types (true) or sent the message, emptied the field (false): typing indicators (#1187)
+   */
+  onTypingChange?: ((typing: boolean) => void) | undefined;
 }
 
 /**
@@ -44,6 +48,7 @@ export function ChatComposer({
   submitLabel = 'Send',
   onCancel,
   autoFocus = false,
+  onTypingChange,
 }: ChatComposerProps) {
   const { showToast } = useAppData();
   const [value, setValue] = useState(initialValue);
@@ -81,6 +86,7 @@ export function ChatComposer({
     setSending(false);
     if (saved) {
       setValue('');
+      onTypingChange?.(false);
       textarea.current?.focus();
     }
   };
@@ -111,7 +117,10 @@ export function ChatComposer({
         id={id}
         ref={textarea}
         value={value}
-        onChange={setValue}
+        onChange={(text) => {
+          setValue(text);
+          onTypingChange?.(text.trim() !== '');
+        }}
         onKeyDown={onKeyDown}
         autoFocus={autoFocus}
         renderPreview={renderPreview}

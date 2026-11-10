@@ -13,6 +13,7 @@ use App\Http\Controllers\API\MarkdownApiController;
 use App\Http\Controllers\API\MemberApiController;
 use App\Http\Controllers\API\ModeratorPermissionApiController;
 use App\Http\Controllers\API\NewsletterApiController;
+use App\Http\Controllers\API\OnlineMemberApiController;
 use App\Http\Controllers\API\PageApiController;
 use App\Http\Controllers\API\PingApiController;
 use App\Http\Controllers\API\PostApiController;
@@ -44,6 +45,7 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
         Route::get(ApiRoutes::USER, [UserApiController::class, 'me'])->middleware('ability:user:read');
         Route::post(ApiRoutes::USER_AVATAR, [UserApiController::class, 'updateAvatar'])->middleware('ability:user:write')->middleware('throttle:uploads');
         Route::delete(ApiRoutes::USER_AVATAR, [UserApiController::class, 'deleteAvatar'])->middleware('ability:user:write');
+        Route::patch(ApiRoutes::USER_ONLINE_STATUS, [UserApiController::class, 'updateOnlineStatus'])->middleware('ability:user:write');
         Route::post(ApiRoutes::USERS_IS_USERNAME_AVAILABLE, [UserApiController::class, 'isUsernameAvailable'])->middleware('ability:user:read');
 
         Route::post(ApiRoutes::COMMUNITIES, [CommunityApiController::class, 'store'])->middleware('ability:communities:write');
@@ -124,6 +126,12 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
         Route::post(ApiRoutes::COMMUNITY_UPLOADS, [UploadApiController::class, 'store'])->middleware('ability:posts:write')->middleware('throttle:uploads');
 
         // Members (#1177 search, #1242 management)
+        // Who is online now (#1187, ADR 0027)
+        Route::get(ApiRoutes::COMMUNITY_ONLINE_MEMBERS, [OnlineMemberApiController::class, 'community'])->middleware('ability:communities:read');
+        Route::scopeBindings()->group(function () {
+            Route::get(ApiRoutes::COMMUNITY_SPACE_ONLINE_MEMBERS, [OnlineMemberApiController::class, 'space'])->middleware('ability:chat:read');
+        });
+
         Route::get(ApiRoutes::COMMUNITY_MEMBERS, [MemberApiController::class, 'index'])->middleware('ability:communities:read')->middleware('throttle:markdown-preview');
         Route::patch(ApiRoutes::COMMUNITY_MEMBER, [MemberApiController::class, 'update'])->middleware('ability:communities:write');
         Route::delete(ApiRoutes::COMMUNITY_MEMBER, [MemberApiController::class, 'destroy'])->middleware('ability:communities:write');

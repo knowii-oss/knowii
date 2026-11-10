@@ -1,5 +1,7 @@
 <?php
 
+use App\Broadcasting\CommunityOnlineChannel;
+use App\Broadcasting\SpacePresenceChannel;
 use App\Constants;
 use App\Models\Community;
 use App\Models\Space;
@@ -30,3 +32,7 @@ Broadcast::channel(Constants::WS_CHANNEL_COMMUNITY_SPACE, static function (User 
 
     return $user->can('view', $space);
 });
+
+// Presence channels (#1187, ADR 0027): members who hide their online status never join
+Broadcast::channel(Constants::WS_CHANNEL_COMMUNITY_ONLINE, CommunityOnlineChannel::class);
+Broadcast::channel(Constants::WS_CHANNEL_COMMUNITY_SPACE_PRESENCE, SpacePresenceChannel::class);

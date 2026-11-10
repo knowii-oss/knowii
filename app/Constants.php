@@ -209,4 +209,12 @@ class Constants
     public const string WS_CHANNEL_COMMUNITY_SPACE_PARAM_SPACE_CUID = '{spaceCuid}';
 
     public const string WS_CHANNEL_COMMUNITY_SPACE = 'community.{communityCuid}.space.{spaceCuid}';
+
+    // Presence channels (#1187, ADR 0027). WARNING: aligned with use-presence.ts
+    public const string WS_CHANNEL_COMMUNITY_ONLINE = 'community.{communityCuid}.online';
+
+    public const string WS_CHANNEL_COMMUNITY_SPACE_PRESENCE = 'community.{communityCuid}.space.{spaceCuid}.presence';
+
+    // At most this many members in an online list (API and pages)
+    public const int MAX_ONLINE_MEMBERS_LISTED = 100;
 }

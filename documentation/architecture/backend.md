@@ -340,7 +340,11 @@ Broadcast::channel(Constants::WS_CHANNEL_COMMUNITY, static function (User $user,
 });
 ```
 
+### Presence channels
+
+Presence (#1187, [ADR 0027](../adr/0027-presence-channels.md)) uses two presence channels, authorized by classes in `app/Broadcasting`: `community.{communityCuid}.online` (`CommunityOnlineChannel`) and `community.{communityCuid}.space.{spaceCuid}.presence` for chat spaces (`SpacePresenceChannel`). They identify members by cuid and share their public summary only (`Presence::info`). A member with `show_online_status` false never joins; their pages read `GET .../online-members`, which asks Reverb through `ReadsPresenceChannels`. Typing indicators are client events (`typing`, with a scope) on the space channel; `config/reverb.php` accepts client events from channel members only, and Reverb adds the cuid of the sender.
+
 ### Client-side
 
-On the client-side, we have abstracted Laravel Echo behind a React hook called `useSocket`. This hook makes it easy to listen to channels/events, and to handle incoming events.
+On the client-side, we have abstracted Laravel Echo behind a React hook called `useSocket`. This hook makes it easy to listen to channels/events, and to handle incoming events. Presence channels go through `usePresence` (members, typing indicators, polling for hidden members).
 You can find examples of how to use this hook in the `Dashboard` page. See the [front-end design](frontend.md).

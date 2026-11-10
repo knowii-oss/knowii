@@ -1,6 +1,9 @@
 import {
   COMMUNITY_API_BASE_PATH,
   USER_AVATAR_API_PATH,
+  USER_ONLINE_STATUS_API_PATH,
+  COMMUNITY_ONLINE_MEMBERS_API_PATH,
+  COMMUNITY_SPACE_ONLINE_MEMBERS_API_PATH,
   COMMUNITY_API_PATH,
   COMMUNITY_API_PATH_PARAM_COMMUNITY,
   COMMUNITY_SPACE_API_PATH,
@@ -78,6 +81,8 @@ import type { Author, Paginated, Post, PostForm } from '../types/post.schema';
 import { authorSchema, paginationSchema, postSchema } from '../types/post.schema';
 import type { Comment, CommentForm } from '../types/comment.schema';
 import { commentSchema } from '../types/comment.schema';
+import type { PresenceMember } from '../types/presence.schema';
+import { presenceMemberSchema } from '../types/presence.schema';
 import type { Upload } from '../types/upload.schema';
 import { uploadSchema } from '../types/upload.schema';
 import type { CommunityResource } from '../types/community-resource.schema';
@@ -291,7 +296,30 @@ export const knowiiApiClient = {
           { space_group_cuids: spaceGroupCuids },
         ),
     },
+    /**
+     * The members of the community who are online now and show it (#1187, ADR 0027)
+     */
+    onlineMembers: (communityCuid: string): Promise<ApiResult<PresenceMember[]>> =>
+      apiRequest(
+        'get',
+        communityPath(COMMUNITY_ONLINE_MEMBERS_API_PATH, communityCuid),
+        z.array(presenceMemberSchema),
+        'Failed to load who is online.',
+      ),
     spaces: {
+      /**
+       * The members who are in the chat space now and show it (#1187, ADR 0027)
+       */
+      onlineMembers: (communityCuid: string, spaceCuid: string): Promise<ApiResult<PresenceMember[]>> =>
+        apiRequest(
+          'get',
+          apiPath(COMMUNITY_SPACE_ONLINE_MEMBERS_API_PATH, {
+            [SPACE_API_PARAM_COMMUNITY]: communityCuid,
+            [SPACE_API_PARAM_SPACE]: spaceCuid,
+          }),
+          z.array(presenceMemberSchema),
+          'Failed to load who is in the space.',
+        ),
       create: (communityCuid: string, input: SpaceCreateInput): Promise<ApiResult<Space>> =>
         apiRequest('post', communityPath(COMMUNITY_SPACES_API_PATH, communityCuid), spaceSchema, 'Failed to create the space.', input),
       update: (communityCuid: string, spaceCuid: string, input: Partial<Omit<SpaceForm, 'type'>>): Promise<ApiResult<Space>> =>
@@ -771,6 +799,11 @@ export const knowiiApiClient = {
      * Remove the avatar of the current user (#109): the initials show again.
      */
     deleteAvatar: (): Promise<ApiResult<unknown>> => apiRequest('delete', USER_AVATAR_API_PATH, null, 'Failed to remove the picture.'),
+    /**
+     * Show or hide when the current user is online (#1187, ADR 0027)
+     */
+    updateOnlineStatus: (show: boolean): Promise<ApiResult<unknown>> =>
+      apiRequest('patch', USER_ONLINE_STATUS_API_PATH, null, 'Failed to change your online status.', { show_online_status: show }),
     isUsernameAvailable: async (input: IsUsernameAvailableRequest, signal?: AbortSignal): Promise<IsUsernameAvailableResponse> => {
       try {
         const response = await fetch(USERS_API_IS_USERNAME_AVAILABLE_PATH, {
