@@ -1,7 +1,7 @@
 ---
 title: Data processing agreement
 updated: 2026-11-10
-draft: true
+draft: false
 ---
 
 # Data processing agreement
@@ -66,4 +66,4 @@ When the Controller deletes its community, the Processor deletes its data at onc
 
 ## 10. Applicable law
 
-Belgian law applies to this DPA. The courts of Belgium have jurisdiction.
+Belgian law applies to this DPA. Any legal action about this DPA goes to the Belgian courts, which have exclusive jurisdiction: the courts of the registered office of DeveloPassion SRL.

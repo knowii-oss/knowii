@@ -1,7 +1,7 @@
 ---
 title: Imprint
 updated: 2026-11-10
-draft: true
+draft: false
 ---
 
 # Imprint

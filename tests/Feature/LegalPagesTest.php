@@ -27,15 +27,15 @@ test('no legal page keeps an unknown placeholder', function (string $url) {
     $this->get($url)->assertInertia(fn ($page) => $page->where('html', fn (string $html) => ! str_contains($html, '{{')));
 })->with('legal pages');
 
-test('a page in draft shows it, a self-hosted instance replaces a page with its own file', function () {
-    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page->where('draft', true));
+test('the approved pages are final, a self-hosted instance replaces a page with its own file, a draft says so', function () {
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page->where('draft', false));
 
     $override = storage_path('app/legal/policy.md');
     File::ensureDirectoryExists(dirname($override));
     File::put($override, '---
 title: Our privacy
 updated: 2027-01-01
-draft: false
+draft: true
 ---
 
 # Our privacy
@@ -45,7 +45,7 @@ Example <b>Ltd</b>, {{retention.session}}.');
     try {
         $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
             ->where('title', 'Our privacy')
-            ->where('draft', false)
+            ->where('draft', true)
             ->where('updated', '2027-01-01')
             ->where('html', fn (string $html) => str_contains($html, 'Example &lt;b&gt;Ltd&lt;/b&gt;, 2 hours.'))
         );
@@ -112,9 +112,10 @@ test('a sub-processor of an optional feature says that only the communities that
 
 test('the terms of service name DeveloPassion SRL, Belgian law and the public contact address (#1309)', function () {
     $this->get('/terms-of-service')->assertInertia(fn ($page) => $page
-        ->where('draft', true)
+        ->where('draft', false)
         ->where('html', fn (string $html) => str_contains($html, 'DeveloPassion SRL')
             && str_contains($html, 'Belgian law applies')
+            && str_contains($html, 'goes to the Belgian courts, which have exclusive jurisdiction')
             && str_contains($html, 'mailto:contact@developassion.be')
             && ! str_contains($html, 'knowii.net</a>')
             && ! str_contains($html, '@knowii.net')
@@ -125,3 +126,12 @@ test('the terms of service name DeveloPassion SRL, Belgian law and the public co
 test('every legal page shows the same public contact address (#1309)', function (string $url) {
     $this->get($url)->assertInertia(fn ($page) => $page->where('html', fn (string $html) => ! str_contains($html, '@knowii.net')));
 })->with('legal pages');
+
+test('every approved legal page is final (#1319)', function (string $url) {
+    $this->get($url)->assertInertia(fn ($page) => $page->where('draft', false));
+})->with('legal pages');
+
+test('the DPA sends any legal action to the Belgian courts (#1319)', function () {
+    $this->get('/dpa')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, 'Any legal action about this DPA goes to the Belgian courts, which have exclusive jurisdiction')));
+});

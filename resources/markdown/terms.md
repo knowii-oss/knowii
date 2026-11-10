@@ -1,7 +1,7 @@
 ---
 title: Terms of service
 updated: 2026-11-10
-draft: true
+draft: false
 ---
 
 # Terms of service
@@ -74,4 +74,5 @@ When these terms change, we update the date at the top. For important changes, w
 
 1. Belgian law applies.
 2. Before you go to court, please write to us: most problems have a simple solution.
-3. The courts of the registered office of DeveloPassion SRL have jurisdiction. If you are a consumer, you can also go to the courts of the place where you live, and the mandatory consumer law of that country stays valid.
+3. Any legal action about Knowii or these terms goes to the Belgian courts, which have exclusive jurisdiction: the courts of the registered office of DeveloPassion SRL.
+4. One exception comes from EU law, and these terms cannot remove it. If you are a consumer and you live in another country of the European Union, you can also go to the courts of the place where you live, and we can only take legal action against you there. The mandatory consumer law of that country also stays valid.
