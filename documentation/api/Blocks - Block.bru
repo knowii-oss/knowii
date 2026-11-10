@@ -1,0 +1,19 @@
+meta {
+  name: Blocks - Block
+  type: http
+  seq: 105
+}
+
+put {
+  url: {{BASE_URL}}/api/v1/user/blocks/v76f8v6cw1zyl5wqxoucchmp
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Block a member by user cuid (#1186, ADR 0028): neither of you starts or continues a one-to-one conversation with the other, and neither adds the other to a group. The member is not told. Blocking twice changes nothing; blocking yourself gives 422. Needs user:write.
+}

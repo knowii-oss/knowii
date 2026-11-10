@@ -63,9 +63,10 @@ class CommunityApiController extends Controller
     #[BodyParameter('name', description: 'Name of the community', required: false, type: 'string', example: 'Knowii Community')]
     #[BodyParameter('description', description: 'Description of the community (can be empty)', required: false, type: 'string')]
     #[BodyParameter('visibility', description: 'private or public (a personal community stays personal)', required: false, type: 'string', example: 'private')]
+    #[BodyParameter('direct_messages_enabled', description: 'false: nobody starts a conversation or sends a direct message; the members still read theirs (#1186)', required: false, type: 'boolean', example: true)]
     final public function update(Request $request, Community $community): JsonResponse
     {
-        $community = app(UpdatesCommunities::class)->update($request->user() ?? throw new AuthenticationException, $community, $request->only(['name', 'description', 'visibility']));
+        $community = app(UpdatesCommunities::class)->update($request->user() ?? throw new AuthenticationException, $community, $request->only(['name', 'description', 'visibility', 'direct_messages_enabled']));
 
         return self::success('Community updated', null, $community->loadCount('users')->toResource()->withLargeFields());
     }

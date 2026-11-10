@@ -58,6 +58,9 @@ class JetstreamServiceProvider extends ServiceProvider
             'posts:write',
             'chat:read',
             'chat:write',
+            // Direct messages (#1186, ADR 0028): never in the default set of a new token, they are private
+            'messages:read',
+            'messages:write',
             'pages:read',
             'pages:write',
             'resources:read',

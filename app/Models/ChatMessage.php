@@ -16,13 +16,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * A message of a chat space (#1185). With a parent, a reply in the thread of that message (one level). A deleted
- * message keeps its row as a marker, without its text.
+ * A message of a chat space (#1185) or of a conversation (direct messages, #1186, ADR 0028), never both. With a
+ * parent, a reply in the thread of that message (one level, chat spaces only). A deleted message keeps its row as a
+ * marker, without its text.
  *
  * @property-read int $id
  * @property-read string $cuid
  * @property int $community_id
- * @property int $space_id
+ * @property ?int $space_id
+ * @property ?int $conversation_id
  * @property ?int $author_id
  * @property ?int $parent_id
  * @property string $body
@@ -34,7 +36,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read Community $community
- * @property-read Space $space
+ * @property-read ?Space $space
+ * @property-read ?Conversation $conversation
  * @property-read ?User $author
  * @property-read ?ChatMessage $parent
  *
@@ -60,6 +63,7 @@ class ChatMessage extends Model
         'cuid',
         'community_id',
         'space_id',
+        'conversation_id',
         'author_id',
         'parent_id',
         'body',
@@ -77,6 +81,7 @@ class ChatMessage extends Model
         'id',
         'community_id',
         'space_id',
+        'conversation_id',
         'author_id',
         'parent_id',
     ];
@@ -111,6 +116,21 @@ class ChatMessage extends Model
     }
 
     /**
+     * The conversation of a direct message (#1186); null for a message of a chat space
+     *
+     * @return BelongsTo<Conversation, covariant $this>
+     */
+    final public function conversation(): BelongsTo
+    {
+        return $this->belongsTo(Conversation::class);
+    }
+
+    final public function isDirectMessage(): bool
+    {
+        return $this->conversation_id !== null;
+    }
+
+    /**
      * @return BelongsTo<User, covariant $this>
      */
     final public function author(): BelongsTo
@@ -139,6 +159,14 @@ class ChatMessage extends Model
     final public function isDeleted(): bool
     {
         return $this->deleted_at !== null;
+    }
+
+    /**
+     * A direct message mentions its participants only: the others cannot read it (#1186)
+     */
+    protected function canMention(User $member): bool
+    {
+        return $this->conversation_id === null || ($this->conversation?->hasParticipant($member) ?? false);
     }
 
     protected function itemForeignKey(): string

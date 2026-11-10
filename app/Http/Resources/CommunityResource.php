@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use App\Models\Community;
 use App\Models\User;
+use App\Support\Conversations;
 use Illuminate\Http\Request;
 
 /** @mixin Community **/
@@ -32,6 +33,12 @@ class CommunityResource extends AbstractKnowiiJsonResource
             'member_count' => $this->whenCounted('users', fn (int $count) => $count + 1),
             // Whether the current user belongs to the community (#1187: presence is for members only); absent without a user
             'is_member' => $this->when($user instanceof User, fn () => $user instanceof User && $user->belongsToCommunity($community)),
+            // Direct messages (#1186): whether members can write them, and (pages of the community only) what the member did not read
+            'direct_messages_enabled' => $community->allowsDirectMessages(),
+            'unread_direct_messages' => $this->when(
+                $this->serializeLargeFields && $user instanceof User && $user->belongsToCommunity($community),
+                fn () => $user instanceof User ? Conversations::unreadTotal($user, $community) : 0,
+            ),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

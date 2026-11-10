@@ -1,0 +1,27 @@
+meta {
+  name: Conversations - Start
+  type: http
+  seq: 108
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/conversations
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "participant_cuids": ["v76f8v6cw1zyl5wqxoucchmp"],
+    "body": "Hello Ada! Do you have a minute?"
+  }
+}
+
+docs {
+  Write to 1 to 9 other members of the community with a first message (#1186). Writing again to the same single member continues your one-to-one conversation. 400 for members outside the community, 422 when direct messages are off or a block exists between you. Rate limited (messages). Needs messages:write.
+}

@@ -1,0 +1,19 @@
+meta {
+  name: Conversations - Delete message
+  type: http
+  seq: 115
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/conversations/k3conversationexample001/messages/m7directmessageexample01
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The author deletes their message (#1186). It stays as a marker without text; nobody moderates direct messages. Needs messages:write.
+}

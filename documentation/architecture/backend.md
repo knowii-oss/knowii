@@ -340,6 +340,10 @@ Broadcast::channel(Constants::WS_CHANNEL_COMMUNITY, static function (User $user,
 });
 ```
 
+### Direct messages
+
+Direct messages (#1186, [ADR 0028](../adr/0028-direct-messages.md)) are chat messages with a `conversation_id`. `App\Events\Conversations\ConversationChanged` (`conversation.message.created`, `.updated`, `.deleted`, `conversation.reactions.changed`, with `conversation_cuid`, `message_cuid`, `author_cuid`) goes to `conversation.{conversationCuid}` (participants) and to `user.{userCuid}` of each participant (their lists and unread counts). `App\Support\ChatMessageEvents` sends the event of a chat message to its place: the space channel or the conversation channels.
+
 ### Presence channels
 
 Presence (#1187, [ADR 0027](../adr/0027-presence-channels.md)) uses two presence channels, authorized by classes in `app/Broadcasting`: `community.{communityCuid}.online` (`CommunityOnlineChannel`) and `community.{communityCuid}.space.{spaceCuid}.presence` for chat spaces (`SpacePresenceChannel`). They identify members by cuid and share their public summary only (`Presence::info`). A member with `show_online_status` false never joins; their pages read `GET .../online-members`, which asks Reverb through `ReadsPresenceChannels`. Typing indicators are client events (`typing`, with a scope) on the space channel; `config/reverb.php` accepts client events from channel members only, and Reverb adds the cuid of the sender.

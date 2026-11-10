@@ -1,0 +1,19 @@
+meta {
+  name: Conversations - Get
+  type: http
+  seq: 109
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/conversations/k3conversationexample001
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  One conversation with its participants (#1186). Participants only (403), a conversation of another community gives 404. Needs messages:read.
+}

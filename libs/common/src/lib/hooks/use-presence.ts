@@ -13,6 +13,8 @@ import type { PresenceMember } from '../types/presence.schema';
 // WARNING: aligned with WS_CHANNEL_COMMUNITY_ONLINE and WS_CHANNEL_COMMUNITY_SPACE_PRESENCE (Constants.php)
 export const communityOnlineChannel = (communityCuid: string) => `community.${communityCuid}.online`;
 export const spacePresenceChannel = (communityCuid: string, spaceCuid: string) => `community.${communityCuid}.space.${spaceCuid}.presence`;
+// WARNING: aligned with WS_CHANNEL_CONVERSATION_PRESENCE (Constants.php)
+export const conversationPresenceChannel = (conversationCuid: string) => `conversation.${conversationCuid}.presence`;
 
 // A page change leaves the channel and the next page joins it again: wait a little, so the others see no flicker
 const LEAVE_DELAY_MS = 3000;

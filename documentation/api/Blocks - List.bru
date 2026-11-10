@@ -1,0 +1,19 @@
+meta {
+  name: Blocks - List
+  type: http
+  seq: 104
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/user/blocks
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The members you blocked (#1186), by name, in every community. Needs user:read.
+}

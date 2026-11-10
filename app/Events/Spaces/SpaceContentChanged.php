@@ -80,7 +80,7 @@ class SpaceContentChanged implements ShouldBroadcast, ShouldDispatchAfterCommit
 
     public static function forMessage(string $name, ChatMessage $message, ?string $authorCuid = null): self
     {
-        return self::in($message->space, $name, [
+        return self::in($message->space ?? throw new \LogicException('Not a message of a chat space'), $name, [
             'message_cuid' => $message->cuid,
             'parent_cuid' => $message->parent_id === null ? null : $message->parent?->cuid,
             'author_cuid' => $authorCuid,
@@ -109,14 +109,14 @@ class SpaceContentChanged implements ShouldBroadcast, ShouldDispatchAfterCommit
     public static function forReactions(Post|Comment|ChatMessage $reactable): self
     {
         if ($reactable instanceof ChatMessage) {
-            return self::in($reactable->space, self::REACTIONS_CHANGED, [
+            return self::in($reactable->space ?? throw new \LogicException('Not a message of a chat space'), self::REACTIONS_CHANGED, [
                 'message_cuid' => $reactable->cuid,
                 'parent_cuid' => $reactable->parent_id === null ? null : $reactable->parent?->cuid,
             ]);
         }
 
         if ($reactable instanceof Post) {
-            return self::in($reactable->space, self::REACTIONS_CHANGED, ['post_cuid' => $reactable->cuid]);
+            return self::in($reactable->space ?? throw new \LogicException('Not a message of a chat space'), self::REACTIONS_CHANGED, ['post_cuid' => $reactable->cuid]);
         }
 
         $subject = $reactable->subject();

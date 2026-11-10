@@ -1,0 +1,19 @@
+meta {
+  name: Conversations - Message
+  type: http
+  seq: 113
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/conversations/k3conversationexample001/messages/m7directmessageexample01
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  One message of the conversation (a live update loads it again). Needs messages:read.
+}

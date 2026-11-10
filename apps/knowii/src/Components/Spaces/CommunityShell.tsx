@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
 import { useCallback, useMemo, useState } from 'react';
-import { router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import type { Community, Space, SpaceGroup } from '@knowii/common';
-import { communityOnlineChannel, knowiiApiClient, SPACE_URL, usePresence, useSocket, useTypedPage } from '@knowii/common';
-import { FaBars } from 'react-icons/fa6';
-import { Button, Drawer } from '@/Components/ui';
+import { communityOnlineChannel, knowiiApiClient, MESSAGES_URL, SPACE_URL, usePresence, useSocket, useTypedPage } from '@knowii/common';
+import { FaBars, FaEnvelope } from 'react-icons/fa6';
+import { Button, cn, Drawer, isCurrentUrl } from '@/Components/ui';
 import { OnlineMembers } from '@/Components/Presence/OnlineMembers';
 import { SpaceNavigation } from './SpaceNavigation';
 
@@ -30,6 +30,28 @@ export function CommunityShell({ community, spaceGroups, activeSpaceCuid, conten
   const user = useTypedPage().props.auth.user;
   const isMember = community.is_member === true && !!user;
   const showsOnlineStatus = user?.show_online_status !== false;
+  const messagesHref = route(MESSAGES_URL, { communitySlug: community.slug });
+  const onMessagesPage = isCurrentUrl(messagesHref, usePage().url, 'prefix');
+  // A direct message arrived or went: the unread count of the navigation follows (#1186). The messages page reloads it itself
+  const userChannel = useMemo(() => ({ type: 'user' as const, userCuid: user?.cuid ?? '' }), [user?.cuid]);
+  useSocket({
+    channel: userChannel,
+    event: ['conversation.message.created', 'conversation.message.deleted'],
+    callback: () => {
+      if (isMember && !onMessagesPage) {
+        router.reload({ only: ['community'] });
+      }
+    },
+  });
+  const messagesLink = isMember ? (
+    <MessagesLink
+      href={messagesHref}
+      active={onMessagesPage}
+      unread={community.unread_direct_messages ?? 0}
+      onNavigate={() => setDrawerOpen(false)}
+    />
+  ) : null;
+
   const fetchOnlineMembers = useCallback(() => knowiiApiClient.communities.onlineMembers(community.cuid), [community.cuid]);
   const online = usePresence({
     channel: isMember ? communityOnlineChannel(community.cuid) : null,
@@ -67,6 +89,7 @@ export function CommunityShell({ community, spaceGroups, activeSpaceCuid, conten
     <div className="flex flex-col gap-6 md:flex-row">
       <aside aria-label={`${community.name} spaces`} className="hidden w-60 shrink-0 md:block">
         <div className="sticky top-4 flex flex-col gap-6">
+          {messagesLink}
           <SpaceNavigation spaceGroups={spaceGroups} activeSpaceCuid={activeSpaceCuid} getSpaceHref={getSpaceHref} />
           {isMember && (
             <OnlineMembers
@@ -85,6 +108,7 @@ export function CommunityShell({ community, spaceGroups, activeSpaceCuid, conten
           Spaces
         </Button>
         <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} title={community.name}>
+          {messagesLink && <div className="mb-5">{messagesLink}</div>}
           <SpaceNavigation
             spaceGroups={spaceGroups}
             activeSpaceCuid={activeSpaceCuid}
@@ -108,5 +132,32 @@ export function CommunityShell({ community, spaceGroups, activeSpaceCuid, conten
         {contentWidth === 'readable' ? <div className="readable-width">{children}</div> : children}
       </div>
     </div>
+  );
+}
+
+/**
+ * The direct messages of the member (#1186), above the spaces, with what they did not read
+ */
+function MessagesLink({ href, active, unread, onNavigate }: { href: string; active: boolean; unread: number; onNavigate: () => void }) {
+  return (
+    <Link
+      href={href}
+      onClick={onNavigate}
+      {...(active ? { 'aria-current': 'page' as const } : {})}
+      className={cn(
+        'flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors',
+        'hover:bg-overlay/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
+        active ? 'bg-overlay/15 font-bold text-primary' : 'text-primary/90',
+      )}
+    >
+      <FaEnvelope aria-hidden="true" className="w-5 shrink-0" />
+      <span className="grow">Messages</span>
+      {unread > 0 && (
+        <span className="shrink-0 rounded-full bg-secondary px-1.5 text-xs font-bold text-white">
+          {unread}
+          <span className="sr-only"> unread</span>
+        </span>
+      )}
+    </Link>
   );
 }

@@ -215,6 +215,18 @@ class Constants
 
     public const string WS_CHANNEL_COMMUNITY_SPACE_PRESENCE = 'community.{communityCuid}.space.{spaceCuid}.presence';
 
+    // Direct messages (#1186, ADR 0028). WARNING: aligned with use-socket.ts and use-presence.ts
+    public const string WS_CHANNEL_CONVERSATION_PARAM_CONVERSATION_CUID = '{conversationCuid}';
+
+    public const string WS_CHANNEL_CONVERSATION = 'conversation.{conversationCuid}';
+
+    public const string WS_CHANNEL_CONVERSATION_PRESENCE = 'conversation.{conversationCuid}.presence';
+
+    // The events of one member (their conversations changed)
+    public const string WS_CHANNEL_USER_PARAM_USER_CUID = '{userCuid}';
+
+    public const string WS_CHANNEL_USER = 'user.{userCuid}';
+
     // At most this many members in an online list (API and pages)
     public const int MAX_ONLINE_MEMBERS_LISTED = 100;
 }

@@ -59,6 +59,9 @@ export const PAGE_URL = 'pages.show';
 
 // Members
 export const MEMBER_URL = 'members.show';
+// Direct messages (#1186)
+export const MESSAGES_URL = 'messages.index';
+export const CONVERSATION_URL = 'messages.show';
 
 // Resources
 export const RESOURCE_URL = 'resources.show';
@@ -132,6 +135,8 @@ export const MAX_LENGTH_POST_TITLE = 200;
 export const MAX_LENGTH_POST_BODY = 50000;
 // Chat messages (#1185). WARNING: aligned with Constants.php
 export const MAX_LENGTH_CHAT_MESSAGE = 10000;
+// The members of a conversation, the author included (#1186). WARNING: aligned with Conversation::MAX_PARTICIPANTS
+export const MAX_CONVERSATION_PARTICIPANTS = 10;
 export const POSTS_PER_PAGE = 20;
 export const POST_EDITOR_ROWS = 12;
 export const MAX_LENGTH_COMMENT_BODY = 10000;
@@ -170,6 +175,8 @@ export const USERS_API_IS_USERNAME_AVAILABLE_PATH = `${USERS_API_BASE_PATH}/is-u
 export const USER_AVATAR_API_PATH = `${API_BASE_PATH}/user/avatar`;
 // Show or hide when the current user is online (#1187)
 export const USER_ONLINE_STATUS_API_PATH = `${API_BASE_PATH}/user/online-status`;
+// The members the current user blocked (#1186)
+export const USER_BLOCKS_API_PATH = `${API_BASE_PATH}/user/blocks`;
 export const COMMUNITY_API_BASE_PATH = `${API_BASE_PATH}/communities`;
 
 export const COMMUNITY_API_PATH_PARAM_COMMUNITY = '{communityCuid}';
@@ -212,6 +219,14 @@ export const COMMUNITY_SPACE_MESSAGES_READ_API_PATH = `${COMMUNITY_SPACE_MESSAGE
 export const COMMUNITY_SPACE_MESSAGE_API_PATH = `${COMMUNITY_SPACE_MESSAGES_API_PATH}/${SPACE_API_PARAM_MESSAGE}`;
 export const COMMUNITY_SPACE_MESSAGE_THREAD_API_PATH = `${COMMUNITY_SPACE_MESSAGE_API_PATH}/thread`;
 export const COMMUNITY_SPACE_MESSAGE_REACTIONS_API_PATH = `${COMMUNITY_SPACE_MESSAGE_API_PATH}/reactions`;
+// Direct messages (#1186, ADR 0028)
+export const CONVERSATION_API_PARAM_CONVERSATION = '{conversationCuid}';
+export const COMMUNITY_CONVERSATIONS_API_PATH = `${COMMUNITY_API_PATH}/conversations`;
+export const COMMUNITY_CONVERSATION_API_PATH = `${COMMUNITY_CONVERSATIONS_API_PATH}/${CONVERSATION_API_PARAM_CONVERSATION}`;
+export const COMMUNITY_CONVERSATION_MESSAGES_API_PATH = `${COMMUNITY_CONVERSATION_API_PATH}/messages`;
+export const COMMUNITY_CONVERSATION_READ_API_PATH = `${COMMUNITY_CONVERSATION_API_PATH}/read`;
+export const COMMUNITY_CONVERSATION_MESSAGE_API_PATH = `${COMMUNITY_CONVERSATION_MESSAGES_API_PATH}/${SPACE_API_PARAM_MESSAGE}`;
+export const COMMUNITY_CONVERSATION_MESSAGE_REACTIONS_API_PATH = `${COMMUNITY_CONVERSATION_MESSAGE_API_PATH}/reactions`;
 // Pages of page spaces (#1179)
 export const SPACE_API_PARAM_PAGE = '{pageCuid}';
 export const COMMUNITY_SPACE_PAGES_API_PATH = `${COMMUNITY_SPACE_API_PATH}/pages`;

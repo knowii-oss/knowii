@@ -13,11 +13,14 @@ use Illuminate\Database\Eloquent\Attributes\UseResource;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\DatabaseNotificationCollection;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
@@ -169,6 +172,38 @@ class User extends Authenticatable implements MustVerifyEmail
     final public function getAuthIdentifierForBroadcasting(): string
     {
         return $this->cuid;
+    }
+
+    /**
+     * The members this member blocked (#1186, ADR 0028), in every community
+     *
+     * @return BelongsToMany<User, covariant $this>
+     */
+    final public function blockedUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(self::class, 'user_blocks', 'blocker_id', 'blocked_id')->withPivot('created_at');
+    }
+
+    /**
+     * Whether one of the two members blocked the other (#1186): then neither starts nor continues a one-to-one
+     * conversation with the other, and neither adds the other to a group conversation.
+     */
+    final public function hasBlockWith(User $other): bool
+    {
+        return DB::table('user_blocks')
+            ->where(fn (QueryBuilder $query) => $query->where('blocker_id', $this->id)->where('blocked_id', $other->id))
+            ->orWhere(fn (QueryBuilder $query) => $query->where('blocker_id', $other->id)->where('blocked_id', $this->id))
+            ->exists();
+    }
+
+    /**
+     * The conversations of direct messages of this member (#1186)
+     *
+     * @return BelongsToMany<Conversation, covariant $this>
+     */
+    final public function conversations(): BelongsToMany
+    {
+        return $this->belongsToMany(Conversation::class, 'conversation_participants')->withPivot('last_read_message_id')->withTimestamps();
     }
 
     /**

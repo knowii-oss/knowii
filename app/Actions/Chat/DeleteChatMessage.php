@@ -3,9 +3,9 @@
 namespace App\Actions\Chat;
 
 use App\Contracts\Chat\DeletesChatMessages;
-use App\Events\Spaces\SpaceContentChanged;
 use App\Models\ChatMessage;
 use App\Models\User;
+use App\Support\ChatMessageEvents;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -37,6 +37,6 @@ class DeleteChatMessage implements DeletesChatMessages
         });
 
         Log::info('Chat message deleted', ['message' => $message->cuid]);
-        event(SpaceContentChanged::forMessage(SpaceContentChanged::MESSAGE_DELETED, $message, $user->cuid));
+        ChatMessageEvents::dispatch(ChatMessageEvents::DELETED, $message, $user->cuid);
     }
 }

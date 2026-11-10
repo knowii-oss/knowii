@@ -73,7 +73,11 @@ test('every documented operation documents its success response', function () {
 test('every write operation documents its request body', function () {
     // Validation lives in the actions (ADR 0006), so a body needs #[BodyParameter] on the controller method
     // Operations that take no body at all
-    $noBody = ['POST /v1/communities/{community}/spaces/{space}/resources/{resource}/capture'];
+    $noBody = [
+        'POST /v1/communities/{community}/spaces/{space}/resources/{resource}/capture',
+        // Block a member (#1186): the member is in the path
+        'PUT /v1/user/blocks/{userCuid}',
+    ];
     $withoutBody = [];
     foreach (openApiDocument()['paths'] as $path => $operations) {
         foreach ($operations as $method => $operation) {

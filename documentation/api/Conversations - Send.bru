@@ -1,0 +1,26 @@
+meta {
+  name: Conversations - Send
+  type: http
+  seq: 111
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/conversations/k3conversationexample001/messages
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "body": "Thanks, see you **tomorrow**."
+  }
+}
+
+docs {
+  Write a message in the conversation (#1186): Markdown, mentions of the participants only, images. 403 while a block exists in a one-to-one conversation or when direct messages are off. Rate limited (messages). Needs messages:write.
+}

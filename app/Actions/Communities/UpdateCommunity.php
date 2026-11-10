@@ -29,11 +29,13 @@ class UpdateCommunity implements UpdatesCommunities
         Gate::forUser($user)->authorize('update', $community);
 
         // WARNING: the same rules as CreateCommunity.php and newCommunitySchema (community.schema.ts)
-        /** @var array{name?: string, description?: string|null, visibility?: string} $validated */
+        /** @var array{name?: string, description?: string|null, visibility?: string, direct_messages_enabled?: bool} $validated */
         $validated = Validator::make($input, [
             'name' => ['sometimes', 'required', 'string', 'min:'.Constants::MIN_LENGTH_COMMUNITY_NAME, 'max:'.Constants::MAX_LENGTH_COMMUNITY_NAME, 'regex:'.Constants::ALLOWED_COMMUNITY_NAME_CHARACTERS_REGEX],
             'description' => ['sometimes', 'nullable', 'string', 'max:'.Constants::MAX_LENGTH_COMMUNITY_DESCRIPTION],
             'visibility' => ['sometimes', 'required', Rule::enum(KnowiiCommunityVisibility::class)],
+            // #1186: off, nobody starts a conversation or sends a direct message; the members still read theirs
+            'direct_messages_enabled' => ['sometimes', 'boolean'],
         ])->validate();
 
         if (array_key_exists('visibility', $validated)) {
