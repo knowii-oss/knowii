@@ -60,6 +60,8 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
         // The communities of the current member (#828)
         Route::get(ApiRoutes::COMMUNITIES, [CommunityApiController::class, 'index'])->middleware('ability:communities:read');
         Route::post(ApiRoutes::COMMUNITIES, [CommunityApiController::class, 'store'])->middleware('ability:communities:write');
+        // The create and rename forms call it while the user types (#1136)
+        Route::post(ApiRoutes::COMMUNITIES_IS_NAME_AVAILABLE, [CommunityApiController::class, 'isNameAvailable'])->middleware('ability:communities:read')->middleware('throttle:name-checks');
         Route::get(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'show'])->middleware('ability:communities:read');
         Route::patch(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'update'])->middleware('ability:communities:write');
         Route::delete(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'destroy'])->middleware('ability:communities:write');

@@ -7,6 +7,7 @@ use App\Contracts\Communities\UpdatesCommunities;
 use App\Enums\KnowiiCommunityVisibility;
 use App\Models\Community;
 use App\Models\User;
+use App\Rules\AvailableCommunityName;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -36,7 +37,8 @@ class UpdateCommunity implements UpdatesCommunities
             'visibility' => ['sometimes', 'required', Rule::enum(KnowiiCommunityVisibility::class)],
             // #1186: off, nobody starts a conversation or sends a direct message; the members still read theirs
             'direct_messages_enabled' => ['sometimes', 'boolean'],
-        ])->validate();
+        ])->sometimes('name', [new AvailableCommunityName($community)], static fn () => $community->visibility !== KnowiiCommunityVisibility::Personal)
+            ->validate();
 
         if (array_key_exists('visibility', $validated)) {
             $visibility = KnowiiCommunityVisibility::from($validated['visibility']);

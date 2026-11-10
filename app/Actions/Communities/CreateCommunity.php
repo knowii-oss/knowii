@@ -8,10 +8,12 @@ use App\Enums\KnowiiCommunityVisibility;
 use App\Exceptions\TechnicalException;
 use App\Models\Community;
 use App\Models\User;
+use App\Rules\AvailableCommunityName;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Fluent;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -44,6 +46,9 @@ class CreateCommunity implements CreatesCommunities
             'description' => ['nullable', 'string', 'max:'.Constants::MAX_LENGTH_COMMUNITY_DESCRIPTION],
             'visibility' => ['required', Rule::enum(KnowiiCommunityVisibility::class)],
         ]);
+
+        // A shared community needs a name that no other shared community has (ADR 0033, #1136)
+        $validator->sometimes('name', [new AvailableCommunityName], static fn (Fluent $input) => $input->get('visibility') !== KnowiiCommunityVisibility::Personal->value);
 
         $validator->validate();
 

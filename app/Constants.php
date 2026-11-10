@@ -152,6 +152,9 @@ class Constants
 
     public const string API_TOKEN_DEFAULT_EXPIRY = '90';
 
+    // Community name checks (#1136) per minute and per user: the forms send one after each pause in the typing
+    public const int NAME_CHECKS_PER_MINUTE = 60;
+
     // Markdown preview requests (editor) per minute and per user
     public const int MARKDOWN_PREVIEWS_PER_MINUTE = 60;
 

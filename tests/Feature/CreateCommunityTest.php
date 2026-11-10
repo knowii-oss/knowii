@@ -189,10 +189,11 @@ test('community slug generation avoids duplicate slugs', function () {
         'visibility' => KnowiiCommunityVisibility::Public->value,
     ];
 
+    // A personal community may take the name of a shared one (ADR 0033), and still gets its own slug
     $input2 = [
         'name' => 'Test',
         'description' => 'Awesome community',
-        'visibility' => KnowiiCommunityVisibility::Public->value,
+        'visibility' => KnowiiCommunityVisibility::Personal->value,
     ];
 
     $creator = new CreateCommunity;

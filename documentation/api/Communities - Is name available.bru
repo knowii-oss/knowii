@@ -1,0 +1,26 @@
+meta {
+  name: Communities - Is name available
+  type: http
+  seq: 122
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/is-name-available
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Knowledge Builders"
+  }
+}
+
+docs {
+  Whether a shared (private or public) community can take this name (#1136, ADR 0033). The answer is `data.available`. A name is taken when another shared community has the same name, whatever the case, or the address (slug) that this name gives. Personal communities never take a name.
+}

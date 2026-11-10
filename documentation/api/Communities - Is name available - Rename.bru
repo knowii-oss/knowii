@@ -1,0 +1,27 @@
+meta {
+  name: Communities - Is name available - Rename
+  type: http
+  seq: 123
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/is-name-available
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Knowledge Builders",
+    "community": "nswswk8w8wso0ko8owwk8k0w"
+  }
+}
+
+docs {
+  Checks a new name for a community that you own: `community` is its cuid, and its own name stays available to it. Another member gets a 403, an unknown cuid a 404.
+}

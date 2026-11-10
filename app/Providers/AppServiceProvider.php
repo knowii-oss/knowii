@@ -19,6 +19,7 @@ use App\Actions\Communities\CreateCommunity;
 use App\Actions\Communities\DeleteCommunity;
 use App\Actions\Communities\UpdateCommunity;
 use App\Actions\Communities\UpdateModeratorPermissions;
+use App\Actions\Communities\VerifyCommunityNameAvailability;
 use App\Actions\CommunityMembers\AcceptCommunityInvitation;
 use App\Actions\CommunityMembers\CancelCommunityInvitation;
 use App\Actions\CommunityMembers\InviteCommunityMember;
@@ -76,6 +77,7 @@ use App\Contracts\Communities\CreatesCommunities;
 use App\Contracts\Communities\DeletesCommunities;
 use App\Contracts\Communities\UpdatesCommunities;
 use App\Contracts\Communities\UpdatesModeratorPermissions;
+use App\Contracts\Communities\VerifiesCommunityNameAvailability;
 use App\Contracts\CommunityMembers\AcceptsCommunityInvitations;
 use App\Contracts\CommunityMembers\CancelsCommunityInvitations;
 use App\Contracts\CommunityMembers\InvitesCommunityMembers;
@@ -147,6 +149,7 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(CreatesCommunities::class, CreateCommunity::class);
         app()->singleton(DeletesCommunities::class, DeleteCommunity::class);
         app()->singleton(UpdatesCommunities::class, UpdateCommunity::class);
+        app()->singleton(VerifiesCommunityNameAvailability::class, VerifyCommunityNameAvailability::class);
         app()->singleton(UpdatesAvatars::class, UpdateAvatar::class);
         app()->singleton(UpdatesOnlineStatus::class, UpdateOnlineStatus::class);
         app()->singleton(BlocksMembers::class, BlockMember::class);
@@ -247,6 +250,10 @@ class AppServiceProvider extends ServiceProvider
         // Each invitation sends an email (#1242)
         RateLimiter::for('invitations', static function (Request $request) {
             return Limit::perMinute(Constants::INVITATIONS_PER_MINUTE)->by(self::rateLimitKey($request));
+        });
+
+        RateLimiter::for('name-checks', static function (Request $request) {
+            return Limit::perMinute(Constants::NAME_CHECKS_PER_MINUTE)->by(self::rateLimitKey($request));
         });
 
         RateLimiter::for('markdown-preview', static function (Request $request) {
