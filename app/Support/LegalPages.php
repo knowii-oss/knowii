@@ -23,6 +23,7 @@ final class LegalPages
     public const array PAGES = [
         'privacy-policy' => 'policy',
         'terms-of-service' => 'terms',
+        'dpa' => 'dpa',
     ];
 
     /**

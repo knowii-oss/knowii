@@ -33,6 +33,7 @@ export const CONTACT_URL = '/contact';
 // Legal
 export const TERMS_OF_SERVICE_URL = 'terms-of-service.show';
 export const PRIVACY_POLICY_URL = 'privacy-policy.show';
+export const DPA_URL = 'dpa.show';
 
 // User profile
 export const USER_PROFILE_URL = 'profile.show';
