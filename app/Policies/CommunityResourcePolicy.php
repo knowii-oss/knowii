@@ -36,6 +36,14 @@ class CommunityResourcePolicy
     }
 
     /**
+     * Delete the resource (#324): the members who change it, and the moderators of the space (like posts)
+     */
+    final public function delete(User $user, CommunityResource $resource): bool
+    {
+        return $this->update($user, $resource) || Gate::forUser($user)->check('moderate', $resource->space);
+    }
+
+    /**
      * Change the type or the level (#1246): the curator, or a member who manages the spaces of the community
      */
     final public function update(User $user, CommunityResource $resource): bool
