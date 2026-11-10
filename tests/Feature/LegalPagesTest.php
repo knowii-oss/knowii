@@ -142,6 +142,7 @@ test('the security page tells how we protect the platform, with the periods of t
 
     $this->get('/security')->assertInertia(fn ($page) => $page
         ->where('title', 'Security')
+        ->where('draft', false)
         ->where('html', fn (string $html) => str_contains($html, 'Germany')
             && str_contains($html, 'valid for 15 minutes and work once')
             && str_contains($html, 'expire after 90 days by default')
