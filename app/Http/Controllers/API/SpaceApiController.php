@@ -25,7 +25,7 @@ class SpaceApiController extends Controller
 {
     use ApiResponses;
 
-    private const array EDITABLE_FIELDS = ['name', 'description', 'emoji', 'visibility', 'posting_policy', 'space_group_cuid', 'access_groups'];
+    private const array EDITABLE_FIELDS = ['name', 'description', 'emoji', 'visibility', 'posting_policy', 'space_group_cuid', 'access_groups', 'url'];
 
     /**
      * Get a space.
@@ -47,9 +47,10 @@ class SpaceApiController extends Controller
     #[BodyParameter('emoji', description: 'One emoji shown in the navigation', required: false, type: 'string', example: '📣')]
     #[BodyParameter('visibility', description: 'public (anyone can read), members, or groups (the members of its access groups, the owner and the admins)', required: true, type: 'string', example: 'members')]
     #[BodyParameter('access_groups', description: 'Cuids of access groups of the community. Required with the groups visibility', required: false, type: 'array', example: ['k2j4h6g8f0d2s4a6p8o0i2u4'])]
-    #[BodyParameter('posting_policy', description: 'members or moderators (who can post)', required: true, type: 'string', example: 'members')]
+    #[BodyParameter('posting_policy', description: 'members or moderators (who can post). Not needed for a link space', required: true, type: 'string', example: 'members')]
     #[BodyParameter('space_group_cuid', description: 'Space group of the community. On update: moves the space to the end of that group', required: true, type: 'string')]
-    #[BodyParameter('type', description: 'discussion, chat, pages or course. Cannot change later', required: true, type: 'string', example: 'discussion')]
+    #[BodyParameter('type', description: 'discussion, chat, pages, course, resources, or link (a navigation link to a page outside Knowii). Cannot change later', required: true, type: 'string', example: 'discussion')]
+    #[BodyParameter('url', description: 'Link spaces only, and required for them: the absolute http or https URL that the navigation opens', required: false, type: 'string', format: 'uri', example: 'https://example.com/book-a-call')]
     final public function store(Request $request, Community $community): JsonResponse
     {
         $input = $request->only([...self::EDITABLE_FIELDS, 'type']);
@@ -71,6 +72,7 @@ class SpaceApiController extends Controller
     #[BodyParameter('access_groups', description: 'Cuids of access groups of the community: replaces the groups of a groups space', required: false, type: 'array', example: ['k2j4h6g8f0d2s4a6p8o0i2u4'])]
     #[BodyParameter('posting_policy', description: 'members or moderators (who can post)', required: false, type: 'string', example: 'members')]
     #[BodyParameter('space_group_cuid', description: 'Space group of the community. On update: moves the space to the end of that group', required: false, type: 'string')]
+    #[BodyParameter('url', description: 'Link spaces only: the absolute http or https URL that the navigation opens', required: false, type: 'string', format: 'uri', example: 'https://example.com/book-a-call')]
     final public function update(Request $request, Community $community, Space $space): JsonResponse
     {
         $input = $request->only(self::EDITABLE_FIELDS);

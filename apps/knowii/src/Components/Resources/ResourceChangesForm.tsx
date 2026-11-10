@@ -54,7 +54,9 @@ export function ResourceChangesForm({ communityCuid, spaceCuid, resource, onSave
         <div>
           <InputLabel htmlFor="resource-change-type">Type</InputLabel>
           <Select<ResourceType> id="resource-change-type" className="mt-1" options={typeOptions} value={type} onChange={setType} />
-          {!resource.type_chosen && <p className="mt-1 text-xs text-muted">Detected from the page.</p>}
+          {!resource.type_chosen && resource.capture_status === 'captured' && (
+            <p className="mt-1 text-xs text-muted">Detected from the page.</p>
+          )}
         </div>
         <div>
           <InputLabel htmlFor="resource-change-level">Level</InputLabel>

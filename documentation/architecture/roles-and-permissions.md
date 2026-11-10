@@ -77,7 +77,7 @@ Invitations ([ADR 0019](../adr/0019-community-invitations-by-email.md)): the ema
 
 ## Per space type
 
-The rules above are the same for every space type (discussion, chat, pages, course, resources). What changes per type is the content that `contribute` adds: posts, chat messages, pages, lessons or resources.
+The rules above are the same for every space type (discussion, chat, pages, course, resources, link). What changes per type is the content that `contribute` adds: posts, chat messages, pages, lessons or resources. A link space ([ADR 0026](../adr/0026-link-spaces.md)) holds no content: nobody contributes in it, and its visibility only decides who sees the link.
 
 Access groups ([ADR 0025](../adr/0025-access-groups.md)): a space with the `groups` visibility opens to the members of its access groups. The owner and the admins see every space. A member who cannot read a space cannot post in it, whatever the posting policy. A member removed from the community leaves its groups.
 

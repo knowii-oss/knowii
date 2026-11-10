@@ -123,6 +123,8 @@ export const MIN_LENGTH_SPACE_NAME = 2;
 export const MAX_LENGTH_SPACE_NAME = 64;
 export const MAX_LENGTH_SPACE_DESCRIPTION = 255;
 export const MAX_LENGTH_SPACE_EMOJI = 16;
+// Link spaces (#1294). WARNING: aligned with MAX_LENGTH_SPACE_URL (Constants.php)
+export const MAX_LENGTH_SPACE_URL = 2048;
 
 // Posts. WARNING: aligned with Constants.php and SpaceController::POSTS_PER_PAGE
 export const MIN_LENGTH_POST_TITLE = 3;

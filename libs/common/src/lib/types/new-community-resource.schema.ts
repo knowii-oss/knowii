@@ -34,6 +34,8 @@ export const newCommunityResourceSchema = urlSchema.extend({
   level: resourceLevelSchema,
   // Empty: the capture detects the type (#1246)
   type: z.literal('').or(resourceTypeSchema).optional(),
+  // false: keep only the link, Knowii never opens the page (#1294). Absent: capture it
+  capture: z.boolean().optional(),
 });
 
 // Change the type or the level of a resource (#1246)

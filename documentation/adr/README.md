@@ -50,3 +50,4 @@ Do not write an ADR for a bug fix, a refactor that keeps the structure, or a fea
 | [0023](0023-sign-in-links.md)                                          | Sign-in links by email, used once, confirmed with a button              | Accepted |
 | [0024](0024-account-deletion-removes-personal-data.md)                 | Deleting an account removes the personal data, the content stays        | Accepted |
 | [0025](0025-access-groups.md)                                          | Access groups open spaces to some members, by hand or by an API sync    | Accepted |
+| [0026](0026-link-spaces.md)                                            | Navigation links are a space type                                       | Accepted |

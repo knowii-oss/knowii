@@ -74,6 +74,9 @@ class Constants
 
     public const int MAX_SPACES_PER_COMMUNITY = 200;
 
+    // WARNING: aligned with MAX_LENGTH_SPACE_URL (constants.ts)
+    public const int MAX_LENGTH_SPACE_URL = 2048;
+
     // Posts (#1174). WARNING: aligned with constants.ts (libs/common)
     public const int MIN_LENGTH_POST_TITLE = 3;
 

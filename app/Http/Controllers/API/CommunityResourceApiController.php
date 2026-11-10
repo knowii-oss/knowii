@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Actions\Resources\CreateCommunityResource;
 use App\Contracts\Resources\CreatesCommunityResources;
 use App\Contracts\Resources\UpdatesCommunityResources;
 use App\Enums\KnowiiCaptureStatus;
@@ -12,6 +13,7 @@ use App\Models\Community;
 use App\Models\CommunityResource;
 use App\Models\Space;
 use App\Support\Pagination;
+use App\Support\SafeUrl;
 use App\Traits\ApiResponses;
 use Dedoc\Scramble\Attributes\BodyParameter;
 use Dedoc\Scramble\Attributes\QueryParameter;
@@ -67,12 +69,13 @@ class CommunityResourceApiController extends Controller
     #[BodyParameter('level', description: 'beginner, intermediate, advanced, expert or unknown', required: true, type: 'string', example: 'beginner')]
     #[BodyParameter('description', description: 'Why the resource is useful (up to 255 characters)', required: false, type: 'string')]
     #[BodyParameter('type', description: 'article, video, audio, book, paper, tool or other. Empty: detected by the capture; a type given here stays', required: false, type: 'string', example: 'article')]
+    #[BodyParameter('capture', description: 'false: keep only the link. Knowii never opens the page (capture status skipped); a capture can start later. Default true', required: false, type: 'boolean', example: false)]
     final public function store(Request $request, Community $community, Space $space): JsonResponse
     {
         $resource = app(CreatesCommunityResources::class)->create(
             $request->user() ?? throw new AuthenticationException,
             $space,
-            $request->only(['name', 'description', 'level', 'url', 'type'])
+            $request->only(['name', 'description', 'level', 'url', 'type', 'capture'])
         );
 
         return self::created(
@@ -93,8 +96,16 @@ class CommunityResourceApiController extends Controller
             throw new BusinessException('The capture of this resource is already running');
         }
 
+        // A link added without capture (#1294): its address was never checked, and its name may still come from the URL
+        $skipped = $resource->capture_status === KnowiiCaptureStatus::Skipped;
+        $url = (string) $resource->resource->url;
+        if ($skipped) {
+            SafeUrl::assertPublic($url);
+        }
+        $nameFromPage = $skipped && $resource->name === CreateCommunityResource::nameFromUrl($url);
+
         $resource->update(['capture_status' => KnowiiCaptureStatus::Pending, 'capture_failure_reason' => null]);
-        CaptureCommunityResource::dispatch($resource);
+        CaptureCommunityResource::dispatch($resource, $nameFromPage);
 
         return self::success('Capture started', null, $resource->load(['resource', 'curator', 'capture', 'space'])->toResource());
     }

@@ -12,6 +12,8 @@ enum KnowiiCaptureStatus: string
     case Capturing = 'capturing';
     case Captured = 'captured';
     case Failed = 'failed';
+    // The curator kept only the link (#1294): Knowii never opened the page. "Capture again" starts a capture
+    case Skipped = 'skipped';
 
     /**
      * @return list<string>

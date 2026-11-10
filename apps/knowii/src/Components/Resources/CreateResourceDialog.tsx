@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { CommunityResource, NewCommunityResource, ResourceLevel, ResourceType, Space } from '@knowii/common';
 import {
@@ -15,7 +15,7 @@ import {
 import ResourceIcon from '@/Components/Resources/ResourceIcon';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
-import { Button, Dialog, Select, Textarea, TextInput } from '@/Components/ui';
+import { Button, Checkbox, Dialog, Select, Textarea, TextInput } from '@/Components/ui';
 
 const levelOptions = resourceLevelSchemaOptions.map((option) => ({ value: option.level, label: option.name, icon: option.icon }));
 
@@ -24,7 +24,7 @@ const typeOptions: Array<{ value: ResourceType | ''; label: string }> = [
   ...resourceTypeSchemaOptions.map((option) => ({ value: option.type, label: option.name })),
 ];
 
-const EMPTY_FORM: NewCommunityResource = { url: '', name: '', description: '', level: 'unknown', type: '' };
+const EMPTY_FORM: NewCommunityResource = { url: '', name: '', description: '', level: 'unknown', type: '', capture: true };
 
 interface CreateResourceDialogProps {
   open: boolean;
@@ -37,7 +37,7 @@ interface CreateResourceDialogProps {
 
 /**
  * Add a web article to a resources space. The server fetches the page (title, description, cover image, readable
- * content), which takes a few seconds (#1131).
+ * content), which takes a few seconds (#1131). "Keep only the link" (#1294) adds it without any request to the site.
  */
 export function CreateResourceDialog({ open, communityCuid, space, onClose, onResourceCreated }: CreateResourceDialogProps) {
   const { showToast } = useAppData();
@@ -53,11 +53,17 @@ export function CreateResourceDialog({ open, communityCuid, space, onClose, onRe
     }
   }, [open, form]);
 
+  const capture = useWatch({ control: form.control, name: 'capture' }) !== false;
+
   const onSubmit = form.handleSubmit(async (data) => {
     const result = await knowiiApiClient.resources.create(communityCuid, space.cuid, data);
 
     if (result.ok) {
-      showToast({ severity: 'success', summary: 'Resource added', detail: 'Knowii captures the page now.' });
+      showToast({
+        severity: 'success',
+        summary: 'Resource added',
+        detail: data.capture === false ? 'Knowii keeps only the link.' : 'Knowii captures the page now.',
+      });
       onResourceCreated(result.data);
       onClose();
       return;
@@ -86,7 +92,11 @@ export function CreateResourceDialog({ open, communityCuid, space, onClose, onRe
           Add a resource
         </>
       }
-      description={`Share a link in ${space.name}. Knowii then reads the page to get its title, summary, cover image and article.`}
+      description={
+        capture
+          ? `Share a link in ${space.name}. Knowii then reads the page to get its title, summary, cover image and article.`
+          : `Share a link in ${space.name}. Knowii does not open the page.`
+      }
       footer={
         <>
           <Button variant="ghost" onClick={() => form.reset(EMPTY_FORM)} disabled={submitting}>
@@ -96,7 +106,7 @@ export function CreateResourceDialog({ open, communityCuid, space, onClose, onRe
             Cancel
           </Button>
           <Button type="submit" form="resource-form" loading={submitting}>
-            {submitting ? 'Reading the page…' : 'Add'}
+            {submitting && capture ? 'Reading the page…' : 'Add'}
           </Button>
         </>
       }
@@ -124,6 +134,29 @@ export function CreateResourceDialog({ open, communityCuid, space, onClose, onRe
           <InputError id="resource-url-error" className="mt-2" message={errors.url?.message} />
         </div>
 
+        <Controller
+          name="capture"
+          control={form.control}
+          render={({ field }) => (
+            <label className="flex cursor-pointer items-start gap-2 text-sm">
+              <Checkbox
+                name="resource-link-only"
+                className="mt-0.5"
+                checked={field.value === false}
+                onChange={(event) => field.onChange(!event.target.checked)}
+                aria-describedby="resource-link-only-hint"
+              />
+              <span>
+                <span className="font-bold">Keep only the link</span>
+                <span id="resource-link-only-hint" className="block text-xs text-muted">
+                  Knowii does not open the page: no title, image or article. Use it for pages behind a sign-in or sites that block bots. You
+                  can capture the page later.
+                </span>
+              </span>
+            </label>
+          )}
+        />
+
         <div>
           <InputLabel htmlFor="resource-name">Name in this community (optional)</InputLabel>
           <Controller
@@ -141,7 +174,9 @@ export function CreateResourceDialog({ open, communityCuid, space, onClose, onRe
             )}
           />
           <p id="resource-name-hint" className="mt-1 text-xs text-muted">
-            Leave it empty to use the title of the page. The article keeps its own title.
+            {capture
+              ? 'Leave it empty to use the title of the page. The article keeps its own title.'
+              : 'Leave it empty to use a name made from the address.'}
           </p>
           <InputError id="resource-name-error" className="mt-2" message={errors.name?.message} />
         </div>

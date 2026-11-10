@@ -31,6 +31,8 @@ final class SpaceInputRules
             // The access groups of a "groups" space (#1241): cuids of groups of the community
             'access_groups' => ['sometimes', 'array', 'max:20'],
             'access_groups.*' => ['string'],
+            // Link spaces only (#1294, ADR 0026): the page outside Knowii that the navigation opens
+            'url' => ['sometimes', 'string', 'url:http,https', 'max:'.Constants::MAX_LENGTH_SPACE_URL],
         ];
     }
 
@@ -42,6 +44,9 @@ final class SpaceInputRules
         return [
             ...self::editable(true),
             'type' => ['required', Rule::enum(KnowiiSpaceType::class)],
+            // A link space holds no content: nobody posts in it, its posting policy is the default
+            'posting_policy' => ['required_unless:type,'.KnowiiSpaceType::Link->value, Rule::enum(KnowiiSpacePostingPolicy::class)],
+            'url' => ['required_if:type,'.KnowiiSpaceType::Link->value, 'prohibited_unless:type,'.KnowiiSpaceType::Link->value, 'string', 'url:http,https', 'max:'.Constants::MAX_LENGTH_SPACE_URL],
         ];
     }
 }

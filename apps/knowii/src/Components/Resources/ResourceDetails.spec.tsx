@@ -117,6 +117,18 @@ describe('ResourceDetails', () => {
     expect(screen.queryByRole('button', { name: 'Capture again' })).toBeNull();
   });
 
+  it('says that Knowii did not open a link kept without capture, and offers "Capture the page" (#1294)', async () => {
+    const onCaptureAgain = vi.fn();
+    renderDetails({ ...resource(), capture_status: 'skipped', capture: null } as CommunityResource, onCaptureAgain);
+
+    expect(screen.getByText('Knowii did not open this page: the curator kept only the link.')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'From the page' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Capture again' })).toBeNull();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Capture the page' }));
+    expect(onCaptureAgain).toHaveBeenCalledOnce();
+  });
+
   it('shows a capture that runs', () => {
     renderDetails({ ...resource(), capture_status: 'capturing', capture: null } as CommunityResource);
     expect(screen.getByText('Capturing the page…')).toBeInTheDocument();

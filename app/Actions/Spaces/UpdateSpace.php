@@ -3,6 +3,7 @@
 namespace App\Actions\Spaces;
 
 use App\Contracts\Spaces\UpdatesSpaces;
+use App\Enums\KnowiiSpaceType;
 use App\Events\Spaces\SpaceTreeChanged;
 use App\Models\Space;
 use App\Models\User;
@@ -11,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class UpdateSpace implements UpdatesSpaces
 {
@@ -27,8 +29,13 @@ class UpdateSpace implements UpdatesSpaces
 
         Gate::forUser($user)->authorize('manageSpaces', $community);
 
-        /** @var array{name?: string, description?: string|null, emoji?: string|null, visibility?: string, posting_policy?: string, space_group_cuid?: string, access_groups?: list<string>} $validated */
+        /** @var array{name?: string, description?: string|null, emoji?: string|null, visibility?: string, posting_policy?: string, space_group_cuid?: string, access_groups?: list<string>, url?: string} $validated */
         $validated = Validator::make($input, SpaceInputRules::editable(false))->validate();
+
+        // Only a link space has a URL (#1294, ADR 0026)
+        if (array_key_exists('url', $validated) && $space->type !== KnowiiSpaceType::Link) {
+            throw ValidationException::withMessages(['url' => 'Only a link space has a URL']);
+        }
 
         DB::transaction(function () use ($space, $community, $validated) {
             $changes = [];
@@ -41,6 +48,10 @@ class UpdateSpace implements UpdatesSpaces
                 if (array_key_exists($field, $validated)) {
                     $changes[$field] = CreateSpace::blankToNull($validated[$field]);
                 }
+            }
+
+            if (array_key_exists('url', $validated)) {
+                $changes['url'] = trim($validated['url']);
             }
 
             foreach (['visibility', 'posting_policy'] as $field) {

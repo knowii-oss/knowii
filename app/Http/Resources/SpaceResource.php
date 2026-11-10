@@ -25,6 +25,8 @@ class SpaceResource extends AbstractKnowiiJsonResource
             'description' => $this->description ?? '', // Ensures the returned value is never null
             'emoji' => $this->emoji ?? '', // Ensures the returned value is never null
             'type' => $this->type,
+            // Link spaces (#1294, ADR 0026): the page that the navigation opens; null for the other types
+            'url' => $this->url,
             'visibility' => $this->visibility,
             'posting_policy' => $this->posting_policy,
             // The groups that open a "groups" space (#1241): cuid and name, when loaded

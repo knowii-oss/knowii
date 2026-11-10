@@ -6,7 +6,8 @@ export const captureSourceSchema = z.enum(['server', 'extension']);
 export type CaptureSource = z.infer<typeof captureSourceSchema>;
 
 // WARNING: aligned with KnowiiCaptureStatus.php
-export const captureStatusSchema = z.enum(['pending', 'capturing', 'captured', 'failed']);
+// skipped (#1294): the curator kept only the link, Knowii never opened the page
+export const captureStatusSchema = z.enum(['pending', 'capturing', 'captured', 'failed', 'skipped']);
 
 export type CaptureStatus = z.infer<typeof captureStatusSchema>;
 

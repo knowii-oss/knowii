@@ -4,6 +4,7 @@ namespace App\Actions\Spaces;
 
 use App\Constants;
 use App\Contracts\Spaces\CreatesSpaces;
+use App\Enums\KnowiiSpacePostingPolicy;
 use App\Events\Spaces\SpaceTreeChanged;
 use App\Exceptions\BusinessException;
 use App\Models\Community;
@@ -28,7 +29,7 @@ class CreateSpace implements CreatesSpaces
 
         Gate::forUser($user)->authorize('manageSpaces', $community);
 
-        /** @var array{name: string, description?: string|null, emoji?: string|null, type: string, visibility: string, posting_policy: string, space_group_cuid: string, access_groups?: list<string>} $validated */
+        /** @var array{name: string, description?: string|null, emoji?: string|null, type: string, visibility: string, posting_policy?: string, space_group_cuid: string, access_groups?: list<string>, url?: string} $validated */
         $validated = Validator::make($input, SpaceInputRules::create())->validate();
 
         $spaceGroup = self::findSpaceGroup($community, $validated['space_group_cuid']);
@@ -48,7 +49,9 @@ class CreateSpace implements CreatesSpaces
                 'emoji' => self::blankToNull($validated['emoji'] ?? null),
                 'type' => $validated['type'],
                 'visibility' => $validated['visibility'],
-                'posting_policy' => $validated['posting_policy'],
+                'posting_policy' => $validated['posting_policy'] ?? KnowiiSpacePostingPolicy::Members->value,
+                // Link spaces only (#1294, ADR 0026)
+                'url' => isset($validated['url']) ? trim($validated['url']) : null,
                 'position' => $position,
             ]);
             SpaceAccessGroups::sync($space, $validated['access_groups'] ?? null);

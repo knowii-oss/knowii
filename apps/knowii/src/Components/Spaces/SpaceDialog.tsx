@@ -49,6 +49,7 @@ function initialValues(space: Space | undefined, defaultSpaceGroupCuid: string |
     posting_policy: space?.posting_policy ?? 'members',
     space_group_cuid: space?.space_group_cuid ?? defaultSpaceGroupCuid ?? '',
     access_groups: (space?.access_groups ?? []).map((group) => group.cuid),
+    url: space?.url ?? '',
   };
 }
 
@@ -68,6 +69,8 @@ export function SpaceDialog({ open, communityCuid, spaceGroups, space, defaultSp
 
   // The access groups of the community, for a "groups" space (#1241)
   const visibility = useWatch({ control: form.control, name: 'visibility' });
+  // A link space (#1294) opens a page outside Knowii: a URL, and nobody posts in it
+  const isLink = useWatch({ control: form.control, name: 'type' }) === 'link';
   const [accessGroups, setAccessGroups] = useState<AccessGroup[] | null>(null);
   useEffect(() => {
     if (!open || visibility !== 'groups' || accessGroups !== null) {
@@ -85,6 +88,8 @@ export function SpaceDialog({ open, communityCuid, spaceGroups, space, defaultSp
   }, [open, visibility, accessGroups, communityCuid]);
 
   const onSubmit = form.handleSubmit(async (data) => {
+    const { url, ...fields } = data;
+    const link = data.type === 'link';
     const result = space
       ? await knowiiApiClient.communities.spaces.update(communityCuid, space.cuid, {
           name: data.name,
@@ -94,8 +99,9 @@ export function SpaceDialog({ open, communityCuid, spaceGroups, space, defaultSp
           posting_policy: data.posting_policy,
           space_group_cuid: data.space_group_cuid,
           ...(data.visibility === 'groups' ? { access_groups: data.access_groups } : {}),
+          ...(link ? { url } : {}),
         })
-      : await knowiiApiClient.communities.spaces.create(communityCuid, data);
+      : await knowiiApiClient.communities.spaces.create(communityCuid, link ? { ...fields, url } : fields);
 
     if (result.ok) {
       showToast({ severity: 'success', summary: space ? 'Space updated' : 'Space created' });
@@ -204,12 +210,42 @@ export function SpaceDialog({ open, communityCuid, spaceGroups, space, defaultSp
                 className="mt-1"
                 options={typeOptions}
                 value={field.value}
-                onChange={field.onChange}
+                onChange={(value) => {
+                  field.onChange(value);
+                  void form.trigger('url');
+                }}
                 disabled={!!space}
               />
             )}
           />
         </div>
+
+        {isLink && (
+          <div className="sm:col-span-6">
+            <InputLabel htmlFor="space-url">Address of the page</InputLabel>
+            <Controller
+              name="url"
+              control={form.control}
+              render={({ field }) => (
+                <TextInput
+                  id="space-url"
+                  type="url"
+                  inputMode="url"
+                  wrapperClassName="mt-1"
+                  {...field}
+                  placeholder="https://example.com"
+                  required
+                  invalid={!!errors.url}
+                  aria-describedby={errors.url ? 'space-url-help space-url-error' : 'space-url-help'}
+                />
+              )}
+            />
+            <p id="space-url-help" className="mt-1 text-xs text-muted">
+              The navigation opens this page in a new tab. Knowii never opens it.
+            </p>
+            <InputError id="space-url-error" className="mt-2" message={errors.url?.message} />
+          </div>
+        )}
 
         <div className="sm:col-span-3">
           <InputLabel htmlFor="space-group">Space group</InputLabel>
@@ -288,22 +324,24 @@ export function SpaceDialog({ open, communityCuid, spaceGroups, space, defaultSp
           </fieldset>
         )}
 
-        <div className="sm:col-span-6">
-          <InputLabel htmlFor="space-posting-policy">Who can post</InputLabel>
-          <Controller
-            name="posting_policy"
-            control={form.control}
-            render={({ field }) => (
-              <Select<SpacePostingPolicy>
-                id="space-posting-policy"
-                className="mt-1"
-                options={postingPolicyOptions}
-                value={field.value}
-                onChange={field.onChange}
-              />
-            )}
-          />
-        </div>
+        {!isLink && (
+          <div className="sm:col-span-6">
+            <InputLabel htmlFor="space-posting-policy">Who can post</InputLabel>
+            <Controller
+              name="posting_policy"
+              control={form.control}
+              render={({ field }) => (
+                <Select<SpacePostingPolicy>
+                  id="space-posting-policy"
+                  className="mt-1"
+                  options={postingPolicyOptions}
+                  value={field.value}
+                  onChange={field.onChange}
+                />
+              )}
+            />
+          </div>
+        )}
       </form>
     </Dialog>
   );

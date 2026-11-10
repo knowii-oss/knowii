@@ -4,6 +4,9 @@ import userEvent from '@testing-library/user-event';
 import type { Space, SpaceGroup } from '@knowii/common';
 import { SpaceNavigation } from './SpaceNavigation';
 
+// Built at run time: a literal script URL is a lint error
+const SCRIPT_URL = ['javascript', 'alert(1)'].join(':');
+
 vi.mock('@inertiajs/react', () => ({
   Link: ({
     children,
@@ -84,6 +87,38 @@ describe('SpaceNavigation', () => {
     await userEvent.tab();
     expect(screen.getByRole('link', { name: /Introductions/ })).toHaveFocus();
     await userEvent.click(screen.getByRole('link', { name: /Introductions/ }));
+    expect(onNavigate).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens a link space outside Knowii in a new tab, without the referrer (#1294)', async () => {
+    const onNavigate = vi.fn();
+    const withLink: SpaceGroup[] = [
+      {
+        cuid: 'more',
+        name: 'More',
+        position: 0,
+        created_at: now,
+        updated_at: now,
+        spaces: [
+          space({ cuid: 'shop', name: 'Shop', slug: 'shop', type: 'link', url: 'https://shop.example.com/' }),
+          space({ cuid: 'bad', name: 'Bad', slug: 'bad', type: 'link', url: SCRIPT_URL }),
+        ],
+      },
+    ];
+    render(
+      <SpaceNavigation spaceGroups={withLink} activeSpaceCuid="shop" getSpaceHref={(s) => `/space/${s.slug}`} onNavigate={onNavigate} />,
+    );
+
+    const shop = screen.getByRole('link', { name: /Shop \(opens a page outside Knowii in a new tab\)/ });
+    expect(shop).toHaveAttribute('href', 'https://shop.example.com/');
+    expect(shop).toHaveAttribute('target', '_blank');
+    expect(shop).toHaveAttribute('rel', 'noopener noreferrer');
+    // A link is never the current page
+    expect(shop).not.toHaveAttribute('aria-current');
+    // A URL that is not http or https never becomes a link: the space page explains the problem
+    expect(screen.getByRole('link', { name: /Bad/ })).toHaveAttribute('href', '/space/bad');
+
+    await userEvent.click(shop);
     expect(onNavigate).toHaveBeenCalledTimes(1);
   });
 

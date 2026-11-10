@@ -1,0 +1,31 @@
+meta {
+  name: Spaces - Create - Link
+  type: http
+  seq: 99
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "space_group_cuid": "q8kspacegroupstarthere01",
+    "name": "Book a call",
+    "emoji": "📅",
+    "type": "link",
+    "visibility": "members",
+    "url": "https://example.com/book-a-call"
+  }
+}
+
+docs {
+  A link space (#1294, ADR 0026): a navigation item that opens a page outside Knowii in a new tab. It holds no content, so it needs no posting_policy. The url is required for a link space and refused for the other types (400). Same visibility and access groups as any space. Returns 201 with the space and its url. Needs spaces:write.
+}

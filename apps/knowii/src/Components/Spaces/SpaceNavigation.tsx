@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react';
 import type { Space, SpaceGroup } from '@knowii/common';
-import { SPACE_TYPE_LABELS } from '@knowii/common';
-import { FaLock, FaUserLock } from 'react-icons/fa6';
+import { safeHttpUrl, SPACE_TYPE_LABELS } from '@knowii/common';
+import { FaArrowUpRightFromSquare, FaLock, FaUserLock } from 'react-icons/fa6';
 import { cn } from '@/Components/ui';
 
 export interface SpaceNavigationProps {
@@ -18,8 +18,27 @@ export interface SpaceNavigationProps {
   className?: string;
 }
 
+const itemClasses = (active: boolean) =>
+  cn(
+    'flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors',
+    'hover:bg-overlay/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
+    active ? 'bg-overlay/15 font-bold text-primary' : 'text-primary/90',
+  );
+
+function VisibilityIcon({ space }: { space: Space }) {
+  if (space.visibility === 'members') {
+    return <FaLock aria-label="Members only" className="size-3 shrink-0 text-muted" />;
+  }
+  if (space.visibility === 'groups') {
+    return <FaUserLock aria-label="Access groups only" className="size-3 shrink-0 text-muted" />;
+  }
+  return null;
+}
+
 /**
  * The navigation of a community: space groups and their spaces, in order. A list of links: Tab moves between them.
+ * A link space (#1294, ADR 0026) opens its page outside Knowii in a new tab, without sending the address of the
+ * community (noreferrer).
  */
 export function SpaceNavigation({ spaceGroups, activeSpaceCuid, getSpaceHref, onNavigate, className }: SpaceNavigationProps) {
   const groups = spaceGroups.filter((group) => (group.spaces ?? []).length > 0);
@@ -37,6 +56,29 @@ export function SpaceNavigation({ spaceGroups, activeSpaceCuid, getSpaceHref, on
             <ul aria-labelledby={headingId} className="flex flex-col gap-0.5">
               {(group.spaces ?? []).map((space) => {
                 const active = space.cuid === activeSpaceCuid;
+                const externalUrl = space.type === 'link' ? safeHttpUrl(space.url) : null;
+                if (externalUrl) {
+                  return (
+                    <li key={space.cuid}>
+                      <a
+                        href={externalUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        {...(onNavigate ? { onClick: onNavigate } : {})}
+                        className={itemClasses(false)}
+                      >
+                        <span aria-hidden="true" className="w-5 shrink-0 text-center">
+                          {space.emoji || SPACE_TYPE_LABELS.link.emoji}
+                        </span>
+                        <span className="min-w-0 grow truncate">
+                          {space.name} <span className="sr-only">(opens a page outside Knowii in a new tab)</span>
+                        </span>
+                        <FaArrowUpRightFromSquare aria-hidden="true" className="size-3 shrink-0 text-muted" />
+                        <VisibilityIcon space={space} />
+                      </a>
+                    </li>
+                  );
+                }
                 return (
                   <li key={space.cuid}>
                     <Link
@@ -44,11 +86,7 @@ export function SpaceNavigation({ spaceGroups, activeSpaceCuid, getSpaceHref, on
                       preserveState={true}
                       {...(onNavigate ? { onClick: onNavigate } : {})}
                       {...(active ? { 'aria-current': 'page' as const } : {})}
-                      className={cn(
-                        'flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors',
-                        'hover:bg-overlay/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
-                        active ? 'bg-overlay/15 font-bold text-primary' : 'text-primary/90',
-                      )}
+                      className={itemClasses(active)}
                     >
                       <span aria-hidden="true" className="w-5 shrink-0 text-center">
                         {space.emoji || SPACE_TYPE_LABELS[space.type].emoji}
@@ -61,10 +99,7 @@ export function SpaceNavigation({ spaceGroups, activeSpaceCuid, getSpaceHref, on
                           <span className="sr-only"> unread</span>
                         </span>
                       )}
-                      {space.visibility === 'members' && <FaLock aria-label="Members only" className="size-3 shrink-0 text-muted" />}
-                      {space.visibility === 'groups' && (
-                        <FaUserLock aria-label="Access groups only" className="size-3 shrink-0 text-muted" />
-                      )}
+                      <VisibilityIcon space={space} />
                     </Link>
                   </li>
                 );

@@ -30,6 +30,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $slug
  * @property ?string $description
  * @property ?string $emoji
+ * @property ?string $url The page that a link space opens (#1294, ADR 0026); null for the other types
  * @property KnowiiSpaceType $type
  * @property KnowiiSpaceVisibility $visibility
  * @property-read Collection<int, AccessGroup> $accessGroups
@@ -62,6 +63,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static Builder<static>|Space whereSpaceGroupId($value)
  * @method static Builder<static>|Space whereType($value)
  * @method static Builder<static>|Space whereUpdatedAt($value)
+ * @method static Builder<static>|Space whereUrl($value)
  * @method static Builder<static>|Space whereVisibility($value)
  * @method static Builder<static>|Space withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array<mixed> $config, string $slug)
  * @method TResource toResource<TResource of \Illuminate\Http\Resources\Json\JsonResource = \App\Http\Resources\SpaceResource>(class-string<TResource>|null $resourceClass = null)
@@ -88,6 +90,7 @@ class Space extends Model
         'slug',
         'description',
         'emoji',
+        'url',
         'type',
         'visibility',
         'posting_policy',

@@ -109,9 +109,16 @@ export function ResourceDetails({ communitySlug, resource, shareUrl, onCaptureAg
         </section>
       )}
 
+      {resource.capture_status === 'skipped' && (
+        <p className="flex items-center gap-2 text-sm text-muted">
+          <FaLink aria-hidden="true" className="shrink-0" />
+          <span>Knowii did not open this page: the curator kept only the link.</span>
+        </p>
+      )}
+
       {resource.description && <p className="text-base">{resource.description}</p>}
 
-      {(page.description || page.name !== name) && (
+      {resource.capture_status !== 'skipped' && (page.description || page.name !== name) && (
         <section aria-labelledby="resource-from-the-page" className="rounded-lg border border-border bg-well p-4">
           <h2 id="resource-from-the-page" className="mb-2 text-sm font-bold text-muted">
             From the page
@@ -176,6 +183,13 @@ export function ResourceDetails({ communitySlug, resource, shareUrl, onCaptureAg
           <Button variant="ghost" onClick={onCaptureAgain} loading={captureStarting}>
             <FaRotateRight aria-hidden="true" />
             Capture again
+          </Button>
+        )}
+        {onCaptureAgain && resource.capture_status === 'skipped' && (
+          // A link kept without capture (#1294): the curator can ask for the details later
+          <Button variant="ghost" onClick={onCaptureAgain} loading={captureStarting}>
+            <FaRotateRight aria-hidden="true" />
+            Capture the page
           </Button>
         )}
       </div>
