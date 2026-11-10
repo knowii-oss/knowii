@@ -28,6 +28,8 @@ class UpdateSpace implements UpdatesSpaces
         $community = $space->community;
 
         Gate::forUser($user)->authorize('manageSpaces', $community);
+        // A group space stays out of reach of the managers who cannot read it (#1325, ADR 0025)
+        Gate::forUser($user)->authorize('view', $space);
 
         /** @var array{name?: string, description?: string|null, emoji?: string|null, visibility?: string, posting_policy?: string, space_group_cuid?: string, access_groups?: list<string>, url?: string} $validated */
         $validated = Validator::make($input, SpaceInputRules::editable(false))->validate();

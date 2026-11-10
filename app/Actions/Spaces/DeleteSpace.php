@@ -22,6 +22,8 @@ class DeleteSpace implements DeletesSpaces
         $community = $space->community;
 
         Gate::forUser($user)->authorize('manageSpaces', $community);
+        // A group space stays out of reach of the managers who cannot read it (#1325, ADR 0025)
+        Gate::forUser($user)->authorize('view', $space);
 
         // Read before the rows go: the images of the resources that no community uses any more are deleted after (#1265)
         $files = ContentFiles::ofSpace($space);

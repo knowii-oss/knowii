@@ -7,6 +7,7 @@ use App\Enums\KnowiiSpaceVisibility;
 use App\Events\Spaces\SpaceTreeChanged;
 use App\Models\AccessGroup;
 use App\Models\Community;
+use App\Models\Post;
 use App\Models\Space;
 use App\Models\SpaceGroup;
 use App\Models\User;
@@ -161,4 +162,22 @@ test('a sync token needs groups:write; communities:write is not enough (#1241)',
 
     Sanctum::actingAs($this->c['owner'], ['groups:write']);
     $this->postJson($path, ['email' => $this->c['member']->email])->assertOk();
+});
+
+test('a moderator outside the groups neither moderates nor changes nor deletes a groups space (#1325)', function () {
+    $this->c['community']->update(['moderator_permissions' => [...$this->c['community']->moderatorPermissions(), 'delete_content' => true, 'manage_spaces' => true]]);
+    $moderator = $this->c['moderator']->fresh();
+    $post = Post::factory()->create(['space_id' => $this->paid->id, 'author_id' => $this->insider->id]);
+    $spacePath = ApiRoutes::path(ApiRoutes::COMMUNITY_SPACE, [ApiRoutes::PARAM_COMMUNITY => $this->c['community']->cuid, ApiRoutes::PARAM_SPACE => $this->paid->cuid]);
+
+    expect(Gate::forUser($moderator)->check('moderate', $this->paid->fresh()))->toBeFalse()
+        ->and(Gate::forUser($moderator)->check('delete', $post->fresh()))->toBeFalse();
+
+    $this->actingAs($moderator)->patchJson($spacePath, ['visibility' => 'members'])->assertForbidden();
+    $this->actingAs($moderator)->deleteJson($spacePath)->assertForbidden();
+    expect($this->paid->fresh()->visibility)->toBe(KnowiiSpaceVisibility::Groups);
+
+    // In the group, the same moderator moderates the space
+    $this->group->members()->attach($moderator);
+    expect(Gate::forUser($moderator->fresh())->check('moderate', $this->paid->fresh()))->toBeTrue();
 });

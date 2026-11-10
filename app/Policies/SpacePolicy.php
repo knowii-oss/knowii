@@ -71,7 +71,8 @@ class SpacePolicy
      */
     final public function moderate(User $user, Space $space): bool
     {
-        return CommunityRoles::allows($user, $space->community, KnowiiModeratorPermission::DeleteContent);
+        // A moderator who cannot read a group space does not act on it (#1325, ADR 0025)
+        return CommunityRoles::allows($user, $space->community, KnowiiModeratorPermission::DeleteContent) && $this->view($user, $space);
     }
 
     /**
