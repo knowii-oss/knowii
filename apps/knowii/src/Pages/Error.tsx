@@ -2,7 +2,7 @@ import PageHeader from '@/Components/PageHeader';
 import PageContentWrapper from '@/Components/PageContentWrapper';
 import { Head } from '@inertiajs/react';
 import Footer from '@/Components/Footer';
-import { HOME_URL } from '@knowii/common';
+import { HOME_URL, metadata } from '@knowii/common';
 import { buttonClasses } from '@/Components/ui';
 import { FaHome } from 'react-icons/fa';
 import PageWrapper from '@/Components/PageWrapper';
@@ -55,7 +55,7 @@ export default function ErrorPage(props: Props) {
               </div>
               <p className="mt-12 text-center">
                 If the problem persists, you can contact us at the following address:{' '}
-                <a href="mailto:contact@knowii.net">contact@knowii.net</a>
+                <a href={`mailto:${metadata.contact.info}`}>{metadata.contact.info}</a>
               </p>
             </div>
           </div>
