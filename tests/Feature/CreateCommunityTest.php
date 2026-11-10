@@ -206,3 +206,10 @@ test('community slug generation avoids duplicate slugs', function () {
     expect($community2->getAttribute('slug'))->toEqual('test-2');
 
 });
+
+test('a community can be created through the API without a description (#1331)', function () {
+    $this->actingAs(User::factory()->withUserProfile()->withPersonalCommunity()->create())
+        ->postJson('/api/v1/communities', ['name' => 'Without Description', 'visibility' => KnowiiCommunityVisibility::Public->value])
+        ->assertCreated()
+        ->assertJsonPath('data.description', '');
+});
