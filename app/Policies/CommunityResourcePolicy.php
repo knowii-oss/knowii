@@ -48,7 +48,8 @@ class CommunityResourcePolicy
      */
     final public function update(User $user, CommunityResource $resource): bool
     {
-        if (! Gate::forUser($user)->check('view', $resource->space)) {
+        // A public space is readable by anyone: the curator must still be a member of the community (#1324)
+        if (! $user->belongsToCommunity($resource->community) || ! Gate::forUser($user)->check('view', $resource->space)) {
             return false;
         }
 
