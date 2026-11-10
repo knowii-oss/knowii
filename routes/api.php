@@ -42,7 +42,8 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
     Route::post(ApiRoutes::NEWSLETTER, [NewsletterApiController::class, 'subscribe'])->middleware('throttle:newsletter');
 
     // Every route names the token abilities that it needs (ADR 0022, #689). Session users pass every check
-    Route::middleware('auth:sanctum')->group(function () {
+    // Verified email addresses only, like the web app (#1323): an account proves that it owns its address first
+    Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         // The current user, as an API resource (#1145)
         Route::get(ApiRoutes::USER, [UserApiController::class, 'me'])->middleware('ability:user:read');
         Route::post(ApiRoutes::USER_AVATAR, [UserApiController::class, 'updateAvatar'])->middleware('ability:user:write')->middleware('throttle:uploads');

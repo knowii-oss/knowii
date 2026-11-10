@@ -43,6 +43,11 @@ class LoginApiController extends Controller
             return self::authenticationIssue('The provided credentials do not match our records.');
         }
 
+        // Like the web app, the API needs a verified email address (#1323): no session and no token before
+        if (! $user->hasVerifiedEmail()) {
+            return self::authenticationIssue('Verify your email address first: open the link that we sent you.', ['email_verification_required' => true]);
+        }
+
         if ($user->hasEnabledTwoFactorAuthentication()) {
             $code = $input['code'] ?? null;
             $recoveryCode = $input['recovery_code'] ?? null;
