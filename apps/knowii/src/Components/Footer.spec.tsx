@@ -36,6 +36,7 @@ describe('Footer', () => {
     const legal = screen.getByRole('navigation', { name: 'Legal' });
     expect(within(legal).getByRole('link', { name: 'Privacy policy' })).toHaveAttribute('href', '/privacy-policy.show');
     expect(within(legal).getByRole('link', { name: 'Data processing agreement' })).toHaveAttribute('href', '/dpa.show');
+    expect(within(legal).getByRole('link', { name: 'Imprint' })).toHaveAttribute('href', '/imprint.show');
     expect(screen.getByRole('link', { name: 'Contact us' })).toHaveAttribute('href', '/contact');
     expect(screen.getByRole('link', { name: 'Source First' })).toHaveAttribute('href', 'https://sourcefirst.com/');
   });

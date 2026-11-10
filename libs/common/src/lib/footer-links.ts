@@ -1,5 +1,5 @@
 import metadata from './metadata.json';
-import { CONTACT_URL, DPA_URL, PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL } from './constants';
+import { CONTACT_URL, DPA_URL, IMPRINT_URL, PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL } from './constants';
 
 /**
  * A link of the footer (#938): an external URL (`href`), a path of the app (`path`) or a named Laravel route (`routeName`)
@@ -49,6 +49,7 @@ export const FOOTER_LINK_GROUPS: readonly FooterLinkGroup[] = [
       { label: 'Terms of service', routeName: TERMS_OF_SERVICE_URL },
       { label: 'Privacy policy', routeName: PRIVACY_POLICY_URL },
       { label: 'Data processing agreement', routeName: DPA_URL },
+      { label: 'Imprint', routeName: IMPRINT_URL },
     ],
   },
 ];

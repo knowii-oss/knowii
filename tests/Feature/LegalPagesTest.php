@@ -11,6 +11,7 @@ dataset('legal pages', [
     'privacy policy' => ['/privacy-policy', 'Privacy policy'],
     'terms of service' => ['/terms-of-service', 'Terms of service'],
     'data processing agreement' => ['/dpa', 'Data processing agreement'],
+    'imprint' => ['/imprint', 'Imprint'],
 ]);
 
 test('every legal page is public and rendered on the server', function (string $url, string $title) {
@@ -74,5 +75,16 @@ test('the privacy policy shows the retention periods of the configuration (ADR 0
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
         ->where('html', fn (string $html) => str_contains($html, 'Sessions: 45 minutes after your last activity')
             && str_contains($html, 'at most 6 months after you join it'))
+    );
+});
+
+test('the imprint names the publisher, the responsible person, the contact and the host (#903)', function () {
+    $this->get('/imprint')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, 'DeveloPassion SRL')
+            && str_contains($html, '0717.561.755')
+            && str_contains($html, 'BE0717561755')
+            && str_contains($html, 'Sébastien Dubois')
+            && str_contains($html, 'mailto:contact@developassion.be')
+            && str_contains($html, 'Hetzner Online GmbH'))
     );
 });
