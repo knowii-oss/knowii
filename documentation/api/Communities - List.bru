@@ -1,0 +1,26 @@
+meta {
+  name: Communities - List
+  type: http
+  seq: 121
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities?limit=10&offset=0
+  body: none
+  auth: none
+}
+
+params:query {
+  limit: 10
+  offset: 0
+  ~visibility: public
+  ~query: knowledge
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The communities of the signed-in member (#828): the ones they own and the ones they belong to, by name. Offset pagination (limit, offset; metadata.pagination). Optional filters: visibility (personal, private or public) and query (name contains, case-insensitive). Get one community for its moderator rights and member count. Token ability: communities:read.
+}

@@ -5,10 +5,13 @@ namespace App\Http\Controllers\API;
 use App\Contracts\Communities\CreatesCommunities;
 use App\Contracts\Communities\DeletesCommunities;
 use App\Contracts\Communities\UpdatesCommunities;
+use App\Enums\KnowiiCommunityVisibility;
 use App\Http\Controllers\Controller;
 use App\Models\Community;
+use App\Support\Pagination;
 use App\Traits\ApiResponses;
 use Dedoc\Scramble\Attributes\BodyParameter;
+use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,6 +22,37 @@ use Illuminate\Support\Facades\Log;
 class CommunityApiController extends Controller
 {
     use ApiResponses;
+
+    /**
+     * List the communities of the current member: the ones they own and the ones they belong to, by name (#828).
+     * Offset pagination (ADR 0011). Lists never carry the large fields (moderator rights, member count): get one community.
+     *
+     * @throws AuthenticationException
+     */
+    #[QueryParameter('limit', description: 'Number of communities (default 10, maximum 100)', type: 'int', example: 10)]
+    #[QueryParameter('offset', description: 'Number of communities to skip (default 0)', type: 'int', example: 0)]
+    #[QueryParameter('visibility', description: 'Only this visibility: personal, private or public', type: 'string', example: 'public')]
+    #[QueryParameter('query', description: 'Only the communities whose name contains this text (case-insensitive)', type: 'string', example: 'knowledge')]
+    final public function index(Request $request): JsonResponse
+    {
+        $user = $request->user() ?? throw new AuthenticationException;
+
+        $visibility = KnowiiCommunityVisibility::tryFrom((string) $request->query('visibility', ''));
+        $search = trim((string) $request->query('query', ''));
+
+        $communities = Community::query()
+            ->where(static fn ($query) => $query
+                ->where('owner_id', $user->id)
+                ->orWhereHas('users', static fn ($members) => $members->whereKey($user->id)))
+            ->when($visibility !== null, static fn ($query) => $query->where('visibility', $visibility))
+            ->when($search !== '', static fn ($query) => $query->whereRaw('name ILIKE ?', ['%'.addcslashes($search, '%_\\').'%']))
+            ->orderBy('name')
+            ->orderBy('id');
+
+        $page = Pagination::fromRequest($request)->apply($communities);
+
+        return self::success('Communities', $page['metadata'], $page['items']->toResourceCollection());
+    }
 
     /**
      * @throws AuthenticationException

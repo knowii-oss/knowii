@@ -5,8 +5,8 @@ use App\Enums\KnowiiApiResponseType;
 use Illuminate\Http\Response;
 
 test('the API returns 405 with an Allow header when the HTTP method is not supported', function () {
-    // The communities endpoint only accepts POST
-    $response = $this->getJson(ApiRoutes::path(ApiRoutes::COMMUNITIES));
+    // The username availability endpoint only accepts POST (GET /communities lists communities since #828)
+    $response = $this->getJson(ApiRoutes::path(ApiRoutes::USERS_IS_USERNAME_AVAILABLE));
 
     $response->assertStatus(Response::HTTP_METHOD_NOT_ALLOWED);
     $response->assertHeader('Allow', 'POST');
