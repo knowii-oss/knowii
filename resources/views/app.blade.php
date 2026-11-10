@@ -43,13 +43,17 @@
     rel="stylesheet"
   />
 
-  <script
-    defer
-    data-domain="knowii.net"
-    data-api="https://blue-bar-dsebastien-19fd.developassion.workers.dev/api/v1/event"
-    src="https://blue-bar-dsebastien-19fd.developassion.workers.dev/content/script.js"
-    nonce="{{ csp_nonce('script') }}"
-  ></script>
+  @php($plausible = \App\Support\Analytics::plausible())
+  @if ($plausible)
+    <!-- Plausible statistics through a proxy (#1316): only when PLAUSIBLE_DOMAIN and PLAUSIBLE_PROXY_URL are set -->
+    <script
+      defer
+      data-domain="{{ $plausible['domain'] }}"
+      data-api="{{ $plausible['api_url'] }}"
+      src="{{ $plausible['script_url'] }}"
+      nonce="{{ csp_nonce('script') }}"
+    ></script>
+  @endif
 
   <link href="/icons/favicon.ico" rel="shortcut icon" />
 
