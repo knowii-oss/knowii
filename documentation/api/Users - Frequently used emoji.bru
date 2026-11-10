@@ -1,0 +1,19 @@
+meta {
+  name: Users - Frequently used emoji
+  type: http
+  seq: 120
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/user/frequent-emoji
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The emoji that the signed-in member reacted with most (#1204), most used first, then most recent, at most 16: the "Frequently used" row of the reaction picker. Ability: user:read.
+}

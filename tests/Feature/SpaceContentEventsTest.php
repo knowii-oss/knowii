@@ -65,10 +65,10 @@ test('comments and reactions broadcast to the space of their post (#1180)', func
     app(UpdatesComments::class)->update($this->c['admin'], $comment, ['body' => 'Edited']);
     assertSpaceEvent(SpaceContentChanged::COMMENT_UPDATED, ['comment_cuid' => $comment->cuid]);
 
-    app(TogglesReactions::class)->toggle($this->c['member'], $post, ['kind' => 'like']);
+    app(TogglesReactions::class)->toggle($this->c['member'], $post, ['emoji' => '👍']);
     assertSpaceEvent(SpaceContentChanged::REACTIONS_CHANGED, ['post_cuid' => $post->cuid]);
 
-    app(TogglesReactions::class)->toggle($this->c['member'], $comment, ['kind' => 'like']);
+    app(TogglesReactions::class)->toggle($this->c['member'], $comment, ['emoji' => '👍']);
     assertSpaceEvent(SpaceContentChanged::REACTIONS_CHANGED, ['post_cuid' => $post->cuid, 'comment_cuid' => $comment->cuid]);
 
     app(DeletesComments::class)->delete($this->c['admin'], $comment);

@@ -2,6 +2,7 @@ import {
   COMMUNITY_API_BASE_PATH,
   USER_AVATAR_API_PATH,
   USER_BLOCKS_API_PATH,
+  USER_FREQUENT_EMOJI_API_PATH,
   CONVERSATION_API_PARAM_CONVERSATION,
   COMMUNITY_CONVERSATIONS_API_PATH,
   COMMUNITY_CONVERSATION_API_PATH,
@@ -104,10 +105,10 @@ import { chatMessageSchema, chatThreadSchema } from '../types/chat-message.schem
 import type { Page, PageForm, SectionForm } from '../types/page.schema';
 import { pageSchema } from '../types/page.schema';
 import type { CommunityResourceChanges, NewCommunityResource } from '../types/new-community-resource.schema';
-import type { ReactionKind, ReactionSummary, WhoReacted } from '../types/reaction.schema';
+import type { ReactionSummary, WhoReacted } from '../types/reaction.schema';
 import type { AssignableCommunityRole, CommunityInvitation, CommunityInvitationForm, CommunityMember } from '../types/member.schema';
 import { communityInvitationSchema, communityMemberSchema } from '../types/member.schema';
-import { reactionSummarySchema, whoReactedSchema } from '../types/reaction.schema';
+import { reactionEmojiSchema, reactionSummarySchema, whoReactedSchema } from '../types/reaction.schema';
 
 const avatarResponseSchema = z.object({ avatar_url: z.string().nullable() });
 
@@ -813,8 +814,8 @@ export const knowiiApiClient = {
       /**
        * Add the reaction of the member, or remove it. Returns the new summary.
        */
-      toggle: (target: ReactionTarget, kind: ReactionKind): Promise<ApiResult<ReactionSummary>> =>
-        apiRequest('post', reactionsPath(target), reactionSummarySchema, 'Failed to save the reaction.', { kind }),
+      toggle: (target: ReactionTarget, emoji: string): Promise<ApiResult<ReactionSummary>> =>
+        apiRequest('post', reactionsPath(target), reactionSummarySchema, 'Failed to save the reaction.', { emoji }),
       whoReacted: (target: ReactionTarget): Promise<ApiResult<WhoReacted>> =>
         apiRequest('get', reactionsPath(target), whoReactedSchema, 'Failed to load the reactions.'),
     },
@@ -929,6 +930,11 @@ export const knowiiApiClient = {
     /**
      * Show or hide when the current user is online (#1187, ADR 0027)
      */
+    /**
+     * The emoji that the current member reacts with most (#1204): the "Frequently used" row of the picker
+     */
+    frequentEmoji: (): Promise<ApiResult<string[]>> =>
+      apiRequest('get', USER_FREQUENT_EMOJI_API_PATH, z.array(reactionEmojiSchema), 'Failed to load your frequently used emoji.'),
     /**
      * The members the current user blocked (#1186): they cannot write to each other
      */

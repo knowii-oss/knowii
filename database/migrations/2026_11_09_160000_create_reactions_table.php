@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\KnowiiReactionKind;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +21,8 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('post_id')->nullable()->constrained()->cascadeOnDelete();
             $table->foreignId('comment_id')->nullable()->constrained()->cascadeOnDelete();
-            $table->enum('kind', KnowiiReactionKind::toStringArray());
+            // The five first kinds; any emoji since #1204 (2026_11_10_160000_use_any_emoji_for_reactions)
+            $table->enum('kind', ['like', 'love', 'insightful', 'funny', 'celebrate']);
             $table->timestamp('created_at')->useCurrent();
 
             // One reaction of each kind per member and item (rows where the column is null do not collide)

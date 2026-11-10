@@ -119,12 +119,12 @@ test('moderators delete any message; other members do not (#1185)', function (st
 test('members react to messages (#1176)', function () {
     $message = ChatMessage::factory()->inSpace($this->space)->create();
 
-    $this->actingAs($this->c['member'])->postJson(chatPath($this->space, $message, 'reactions'), ['kind' => 'like'])
+    $this->actingAs($this->c['member'])->postJson(chatPath($this->space, $message, 'reactions'), ['emoji' => '👍'])
         ->assertOk()
-        ->assertJsonPath('data.0.kind', 'like')
+        ->assertJsonPath('data.0.emoji', '👍')
         ->assertJsonPath('data.0.reacted', true);
 
-    $this->actingAs($this->c['outsider'])->postJson(chatPath($this->space, $message, 'reactions'), ['kind' => 'like'])->assertForbidden();
+    $this->actingAs($this->c['outsider'])->postJson(chatPath($this->space, $message, 'reactions'), ['emoji' => '👍'])->assertForbidden();
 });
 
 test('the unread markers follow what each member read (#1185)', function () {

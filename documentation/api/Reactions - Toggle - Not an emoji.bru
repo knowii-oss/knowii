@@ -1,5 +1,5 @@
 meta {
-  name: Reactions - Toggle - Invalid kind
+  name: Reactions - Toggle - Not an emoji
   type: http
   seq: 48
 }
@@ -17,10 +17,10 @@ headers {
 
 body:json {
   {
-    "kind": "angry"
+    "emoji": "angry"
   }
 }
 
 docs {
-  Returns 400: the kinds are a fixed set.
+  Returns 400: the emoji must come from the allow-list of the picker (resources/emoji/allowed.json), never free text.
 }

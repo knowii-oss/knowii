@@ -8,6 +8,8 @@ use App\Contracts\Users\UpdatesAvatars;
 use App\Contracts\Users\UpdatesOnlineStatus;
 use App\Contracts\Users\VerifiesUsernameAvailability;
 use App\Http\Controllers\Controller;
+use App\Models\Reaction;
+use App\Support\Emoji;
 use App\Traits\ApiResponses;
 use Dedoc\Scramble\Attributes\BodyParameter;
 use Illuminate\Auth\AuthenticationException;
@@ -28,6 +30,29 @@ class UserApiController extends Controller
 
         // refresh(): every column, also the ones a model built in memory does not hold (two_factor_confirmed_at)
         return self::success('Current user', null, $user->refresh()->load('profile')->toResource());
+    }
+
+    /**
+     * The emoji that the current member reacted with most, most used first, then most recent (#1204): the
+     * "Frequently used" row of the reaction picker. At most 16, from the reactions of the member in every community.
+     *
+     * @throws AuthenticationException
+     */
+    final public function frequentEmoji(Request $request): JsonResponse
+    {
+        $user = $request->user() ?? throw new AuthenticationException;
+
+        /** @var list<string> $emoji */
+        $emoji = Reaction::query()
+            ->where('user_id', $user->id)
+            ->select('emoji')
+            ->groupBy('emoji')
+            ->orderByRaw('count(*) desc, max(created_at) desc')
+            ->limit(Emoji::FREQUENT_COUNT)
+            ->pluck('emoji')
+            ->all();
+
+        return self::success('Frequently used emoji', null, $emoji);
     }
 
     /**

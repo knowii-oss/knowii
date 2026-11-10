@@ -107,6 +107,7 @@
     "cz-customizable": "7.5.4",
     "dotenv": "18.0.10",
     "dotenv-cli": "11.1.0",
+    "emojibase-data": "18.0.0",
     "eslint": "9.39.5",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-import": "2.32.0",

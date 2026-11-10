@@ -73,6 +73,9 @@ final class ApiRoutes
     // The members the current user blocked (#1186)
     public const USER_BLOCKS = 'user/blocks';
 
+    // The emoji that the current member reacts with most (#1204)
+    public const USER_FREQUENT_EMOJI = 'user/frequent-emoji';
+
     public const USER_BLOCK = self::USER_BLOCKS.'/{'.self::PARAM_USER_CUID.'}';
 
     public const AUTH_LOGIN = 'auth/login';

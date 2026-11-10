@@ -48,6 +48,8 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
         Route::post(ApiRoutes::USER_AVATAR, [UserApiController::class, 'updateAvatar'])->middleware('ability:user:write')->middleware('throttle:uploads');
         Route::delete(ApiRoutes::USER_AVATAR, [UserApiController::class, 'deleteAvatar'])->middleware('ability:user:write');
         Route::patch(ApiRoutes::USER_ONLINE_STATUS, [UserApiController::class, 'updateOnlineStatus'])->middleware('ability:user:write');
+        // The emoji of "Frequently used" in the reaction picker (#1204)
+        Route::get(ApiRoutes::USER_FREQUENT_EMOJI, [UserApiController::class, 'frequentEmoji'])->middleware('ability:user:read');
         // Blocked members (#1186)
         Route::get(ApiRoutes::USER_BLOCKS, [UserBlockApiController::class, 'index'])->middleware('ability:user:read');
         Route::put(ApiRoutes::USER_BLOCK, [UserBlockApiController::class, 'store'])->middleware('ability:user:write');

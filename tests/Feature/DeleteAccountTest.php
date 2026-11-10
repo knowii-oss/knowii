@@ -85,7 +85,7 @@ test('what a deleted member wrote in other communities stays, with no author (#1
     $post = Post::factory()->inSpace($space)->create(['author_id' => $user->id]);
     $comment = Comment::factory()->onPost(Post::factory()->inSpace($space)->create())->create(['author_id' => $user->id]);
     $resource = CommunityResource::factory()->create(['curator_id' => $user->profile->id]);
-    app(TogglesReactions::class)->toggle($user, $post, ['kind' => 'like']);
+    app(TogglesReactions::class)->toggle($user, $post, ['emoji' => '👍']);
     $upload = Upload::query()->forceCreate([
         'cuid' => (new Cuid2)->toString(), 'community_id' => $c['community']->id, 'user_id' => $user->id, 'disk' => 'public',
         'path' => 'uploads/a.webp', 'mime_type' => 'image/webp', 'width' => 1, 'height' => 1, 'size_bytes' => 1, 'alt' => 'An image',

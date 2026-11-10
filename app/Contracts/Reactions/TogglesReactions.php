@@ -11,7 +11,7 @@ interface TogglesReactions
 {
     /**
      * @param  array<mixed>  $input
-     * @return list<array{kind: string, count: int, reacted: bool}>
+     * @return list<array{emoji: string, count: int, reacted: bool}>
      */
     public function toggle(User $user, Post|Comment|ChatMessage $reactable, array $input): array;
 }

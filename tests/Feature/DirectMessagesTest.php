@@ -165,7 +165,7 @@ test('participants read, edit, delete and react; the read marker clears the unre
     $this->actingAs($this->c['admin'])->patchJson($messagePath, ['body' => 'Changed'])->assertForbidden();
     $this->actingAs($this->c['admin'])->deleteJson($messagePath)->assertForbidden();
     $this->actingAs($this->c['admin'])
-        ->postJson(conversationPath($cuid, ApiRoutes::COMMUNITY_CONVERSATION_MESSAGE_REACTIONS, $message->cuid), ['kind' => 'like'])
+        ->postJson(conversationPath($cuid, ApiRoutes::COMMUNITY_CONVERSATION_MESSAGE_REACTIONS, $message->cuid), ['emoji' => '👍'])
         ->assertOk();
     $this->actingAs($this->c['admin'])->postJson(conversationPath($cuid, ApiRoutes::COMMUNITY_CONVERSATION_READ), ['message_cuid' => $message->cuid])->assertOk();
     expect(unreadTotal($this->c['admin']))->toBe(0);

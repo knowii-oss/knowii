@@ -17,10 +17,10 @@ headers {
 
 body:json {
   {
-    "kind": "like"
+    "emoji": "👍"
   }
 }
 
 docs {
-  Adds the reaction of the member, or removes it when it exists. kind: like, love, insightful, funny or celebrate. Returns the summary: count per kind and whether the member reacted. Rate limited: 60 per minute.
+  Adds the reaction of the member, or removes it when it exists. emoji: any emoji of the picker (#1204), skin tone included. An item takes at most 20 different emoji (422 above). Returns the summary: count per emoji, in the order of the first reaction, and whether the member reacted. Rate limited: 60 per minute.
 }
