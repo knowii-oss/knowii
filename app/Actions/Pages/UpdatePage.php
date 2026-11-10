@@ -21,10 +21,13 @@ class UpdatePage implements UpdatesPages
     {
         Gate::forUser($user)->authorize('managePages', $page->space);
 
-        /** @var array{title?: string, body?: string} $validated */
-        $validated = Validator::make($input, CreatePage::rules(false))->validate();
+        /** @var array{title?: string, body?: string|null, video_url?: string|null} $validated */
+        $validated = Validator::make($input, CreatePage::rules(false, $page->kind))->validate();
         if ($validated === []) {
             return $page;
+        }
+        if (array_key_exists('video_url', $validated)) {
+            CreatePage::assertVideoAllowed($page->space, $page->kind, $validated['video_url']);
         }
 
         DB::transaction(function () use ($page, $user, $validated) {
@@ -32,14 +35,18 @@ class UpdatePage implements UpdatesPages
             if (isset($validated['title'])) {
                 $changes['title'] = trim($validated['title']);
             }
-            if (isset($validated['body'])) {
+            // A section has no text (#1188)
+            if (isset($validated['body']) && ! $page->isSection()) {
                 $changes['body'] = $validated['body'];
                 $changes['body_html'] = Markdown::render($validated['body']);
             }
+            if (array_key_exists('video_url', $validated)) {
+                $changes['video_url'] = CreatePage::blankToNull($validated['video_url']);
+            }
             $page->update($changes);
 
-            if (isset($validated['body'])) {
-                $page->syncUploadUsages($validated['body']);
+            if (isset($changes['body'])) {
+                $page->syncUploadUsages($changes['body']);
             }
         });
 

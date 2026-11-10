@@ -101,7 +101,7 @@ import { communitySchema } from '../types/community.schema';
 import { communityResourceSchema } from '../types/community-resource.schema';
 import type { ChatMessage, ChatMessageForm, ChatThread } from '../types/chat-message.schema';
 import { chatMessageSchema, chatThreadSchema } from '../types/chat-message.schema';
-import type { Page, PageForm } from '../types/page.schema';
+import type { Page, PageForm, SectionForm } from '../types/page.schema';
 import { pageSchema } from '../types/page.schema';
 import type { CommunityResourceChanges, NewCommunityResource } from '../types/new-community-resource.schema';
 import type { ReactionKind, ReactionSummary, WhoReacted } from '../types/reaction.schema';
@@ -591,9 +591,18 @@ export const knowiiApiClient = {
           pageSchema,
           'Failed to load the page.',
         ),
-      create: (communityCuid: string, spaceCuid: string, input: PageForm): Promise<ApiResult<Page>> =>
+      create: (
+        communityCuid: string,
+        spaceCuid: string,
+        input: (PageForm & { video_url?: string; kind?: 'page' }) | (SectionForm & { kind: 'section' }),
+      ): Promise<ApiResult<Page>> =>
         apiRequest('post', pagesPath(communityCuid, spaceCuid), pageSchema, 'Failed to create the page.', input),
-      update: (communityCuid: string, spaceCuid: string, pageCuid: string, input: Partial<PageForm>): Promise<ApiResult<Page>> =>
+      update: (
+        communityCuid: string,
+        spaceCuid: string,
+        pageCuid: string,
+        input: Partial<PageForm & { video_url: string }>,
+      ): Promise<ApiResult<Page>> =>
         apiRequest(
           'patch',
           pagesPath(communityCuid, spaceCuid, pageCuid, COMMUNITY_SPACE_PAGE_API_PATH),

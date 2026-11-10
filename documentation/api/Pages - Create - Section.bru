@@ -1,0 +1,27 @@
+meta {
+  name: Pages - Create - Section
+  type: http
+  seq: 119
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a course space>/pages
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "kind": "section",
+    "title": "Getting started"
+  }
+}
+
+docs {
+  A section (#1188, ADR 0029): a heading for the lessons or pages after it, at the end of the list. A title only: a body gives 400. It has no page of its own, and the previous and next links of the lessons skip it. Move it with the page order request like any page. Needs pages:write.
+}

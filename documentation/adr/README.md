@@ -53,3 +53,4 @@ Do not write an ADR for a bug fix, a refactor that keeps the structure, or a fea
 | [0026](0026-link-spaces.md)                                            | Navigation links are a space type                                       | Accepted |
 | [0027](0027-presence-channels.md)                                      | Presence through Reverb presence channels, hidden members never join    | Accepted |
 | [0028](0028-direct-messages.md)                                        | Direct messages are chat messages in a conversation                     | Accepted |
+| [0029](0029-course-spaces.md)                                          | Lessons are pages, sections are rows of the same list                   | Accepted |

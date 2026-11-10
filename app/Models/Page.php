@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\KnowiiPageKind;
 use App\Http\Resources\PageResource;
+use App\Support\VideoEmbed;
 use App\Traits\GeneratesCuid;
 use App\Traits\UsesUploads;
 use Carbon\Carbon;
@@ -21,11 +23,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read string $cuid
  * @property int $community_id
  * @property int $space_id
+ * @property KnowiiPageKind $kind A page (a lesson in a course) or a section heading (#1188)
  * @property ?int $author_id
  * @property string $title
  * @property string $slug
  * @property string $body
  * @property string $body_html
+ * @property ?string $video_url Lessons of a course space: a YouTube or Vimeo address (#1188)
  * @property int $position
  * @property Carbon $created_at
  * @property Carbon $updated_at
@@ -54,11 +58,13 @@ class Page extends Model
         'cuid',
         'community_id',
         'space_id',
+        'kind',
         'author_id',
         'title',
         'slug',
         'body',
         'body_html',
+        'video_url',
         'position',
     ];
 
@@ -78,8 +84,24 @@ class Page extends Model
     final public function casts(): array
     {
         return [
+            'kind' => KnowiiPageKind::class,
             'position' => 'integer',
         ];
+    }
+
+    final public function isSection(): bool
+    {
+        return $this->kind === KnowiiPageKind::Section;
+    }
+
+    /**
+     * The player of the video of a lesson (#1188); null without one
+     *
+     * @return array{provider: 'youtube'|'vimeo', id: string, url: string, embed_url: string}|null
+     */
+    final public function video(): ?array
+    {
+        return VideoEmbed::parse($this->video_url);
     }
 
     /**

@@ -6,7 +6,6 @@ use App\Contracts\Pages\CreatesPages;
 use App\Contracts\Pages\DeletesPages;
 use App\Contracts\Pages\ReordersPages;
 use App\Contracts\Pages\UpdatesPages;
-use App\Enums\KnowiiSpaceType;
 use App\Exceptions\BusinessException;
 use App\Http\Controllers\Controller;
 use App\Models\Community;
@@ -54,11 +53,13 @@ class PageApiController extends Controller
      * @throws AuthenticationException
      */
     #[BodyParameter('title', description: 'Title of the page (3 to 200 characters)', required: true, type: 'string', example: 'Start here')]
-    #[BodyParameter('body', description: 'Text of the page in Markdown (up to 50 000 characters)', required: true, type: 'string', example: 'Welcome! Read these pages in order.')]
+    #[BodyParameter('body', description: 'Text of the page in Markdown (up to 50 000 characters). Not for a section', required: true, type: 'string', example: 'Welcome! Read these pages in order.')]
+    #[BodyParameter('kind', description: 'page (default; a lesson in a course space) or section (a heading for the pages after it, a title only)', required: false, type: 'string', example: 'page')]
+    #[BodyParameter('video_url', description: 'Lessons of a course space only: the address of a YouTube or Vimeo video', required: false, type: 'string', format: 'uri', example: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')]
     final public function store(Request $request, Community $community, Space $space): JsonResponse
     {
         self::assertPageSpace($space);
-        $page = app(CreatesPages::class)->create($request->user() ?? throw new AuthenticationException, $space, $request->only(['title', 'body']));
+        $page = app(CreatesPages::class)->create($request->user() ?? throw new AuthenticationException, $space, $request->only(['title', 'body', 'kind', 'video_url']));
 
         return self::created($page->load('author')->toResource()->withLargeFields(), 'Page created');
     }
@@ -70,9 +71,10 @@ class PageApiController extends Controller
      */
     #[BodyParameter('title', description: 'Title of the page (3 to 200 characters)', required: false, type: 'string')]
     #[BodyParameter('body', description: 'Text of the page in Markdown', required: false, type: 'string')]
+    #[BodyParameter('video_url', description: 'Lessons of a course space only: a YouTube or Vimeo address; empty removes the video', required: false, type: 'string', format: 'uri')]
     final public function update(Request $request, Community $community, Space $space, Page $page): JsonResponse
     {
-        $page = app(UpdatesPages::class)->update($request->user() ?? throw new AuthenticationException, $page, $request->only(['title', 'body']));
+        $page = app(UpdatesPages::class)->update($request->user() ?? throw new AuthenticationException, $page, $request->only(['title', 'body', 'video_url']));
 
         return self::success('Page updated', null, $page->load('author')->toResource()->withLargeFields());
     }
@@ -105,8 +107,8 @@ class PageApiController extends Controller
 
     private static function assertPageSpace(Space $space): void
     {
-        if ($space->type !== KnowiiSpaceType::Pages) {
-            throw new BusinessException('Pages only exist in page spaces');
+        if (! $space->type->holdsPages()) {
+            throw new BusinessException('Pages only exist in page spaces and course spaces');
         }
     }
 }

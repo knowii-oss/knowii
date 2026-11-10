@@ -196,7 +196,7 @@ Events that can be dispatched and processed within Knowii (with or without WebSo
 - `App\Events\Communities\CommunityDeleted`
 - `App\Events\CommunityResources\CommunityResourceCreated` (also `Updated`, `Deleted`): on the channel of the resources space only ([ADR 0015](../adr/0015-resources-space-type.md))
 - `App\Events\Spaces\SpaceTreeChanged`
-- `App\Events\Spaces\SpaceContentChanged` (#1180): posts, comments and reactions (`space.post.created`, `.updated`, `.deleted`, `space.comment.*`, `space.reactions.changed`) on the channel of the space only. The payload holds identifiers only (`post_cuid`, `resource_cuid`, `comment_cuid`, `author_cuid`): the page loads the item again through the API, which checks the access and computes the fields of the member, such as their own reactions. New posts wait behind a "new posts" button, so the list does not move under the reader. Page spaces (#1179) add `space.page.created`, `.updated`, `.deleted` (`page_cuid`) and `space.pages.reordered`; the list and the page view reload their props. Chat spaces (#1185) add `space.message.created`, `.updated`, `.deleted` (`message_cuid`, `parent_cuid` for a thread reply) and send `space.reactions.changed` with `message_cuid`; the chat loads the message through the API.
+- `App\Events\Spaces\SpaceContentChanged` (#1180): posts, comments and reactions (`space.post.created`, `.updated`, `.deleted`, `space.comment.*`, `space.reactions.changed`) on the channel of the space only. The payload holds identifiers only (`post_cuid`, `resource_cuid`, `comment_cuid`, `author_cuid`): the page loads the item again through the API, which checks the access and computes the fields of the member, such as their own reactions. New posts wait behind a "new posts" button, so the list does not move under the reader. Page spaces (#1179) and course spaces (#1188) add `space.page.created`, `.updated`, `.deleted` (`page_cuid`) and `space.pages.reordered`; the list and the page view reload their props. Chat spaces (#1185) add `space.message.created`, `.updated`, `.deleted` (`message_cuid`, `parent_cuid` for a thread reply) and send `space.reactions.changed` with `message_cuid`; the chat loads the message through the API.
 - `App\Events\CommunityMembers\CommunityMembersChanged`, `App\Events\AccessGroups\AccessGroupsChanged`
 - ...
 
@@ -339,6 +339,10 @@ Broadcast::channel(Constants::WS_CHANNEL_COMMUNITY, static function (User $user,
   return $retVal;
 });
 ```
+
+### Course spaces
+
+A lesson is a page of a course space with an optional `video_url`; a section is a page row of kind `section`, the heading of the rows after it ([ADR 0029](../adr/0029-course-spaces.md), #1188). `App\Support\VideoEmbed` accepts YouTube and Vimeo addresses only and gives the privacy-friendly player address; `frame-src` and the Permissions-Policy allow exactly those two player origins (`VideoEmbed::PLAYER_HOSTS`).
 
 ### Direct messages
 
