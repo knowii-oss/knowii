@@ -38,6 +38,7 @@ describe('Footer', () => {
     expect(within(legal).getByRole('link', { name: 'Data processing agreement' })).toHaveAttribute('href', '/dpa.show');
     expect(within(legal).getByRole('link', { name: 'Imprint' })).toHaveAttribute('href', '/imprint.show');
     expect(within(legal).getByRole('link', { name: 'Content policy' })).toHaveAttribute('href', '/content-policy.show');
+    expect(within(legal).getByRole('link', { name: 'Security' })).toHaveAttribute('href', '/security.show');
     expect(screen.getByRole('link', { name: 'Contact us' })).toHaveAttribute('href', '/contact');
     expect(screen.getByRole('link', { name: 'Source First' })).toHaveAttribute('href', 'https://sourcefirst.com/');
   });
