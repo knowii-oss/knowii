@@ -63,10 +63,11 @@ test('posts and comments store their mentions, without the author, and keep them
 });
 
 test('the member search finds members by username or name, never outsiders', function () {
-    $this->c['admin']->update(['name' => 'Grace Hopper']);
+    // A name that faker never produces: the other members have random names (#1313)
+    $this->c['admin']->update(['name' => 'Grace Qxzhopper']);
 
     $this->actingAs($this->c['member'])
-        ->getJson(ApiRoutes::path(ApiRoutes::COMMUNITY_MEMBERS, [ApiRoutes::PARAM_COMMUNITY => $this->c['community']->cuid]).'?query=hop')
+        ->getJson(ApiRoutes::path(ApiRoutes::COMMUNITY_MEMBERS, [ApiRoutes::PARAM_COMMUNITY => $this->c['community']->cuid]).'?query=qxzhop')
         ->assertOk()
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.username', $this->admin)
