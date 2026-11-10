@@ -4,6 +4,7 @@ use App\ApiRoutes;
 use App\Contracts\Comments\CreatesComments;
 use App\Enums\KnowiiCommunityMemberRole;
 use App\Enums\KnowiiSpaceType;
+use App\Enums\KnowiiSpaceVisibility;
 use App\Events\CommunityResources\CommunityResourceDeleted;
 use App\Events\Spaces\SpaceTreeChanged;
 use App\Models\Comment;
@@ -14,6 +15,7 @@ use App\Models\SpaceGroup;
 use App\Models\User;
 use App\Support\CommunityResourceFiles;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -90,4 +92,18 @@ test('the resource page tells who can delete it', function () {
     $other = User::factory()->withUserProfile()->create();
     $this->c['community']->users()->attach($other, ['role' => KnowiiCommunityMemberRole::Member]);
     $this->actingAs($other)->get($url)->assertInertia(fn ($page) => $page->where('permissions.canDelete', false));
+});
+
+test('a curator who left the community can no longer change, capture or delete their resource, even in a public space (#1324)', function () {
+    $this->space->update(['visibility' => KnowiiSpaceVisibility::Public]);
+    $this->c['community']->users()->detach($this->c['member']);
+    $former = $this->c['member']->fresh();
+
+    expect(Gate::forUser($former)->check('update', $this->resource))->toBeFalse()
+        ->and(Gate::forUser($former)->check('capture', $this->resource))->toBeFalse()
+        ->and(Gate::forUser($former)->check('delete', $this->resource))->toBeFalse();
+
+    $this->actingAs($former)->deleteJson(deletableResourcePath($this->resource))->assertForbidden();
+    $this->actingAs($former)->patchJson(deletableResourcePath($this->resource), ['level' => 'expert'])->assertForbidden();
+    expect(CommunityResource::query()->whereKey($this->resource->id)->exists())->toBeTrue();
 });
