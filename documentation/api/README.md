@@ -19,7 +19,7 @@ A personal API token (created on the "API tokens" page of the user menu) has abi
 
 | Ability             | What it allows                                                        |
 | ------------------- | --------------------------------------------------------------------- |
-| `user:read`         | Read the current user                                                 |
+| `user:read`         | Read the current user, their blocks and their frequently used emoji   |
 | `user:write`        | Change the avatar                                                     |
 | `communities:read`  | Read communities, space groups, spaces, members and invitations       |
 | `communities:write` | Create, change and delete communities, spaces, members, invitations   |

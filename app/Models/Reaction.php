@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\KnowiiReactionKind;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $user_id
  * @property ?int $post_id
  * @property ?int $comment_id
- * @property KnowiiReactionKind $kind
+ * @property string $emoji One of App\Support\Emoji (#1204)
  * @property Carbon $created_at
  * @property-read User $user
  *
@@ -26,7 +25,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Reaction whereCommunityId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Reaction whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Reaction whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Reaction whereKind($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Reaction whereEmoji($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Reaction wherePostId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Reaction whereUserId($value)
  *
@@ -39,15 +38,7 @@ class Reaction extends Model
     /**
      * @var list<string>
      */
-    protected $fillable = ['community_id', 'user_id', 'kind'];
-
-    /**
-     * @return array<string, string>
-     */
-    final public function casts(): array
-    {
-        return ['kind' => KnowiiReactionKind::class];
-    }
+    protected $fillable = ['community_id', 'user_id', 'emoji'];
 
     /**
      * @return BelongsTo<User, covariant $this>

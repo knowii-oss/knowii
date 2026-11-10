@@ -2,7 +2,6 @@
 
 namespace App\Traits;
 
-use App\Enums\KnowiiReactionKind;
 use App\Models\Reaction;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -26,27 +25,21 @@ trait HasReactions
     }
 
     /**
-     * Count per kind and whether the user reacted, in the fixed order of the kinds; kinds without a reaction are left out.
-     * Eager load `reactions` on lists to avoid a query per item.
+     * Count per emoji and whether the user reacted (#1204), in the order of the first reaction with each emoji, so a new
+     * emoji comes last. Eager load `reactions` on lists to avoid a query per item.
      *
-     * @return list<array{kind: string, count: int, reacted: bool}>
+     * @return list<array{emoji: string, count: int, reacted: bool}>
      */
     final public function reactionSummary(?User $user): array
     {
-        $summary = [];
-
-        foreach (KnowiiReactionKind::cases() as $kind) {
-            $ofKind = $this->reactions->filter(fn (Reaction $reaction) => $reaction->kind === $kind);
-            if ($ofKind->isEmpty()) {
-                continue;
-            }
-            $summary[] = [
-                'kind' => $kind->value,
-                'count' => $ofKind->count(),
-                'reacted' => $user !== null && $ofKind->contains(fn (Reaction $reaction) => $reaction->user_id === $user->id),
-            ];
-        }
-
-        return $summary;
+        return array_values($this->reactions
+            ->sortBy([['created_at', 'asc'], ['id', 'asc']])
+            ->groupBy('emoji')
+            ->map(fn ($ofEmoji, $emoji) => [
+                'emoji' => (string) $emoji,
+                'count' => $ofEmoji->count(),
+                'reacted' => $user !== null && $ofEmoji->contains(fn (Reaction $reaction) => $reaction->user_id === $user->id),
+            ])
+            ->all());
     }
 }

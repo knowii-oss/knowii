@@ -29,8 +29,8 @@ export const postSchema = baseEntitySchema.extend({
   author: authorSchema.nullable(),
   // Comments and replies, when counted
   comments_count: z.number().int().optional(),
-  // When loaded: count per reaction kind and whether the current member reacted
-  reactions: z.array(z.object({ kind: z.string(), count: z.number().int(), reacted: z.boolean() })).optional(),
+  // When loaded: count per emoji and whether the current member reacted
+  reactions: z.array(z.object({ emoji: z.string(), count: z.number().int(), reacted: z.boolean() })).optional(),
   space_cuid: z.string(),
 });
 export type Post = z.infer<typeof postSchema>;

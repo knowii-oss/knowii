@@ -70,10 +70,10 @@ test('authors edit their comments, moderators delete any comment (#1034)', funct
 test('members react to the comments of a resource (#1034)', function () {
     $comment = app(CreatesComments::class)->create($this->c['member'], $this->resource, ['body' => 'First']);
 
-    $this->actingAs($this->c['admin'])->postJson(resourceCommentsPath($this->resource, $comment, '/reactions'), ['kind' => 'like'])
-        ->assertOk()->assertJsonPath('data', [['kind' => 'like', 'count' => 1, 'reacted' => true]]);
+    $this->actingAs($this->c['admin'])->postJson(resourceCommentsPath($this->resource, $comment, '/reactions'), ['emoji' => '👍'])
+        ->assertOk()->assertJsonPath('data', [['emoji' => '👍', 'count' => 1, 'reacted' => true]]);
     $this->getJson(resourceCommentsPath($this->resource, $comment, '/reactions'))->assertOk();
-    $this->actingAs($this->c['outsider'])->postJson(resourceCommentsPath($this->resource, $comment, '/reactions'), ['kind' => 'like'])->assertForbidden();
+    $this->actingAs($this->c['outsider'])->postJson(resourceCommentsPath($this->resource, $comment, '/reactions'), ['emoji' => '👍'])->assertForbidden();
 });
 
 test('a comment is only reachable through its own resource (#1034)', function () {

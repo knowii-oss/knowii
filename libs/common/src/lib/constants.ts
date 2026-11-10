@@ -180,6 +180,7 @@ export const USER_AVATAR_API_PATH = `${API_BASE_PATH}/user/avatar`;
 export const USER_ONLINE_STATUS_API_PATH = `${API_BASE_PATH}/user/online-status`;
 // The members the current user blocked (#1186)
 export const USER_BLOCKS_API_PATH = `${API_BASE_PATH}/user/blocks`;
+export const USER_FREQUENT_EMOJI_API_PATH = `${API_BASE_PATH}/user/frequent-emoji`;
 export const COMMUNITY_API_BASE_PATH = `${API_BASE_PATH}/communities`;
 
 export const COMMUNITY_API_PATH_PARAM_COMMUNITY = '{communityCuid}';
