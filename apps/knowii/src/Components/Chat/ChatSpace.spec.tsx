@@ -158,9 +158,13 @@ describe('ChatSpace presence and typing (#1187)', () => {
     renderChat([message('m1', 'First')], null, { enabled: true, visible: true });
 
     act(() => emitPresenceHere(presenceChannel, [me, ada]));
-    const here = screen.getByRole('list', { name: 'Here now (2)' });
-    expect(within(here).getByRole('link', { name: 'Me' })).toBeInTheDocument();
-    expect(within(here).getByRole('link', { name: 'Ada' })).toBeInTheDocument();
+    // One compact button (#1299); the panel lists everybody
+    await userEvent.click(screen.getByRole('button', { name: '2 members here, show the list' }));
+    const here = await screen.findByRole('list', { name: 'Here now' });
+    expect(within(here).getByRole('link', { name: /^Ada/ })).toBeInTheDocument();
+    expect(within(here).getByRole('link', { name: /^Me/ })).toBeInTheDocument();
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('list', { name: 'Here now' })).toBeNull());
 
     act(() => emitWhisper(presenceChannel, 'typing', { scope: '', typing: true }, 'mallory'));
     expect(screen.queryByText(/is typing/)).toBeNull();
@@ -189,7 +193,7 @@ describe('ChatSpace presence and typing (#1187)', () => {
     const online = vi.spyOn(knowiiApiClient.communities.spaces, 'onlineMembers').mockResolvedValue({ ok: true, message: '', data: [ada] });
     renderChat([message('m1', 'First')], null, { enabled: true, visible: false });
 
-    expect(await screen.findByRole('list', { name: 'Here now (1)' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: '1 member here, show the list' })).toBeInTheDocument();
     expect(online).toHaveBeenCalledWith('c1', 's1');
     expect(joinedPresenceChannels()).toEqual([]);
 
@@ -203,6 +207,6 @@ describe('ChatSpace presence and typing (#1187)', () => {
 
     expect(joinedPresenceChannels()).toEqual([]);
     expect(online).not.toHaveBeenCalled();
-    expect(screen.queryByText(/Here now/)).toBeNull();
+    expect(screen.queryByRole('button', { name: /here, show the list/ })).toBeNull();
   });
 });

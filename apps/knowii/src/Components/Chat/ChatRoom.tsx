@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ApiResult, ChatMessage, PresenceMember } from '@knowii/common';
 import { CONVERSATION_EVENTS, useAppData, usePresence, useSocket } from '@knowii/common';
-import { PresenceAvatars } from '@/Components/Presence/PresenceAvatars';
+import { HereNowButton } from '@/Components/Presence/HereNowButton';
 import { TypingIndicator } from '@/Components/Presence/TypingIndicator';
 import { Button, Dialog, EmptyState } from '@/Components/ui';
 import { ChatComposer } from './ChatComposer';
@@ -265,12 +265,7 @@ export function ChatRoom(props: ChatRoomProps) {
   return (
     <section aria-label={props.label} className="flex h-[70vh] min-h-96 flex-col gap-3">
       {props.presence.showHereNow && props.presence.channel !== null && presence.members.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2">
-          <span id="chat-here-now" className="text-xs font-bold text-muted">
-            Here now ({presence.members.length})
-          </span>
-          <PresenceAvatars communitySlug={props.communitySlug} members={presence.members} max={8} labelledBy="chat-here-now" />
-        </div>
+        <HereNowButton communitySlug={props.communitySlug} members={presence.members} />
       )}
       {hasMore && (
         <div className="flex justify-center">
