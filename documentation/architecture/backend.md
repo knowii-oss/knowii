@@ -48,6 +48,10 @@ Once started, you can go to `http://localhost:5050, and log in using:
 
 If you need to restart from scratch, you can reset the database to the default state and run all migrations using `composer db:clean` or `sail php artisan migrate:fresh`.
 
+### Retention
+
+The data that Knowii keeps only for a time is deleted by scheduled tasks ([ADR 0030](../adr/0030-retention-periods-enforced-by-scheduled-tasks.md)): `uploads:prune`, `retention:prune` (`App\Actions\Retention\PruneExpiredData`: invitations, API tokens, failed jobs, password reset tokens, database sessions and cache entries) and `mailing-lists:prune` (`App\Actions\EmailOctopus\PruneEmailOctopusContacts`). The periods come from `App\Support\Retention`, which reads `config/retention.php` and the Laravel keys. The privacy policy shows the same periods through `Retention::periods()`. Each command has `--dry-run`.
+
 ### Backup
 
 Database backups rely on the laravel backup package: https://spatie.be/docs/laravel-backup/v8/introduction

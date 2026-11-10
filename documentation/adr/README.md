@@ -54,3 +54,4 @@ Do not write an ADR for a bug fix, a refactor that keeps the structure, or a fea
 | [0027](0027-presence-channels.md)                                      | Presence through Reverb presence channels, hidden members never join    | Accepted |
 | [0028](0028-direct-messages.md)                                        | Direct messages are chat messages in a conversation                     | Accepted |
 | [0029](0029-course-spaces.md)                                          | Lessons are pages, sections are rows of the same list                   | Accepted |
+| [0030](0030-retention-periods-enforced-by-scheduled-tasks.md)          | Retention periods are configuration, and scheduled tasks apply them     | Accepted |
