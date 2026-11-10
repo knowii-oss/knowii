@@ -12,6 +12,8 @@ export interface DrawerProps {
    */
   title: ReactNode;
   side?: 'left' | 'right';
+  // The accessible name of the close button: "Close menu" for the navigation drawers
+  closeLabel?: string;
   children?: ReactNode;
   className?: string;
 }
@@ -19,7 +21,7 @@ export interface DrawerProps {
 /**
  * Panel that slides in from the side of the screen (navigation menus). Modal: same keyboard behavior as the Dialog.
  */
-export function Drawer({ open, onClose, title, side = 'left', children, className }: DrawerProps) {
+export function Drawer({ open, onClose, title, side = 'left', closeLabel = 'Close menu', children, className }: DrawerProps) {
   useReturnFocus(open);
 
   return (
@@ -44,7 +46,7 @@ export function Drawer({ open, onClose, title, side = 'left', children, classNam
             <button
               type="button"
               onClick={onClose}
-              aria-label="Close menu"
+              aria-label={closeLabel}
               className="flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-lg text-muted transition-colors hover:bg-overlay/10 hover:text-primary"
             >
               <FaXmark aria-hidden="true" className="size-6" />

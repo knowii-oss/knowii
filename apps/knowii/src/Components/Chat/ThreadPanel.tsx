@@ -51,7 +51,7 @@ export function ThreadPanel({
   }, [replies?.length]);
 
   return (
-    <Drawer open={open} onClose={onClose} side="right" title="Thread" className="sm:max-w-md">
+    <Drawer open={open} onClose={onClose} side="right" title="Thread" closeLabel="Close the thread" className="sm:max-w-md">
       {parent === null ? (
         <Spinner label="Loading the thread" />
       ) : (
