@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, afterEach } from 'vitest';
+import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest';
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { Comment } from '@knowii/common';
@@ -153,3 +153,101 @@ describe('CommentSection live updates (#1180)', () => {
     expect(list).not.toHaveBeenCalled();
   });
 });
+
+describe('CommentSection permalinks and collapsed threads (#1205)', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    window.history.replaceState(null, '', '/community/c/space/s/post/p');
+    Element.prototype.scrollIntoView = vi.fn();
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  it('copies the link to a reply', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    renderSection();
+
+    const thread = screen.getByRole('list', { name: 'Replies to the comment by Ada' });
+    await userEvent.click(within(thread).getByRole('button', { name: 'Copy the link to the comment by Bob' }));
+
+    expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/community/c/space/s/post/p#comment-r1`);
+    expect(document.getElementById('comment-r1')).toHaveAccessibleName('Comment by Bob');
+  });
+
+  it('collapses and expands a thread with the keyboard, and keeps it collapsed for the post', async () => {
+    const { unmount } = renderSectionWithUnmount();
+    const toggle = screen.getByRole('button', { name: 'Collapse the thread of Ada' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+
+    toggle.focus();
+    await userEvent.keyboard('{Enter}');
+
+    expect(screen.queryByText('A reply')).not.toBeInTheDocument();
+    expect(screen.getByText('· 1 reply', { exact: false })).toBeInTheDocument();
+    const expand = screen.getByRole('button', { name: 'Expand the thread of Ada' });
+    expect(expand).toHaveAttribute('aria-expanded', 'false');
+    expect(expand).toHaveFocus();
+    expect(JSON.parse(window.localStorage.getItem('knowii:collapsed-comments:post') ?? '[]')).toEqual(['c1']);
+
+    unmount();
+    renderSection();
+    expect(screen.queryByText('A reply')).not.toBeInTheDocument();
+
+    screen.getByRole('button', { name: 'Expand the thread of Ada' }).focus();
+    await userEvent.keyboard(' ');
+    expect(screen.getByText('A reply')).toBeInTheDocument();
+  });
+
+  it('collapses and expands every thread at once', async () => {
+    renderSection();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Collapse all' }));
+    expect(screen.queryByText('First')).not.toBeInTheDocument();
+    expect(screen.queryByText('Second')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Collapse all' })).toBeDisabled();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Expand all' }));
+    expect(screen.getByText('First')).toBeInTheDocument();
+    expect(screen.getByText('A reply')).toBeInTheDocument();
+  });
+
+  it('opens a link to a reply in a collapsed thread: the thread expands and the reply gets the focus', () => {
+    window.localStorage.setItem('knowii:collapsed-comments:post', JSON.stringify(['c1', 'c2']));
+    window.history.replaceState(null, '', '/community/c/space/s/post/p#comment-r1');
+
+    renderSection();
+
+    const reply = document.getElementById('comment-r1');
+    expect(reply).toHaveFocus();
+    expect(reply).toHaveAttribute('data-highlighted', 'true');
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
+    expect(screen.queryByText('Second')).not.toBeInTheDocument();
+  });
+
+  it('follows a link on the same page to a collapsed thread', async () => {
+    renderSection();
+    await userEvent.click(screen.getByRole('button', { name: 'Collapse the thread of Ada' }));
+
+    act(() => {
+      window.history.replaceState(null, '', '#comment-r1');
+      window.dispatchEvent(new HashChangeEvent('hashchange'));
+    });
+
+    expect(screen.getByText('A reply')).toBeInTheDocument();
+    expect(document.getElementById('comment-r1')).toHaveFocus();
+  });
+});
+
+function renderSectionWithUnmount() {
+  return render(
+    <AppDataProvider>
+      <CommentSection
+        subject={{ communityCuid: 'community', spaceCuid: 'space', postCuid: 'post' }}
+        initialComments={initial}
+        currentUserCuid="ada"
+        canComment={true}
+        canModerate={false}
+      />
+    </AppDataProvider>,
+  );
+}
