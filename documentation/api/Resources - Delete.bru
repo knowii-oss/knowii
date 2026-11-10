@@ -1,0 +1,19 @@
+meta {
+  name: Resources - Delete
+  type: http
+  seq: 121
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/z40cggggsksggkgskkwocock/resources/<cuid of a resource>
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Deletes a resource with its comments, reactions and captured content (#324). Returns 204. The curator, a member who manages the spaces of the community, or a moderator of the space (403 otherwise). The shared page and its images go too when no other community uses it. The space channel announces community.resource.deleted. Token ability: resources:write.
+}

@@ -108,6 +108,7 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::post(ApiRoutes::COMMUNITY_SPACE_RESOURCES, [CommunityResourceApiController::class, 'store'])->middleware('ability:resources:create,resources:write');
             Route::get(ApiRoutes::COMMUNITY_SPACE_RESOURCE, [CommunityResourceApiController::class, 'show'])->middleware('ability:resources:read');
             Route::patch(ApiRoutes::COMMUNITY_SPACE_RESOURCE, [CommunityResourceApiController::class, 'update'])->middleware('ability:resources:write');
+            Route::delete(ApiRoutes::COMMUNITY_SPACE_RESOURCE, [CommunityResourceApiController::class, 'destroy'])->middleware('ability:resources:write');
             Route::post(ApiRoutes::COMMUNITY_SPACE_RESOURCE_CAPTURE, [CommunityResourceApiController::class, 'capture'])->middleware('ability:resources:write')->middleware('throttle:captures');
 
             // Comments on resources (#1034)

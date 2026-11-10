@@ -58,6 +58,15 @@ final class ContentFiles
     }
 
     /**
+     * One resource of a resources space (#324): its captured content, and the shared page when no other community
+     * uses it.
+     */
+    public static function ofCommunityResource(CommunityResource $resource): self
+    {
+        return new self([], [(int) $resource->resource_id], [$resource->cuid]);
+    }
+
+    /**
      * Call it after the delete: it runs once the transaction commits (the account deletion wraps the community
      * deletion in one), or at once without a transaction. A rollback keeps the files.
      */

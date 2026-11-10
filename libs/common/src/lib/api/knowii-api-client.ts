@@ -866,6 +866,21 @@ export const knowiiApiClient = {
     create: (communityCuid: string, spaceCuid: string, input: NewCommunityResource): Promise<ApiResult<CommunityResource>> =>
       apiRequest('post', resourcesPath(communityCuid, spaceCuid), communityResourceSchema, 'Failed to add the resource.', input),
     /**
+     * Delete a resource with its comments, reactions and captured content (#324): the curator, a member who manages
+     * the spaces, or a moderator of the space
+     */
+    delete: (communityCuid: string, spaceCuid: string, resourceCuid: string): Promise<ApiResult<unknown>> =>
+      apiRequest(
+        'delete',
+        apiPath(COMMUNITY_SPACE_RESOURCE_API_PATH, {
+          [SPACE_API_PARAM_COMMUNITY]: communityCuid,
+          [SPACE_API_PARAM_SPACE]: spaceCuid,
+          [SPACE_API_PARAM_RESOURCE]: resourceCuid,
+        }),
+        null,
+        'Failed to delete the resource.',
+      ),
+    /**
      * Change the type or the level of a resource (#1246): the curator, or a member who manages the spaces
      */
     update: (

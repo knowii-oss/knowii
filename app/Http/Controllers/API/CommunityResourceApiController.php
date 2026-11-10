@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Actions\Resources\CreateCommunityResource;
 use App\Contracts\Resources\CreatesCommunityResources;
+use App\Contracts\Resources\DeletesCommunityResources;
 use App\Contracts\Resources\UpdatesCommunityResources;
 use App\Enums\KnowiiCaptureStatus;
 use App\Exceptions\BusinessException;
@@ -20,6 +21,7 @@ use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 
 /**
@@ -82,6 +84,19 @@ class CommunityResourceApiController extends Controller
             $resource->load(['resource', 'curator', 'capture', 'space'])->toResource()->withLargeFields(),
             'Resource created successfully'
         );
+    }
+
+    /**
+     * Delete a resource with its comments, reactions and captured content (#324): the curator, a member who manages the
+     * spaces, or a moderator of the space.
+     *
+     * @throws AuthenticationException
+     */
+    final public function destroy(Request $request, Community $community, Space $space, CommunityResource $resource): Response
+    {
+        app(DeletesCommunityResources::class)->delete($request->user() ?? throw new AuthenticationException, $resource);
+
+        return self::deleted();
     }
 
     /**

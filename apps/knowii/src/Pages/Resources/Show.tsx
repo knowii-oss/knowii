@@ -13,6 +13,8 @@ import {
   useTypedPage,
 } from '@knowii/common';
 import type { BreadcrumbItem } from '@/Components/ui';
+import { Button, Dialog } from '@/Components/ui';
+import { FaTrash } from 'react-icons/fa6';
 import { breadcrumbHome } from '../../Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
 import ResourceIcon from '@/Components/Resources/ResourceIcon';
@@ -33,7 +35,7 @@ interface Props {
   comments: Comment[];
   // The captured article (#1247): members only, null otherwise
   article: CapturedArticleData | null;
-  permissions: { canComment: boolean; canModerate: boolean; canCapture: boolean; canUpdate: boolean };
+  permissions: { canComment: boolean; canModerate: boolean; canCapture: boolean; canUpdate: boolean; canDelete: boolean };
 }
 
 /**
@@ -45,6 +47,8 @@ export default function ResourcePage(props: Props) {
   const page = useTypedPage();
   const { showToast } = useAppData();
   const [captureStarting, setCaptureStarting] = useState(false);
+  const [confirmingDeletion, setConfirmingDeletion] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const spaceChannel = useMemo(
     () => ({ type: 'space' as const, communityCuid: community.cuid, spaceCuid: space.cuid }),
     [community.cuid, space.cuid],
@@ -75,6 +79,20 @@ export default function ResourcePage(props: Props) {
     } else {
       showToast({ severity: 'error', summary: result.message });
     }
+  };
+
+  // Delete the resource (#324), then go back to the space
+  const deleteResource = async () => {
+    setDeleting(true);
+    const result = await knowiiApiClient.resources.delete(community.cuid, space.cuid, resource.cuid);
+    setDeleting(false);
+    if (!result.ok) {
+      showToast({ severity: 'error', summary: result.message });
+      return;
+    }
+    setConfirmingDeletion(false);
+    showToast({ severity: 'success', summary: 'Resource deleted' });
+    router.visit(route(SPACE_URL, { communitySlug: community.slug, spaceSlug: space.slug }));
   };
 
   const breadcrumbItems: BreadcrumbItem[] = [
@@ -117,6 +135,15 @@ export default function ResourcePage(props: Props) {
           />
         )}
 
+        {props.permissions.canDelete && (
+          <div className="flex justify-end">
+            <Button variant="ghost" size="sm" onClick={() => setConfirmingDeletion(true)}>
+              <FaTrash aria-hidden="true" />
+              Delete the resource
+            </Button>
+          </div>
+        )}
+
         <CapturedArticle article={props.article} excerpt={resource.resource.excerpt} />
 
         <CommentSection
@@ -127,6 +154,24 @@ export default function ResourcePage(props: Props) {
           canModerate={props.permissions.canModerate}
         />
       </CommunityShell>
+
+      <Dialog
+        open={confirmingDeletion}
+        onClose={() => setConfirmingDeletion(false)}
+        size="sm"
+        title="Delete this resource?"
+        description="Its comments, reactions and captured content are deleted too. This cannot be undone."
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setConfirmingDeletion(false)} autoFocus>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={() => void deleteResource()} loading={deleting}>
+              Delete
+            </Button>
+          </>
+        }
+      />
     </AppLayout>
   );
 }

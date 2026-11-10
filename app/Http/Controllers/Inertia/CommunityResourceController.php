@@ -50,6 +50,7 @@ class CommunityResourceController extends Controller
                 'canCapture' => Gate::check('capture', $resource),
                 // Change the type and the level (#1246)
                 'canUpdate' => Gate::check('update', $resource),
+                'canDelete' => Gate::check('delete', $resource),
             ],
         ]);
     }
