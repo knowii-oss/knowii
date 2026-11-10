@@ -14,6 +14,13 @@ return [
     |
     */
 
+    // Plausible audience statistics through a proxy (#1316): off unless both values are set. The proxy serves the
+    // script at /content/script.js and receives the events at /api/v1/event (a Cloudflare Worker for knowii.net)
+    'plausible' => [
+        'domain' => env('PLAUSIBLE_DOMAIN'),
+        'proxy_url' => env('PLAUSIBLE_PROXY_URL'),
+    ],
+
     // Waitlist on the welcome page (https://emailoctopus.com/api-documentation/v2)
     'emailoctopus' => [
         'base_url' => env('EMAILOCTOPUS_BASE_URL', 'https://api.emailoctopus.com'),

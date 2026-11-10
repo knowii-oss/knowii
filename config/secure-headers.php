@@ -13,7 +13,8 @@ $cspReverb = Sources::reverbOrigin(env('REVERB_HOST'), env('REVERB_PORT'), env('
 $cspViteDevServer = Sources::viteDevServerOrigins(env('APP_ENV'), env('VITE_DEV_SERVER_URL'), env('VITE_PORT'));
 // Host of the uploaded files when they are not served by the app itself (S3-compatible bucket, CDN)
 $cspStorage = Sources::origin(env('UPLOADS_PUBLIC_URL'));
-$cspAnalytics = 'https://blue-bar-dsebastien-19fd.developassion.workers.dev';
+// Plausible through a proxy (#1316): only when both values are set, like the script tag (App\Support\Analytics)
+$cspAnalytics = filled(env('PLAUSIBLE_DOMAIN')) ? Sources::origin(env('PLAUSIBLE_PROXY_URL')) : null;
 
 return [
 
@@ -542,7 +543,7 @@ return [
             ],
             'allow' => Sources::unique([
                 $cspReverb,
-                $cspAnalytics.'/api/v1/event',
+                $cspAnalytics !== null ? $cspAnalytics.'/api/v1/event' : null,
                 ...array_slice($cspViteDevServer, 1),
                 ...Sources::list(env('CSP_CONNECT_SRC')),
             ]),
@@ -661,10 +662,10 @@ return [
             'report-sample' => false,
 
             // Fallback for older browsers
-            'allow' => [
+            'allow' => Sources::unique([
                 $cspAnalytics,
                 'https://challenges.cloudflare.com',
-            ],
+            ]),
 
             'unsafe-inline' => false,
             'unsafe-eval' => false,
