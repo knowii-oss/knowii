@@ -48,6 +48,11 @@ class SpacePolicy
     {
         $community = $space->community;
 
+        // A link space holds no content (#1294, ADR 0026)
+        if ($space->type === KnowiiSpaceType::Link) {
+            return false;
+        }
+
         // A member who cannot read the space cannot write in it (groups visibility, #1241)
         if (! $user->belongsToCommunity($community) || ! $this->view($user, $space)) {
             return false;

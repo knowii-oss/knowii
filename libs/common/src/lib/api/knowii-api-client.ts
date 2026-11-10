@@ -72,7 +72,7 @@ import { accessGroupSchema } from '../types/access-group.schema';
 import { HttpStatus } from '../types/http-status.intf';
 import type { ApiResult } from './api-result';
 import { apiPath, apiRequest, fieldErrors } from './api-result';
-import type { Space, SpaceForm, SpaceGroup, SpaceGroupForm } from '../types/space.schema';
+import type { Space, SpaceCreateInput, SpaceForm, SpaceGroup, SpaceGroupForm } from '../types/space.schema';
 import { spaceGroupSchema, spaceSchema } from '../types/space.schema';
 import type { Author, Paginated, Post, PostForm } from '../types/post.schema';
 import { authorSchema, paginationSchema, postSchema } from '../types/post.schema';
@@ -292,7 +292,7 @@ export const knowiiApiClient = {
         ),
     },
     spaces: {
-      create: (communityCuid: string, input: SpaceForm): Promise<ApiResult<Space>> =>
+      create: (communityCuid: string, input: SpaceCreateInput): Promise<ApiResult<Space>> =>
         apiRequest('post', communityPath(COMMUNITY_SPACES_API_PATH, communityCuid), spaceSchema, 'Failed to create the space.', input),
       update: (communityCuid: string, spaceCuid: string, input: Partial<Omit<SpaceForm, 'type'>>): Promise<ApiResult<Space>> =>
         apiRequest('patch', spacePath(communityCuid, spaceCuid), spaceSchema, 'Failed to update the space.', input),

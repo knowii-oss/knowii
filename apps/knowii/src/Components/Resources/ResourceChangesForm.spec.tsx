@@ -10,6 +10,7 @@ const resource = {
   type: 'article',
   type_chosen: false,
   level: 'beginner',
+  capture_status: 'captured',
   capture: { markdown: null, word_count: 10, reading_time: 1, source: 'server', captured_at: new Date().toISOString() },
 } as unknown as CommunityResource;
 
@@ -33,5 +34,19 @@ describe('ResourceChangesForm', () => {
 
     await waitFor(() => expect(update).toHaveBeenCalledWith('c1', 's1', 'r1', { type: 'video' }));
     expect(onSaved).toHaveBeenCalled();
+  });
+
+  it('does not say "detected" for a link kept without capture (#1294)', () => {
+    render(
+      <AppDataProvider>
+        <ResourceChangesForm
+          communityCuid="c1"
+          spaceCuid="s1"
+          resource={{ ...resource, capture_status: 'skipped', capture: null }}
+          onSaved={vi.fn()}
+        />
+      </AppDataProvider>,
+    );
+    expect(screen.queryByText('Detected from the page.')).toBeNull();
   });
 });

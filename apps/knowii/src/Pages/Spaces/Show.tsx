@@ -1,7 +1,14 @@
 import { Link } from '@inertiajs/react';
 import type { ChatMessage, Community, CommunityResource, Page, Paginated, Post, Space, SpaceGroup, SpacePermissions } from '@knowii/common';
-import { COMMUNITY_SETTINGS_URL, COMMUNITY_URL, SPACE_POSTING_POLICY_LABELS, SPACE_TYPE_LABELS, useTypedPage } from '@knowii/common';
-import { FaGear } from 'react-icons/fa6';
+import {
+  COMMUNITY_SETTINGS_URL,
+  COMMUNITY_URL,
+  safeHttpUrl,
+  SPACE_POSTING_POLICY_LABELS,
+  SPACE_TYPE_LABELS,
+  useTypedPage,
+} from '@knowii/common';
+import { FaArrowUpRightFromSquare, FaGear } from 'react-icons/fa6';
 import AppLayout from '@/Layouts/AppLayout';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
@@ -35,7 +42,31 @@ const EMPTY_STATES: Record<Space['type'], { title: string; description: string }
   pages: { title: 'No pages yet', description: 'The pages of this space will show here, in order.' },
   course: { title: 'No lessons yet', description: 'The lessons of this course will show here, in order.' },
   resources: { title: 'No resources yet', description: 'Curated articles will show here.' },
+  link: { title: 'No address', description: 'This link has no valid address. A member who manages the spaces can fix it.' },
 };
+
+/**
+ * A link space (#1294, ADR 0026) has no content. The navigation opens its page at once; a member who comes to this
+ * page from a bookmark sees where the link goes before leaving Knowii (no automatic redirect).
+ */
+function LinkSpace({ space }: { space: Space }) {
+  const url = safeHttpUrl(space.url);
+  if (!url) {
+    return <EmptyState icon={SPACE_TYPE_LABELS.link.emoji} title={EMPTY_STATES.link.title} description={EMPTY_STATES.link.description} />;
+  }
+  return (
+    <section aria-labelledby="link-space-title" className="flex flex-col items-start gap-3 rounded-xl border border-border p-6">
+      <h2 id="link-space-title" className="text-lg font-bold">
+        This link opens a page outside Knowii
+      </h2>
+      <p className="break-all text-muted">{url}</p>
+      <a href={url} target="_blank" rel="noopener noreferrer" className={buttonClasses({ variant: 'primary' })}>
+        <FaArrowUpRightFromSquare aria-hidden="true" />
+        Open the page <span className="sr-only">(in a new tab)</span>
+      </a>
+    </section>
+  );
+}
 
 export default function SpacePage(props: Props) {
   const page = useTypedPage();
@@ -123,6 +154,8 @@ export default function SpacePage(props: Props) {
             initialResources={props.resources}
             canContribute={props.permissions.canContribute}
           />
+        ) : space.type === 'link' ? (
+          <LinkSpace space={space} />
         ) : (
           <EmptyState icon={typeLabel.emoji} title={EMPTY_STATES[space.type].title} description={EMPTY_STATES[space.type].description} />
         )}

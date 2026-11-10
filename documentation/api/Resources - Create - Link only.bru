@@ -1,0 +1,28 @@
+meta {
+  name: Resources - Create - Link only
+  type: http
+  seq: 100
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/z40cggggsksggkgskkwocock/resources
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "url": "https://intranet.example.com/team-handbook",
+    "level": "unknown",
+    "capture": false
+  }
+}
+
+docs {
+  Keeps only the link (#1294): Knowii never opens the page and does not resolve its address. Returns 201 with capture_status "skipped" and a name made from the URL (or the given name). POST .../resources/{resource}/capture starts a capture later, with the checks of a normal capture.
+}

@@ -5,15 +5,17 @@ import {
   MAX_LENGTH_SPACE_EMOJI,
   MAX_LENGTH_SPACE_GROUP_NAME,
   MAX_LENGTH_SPACE_NAME,
+  MAX_LENGTH_SPACE_URL,
   MIN_LENGTH_SPACE_GROUP_NAME,
   MIN_LENGTH_SPACE_NAME,
 } from '../constants';
+import { safeHttpUrl } from '../utils/safe-url.fn';
 
 /**
  * Space groups and spaces (#1173, ADR 0012).
  * WARNING: the enums are aligned with KnowiiSpaceType, KnowiiSpaceVisibility and KnowiiSpacePostingPolicy (back-end)
  */
-export const SPACE_TYPES = ['discussion', 'chat', 'pages', 'course', 'resources'] as const;
+export const SPACE_TYPES = ['discussion', 'chat', 'pages', 'course', 'resources', 'link'] as const;
 export const spaceTypeSchema = z.enum(SPACE_TYPES);
 export type SpaceType = z.infer<typeof spaceTypeSchema>;
 
@@ -31,6 +33,8 @@ export const SPACE_TYPE_LABELS: Record<SpaceType, { name: string; description: s
   pages: { name: 'Pages', description: 'Ordered pages: guides, Start Here', emoji: '📄' },
   course: { name: 'Course', description: 'Ordered lessons with videos', emoji: '🎓' },
   resources: { name: 'Resources', description: 'Curated links to articles', emoji: '🔗' },
+  // #1294, ADR 0026: a navigation item that opens a page outside Knowii
+  link: { name: 'Link', description: 'Opens a page outside Knowii: website, shop, booking page', emoji: '↗️' },
 };
 
 export const SPACE_VISIBILITY_LABELS: Record<SpaceVisibility, string> = {
@@ -77,14 +81,30 @@ export const spaceFormSchema = z.object({
   space_group_cuid: z.string().min(1, { error: 'Choose a space group' }),
   // Cuids of the access groups of a "groups" space (#1241)
   access_groups: z.array(z.string()),
+  // Link spaces only (#1294): the page that the navigation opens. Empty for the other types
+  url: z
+    .string()
+    .trim()
+    .max(MAX_LENGTH_SPACE_URL, { error: `The URL is too long (maximum ${MAX_LENGTH_SPACE_URL} characters)` }),
 });
 export type SpaceForm = z.infer<typeof spaceFormSchema>;
 
+/**
+ * What the API accepts to create a space: the URL only for a link space
+ */
+export type SpaceCreateInput = Omit<SpaceForm, 'url'> & { url?: string };
+
 // A "groups" space needs at least one group (#1241). WARNING: aligned with SpaceAccessGroups.php
-export const spaceFormWithGroupsSchema = spaceFormSchema.refine((form) => form.visibility !== 'groups' || form.access_groups.length > 0, {
-  error: 'Choose at least one access group',
-  path: ['access_groups'],
-});
+// A link space needs an http or https URL (#1294). WARNING: aligned with SpaceInputRules.php
+export const spaceFormWithGroupsSchema = spaceFormSchema
+  .refine((form) => form.visibility !== 'groups' || form.access_groups.length > 0, {
+    error: 'Choose at least one access group',
+    path: ['access_groups'],
+  })
+  .refine((form) => form.type !== 'link' || safeHttpUrl(form.url) !== null, {
+    error: 'Enter a full address that starts with https:// or http://',
+    path: ['url'],
+  });
 
 export const spaceSchema = baseEntitySchema.extend({
   name: z.string(),
@@ -92,6 +112,8 @@ export const spaceSchema = baseEntitySchema.extend({
   description: z.string(),
   emoji: z.string(),
   type: spaceTypeSchema,
+  // Link spaces (#1294): the page that the navigation opens; null for the other types
+  url: z.string().nullable().optional(),
   visibility: spaceVisibilitySchema,
   posting_policy: spacePostingPolicySchema,
   position: z.number().int(),

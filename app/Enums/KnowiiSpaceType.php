@@ -10,6 +10,8 @@ enum KnowiiSpaceType: string
     case Pages = 'pages';
     case Course = 'course';
     case Resources = 'resources';
+    // A navigation link to a page outside Knowii (#1294, ADR 0026): no content, the navigation opens its URL
+    case Link = 'link';
 
     public static function toCommaSeparatedString(): string
     {

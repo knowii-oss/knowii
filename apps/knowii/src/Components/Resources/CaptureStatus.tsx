@@ -1,5 +1,5 @@
 import type { CaptureStatus as CaptureStatusValue } from '@knowii/common';
-import { FaTriangleExclamation } from 'react-icons/fa6';
+import { FaLink, FaTriangleExclamation } from 'react-icons/fa6';
 import { cn } from '@/Components/ui';
 
 interface Props {
@@ -9,7 +9,8 @@ interface Props {
 
 /**
  * Where the capture of a resource is (ADR 0018): nothing once it is captured, "Capturing" while the queued job runs,
- * "Capture failed" after the last try. A status region, so screen readers hear the change.
+ * "Capture failed" after the last try, "Link only" when the curator kept only the link (#1294). A status region, so
+ * screen readers hear the change.
  */
 export function CaptureStatus({ status, className }: Props) {
   return (
@@ -27,6 +28,12 @@ export function CaptureStatus({ status, className }: Props) {
         <>
           <FaTriangleExclamation aria-hidden="true" className="text-warning" />
           <span className="text-muted">Capture failed</span>
+        </>
+      )}
+      {status === 'skipped' && (
+        <>
+          <FaLink aria-hidden="true" className="text-muted" />
+          <span className="text-muted">Link only</span>
         </>
       )}
     </span>

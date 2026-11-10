@@ -58,8 +58,22 @@ describe('CreateResourceDialog', () => {
       description: '',
       level: 'unknown',
       type: '',
+      capture: true,
     });
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it('keeps only the link when asked: Knowii does not open the page (#1294)', async () => {
+    const created = { cuid: 'r1', name: 'Team Handbook' } as CommunityResource;
+    const create = vi.spyOn(knowiiApiClient.resources, 'create').mockResolvedValue({ ok: true, message: '', data: created });
+    renderDialog();
+
+    await fill('https://intranet.example.com/team-handbook', '');
+    await userEvent.click(screen.getByRole('checkbox', { name: /Keep only the link/ }));
+    expect(screen.getByRole('dialog')).toHaveTextContent('Knowii does not open the page.');
+    await userEvent.click(screen.getByRole('button', { name: 'Add' }));
+
+    await waitFor(() => expect(create).toHaveBeenCalledWith('c1', 's1', expect.objectContaining({ capture: false })));
   });
 
   it('shows the server errors next to their field and stays open', async () => {

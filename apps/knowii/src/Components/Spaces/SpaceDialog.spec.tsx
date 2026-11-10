@@ -5,6 +5,9 @@ import type { Space, SpaceGroup } from '@knowii/common';
 import { AppDataProvider, knowiiApiClient } from '@knowii/common';
 import { SpaceDialog } from './SpaceDialog';
 
+// Built at run time: a literal script URL is a lint error
+const SCRIPT_URL = ['javascript', 'alert(1)'].join(':');
+
 const spaceGroups = [{ cuid: 'sg1', name: 'Start Here', position: 1 }] as SpaceGroup[];
 
 beforeEach(() => {
@@ -78,5 +81,48 @@ describe('SpaceDialog access groups (#1241)', () => {
 
     expect(await screen.findByRole('checkbox', { name: 'Paid members' })).toBeChecked();
     expect(screen.getByRole('checkbox', { name: 'Team' })).not.toBeChecked();
+  });
+});
+
+describe('SpaceDialog link spaces (#1294)', () => {
+  it('asks for the address of a link space, hides "Who can post" and sends the URL', async () => {
+    const create = vi
+      .spyOn(knowiiApiClient.communities.spaces, 'create')
+      .mockResolvedValue({ ok: true, message: '', data: { cuid: 's1', name: 'Shop' } as Space });
+    renderDialog();
+    const dialog = await screen.findByRole('dialog', { name: 'New space' });
+
+    expect(within(dialog).queryByLabelText('Address of the page')).not.toBeInTheDocument();
+    await userEvent.type(within(dialog).getByLabelText('Name'), 'Shop');
+    await userEvent.click(within(dialog).getByRole('button', { name: /^Type/ }));
+    await userEvent.click(await screen.findByRole('option', { name: /^Link/ }));
+
+    expect(within(dialog).queryByRole('button', { name: /Who can post/ })).not.toBeInTheDocument();
+    const url = within(dialog).getByLabelText('Address of the page');
+    await userEvent.type(url, SCRIPT_URL);
+    expect(await within(dialog).findByText('Enter a full address that starts with https:// or http://')).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'Create' })).toBeDisabled();
+
+    await userEvent.clear(url);
+    await userEvent.type(url, 'https://shop.example.com');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Create' }));
+
+    await waitFor(() =>
+      expect(create).toHaveBeenCalledWith('c1', expect.objectContaining({ type: 'link', url: 'https://shop.example.com' })),
+    );
+  });
+
+  it('does not send a URL for the other types', async () => {
+    const create = vi
+      .spyOn(knowiiApiClient.communities.spaces, 'create')
+      .mockResolvedValue({ ok: true, message: '', data: { cuid: 's1', name: 'Lounge' } as Space });
+    renderDialog();
+    const dialog = await screen.findByRole('dialog', { name: 'New space' });
+
+    await userEvent.type(within(dialog).getByLabelText('Name'), 'Lounge');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Create' }));
+
+    await waitFor(() => expect(create).toHaveBeenCalledTimes(1));
+    expect(create.mock.calls[0]?.[1]).not.toHaveProperty('url');
   });
 });
