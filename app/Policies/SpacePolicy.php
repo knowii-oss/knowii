@@ -87,6 +87,15 @@ class SpacePolicy
             && self::isModerator($user, $space);
     }
 
+    /**
+     * Whether the user marks lessons as done and reads their progress (#1304, ADR 0034): members of the community who
+     * can read the space. A signed-in outsider reads a public course without keeping a progress in it.
+     */
+    final public function trackProgress(User $user, Space $space): bool
+    {
+        return $user->belongsToCommunity($space->community) && $this->view($user, $space);
+    }
+
     private static function isModerator(User $user, Space $space): bool
     {
         $community = $space->community;

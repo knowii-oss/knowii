@@ -77,6 +77,8 @@ test('every write operation documents its request body', function () {
         'POST /v1/communities/{community}/spaces/{space}/resources/{resource}/capture',
         // Block a member (#1186): the member is in the path
         'PUT /v1/user/blocks/{userCuid}',
+        // Mark a lesson as done (#1304): the lesson is in the path
+        'PUT /v1/communities/{community}/spaces/{space}/pages/{page}/progress',
     ];
     $withoutBody = [];
     foreach (openApiDocument()['paths'] as $path => $operations) {

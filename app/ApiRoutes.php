@@ -143,6 +143,11 @@ final class ApiRoutes
 
     public const COMMUNITY_SPACE_PAGE = self::COMMUNITY_SPACE_PAGES.'/{'.self::PARAM_PAGE.'}';
 
+    // Course progress of the current member (#1304)
+    public const COMMUNITY_SPACE_PROGRESS = self::COMMUNITY_SPACE.'/progress';
+
+    public const COMMUNITY_SPACE_PAGE_PROGRESS = self::COMMUNITY_SPACE_PAGE.'/progress';
+
     public const COMMUNITY_SPACE_POST = self::COMMUNITY_SPACE_POSTS.'/{'.self::PARAM_POST.'}';
 
     public const COMMUNITY_SPACE_POST_PIN = self::COMMUNITY_SPACE_POST.'/pin';

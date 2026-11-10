@@ -126,4 +126,50 @@ describe('Course spaces (#1188)', () => {
 
     await waitFor(() => expect(create).toHaveBeenCalledWith('c1', 's1', { kind: 'section', title: 'Part one' }));
   });
+
+  it('shows the progress of the member: checks, the count and "Continue" to the first lesson not done (#1304)', () => {
+    render(
+      <AppDataProvider>
+        <PageList
+          community={community}
+          space={course}
+          canManagePages={false}
+          pages={[row('s-a', 'Getting started', 'section'), row('install', 'Install Obsidian', 'page'), row('links', 'Links', 'page')]}
+          progress={{ total: 2, completed: 1, completed_lessons: ['install'], next_lesson: 'links' }}
+        />
+      </AppDataProvider>,
+    );
+
+    expect(screen.getByText('2 lessons · 1 of 2 done')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Continue/ })).toHaveAttribute('href', '/lesson/links');
+    expect(screen.queryByRole('link', { name: /Start the course/ })).toBeNull();
+    expect(screen.getByRole('link', { name: /^Install Obsidian\s*\(done\)$/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /^Links\s*\(not done\)$/ })).toBeInTheDocument();
+  });
+
+  it('offers "Review the course" when every lesson is done, and no marks without a progress (#1304)', () => {
+    const pages = [row('install', 'Install Obsidian', 'page')];
+    const { unmount } = render(
+      <AppDataProvider>
+        <PageList
+          community={community}
+          space={course}
+          canManagePages={false}
+          pages={pages}
+          progress={{ total: 1, completed: 1, completed_lessons: ['install'], next_lesson: null }}
+        />
+      </AppDataProvider>,
+    );
+    expect(screen.getByRole('link', { name: /Review the course/ })).toHaveAttribute('href', '/lesson/install');
+    unmount();
+
+    render(
+      <AppDataProvider>
+        <PageList community={community} space={course} canManagePages={false} pages={pages} progress={null} />
+      </AppDataProvider>,
+    );
+    expect(screen.getByRole('link', { name: /Start the course/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Install Obsidian' })).toBeInTheDocument();
+    expect(screen.queryByText(/done/)).toBeNull();
+  });
 });

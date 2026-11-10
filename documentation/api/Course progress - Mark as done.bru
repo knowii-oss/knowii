@@ -1,0 +1,19 @@
+meta {
+  name: Course progress - Mark as done
+  type: http
+  seq: 125
+}
+
+put {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/q8kcoursespacestarthere1/pages/q8klessoninstallobsidn1/progress
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Marks a lesson as done (idempotent). Answers with the progress of the course. Token ability: pages:read (it changes only your own data).
+}

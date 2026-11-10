@@ -239,6 +239,9 @@ export const SPACE_API_PARAM_PAGE = '{pageCuid}';
 export const COMMUNITY_SPACE_PAGES_API_PATH = `${COMMUNITY_SPACE_API_PATH}/pages`;
 export const COMMUNITY_SPACE_PAGES_ORDER_API_PATH = `${COMMUNITY_SPACE_PAGES_API_PATH}/order`;
 export const COMMUNITY_SPACE_PAGE_API_PATH = `${COMMUNITY_SPACE_PAGES_API_PATH}/${SPACE_API_PARAM_PAGE}`;
+// Course progress of the current member (#1304)
+export const COMMUNITY_SPACE_PROGRESS_API_PATH = `${COMMUNITY_SPACE_API_PATH}/progress`;
+export const COMMUNITY_SPACE_PAGE_PROGRESS_API_PATH = `${COMMUNITY_SPACE_PAGE_API_PATH}/progress`;
 export const COMMUNITY_SPACE_POST_PIN_API_PATH = `${COMMUNITY_SPACE_POST_API_PATH}/pin`;
 
 // Markdown preview (same rendering as the saved content)

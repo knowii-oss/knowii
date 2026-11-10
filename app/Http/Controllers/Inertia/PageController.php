@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Inertia;
 use App\Enums\KnowiiSpaceType;
 use App\Models\Community;
 use App\Models\Page;
+use App\Support\CourseProgress;
 use App\Support\SpaceTree;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -38,6 +39,14 @@ class PageController extends Controller
         $page = $space->pages()->with('author')->findOrFail($found->id);
         $neighbour = static fn (?Page $other) => $other === null ? null : ['title' => $other->title, 'slug' => $other->slug];
 
+        // Lessons of a course: whether the member marked it as done, and their progress in the course (#1304)
+        $user = $request->user();
+        $progress = null;
+        if ($space->type === KnowiiSpaceType::Course && $user !== null && Gate::check('trackProgress', $space)) {
+            $course = CourseProgress::for($user, $space);
+            $progress = ['done' => in_array($page->cuid, $course['completed_lessons'], true), 'course' => $course];
+        }
+
         JsonResource::withoutWrapping();
 
         // WARNING: aligned with the props of the page (Pages/SpacePages/Show.tsx)
@@ -50,6 +59,7 @@ class PageController extends Controller
             'next' => $neighbour($pages->get($index + 1)),
             'position' => ['current' => $index + 1, 'total' => $pages->count()],
             'section' => $section?->title,
+            'progress' => $progress,
             'permissions' => [
                 'canManagePages' => Gate::check('managePages', $space),
             ],

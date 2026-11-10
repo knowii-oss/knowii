@@ -1,0 +1,19 @@
+meta {
+  name: Course progress - Get
+  type: http
+  seq: 124
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/q8kcoursespacestarthere1/progress
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Your progress in a course space (#1304, ADR 0034): total, completed, completed_lessons (cuids) and next_lesson (the first lesson that is not done, null when all are). Members of the community only (403 for an outsider of a public course). A space that is not a course gives a 422.
+}

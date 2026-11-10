@@ -1,6 +1,7 @@
+import type { MouseEvent } from 'react';
 import { useMemo, useState } from 'react';
 import { Link, router } from '@inertiajs/react';
-import type { Community, Page, PageNeighbour, Space, SpaceContentPayload, SpaceGroup } from '@knowii/common';
+import type { Community, CourseProgress, Page, PageNeighbour, Space, SpaceContentPayload, SpaceGroup } from '@knowii/common';
 import {
   COMMUNITY_URL,
   knowiiApiClient,
@@ -11,7 +12,7 @@ import {
   useSocket,
   useTypedPage,
 } from '@knowii/common';
-import { FaArrowLeft, FaArrowRight, FaPen, FaTrash } from 'react-icons/fa6';
+import { FaArrowLeft, FaArrowRight, FaCheck, FaCircleCheck, FaPen, FaTrash } from 'react-icons/fa6';
 import AppLayout from '@/Layouts/AppLayout';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
@@ -32,12 +33,15 @@ interface Props {
   position: { current: number; total: number };
   // Course spaces (#1188): the section of the lesson, when the course has sections
   section: string | null;
+  // Lessons (#1304): whether the member marked this lesson as done, and their progress; null for a reader who is not a member
+  progress: { done: boolean; course: CourseProgress } | null;
   permissions: { canManagePages: boolean };
 }
 
 /**
  * A page of a page space (#1179), or a lesson of a course space with its video (#1188): the text, then links to the
- * previous and the next one, so members read them in order.
+ * previous and the next one, so members read them in order. In a course, members mark the lesson as done, and going
+ * to the next lesson marks it too (#1304).
  */
 export default function SpacePage(props: Props) {
   const { community, space, page, previous, next, position } = props;
@@ -48,6 +52,15 @@ export default function SpacePage(props: Props) {
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState(props.progress);
+  const [progressSource, setProgressSource] = useState(props.progress);
+  const [savingProgress, setSavingProgress] = useState(false);
+
+  // New props (another lesson, a reload) replace the progress
+  if (progressSource !== props.progress) {
+    setProgressSource(props.progress);
+    setProgress(props.progress);
+  }
 
   const spaceHref = route(SPACE_URL, { communitySlug: community.slug, spaceSlug: space.slug });
   const pageHref = (neighbour: PageNeighbour) =>
@@ -71,7 +84,7 @@ export default function SpacePage(props: Props) {
         return;
       }
       if (!editing) {
-        router.reload({ only: ['page', 'previous', 'next', 'position', 'section'] });
+        router.reload({ only: ['page', 'previous', 'next', 'position', 'section', 'progress'] });
       }
     },
   });
@@ -86,6 +99,33 @@ export default function SpacePage(props: Props) {
     } else {
       showToast({ severity: 'error', summary: result.message });
     }
+  };
+
+  const setDone = async (done: boolean): Promise<boolean> => {
+    setSavingProgress(true);
+    const result = done
+      ? await knowiiApiClient.communities.pages.complete(community.cuid, space.cuid, page.cuid)
+      : await knowiiApiClient.communities.pages.reopen(community.cuid, space.cuid, page.cuid);
+    setSavingProgress(false);
+    if (!result.ok) {
+      showToast({ severity: 'error', summary: result.message });
+      return false;
+    }
+    setProgress({ done, course: result.data });
+    return true;
+  };
+
+  // Going to the next lesson marks this one as done (#1304); a click that opens a new tab only marks it
+  const goToNext = (event: MouseEvent, href: string) => {
+    if (!progress || progress.done) {
+      return;
+    }
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) {
+      void setDone(true);
+      return;
+    }
+    event.preventDefault();
+    void setDone(true).then(() => router.visit(href));
   };
 
   const breadcrumbItems: BreadcrumbItem[] = [
@@ -106,6 +146,7 @@ export default function SpacePage(props: Props) {
             <p className="text-sm text-muted">
               {noun} {position.current} of {position.total}
               {props.section ? ` · ${props.section}` : ''}
+              {progress && ` · ${progress.course.completed} of ${progress.course.total} done`}
             </p>
             <h1 className="text-2xl font-extrabold">{page.title}</h1>
             <p className="text-xs text-muted">
@@ -130,6 +171,33 @@ export default function SpacePage(props: Props) {
 
           <MarkdownContent html={page.body_html ?? ''} className="break-words" />
 
+          {progress && (
+            // One button that keeps its place and its focus when the lesson changes state (#1304)
+            <div className="flex flex-wrap items-center">
+              <p role="status" className={progress.done ? 'mr-3 flex items-center gap-2 font-bold' : ''}>
+                {progress.done && (
+                  <>
+                    <FaCircleCheck aria-hidden="true" className="text-success" />
+                    Lesson done
+                  </>
+                )}
+              </p>
+              <Button
+                variant={progress.done ? 'ghost' : 'primary'}
+                size={progress.done ? 'sm' : 'md'}
+                aria-busy={savingProgress || undefined}
+                onClick={() => {
+                  if (!savingProgress) {
+                    void setDone(!progress.done);
+                  }
+                }}
+              >
+                {!progress.done && <FaCheck aria-hidden="true" />}
+                {progress.done ? 'Mark as not done' : 'Mark as done'}
+              </Button>
+            </div>
+          )}
+
           <nav
             aria-label={isCourse ? 'Lessons of the course' : 'Pages of the space'}
             className="mt-6 grid gap-3 border-t border-border pt-4 @md:grid-cols-2"
@@ -152,6 +220,7 @@ export default function SpacePage(props: Props) {
             {next && (
               <Link
                 href={pageHref(next)}
+                onClick={(event) => goToNext(event, pageHref(next))}
                 rel="next"
                 className="touch-target flex flex-col items-end gap-1 rounded-lg border border-border p-3 text-right hover:bg-overlay/10"
               >

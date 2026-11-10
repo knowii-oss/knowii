@@ -1,7 +1,9 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { router } from '@inertiajs/react';
 import type { Community, Page, Space } from '@knowii/common';
-import { AppDataProvider } from '@knowii/common';
+import { AppDataProvider, knowiiApiClient } from '@knowii/common';
 import SpacePage from './Show';
 
 vi.mock('@inertiajs/react', () => ({
@@ -75,5 +77,70 @@ describe('SpacePage', () => {
 
     expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument();
+  });
+
+  const lesson = {
+    ...props,
+    space: { ...props.space, type: 'course' } as Space,
+    section: null,
+    permissions: { canManagePages: false },
+  };
+  const course = (completed: string[], next: string | null) => ({
+    total: 3,
+    completed: completed.length,
+    completed_lessons: completed,
+    next_lesson: next,
+  });
+
+  it('lets a member mark a lesson as done and not done (#1304)', async () => {
+    const complete = vi
+      .spyOn(knowiiApiClient.communities.pages, 'complete')
+      .mockResolvedValue({ ok: true, message: '', data: course(['p2'], 'p3') });
+    const reopen = vi
+      .spyOn(knowiiApiClient.communities.pages, 'reopen')
+      .mockResolvedValue({ ok: true, message: '', data: course([], 'p1') });
+    render(
+      <AppDataProvider>
+        <SpacePage {...lesson} progress={{ done: false, course: course([], 'p1') }} />
+      </AppDataProvider>,
+    );
+
+    expect(screen.getByText('Lesson 2 of 3 · 0 of 3 done')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Mark as done' }));
+
+    expect(complete).toHaveBeenCalledWith('c1', 's1', 'p2');
+    expect(await screen.findByRole('status')).toHaveTextContent('Lesson done');
+    expect(screen.getByText('Lesson 2 of 3 · 1 of 3 done')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Mark as not done' }));
+    expect(reopen).toHaveBeenCalledWith('c1', 's1', 'p2');
+    expect(await screen.findByRole('button', { name: 'Mark as done' })).toBeInTheDocument();
+  });
+
+  it('marks the lesson as done when the member goes to the next one (#1304)', async () => {
+    const complete = vi
+      .spyOn(knowiiApiClient.communities.pages, 'complete')
+      .mockResolvedValue({ ok: true, message: '', data: course(['p2'], 'p3') });
+    render(
+      <AppDataProvider>
+        <SpacePage {...lesson} progress={{ done: false, course: course([], 'p1') }} />
+      </AppDataProvider>,
+    );
+
+    await userEvent.click(screen.getByRole('link', { name: /Next/ }));
+
+    expect(complete).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(router.visit).toHaveBeenCalledWith('/page/intro'));
+  });
+
+  it('shows no progress controls to a reader who is not a member (#1304)', () => {
+    render(
+      <AppDataProvider>
+        <SpacePage {...lesson} progress={null} />
+      </AppDataProvider>,
+    );
+
+    expect(screen.queryByRole('button', { name: 'Mark as done' })).toBeNull();
+    expect(screen.getByText('Lesson 2 of 3')).toBeInTheDocument();
   });
 });
