@@ -25,6 +25,7 @@ These rules keep the code structurally sound as it grows. Each rule has a reason
 5. Migrations never change data in a way that cannot be undone without a backup. Destructive migrations (drop a column with data) need an issue and a note in the pull request.
 6. Limits (lengths, counts) are constants in `App\Constants`, mirrored in `libs/common/src/lib/constants.ts`.
 7. An API resource returns every field of the client schema, also the ones with a database default: set them in the action or refresh the model after `create()` (a new model does not hold database defaults).
+8. Data with a limited life (tokens, invitations, logs, contacts in a third-party list) has a retention period in `config/retention.php` (or the Laravel key that controls it), a scheduled prune step with a test, and a line in the privacy policy, in the same pull request. The policy shows the period through a placeholder, never a typed number ([ADR 0030](../adr/0030-retention-periods-enforced-by-scheduled-tasks.md)).
 
 ## Front-end
 

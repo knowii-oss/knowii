@@ -27,6 +27,7 @@ use App\Actions\CommunityMembers\UpdateCommunityMemberRole;
 use App\Actions\Conversations\MarkConversationAsRead;
 use App\Actions\Conversations\SendDirectMessage;
 use App\Actions\Conversations\StartConversation;
+use App\Actions\EmailOctopus\PruneEmailOctopusContacts;
 use App\Actions\Newsletter\SubscribeToNewsletter;
 use App\Actions\Pages\CreatePage;
 use App\Actions\Pages\DeletePage;
@@ -40,6 +41,7 @@ use App\Actions\Reactions\ToggleReaction;
 use App\Actions\Resources\CaptureResourcePage;
 use App\Actions\Resources\CreateCommunityResource;
 use App\Actions\Resources\UpdateCommunityResource;
+use App\Actions\Retention\PruneExpiredData;
 use App\Actions\SpaceGroups\CreateSpaceGroup;
 use App\Actions\SpaceGroups\DeleteSpaceGroup;
 use App\Actions\SpaceGroups\ReorderSpaceGroups;
@@ -95,6 +97,8 @@ use App\Contracts\Realtime\ReadsPresenceChannels;
 use App\Contracts\Resources\CapturesResourcePages;
 use App\Contracts\Resources\CreatesCommunityResources;
 use App\Contracts\Resources\UpdatesCommunityResources;
+use App\Contracts\Retention\PrunesExpiredData;
+use App\Contracts\Retention\PrunesMailingListContacts;
 use App\Contracts\SpaceGroups\CreatesSpaceGroups;
 use App\Contracts\SpaceGroups\DeletesSpaceGroups;
 use App\Contracts\SpaceGroups\ReordersSpaceGroups;
@@ -191,6 +195,8 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(DeletesComments::class, DeleteComment::class);
         app()->singleton(TogglesReactions::class, ToggleReaction::class);
         app()->singleton(UploadsImages::class, UploadImage::class);
+        app()->singleton(PrunesExpiredData::class, PruneExpiredData::class);
+        app()->singleton(PrunesMailingListContacts::class, PruneEmailOctopusContacts::class);
 
         // Public waitlist endpoint: a few requests per minute and per IP address
         RateLimiter::for('waitlist', static function (Request $request) {
