@@ -84,6 +84,9 @@ return [
                 'ping_interval' => env('REVERB_APP_PING_INTERVAL', 60),
                 'activity_timeout' => env('REVERB_APP_ACTIVITY_TIMEOUT', 30),
                 'max_message_size' => env('REVERB_APP_MAX_MESSAGE_SIZE', 10_000),
+                // Client events (typing indicators, #1187): only from a connection that joined the channel, and Reverb
+                // adds the identifier of the sender. "all" would relay events from any connection, with any user_id
+                'accept_client_events_from' => 'members',
             ],
         ],
 

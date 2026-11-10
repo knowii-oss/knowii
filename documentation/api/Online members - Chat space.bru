@@ -1,0 +1,19 @@
+meta {
+  name: Online members - Chat space
+  type: http
+  seq: 102
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/ncfj1siw8usnpdaplvg2awke/online-members
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The members who are in the chat space now and show it (#1187, ADR 0027), without the members who cannot read the space. 422 for a space that is not a chat space, 403 for a member who cannot read it. Needs chat:read.
+}

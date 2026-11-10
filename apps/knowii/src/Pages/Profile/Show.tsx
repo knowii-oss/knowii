@@ -3,6 +3,7 @@ import type { Session } from '@knowii/common';
 import { useTypedPage } from '@knowii/common';
 import UpdateProfileInformationForm from '@/Pages/Profile/Partials/UpdateProfileInformationForm';
 import UpdateAvatarForm from '@/Pages/Profile/Partials/UpdateAvatarForm';
+import OnlineStatusForm from '@/Pages/Profile/Partials/OnlineStatusForm';
 import Separator from '@/Components/Separator';
 import UpdatePasswordForm from '@/Pages/Profile/Partials/UpdatePasswordForm';
 import TwoFactorAuthenticationForm from '@/Pages/Profile/Partials/TwoFactorAuthenticationForm';
@@ -35,6 +36,13 @@ export default function UserProfile(props: Props) {
         <UpdateProfileInformationForm user={page.props.auth.user} />
       )}
       <Separator />
+
+      {page.props.auth.user && (
+        <>
+          <OnlineStatusForm showOnlineStatus={page.props.auth.user.show_online_status !== false} />
+          <Separator />
+        </>
+      )}
 
       {page.props.jetstream.canUpdatePassword && <UpdatePasswordForm />}
       <Separator />

@@ -1,0 +1,19 @@
+meta {
+  name: Online members - Community
+  type: http
+  seq: 101
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/online-members
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The members of the community who are online now and show it (#1187, ADR 0027), by name, 100 at most: cuid, name, username, avatar_url. Read from the presence channel of the community on the WebSocket server; empty without one. Members of the community only (403 otherwise). Needs communities:read.
+}

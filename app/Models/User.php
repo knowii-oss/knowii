@@ -33,6 +33,7 @@ use TaylorNetwork\UsernameGenerator\GeneratesUsernames;
  * @property string $username
  * @property string $name
  * @property string $email
+ * @property bool $show_online_status Whether the other members see when this member is online (#1187)
  * @property ?Carbon $email_verified_at
  * @property string $password
  * @property ?string $two_factor_secret
@@ -157,7 +158,26 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'show_online_status' => 'boolean',
         ];
+    }
+
+    /**
+     * Presence channels send this identifier to the other members (#1187, ADR 0027): the cuid, never the internal id
+     * (ADR 0005).
+     */
+    final public function getAuthIdentifierForBroadcasting(): string
+    {
+        return $this->cuid;
+    }
+
+    /**
+     * Whether the other members can see that this member is online (#1187, ADR 0027). A new account shows it: the
+     * column defaults to true, and a model built in memory does not hold it yet.
+     */
+    final public function showsOnlineStatus(): bool
+    {
+        return filter_var($this->getAttributes()['show_online_status'] ?? true, FILTER_VALIDATE_BOOLEAN);
     }
 
     /**

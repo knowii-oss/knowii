@@ -3,7 +3,7 @@ import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ChatMessage, Community, Space } from '@knowii/common';
 import { AppDataProvider, knowiiApiClient } from '@knowii/common';
-import { emitSocketEvent } from '@/test-utils/fake-echo';
+import { emitPresenceHere, emitSocketEvent, emitWhisper, joinedPresenceChannels, sentWhispers } from '@/test-utils/fake-echo';
 import { ChatSpace } from './ChatSpace';
 
 const community = { cuid: 'c1', slug: 'tests', name: 'Tests' } as Community;
@@ -27,7 +27,11 @@ function message(cuid: string, body: string, authorCuid = 'ada', extra: Partial<
   } as ChatMessage;
 }
 
-function renderChat(messages: ChatMessage[], firstUnreadCuid: string | null = null) {
+function renderChat(
+  messages: ChatMessage[],
+  firstUnreadCuid: string | null = null,
+  presence: { enabled: boolean; visible: boolean } | null = null,
+) {
   render(
     <AppDataProvider>
       <ChatSpace
@@ -40,6 +44,8 @@ function renderChat(messages: ChatMessage[], firstUnreadCuid: string | null = nu
         canWrite
         canReact
         canModerate={false}
+        presenceEnabled={presence?.enabled ?? false}
+        showsOnlineStatus={presence?.visible ?? true}
       />
     </AppDataProvider>,
   );
@@ -132,5 +138,71 @@ describe('ChatSpace', () => {
     renderChat([message('m1', '', 'ada', { deleted_at: new Date(), body: null, body_html: null, author: null })]);
 
     expect(screen.getByText('This message was deleted.')).toBeInTheDocument();
+  });
+});
+
+describe('ChatSpace presence and typing (#1187)', () => {
+  const presenceChannel = 'community.c1.space.s1.presence';
+  const me = { cuid: 'me', name: 'Me', username: 'me', avatar_url: null };
+  const ada = { cuid: 'ada', name: 'Ada', username: 'ada', avatar_url: null };
+
+  beforeEach(() => {
+    Object.defineProperty(globalThis, 'route', { value: () => '/member', writable: true, configurable: true });
+    vi.spyOn(knowiiApiClient.communities.chat, 'markAsRead').mockResolvedValue({ ok: true, message: '', data: undefined });
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('shows who is here and who is typing; ignores a signal from someone who is not in the channel', async () => {
+    renderChat([message('m1', 'First')], null, { enabled: true, visible: true });
+
+    act(() => emitPresenceHere(presenceChannel, [me, ada]));
+    const here = screen.getByRole('list', { name: 'Here now (2)' });
+    expect(within(here).getByRole('link', { name: 'Me' })).toBeInTheDocument();
+    expect(within(here).getByRole('link', { name: 'Ada' })).toBeInTheDocument();
+
+    act(() => emitWhisper(presenceChannel, 'typing', { scope: '', typing: true }, 'mallory'));
+    expect(screen.queryByText(/is typing/)).toBeNull();
+
+    act(() => emitWhisper(presenceChannel, 'typing', { scope: '', typing: true }, 'ada'));
+    expect(screen.getByText('Ada is typing…')).toBeInTheDocument();
+
+    act(() => emitWhisper(presenceChannel, 'typing', { scope: '', typing: false }, 'ada'));
+    expect(screen.queryByText('Ada is typing…')).toBeNull();
+  });
+
+  it('tells the others while the member types, and stops when the message is sent', async () => {
+    vi.spyOn(knowiiApiClient.communities.chat, 'create').mockResolvedValue({ ok: true, message: '', data: message('m9', 'Hi', 'me') });
+    renderChat([message('m1', 'First')], null, { enabled: true, visible: true });
+    act(() => emitPresenceHere(presenceChannel, [me, ada]));
+
+    await userEvent.type(screen.getByLabelText('Message General'), 'Hi');
+    // Throttled: one signal for the two letters
+    expect(sentWhispers(presenceChannel)).toEqual([{ event: 'typing', data: { scope: '', typing: true } }]);
+
+    await userEvent.type(screen.getByLabelText('Message General'), '{Enter}');
+    await waitFor(() => expect(sentWhispers(presenceChannel).at(-1)).toEqual({ event: 'typing', data: { scope: '', typing: false } }));
+  });
+
+  it('a hidden member never joins: the list comes from the API, and typing sends nothing', async () => {
+    const online = vi.spyOn(knowiiApiClient.communities.spaces, 'onlineMembers').mockResolvedValue({ ok: true, message: '', data: [ada] });
+    renderChat([message('m1', 'First')], null, { enabled: true, visible: false });
+
+    expect(await screen.findByRole('list', { name: 'Here now (1)' })).toBeInTheDocument();
+    expect(online).toHaveBeenCalledWith('c1', 's1');
+    expect(joinedPresenceChannels()).toEqual([]);
+
+    await userEvent.type(screen.getByLabelText('Message General'), 'Hi');
+    expect(sentWhispers(presenceChannel)).toEqual([]);
+  });
+
+  it('visitors who are not members get no presence at all', () => {
+    const online = vi.spyOn(knowiiApiClient.communities.spaces, 'onlineMembers');
+    renderChat([message('m1', 'First')], null, { enabled: false, visible: true });
+
+    expect(joinedPresenceChannels()).toEqual([]);
+    expect(online).not.toHaveBeenCalled();
+    expect(screen.queryByText(/Here now/)).toBeNull();
   });
 });

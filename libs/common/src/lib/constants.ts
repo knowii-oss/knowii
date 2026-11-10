@@ -168,6 +168,8 @@ export const USERS_API_IS_USERNAME_AVAILABLE_PATH = `${USERS_API_BASE_PATH}/is-u
 
 // Communities
 export const USER_AVATAR_API_PATH = `${API_BASE_PATH}/user/avatar`;
+// Show or hide when the current user is online (#1187)
+export const USER_ONLINE_STATUS_API_PATH = `${API_BASE_PATH}/user/online-status`;
 export const COMMUNITY_API_BASE_PATH = `${API_BASE_PATH}/communities`;
 
 export const COMMUNITY_API_PATH_PARAM_COMMUNITY = '{communityCuid}';
@@ -185,6 +187,9 @@ export const COMMUNITY_SPACE_GROUP_API_PATH = `${COMMUNITY_SPACE_GROUPS_API_PATH
 export const COMMUNITY_SPACE_GROUP_SPACES_REORDER_API_PATH = `${COMMUNITY_SPACE_GROUP_API_PATH}/spaces/reorder`;
 export const COMMUNITY_SPACES_API_PATH = `${COMMUNITY_API_PATH}/spaces`;
 export const COMMUNITY_SPACE_API_PATH = `${COMMUNITY_SPACES_API_PATH}/${SPACE_API_PARAM_SPACE}`;
+// Who is online now (#1187, ADR 0027)
+export const COMMUNITY_ONLINE_MEMBERS_API_PATH = `${COMMUNITY_API_PATH}/online-members`;
+export const COMMUNITY_SPACE_ONLINE_MEMBERS_API_PATH = `${COMMUNITY_SPACE_API_PATH}/online-members`;
 
 // Resources of resources spaces (ADR 0015)
 export const COMMUNITY_SPACE_RESOURCES_API_PATH = `${COMMUNITY_SPACE_API_PATH}/resources`;

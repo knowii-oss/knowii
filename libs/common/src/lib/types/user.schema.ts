@@ -9,6 +9,8 @@ export const currentUserSchema = z.object({
   // Null without an avatar (#109)
   avatar_url: z.string().nullable().optional(),
   two_factor_enabled: z.boolean(),
+  // #1187: false when the member hides when they are online. Absent on old sessions: shown
+  show_online_status: z.boolean().optional(),
   two_factor_confirmed_at: z.coerce.date().nullable(),
   email_verified_at: z.coerce.date().nullable(),
   created_at: z.coerce.date(),

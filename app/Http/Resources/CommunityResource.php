@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Community;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 /** @mixin Community **/
@@ -15,6 +16,10 @@ class CommunityResource extends AbstractKnowiiJsonResource
      */
     final public function toArray(Request $request): array
     {
+        /** @var Community $community */
+        $community = $this->resource;
+        $user = $request->user();
+
         return [
             'cuid' => $this->cuid,
             'name' => $this->name,
@@ -25,6 +30,8 @@ class CommunityResource extends AbstractKnowiiJsonResource
             'moderator_permissions' => $this->moderatorPermissions(),
             // Only when the users are counted (loadCount('users')): the owner is not in the pivot, so + 1 (#1135)
             'member_count' => $this->whenCounted('users', fn (int $count) => $count + 1),
+            // Whether the current user belongs to the community (#1187: presence is for members only); absent without a user
+            'is_member' => $this->when($user instanceof User, fn () => $user instanceof User && $user->belongsToCommunity($community)),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

@@ -14,6 +14,7 @@ export * from './api/api-result';
 export * from './contexts/app-context';
 
 export * from './hooks/use-debounce.hook.fn';
+export * from './hooks/use-presence';
 export * from './hooks/use-socket';
 export * from './hooks/use-typed-page.hook.fn';
 
@@ -38,6 +39,7 @@ export * from './types/access-group.schema';
 export * from './types/upload.schema';
 export * from './types/toast.intf';
 export * from './types/url.schema';
+export * from './types/presence.schema';
 export * from './types/user.schema';
 export * from './types/username.schema';
 
