@@ -91,10 +91,13 @@ final class LegalPages
             if (! is_array($entry)) {
                 continue;
             }
+            // A sub-processor of an optional feature receives data only from the communities that turn it on
+            $feature = self::text($entry['feature'] ?? null);
+            $purpose = self::text($entry['purpose'] ?? null);
             $list[] = [
                 'name' => self::text($entry['name'] ?? null),
                 'country' => self::text($entry['country'] ?? null),
-                'purpose' => self::text($entry['purpose'] ?? null),
+                'purpose' => $feature === '' ? $purpose : rtrim($purpose, '.').'. Only for the communities whose owner turns on '.$feature.'.',
                 'safeguard' => self::text($entry['safeguard'] ?? null),
             ];
         }

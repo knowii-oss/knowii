@@ -8,7 +8,8 @@
 | The privacy policy and the data processing agreement show the sub-processors through the {{subprocessors}}
 | placeholder. A pull request that adds a third-party service that receives personal data (an AI provider, an email
 | or analytics service, a storage) adds it here (rule 9 of the data rules in documentation/conventions/rules.md).
-| The DPA promises 30 days of notice to the community owners before a new sub-processor applies.
+| The DPA promises 14 days of notice to the community owners before a new sub-processor applies. A sub-processor that only an
+| optional feature uses (an AI feature that each owner turns on) sets 'feature': it needs no notice, and the table says so.
 |
 */
 

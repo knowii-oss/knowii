@@ -98,3 +98,14 @@ test('the content policy tells how to report illegal content, with the point of 
             && str_contains($html, 'href="/terms-of-service"'))
     );
 });
+
+test('a sub-processor of an optional feature says that only the communities that turn it on use it (#904)', function () {
+    config(['legal.subprocessors' => [
+        ['name' => 'Example AI, Inc.', 'country' => 'United States', 'purpose' => 'Summaries of posts', 'safeguard' => 'Standard contractual clauses', 'feature' => 'AI summaries'],
+    ]]);
+
+    $this->get('/dpa')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, '<td>Summaries of posts. Only for the communities whose owner turns on AI summaries.</td>')
+            && str_contains($html, 'at least 14 days before'))
+    );
+});
