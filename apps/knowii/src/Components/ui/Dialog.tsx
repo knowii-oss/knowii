@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Dialog as HeadlessDialog, DialogBackdrop, DialogPanel, DialogTitle, Description, Transition } from '@headlessui/react';
 import { FaXmark } from 'react-icons/fa6';
 import { cn } from './cn';
+import { useReturnFocus } from './use-return-focus';
 
 export type DialogSize = 'sm' | 'md' | 'lg';
 
@@ -41,6 +42,8 @@ export interface DialogProps {
  * Put autoFocus on the field that must get the focus first.
  */
 export function Dialog({ open, onClose, title, description, children, footer, size = 'md', className, onAfterClose }: DialogProps) {
+  useReturnFocus(open);
+
   return (
     <Transition show={open} afterLeave={() => onAfterClose?.()}>
       <HeadlessDialog onClose={onClose} className="relative z-50">

@@ -38,6 +38,7 @@ These rules keep the code structurally sound as it grows. Each rule has a reason
 8. Layout (#1264): the breakpoints are custom (`styles.css`: `sm` 600 px, `md` 960 px, `lg` 1280 px, `xg` 1600 px, `xl` 1920 px). Every page sits in the `page-container` frame (100rem wide at most). Long text uses `readable-width` (`CommunityShell contentWidth="readable"`), and settings pages use `AppLayout contentWidth="form"`. Inside a community page, use container queries (`@3xl:grid-cols-2`), not window breakpoints: the space navigation takes part of the width.
 9. Touch targets are at least 24 px (WCAG 2.5.8). Links outside running text get 44 px of height on small screens (`touch-target`).
 10. Navigation marks the open page (#686): `aria-current="page"` on its link (`isCurrentUrl()` in the ui components) and a marker that is not only a color (a bar or bold text).
+11. Modal windows use the `Dialog` and `Drawer` ui components, never a raw Headless UI dialog: they trap the focus, close with Escape, and give the focus back to the element that opened them (`useReturnFocus`, #1301). Check it with the keyboard in a real browser: jsdom does not show the problem.
 
 ## Definition of done
 
