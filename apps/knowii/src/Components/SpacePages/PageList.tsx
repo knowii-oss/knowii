@@ -1,8 +1,19 @@
 import { useMemo, useState } from 'react';
 import { Link, router } from '@inertiajs/react';
-import type { Community, Page, Space } from '@knowii/common';
+import type { Community, CourseProgress, Page, Space } from '@knowii/common';
 import { knowiiApiClient, PAGE_URL, useAppData, useSocket } from '@knowii/common';
-import { FaArrowDown, FaArrowRight, FaArrowUp, FaHeading, FaPen, FaPlus, FaTrash, FaVideo } from 'react-icons/fa6';
+import {
+  FaArrowDown,
+  FaArrowRight,
+  FaArrowUp,
+  FaCircleCheck,
+  FaHeading,
+  FaPen,
+  FaPlus,
+  FaRegCircle,
+  FaTrash,
+  FaVideo,
+} from 'react-icons/fa6';
 import { Button, buttonClasses, Dialog, EmptyState } from '@/Components/ui';
 import type { PageEditorMode } from './PageEditor';
 import { PageEditor } from './PageEditor';
@@ -12,15 +23,20 @@ export interface PageListProps {
   space: Space;
   pages: Page[];
   canManagePages: boolean;
+  /**
+   * Course spaces (#1304): the progress of the member; null for a page space or a reader who is not a member
+   */
+  progress?: CourseProgress | null;
 }
 
 /**
  * The pages of a page space (#1179), or the outline of a course space (#1188): sections as headings, numbered lessons
  * with a video mark, and "Start the course". The owner, the admins and the moderators add pages, lessons and sections
  * and move them with the arrow buttons (keyboard friendly, no drag and drop needed). Sections have no page: they are
- * renamed and deleted here.
+ * renamed and deleted here. In a course, members see a check on each lesson they marked as done, how many they did,
+ * and "Continue" to the first lesson that is not done (#1304).
  */
-export function PageList({ community, space, pages: initialPages, canManagePages }: PageListProps) {
+export function PageList({ community, space, pages: initialPages, canManagePages, progress = null }: PageListProps) {
   const { showToast } = useAppData();
   const [pages, setPages] = useState<Page[]>(initialPages);
   const [source, setSource] = useState(initialPages);
@@ -45,12 +61,22 @@ export function PageList({ community, space, pages: initialPages, canManagePages
   useSocket({
     channel,
     event: ['space.page.created', 'space.page.updated', 'space.page.deleted', 'space.pages.reordered'],
-    callback: () => router.reload({ only: ['pages'] }),
+    callback: () => router.reload({ only: ['pages', 'progress'] }),
   });
 
   const href = (page: Page) => route(PAGE_URL, { communitySlug: community.slug, spaceSlug: space.slug, pageSlug: page.slug });
   const items = pages.filter((page) => page.kind !== 'section');
   const first = items[0];
+  const done = new Set(isCourse && progress ? progress.completed_lessons : []);
+
+  // Where the course button leads: the first lesson, or the first one that is not done (#1304)
+  const nextLesson = progress?.next_lesson ? items.find((page) => page.cuid === progress.next_lesson) : undefined;
+  const courseLink =
+    !progress || progress.completed === 0
+      ? first && { page: first, label: 'Start the course' }
+      : nextLesson
+        ? { page: nextLesson, label: 'Continue' }
+        : first && { page: first, label: 'Review the course' };
 
   // The number of each lesson or page, sections left out
   const numbers = new Map<string, number>();
@@ -124,11 +150,14 @@ export function PageList({ community, space, pages: initialPages, canManagePages
   return (
     <section aria-label={isCourse ? `Lessons of ${space.name}` : `Pages of ${space.name}`} className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-muted">{items.length === 1 ? `1 ${noun}` : `${items.length} ${noun}s`}</p>
+        <p className="text-sm text-muted">
+          {items.length === 1 ? `1 ${noun}` : `${items.length} ${noun}s`}
+          {isCourse && progress && progress.total > 0 && ` · ${progress.completed} of ${progress.total} done`}
+        </p>
         <div className="flex flex-wrap gap-2">
-          {isCourse && first && (
-            <Link href={href(first)} className={buttonClasses({ variant: canManagePages ? 'secondary' : 'primary' })}>
-              Start the course
+          {isCourse && courseLink && (
+            <Link href={href(courseLink.page)} className={buttonClasses({ variant: canManagePages ? 'secondary' : 'primary' })}>
+              {courseLink.label}
               <FaArrowRight aria-hidden="true" />
             </Link>
           )}
@@ -196,8 +225,16 @@ export function PageList({ community, space, pages: initialPages, canManagePages
                 <span aria-hidden="true" className="w-6 shrink-0 text-right text-sm text-muted">
                   {numbers.get(page.cuid)}.
                 </span>
+                {isCourse &&
+                  progress &&
+                  (done.has(page.cuid) ? (
+                    <FaCircleCheck aria-hidden="true" className="shrink-0 text-success" />
+                  ) : (
+                    <FaRegCircle aria-hidden="true" className="shrink-0 text-muted" />
+                  ))}
                 <Link href={href(page)} className="touch-target min-w-0 grow font-bold hover:underline">
                   {page.title}
+                  {isCourse && progress && <span className="sr-only">{done.has(page.cuid) ? ' (done)' : ' (not done)'}</span>}
                 </Link>
                 {page.video && (
                   <span className="flex shrink-0 items-center gap-1 text-xs text-muted">

@@ -1,5 +1,16 @@
 import { Link } from '@inertiajs/react';
-import type { ChatMessage, Community, CommunityResource, Page, Paginated, Post, Space, SpaceGroup, SpacePermissions } from '@knowii/common';
+import type {
+  ChatMessage,
+  Community,
+  CommunityResource,
+  CourseProgress,
+  Page,
+  Paginated,
+  Post,
+  Space,
+  SpaceGroup,
+  SpacePermissions,
+} from '@knowii/common';
 import {
   COMMUNITY_SETTINGS_URL,
   COMMUNITY_URL,
@@ -32,6 +43,8 @@ interface Props {
   resources: Paginated<CommunityResource> | null;
   // Page spaces (#1179): the titles, in their order
   pages: Page[] | null;
+  // Course spaces (#1304): the progress of the member, null for a reader who is not a member
+  progress: CourseProgress | null;
   // Chat spaces (#1185): the newest messages and where the unread ones start
   chat: { messages: ChatMessage[]; has_more: boolean; first_unread_cuid: string | null } | null;
 }
@@ -148,7 +161,13 @@ export default function SpacePage(props: Props) {
             showsOnlineStatus={page.props.auth.user?.show_online_status !== false}
           />
         ) : (space.type === 'pages' || space.type === 'course') && props.pages ? (
-          <PageList community={community} space={space} pages={props.pages} canManagePages={props.permissions.canManagePages} />
+          <PageList
+            community={community}
+            space={space}
+            pages={props.pages}
+            canManagePages={props.permissions.canManagePages}
+            progress={props.progress}
+          />
         ) : space.type === 'resources' && props.resources ? (
           <ResourceList
             community={community}

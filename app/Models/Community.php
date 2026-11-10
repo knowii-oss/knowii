@@ -318,6 +318,8 @@ class Community extends Model
             ->where('user_id', $user->id)
             ->whereIn('access_group_id', $this->accessGroups()->select('id'))
             ->delete();
+        // Nor a course progress in it (#1304, ADR 0034)
+        DB::table('lesson_progress')->where('community_id', $this->id)->where('user_id', $user->id)->delete();
     }
 
     /**

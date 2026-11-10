@@ -48,6 +48,8 @@ import {
   COMMUNITY_SPACE_PAGE_API_PATH,
   COMMUNITY_SPACE_PAGES_API_PATH,
   COMMUNITY_SPACE_PAGES_ORDER_API_PATH,
+  COMMUNITY_SPACE_PAGE_PROGRESS_API_PATH,
+  COMMUNITY_SPACE_PROGRESS_API_PATH,
   COMMUNITY_SPACE_POST_API_PATH,
   COMMUNITY_SPACE_POST_COMMENT_API_PATH,
   COMMUNITY_SPACE_POST_COMMENTS_API_PATH,
@@ -104,7 +106,8 @@ import { communityResourceSchema } from '../types/community-resource.schema';
 import type { ChatMessage, ChatMessageForm, ChatThread } from '../types/chat-message.schema';
 import { chatMessageSchema, chatThreadSchema } from '../types/chat-message.schema';
 import type { Page, PageForm, SectionForm } from '../types/page.schema';
-import { pageSchema } from '../types/page.schema';
+import type { CourseProgress } from '../types/page.schema';
+import { courseProgressSchema, pageSchema } from '../types/page.schema';
 import type { CommunityResourceChanges, NewCommunityResource } from '../types/new-community-resource.schema';
 import type { ReactionSummary, WhoReacted } from '../types/reaction.schema';
 import type { AssignableCommunityRole, CommunityInvitation, CommunityInvitationForm, CommunityMember } from '../types/member.schema';
@@ -591,6 +594,36 @@ export const knowiiApiClient = {
      * The pages of page spaces (#1179): the owner, the admins and the moderators manage them
      */
     pages: {
+      /**
+       * Your progress in a course space (#1304). Members of the community only.
+       */
+      progress: (communityCuid: string, spaceCuid: string): Promise<ApiResult<CourseProgress>> =>
+        apiRequest(
+          'get',
+          pagesPath(communityCuid, spaceCuid, '', COMMUNITY_SPACE_PROGRESS_API_PATH),
+          courseProgressSchema,
+          'Failed to load your progress.',
+        ),
+      /**
+       * Mark a lesson as done (#1304). Returns the progress of the course.
+       */
+      complete: (communityCuid: string, spaceCuid: string, pageCuid: string): Promise<ApiResult<CourseProgress>> =>
+        apiRequest(
+          'put',
+          pagesPath(communityCuid, spaceCuid, pageCuid, COMMUNITY_SPACE_PAGE_PROGRESS_API_PATH),
+          courseProgressSchema,
+          'Failed to mark the lesson as done.',
+        ),
+      /**
+       * Mark a lesson as not done (#1304). Returns the progress of the course.
+       */
+      reopen: (communityCuid: string, spaceCuid: string, pageCuid: string): Promise<ApiResult<CourseProgress>> =>
+        apiRequest(
+          'delete',
+          pagesPath(communityCuid, spaceCuid, pageCuid, COMMUNITY_SPACE_PAGE_PROGRESS_API_PATH),
+          courseProgressSchema,
+          'Failed to mark the lesson as not done.',
+        ),
       list: (communityCuid: string, spaceCuid: string): Promise<ApiResult<Page[]>> =>
         apiRequest('get', pagesPath(communityCuid, spaceCuid), pageListSchema, 'Failed to load the pages.'),
       get: (communityCuid: string, spaceCuid: string, pageCuid: string): Promise<ApiResult<Page>> =>

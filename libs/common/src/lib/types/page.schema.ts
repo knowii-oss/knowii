@@ -78,3 +78,15 @@ export interface PageNeighbour {
   title: string;
   slug: string;
 }
+
+/**
+ * The progress of the current member in a course space (#1304): the lessons marked as done and where to continue
+ * (`next_lesson`: the first lesson that is not done, null when all are). WARNING: aligned with CourseProgress.php
+ */
+export const courseProgressSchema = z.object({
+  total: z.number().int(),
+  completed: z.number().int(),
+  completed_lessons: z.array(z.string()),
+  next_lesson: z.string().nullable(),
+});
+export type CourseProgress = z.infer<typeof courseProgressSchema>;

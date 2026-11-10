@@ -9,6 +9,7 @@ use App\Http\Controllers\API\CommunityInvitationApiController;
 use App\Http\Controllers\API\CommunityResourceApiController;
 use App\Http\Controllers\API\CommunityResourceCommentApiController;
 use App\Http\Controllers\API\ConversationApiController;
+use App\Http\Controllers\API\LessonProgressApiController;
 use App\Http\Controllers\API\LoginApiController;
 use App\Http\Controllers\API\MarkdownApiController;
 use App\Http\Controllers\API\MemberApiController;
@@ -107,6 +108,11 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::get(ApiRoutes::COMMUNITY_SPACE_PAGE, [PageApiController::class, 'show'])->middleware('ability:pages:read');
             Route::patch(ApiRoutes::COMMUNITY_SPACE_PAGE, [PageApiController::class, 'update'])->middleware('ability:pages:write');
             Route::delete(ApiRoutes::COMMUNITY_SPACE_PAGE, [PageApiController::class, 'destroy'])->middleware('ability:pages:write');
+
+            // Course progress of the current member (#1304): it changes only their own data, so pages:read is enough
+            Route::get(ApiRoutes::COMMUNITY_SPACE_PROGRESS, [LessonProgressApiController::class, 'show'])->middleware('ability:pages:read');
+            Route::put(ApiRoutes::COMMUNITY_SPACE_PAGE_PROGRESS, [LessonProgressApiController::class, 'store'])->middleware('ability:pages:read');
+            Route::delete(ApiRoutes::COMMUNITY_SPACE_PAGE_PROGRESS, [LessonProgressApiController::class, 'destroy'])->middleware('ability:pages:read');
 
             // Resources of resources spaces (ADR 0015)
             Route::get(ApiRoutes::COMMUNITY_SPACE_RESOURCES, [CommunityResourceApiController::class, 'index'])->middleware('ability:resources:read');

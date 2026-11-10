@@ -9,6 +9,7 @@ use App\Models\ChatRead;
 use App\Models\Community;
 use App\Models\Space;
 use App\Models\User;
+use App\Support\CourseProgress;
 use App\Support\Pagination;
 use App\Support\SpaceTree;
 use Illuminate\Http\Request;
@@ -64,11 +65,18 @@ class SpaceController extends Controller
         // Page spaces and course spaces: the titles of the pages, lessons and sections, in their order (#1179, #1188)
         $pages = $space->type->holdsPages() ? $space->pages()->get()->toResourceCollection() : null;
 
+        // Course spaces: the progress of the member (#1304); none for a signed-in outsider of a public course
+        $user = $request->user();
+        $progress = $space->type === KnowiiSpaceType::Course && $user !== null && Gate::check('trackProgress', $space)
+            ? CourseProgress::for($user, $space)
+            : null;
+
         // WARNING: The props passed here must remain aligned with the props expected by the page (Pages/Spaces/Show.tsx)
         return Jetstream::inertia()->render($request, 'Spaces/Show', [
             'posts' => $posts,
             'resources' => $resources,
             'pages' => $pages,
+            'progress' => $progress,
             'chat' => $chat,
             'community' => $community->toResource()->withLargeFields(),
             'space' => $space->toResource()->withLargeFields(),

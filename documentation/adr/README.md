@@ -58,3 +58,4 @@ Do not write an ADR for a bug fix, a refactor that keeps the structure, or a fea
 | [0031](0031-videos-in-member-content.md)                               | A video link alone on its line becomes a click-to-load player           | Accepted |
 | [0032](0032-reactions-with-any-emoji.md)                               | Reactions use any emoji of an allow-list, chosen in our own picker      | Accepted |
 | [0033](0033-unique-names-for-shared-communities.md)                    | The name of a shared community is unique                                | Accepted |
+| [0034](0034-course-progress-per-member.md)                             | Course progress is one row per lesson done, private to the member       | Accepted |
