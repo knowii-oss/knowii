@@ -23,40 +23,41 @@ Do not write an ADR for a bug fix, a refactor that keeps the structure, or a fea
 
 ## Index
 
-| ADR                                                                    | Decision                                                                | Status   |
-| ---------------------------------------------------------------------- | ----------------------------------------------------------------------- | -------- |
-| [0001](0001-record-architecture-decisions.md)                          | Record architecture decisions                                           | Accepted |
-| [0002](0002-laravel-inertia-react-monolith.md)                         | Laravel, Inertia and React in one Nx monorepo                           | Accepted |
-| [0003](0003-own-ui-components.md)                                      | Own UI components on Tailwind CSS and Headless UI                       | Accepted |
-| [0004](0004-multi-community-scoping.md)                                | Every piece of data is scoped to a community                            | Accepted |
-| [0005](0005-cuid2-public-identifiers.md)                               | cuid2 public identifiers, slugs for page URLs                           | Accepted |
-| [0006](0006-actions-behind-contracts.md)                               | Changes go through actions behind contracts, the API is complete        | Accepted |
-| [0007](0007-strict-content-security-policy.md)                         | Strict Content Security Policy                                          | Accepted |
-| [0008](0008-postgresql-only.md)                                        | PostgreSQL only                                                         | Accepted |
-| [0009](0009-real-time-through-reverb.md)                               | Real time through Reverb                                                | Accepted |
-| [0010](0010-own-accounts-optional-oidc.md)                             | Own accounts, the Knowii account as an optional OpenID Connect provider | Accepted |
-| [0011](0011-rest-api-design-guide.md)                                  | The REST API follows the NBB REST API Design Guide                      | Accepted |
-| [0012](0012-space-groups-and-typed-spaces.md)                          | Space groups and typed spaces structure a community                     | Accepted |
-| [0013](0013-markdown-rendered-on-the-server.md)                        | Member content is Markdown, rendered to safe HTML on the server         | Accepted |
-| [0014](0014-explicit-foreign-keys-instead-of-polymorphic-relations.md) | Explicit foreign keys instead of polymorphic relations                  | Accepted |
-| [0015](0015-resources-space-type.md)                                   | Resource collections become a `resources` space type                    | Accepted |
-| [0016](0016-resource-images-stored-by-knowii.md)                       | Resource images are stored by Knowii, never hotlinked                   | Accepted |
-| [0017](0017-roles-with-configurable-moderator-rights.md)               | Four fixed roles, with moderator rights configured per community        | Accepted |
-| [0018](0018-content-capture.md)                                        | Queued server capture of links, full captures from a browser extension  | Accepted |
-| [0019](0019-community-invitations-by-email.md)                         | Community invitations by email, for one address, with a signed link     | Accepted |
-| [0020](0020-members-choose-visible-profile-fields.md)                  | Members choose which profile fields the other members see               | Accepted |
-| [0021](0021-avatars-stored-by-knowii-on-the-user.md)                   | Avatars are square images stored by Knowii, on the user                 | Accepted |
-| [0022](0022-api-token-abilities.md)                                    | API token abilities, read and write per area, checked on every route    | Accepted |
-| [0023](0023-sign-in-links.md)                                          | Sign-in links by email, used once, confirmed with a button              | Accepted |
-| [0024](0024-account-deletion-removes-personal-data.md)                 | Deleting an account removes the personal data, the content stays        | Accepted |
-| [0025](0025-access-groups.md)                                          | Access groups open spaces to some members, by hand or by an API sync    | Accepted |
-| [0026](0026-link-spaces.md)                                            | Navigation links are a space type                                       | Accepted |
-| [0027](0027-presence-channels.md)                                      | Presence through Reverb presence channels, hidden members never join    | Accepted |
-| [0028](0028-direct-messages.md)                                        | Direct messages are chat messages in a conversation                     | Accepted |
-| [0029](0029-course-spaces.md)                                          | Lessons are pages, sections are rows of the same list                   | Accepted |
-| [0030](0030-retention-periods-enforced-by-scheduled-tasks.md)          | Retention periods are configuration, and scheduled tasks apply them     | Accepted |
-| [0031](0031-videos-in-member-content.md)                               | A video link alone on its line becomes a click-to-load player           | Accepted |
-| [0032](0032-reactions-with-any-emoji.md)                               | Reactions use any emoji of an allow-list, chosen in our own picker      | Accepted |
-| [0033](0033-unique-names-for-shared-communities.md)                    | The name of a shared community is unique                                | Accepted |
-| [0034](0034-course-progress-per-member.md)                             | Course progress is one row per lesson done, private to the member       | Accepted |
-| [0035](0035-ownership-transfer.md)                                     | The owner transfers a community to an admin and becomes an admin        | Accepted |
+| ADR                                                                    | Decision                                                                 | Status   |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------ | -------- |
+| [0001](0001-record-architecture-decisions.md)                          | Record architecture decisions                                            | Accepted |
+| [0002](0002-laravel-inertia-react-monolith.md)                         | Laravel, Inertia and React in one Nx monorepo                            | Accepted |
+| [0003](0003-own-ui-components.md)                                      | Own UI components on Tailwind CSS and Headless UI                        | Accepted |
+| [0004](0004-multi-community-scoping.md)                                | Every piece of data is scoped to a community                             | Accepted |
+| [0005](0005-cuid2-public-identifiers.md)                               | cuid2 public identifiers, slugs for page URLs                            | Accepted |
+| [0006](0006-actions-behind-contracts.md)                               | Changes go through actions behind contracts, the API is complete         | Accepted |
+| [0007](0007-strict-content-security-policy.md)                         | Strict Content Security Policy                                           | Accepted |
+| [0008](0008-postgresql-only.md)                                        | PostgreSQL only                                                          | Accepted |
+| [0009](0009-real-time-through-reverb.md)                               | Real time through Reverb                                                 | Accepted |
+| [0010](0010-own-accounts-optional-oidc.md)                             | Own accounts, the Knowii account as an optional OpenID Connect provider  | Accepted |
+| [0011](0011-rest-api-design-guide.md)                                  | The REST API follows the NBB REST API Design Guide                       | Accepted |
+| [0012](0012-space-groups-and-typed-spaces.md)                          | Space groups and typed spaces structure a community                      | Accepted |
+| [0013](0013-markdown-rendered-on-the-server.md)                        | Member content is Markdown, rendered to safe HTML on the server          | Accepted |
+| [0014](0014-explicit-foreign-keys-instead-of-polymorphic-relations.md) | Explicit foreign keys instead of polymorphic relations                   | Accepted |
+| [0015](0015-resources-space-type.md)                                   | Resource collections become a `resources` space type                     | Accepted |
+| [0016](0016-resource-images-stored-by-knowii.md)                       | Resource images are stored by Knowii, never hotlinked                    | Accepted |
+| [0017](0017-roles-with-configurable-moderator-rights.md)               | Four fixed roles, with moderator rights configured per community         | Accepted |
+| [0018](0018-content-capture.md)                                        | Queued server capture of links, full captures from a browser extension   | Accepted |
+| [0019](0019-community-invitations-by-email.md)                         | Community invitations by email, for one address, with a signed link      | Accepted |
+| [0020](0020-members-choose-visible-profile-fields.md)                  | Members choose which profile fields the other members see                | Accepted |
+| [0021](0021-avatars-stored-by-knowii-on-the-user.md)                   | Avatars are square images stored by Knowii, on the user                  | Accepted |
+| [0022](0022-api-token-abilities.md)                                    | API token abilities, read and write per area, checked on every route     | Accepted |
+| [0023](0023-sign-in-links.md)                                          | Sign-in links by email, used once, confirmed with a button               | Accepted |
+| [0024](0024-account-deletion-removes-personal-data.md)                 | Deleting an account removes the personal data, the content stays         | Accepted |
+| [0025](0025-access-groups.md)                                          | Access groups open spaces to some members, by hand or by an API sync     | Accepted |
+| [0026](0026-link-spaces.md)                                            | Navigation links are a space type                                        | Accepted |
+| [0027](0027-presence-channels.md)                                      | Presence through Reverb presence channels, hidden members never join     | Accepted |
+| [0028](0028-direct-messages.md)                                        | Direct messages are chat messages in a conversation                      | Accepted |
+| [0029](0029-course-spaces.md)                                          | Lessons are pages, sections are rows of the same list                    | Accepted |
+| [0030](0030-retention-periods-enforced-by-scheduled-tasks.md)          | Retention periods are configuration, and scheduled tasks apply them      | Accepted |
+| [0031](0031-videos-in-member-content.md)                               | A video link alone on its line becomes a click-to-load player            | Accepted |
+| [0032](0032-reactions-with-any-emoji.md)                               | Reactions use any emoji of an allow-list, chosen in our own picker       | Accepted |
+| [0033](0033-unique-names-for-shared-communities.md)                    | The name of a shared community is unique                                 | Accepted |
+| [0034](0034-course-progress-per-member.md)                             | Course progress is one row per lesson done, private to the member        | Accepted |
+| [0035](0035-ownership-transfer.md)                                     | The owner transfers a community to an admin and becomes an admin         | Accepted |
+| [0036](0036-reserved-community-names.md)                               | Some community names are reserved for the administrators of the instance | Accepted |

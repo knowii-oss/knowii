@@ -38,6 +38,6 @@ class VerifyCommunityNameAvailability implements VerifiesCommunityNameAvailabili
             Gate::forUser($user)->authorize('update', $except);
         }
 
-        return AvailableCommunityName::isAvailable($validated['name'], $except);
+        return AvailableCommunityName::isAvailable($validated['name'], $except, $user);
     }
 }

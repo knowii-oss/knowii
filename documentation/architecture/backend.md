@@ -177,7 +177,7 @@ We create slugs for the different concepts using the following library: https://
 Take a look at the `Community` model and `CreateCommunity` to see how it's used. Basically, the `slug` field need to exist on the model, the model must use certain traits, implement a function, and the library derives the slug automatically based on some other field. For instance, we use the "name" field for communities.
 The library ensures that slugs are unique, which is key.
 
-The name of a shared (private or public) community is unique as well: no other shared community may have the same name, whatever the case, or the address that the name gives. `App\Rules\AvailableCommunityName` holds the rule, the create and update actions apply it, and the forms ask `POST /api/v1/communities/is-name-available` while the user types. Personal communities never take a name ([ADR 0033](../adr/0033-unique-names-for-shared-communities.md), #1136).
+The name of a shared (private or public) community is unique as well: no other shared community may have the same name, whatever the case, or the address that the name gives. `App\Rules\AvailableCommunityName` holds the rule, the create and update actions apply it, and the forms ask `POST /api/v1/communities/is-name-available` while the user types. Personal communities never take a name ([ADR 0033](../adr/0033-unique-names-for-shared-communities.md), #1136). Some names are reserved for the administrators of the instance (`App\Support\ReservedCommunityNames`, `config/communities.php`): for everyone else they are taken ([ADR 0036](../adr/0036-reserved-community-names.md), #1340).
 
 ## WebSockets and Events
 
