@@ -10,6 +10,7 @@ use App\Exceptions\BusinessException;
 use App\Models\Post;
 use App\Models\Space;
 use App\Models\User;
+use App\Rules\MaxMarkdownImages;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -60,7 +61,7 @@ class CreatePost implements CreatesPosts
     /**
      * WARNING: aligned with postFormSchema (post.schema.ts)
      *
-     * @return array<string, list<string>>
+     * @return array<string, list<string|object>>
      */
     public static function rules(bool $required): array
     {
@@ -68,7 +69,7 @@ class CreatePost implements CreatesPosts
 
         return [
             'title' => [$presence, 'string', 'min:'.Constants::MIN_LENGTH_POST_TITLE, 'max:'.Constants::MAX_LENGTH_POST_TITLE],
-            'body' => [$presence, 'string', 'min:1', 'max:'.Constants::MAX_LENGTH_POST_BODY],
+            'body' => [$presence, 'string', 'min:1', 'max:'.Constants::MAX_LENGTH_POST_BODY, new MaxMarkdownImages],
         ];
     }
 }

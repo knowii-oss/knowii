@@ -133,6 +133,9 @@ class Constants
 
     public const int MAX_LENGTH_UPLOAD_ALT = 500;
 
+    // Images in one post, comment, message or page (#1207). WARNING: aligned with constants.ts
+    public const int MAX_IMAGES_PER_CONTENT = 20;
+
     // Course materials (#1336). WARNING: aligned with constants.ts
     public const int MIN_LENGTH_COURSE_MATERIAL_TITLE = 1;
 

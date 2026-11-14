@@ -49,5 +49,6 @@ export * from './types/username.schema';
 export * from './utils/sleep.fn';
 export * from './utils/safe-url.fn';
 export * from './utils/video-url.fn';
+export * from './utils/markdown-images.fn';
 
 export { default as metadata } from './metadata.json';

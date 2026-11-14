@@ -361,6 +361,10 @@ Broadcast::channel(Constants::WS_CHANNEL_COMMUNITY, static function (User $user,
 });
 ```
 
+### Images in member content
+
+Members add images to a post, a comment, a message or a page through the uploads endpoint (#1178): one request per image, with its alt text. The editor takes up to 10 images at a time (#1207) and writes them one per line, so images that follow each other can form a gallery. A text holds 20 images at most: `App\Rules\MaxMarkdownImages` (`Constants::MAX_IMAGES_PER_CONTENT`) is in the `body` rules of posts, comments, chat messages, direct messages and pages, and it counts the `<img>` elements of the rendered text, so no way of writing an image gets around the limit. The editor checks before it uploads (`countMarkdownImages` in `libs/common`); the server has the last word.
+
 ### Course spaces
 
 A lesson is a page of a course space with an optional `video_url`; a section is a page row of kind `section`, the heading of the rows after it ([ADR 0029](../adr/0029-course-spaces.md), #1188). `App\Support\VideoEmbed` accepts YouTube and Vimeo addresses only and gives the privacy-friendly player address; `frame-src` and the Permissions-Policy allow exactly those two player origins (`VideoEmbed::PLAYER_HOSTS`).

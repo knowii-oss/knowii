@@ -1,8 +1,10 @@
 import type { KeyboardEvent, ReactNode, Ref } from 'react';
 import { useEffect, useId, useRef, useState } from 'react';
 import { FaBold, FaCode, FaImage, FaItalic, FaLink, FaListOl, FaListUl, FaQuoteRight, FaVideo } from 'react-icons/fa6';
-import { parseVideoUrl } from '@knowii/common';
+import { countMarkdownImages, markdownImage, MAX_IMAGES_PER_CONTENT, MAX_IMAGES_PER_INSERT, parseVideoUrl } from '@knowii/common';
 import { cn } from './cn';
+import type { PendingImageItem } from './ImageInsertPanel';
+import { imageAltId, ImageInsertPanel } from './ImageInsertPanel';
 import { MarkdownContent } from './MarkdownContent';
 import type { MarkdownFormat, TextSelection } from './markdown-format';
 import { applyMarkdownFormat, MARKDOWN_SHORTCUTS } from './markdown-format';
@@ -68,14 +70,17 @@ export interface ImageUploader {
   acceptedTypes: readonly string[];
 }
 
-interface PendingImage {
-  file: File;
-  previewUrl: string;
-  alt: string;
-  error: string | null;
-  uploading: boolean;
-  // Where to insert the image in the text
+/**
+ * The images that wait for their descriptions and their uploads (#1207): up to MAX_IMAGES_PER_INSERT at a time
+ */
+interface PendingImages {
+  items: PendingImageItem[];
+  // Where to insert the images in the text
   position: number;
+  // The uploads run
+  busy: boolean;
+  // A problem with the whole insert
+  message: string | null;
 }
 
 export interface MentionSource {
@@ -139,8 +144,10 @@ export function MarkdownEditor({
   const pendingSelection = useRef<TextSelection | null>(null);
   const writeTabRef = useRef<HTMLButtonElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [pendingImage, setPendingImage] = useState<PendingImage | null>(null);
+  const [pendingImages, setPendingImages] = useState<PendingImages | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
+  // The description field that gets the focus after the member chose or checked images
+  const [imageFocus, setImageFocus] = useState<{ id: string } | null>(null);
   // A video address being added (#1206): it goes alone on its line, where the server turns it into a player
   const [pendingVideo, setPendingVideo] = useState<{ url: string; error: string | null; position: number } | null>(null);
   const [mention, setMention] = useState<{ start: number; query: string } | null>(null);
@@ -150,6 +157,20 @@ export function MarkdownEditor({
   const visibleSuggestions = mention !== null && suggestions.query === mention.query ? suggestions.items : [];
   const suggestionsOpen = visibleSuggestions.length > 0;
   const previewTabRef = useRef<HTMLButtonElement>(null);
+  // The text as it is now: the uploads take time, and the member can write (or send a chat message) meanwhile
+  const latestValue = useRef(value);
+  // The previews to release when the editor goes away with images that still wait
+  const latestPendingImages = useRef<PendingImages | null>(null);
+
+  useEffect(() => {
+    latestValue.current = value;
+  }, [value]);
+
+  useEffect(() => {
+    latestPendingImages.current = pendingImages;
+  }, [pendingImages]);
+
+  useEffect(() => () => latestPendingImages.current?.items.forEach((item) => URL.revokeObjectURL(item.previewUrl)), []);
 
   const writeTabId = `${baseId}-write-tab`;
   const previewTabId = `${baseId}-preview-tab`;
@@ -210,76 +231,141 @@ export function MarkdownEditor({
     onChange(result.value);
   };
 
-  // Move the focus to the description field when an image is chosen (the file picker had it)
-  const pendingPreviewUrl = pendingImage?.previewUrl;
+  // Move the focus to a description field: when images are chosen (the file picker had the focus), and when one
+  // has no description at the insert
   useEffect(() => {
-    if (!pendingPreviewUrl) {
+    if (!imageFocus) {
       return;
     }
     // After the browser gives the focus back to the file input (when the picker closes)
-    const timer = window.setTimeout(() => document.getElementById(`${baseId}-image-alt`)?.focus(), 50);
+    const timer = window.setTimeout(() => document.getElementById(imageAltId(baseId, imageFocus.id))?.focus(), 50);
     return () => window.clearTimeout(timer);
-  }, [pendingPreviewUrl, baseId]);
+  }, [imageFocus, baseId]);
 
-  const startImage = (file: File) => {
-    if (!images) {
+  /**
+   * Add images to the ones that wait (toolbar button, paste, drop): several at a time (#1207). Files of another
+   * type, files that are too large and files over the limit per insert are left out, with a message.
+   */
+  const addImages = (files: File[]) => {
+    if (!images || files.length === 0 || pendingImages?.busy) {
       return;
     }
-    if (!images.acceptedTypes.includes(file.type)) {
-      setImageError('Choose a JPEG, PNG, WebP or GIF image.');
+    const accepted = files.filter((file) => images.acceptedTypes.includes(file.type) && file.size <= images.maxSizeBytes);
+    const waiting = pendingImages?.items ?? [];
+    const added = accepted.slice(0, Math.max(0, MAX_IMAGES_PER_INSERT - waiting.length));
+
+    const problems: string[] = [];
+    if (files.some((file) => !images.acceptedTypes.includes(file.type))) {
+      problems.push(files.length === 1 ? 'Choose a JPEG, PNG, WebP or GIF image.' : 'Choose JPEG, PNG, WebP or GIF images.');
+    }
+    if (files.some((file) => images.acceptedTypes.includes(file.type) && file.size > images.maxSizeBytes)) {
+      const megabytes = Math.round(images.maxSizeBytes / 1024 / 1024);
+      problems.push(
+        files.length === 1 ? `The image is too large (maximum ${megabytes} MB).` : `An image is too large (maximum ${megabytes} MB).`,
+      );
+    }
+    if (added.length < accepted.length) {
+      problems.push(`You can add ${MAX_IMAGES_PER_INSERT} images at a time: the others were left out.`);
+    }
+    setImageError(problems.length > 0 ? problems.join(' ') : null);
+    if (added.length === 0) {
       return;
     }
-    if (file.size > images.maxSizeBytes) {
-      setImageError(`The image is too large (maximum ${Math.round(images.maxSizeBytes / 1024 / 1024)} MB).`);
-      return;
-    }
-    setImageError(null);
-    if (pendingImage) {
-      URL.revokeObjectURL(pendingImage.previewUrl);
-    }
-    setPendingImage({
+
+    const items: PendingImageItem[] = added.map((file) => ({
+      id: crypto.randomUUID(),
       file,
       previewUrl: URL.createObjectURL(file),
       alt: '',
       error: null,
-      uploading: false,
-      position: textareaRef.current?.selectionStart ?? value.length,
+      status: 'waiting',
+      url: null,
+    }));
+    setPendingImages({
+      items: [...waiting, ...items],
+      position: pendingImages?.position ?? textareaRef.current?.selectionStart ?? value.length,
+      busy: false,
+      message: null,
     });
+    const first = items[0];
+    if (first) {
+      setImageFocus({ id: first.id });
+    }
   };
 
-  const cancelImage = () => {
-    if (pendingImage) {
-      URL.revokeObjectURL(pendingImage.previewUrl);
-    }
-    setPendingImage(null);
+  const cancelImages = () => {
+    pendingImages?.items.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+    setPendingImages(null);
+    setImageError(null);
     textareaRef.current?.focus();
   };
 
-  const insertImage = async () => {
-    if (!images || !pendingImage) {
+  /**
+   * Upload the images that wait, one after the other, then write them in the text, one per line: images that follow
+   * each other form a gallery. Nothing goes in the text before every upload worked; a second try uploads only the
+   * images that failed.
+   */
+  const insertImages = async () => {
+    if (!images || !pendingImages || pendingImages.busy) {
       return;
     }
-    const alt = pendingImage.alt.trim();
-    if (alt === '') {
-      setPendingImage({ ...pendingImage, error: 'Describe the image for people who cannot see it.' });
+    const { position } = pendingImages;
+    let items = pendingImages.items.map((item) =>
+      item.alt.trim() === '' ? { ...item, error: 'Describe the image for people who cannot see it.' } : item,
+    );
+    const withoutAlt = items.find((item) => item.alt.trim() === '');
+    if (withoutAlt) {
+      setPendingImages({ ...pendingImages, items });
+      setImageFocus({ id: withoutAlt.id });
       return;
     }
-    setPendingImage({ ...pendingImage, uploading: true, error: null });
-    const result = await images.upload(pendingImage.file, alt);
-    if ('error' in result) {
-      setPendingImage({ ...pendingImage, uploading: false, error: result.error });
+    const room = MAX_IMAGES_PER_CONTENT - countMarkdownImages(value);
+    if (items.length > room) {
+      setPendingImages({
+        ...pendingImages,
+        message:
+          room <= 0
+            ? `The text already has ${MAX_IMAGES_PER_CONTENT} images, the maximum.`
+            : `A text holds ${MAX_IMAGES_PER_CONTENT} images at most: there is room for ${room} more. Remove ${items.length - room}.`,
+      });
       return;
     }
-    // Brackets in the alt text would end the Markdown image syntax
-    const markdown = `![${alt.replace(/[[\]]/g, '')}](${result.url})`;
-    const before = value.slice(0, pendingImage.position);
-    const after = value.slice(pendingImage.position);
+
+    const show = (busy: boolean) => setPendingImages({ items, position, busy, message: null });
+    for (const item of items) {
+      if (item.status === 'uploaded') {
+        continue;
+      }
+      items = items.map((other) => (other.id === item.id ? { ...other, status: 'uploading', error: null } : other));
+      show(true);
+      const result = await images.upload(item.file, item.alt.trim());
+      items = items.map((other) =>
+        other.id !== item.id
+          ? other
+          : 'error' in result
+            ? { ...other, status: 'failed', error: result.error }
+            : { ...other, status: 'uploaded', url: result.url },
+      );
+    }
+    if (items.some((item) => item.url === null)) {
+      show(false);
+      return;
+    }
+
+    const markdown = items.map((item) => markdownImage(item.alt.trim(), item.url ?? '')).join('\n');
+    // The text can differ from the one at the start of the uploads: nothing that the member wrote meanwhile is lost.
+    // The images then go where the caret is now, not in the middle of the new words
+    const current = latestValue.current;
+    const at = current === value ? position : Math.min(textareaRef.current?.selectionStart ?? current.length, current.length);
+    const before = current.slice(0, at);
+    const after = current.slice(at);
     const prefix = before === '' || before.endsWith('\n') ? '' : '\n';
     const suffix = after.startsWith('\n') ? '' : '\n';
     const next = `${before}${prefix}${markdown}${suffix}${after}`;
     const caret = before.length + prefix.length + markdown.length + suffix.length;
-    URL.revokeObjectURL(pendingImage.previewUrl);
-    setPendingImage(null);
+    items.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+    setPendingImages(null);
+    setImageError(null);
     pendingSelection.current = { value: next, selectionStart: caret, selectionEnd: caret };
     onChange(next);
   };
@@ -450,8 +536,8 @@ export function MarkdownEditor({
               <>
                 <button
                   type="button"
-                  aria-label="Add an image"
-                  title="Add an image (or paste it, or drop it on the text)"
+                  aria-label="Add images"
+                  title={`Add images (or paste them, or drop them on the text), up to ${MAX_IMAGES_PER_INSERT} at a time`}
                   disabled={disabled}
                   onClick={() => fileInputRef.current?.click()}
                   className="flex size-8 cursor-pointer items-center justify-center rounded-md text-muted transition-colors hover:bg-overlay/10 hover:text-primary focus-visible:outline-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50"
@@ -462,14 +548,12 @@ export function MarkdownEditor({
                   ref={fileInputRef}
                   type="file"
                   accept={images.acceptedTypes.join(',')}
+                  multiple
                   className="sr-only"
                   tabIndex={-1}
                   aria-hidden="true"
                   onChange={(event) => {
-                    const file = event.target.files?.[0];
-                    if (file) {
-                      startImage(file);
-                    }
+                    addImages(Array.from(event.target.files ?? []));
                     event.target.value = '';
                   }}
                 />
@@ -508,10 +592,12 @@ export function MarkdownEditor({
           onKeyDown={onTextareaKeyDown}
           {...(autoFocus ? { 'data-autofocus': true } : {})}
           onPaste={(event) => {
-            const file = Array.from(event.clipboardData.files).find((item) => item.type.startsWith('image/'));
-            if (images && file) {
+            const files = Array.from(event.clipboardData.files).filter((item) => item.type.startsWith('image/'));
+            // Text from a word processor or a spreadsheet comes with a picture of itself: the text is what the
+            // member pastes
+            if (images && files.length > 0 && event.clipboardData.getData('text/plain') === '') {
               event.preventDefault();
-              startImage(file);
+              addImages(files);
             }
           }}
           onDragOver={(event) => {
@@ -520,10 +606,12 @@ export function MarkdownEditor({
             }
           }}
           onDrop={(event) => {
-            const file = Array.from(event.dataTransfer.files).find((item) => item.type.startsWith('image/'));
-            if (images && file) {
+            // Every dropped file stops here: the browser would open a file that is not an image in place of the
+            // page, and the text would be lost. addImages says which files it refuses
+            const files = Array.from(event.dataTransfer.files);
+            if (images && files.length > 0) {
               event.preventDefault();
-              startImage(file);
+              addImages(files);
             }
           }}
           {...(mentions
@@ -548,58 +636,16 @@ export function MarkdownEditor({
             {imageError}
           </p>
         )}
-        {pendingImage && (
-          <div
-            role="group"
-            aria-label="Add an image"
-            className="mx-2 mb-2 flex flex-col gap-2 rounded-lg border border-border bg-surface p-3 sm:flex-row"
-          >
-            {/* Decorative preview: the description below is the alternative */}
-            <img src={pendingImage.previewUrl} alt="" className="max-h-32 w-auto self-start rounded-md object-contain" />
-            <div className="flex grow flex-col gap-2">
-              <label htmlFor={`${baseId}-image-alt`} className="text-sm font-bold">
-                Image description (alt text)
-              </label>
-              <TextInput
-                id={`${baseId}-image-alt`}
-                value={pendingImage.alt}
-                maxLength={500}
-                placeholder="What does the image show?"
-                aria-describedby={`${baseId}-image-alt-hint`}
-                invalid={pendingImage.error !== null}
-                onChange={(event) => setPendingImage({ ...pendingImage, alt: event.target.value, error: null })}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    event.preventDefault();
-                    void insertImage();
-                  }
-                  if (event.key === 'Escape') {
-                    // Cancel the image, not the dialog around the editor
-                    event.preventDefault();
-                    event.stopPropagation();
-                    event.nativeEvent.stopImmediatePropagation();
-                    cancelImage();
-                  }
-                }}
-              />
-              <p id={`${baseId}-image-alt-hint`} className="text-xs text-muted">
-                Screen readers read this text. Describe what matters in the image.
-              </p>
-              {pendingImage.error && (
-                <p role="alert" className="text-sm text-danger-text">
-                  {pendingImage.error}
-                </p>
-              )}
-              <div className="flex justify-end gap-2">
-                <Button size="sm" variant="secondary" onClick={cancelImage}>
-                  Cancel
-                </Button>
-                <Button size="sm" onClick={() => void insertImage()} loading={pendingImage.uploading}>
-                  Insert the image
-                </Button>
-              </div>
-            </div>
-          </div>
+        {pendingImages && (
+          <ImageInsertPanel
+            baseId={baseId}
+            items={pendingImages.items}
+            busy={pendingImages.busy}
+            message={pendingImages.message}
+            onChange={(items) => setPendingImages({ ...pendingImages, items, message: null })}
+            onInsert={() => void insertImages()}
+            onCancel={cancelImages}
+          />
         )}
         {pendingVideo && (
           <div

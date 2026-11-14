@@ -9,6 +9,7 @@ use App\Models\Comment;
 use App\Models\CommunityResource;
 use App\Models\Post;
 use App\Models\User;
+use App\Rules\MaxMarkdownImages;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
@@ -27,7 +28,7 @@ class CreateComment implements CreatesComments
         /** @var array{body: string, parent_cuid?: string|null} $validated */
         $validated = Validator::make($input, [
             // WARNING: aligned with commentFormSchema (comment.schema.ts)
-            'body' => ['required', 'string', 'min:1', 'max:'.Constants::MAX_LENGTH_COMMENT_BODY],
+            'body' => ['required', 'string', 'min:1', 'max:'.Constants::MAX_LENGTH_COMMENT_BODY, new MaxMarkdownImages],
             'parent_cuid' => ['sometimes', 'nullable', 'string'],
         ])->validate();
 

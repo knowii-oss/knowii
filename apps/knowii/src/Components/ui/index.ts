@@ -12,6 +12,7 @@ export * from './Divider';
 export * from './Drawer';
 export * from './EmptyState';
 export * from './ErrorBoundary';
+export * from './ImageInsertPanel';
 export * from './MarkdownContent';
 export * from './MarkdownEditor';
 export * from './markdown-format';
