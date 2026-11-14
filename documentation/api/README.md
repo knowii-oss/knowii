@@ -22,7 +22,7 @@ A personal API token (created on the "API tokens" page of the user menu) has abi
 | `user:read`         | Read the current user, their blocks and their frequently used emoji   |
 | `user:write`        | Change the avatar                                                     |
 | `communities:read`  | Read communities, space groups, spaces, members and invitations       |
-| `communities:write` | Create, change and delete communities, spaces, members, invitations   |
+| `communities:write` | Create, change and delete communities, spaces, members, invitations; leave a community |
 | `posts:read`        | Read posts, comments and reactions, preview Markdown                  |
 | `posts:write`       | Write posts and comments, pin, react, upload images                   |
 | `chat:read`         | Read the messages and threads of chat spaces, mark them as read       |

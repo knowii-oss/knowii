@@ -1,0 +1,19 @@
+meta {
+  name: Members - Leave
+  type: http
+  seq: 128
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/membership
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The current member leaves the community (#1338). They leave its access groups and lose their course progress. What they wrote stays, and they lose the rights on it. Returns 204. The owner gets a 422 (transfer the ownership first, or delete the community); a user who is not a member gets a 403.
+}

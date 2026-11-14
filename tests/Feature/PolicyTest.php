@@ -68,6 +68,7 @@ test('community abilities per role', function (string $ability, array $allowed) 
     'updateCommunityMember' => ['updateCommunityMember', ['owner', 'admin']],
     'removeCommunityMember' => ['removeCommunityMember', ['owner', 'admin']],
     'delete' => ['delete', ['owner']],
+    'leave' => ['leave', ['admin', 'moderator', 'member']],
 ]);
 
 test('every signed-in user can create a community, nobody lists all communities', function () {

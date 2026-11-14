@@ -167,6 +167,9 @@ final class ApiRoutes
     // Member management (#1242)
     public const COMMUNITY_MEMBER = self::COMMUNITY_MEMBERS.'/{'.self::PARAM_MEMBER.'}';
 
+    // The membership of the current user: they leave the community with a DELETE (#1338)
+    public const COMMUNITY_MEMBERSHIP = self::COMMUNITY.'/membership';
+
     public const COMMUNITY_INVITATIONS = self::COMMUNITY.'/invitations';
 
     public const COMMUNITY_INVITATION = self::COMMUNITY_INVITATIONS.'/{'.self::PARAM_INVITATION.'}';
