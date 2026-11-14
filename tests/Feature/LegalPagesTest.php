@@ -161,3 +161,25 @@ test('the imprint and the privacy policy name a contact person for data protecti
 test('no legal page names a data protection officer (#1355)', function (string $url) {
     $this->get($url)->assertInertia(fn ($page) => $page->where('html', fn (string $html) => ! str_contains(strtolower($html), 'data protection officer')));
 })->with('legal pages');
+
+test('the privacy policy lists the cookies and the browser storage, with the session cookie of the configuration (#1342)', function () {
+    config(['session.cookie' => 'example_session', 'session.lifetime' => 120]);
+
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, 'Knowii uses only the cookies and the browser storage that the service needs, so there is no consent banner.')
+            && str_contains($html, '<td><code>example_session</code></td>')
+            && str_contains($html, '<td>2 hours after your last activity</td>')
+            && str_contains($html, '<td><code>XSRF-TOKEN</code></td>')
+            && str_contains($html, '<td><code>remember_web_*</code></td>')
+            && str_contains($html, '<td>400 days, or until you sign out</td>')
+            && str_contains($html, '<td>Browser storage</td>')
+            && ! str_contains($html, 'Knowii uses two cookies'))
+    );
+});
+
+test('the "Remember me" cookie lasts as long as the privacy policy says (#1342)', function () {
+    $guard = auth()->guard('web');
+    $minutes = (fn (): int => $this->getRememberDuration())->call($guard);
+
+    expect(intdiv($minutes, 60 * 24))->toBe(400);
+});
