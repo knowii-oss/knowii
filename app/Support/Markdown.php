@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\Community;
 use App\Models\User;
+use App\Support\MarkdownGalleries\ImageGalleryExtension;
 use App\Support\MarkdownVideos\VideoEmbedExtension;
 use League\CommonMark\Environment\Environment;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
@@ -20,6 +21,7 @@ use League\CommonMark\MarkdownConverter;
  * removed, and links to other sites open in a new tab with rel="nofollow noopener noreferrer".
  * `@username` becomes a link to the member's profile when the username is a member of the community (#1177).
  * A YouTube or Vimeo link alone on its line becomes a click-to-load video (#1206, ADR 0031).
+ * Images that follow each other form a gallery (#1207, ADR 0039).
  */
 final class Markdown
 {
@@ -161,6 +163,7 @@ final class Markdown
         $environment->addExtension(new ExternalLinkExtension);
         $environment->addExtension(new MentionExtension);
         $environment->addExtension(new VideoEmbedExtension);
+        $environment->addExtension(new ImageGalleryExtension);
 
         return self::$converter = new MarkdownConverter($environment);
     }

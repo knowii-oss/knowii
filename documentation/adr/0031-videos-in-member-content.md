@@ -21,7 +21,7 @@ Members want to show YouTube and Vimeo videos in posts, comments and messages. C
 
 1. Posts, comments, chat messages, direct messages and pages all get videos, because they share the renderer. The preview of the editor shows the player too (it uses the server renderer).
 2. A new video provider needs a change in `VideoEmbed::parse`, `parseVideoUrl`, `frame-src` and the privacy policy (third-party content).
-3. `MarkdownContent` is the only place that turns marked blocks into components. The same mechanism can serve other rich blocks later (galleries, #1207).
+3. `MarkdownContent` is the only place that turns marked blocks into components. The same mechanism can serve other rich blocks later. Galleries (#1207) chose plain HTML with CSS and one shared viewer instead ([ADR 0039](0039-images-that-follow-each-other-form-a-gallery.md)).
 
 ## Alternatives considered
 
