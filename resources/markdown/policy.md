@@ -61,7 +61,14 @@ When a member adds a link to a resources space, our server fetches the page to c
 
 ## 6. Cookies
 
-Knowii uses two cookies, both needed for the service: the session cookie (it keeps you signed in) and the XSRF cookie (it protects your forms against cross-site requests). Your theme choice stays in the storage of your browser and never leaves it. Because there are no other cookies, there is no consent banner.
+Knowii uses only the cookies and the browser storage that the service needs, so there is no consent banner.
+
+| Name                                                                                 | Kind            | Purpose                                                        | Duration                                       |
+| ------------------------------------------------------------------------------------ | --------------- | -------------------------------------------------------------- | ---------------------------------------------- |
+| `{{cookies.session}}`                                                                | Cookie          | Keeps you signed in                                            | {{retention.session}} after your last activity |
+| `XSRF-TOKEN`                                                                         | Cookie          | Protects your forms against cross-site requests                | The same duration as the session               |
+| `remember_web_*`                                                                     | Cookie          | Keeps you signed in between visits when you tick "Remember me" | 400 days, or until you sign out                |
+| The theme, the comment threads that you collapsed, the skin tone of the emoji picker | Browser storage | It never leaves your browser                                   | It stays until you clear it                    |
 
 The waitlist and newsletter forms use Cloudflare Turnstile to block bots. Cloudflare processes your IP address and data about your browser for this check.
 

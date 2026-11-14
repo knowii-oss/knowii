@@ -13,7 +13,8 @@ use InvalidArgumentException;
  * - A file starts with a front matter block: `title`, `updated` (YYYY-MM-DD) and `draft` (true until the text is
  *   approved: the page then shows a draft notice).
  * - `{{retention.<period>}}` shows a retention period of App\Support\Retention (ADR 0030) and `{{subprocessors}}`
- *   the table of config/legal.php, so the text never drifts from the code.
+ *   the table of config/legal.php, so the text never drifts from the code. `{{cookies.session}}` shows the name of
+ *   the session cookie of the instance (#1342).
  */
 final class LegalPages
 {
@@ -53,7 +54,11 @@ final class LegalPages
      */
     public static function fillPlaceholders(string $markdown): string
     {
-        $values = ['subprocessors' => self::subprocessorTable()];
+        $sessionCookie = config('session.cookie');
+        $values = [
+            'subprocessors' => self::subprocessorTable(),
+            'cookies.session' => is_string($sessionCookie) ? $sessionCookie : '',
+        ];
         foreach (Retention::periods() as $key => $value) {
             $values['retention.'.$key] = $value;
         }
