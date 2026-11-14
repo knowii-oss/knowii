@@ -226,3 +226,8 @@ test('the privacy policy says the minimum age of the terms (#1350)', function ()
         ->where('html', fn (string $html) => str_contains($html, 'Knowii is for people of 16 and older. We do not knowingly keep the data of younger people: write to us and we delete the account.')));
     $this->get('/terms-of-service')->assertInertia(fn ($page) => $page->where('html', fn (string $html) => str_contains($html, '16')));
 });
+
+test('the instructions of the DPA cover the transfers and the processing that the law requires (#1351)', function () {
+    $this->get('/dpa')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, 'These instructions also cover the transfers of section 8. The Processor can process the data without an instruction when the law of the European Union or of Belgium requires it. In that case, it tells the Controller before the processing, unless that law forbids it.')));
+});

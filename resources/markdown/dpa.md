@@ -27,7 +27,7 @@ The Controller does not ask its members for special categories of data (GDPR art
 
 ## 4. Obligations of the Processor
 
-1. The Processor processes the data only on the documented instructions of the Controller. The terms of service, this DPA and the settings of the community are these instructions. If an instruction breaks the GDPR, the Processor tells the Controller.
+1. The Processor processes the data only on the documented instructions of the Controller. The terms of service, this DPA and the settings of the community are these instructions. If an instruction breaks the GDPR, the Processor tells the Controller. These instructions also cover the transfers of section 8. The Processor can process the data without an instruction when the law of the European Union or of Belgium requires it. In that case, it tells the Controller before the processing, unless that law forbids it.
 2. The people who have access to the data are bound by confidentiality.
 3. The Processor applies the security measures of section 6.
 4. The Processor helps the Controller to answer the requests of data subjects (access, correction, deletion, portability), to secure the data, to notify breaches and to carry out impact assessments, in proportion to the information it has.
