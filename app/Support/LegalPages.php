@@ -13,7 +13,8 @@ use InvalidArgumentException;
  * - A file starts with a front matter block: `title`, `updated` (YYYY-MM-DD) and `draft` (true until the text is
  *   approved: the page then shows a draft notice).
  * - `{{retention.<period>}}` shows a retention period of App\Support\Retention (ADR 0030) and `{{subprocessors}}`
- *   the table of config/legal.php, so the text never drifts from the code. `{{cookies.session}}` shows the name of
+ *   the table of config/legal.php, so the text never drifts from the code. `{{subprocessors.community}}` shows only
+ *   the sub-processors that receive the data of a community: the list of the DPA (#1352). `{{cookies.session}}` shows the name of
  *   the session cookie of the instance (#1342).
  */
 final class LegalPages
@@ -21,6 +22,13 @@ final class LegalPages
     /**
      * The pages, by route name prefix, with the name of their Markdown file
      */
+    /**
+     * Whose data a sub-processor receives (#1352): the accounts and the public forms, or the communities
+     */
+    public const string SCOPE_PLATFORM = 'platform';
+
+    public const string SCOPE_COMMUNITY = 'community';
+
     public const array PAGES = [
         'privacy-policy' => 'policy',
         'terms-of-service' => 'terms',
@@ -57,6 +65,7 @@ final class LegalPages
         $sessionCookie = config('session.cookie');
         $values = [
             'subprocessors' => self::subprocessorTable(),
+            'subprocessors.community' => self::subprocessorTable(self::SCOPE_COMMUNITY),
             'cookies.session' => is_string($sessionCookie) ? $sessionCookie : '',
         ];
         foreach (Retention::periods() as $key => $value) {
@@ -71,12 +80,12 @@ final class LegalPages
     }
 
     /**
-     * The sub-processors of config/legal.php as a Markdown table
+     * The sub-processors of config/legal.php as a Markdown table: all of them, or those of one scope
      */
-    public static function subprocessorTable(): string
+    public static function subprocessorTable(?string $scope = null): string
     {
         $rows = ['| Sub-processor | Country | Purpose | Transfer safeguard |', '| --- | --- | --- | --- |'];
-        foreach (self::subprocessors() as $subprocessor) {
+        foreach (self::subprocessors($scope) as $subprocessor) {
             $rows[] = '| '.implode(' | ', array_map(
                 static fn (string $cell): string => str_replace('|', '\|', $cell),
                 [$subprocessor['name'], $subprocessor['country'], $subprocessor['purpose'], $subprocessor['safeguard']]
@@ -87,14 +96,21 @@ final class LegalPages
     }
 
     /**
+     * The sub-processors, or those that receive the data of one scope (SCOPE_PLATFORM, SCOPE_COMMUNITY). An entry
+     * without a scope is in every scope: a list never hides a sub-processor by mistake.
+     *
      * @return list<array{name: string, country: string, purpose: string, safeguard: string}>
      */
-    public static function subprocessors(): array
+    public static function subprocessors(?string $scope = null): array
     {
         $configured = config('legal.subprocessors');
         $list = [];
         foreach (is_array($configured) ? $configured : [] as $entry) {
             if (! is_array($entry)) {
+                continue;
+            }
+            $scopes = $entry['scope'] ?? null;
+            if ($scope !== null && is_array($scopes) && ! in_array($scope, $scopes, true)) {
                 continue;
             }
             // A sub-processor of an optional feature receives data only from the communities that turn it on
