@@ -9,6 +9,7 @@ vi.mock('@knowii/common', async (importOriginal) => ({
   ...(await importOriginal<Record<string, unknown>>()),
   knowiiApiClient: { newsletter: { subscribe: (...args: unknown[]) => subscribe(...args) } },
 }));
+vi.mock('ziggy-js', () => ({ useRoute: () => (name: string) => `/${name}` }));
 // Turnstile gives a token as soon as it is mounted
 vi.mock('@/Components/ui/Turnstile', () => ({
   Turnstile: ({ onTokenChange }: { onTokenChange: (token: string) => void }) => {
@@ -42,5 +43,16 @@ describe('NewsletterForm', () => {
 
     expect(subscribe).toHaveBeenCalledWith(expect.objectContaining({ email: 'ada@example.com', turnstileToken: 'token-1', website: '' }));
     expect(await screen.findByRole('status')).toHaveTextContent('Check your inbox');
+  });
+
+  it('says what the person agrees to, with a link to the privacy policy (#1346)', () => {
+    render(<NewsletterForm turnstileSiteKey="site-key" />);
+
+    const consent = screen.getByText(/By subscribing, you agree to receive the Knowii newsletter by email/);
+    expect(consent).toHaveTextContent(
+      'By subscribing, you agree to receive the Knowii newsletter by email. You can unsubscribe in every email. See the privacy policy.',
+    );
+    expect(screen.getByRole('link', { name: 'privacy policy' })).toHaveAttribute('href', '/privacy-policy.show');
+    expect(screen.getByRole('textbox', { name: 'Email address' })).toHaveAccessibleDescription(consent.textContent ?? '');
   });
 });

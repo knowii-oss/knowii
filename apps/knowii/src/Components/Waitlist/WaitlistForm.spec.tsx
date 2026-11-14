@@ -5,6 +5,8 @@ import { knowiiApiClient } from '@knowii/common';
 import type { TurnstileApi } from '@/Components/ui';
 import WaitlistForm from './WaitlistForm';
 
+vi.mock('ziggy-js', () => ({ useRoute: () => (name: string) => `/${name}` }));
+
 describe('WaitlistForm', () => {
   let renderCount = 0;
 
@@ -79,5 +81,16 @@ describe('WaitlistForm', () => {
     const honeypot = document.getElementById('waitlist-website');
     expect(honeypot).toHaveAttribute('tabindex', '-1');
     expect(honeypot?.closest('[aria-hidden="true"]')).not.toBeNull();
+  });
+
+  it('says what the person agrees to, with a link to the privacy policy (#1346)', () => {
+    render(<WaitlistForm turnstileSiteKey="site-key" />);
+
+    const consent = screen.getByText(/By subscribing, you agree to receive one email when Knowii opens/);
+    expect(consent).toHaveTextContent(
+      'By subscribing, you agree to receive one email when Knowii opens. You can unsubscribe in that email. See the privacy policy.',
+    );
+    expect(screen.getByRole('link', { name: 'privacy policy' })).toHaveAttribute('href', '/privacy-policy.show');
+    expect(screen.getByRole('textbox', { name: 'Email address' })).toHaveAccessibleDescription(consent.textContent ?? '');
   });
 });
