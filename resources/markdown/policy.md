@@ -93,6 +93,10 @@ For data in a community, you can also contact its owner.
 
 If you think that we do not respect your rights, you can file a complaint with the Belgian Data Protection Authority (Autorité de protection des données / Gegevensbeschermingsautoriteit, rue de la Presse 35, 1000 Brussels, [www.dataprotectionauthority.be](https://www.dataprotectionauthority.be)).
 
-## 9. Changes
+## 9. People who are not members
+
+Content in a community, such as a post or a captured article, can name people who are not members of Knowii. The owner of the community decides about that content. If it is about you, write to contact@developassion.be: we pass your request to the owner and remove the content when the law requires it.
+
+## 10. Changes
 
 When this policy changes, we update the date at the top. For important changes, we inform the members by email before the change applies.

@@ -267,3 +267,12 @@ test('the DPA says that every sub-processor has the same obligations, in its own
             && str_contains($html, 'so no notice period applies.</p>'))
     );
 });
+
+test('the privacy policy tells people who are not members how to use their rights (#1354)', function () {
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, '<h2>9. People who are not members</h2>')
+            && str_contains($html, 'Content in a community, such as a post or a captured article, can name people who are not members of Knowii. The owner of the community decides about that content.')
+            && str_contains($html, 'we pass your request to the owner and remove the content when the law requires it.')
+            && str_contains($html, '<h2>10. Changes</h2>'))
+    );
+});
