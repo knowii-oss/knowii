@@ -25,8 +25,8 @@ tmp
 tsconfig.app.tsbuildinfo
 *.tsbuildinfo
 
-# dependencies
-/node_modules
+# dependencies (also the folders that tools create inside a library, for example the Vitest cache in libs/common)
+node_modules/
 
 # IDEs and editors
 /.idea
