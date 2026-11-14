@@ -85,6 +85,21 @@ Authorizations are checked in Action classes.
 
 More details: https://laravel.com/docs/13.x/authorization
 
+## Types
+
+PHPStan runs at the highest level (`level: max` in `phpstan.neon`), which already refuses an unchecked `mixed` value. The code also keeps the word `mixed` out of its signatures and PHPDoc (#726): a parameter, a return value or an array shape names its real type, a union type or an array shape.
+
+`mixed` is allowed only where a value really comes from outside, and the code narrows it at once (`is_string`, `is_array`, a validator):
+
+1. The `$input` of an action: the request input before the validation (`@param array<mixed> $input`).
+2. The value of a closure validation rule (`mixed $value, Closure $fail`).
+3. `toArray()` of an API resource (`@return array<string, mixed>`, the signature of the framework).
+4. Configuration values, decoded JSON of a third party, and the signatures of the framework and of libraries (Inertia props, Eloquent attributes, slug configuration, HTTP client options).
+
+`tests/Unit/MixedTypeUsageTest.php` holds the list of the files of point 4, with the number of uses in each. The list can only shrink: a new use of `mixed` fails the test.
+
+Shared shapes of the API envelope (`App\Traits\ApiResponses`): the metadata is `array<string, bool|int|string|array<string, int|null>|null>` (pagination and flags), and the errors are `array<string, array<int, string>>` (messages per field).
+
 ## Error handling
 
 - Validation should be done using `$validator = Validator::make(...)` and `$validator->validate` calls. . This will throw a `ValidationException` if the validation fails. Such exceptions will be converted automatically to a JSON response by the global exception handlers

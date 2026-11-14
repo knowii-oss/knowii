@@ -17,7 +17,7 @@ trait ApiResponses
     /**
      * Newly created entity
      *
-     * @param  ?array<mixed>  $metadata
+     * @param  array<string, bool|int|string|array<string, int|null>|null>|null  $metadata
      */
     final public static function created(JsonResource $data, string $message = 'Success', ?array $metadata = null): JsonResponse
     {
@@ -35,8 +35,8 @@ trait ApiResponses
     /**
      * Success
      *
-     * @param  ?array<mixed>  $metadata
-     * @param  array<mixed>|JsonResource|null  $data
+     * @param  array<string, bool|int|string|array<string, int|null>|null>|null  $metadata
+     * @param  array<mixed>|JsonResource|null  $data  the JSON payload of the endpoint
      */
     final public static function success(string $message = 'Success', ?array $metadata = null, array|JsonResource|null $data = null, int $statusCode = Response::HTTP_OK): JsonResponse
     {
@@ -48,8 +48,8 @@ trait ApiResponses
     /**
      * Return an authentication issue response.
      *
-     * @param  ?array<mixed>  $metadata
-     * @param  ?array<mixed>  $errorDetails
+     * @param  array<string, bool|int|string|array<string, int|null>|null>|null  $metadata
+     * @param  array<string, array<int, string>>|null  $errorDetails
      */
     final public static function authenticationIssue(string $message, ?array $metadata = null, ?array $errorDetails = []): JsonResponse
     {
@@ -61,8 +61,8 @@ trait ApiResponses
     /**
      * Return an authorization issue response.
      *
-     * @param  ?array<mixed>  $metadata
-     * @param  ?array<mixed>  $errorDetails
+     * @param  array<string, bool|int|string|array<string, int|null>|null>|null  $metadata
+     * @param  array<string, array<int, string>>|null  $errorDetails
      */
     final public static function authorizationIssue(string $message, ?array $metadata = null, ?array $errorDetails = []): JsonResponse
     {
@@ -85,8 +85,8 @@ trait ApiResponses
      * Return a validation issue response.
      * Reference: https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/HTTP-Status-Codes-Client-Error-%284xx%29
      *
-     * @param  array<mixed>  $errorDetails
-     * @param  ?array<mixed>  $metadata
+     * @param  array<string, array<int, string>>  $errorDetails
+     * @param  array<string, bool|int|string|array<string, int|null>|null>|null  $metadata
      */
     final public static function validationIssue(string $message, array $errorDetails, ?array $metadata = null): JsonResponse
     {
@@ -98,7 +98,7 @@ trait ApiResponses
     /**
      * Return an unsupported media type response (the request body was not JSON).
      *
-     * @param  ?array<mixed>  $metadata
+     * @param  array<string, bool|int|string|array<string, int|null>|null>|null  $metadata
      */
     final public static function unsupportedMediaTypeIssue(string $message = 'Only JSON input is accepted. Please set the Content-Type header to application/json.', ?array $metadata = null): JsonResponse
     {
@@ -111,8 +111,8 @@ trait ApiResponses
      * Return a business issue response.
      * Reference: https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/HTTP-Status-Codes-Client-Error-%284xx%29
      *
-     * @param  array<mixed>  $errorDetails
-     * @param  ?array<mixed>  $metadata
+     * @param  array<string, array<int, string>>  $errorDetails
+     * @param  array<string, bool|int|string|array<string, int|null>|null>|null  $metadata
      */
     final public static function businessIssue(string $message, array $errorDetails, ?array $metadata = null): JsonResponse
     {
@@ -147,8 +147,8 @@ trait ApiResponses
      * Return a technical issue response.
      * Reference: https://github.com/NationalBankBelgium/REST-API-Design-Guide/wiki/HTTP-Status-Codes-Server-Error-%285xx%29
      *
-     * @param  array<mixed>  $errorDetails
-     * @param  ?array<mixed>  $metadata
+     * @param  array<string, array<int, string>>  $errorDetails
+     * @param  array<string, bool|int|string|array<string, int|null>|null>|null  $metadata
      */
     final public static function technicalIssue(string $message = 'Internal Server Error', array $errorDetails = [], ?array $metadata = null): JsonResponse
     {

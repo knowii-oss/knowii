@@ -11,6 +11,7 @@ use App\Support\Conversations;
 use App\Support\SpaceTree;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Response;
@@ -71,7 +72,7 @@ class ConversationController extends Controller
     }
 
     /**
-     * @return array{items: mixed, has_more: bool, first_unread_cuid: string|null}
+     * @return array{items: ResourceCollection, has_more: bool, first_unread_cuid: string|null}
      */
     private static function messages(Conversation $conversation, User $user): array
     {

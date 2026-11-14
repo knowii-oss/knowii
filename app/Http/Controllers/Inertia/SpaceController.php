@@ -14,6 +14,7 @@ use App\Support\Pagination;
 use App\Support\SpaceTree;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Response;
@@ -93,7 +94,7 @@ class SpaceController extends Controller
     }
 
     /**
-     * @return array{messages: mixed, has_more: bool, first_unread_cuid: string|null}
+     * @return array{messages: ResourceCollection, has_more: bool, first_unread_cuid: string|null}
      */
     private static function chat(Space $space, ?User $user): array
     {

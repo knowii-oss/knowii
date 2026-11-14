@@ -27,9 +27,11 @@ trait ProcessHtml
      * https://github.com/mewebstudio/Purifier
      * https://htmlpurifier.org
      */
-    final public function purifyHtml(string $html): mixed
+    final public function purifyHtml(string $html): string
     {
-        return Purifier::clean($html);
+        $clean = Purifier::clean($html);
+
+        return is_string($clean) ? $clean : '';
     }
 
     /**

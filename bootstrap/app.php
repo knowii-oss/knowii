@@ -155,10 +155,14 @@ return Application::configure(basePath: dirname(__DIR__))
                 return null;
             }
 
+            // The messages per field (the framework types them as a plain array)
+            /** @var array<string, array<int, string>> $errors */
+            $errors = $e->errors();
+
             return (new class
             {
                 use ApiResponses;
-            })::validationIssue($e->getMessage(), $e->errors(), null);
+            })::validationIssue($e->getMessage(), $errors, null);
         });
 
         // Convert AccessDeniedHttpException instances to Knowii's error representation

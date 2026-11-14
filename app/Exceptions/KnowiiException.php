@@ -7,20 +7,22 @@ use Exception;
 abstract class KnowiiException extends Exception
 {
     /**
-     * @var array<mixed>
+     * Messages per field, like the errors of a validation
+     *
+     * @var array<string, array<int, string>>
      */
     protected array $errors;
 
     /**
-     * @var array<mixed>|null
+     * @var array<string, bool|int|string|array<string, int|null>|null>|null
      */
     protected ?array $metadata;
 
     /**
      * @param  string  $message
      * @param  int|null  $code
-     * @param  array<mixed>  $errors
-     * @param  array<mixed>|null  $metadata
+     * @param  array<string, array<int, string>>  $errors
+     * @param  array<string, bool|int|string|array<string, int|null>|null>|null  $metadata
      */
     public function __construct($message = 'Knowii Exception', $code = 0, ?Exception $previous = null, array $errors = [], ?array $metadata = null)
     {
@@ -30,7 +32,7 @@ abstract class KnowiiException extends Exception
     }
 
     /**
-     * @return array<mixed>
+     * @return array<string, array<int, string>>
      */
     final public function getErrors(): array
     {
@@ -38,7 +40,7 @@ abstract class KnowiiException extends Exception
     }
 
     /**
-     * @return array<mixed>|null
+     * @return array<string, bool|int|string|array<string, int|null>|null>|null
      */
     final public function getMetadata(): ?array
     {

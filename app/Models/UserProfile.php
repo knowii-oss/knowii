@@ -184,7 +184,7 @@ class UserProfile extends Authenticatable implements MustVerifyEmail
      */
     final public function fieldVisibility(): array
     {
-        /** @var array<mixed>|null $stored */
+        /** @var array<string, bool>|null $stored */
         $stored = $this->field_visibility;
 
         return ProfileFieldVisibility::resolve($stored);
