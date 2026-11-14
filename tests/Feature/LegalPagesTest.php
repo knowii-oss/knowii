@@ -231,3 +231,39 @@ test('the instructions of the DPA cover the transfers and the processing that th
     $this->get('/dpa')->assertInertia(fn ($page) => $page
         ->where('html', fn (string $html) => str_contains($html, 'These instructions also cover the transfers of section 8. The Processor can process the data without an instruction when the law of the European Union or of Belgium requires it. In that case, it tells the Controller before the processing, unless that law forbids it.')));
 });
+
+test('the DPA lists only the sub-processors of community data, the privacy policy lists them all (#1352)', function () {
+    $community = array_column(LegalPages::subprocessors(LegalPages::SCOPE_COMMUNITY), 'name');
+
+    expect($community)->toBe(['Hetzner Online GmbH', 'Cloudflare, Inc.', 'Resend, Inc.']);
+
+    $this->get('/dpa')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, '<td>Hetzner Online GmbH</td>')
+            && str_contains($html, '<td>Cloudflare, Inc.</td>')
+            && str_contains($html, '<td>Resend, Inc.</td>')
+            && ! str_contains($html, 'EmailOctopus')
+            && ! str_contains($html, 'Plausible'))
+    );
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, '<td>EmailOctopus Ltd</td>') && str_contains($html, '<td>Plausible Insights OÜ</td>')
+            && str_contains($html, '<td>Hetzner Online GmbH</td>'))
+    );
+});
+
+test('a sub-processor without a scope is in every list (#1352)', function () {
+    config(['legal.subprocessors' => [
+        ['name' => 'No Scope GmbH', 'country' => 'Germany', 'purpose' => 'Hosting', 'safeguard' => 'European Union'],
+        ['name' => 'Platform Only Ltd', 'country' => 'Ireland', 'purpose' => 'Statistics', 'safeguard' => 'European Union', 'scope' => ['platform']],
+    ]]);
+
+    expect(array_column(LegalPages::subprocessors(LegalPages::SCOPE_COMMUNITY), 'name'))->toBe(['No Scope GmbH'])
+        ->and(array_column(LegalPages::subprocessors(LegalPages::SCOPE_PLATFORM), 'name'))->toBe(['No Scope GmbH', 'Platform Only Ltd'])
+        ->and(array_column(LegalPages::subprocessors(), 'name'))->toBe(['No Scope GmbH', 'Platform Only Ltd']);
+});
+
+test('the DPA says that every sub-processor has the same obligations, in its own paragraph (#1352)', function () {
+    $this->get('/dpa')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, '<p>The Processor imposes the same data protection obligations on each sub-processor and stays responsible for them.</p>')
+            && str_contains($html, 'so no notice period applies.</p>'))
+    );
+});

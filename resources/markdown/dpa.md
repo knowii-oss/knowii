@@ -37,11 +37,13 @@ The Controller does not ask its members for special categories of data (GDPR art
 
 The Controller gives a general authorisation for these sub-processors:
 
-{{subprocessors}}
+{{subprocessors.community}}
+
+The Processor imposes the same data protection obligations on each sub-processor and stays responsible for them.
 
 The Processor informs the Controllers at least 14 days before it adds or replaces a sub-processor, by email and on this page. A Controller can object for reasonable data protection reasons. If no solution is found, the Controller can delete its community before the change applies.
 
-Some features are optional, for example the AI features. A sub-processor that only an optional feature uses receives the data of a community only after its Controller turns the feature on. The settings of the feature name that sub-processor. This choice is the authorisation of the Controller, so no notice period applies. The Processor imposes the same data protection obligations on each sub-processor and stays responsible for them.
+Some features are optional, for example the AI features. A sub-processor that only an optional feature uses receives the data of a community only after its Controller turns the feature on. The settings of the feature name that sub-processor. This choice is the authorisation of the Controller, so no notice period applies.
 
 ## 6. Security measures
 
