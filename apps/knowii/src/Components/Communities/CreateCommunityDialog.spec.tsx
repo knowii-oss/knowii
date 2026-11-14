@@ -4,6 +4,8 @@ import userEvent from '@testing-library/user-event';
 import { AppDataProvider, knowiiApiClient } from '@knowii/common';
 import CreateCommunityDialog from './CreateCommunityDialog';
 
+vi.mock('ziggy-js', () => ({ useRoute: () => (name: string) => `/${name}` }));
+
 function renderDialog() {
   render(
     <AppDataProvider>
@@ -67,5 +69,17 @@ describe('CreateCommunityDialog', () => {
 
     await waitFor(() => expect(screen.getByRole('button', { name: 'Go ahead!' })).toBeEnabled());
     expect(screen.queryByText('Checking the name…')).not.toBeInTheDocument();
+  });
+
+  it('tells a shared community that the owner accepts the DPA, and a personal one nothing (#1353)', async () => {
+    renderDialog();
+
+    expect(screen.getByText(/By creating a community, you accept the/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'data processing agreement' })).toHaveAttribute('href', '/dpa.show');
+
+    await userEvent.click(screen.getByRole('radio', { name: /Personal/ }));
+
+    expect(screen.queryByText(/you accept the/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'data processing agreement' })).not.toBeInTheDocument();
   });
 });

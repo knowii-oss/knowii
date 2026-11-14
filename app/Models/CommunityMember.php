@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\KnowiiCommunityMemberRole;
 use App\Traits\GeneratesCuid;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
 /**
@@ -17,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
  * @property KnowiiCommunityMemberRole $role
  * @property Carbon $created_at
  * @property Carbon $updated_at
+ * @property-read User $user
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityMember newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityMember newQuery()
@@ -82,6 +84,14 @@ class CommunityMember extends Pivot
         return [
             'role' => KnowiiCommunityMemberRole::class,
         ];
+    }
+
+    /**
+     * @return BelongsTo<User, covariant $this>
+     */
+    final public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     final public function getRouteKeyName(): string

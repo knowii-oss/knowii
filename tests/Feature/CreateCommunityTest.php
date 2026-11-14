@@ -4,6 +4,7 @@ use App\Actions\Communities\CreateCommunity;
 use App\Constants;
 use App\Enums\KnowiiCommunityVisibility;
 use App\Models\User;
+use App\Support\LegalPages;
 use Illuminate\Validation\ValidationException;
 
 test('communities can be created via the creator', function () {
@@ -212,4 +213,23 @@ test('a community can be created through the API without a description (#1331)',
         ->postJson('/api/v1/communities', ['name' => 'Without Description', 'visibility' => KnowiiCommunityVisibility::Public->value])
         ->assertCreated()
         ->assertJsonPath('data.description', '');
+});
+
+test('a shared community records the acceptance of the DPA and its version (#1353)', function () {
+    $user = User::factory()->withUserProfile()->create();
+
+    $community = (new CreateCommunity)->create($user, ['name' => 'Shared Garden', 'visibility' => KnowiiCommunityVisibility::Private->value])->fresh();
+
+    expect($community->dpa_accepted_at)->not->toBeNull()
+        ->and($community->dpa_accepted_at->isToday())->toBeTrue()
+        ->and($community->dpa_version->toDateString())->toBe(LegalPages::updated('dpa'));
+});
+
+test('a personal community records no acceptance, nobody else has data in it (#1353)', function () {
+    $user = User::factory()->withUserProfile()->create();
+
+    $community = (new CreateCommunity)->create($user, ['name' => 'My own place', 'visibility' => KnowiiCommunityVisibility::Personal->value])->fresh();
+
+    expect($community->dpa_accepted_at)->toBeNull()
+        ->and($community->dpa_version)->toBeNull();
 });

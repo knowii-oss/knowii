@@ -57,6 +57,11 @@ final class Retention
         return self::int('retention.unused_uploads_days', 7);
     }
 
+    public static function exportsDays(): int
+    {
+        return self::int('retention.exports_days', 7);
+    }
+
     public static function logDays(): int
     {
         return self::int('logging.channels.daily.days', 14);

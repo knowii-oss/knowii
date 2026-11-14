@@ -11,6 +11,7 @@ use Database\Factories\UserProfileFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\UseResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\DatabaseNotificationCollection;
@@ -20,6 +21,7 @@ use Illuminate\Notifications\Notifiable;
  * App\Models\UserProfile
  *
  * @property-read int $id
+ * @property-read ?User $user
  * @property-read string $cuid
  * @property int $user_id
  * @property ?string $username
@@ -198,6 +200,14 @@ class UserProfile extends Authenticatable implements MustVerifyEmail
         $value = $this->getAttribute($field);
 
         return ($this->fieldVisibility()[$field] ?? false) && is_string($value) && $value !== '';
+    }
+
+    /**
+     * @return BelongsTo<User, covariant $this>
+     */
+    final public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     final public function getRouteKeyName(): string

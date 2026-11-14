@@ -32,6 +32,8 @@ use Illuminate\Support\Facades\DB;
  * @property KnowiiCommunityVisibility $visibility
  * @property array<string, bool> $moderator_permissions
  * @property bool $direct_messages_enabled The owner turns direct messages off (#1186)
+ * @property ?Carbon $dpa_accepted_at When the owner accepted the data processing agreement; null for a personal community (#1353)
+ * @property ?Carbon $dpa_version The `updated` date of the agreement at that time; null when it is not known (#1353)
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property int $owner_id
@@ -94,6 +96,8 @@ class Community extends Model
         'owner_id',
         'moderator_permissions',
         'direct_messages_enabled',
+        'dpa_accepted_at',
+        'dpa_version',
     ];
 
     /**
@@ -129,6 +133,8 @@ class Community extends Model
             'visibility' => KnowiiCommunityVisibility::class,
             'moderator_permissions' => 'array',
             'direct_messages_enabled' => 'boolean',
+            'dpa_accepted_at' => 'datetime',
+            'dpa_version' => 'date',
         ];
     }
 

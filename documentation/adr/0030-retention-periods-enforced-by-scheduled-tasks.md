@@ -12,7 +12,7 @@ The privacy policy (#77) tells members how long Knowii keeps each kind of data. 
 ## Decision
 
 1. Every retention period lives in configuration: `config/retention.php` for the periods Knowii applies itself, and the Laravel keys for the others (`session.lifetime`, `auth.passwords.users.expire`, `logging.channels.daily.days`). `App\Support\Retention` reads them all, in one place.
-2. Scheduled tasks apply them every day (`routes/console.php`): `uploads:prune`, `retention:prune` (invitations, API tokens, failed jobs, password reset tokens, database sessions, database cache entries) and `mailing-lists:prune` (EmailOctopus API: waitlist contacts after 12 months, unconfirmed and unsubscribed contacts after 30 days). Each task has a dry run.
+2. Scheduled tasks apply them every day (`routes/console.php`): `uploads:prune`, `retention:prune` (invitations, API tokens, failed jobs, password reset tokens, database sessions, database cache entries, community export files after `RETENTION_EXPORTS_DAYS`, 7 days by default, #1353) and `mailing-lists:prune` (EmailOctopus API: waitlist contacts after 12 months, unconfirmed and unsubscribed contacts after 30 days). Each task has a dry run.
 3. The legal pages show the periods through placeholders filled from `Retention::periods()`, never as numbers typed in the text.
 4. Periods that the server applies (log rotation, backups) are configuration values too. `SELF_HOSTING.md` tells the operator to use the same numbers. The backup script of #1182 reads `RETENTION_BACKUPS_*`.
 

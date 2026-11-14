@@ -27,6 +27,7 @@ use Illuminate\Support\Facades\Storage;
  * @property string $alt
  * @property Carbon $created_at
  * @property-read Community $community
+ * @property-read ?User $user
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Upload newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Upload newQuery()
@@ -70,6 +71,14 @@ class Upload extends Model
     final public function community(): BelongsTo
     {
         return $this->belongsTo(Community::class);
+    }
+
+    /**
+     * @return BelongsTo<User, covariant $this>
+     */
+    final public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     /**
