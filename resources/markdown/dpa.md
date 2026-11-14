@@ -1,6 +1,6 @@
 ---
 title: Data processing agreement
-updated: 2026-11-10
+updated: 2026-11-14
 draft: false
 ---
 
@@ -21,7 +21,7 @@ Storage, display, transmission and deletion of the data of the community, to run
 ## 3. Categories of data and of data subjects
 
 1. Data subjects: the members of the community, the people it invites, and the visitors of its public spaces.
-2. Data: name, username, email address, avatar, the profile fields that each member fills in, roles and access groups, their answers and scores in the quizzes of lessons, the content that members post and the images they upload, messages, reactions, and technical data (IP address, browser) for security.
+2. Data: name, username, email address, avatar, the profile fields that each member fills in, roles and access groups, their answers and scores in the quizzes of lessons, the content that members post, the images they upload and the alternative text of images, messages, read markers, reactions, and technical data (IP address, browser) for security.
 
 The Controller does not ask its members for special categories of data (GDPR art. 9) through Knowii.
 

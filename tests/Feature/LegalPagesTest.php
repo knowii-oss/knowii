@@ -201,3 +201,14 @@ test('each sub-processor in the United States names one transfer safeguard (#134
         expect($entry['safeguard'])->toBe('EU-US Data Privacy Framework');
     }
 });
+
+test('the privacy policy and the DPA list the stored data that the review found missing (#1348)', function () {
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, 'your choice to show or hide your online status')
+            && str_contains($html, 'what you read in chat spaces and conversations, to show what is new')
+            && str_contains($html, 'uploaded images and their alternative text')
+            && str_contains($html, 'the API tokens you create and the date of their last use, the token of the \'Remember me\' option, your password reset requests until they expire'))
+    );
+    $this->get('/dpa')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, 'read markers') && str_contains($html, 'the alternative text of images')));
+});
