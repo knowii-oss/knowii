@@ -23,6 +23,7 @@ DeveloPassion SRL is the controller of the data of your Knowii account. For the 
 5. Technical data: the IP address and the browser of each session, the API tokens you create and the date of their last use, the token of the 'Remember me' option, your password reset requests until they expire, and counters by IP address that limit the number of requests (rate limits).
 6. Waitlist and newsletter: your email address, if you join them.
 7. Data that we get from other people: when a manager of a community invites you, they give us your email address. When a member mentions you, that mention is content of the community.
+8. Audience statistics: page views, counted by Plausible without cookies and without a stored identifier. Our proxy at Cloudflare and Plausible see your IP address to count the view and do not keep it.
 
 Your name, email address, username and password are required to create an account. Without them, we cannot give you one. Everything else is optional.
 
@@ -34,6 +35,7 @@ We do not use advertising or tracking cookies, and we do not sell personal data.
 2. To protect the platform (sign-in protection, rate limits, bot checks, logs, backups): our legitimate interest in a secure service (art. 6(1)(f)).
 3. To send the waitlist and newsletter emails: your consent (art. 6(1)(a)). You can unsubscribe in every email.
 4. To send the emails that the service needs (sign-in links, address verification, invitations): the contract.
+5. To know how many people visit the pages: our legitimate interest in improving the service (art. 6(1)(f)).
 
 ## 4. Who receives the data
 
@@ -73,7 +75,7 @@ Knowii uses only the cookies and the browser storage that the service needs, so 
 | `remember_web_*`                                                                     | Cookie          | Keeps you signed in between visits when you tick "Remember me" | 400 days, or until you sign out                |
 | The theme, the comment threads that you collapsed, the skin tone of the emoji picker | Browser storage | It never leaves your browser                                   | It stays until you clear it                    |
 
-The waitlist and newsletter forms use Cloudflare Turnstile to block bots. Cloudflare processes your IP address and data about your browser for this check.
+The sign-up, waitlist and newsletter forms use Cloudflare Turnstile to block bots. Cloudflare processes your IP address and data about your browser for this check.
 
 ## 7. Security
 
