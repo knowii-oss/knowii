@@ -41,13 +41,25 @@ it('sends a Content Security Policy without scheme-wide sources', function () {
 it('limits styles, fonts, images, media and manifests to explicit origins', function () {
     $directives = cspDirectives((string) $this->get('/')->headers->get('Content-Security-Policy'));
 
-    expect($directives['style-src'])->toContain("'self'", 'https://fonts.googleapis.com')
-        ->and($directives['style-src'])->not->toContain("'unsafe-inline'")
+    expect($directives['style-src'])->toContain("'self'")
+        ->and($directives['style-src'])->not->toContain("'unsafe-inline'", 'https://fonts.googleapis.com')
         ->and(collect($directives['style-src'])->contains(fn (string $source) => str_starts_with($source, "'nonce-")))->toBeTrue()
-        ->and($directives['font-src'])->toBe(["'self'", 'data:', 'https://fonts.gstatic.com'])
+        ->and($directives['font-src'])->toBe(["'self'", 'data:'])
         ->and($directives['img-src'])->toBe(["'self'", 'data:', 'blob:'])
         ->and($directives['media-src'])->toBe(["'self'"])
         ->and($directives['manifest-src'])->toBe(["'self'"]);
+});
+
+it('loads no font from a font service: Knowii serves its font itself (#1341)', function () {
+    foreach (['/', '/login', '/privacy-policy'] as $path) {
+        $this->get($path)
+            ->assertOk()
+            ->assertDontSee('fonts.googleapis.com')
+            ->assertDontSee('fonts.gstatic.com');
+    }
+
+    $directives = cspDirectives((string) $this->get('/')->headers->get('Content-Security-Policy'));
+    expect(implode(' ', [...$directives['font-src'], ...$directives['style-src']]))->not->toContain('google', 'gstatic');
 });
 
 it('allows WebSockets to the Reverb host only', function () {

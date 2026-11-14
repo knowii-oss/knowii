@@ -62,8 +62,8 @@
   --color-danger-text: #fca5a5; /* error text: 4.81:1 on surface */
 
   --font-sans:
-    'Noto Sans', Inter, 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue',
-    sans-serif;
+    'Noto Sans Variable', 'Noto Sans', Inter, 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, Cantarell,
+    'Helvetica Neue', sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   --breakpoint-sm: 600px;

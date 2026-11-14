@@ -1,4 +1,7 @@
 import './bootstrap';
+// Noto Sans is served by Knowii, never by a font service (#1341): Vite bundles the WOFF2 files of the package
+import '@fontsource-variable/noto-sans/wght.css';
+import '@fontsource-variable/noto-sans/wght-italic.css';
 import './styles.css';
 
 import { StrictMode } from 'react';

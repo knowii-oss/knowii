@@ -562,8 +562,8 @@ return [
         // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/font-src
         'font-src' => [
             'self' => true,
+            // The fonts come from the Knowii origin (#1341): no font service
             'allow' => Sources::unique([
-                'https://fonts.gstatic.com',
                 ...array_slice($cspViteDevServer, 0, 1),
             ]),
             'schemes' => [
@@ -715,7 +715,6 @@ return [
             'self' => true,
             'unsafe-inline' => false,
             'allow' => Sources::unique([
-                'https://fonts.googleapis.com',
                 ...array_slice($cspViteDevServer, 0, 1),
             ]),
         ],
