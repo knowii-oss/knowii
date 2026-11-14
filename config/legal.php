@@ -14,6 +14,11 @@
 */
 
 return [
+    /*
+    | Who runs this instance: the invitation email names it (GDPR art. 14, #1345). A self-hosted instance sets its own.
+    */
+    'operator' => env('LEGAL_OPERATOR', 'DeveloPassion SRL (Belgium)'),
+
     'subprocessors' => [
         [
             'name' => 'Hetzner Online GmbH',
