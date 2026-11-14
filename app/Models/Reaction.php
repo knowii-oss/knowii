@@ -14,9 +14,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $user_id
  * @property ?int $post_id
  * @property ?int $comment_id
+ * @property ?int $chat_message_id
  * @property string $emoji One of App\Support\Emoji (#1204)
  * @property Carbon $created_at
  * @property-read User $user
+ * @property-read ?Post $post
+ * @property-read ?Comment $comment
+ * @property-read ?ChatMessage $chatMessage
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Reaction newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Reaction newQuery()
@@ -46,5 +50,29 @@ class Reaction extends Model
     final public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @return BelongsTo<Post, covariant $this>
+     */
+    final public function post(): BelongsTo
+    {
+        return $this->belongsTo(Post::class);
+    }
+
+    /**
+     * @return BelongsTo<Comment, covariant $this>
+     */
+    final public function comment(): BelongsTo
+    {
+        return $this->belongsTo(Comment::class);
+    }
+
+    /**
+     * @return BelongsTo<ChatMessage, covariant $this>
+     */
+    final public function chatMessage(): BelongsTo
+    {
+        return $this->belongsTo(ChatMessage::class);
     }
 }

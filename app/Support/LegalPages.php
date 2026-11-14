@@ -44,10 +44,7 @@ final class LegalPages
     public static function render(string $page): array
     {
         $file = self::PAGES[$page] ?? throw new InvalidArgumentException("Unknown legal page: {$page}");
-        $override = storage_path("app/legal/{$file}.md");
-        $path = File::exists($override) ? $override : resource_path("markdown/{$file}.md");
-
-        [$meta, $markdown] = self::frontMatter(File::get($path));
+        [$meta, $markdown] = self::frontMatter(File::get(self::path($file)));
 
         return [
             'title' => $meta['title'] ?? ucfirst(str_replace('-', ' ', $page)),
@@ -55,6 +52,16 @@ final class LegalPages
             'draft' => in_array(strtolower($meta['draft'] ?? 'false'), ['true', 'yes', '1'], true),
             'html' => Markdown::render(self::fillPlaceholders($markdown)),
         ];
+    }
+
+    /**
+     * The `updated` date (YYYY-MM-DD) of a page, the version of its text: null when the page has none (#1353).
+     */
+    public static function updated(string $page): ?string
+    {
+        $file = self::PAGES[$page] ?? throw new InvalidArgumentException("Unknown legal page: {$page}");
+
+        return self::frontMatter(File::get(self::path($file)))[0]['updated'] ?? null;
     }
 
     /**
@@ -125,6 +132,13 @@ final class LegalPages
         }
 
         return $list;
+    }
+
+    private static function path(string $file): string
+    {
+        $override = storage_path("app/legal/{$file}.md");
+
+        return File::exists($override) ? $override : resource_path("markdown/{$file}.md");
     }
 
     /**

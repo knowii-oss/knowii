@@ -9,6 +9,7 @@ use App\Exceptions\TechnicalException;
 use App\Models\Community;
 use App\Models\User;
 use App\Rules\AvailableCommunityName;
+use App\Support\LegalPages;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -62,11 +63,18 @@ class CreateCommunity implements CreatesCommunities
         $communityName = $input['name'];
 
         try {
+            // The owner of a shared community accepts the DPA in the create dialog: Knowii records the date and the
+            // version of the text (#1353). A personal community holds nobody else's data: nothing to accept
+            $shared = $input['visibility'] !== KnowiiCommunityVisibility::Personal->value;
+            $dpaVersion = $shared ? LegalPages::updated('dpa') : null;
+
             $retVal = $user->ownedCommunities()->create([
                 'name' => $communityName,
                 // Slug is generated automatically
                 'description' => $input['description'] ?? null,
                 'visibility' => $input['visibility'],
+                'dpa_accepted_at' => $shared ? now() : null,
+                'dpa_version' => $dpaVersion,
             ]);
 
             Log::info('New community created successfully', ['community' => $retVal->cuid]);

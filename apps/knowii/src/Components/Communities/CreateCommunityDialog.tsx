@@ -1,4 +1,5 @@
 import { Controller, useForm } from 'react-hook-form';
+import { useRoute } from 'ziggy-js';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import InputError from '@/Components/InputError';
@@ -12,6 +13,7 @@ import {
   sleep,
   useAppData,
   DEFAULT_TEXTAREA_ROWS,
+  DPA_URL,
 } from '@knowii/common';
 import { useState } from 'react';
 import CommunityIcon from './CommunityIcon';
@@ -34,6 +36,7 @@ const visibilityOptions = communityVisibilityOptions.map((option) => ({
 export default function CreateCommunityDialog(props: CreateCommunityDialogProps) {
   const [loading, setLoading] = useState(false);
   const { showToast } = useAppData();
+  const route = useRoute();
 
   const form = useForm<NewCommunity>({
     resolver: zodResolver(newCommunitySchema),
@@ -174,6 +177,17 @@ export default function CreateCommunityDialog(props: CreateCommunityDialogProps)
             />
             <InputError className="mt-2" message={form.formState.errors.visibility?.message} />
           </div>
+
+          {/* A shared community holds the data of other people: the owner accepts the DPA (GDPR art. 28, #1353). Approved text */}
+          {form.watch('visibility') !== 'personal' && (
+            <p id="create-community-dpa" className="mt-4 text-xs text-muted">
+              By creating a community, you accept the{' '}
+              <a href={route(DPA_URL)} target="_blank" rel="noreferrer" className="simple-link">
+                data processing agreement
+              </a>
+              .
+            </p>
+          )}
         </form>
       )}
     </Dialog>

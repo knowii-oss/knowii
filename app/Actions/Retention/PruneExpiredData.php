@@ -2,12 +2,14 @@
 
 namespace App\Actions\Retention;
 
+use App\Actions\Communities\ExportCommunity;
 use App\Contracts\Retention\PrunesExpiredData;
 use App\Models\CommunityInvitation;
 use App\Support\Retention;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\PersonalAccessToken;
 
 /**
@@ -19,6 +21,7 @@ use Laravel\Sanctum\PersonalAccessToken;
  * - password reset tokens after their validity
  * - sessions (IP address, browser) after the session lifetime, when they are stored in the database: Laravel
  *   deletes them only at random on some requests
+ * - community exports (zip files of `php artisan communities:export`, #1353) after their retention period
  * - cache entries after their expiry (sign-in link tokens, rate limit counters by IP address), when the cache is the
  *   database: an expired entry stays in the table until someone reads its key again
  */
@@ -53,11 +56,33 @@ final class PruneExpiredData implements PrunesExpiredData
                 )
                 : 0,
             'cache' => $this->pruneCache($dryRun),
+            'exports' => $this->pruneExports($dryRun),
         ];
 
         Log::info($dryRun ? 'Expired data found' : 'Expired data deleted', $counts);
 
         return $counts;
+    }
+
+    /**
+     * The export files are copies of personal data: they stay only for a few days (data rule 8)
+     */
+    private function pruneExports(bool $dryRun): int
+    {
+        $disk = Storage::disk(ExportCommunity::DISK);
+        $limit = now()->subDays(Retention::exportsDays())->getTimestamp();
+        $deleted = 0;
+
+        foreach ($disk->files(ExportCommunity::DIRECTORY) as $file) {
+            if ($disk->lastModified($file) >= $limit) {
+                continue;
+            }
+            if ($dryRun || $disk->delete($file)) {
+                $deleted++;
+            }
+        }
+
+        return $deleted;
     }
 
     private function pruneCache(bool $dryRun): int

@@ -276,3 +276,14 @@ test('the privacy policy tells people who are not members how to use their right
             && str_contains($html, '<h2>10. Changes</h2>'))
     );
 });
+
+test('the DPA tells that Knowii records the acceptance date, and how to ask for an export (#1353, approved 2026-11-14)', function () {
+    $this->get('/dpa')->assertInertia(fn ($page) => $page->where('html', fn (string $html) => str_contains($html, 'The Controller accepts it when it creates a community. Knowii records the date.')
+        && str_contains($html, 'The Controller can ask for an export of its data before the deletion: write to <a href="mailto:contact@developassion.be">contact@developassion.be</a>.')
+        && ! str_contains($html, 'through the API')
+    ));
+});
+
+test('the version of a legal page is its updated date (#1353)', function () {
+    expect(LegalPages::updated('dpa'))->toMatch('/^\d{4}-\d{2}-\d{2}$/');
+});

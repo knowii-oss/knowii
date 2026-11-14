@@ -9,6 +9,7 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\PersonalAccessToken;
 
@@ -134,10 +135,46 @@ test('the dry run of the retention prune deletes nothing (#1306)', function () {
     $old = invitationCreatedDaysAgo($community, 60);
 
     $this->artisan('retention:prune', ['--dry-run' => true])
-        ->expectsTable(['Data', 'To delete'], [['invitations', 1], ['api_tokens', 0], ['failed_jobs', 0], ['password_reset_tokens', 0], ['sessions', 0], ['cache', 0]])
+        ->expectsTable(['Data', 'To delete'], [['invitations', 1], ['api_tokens', 0], ['failed_jobs', 0], ['password_reset_tokens', 0], ['sessions', 0], ['cache', 0], ['exports', 0]])
         ->assertSuccessful();
 
     expect(CommunityInvitation::query()->whereKey($old->id)->exists())->toBeTrue();
+});
+
+function exportFileAgeDays(string $name, int $days): string
+{
+    Storage::disk('local')->put('exports/'.$name, 'zip');
+    touch(Storage::disk('local')->path('exports/'.$name), now()->subDays($days)->getTimestamp());
+
+    return 'exports/'.$name;
+}
+
+test('community export files are deleted after 7 days, a recent one stays (#1353)', function () {
+    Storage::fake('local');
+    $old = exportFileAgeDays('community-old-20260101-000000.zip', 8);
+    $recent = exportFileAgeDays('community-new-20260101-000000.zip', 6);
+
+    $this->artisan('retention:prune')->assertSuccessful();
+
+    expect(Storage::disk('local')->exists($old))->toBeFalse()
+        ->and(Storage::disk('local')->exists($recent))->toBeTrue();
+});
+
+test('the period of the export files is configurable, and the dry run keeps them (#1353)', function () {
+    Storage::fake('local');
+    $file = exportFileAgeDays('community-late-20260101-000000.zip', 2);
+    expect(Retention::exportsDays())->toBe(7);
+
+    config(['retention.exports_days' => 1]);
+    $this->artisan('retention:prune', ['--dry-run' => true])
+        ->expectsTable(['Data', 'To delete'], [['invitations', 0], ['api_tokens', 0], ['failed_jobs', 0], ['password_reset_tokens', 0], ['sessions', 0], ['cache', 0], ['exports', 1]])
+        ->assertSuccessful();
+
+    expect(Storage::disk('local')->exists($file))->toBeTrue();
+
+    $this->artisan('retention:prune')->assertSuccessful();
+
+    expect(Storage::disk('local')->exists($file))->toBeFalse();
 });
 
 function configureEmailOctopus(): void

@@ -6,7 +6,7 @@ draft: false
 
 # Data processing agreement
 
-This data processing agreement ("DPA") applies between the owner of a community on Knowii (the "Controller") and DeveloPassion SRL, 126 Route de Mons, 7130 Binche, Belgium, company number 0717.561.755 (the "Processor"). It is part of the [terms of service](/terms-of-service) and follows article 28 of the General Data Protection Regulation (GDPR). The Controller accepts it when it creates a community.
+This data processing agreement ("DPA") applies between the owner of a community on Knowii (the "Controller") and DeveloPassion SRL, 126 Route de Mons, 7130 Binche, Belgium, company number 0717.561.755 (the "Processor"). It is part of the [terms of service](/terms-of-service) and follows article 28 of the General Data Protection Regulation (GDPR). The Controller accepts it when it creates a community. Knowii records the date.
 
 For the Knowii accounts themselves, DeveloPassion SRL is the controller: see the [privacy policy](/privacy-policy).
 
@@ -64,7 +64,7 @@ Some sub-processors are in the United States. These transfers use the EU-US Data
 
 ## 9. End of the processing
 
-When the Controller deletes its community, the Processor deletes its data at once, including the uploaded files. Copies in backups are deleted when the backup is deleted, at most {{retention.backups_longest}} later. The Controller can export its data before the deletion, through the API.
+When the Controller deletes its community, the Processor deletes its data at once, including the uploaded files. Copies in backups are deleted when the backup is deleted, at most {{retention.backups_longest}} later. The Controller can ask for an export of its data before the deletion: write to contact@developassion.be.
 
 ## 10. Applicable law
 
