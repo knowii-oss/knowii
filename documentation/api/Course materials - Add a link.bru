@@ -1,0 +1,29 @@
+meta {
+  name: Course materials - Add a link
+  type: http
+  seq: 131
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a course space>/materials
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "kind": "link",
+    "title": "Template vault",
+    "url": "https://example.com/template",
+    "page": "<cuid of a section or a lesson, or leave out for the whole course>"
+  }
+}
+
+docs {
+  Adds a link to the course, to a section or to a lesson. The managers of the course only (owner, admins, moderators who can read the space). Ability pages:write. At most 20 materials per course, section or lesson (422).
+}

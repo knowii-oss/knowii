@@ -54,6 +54,8 @@ The owner and the admins switch these rights in the community settings ("Moderat
 | Pin a post                                | `PostPolicy::pin`                                         | yes    | yes    | `pin_posts`                                  | no         | no       | no      |
 | Mark lessons as done, read one's progress | `SpacePolicy::trackProgress` (needs `view`, #1304)        | yes    | yes    | yes                                          | yes        | no       | no      |
 | Create, edit, reorder and delete pages    | `SpacePolicy::managePages` (needs `view`)                 | yes    | yes    | yes (role)                                   | no         | no       | no      |
+| Read and download course materials        | `SpacePolicy::view` (#1336)                               | yes    | yes    | yes                                          | yes        | no       | no      |
+| Add, change and delete course materials   | `SpacePolicy::managePages` (#1336)                        | yes    | yes    | yes (role)                                   | no         | no       | no      |
 | Write in a chat space                     | `SpacePolicy::contribute` (posting policy)                | yes    | yes    | yes                                          | members    | no       | no      |
 | Edit or delete one's own chat message     | `ChatMessagePolicy::update`, `::delete`                   | author | author | author                                       | author     | no       | no      |
 | Delete the chat messages of others        | `ChatMessagePolicy::delete` (`SpacePolicy::moderate`)     | yes    | yes    | `delete_content`                             | no         | no       | no      |

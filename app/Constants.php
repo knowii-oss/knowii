@@ -133,6 +133,14 @@ class Constants
 
     public const int MAX_LENGTH_UPLOAD_ALT = 500;
 
+    // Course materials (#1336). WARNING: aligned with constants.ts
+    public const int MIN_LENGTH_COURSE_MATERIAL_TITLE = 1;
+
+    public const int MAX_LENGTH_COURSE_MATERIAL_TITLE = 120;
+
+    // For the whole course, for one section or for one lesson
+    public const int MAX_COURSE_MATERIALS_PER_TARGET = 20;
+
     public const int UPLOADS_PER_MINUTE = 20;
 
     public const int INVITATIONS_PER_MINUTE = 10;

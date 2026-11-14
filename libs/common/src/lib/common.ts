@@ -31,6 +31,7 @@ export * from './types/social-media-link.schema';
 export * from './types/space.schema';
 export * from './types/post.schema';
 export * from './types/page.schema';
+export * from './types/course-material.schema';
 export * from './types/chat-message.schema';
 export * from './types/comment.schema';
 export * from './types/reaction.schema';

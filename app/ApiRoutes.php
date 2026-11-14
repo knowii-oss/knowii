@@ -52,6 +52,9 @@ final class ApiRoutes
 
     public const PARAM_RESOURCE_COMMENT = 'comment';
 
+    // Course materials (#1336): named after Space::materials() for the scoped binding
+    public const PARAM_MATERIAL = 'material';
+
     // The user cuid of a member (#1242)
     public const PARAM_MEMBER = 'member';
 
@@ -162,6 +165,15 @@ final class ApiRoutes
     public const COMMUNITY_SPACE_POST_REACTIONS = self::COMMUNITY_SPACE_POST.'/reactions';
 
     public const COMMUNITY_SPACE_POST_COMMENT_REACTIONS = self::COMMUNITY_SPACE_POST_COMMENT.'/reactions';
+
+    // Supplementary materials of course spaces (#1336, ADR 0037)
+    public const COMMUNITY_SPACE_MATERIALS = self::COMMUNITY_SPACE.'/materials';
+
+    public const COMMUNITY_SPACE_MATERIALS_ORDER = self::COMMUNITY_SPACE_MATERIALS.'/order';
+
+    public const COMMUNITY_SPACE_MATERIAL = self::COMMUNITY_SPACE_MATERIALS.'/{'.self::PARAM_MATERIAL.'}';
+
+    public const COMMUNITY_SPACE_MATERIAL_DOWNLOAD = self::COMMUNITY_SPACE_MATERIAL.'/download';
 
     public const MARKDOWN_PREVIEW = 'markdown/preview';
 

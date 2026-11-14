@@ -40,6 +40,8 @@ class EnsureRequestIsJson
 
         return $isMultipart && (
             $request->is(str_replace('{'.ApiRoutes::PARAM_COMMUNITY.'}', '*', ApiRoutes::path(ApiRoutes::COMMUNITY_UPLOADS)))
+            // A file of a course material (#1336)
+            || ($request->isMethod('POST') && $request->is(str_replace(['{'.ApiRoutes::PARAM_COMMUNITY.'}', '{'.ApiRoutes::PARAM_SPACE.'}'], '*', ApiRoutes::path(ApiRoutes::COMMUNITY_SPACE_MATERIALS))))
             // The avatar of the current user (#109)
             || ($request->isMethod('POST') && $request->is(ApiRoutes::path(ApiRoutes::USER_AVATAR)))
         );

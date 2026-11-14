@@ -1,0 +1,19 @@
+meta {
+  name: Course materials - List
+  type: http
+  seq: 130
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a course space>/materials
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Lists the materials of a course space in their order (#1336, ADR 0037). Each one names its section or lesson in page_cuid, or null for a material of the whole course. Add ?page=<cuid of a section or a lesson> for the materials of that page only. Members who can read the space. Ability pages:read. A space that is not a course gives a 422.
+}

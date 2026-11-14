@@ -52,6 +52,11 @@ import {
   COMMUNITY_SPACE_PAGES_ORDER_API_PATH,
   COMMUNITY_SPACE_PAGE_PROGRESS_API_PATH,
   COMMUNITY_SPACE_PROGRESS_API_PATH,
+  COMMUNITY_SPACE_MATERIALS_API_PATH,
+  COMMUNITY_SPACE_MATERIALS_ORDER_API_PATH,
+  COMMUNITY_SPACE_MATERIAL_API_PATH,
+  COMMUNITY_SPACE_MATERIAL_DOWNLOAD_API_PATH,
+  SPACE_API_PARAM_MATERIAL,
   COMMUNITY_SPACE_POST_API_PATH,
   COMMUNITY_SPACE_POST_COMMENT_API_PATH,
   COMMUNITY_SPACE_POST_COMMENTS_API_PATH,
@@ -110,6 +115,8 @@ import { chatMessageSchema, chatThreadSchema } from '../types/chat-message.schem
 import type { Page, PageForm, SectionForm } from '../types/page.schema';
 import type { CourseProgress } from '../types/page.schema';
 import { courseProgressSchema, pageSchema } from '../types/page.schema';
+import type { CourseMaterial } from '../types/course-material.schema';
+import { courseMaterialSchema } from '../types/course-material.schema';
 import type { CommunityResourceChanges, NewCommunityResource } from '../types/new-community-resource.schema';
 import type { ReactionSummary, WhoReacted } from '../types/reaction.schema';
 import type { AssignableCommunityRole, CommunityInvitation, CommunityInvitationForm, CommunityMember } from '../types/member.schema';
@@ -139,6 +146,12 @@ const spaceGroupPath = (communityCuid: string, spaceGroupCuid: string, path = CO
   apiPath(path, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE_GROUP]: spaceGroupCuid });
 const spacePath = (communityCuid: string, spaceCuid: string) =>
   apiPath(COMMUNITY_SPACE_API_PATH, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE]: spaceCuid });
+const materialsPath = (communityCuid: string, spaceCuid: string, path = COMMUNITY_SPACE_MATERIALS_API_PATH, materialCuid = '') =>
+  apiPath(path, {
+    [SPACE_API_PARAM_COMMUNITY]: communityCuid,
+    [SPACE_API_PARAM_SPACE]: spaceCuid,
+    [SPACE_API_PARAM_MATERIAL]: materialCuid,
+  });
 const communityPath = (path: string, communityCuid: string) => apiPath(path, { [SPACE_API_PARAM_COMMUNITY]: communityCuid });
 const memberPath = (communityCuid: string, memberCuid: string) =>
   apiPath(COMMUNITY_MEMBER_API_PATH, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [COMMUNITY_API_PARAM_MEMBER]: memberCuid });
@@ -687,6 +700,112 @@ export const knowiiApiClient = {
         apiRequest('patch', commentsPath(subject, commentCuid), commentSchema, 'Failed to save the comment.', input),
       delete: (subject: CommentSubject, commentCuid: string): Promise<ApiResult<undefined>> =>
         apiRequest('delete', commentsPath(subject, commentCuid), null, 'Failed to delete the comment.'),
+    },
+    /**
+     * Supplementary materials of course spaces (#1336, ADR 0037): files and links for the course, a section or a lesson
+     */
+    materials: {
+      /**
+       * Every material of the course space, in its order; each one names its section or lesson, or none
+       */
+      list: (communityCuid: string, spaceCuid: string, signal?: AbortSignal): Promise<ApiResult<CourseMaterial[]>> =>
+        apiRequest(
+          'get',
+          materialsPath(communityCuid, spaceCuid),
+          z.array(courseMaterialSchema),
+          'Failed to load the materials.',
+          undefined,
+          signal,
+        ),
+      addLink: (
+        communityCuid: string,
+        spaceCuid: string,
+        pageCuid: string | null,
+        input: { title: string; url: string },
+      ): Promise<ApiResult<CourseMaterial>> =>
+        apiRequest('post', materialsPath(communityCuid, spaceCuid), courseMaterialSchema, 'Failed to add the link.', {
+          kind: 'link',
+          ...input,
+          ...(pageCuid === null ? {} : { page: pageCuid }),
+        }),
+      /**
+       * Upload a file (multipart). The server reads the type from the content and stores the file on a private disk.
+       */
+      addFile: async (
+        communityCuid: string,
+        spaceCuid: string,
+        pageCuid: string | null,
+        input: { title: string; file: File },
+      ): Promise<ApiResult<CourseMaterial>> => {
+        const failure = 'Failed to add the file.';
+        const body = new FormData();
+        body.append('kind', 'file');
+        body.append('title', input.title);
+        body.append('file', input.file);
+        if (pageCuid !== null) {
+          body.append('page', pageCuid);
+        }
+        try {
+          // No Content-Type header: the browser sets the multipart boundary
+          const response = await fetch(materialsPath(communityCuid, spaceCuid), {
+            method: 'POST',
+            headers: { Accept: 'application/json' },
+            body,
+          });
+          const json: unknown = await response.json();
+          const envelope = typeof json === 'object' && json !== null ? (json as Record<string, unknown>) : {};
+          const message = typeof envelope['message'] === 'string' && envelope['message'] !== '' ? envelope['message'] : failure;
+          const parsed = courseMaterialSchema.safeParse(envelope['data']);
+          if (!response.ok || !parsed.success) {
+            return { ok: false, status: response.status, message, errors: fieldErrors(envelope['errors']) };
+          }
+          return { ok: true, message, data: parsed.data };
+        } catch {
+          return { ok: false, status: 0, message: failure, errors: {} };
+        }
+      },
+      update: (
+        communityCuid: string,
+        spaceCuid: string,
+        materialCuid: string,
+        input: { title?: string; url?: string },
+      ): Promise<ApiResult<CourseMaterial>> =>
+        apiRequest(
+          'patch',
+          materialsPath(communityCuid, spaceCuid, COMMUNITY_SPACE_MATERIAL_API_PATH, materialCuid),
+          courseMaterialSchema,
+          'Failed to save the material.',
+          input,
+        ),
+      delete: (communityCuid: string, spaceCuid: string, materialCuid: string): Promise<ApiResult<void>> =>
+        apiRequest(
+          'delete',
+          materialsPath(communityCuid, spaceCuid, COMMUNITY_SPACE_MATERIAL_API_PATH, materialCuid),
+          null,
+          'Failed to delete the material.',
+        ),
+      /**
+       * The new order of the materials of one target (the course: null, a section or a lesson). Returns every
+       * material of the space.
+       */
+      reorder: (
+        communityCuid: string,
+        spaceCuid: string,
+        pageCuid: string | null,
+        materialCuids: string[],
+      ): Promise<ApiResult<CourseMaterial[]>> =>
+        apiRequest(
+          'post',
+          materialsPath(communityCuid, spaceCuid, COMMUNITY_SPACE_MATERIALS_ORDER_API_PATH),
+          z.array(courseMaterialSchema),
+          'Failed to reorder the materials.',
+          { materials: materialCuids, ...(pageCuid === null ? {} : { page: pageCuid }) },
+        ),
+      /**
+       * The address that downloads the file of a material (the server checks the access again)
+       */
+      downloadUrl: (communityCuid: string, spaceCuid: string, materialCuid: string): string =>
+        materialsPath(communityCuid, spaceCuid, COMMUNITY_SPACE_MATERIAL_DOWNLOAD_API_PATH, materialCuid),
     },
     uploads: {
       /**

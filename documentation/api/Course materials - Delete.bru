@@ -1,0 +1,19 @@
+meta {
+  name: Course materials - Delete
+  type: http
+  seq: 135
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a course space>/materials/<material cuid>
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Deletes a material and its file. Returns 204. Ability pages:write.
+}

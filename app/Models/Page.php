@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * A Markdown page of a page space (#1179), in the order of its position.
@@ -110,6 +111,16 @@ class Page extends Model
     final public function community(): BelongsTo
     {
         return $this->belongsTo(Community::class);
+    }
+
+    /**
+     * The materials of a lesson or of a section of a course (#1336), in their order
+     *
+     * @return HasMany<CourseMaterial, covariant $this>
+     */
+    final public function materials(): HasMany
+    {
+        return $this->hasMany(CourseMaterial::class)->orderBy('position')->orderBy('id');
     }
 
     /**

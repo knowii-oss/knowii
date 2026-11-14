@@ -1,0 +1,27 @@
+meta {
+  name: Course materials - Reorder
+  type: http
+  seq: 134
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a course space>/materials/order
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "page": "<cuid of a section or a lesson, or leave out for the whole course>",
+    "materials": ["<cuid of material 2>", "<cuid of material 1>"]
+  }
+}
+
+docs {
+  Puts the materials of the course, of a section or of a lesson in a new order: the cuids of every material of that target, once (else a validation issue). Returns every material of the space. Ability pages:write.
+}
