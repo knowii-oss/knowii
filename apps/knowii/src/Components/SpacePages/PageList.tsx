@@ -8,6 +8,7 @@ import {
   FaArrowUp,
   FaCircleCheck,
   FaHeading,
+  FaListCheck,
   FaPen,
   FaPlus,
   FaRegCircle,
@@ -31,7 +32,7 @@ export interface PageListProps {
 
 /**
  * The pages of a page space (#1179), or the outline of a course space (#1188): sections as headings, numbered lessons
- * with a video mark, and "Start the course". The owner, the admins and the moderators add pages, lessons and sections
+ * with a video mark and a quiz mark (#1335), and "Start the course". The owner, the admins and the moderators add pages, lessons and sections
  * and move them with the arrow buttons (keyboard friendly, no drag and drop needed). Sections have no page: they are
  * renamed and deleted here. In a course, members see a check on each lesson they marked as done, how many they did,
  * and "Continue" to the first lesson that is not done (#1304).
@@ -240,6 +241,12 @@ export function PageList({ community, space, pages: initialPages, canManagePages
                   <span className="flex shrink-0 items-center gap-1 text-xs text-muted">
                     <FaVideo aria-hidden="true" />
                     <span className="sr-only @md:not-sr-only">Video</span>
+                  </span>
+                )}
+                {page.has_quiz && (
+                  <span className="flex shrink-0 items-center gap-1 text-xs text-muted">
+                    <FaListCheck aria-hidden="true" />
+                    <span className="sr-only @md:not-sr-only">Quiz</span>
                   </span>
                 )}
                 {canManagePages && moveButtons(page, index)}

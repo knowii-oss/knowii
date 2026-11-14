@@ -1,0 +1,35 @@
+meta {
+  name: Quizzes - Save - Two correct choices
+  type: http
+  seq: 139
+}
+
+put {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/q8kcoursespacestarthere1/pages/q8klessoninstallobsidn1/quiz
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "questions": [
+      {
+        "kind": "single",
+        "prompt": "Where does Obsidian keep your notes?",
+        "choices": [
+          { "label": "In a folder on your device", "correct": true },
+          { "label": "In a vault", "correct": true }
+        ]
+      }
+    ]
+  }
+}
+
+docs {
+  A single-choice question with two correct choices: 400, type validationIssue, with the message under `errors["questions.0.choices"]`.
+}

@@ -30,6 +30,8 @@ export const pageSchema = z.object({
   body_html: z.string().nullable().optional(),
   author: authorSchema.nullable().optional(),
   video: pageVideoSchema.nullable().optional(),
+  // Lessons of a course space (#1335): whether the lesson has a quiz
+  has_quiz: z.boolean().optional(),
   created_at: z.coerce.date(),
   updated_at: z.coerce.date(),
 });

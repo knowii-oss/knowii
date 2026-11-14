@@ -1,0 +1,19 @@
+meta {
+  name: Quizzes - Delete
+  type: http
+  seq: 140
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/q8kcoursespacestarthere1/pages/q8klessoninstallobsidn1/quiz
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Deletes the quiz of a lesson with its questions and the results of the members (managers of the course). The lessons that members finished stay done. 204 without a body; 404 when the lesson has no quiz. Token ability: pages:write.
+}

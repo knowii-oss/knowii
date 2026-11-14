@@ -6,6 +6,7 @@ import { TextInput } from './TextInput';
 import { Textarea } from './Textarea';
 import { PasswordInput, getPasswordStrength } from './PasswordInput';
 import { Checkbox } from './Checkbox';
+import { Radio } from './Radio';
 import { SegmentedControl } from './SegmentedControl';
 
 function ControlledInput(props: { allowedCharacters?: RegExp }) {
@@ -124,6 +125,36 @@ describe('Checkbox', () => {
     await userEvent.keyboard(' ');
     expect(checkbox).toBeChecked();
     expect(onChange).toHaveBeenCalledOnce();
+  });
+});
+
+describe('Radio', () => {
+  it('is one tab stop per group and changes with the arrow keys', async () => {
+    const onChange = vi.fn();
+    render(
+      <fieldset>
+        <legend>Size</legend>
+        <label>
+          <Radio name="size" value="s" onChange={onChange} />
+          Small
+        </label>
+        <label>
+          <Radio name="size" value="l" onChange={onChange} />
+          Large
+        </label>
+      </fieldset>,
+    );
+    const small = screen.getByRole('radio', { name: 'Small' });
+    const large = screen.getByRole('radio', { name: 'Large' });
+    await userEvent.tab();
+    expect(small).toHaveFocus();
+    await userEvent.keyboard(' ');
+    expect(small).toBeChecked();
+    await userEvent.keyboard('{ArrowDown}');
+    expect(large).toHaveFocus();
+    expect(large).toBeChecked();
+    expect(small).not.toBeChecked();
+    expect(onChange).toHaveBeenCalledTimes(2);
   });
 });
 

@@ -45,6 +45,9 @@ use App\Actions\Posts\CreatePost;
 use App\Actions\Posts\DeletePost;
 use App\Actions\Posts\PinPost;
 use App\Actions\Posts\UpdatePost;
+use App\Actions\Quizzes\AttemptQuiz;
+use App\Actions\Quizzes\DeleteQuiz;
+use App\Actions\Quizzes\SaveQuiz;
 use App\Actions\Reactions\ToggleReaction;
 use App\Actions\Resources\CaptureResourcePage;
 use App\Actions\Resources\CreateCommunityResource;
@@ -109,6 +112,9 @@ use App\Contracts\Posts\CreatesPosts;
 use App\Contracts\Posts\DeletesPosts;
 use App\Contracts\Posts\PinsPosts;
 use App\Contracts\Posts\UpdatesPosts;
+use App\Contracts\Quizzes\AttemptsQuizzes;
+use App\Contracts\Quizzes\DeletesQuizzes;
+use App\Contracts\Quizzes\SavesQuizzes;
 use App\Contracts\Reactions\TogglesReactions;
 use App\Contracts\Realtime\ReadsPresenceChannels;
 use App\Contracts\Resources\CapturesResourcePages;
@@ -224,6 +230,10 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(UpdatesCourseMaterials::class, UpdateCourseMaterial::class);
         app()->singleton(DeletesCourseMaterials::class, DeleteCourseMaterial::class);
         app()->singleton(ReordersCourseMaterials::class, ReorderCourseMaterials::class);
+        // Lesson quizzes (#1335)
+        app()->singleton(SavesQuizzes::class, SaveQuiz::class);
+        app()->singleton(DeletesQuizzes::class, DeleteQuiz::class);
+        app()->singleton(AttemptsQuizzes::class, AttemptQuiz::class);
         app()->singleton(PrunesMailingListContacts::class, PruneEmailOctopusContacts::class);
 
         // Public waitlist endpoint: a few requests per minute and per IP address
@@ -280,6 +290,11 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('ownership-transfers', static function (Request $request) {
             return Limit::perMinute(Constants::OWNERSHIP_TRANSFERS_PER_MINUTE)->by(self::rateLimitKey($request));
+        });
+
+        // Quiz attempts (#1335): the server grades each one
+        RateLimiter::for('quiz-attempts', static function (Request $request) {
+            return Limit::perMinute(Constants::QUIZ_ATTEMPTS_PER_MINUTE)->by(self::rateLimitKey($request));
         });
 
         RateLimiter::for('markdown-preview', static function (Request $request) {

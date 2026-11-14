@@ -320,6 +320,8 @@ class Community extends Model
             ->delete();
         // Nor a course progress in it (#1304, ADR 0034)
         DB::table('lesson_progress')->where('community_id', $this->id)->where('user_id', $user->id)->delete();
+        // Nor their quiz results (#1335, ADR 0038)
+        DB::table('quiz_results')->where('community_id', $this->id)->where('user_id', $user->id)->delete();
     }
 
     /**

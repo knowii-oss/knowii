@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * A Markdown page of a page space (#1179), in the order of its position.
@@ -37,6 +38,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Community $community
  * @property-read Space $space
  * @property-read ?User $author
+ * @property-read ?Quiz $quiz
  *
  * @method static \Database\Factories\PageFactory factory($count = null, $state = [])
  * @method TResource toResource<TResource of \Illuminate\Http\Resources\Json\JsonResource = \App\Http\Resources\PageResource>(class-string<TResource>|null $resourceClass = null)
@@ -121,6 +123,24 @@ class Page extends Model
     final public function materials(): HasMany
     {
         return $this->hasMany(CourseMaterial::class)->orderBy('position')->orderBy('id');
+    }
+
+    /**
+     * The quiz of a lesson of a course (#1335, ADR 0038); none for most lessons
+     *
+     * @return HasOne<Quiz, covariant $this>
+     */
+    final public function quiz(): HasOne
+    {
+        return $this->hasOne(Quiz::class);
+    }
+
+    /**
+     * Whether the lesson has a quiz. Lists load it with `withExists('quiz')`; one page asks the database.
+     */
+    final public function hasQuiz(): bool
+    {
+        return array_key_exists('quiz_exists', $this->attributes) ? (bool) $this->attributes['quiz_exists'] : $this->quiz()->exists();
     }
 
     /**

@@ -17,6 +17,7 @@ export * from './MarkdownEditor';
 export * from './markdown-format';
 export * from './DropdownMenu';
 export * from './PasswordInput';
+export * from './Radio';
 export * from './RelativeTime';
 export * from './SegmentedControl';
 export * from './Select';

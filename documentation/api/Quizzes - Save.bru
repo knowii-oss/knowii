@@ -1,0 +1,46 @@
+meta {
+  name: Quizzes - Save
+  type: http
+  seq: 138
+}
+
+put {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/q8kcoursespacestarthere1/pages/q8klessoninstallobsidn1/quiz
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "pass_mark": 70,
+    "questions": [
+      {
+        "kind": "single",
+        "prompt": "Where does Obsidian keep your notes?",
+        "explanation": "A vault is a folder of Markdown files on your device.",
+        "choices": [
+          { "label": "In a folder on your device", "correct": true },
+          { "label": "In a database in the cloud", "correct": false }
+        ]
+      },
+      {
+        "kind": "multiple",
+        "prompt": "Which of these are **core plugins**?",
+        "choices": [
+          { "label": "Daily notes", "correct": true },
+          { "label": "Templates", "correct": true },
+          { "label": "Dataview", "correct": false }
+        ]
+      }
+    ]
+  }
+}
+
+docs {
+  Creates the quiz of a lesson, or replaces it as a whole (managers of the course: owner, admins, moderators). 1 to 50 questions, 2 to 8 choices each. `single`: exactly one correct choice. `multiple`: one or more. `pass_mark` is a percent (70 by default; 0 makes the quiz a self-check). When the questions or the choices change, the results of the members are deleted; a new pass mark alone keeps them. Token ability: pages:write.
+}

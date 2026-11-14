@@ -141,6 +141,27 @@ class Constants
     // For the whole course, for one section or for one lesson
     public const int MAX_COURSE_MATERIALS_PER_TARGET = 20;
 
+    // Lesson quizzes (#1335, ADR 0038). WARNING: aligned with constants.ts
+    public const int MIN_QUIZ_QUESTIONS = 1;
+
+    public const int MAX_QUIZ_QUESTIONS = 50;
+
+    public const int MIN_QUIZ_CHOICES = 2;
+
+    public const int MAX_QUIZ_CHOICES = 8;
+
+    public const int MAX_LENGTH_QUIZ_PROMPT = 2000;
+
+    public const int MAX_LENGTH_QUIZ_EXPLANATION = 2000;
+
+    public const int MAX_LENGTH_QUIZ_CHOICE = 300;
+
+    // Percent of correct answers needed to pass, when the manager gives none
+    public const int DEFAULT_QUIZ_PASS_MARK = 70;
+
+    // Quiz attempts per minute and per user: trying again at once is normal, guessing in a loop is not
+    public const int QUIZ_ATTEMPTS_PER_MINUTE = 20;
+
     public const int UPLOADS_PER_MINUTE = 20;
 
     public const int INVITATIONS_PER_MINUTE = 10;

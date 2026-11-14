@@ -29,6 +29,8 @@ class PageResource extends AbstractKnowiiJsonResource
             'body_html' => $this->serializeLargeFields ? $this->body_html : null,
             // Lessons of a course space (#1188): the provider and the player address; null without a video
             'video' => $this->video(),
+            // Lessons of a course space (#1335): whether the lesson has a quiz (get it from its own endpoint)
+            'has_quiz' => $this->hasQuiz(),
             'author' => $this->whenLoaded('author', fn (?User $author) => $author?->toResource(AuthorResource::class)),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

@@ -51,6 +51,8 @@ import {
   COMMUNITY_SPACE_PAGES_API_PATH,
   COMMUNITY_SPACE_PAGES_ORDER_API_PATH,
   COMMUNITY_SPACE_PAGE_PROGRESS_API_PATH,
+  COMMUNITY_SPACE_PAGE_QUIZ_API_PATH,
+  COMMUNITY_SPACE_PAGE_QUIZ_ATTEMPTS_API_PATH,
   COMMUNITY_SPACE_PROGRESS_API_PATH,
   COMMUNITY_SPACE_MATERIALS_API_PATH,
   COMMUNITY_SPACE_MATERIALS_ORDER_API_PATH,
@@ -117,6 +119,8 @@ import type { CourseProgress } from '../types/page.schema';
 import { courseProgressSchema, pageSchema } from '../types/page.schema';
 import type { CourseMaterial } from '../types/course-material.schema';
 import { courseMaterialSchema } from '../types/course-material.schema';
+import type { LessonQuiz, QuizAnswer, QuizAttempt, QuizForm } from '../types/quiz.schema';
+import { lessonQuizSchema, quizAttemptSchema } from '../types/quiz.schema';
 import type { CommunityResourceChanges, NewCommunityResource } from '../types/new-community-resource.schema';
 import type { ReactionSummary, WhoReacted } from '../types/reaction.schema';
 import type { AssignableCommunityRole, CommunityInvitation, CommunityInvitationForm, CommunityMember } from '../types/member.schema';
@@ -700,6 +704,51 @@ export const knowiiApiClient = {
         apiRequest('patch', commentsPath(subject, commentCuid), commentSchema, 'Failed to save the comment.', input),
       delete: (subject: CommentSubject, commentCuid: string): Promise<ApiResult<undefined>> =>
         apiRequest('delete', commentsPath(subject, commentCuid), null, 'Failed to delete the comment.'),
+    },
+    /**
+     * The quiz of a lesson of a course space (#1335, ADR 0038): managers write it, members answer, the server grades
+     */
+    quizzes: {
+      /**
+       * The quiz of a lesson with your result. Managers of the course also get the correct choices.
+       */
+      get: (communityCuid: string, spaceCuid: string, pageCuid: string): Promise<ApiResult<LessonQuiz>> =>
+        apiRequest(
+          'get',
+          pagesPath(communityCuid, spaceCuid, pageCuid, COMMUNITY_SPACE_PAGE_QUIZ_API_PATH),
+          lessonQuizSchema,
+          'Failed to load the quiz.',
+        ),
+      /**
+       * Create the quiz of a lesson or replace it as a whole (managers). New questions delete the results of the members.
+       */
+      save: (communityCuid: string, spaceCuid: string, pageCuid: string, input: QuizForm): Promise<ApiResult<LessonQuiz>> =>
+        apiRequest(
+          'put',
+          pagesPath(communityCuid, spaceCuid, pageCuid, COMMUNITY_SPACE_PAGE_QUIZ_API_PATH),
+          lessonQuizSchema,
+          'Failed to save the quiz.',
+          input,
+        ),
+      delete: (communityCuid: string, spaceCuid: string, pageCuid: string): Promise<ApiResult<undefined>> =>
+        apiRequest(
+          'delete',
+          pagesPath(communityCuid, spaceCuid, pageCuid, COMMUNITY_SPACE_PAGE_QUIZ_API_PATH),
+          null,
+          'Failed to delete the quiz.',
+        ),
+      /**
+       * Answer the quiz: the server grades and returns your result with the review of this attempt, and your
+       * progress in the course (a pass marks the lesson as done).
+       */
+      attempt: (communityCuid: string, spaceCuid: string, pageCuid: string, answers: QuizAnswer[]): Promise<ApiResult<QuizAttempt>> =>
+        apiRequest(
+          'post',
+          pagesPath(communityCuid, spaceCuid, pageCuid, COMMUNITY_SPACE_PAGE_QUIZ_ATTEMPTS_API_PATH),
+          quizAttemptSchema,
+          'Failed to send your answers.',
+          { answers },
+        ),
     },
     /**
      * Supplementary materials of course spaces (#1336, ADR 0037): files and links for the course, a section or a lesson

@@ -1,0 +1,19 @@
+meta {
+  name: Quizzes - Get
+  type: http
+  seq: 137
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/q8kcoursespacestarthere1/pages/q8klessoninstallobsidn1/quiz
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The quiz of a lesson of a course space: `quiz` (pass mark, questions with their choices) and `result` (your best score, your last score, the number of attempts, whether you passed, and the review of your last attempt; null while you did not answer). The managers of the course also get the Markdown sources, `is_correct` and the explanations. 404 when the lesson has no quiz, 422 for a section or a page of a page space. Token ability: pages:read.
+}

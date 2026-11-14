@@ -150,6 +150,16 @@ export const COMMENT_EDITOR_ROWS = 4;
 export const MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024;
 export const MAX_LENGTH_UPLOAD_ALT = 500;
 
+// Lesson quizzes (#1335, ADR 0038). WARNING: aligned with Constants.php
+export const MIN_QUIZ_QUESTIONS = 1;
+export const MAX_QUIZ_QUESTIONS = 50;
+export const MIN_QUIZ_CHOICES = 2;
+export const MAX_QUIZ_CHOICES = 8;
+export const MAX_LENGTH_QUIZ_PROMPT = 2000;
+export const MAX_LENGTH_QUIZ_EXPLANATION = 2000;
+export const MAX_LENGTH_QUIZ_CHOICE = 300;
+export const DEFAULT_QUIZ_PASS_MARK = 70;
+
 // Course materials (#1336). WARNING: aligned with Constants.php and CourseMaterials.php
 export const MIN_LENGTH_COURSE_MATERIAL_TITLE = 1;
 export const MAX_LENGTH_COURSE_MATERIAL_TITLE = 120;
@@ -276,6 +286,9 @@ export const COMMUNITY_SPACE_MATERIALS_ORDER_API_PATH = `${COMMUNITY_SPACE_MATER
 export const COMMUNITY_SPACE_MATERIAL_API_PATH = `${COMMUNITY_SPACE_MATERIALS_API_PATH}/${SPACE_API_PARAM_MATERIAL}`;
 export const COMMUNITY_SPACE_MATERIAL_DOWNLOAD_API_PATH = `${COMMUNITY_SPACE_MATERIAL_API_PATH}/download`;
 export const COMMUNITY_SPACE_PAGE_PROGRESS_API_PATH = `${COMMUNITY_SPACE_PAGE_API_PATH}/progress`;
+// The quiz of a lesson (#1335). WARNING: aligned with ApiRoutes.php
+export const COMMUNITY_SPACE_PAGE_QUIZ_API_PATH = `${COMMUNITY_SPACE_PAGE_API_PATH}/quiz`;
+export const COMMUNITY_SPACE_PAGE_QUIZ_ATTEMPTS_API_PATH = `${COMMUNITY_SPACE_PAGE_QUIZ_API_PATH}/attempts`;
 export const COMMUNITY_SPACE_POST_PIN_API_PATH = `${COMMUNITY_SPACE_POST_API_PATH}/pin`;
 
 // Markdown preview (same rendering as the saved content)

@@ -1,0 +1,29 @@
+meta {
+  name: Quizzes - Answer
+  type: http
+  seq: 141
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/q8kcoursespacestarthere1/pages/q8klessoninstallobsidn1/quiz/attempts
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "answers": [
+      { "question": "<cuid of question 1>", "choices": ["<cuid of one choice>"] },
+      { "question": "<cuid of question 2>", "choices": ["<cuid of a choice>", "<cuid of another choice>"] }
+    ]
+  }
+}
+
+docs {
+  Answers the quiz (members of the community who can read the course). One entry per question; exactly one choice for a single-choice question. The server grades: `result` has the score, whether you passed and the review of this attempt (for each question: what you chose, whether it is correct, the correct choices, the explanation). `progress` is your progress in the course: a pass marks the lesson as done. You can try again at once (20 attempts per minute). Token ability: pages:read (it changes only your own data).
+}
