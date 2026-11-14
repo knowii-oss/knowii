@@ -17,6 +17,7 @@ use App\Actions\Comments\DeleteComment;
 use App\Actions\Comments\UpdateComment;
 use App\Actions\Communities\CreateCommunity;
 use App\Actions\Communities\DeleteCommunity;
+use App\Actions\Communities\TransferCommunityOwnership;
 use App\Actions\Communities\UpdateCommunity;
 use App\Actions\Communities\UpdateModeratorPermissions;
 use App\Actions\Communities\VerifyCommunityNameAvailability;
@@ -77,6 +78,7 @@ use App\Contracts\Comments\DeletesComments;
 use App\Contracts\Comments\UpdatesComments;
 use App\Contracts\Communities\CreatesCommunities;
 use App\Contracts\Communities\DeletesCommunities;
+use App\Contracts\Communities\TransfersCommunityOwnership;
 use App\Contracts\Communities\UpdatesCommunities;
 use App\Contracts\Communities\UpdatesModeratorPermissions;
 use App\Contracts\Communities\VerifiesCommunityNameAvailability;
@@ -166,6 +168,7 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(UpdatesCommunityResources::class, UpdateCommunityResource::class);
         app()->singleton(DeletesCommunityResources::class, DeleteCommunityResource::class);
         app()->singleton(UpdatesModeratorPermissions::class, UpdateModeratorPermissions::class);
+        app()->singleton(TransfersCommunityOwnership::class, TransferCommunityOwnership::class);
         app()->singleton(SendsMagicLinks::class, MagicLinks::class);
         app()->singleton(ConsumesMagicLinks::class, MagicLinks::class);
         app()->singleton(UpdatesCommunityMemberRoles::class, UpdateCommunityMemberRole::class);
@@ -260,6 +263,10 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('name-checks', static function (Request $request) {
             return Limit::perMinute(Constants::NAME_CHECKS_PER_MINUTE)->by(self::rateLimitKey($request));
+        });
+
+        RateLimiter::for('ownership-transfers', static function (Request $request) {
+            return Limit::perMinute(Constants::OWNERSHIP_TRANSFERS_PER_MINUTE)->by(self::rateLimitKey($request));
         });
 
         RateLimiter::for('markdown-preview', static function (Request $request) {

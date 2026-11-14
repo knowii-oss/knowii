@@ -67,6 +67,8 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
         Route::patch(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'update'])->middleware('ability:communities:write');
         Route::delete(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'destroy'])->middleware('ability:communities:write');
         Route::patch(ApiRoutes::COMMUNITY_MODERATOR_PERMISSIONS, [ModeratorPermissionApiController::class, 'update'])->middleware('ability:communities:write');
+        // The owner gives the community to an admin, with their password (#1339): rate limited against password guessing
+        Route::post(ApiRoutes::COMMUNITY_OWNERSHIP, [CommunityApiController::class, 'transferOwnership'])->middleware('ability:communities:write')->middleware('throttle:ownership-transfers');
 
         // Space groups and spaces (#1173). scopeBindings: a space group or space of another community gives a 404
         Route::scopeBindings()->group(function () {

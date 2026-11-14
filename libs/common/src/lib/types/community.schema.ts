@@ -92,6 +92,8 @@ export interface CommunityPermissions {
   canManageModeratorPermissions: boolean;
   canUpdateCommunity: boolean;
   canDeleteCommunity: boolean;
+  // The owner of a shared community gives it to an admin (#1339)
+  canTransferOwnership?: boolean;
 
   canAddCommunityMembers: boolean;
   canUpdateCommunityMembers: boolean;

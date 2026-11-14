@@ -98,6 +98,9 @@ final class ApiRoutes
     // The rights of the moderators (#1240)
     public const COMMUNITY_MODERATOR_PERMISSIONS = self::COMMUNITY.'/moderator-permissions';
 
+    // The owner gives the community to an admin (#1339)
+    public const COMMUNITY_OWNERSHIP = self::COMMUNITY.'/ownership';
+
     public const COMMUNITY_SPACE_GROUPS = self::COMMUNITY.'/space-groups';
 
     public const COMMUNITY_SPACE_GROUPS_REORDER = self::COMMUNITY_SPACE_GROUPS.'/reorder';

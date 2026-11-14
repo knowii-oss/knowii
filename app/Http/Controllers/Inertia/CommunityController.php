@@ -136,6 +136,7 @@ class CommunityController extends Controller
             'canManageModeratorPermissions' => Gate::check('manageModeratorPermissions', $community),
             'canUpdateCommunity' => Gate::check('update', $community),
             'canDeleteCommunity' => Gate::check('delete', $community),
+            'canTransferOwnership' => Gate::check('transferOwnership', $community),
 
             'canAddCommunityMembers' => Gate::check('addCommunityMember', $community),
             'canUpdateCommunityMembers' => Gate::check('updateCommunityMember', $community),

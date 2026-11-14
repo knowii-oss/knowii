@@ -1,0 +1,29 @@
+meta {
+  name: Communities - Transfer the ownership
+  type: http
+  seq: 129
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/ownership
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "member": "<user cuid of an admin>",
+    "password": "{{PASSWORD}}"
+  }
+}
+
+docs {
+  The owner gives the community to one of its admins (#1339, ADR 0035). `member` is the user cuid of the new owner, `password` is the password of the current owner. In one step the admin becomes the owner and the former owner becomes an admin. The new owner gets an email. Returns the community.
+
+  Errors: 400 when the password is wrong or a field is missing, 403 for anyone but the owner and for a personal community, 404 when `member` is not a member of the community, 422 when the member is not an admin, 429 after 5 requests in a minute.
+}

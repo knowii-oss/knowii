@@ -195,6 +195,8 @@ export const SPACE_API_PARAM_SPACE_GROUP = '{spaceGroupCuid}';
 export const SPACE_API_PARAM_SPACE = '{spaceCuid}';
 // Moderator rights (#1240)
 export const COMMUNITY_MODERATOR_PERMISSIONS_API_PATH = `${COMMUNITY_API_PATH}/moderator-permissions`;
+// The owner gives the community to an admin (#1339)
+export const COMMUNITY_OWNERSHIP_API_PATH = `${COMMUNITY_API_PATH}/ownership`;
 export const COMMUNITY_SPACE_GROUPS_API_PATH = `${COMMUNITY_API_PATH}/space-groups`;
 export const COMMUNITY_SPACE_GROUPS_REORDER_API_PATH = `${COMMUNITY_SPACE_GROUPS_API_PATH}/reorder`;
 export const COMMUNITY_SPACE_GROUP_API_PATH = `${COMMUNITY_SPACE_GROUPS_API_PATH}/${SPACE_API_PARAM_SPACE_GROUP}`;

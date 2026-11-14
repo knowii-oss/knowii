@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Enums\KnowiiCommunityMemberRole;
+use App\Enums\KnowiiCommunityVisibility;
 use App\Enums\KnowiiModeratorPermission;
 use App\Models\Community;
 use App\Models\User;
@@ -102,6 +103,14 @@ class CommunityPolicy
     final public function removeCommunityMember(User $user, Community $community): bool
     {
         return CommunityRoles::allows($user, $community, KnowiiModeratorPermission::ManageMembers);
+    }
+
+    /**
+     * Give the community to another member (#1339, ADR 0035): the owner, and never for a personal community.
+     */
+    final public function transferOwnership(User $user, Community $community): bool
+    {
+        return $user->ownsCommunity($community) && $community->visibility !== KnowiiCommunityVisibility::Personal;
     }
 
     /**

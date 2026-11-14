@@ -8,6 +8,7 @@ import { router } from '@inertiajs/react';
 import type { BreadcrumbItem } from '@/Components/ui';
 import { FaGear } from 'react-icons/fa6';
 import DeleteCommunityForm from '@/Pages/Communities/Partials/DeleteCommunityForm';
+import TransferOwnershipForm from '@/Pages/Communities/Partials/TransferOwnershipForm';
 import { SpaceTreeEditor } from '@/Components/Spaces/SpaceTreeEditor';
 import { DirectMessagesSetting } from '@/Components/Communities/DirectMessagesSetting';
 import { ModeratorPermissionsForm } from '@/Components/Communities/ModeratorPermissionsForm';
@@ -129,6 +130,18 @@ export default function CommunitySettingsPage(props: Props) {
         <>
           {(props.permissions.canManageSpaces || props.permissions.canManageModeratorPermissions || canManageMembers) && <Separator />}
           <AccessGroupsManager communityCuid={props.community.cuid} permissions={props.permissions} refreshKey={accessGroupsVersion} />
+        </>
+      )}
+
+      {props.permissions.canTransferOwnership && (
+        <>
+          <Separator />
+          <TransferOwnershipForm
+            communityCuid={props.community.cuid}
+            communityName={props.community.name}
+            refreshKey={membersVersion}
+            onTransferred={() => router.reload()}
+          />
         </>
       )}
 

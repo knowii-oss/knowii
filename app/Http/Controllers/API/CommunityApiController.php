@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Contracts\Communities\CreatesCommunities;
 use App\Contracts\Communities\DeletesCommunities;
+use App\Contracts\Communities\TransfersCommunityOwnership;
 use App\Contracts\Communities\UpdatesCommunities;
 use App\Contracts\Communities\VerifiesCommunityNameAvailability;
 use App\Enums\KnowiiCommunityVisibility;
@@ -122,6 +123,22 @@ class CommunityApiController extends Controller
         $community = app(UpdatesCommunities::class)->update($request->user() ?? throw new AuthenticationException, $community, $request->only(['name', 'description', 'visibility', 'direct_messages_enabled']));
 
         return self::success('Community updated', null, $community->loadCount('users')->toResource()->withLargeFields());
+    }
+
+    /**
+     * Transfer the ownership of the community to one of its admins (owner only, #1339, ADR 0035). The new owner gets
+     * an email, and the former owner becomes an admin. The owner confirms with their password. Never for a personal
+     * community. Returns the community.
+     *
+     * @throws AuthenticationException
+     */
+    #[BodyParameter('member', description: 'The user cuid of the new owner: an admin of the community', required: true, type: 'string', example: 'tz4a98xxat96iws9zmbrgj3a')]
+    #[BodyParameter('password', description: 'The password of the current owner', required: true, type: 'string')]
+    final public function transferOwnership(Request $request, Community $community): JsonResponse
+    {
+        app(TransfersCommunityOwnership::class)->transfer($request->user() ?? throw new AuthenticationException, $community, $request->only(['member', 'password']));
+
+        return self::success('Ownership transferred', null, $community->refresh()->loadCount('users')->toResource()->withLargeFields());
     }
 
     final public function destroy(Request $request, Community $community): Response

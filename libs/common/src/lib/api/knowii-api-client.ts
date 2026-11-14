@@ -1,6 +1,7 @@
 import {
   COMMUNITY_API_BASE_PATH,
   COMMUNITY_API_IS_NAME_AVAILABLE_PATH,
+  COMMUNITY_OWNERSHIP_API_PATH,
   USER_AVATAR_API_PATH,
   USER_BLOCKS_API_PATH,
   USER_FREQUENT_EMOJI_API_PATH,
@@ -244,6 +245,14 @@ export const knowiiApiClient = {
      */
     update: (communityCuid: string, input: Partial<NewCommunity> & { direct_messages_enabled?: boolean }): Promise<ApiResult<Community>> =>
       apiRequest('patch', communityPath(COMMUNITY_API_PATH, communityCuid), communitySchema, 'Failed to save the community.', input),
+    /**
+     * The owner gives the community to one of its admins, with their own password (#1339). Returns the community.
+     */
+    transferOwnership: (communityCuid: string, memberCuid: string, password: string): Promise<ApiResult<Community>> =>
+      apiRequest('post', communityPath(COMMUNITY_OWNERSHIP_API_PATH, communityCuid), communitySchema, 'Failed to transfer the ownership.', {
+        member: memberCuid,
+        password,
+      }),
     /**
      * Switch some rights of the moderators (owner and admins, #1240). Returns the community.
      */
