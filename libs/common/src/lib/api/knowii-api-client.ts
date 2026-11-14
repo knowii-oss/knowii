@@ -24,6 +24,7 @@ import {
   COMMUNITY_SPACE_RESOURCES_API_PATH,
   COMMUNITY_MEMBERS_API_PATH,
   COMMUNITY_MEMBER_API_PATH,
+  COMMUNITY_MEMBERSHIP_API_PATH,
   COMMUNITY_API_PARAM_MEMBER,
   COMMUNITY_INVITATIONS_API_PATH,
   COMMUNITY_INVITATION_API_PATH,
@@ -775,6 +776,11 @@ export const knowiiApiClient = {
        */
       remove: (communityCuid: string, memberCuid: string): Promise<ApiResult<void>> =>
         apiRequest('delete', memberPath(communityCuid, memberCuid), null, 'Failed to remove the member.'),
+      /**
+       * The current member leaves the community (#1338). The owner gets a 422: they transfer the ownership first.
+       */
+      leave: (communityCuid: string): Promise<ApiResult<void>> =>
+        apiRequest('delete', communityPath(COMMUNITY_MEMBERSHIP_API_PATH, communityCuid), null, 'Failed to leave the community.'),
       /**
        * Members whose username or name starts with the query (mention autocomplete). Returns an empty list on failure.
        */

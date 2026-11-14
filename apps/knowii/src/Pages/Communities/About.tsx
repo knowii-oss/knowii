@@ -16,6 +16,7 @@ import {
 import AppLayout from '@/Layouts/AppLayout';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
+import LeaveCommunityButton from '@/Components/Communities/LeaveCommunityButton';
 import { CommunityShell } from '@/Components/Spaces/CommunityShell';
 import type { BreadcrumbItem } from '@/Components/ui';
 import { Avatar, buttonClasses, Card, CardBody, CardHeader, RelativeTime } from '@/Components/ui';
@@ -210,6 +211,20 @@ export default function CommunityAboutPage(props: Props) {
                   )}
                 </CardBody>
               </Card>
+
+              {/* The owner cannot leave: they transfer the ownership first (#1338) */}
+              {currentRole !== 'owner' && (
+                <Card as="section" aria-labelledby="leave-title">
+                  <CardHeader title={<span id="leave-title">Leave the community</span>} />
+                  <CardBody>
+                    <p className="text-sm text-muted">
+                      You lose access to the community and to your course progress. What you wrote stays. To come back, you need a new
+                      invitation.
+                    </p>
+                    <LeaveCommunityButton communityCuid={community.cuid} communityName={community.name} className="mt-4" />
+                  </CardBody>
+                </Card>
+              )}
             </div>
           </div>
         </div>

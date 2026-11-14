@@ -171,6 +171,8 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
         Route::get(ApiRoutes::COMMUNITY_MEMBERS, [MemberApiController::class, 'index'])->middleware('ability:communities:read')->middleware('throttle:markdown-preview');
         Route::patch(ApiRoutes::COMMUNITY_MEMBER, [MemberApiController::class, 'update'])->middleware('ability:communities:write');
         Route::delete(ApiRoutes::COMMUNITY_MEMBER, [MemberApiController::class, 'destroy'])->middleware('ability:communities:write');
+        // The current member leaves the community (#1338)
+        Route::delete(ApiRoutes::COMMUNITY_MEMBERSHIP, [MemberApiController::class, 'leave'])->middleware('ability:communities:write');
 
         // Access groups (#1241, ADR 0025). scopeBindings: a group of another community gives a 404
         Route::scopeBindings()->group(function () {

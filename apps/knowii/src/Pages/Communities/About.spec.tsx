@@ -1,7 +1,9 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { router } from '@inertiajs/react';
 import type { Community, CommunityMember, CommunityPermissions, CommunityRole } from '@knowii/common';
-import { AppDataProvider } from '@knowii/common';
+import { AppDataProvider, knowiiApiClient } from '@knowii/common';
 import CommunityAboutPage from './About';
 
 vi.mock('@inertiajs/react', () => ({
@@ -128,5 +130,38 @@ describe('CommunityAboutPage', () => {
     expect(within(you).getByText('Invite members and give any role')).toBeInTheDocument();
     expect(within(you).getByText('Delete the posts and comments of other members')).toBeInTheDocument();
     expect(within(you).getByText('Delete the community')).toBeInTheDocument();
+  });
+
+  it('lets a member leave after a confirmation, then opens the dashboard (#1338)', async () => {
+    const leave = vi.spyOn(knowiiApiClient.communities.members, 'leave').mockResolvedValue({ ok: true, message: '', data: undefined });
+    renderPage('member');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Leave this community' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Leave Tests?' });
+    expect(leave).not.toHaveBeenCalled();
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Leave' }));
+
+    await waitFor(() => expect(leave).toHaveBeenCalledWith('c1'));
+    await waitFor(() => expect(router.visit).toHaveBeenCalledWith('/dashboard/', { preserveState: false }));
+  });
+
+  it('keeps the member on the page when leaving fails (#1338)', async () => {
+    vi.mocked(router.visit).mockClear();
+    vi.spyOn(knowiiApiClient.communities.members, 'leave').mockResolvedValue({ ok: false, status: 422, message: 'No', errors: {} });
+    renderPage('admin');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Leave this community' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Leave Tests?' });
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Leave' }));
+
+    await waitFor(() => expect(within(dialog).getByRole('button', { name: 'Leave' })).toBeEnabled());
+    expect(router.visit).not.toHaveBeenCalled();
+  });
+
+  it('gives the owner no way to leave (#1338)', () => {
+    renderPage('owner', { canDeleteCommunity: true });
+
+    expect(screen.queryByRole('button', { name: 'Leave this community' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Leave the community' })).not.toBeInTheDocument();
   });
 });

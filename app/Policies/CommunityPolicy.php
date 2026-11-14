@@ -105,6 +105,14 @@ class CommunityPolicy
     }
 
     /**
+     * Leave the community (#1338): every member except the owner, who transfers the ownership first.
+     */
+    final public function leave(User $user, Community $community): bool
+    {
+        return $user->belongsToCommunity($community) && ! $user->ownsCommunity($community);
+    }
+
+    /**
      * Create, rename and delete access groups (#1241, ADR 0025): owner and admins. Groups decide paid access.
      */
     final public function manageAccessGroups(User $user, Community $community): bool

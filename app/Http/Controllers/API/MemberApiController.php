@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Contracts\CommunityMembers\LeavesCommunities;
 use App\Contracts\CommunityMembers\RemovesCommunityMembers;
 use App\Contracts\CommunityMembers\UpdatesCommunityMemberRoles;
 use App\Http\Controllers\Controller;
@@ -69,6 +70,19 @@ class MemberApiController extends Controller
     final public function destroy(Request $request, Community $community, string $member): Response
     {
         app(RemovesCommunityMembers::class)->remove($request->user() ?? throw new AuthenticationException, $community, $member);
+
+        return self::deleted();
+    }
+
+    /**
+     * Leave the community: the current member removes their own membership (#1338). They leave its access groups and
+     * lose their course progress; what they wrote stays. The owner gets a 422: they transfer the ownership first.
+     *
+     * @throws AuthenticationException
+     */
+    final public function leave(Request $request, Community $community): Response
+    {
+        app(LeavesCommunities::class)->leave($request->user() ?? throw new AuthenticationException, $community);
 
         return self::deleted();
     }
