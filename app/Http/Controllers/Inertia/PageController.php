@@ -6,6 +6,7 @@ use App\Enums\KnowiiSpaceType;
 use App\Models\Community;
 use App\Models\Page;
 use App\Support\CourseProgress;
+use App\Support\Quizzes;
 use App\Support\SpaceTree;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -60,6 +61,8 @@ class PageController extends Controller
             'position' => ['current' => $index + 1, 'total' => $pages->count()],
             'section' => $section?->title,
             'progress' => $progress,
+            // Lessons of a course (#1335): the quiz as this reader may see it, with their result; null without a quiz
+            'quiz' => $space->type === KnowiiSpaceType::Course ? Quizzes::for($user, $page) : null,
             'permissions' => [
                 'canManagePages' => Gate::check('managePages', $space),
             ],

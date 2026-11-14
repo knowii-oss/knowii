@@ -34,7 +34,7 @@ class PageApiController extends Controller
         Gate::authorize('view', $space);
         self::assertPageSpace($space);
 
-        return self::success('Pages', null, $space->pages()->get()->toResourceCollection());
+        return self::success('Pages', null, $space->pages()->withExists('quiz')->get()->toResourceCollection());
     }
 
     /**
@@ -102,7 +102,7 @@ class PageApiController extends Controller
         self::assertPageSpace($space);
         app(ReordersPages::class)->reorder($request->user() ?? throw new AuthenticationException, $space, $request->only(['pages']));
 
-        return self::success('Pages reordered', null, $space->pages()->get()->toResourceCollection());
+        return self::success('Pages reordered', null, $space->pages()->withExists('quiz')->get()->toResourceCollection());
     }
 
     private static function assertPageSpace(Space $space): void

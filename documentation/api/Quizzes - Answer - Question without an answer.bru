@@ -1,0 +1,28 @@
+meta {
+  name: Quizzes - Answer - Question without an answer
+  type: http
+  seq: 142
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/q8kcoursespacestarthere1/pages/q8klessoninstallobsidn1/quiz/attempts
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "answers": [
+      { "question": "<cuid of question 1>", "choices": ["<cuid of one choice>"] }
+    ]
+  }
+}
+
+docs {
+  A quiz of two questions with one answer: 400, type validationIssue, "Answer every question." under `errors.answers`. Nothing is saved.
+}

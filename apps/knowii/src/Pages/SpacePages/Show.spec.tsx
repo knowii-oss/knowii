@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { router } from '@inertiajs/react';
-import type { Community, Page, Space } from '@knowii/common';
+import type { Community, LessonQuiz, Page, Space } from '@knowii/common';
 import { AppDataProvider, knowiiApiClient } from '@knowii/common';
 import SpacePage from './Show';
 
@@ -142,5 +142,78 @@ describe('SpacePage', () => {
 
     expect(screen.queryByRole('button', { name: 'Mark as done' })).toBeNull();
     expect(screen.getByText('Lesson 2 of 3')).toBeInTheDocument();
+  });
+
+  const lessonQuiz: LessonQuiz = {
+    quiz: {
+      cuid: 'quiz1',
+      pass_mark: 70,
+      created_at: now,
+      updated_at: now,
+      questions: [
+        {
+          cuid: 'q1',
+          position: 0,
+          kind: 'single',
+          prompt_html: '<p>What is 2 + 2?</p>',
+          choices: [
+            { cuid: 'q1a', position: 0, label: 'Three' },
+            { cuid: 'q1b', position: 1, label: 'Four' },
+          ],
+        },
+      ],
+    },
+    result: null,
+  };
+
+  it('marks the lesson as done when the member passes its quiz (#1335)', async () => {
+    const attempt = vi.spyOn(knowiiApiClient.communities.quizzes, 'attempt').mockResolvedValue({
+      ok: true,
+      message: '',
+      data: {
+        ...lessonQuiz,
+        result: {
+          attempts: 1,
+          best_score: 100,
+          last_score: 100,
+          passed: true,
+          passed_at: now,
+          review: [{ question: 'q1', selected: ['q1b'], correct: true, correct_choices: ['q1b'], explanation_html: null }],
+        },
+        progress: course(['p2'], 'p3'),
+      },
+    });
+    render(
+      <AppDataProvider>
+        <SpacePage {...lesson} quiz={lessonQuiz} progress={{ done: false, course: course([], 'p1') }} />
+      </AppDataProvider>,
+    );
+
+    expect(screen.queryByRole('button', { name: 'Edit the quiz' })).toBeNull();
+    await userEvent.click(screen.getByRole('radio', { name: 'Four' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Check my answers' }));
+
+    expect(attempt).toHaveBeenCalledWith('c1', 's1', 'p2', [{ question: 'q1', choices: ['q1b'] }]);
+    expect(await screen.findByText('You passed with 100%.')).toBeInTheDocument();
+    expect(screen.getByText('Lesson 2 of 3 · 1 of 3 done')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Mark as not done' })).toBeInTheDocument();
+  });
+
+  it('gives the managers of a course "Add a quiz", or "Edit the quiz" when the lesson has one (#1335)', () => {
+    const { unmount } = render(
+      <AppDataProvider>
+        <SpacePage {...lesson} quiz={null} progress={null} permissions={{ canManagePages: true }} />
+      </AppDataProvider>,
+    );
+    expect(screen.getByRole('button', { name: 'Add a quiz' })).toBeInTheDocument();
+    unmount();
+
+    render(
+      <AppDataProvider>
+        <SpacePage {...lesson} quiz={lessonQuiz} progress={null} permissions={{ canManagePages: true }} />
+      </AppDataProvider>,
+    );
+    expect(screen.queryByRole('button', { name: 'Add a quiz' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Edit the quiz' })).toBeInTheDocument();
   });
 });

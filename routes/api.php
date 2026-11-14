@@ -20,6 +20,7 @@ use App\Http\Controllers\API\OnlineMemberApiController;
 use App\Http\Controllers\API\PageApiController;
 use App\Http\Controllers\API\PingApiController;
 use App\Http\Controllers\API\PostApiController;
+use App\Http\Controllers\API\QuizApiController;
 use App\Http\Controllers\API\ReactionApiController;
 use App\Http\Controllers\API\SpaceApiController;
 use App\Http\Controllers\API\SpaceGroupApiController;
@@ -116,6 +117,12 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::get(ApiRoutes::COMMUNITY_SPACE_PROGRESS, [LessonProgressApiController::class, 'show'])->middleware('ability:pages:read');
             Route::put(ApiRoutes::COMMUNITY_SPACE_PAGE_PROGRESS, [LessonProgressApiController::class, 'store'])->middleware('ability:pages:read');
             Route::delete(ApiRoutes::COMMUNITY_SPACE_PAGE_PROGRESS, [LessonProgressApiController::class, 'destroy'])->middleware('ability:pages:read');
+
+            // The quiz of a lesson (#1335, ADR 0038): managers write it; an attempt changes only the member's own data
+            Route::get(ApiRoutes::COMMUNITY_SPACE_PAGE_QUIZ, [QuizApiController::class, 'show'])->middleware('ability:pages:read');
+            Route::put(ApiRoutes::COMMUNITY_SPACE_PAGE_QUIZ, [QuizApiController::class, 'update'])->middleware('ability:pages:write');
+            Route::delete(ApiRoutes::COMMUNITY_SPACE_PAGE_QUIZ, [QuizApiController::class, 'destroy'])->middleware('ability:pages:write');
+            Route::post(ApiRoutes::COMMUNITY_SPACE_PAGE_QUIZ_ATTEMPTS, [QuizApiController::class, 'attempt'])->middleware('ability:pages:read')->middleware('throttle:quiz-attempts');
 
             // Supplementary materials of course spaces (#1336, ADR 0037): members read and download, managers change
             Route::get(ApiRoutes::COMMUNITY_SPACE_MATERIALS, [CourseMaterialApiController::class, 'index'])->middleware('ability:pages:read');

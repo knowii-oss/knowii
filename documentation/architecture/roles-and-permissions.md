@@ -56,6 +56,9 @@ The owner and the admins switch these rights in the community settings ("Moderat
 | Create, edit, reorder and delete pages    | `SpacePolicy::managePages` (needs `view`)                 | yes    | yes    | yes (role)                                   | no         | no       | no      |
 | Read and download course materials        | `SpacePolicy::view` (#1336)                               | yes    | yes    | yes                                          | yes        | no       | no      |
 | Add, change and delete course materials   | `SpacePolicy::managePages` (#1336)                        | yes    | yes    | yes (role)                                   | no         | no       | no      |
+| Read the questions of a lesson quiz       | `SpacePolicy::view` (#1335)                               | yes    | yes    | yes                                          | yes        | no       | no      |
+| Answer a quiz, read one's own result      | `SpacePolicy::trackProgress` (#1335)                      | yes    | yes    | yes                                          | yes        | no       | no      |
+| Write and delete a lesson quiz            | `SpacePolicy::managePages` (#1335)                        | yes    | yes    | yes (role)                                   | no         | no       | no      |
 | Write in a chat space                     | `SpacePolicy::contribute` (posting policy)                | yes    | yes    | yes                                          | members    | no       | no      |
 | Edit or delete one's own chat message     | `ChatMessagePolicy::update`, `::delete`                   | author | author | author                                       | author     | no       | no      |
 | Delete the chat messages of others        | `ChatMessagePolicy::delete` (`SpacePolicy::moderate`)     | yes    | yes    | `delete_content`                             | no         | no       | no      |
@@ -91,7 +94,9 @@ Member management (#1242) adds a rule on top of the abilities above. `CommunityR
 | Admin                           | moderators, members         | moderator, member        |
 | Moderator with `manage_members` | members                     | member                   |
 
-Leaving (#1338): a member leaves by themselves (`DELETE /communities/{community}/membership`), with the same effects as a removal: they leave the access groups, lose their course progress, and lose the rights on what they wrote, which stays. The owner cannot leave: a community always has an owner, so they transfer the ownership first or delete the community.
+Quizzes ([ADR 0038](../adr/0038-lesson-quizzes.md), #1335): the correct choices and the explanations of a quiz reach the managers of the course only. A member gets them in the review of their own attempt, never before. Nobody reads the result of another member: managers get no scores. A signed-in outsider reads the questions of a public course and keeps no result.
+
+Leaving (#1338): a member leaves by themselves (`DELETE /communities/{community}/membership`), with the same effects as a removal: they leave the access groups, lose their course progress and their quiz results, and lose the rights on what they wrote, which stays. The owner cannot leave: a community always has an owner, so they transfer the ownership first or delete the community.
 
 Ownership ([ADR 0035](../adr/0035-ownership-transfer.md), #1339): the owner gives the community to one of its admins (`POST /communities/{community}/ownership`, with the password of the owner). In one transaction the admin becomes the owner (rank 4) and the former owner becomes an admin (rank 3). Only an admin can receive the community, and a personal community never changes its owner. The new owner gets an email.
 

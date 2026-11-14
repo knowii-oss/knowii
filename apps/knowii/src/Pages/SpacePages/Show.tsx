@@ -1,7 +1,16 @@
 import type { MouseEvent } from 'react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, router } from '@inertiajs/react';
-import type { Community, CourseProgress, Page, PageNeighbour, Space, SpaceContentPayload, SpaceGroup } from '@knowii/common';
+import type {
+  Community,
+  CourseProgress,
+  LessonQuiz as LessonQuizData,
+  Page,
+  PageNeighbour,
+  Space,
+  SpaceContentPayload,
+  SpaceGroup,
+} from '@knowii/common';
 import {
   COMMUNITY_URL,
   knowiiApiClient,
@@ -12,14 +21,16 @@ import {
   useSocket,
   useTypedPage,
 } from '@knowii/common';
-import { FaArrowLeft, FaArrowRight, FaCheck, FaCircleCheck, FaPen, FaTrash } from 'react-icons/fa6';
+import { FaArrowLeft, FaArrowRight, FaCheck, FaCircleCheck, FaListCheck, FaPen, FaTrash } from 'react-icons/fa6';
 import AppLayout from '@/Layouts/AppLayout';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
 import { CommunityShell } from '@/Components/Spaces/CommunityShell';
 import { VideoPlayer } from '@/Components/Video/VideoPlayer';
 import { CourseMaterials } from '@/Components/SpacePages/CourseMaterials';
+import { LessonQuiz } from '@/Components/SpacePages/LessonQuiz';
 import { PageEditor } from '@/Components/SpacePages/PageEditor';
+import { QuizEditor } from '@/Components/SpacePages/QuizEditor';
 import type { BreadcrumbItem } from '@/Components/ui';
 import { Button, Dialog, MarkdownContent, RelativeTime } from '@/Components/ui';
 
@@ -36,13 +47,15 @@ interface Props {
   section: string | null;
   // Lessons (#1304): whether the member marked this lesson as done, and their progress; null for a reader who is not a member
   progress: { done: boolean; course: CourseProgress } | null;
+  // Lessons (#1335): the quiz as this reader may see it (managers get the correct choices), with their result; null without a quiz
+  quiz: LessonQuizData | null;
   permissions: { canManagePages: boolean };
 }
 
 /**
  * A page of a page space (#1179), or a lesson of a course space with its video (#1188): the text, then links to the
  * previous and the next one, so members read them in order. In a course, members mark the lesson as done, and going
- * to the next lesson marks it too (#1304).
+ * to the next lesson marks it too (#1304). A lesson can end with a quiz (#1335): passing it marks the lesson as done.
  */
 export default function SpacePage(props: Props) {
   const { community, space, page, previous, next, position } = props;
@@ -51,11 +64,30 @@ export default function SpacePage(props: Props) {
   const isCourse = space.type === 'course';
   const noun = isCourse ? 'Lesson' : 'Page';
   const [editing, setEditing] = useState(false);
+  const [editingQuiz, setEditingQuiz] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(props.progress);
   const [progressSource, setProgressSource] = useState(props.progress);
   const [savingProgress, setSavingProgress] = useState(false);
+  const addQuizButton = useRef<HTMLButtonElement>(null);
+  const editQuizButton = useRef<HTMLButtonElement>(null);
+  const quizChanged = useRef(false);
+  // A saved quiz starts again: its card is a new one
+  const quizKey = props.quiz ? `${props.quiz.quiz.cuid}:${String(props.quiz.quiz.updated_at)}` : null;
+
+  // After a save or a delete, the button that opened the editor is gone: "Add a quiz" becomes "Edit the quiz" (and
+  // back), and a saved quiz gets a new card. The focus goes to the button that replaced it, unless the manager
+  // already went somewhere else
+  useEffect(() => {
+    if (!quizChanged.current) {
+      return;
+    }
+    quizChanged.current = false;
+    if (document.activeElement === null || document.activeElement === document.body) {
+      (quizKey === null ? addQuizButton : editQuizButton).current?.focus();
+    }
+  }, [quizKey]);
 
   // New props (another lesson, a reload) replace the progress
   if (progressSource !== props.progress) {
@@ -84,8 +116,8 @@ export default function SpacePage(props: Props) {
         }
         return;
       }
-      if (!editing) {
-        router.reload({ only: ['page', 'previous', 'next', 'position', 'section', 'progress'] });
+      if (!editing && !editingQuiz) {
+        router.reload({ only: ['page', 'previous', 'next', 'position', 'section', 'progress', 'quiz'] });
       }
     },
   });
@@ -160,6 +192,12 @@ export default function SpacePage(props: Props) {
                   <FaPen aria-hidden="true" />
                   Edit
                 </Button>
+                {isCourse && !props.quiz && (
+                  <Button ref={addQuizButton} variant="secondary" size="sm" onClick={() => setEditingQuiz(true)}>
+                    <FaListCheck aria-hidden="true" />
+                    Add a quiz
+                  </Button>
+                )}
                 <Button variant="ghost" size="sm" onClick={() => setConfirmDelete(true)}>
                   <FaTrash aria-hidden="true" />
                   Delete
@@ -180,6 +218,29 @@ export default function SpacePage(props: Props) {
               spaceCuid={space.cuid}
               targets={[{ pageCuid: page.cuid }]}
               canManage={props.permissions.canManagePages}
+            />
+          )}
+
+          {/* The quiz of the lesson (#1335): a new quiz or new questions start it again */}
+          {isCourse && props.quiz && (
+            <LessonQuiz
+              key={quizKey}
+              communityCuid={community.cuid}
+              spaceCuid={space.cuid}
+              pageCuid={page.cuid}
+              quiz={props.quiz}
+              canAnswer={progress !== null}
+              onAnswered={(attempt) =>
+                setProgress({ done: attempt.progress.completed_lessons.includes(page.cuid), course: attempt.progress })
+              }
+              actions={
+                props.permissions.canManagePages && (
+                  <Button ref={editQuizButton} variant="secondary" size="sm" onClick={() => setEditingQuiz(true)}>
+                    <FaPen aria-hidden="true" />
+                    Edit the quiz
+                  </Button>
+                )
+              }
             />
           )}
 
@@ -257,6 +318,21 @@ export default function SpacePage(props: Props) {
           mode={isCourse ? 'lesson' : 'page'}
           onClose={() => setEditing(false)}
           onSaved={() => router.reload({ only: ['page', 'previous', 'next', 'position', 'section'] })}
+        />
+      )}
+
+      {props.permissions.canManagePages && isCourse && (
+        <QuizEditor
+          open={editingQuiz}
+          communityCuid={community.cuid}
+          spaceCuid={space.cuid}
+          pageCuid={page.cuid}
+          quiz={props.quiz?.quiz ?? null}
+          onClose={() => setEditingQuiz(false)}
+          onChanged={() => {
+            quizChanged.current = true;
+            router.reload({ only: ['page', 'quiz'] });
+          }}
         />
       )}
 

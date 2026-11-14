@@ -154,6 +154,11 @@ final class ApiRoutes
 
     public const COMMUNITY_SPACE_PAGE_PROGRESS = self::COMMUNITY_SPACE_PAGE.'/progress';
 
+    // The quiz of a lesson (#1335, ADR 0038)
+    public const COMMUNITY_SPACE_PAGE_QUIZ = self::COMMUNITY_SPACE_PAGE.'/quiz';
+
+    public const COMMUNITY_SPACE_PAGE_QUIZ_ATTEMPTS = self::COMMUNITY_SPACE_PAGE_QUIZ.'/attempts';
+
     public const COMMUNITY_SPACE_POST = self::COMMUNITY_SPACE_POSTS.'/{'.self::PARAM_POST.'}';
 
     public const COMMUNITY_SPACE_POST_PIN = self::COMMUNITY_SPACE_POST.'/pin';
