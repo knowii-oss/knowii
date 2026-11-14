@@ -385,11 +385,30 @@ test('a guest who signs in from the link of an invitation lands in the community
 test('the invitation email links to the signed accept route (#1242)', function () {
     $invitation = $this->c['community']->communityInvitations()->create(['email' => 'grace@example.com', 'role' => KnowiiCommunityMemberRole::Member]);
 
-    $html = (new CommunityInvitationMail($invitation))->render();
+    $html = (new CommunityInvitationMail($invitation, $this->c['owner']))->render();
 
     expect($html)->toContain($this->c['community']->name)
         ->and($html)->toContain('/community-invitations/'.$invitation->cuid)
         ->and($html)->toContain('signature=');
+});
+
+test('the invitation email says who invited the person, who sends it, and where their rights are (#1345)', function () {
+    config(['retention.expired_invitations_days' => 30]);
+    $community = $this->c['community'];
+    $invitation = $community->communityInvitations()->create(['email' => 'grace@example.com', 'role' => KnowiiCommunityMemberRole::Member]);
+
+    $text = html_entity_decode(strip_tags((new CommunityInvitationMail($invitation, $this->c['admin']))->render()), ENT_QUOTES);
+    $text = (string) preg_replace('/\s+/', ' ', $text);
+
+    expect($text)->toContain($this->c['admin']->name.' invited you to the '.$community->name.' community. DeveloPassion SRL (Belgium) runs Knowii and sends this email for that community.')
+        ->and($text)->toContain('We got your email address from the person who invited you and use it only for this invitation.')
+        ->and($text)->toContain('If you do nothing, we delete the invitation and your address 30 days after it expires.')
+        ->and($text)->toContain('Your rights are in the privacy policy: '.route('privacy-policy.show'));
+});
+
+test('the privacy policy describes the data that comes from other people (#1345)', function () {
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, 'Data that we get from other people: when a manager of a community invites you, they give us your email address. When a member mentions you, that mention is content of the community.')));
 });
 
 // ---------------------------------------------------------------------------------------------------------------------

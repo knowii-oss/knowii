@@ -22,6 +22,7 @@ DeveloPassion SRL is the controller of the data of your Knowii account. For the 
 4. Your content: posts, comments, reactions, mentions, resources and their captured content, chat messages, direct messages, pages, lessons and uploaded images. Uploaded images are re-encoded on our server, which removes their metadata (location, camera).
 5. Technical data: the IP address and the browser of each session, the API tokens you create, and counters by IP address that limit the number of requests (rate limits).
 6. Waitlist and newsletter: your email address, if you join them.
+7. Data that we get from other people: when a manager of a community invites you, they give us your email address. When a member mentions you, that mention is content of the community.
 
 We do not use advertising or tracking cookies, and we do not sell personal data.
 

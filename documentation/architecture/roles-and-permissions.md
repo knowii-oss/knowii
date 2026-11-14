@@ -100,7 +100,7 @@ Leaving (#1338): a member leaves by themselves (`DELETE /communities/{community}
 
 Ownership ([ADR 0035](../adr/0035-ownership-transfer.md), #1339): the owner gives the community to one of its admins (`POST /communities/{community}/ownership`, with the password of the owner). In one transaction the admin becomes the owner (rank 4) and the former owner becomes an admin (rank 3). Only an admin can receive the community, and a personal community never changes its owner. The new owner gets an email.
 
-Invitations ([ADR 0019](../adr/0019-community-invitations-by-email.md)): the email of an invitation has a signed link, valid for 7 days, that works only for an account with the invited email address.
+Invitations ([ADR 0019](../adr/0019-community-invitations-by-email.md)): the email of an invitation has a signed link, valid for 7 days, that works only for an account with the invited email address. Its footer says who invited the person, who runs the instance (`LEGAL_OPERATOR`), where the address comes from, when it is deleted, and where the privacy policy is (GDPR art. 14, #1345). The inviter is not stored on the invitation.
 
 ## Per space type
 

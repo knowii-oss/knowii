@@ -57,7 +57,7 @@ class InviteCommunityMember implements InvitesCommunityMembers
             return $invitation;
         });
 
-        Mail::to($email)->queue(new CommunityInvitationMail($invitation));
+        Mail::to($email)->queue(new CommunityInvitationMail($invitation, $user));
 
         Log::info('Community invitation sent', ['community' => $community->cuid, 'invitation' => $invitation->cuid, 'role' => $role->value]);
         CommunityMembersChanged::dispatch($community->cuid);
