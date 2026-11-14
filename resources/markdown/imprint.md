@@ -1,6 +1,6 @@
 ---
 title: Imprint
-updated: 2026-11-10
+updated: 2026-11-14
 draft: false
 ---
 
@@ -18,7 +18,7 @@ VAT: BE0717561755
 
 ## Responsible person
 
-Sébastien Dubois, founder of DeveloPassion SRL. He is also the data protection officer.
+Sébastien Dubois, founder of DeveloPassion SRL. He is also the contact person for data protection.
 
 ## Contact
 

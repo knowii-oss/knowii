@@ -150,3 +150,14 @@ test('the security page tells how we protect the platform, with the periods of t
             && str_contains($html, 'mailto:contact@developassion.be'))
     );
 });
+
+test('the imprint and the privacy policy name a contact person for data protection, not a formal officer (#1355)', function () {
+    $this->get('/imprint')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, 'He is also the contact person for data protection.')));
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, 'The contact person for data protection is Sébastien Dubois, founder of DeveloPassion SRL.')));
+});
+
+test('no legal page names a data protection officer (#1355)', function (string $url) {
+    $this->get($url)->assertInertia(fn ($page) => $page->where('html', fn (string $html) => ! str_contains(strtolower($html), 'data protection officer')));
+})->with('legal pages');
