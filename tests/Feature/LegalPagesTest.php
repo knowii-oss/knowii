@@ -212,3 +212,11 @@ test('the privacy policy and the DPA list the stored data that the review found 
     $this->get('/dpa')->assertInertia(fn ($page) => $page
         ->where('html', fn (string $html) => str_contains($html, 'read markers') && str_contains($html, 'the alternative text of images')));
 });
+
+test('the privacy policy names Turnstile on the sign-up form and describes the audience statistics (#1349)', function () {
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, 'The sign-up, waitlist and newsletter forms use Cloudflare Turnstile to block bots.')
+            && str_contains($html, 'Audience statistics: page views, counted by Plausible without cookies and without a stored identifier. Our proxy at Cloudflare and Plausible see your IP address to count the view and do not keep it.')
+            && str_contains($html, 'To know how many people visit the pages: our legitimate interest in improving the service (art. 6(1)(f)).'))
+    );
+});
