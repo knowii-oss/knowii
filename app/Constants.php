@@ -155,6 +155,9 @@ class Constants
     // Community name checks (#1136) per minute and per user: the forms send one after each pause in the typing
     public const int NAME_CHECKS_PER_MINUTE = 60;
 
+    // Ownership transfers (#1339) per minute and per user: each one checks the password of the owner
+    public const int OWNERSHIP_TRANSFERS_PER_MINUTE = 5;
+
     // Markdown preview requests (editor) per minute and per user
     public const int MARKDOWN_PREVIEWS_PER_MINUTE = 60;
 

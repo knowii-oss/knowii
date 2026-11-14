@@ -39,6 +39,7 @@ The owner and the admins switch these rights in the community settings ("Moderat
 | Manage space groups and spaces            | `CommunityPolicy::manageSpaces`                           | yes    | yes    | `manage_spaces`                              | no         | no       | no      |
 | List the members and their roles          | `CommunityPolicy::view`                                   | yes    | yes    | yes                                          | yes        | no       | no      |
 | Invite, change and remove members         | `CommunityPolicy::add/update/removeCommunityMember`       | yes    | yes    | `manage_members`                             | no         | no       | no      |
+| Transfer the ownership to an admin        | `CommunityPolicy::transferOwnership` (#1339)              | yes    | no     | no                                           | no         | no       | no      |
 | Leave the community                       | `CommunityPolicy::leave` (#1338)                          | no     | yes    | yes                                          | yes        | no       | no      |
 | Upload images                             | `CommunityPolicy::uploadImage`                            | yes    | yes    | yes                                          | yes        | no       | no      |
 | Read a members-only space                 | `SpacePolicy::view`                                       | yes    | yes    | yes                                          | yes        | no       | no      |
@@ -90,6 +91,8 @@ Member management (#1242) adds a rule on top of the abilities above. `CommunityR
 
 Leaving (#1338): a member leaves by themselves (`DELETE /communities/{community}/membership`), with the same effects as a removal: they leave the access groups, lose their course progress, and lose the rights on what they wrote, which stays. The owner cannot leave: a community always has an owner, so they transfer the ownership first or delete the community.
 
+Ownership ([ADR 0035](../adr/0035-ownership-transfer.md), #1339): the owner gives the community to one of its admins (`POST /communities/{community}/ownership`, with the password of the owner). In one transaction the admin becomes the owner (rank 4) and the former owner becomes an admin (rank 3). Only an admin can receive the community, and a personal community never changes its owner. The new owner gets an email.
+
 Invitations ([ADR 0019](../adr/0019-community-invitations-by-email.md)): the email of an invitation has a signed link, valid for 7 days, that works only for an account with the invited email address.
 
 ## Per space type
@@ -101,6 +104,5 @@ Access groups ([ADR 0025](../adr/0025-access-groups.md)): a space with the `grou
 ## Later
 
 1. Moderators of one space (a group that moderates a space).
-2. Transferring the ownership of a community (#1339).
-3. Show a restricted space as locked to the members outside its groups (#869, #1241).
-4. Add the buyers of a product to a group automatically (Knowii account entitlements, ADR 0010).
+2. Show a restricted space as locked to the members outside its groups (#869, #1241).
+3. Add the buyers of a product to a group automatically (Knowii account entitlements, ADR 0010).
