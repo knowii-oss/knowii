@@ -34,6 +34,8 @@ Member content: `MarkdownContent` shows the HTML that the server renders. It rep
 
 Images in the editor (#1207): the image button, a paste or a drop takes up to 10 images at a time. `ImageInsertPanel` lists them with a preview, a required description (the alt text), the state of each upload, and buttons to reorder and remove. "Insert the images" uploads them one after the other and writes them one per line; nothing goes in the text before every upload worked, and a second try uploads only the images that failed.
 
+Galleries ([ADR 0039](../adr/0039-images-that-follow-each-other-form-a-gallery.md)): the server writes the images that follow each other as `div.image-gallery`, with each image as a link to its file. The grid is CSS only (`.image-gallery` in `styles.css`, chosen from `data-image-count`), so there is no layout jump when the script starts. `MarkdownContent` listens to the clicks on its content and opens `ImageViewer` (Headless UI Dialog): the image on the whole screen, its alternative text as the caption, previous and next with the buttons, the arrow keys, Home, End and a swipe, and "Open the original". A click with a modifier key stays a normal link. A rich block that only needs a shared dialog follows this pattern; a block that needs its own component gets a React root, like the videos.
+
 ## Themes and tokens
 
 1. Colors, fonts and breakpoints are the Knowii brand tokens defined with `@theme` in `apps/knowii/src/styles.css`. The default Tailwind palette is disabled. The Noto Sans font comes from the `@fontsource-variable/noto-sans` package: `main.tsx` imports its CSS and Vite bundles the WOFF2 files, so the font is served from the Knowii origin. Never load a font or a stylesheet from a font service (#1341, GDPR): the CSP allows none.

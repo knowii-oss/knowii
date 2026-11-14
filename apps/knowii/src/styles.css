@@ -225,3 +225,71 @@
   color: transparent;
   filter: drop-shadow(0 0 18px rgba(255, 20, 147, 0.35));
 }
+
+/*
+ * Galleries in member content (#1207, ADR 0039). The server marks the images that follow each other
+ * (App\Support\MarkdownGalleries): each image is a link to its file. The grid is CSS only, chosen from the number of
+ * images, so it is right before any script runs. MarkdownContent opens the viewer.
+ */
+@layer components {
+  .image-gallery {
+    @apply my-4 grid max-w-2xl grid-cols-2 gap-1 overflow-hidden rounded-lg;
+  }
+
+  .image-gallery-item {
+    @apply relative block aspect-[4/3] cursor-zoom-in overflow-hidden bg-well;
+  }
+
+  /* Inside the tile: the gallery cuts what goes over its edge */
+  .image-gallery-item:focus-visible {
+    @apply outline-2 -outline-offset-2 outline-primary;
+  }
+
+  .image-gallery-item img {
+    @apply size-full object-cover;
+  }
+
+  /* One image keeps its own shape */
+  .image-gallery[data-image-count='1'] {
+    @apply block w-fit max-w-full;
+  }
+
+  .image-gallery[data-image-count='1'] .image-gallery-item {
+    @apply aspect-auto;
+  }
+
+  .image-gallery[data-image-count='1'] .image-gallery-item img {
+    @apply h-auto max-h-[36rem] w-auto max-w-full object-contain;
+  }
+
+  /* Two images: two squares */
+  .image-gallery[data-image-count='2'] .image-gallery-item {
+    @apply aspect-square;
+  }
+
+  /* Three images: a large one on the left, two on the right */
+  .image-gallery[data-image-count='3'] {
+    @apply aspect-[3/2] grid-rows-2;
+  }
+
+  .image-gallery[data-image-count='3'] .image-gallery-item {
+    @apply aspect-auto min-h-0;
+  }
+
+  .image-gallery[data-image-count='3'] .image-gallery-item:first-child {
+    @apply row-span-2;
+  }
+
+  /* Five images or more: the grid shows four (ImageGalleryRenderer::VISIBLE_IMAGES), the viewer shows them all */
+  .image-gallery-item:nth-child(n + 5) {
+    @apply hidden;
+  }
+
+  .image-gallery-more {
+    @apply absolute inset-0 flex items-center justify-center bg-black/60 text-3xl font-extrabold text-white;
+  }
+
+  .image-gallery-more-label {
+    @apply sr-only;
+  }
+}
