@@ -12,6 +12,8 @@ This policy explains which personal data Knowii collects, why, how long it keeps
 
 DeveloPassion SRL, 126 Route de Mons, 7130 Binche, Belgium (company number 0717.561.755, VAT BE0717561755) runs Knowii. The contact person for data protection is Sébastien Dubois, founder of DeveloPassion SRL. Contact: [contact@developassion.be](mailto:contact@developassion.be).
 
+Knowii is for people of 16 and older. We do not knowingly keep the data of younger people: write to us and we delete the account.
+
 DeveloPassion SRL is the controller of the data of your Knowii account. For the content and the members of a community, the owner of the community decides what happens, and DeveloPassion SRL processes the data on the owner's behalf, as described in the [data processing agreement](/dpa).
 
 ## 2. The data we collect

@@ -27,9 +27,11 @@ vi.mock('@inertiajs/react', async () => {
 });
 vi.mock('ziggy-js', () => ({ useRoute: () => (name: string) => `/${name}` }));
 vi.mock('@/Components/Footer', () => ({ default: () => null }));
+// A test turns the terms checkbox on
+const jetstream = vi.hoisted(() => ({ hasTermsAndPrivacyPolicyFeature: false }));
 vi.mock('@knowii/common', async (importOriginal) => ({
   ...(await importOriginal<typeof Common>()),
-  useTypedPage: () => ({ props: { jetstream: { hasTermsAndPrivacyPolicyFeature: false } } }),
+  useTypedPage: () => ({ props: { jetstream } }),
 }));
 // The widget of Cloudflare cannot load in tests: a button stands for a solved check
 vi.mock('@/Components/ui', async (importOriginal) => ({
@@ -63,5 +65,23 @@ describe('RegisterPage', () => {
     expect(screen.queryByRole('button', { name: 'Solve the bot check' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Register' })).toBeEnabled();
     expect(document.querySelector('[aria-hidden="true"] input[name="website"]')).not.toBeNull();
+  });
+
+  it('asks the person to confirm that they are 16 or older with the terms (#1350)', () => {
+    jetstream.hasTermsAndPrivacyPolicyFeature = true;
+    try {
+      render(<RegisterPage turnstileSiteKey={null} />);
+
+      const checkbox = screen.getByRole('checkbox', {
+        name: 'I am 16 or older and I agree to the Terms of Service and Privacy Policy',
+      });
+      expect(checkbox).toBeRequired();
+      expect(screen.getByRole('link', { name: 'Terms of Service' })).toHaveAttribute('href', '/terms-of-service.show');
+      expect(screen.getByRole('link', { name: 'Privacy Policy' })).toHaveAttribute('href', '/privacy-policy.show');
+      // No date of birth: the checkbox is enough
+      expect(screen.queryByLabelText(/birth/i)).toBeNull();
+    } finally {
+      jetstream.hasTermsAndPrivacyPolicyFeature = false;
+    }
   });
 });
