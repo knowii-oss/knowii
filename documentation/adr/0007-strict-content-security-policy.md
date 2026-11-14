@@ -12,7 +12,7 @@ Members will write posts, comments and messages and upload images. If HTML ever 
 ## Decision
 
 1. Scripts: per-request nonce and `'strict-dynamic'`. Third-party scripts are added by our own code.
-2. Styles: `'self'`, the per-request nonce and Google Fonts. No `'unsafe-inline'`. Styles set through the CSSOM (React `style` props) are allowed by browsers; `<style>` elements need the nonce from `<meta property="csp-nonce">`.
+2. Styles: `'self'` and the per-request nonce. No `'unsafe-inline'`. (Until #1341 the policy also allowed Google Fonts; Knowii now serves its font itself, so no visitor address goes to a font service.) Styles set through the CSSOM (React `style` props) are allowed by browsers; `<style>` elements need the nonce from `<meta property="csp-nonce">`.
 3. No directive accepts a whole scheme (`http:`, `https:`, `ws:`, `wss:`) or `*`. Every origin is listed in `config/secure-headers.php`, from configuration values (Reverb, uploads host, `CSP_*_SRC`).
 4. A feature test fails when a directive accepts a whole scheme.
 

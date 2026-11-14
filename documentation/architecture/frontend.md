@@ -34,7 +34,7 @@ Member content: `MarkdownContent` shows the HTML that the server renders. It rep
 
 ## Themes and tokens
 
-1. Colors, fonts and breakpoints are the Knowii brand tokens defined with `@theme` in `apps/knowii/src/styles.css`. The default Tailwind palette is disabled.
+1. Colors, fonts and breakpoints are the Knowii brand tokens defined with `@theme` in `apps/knowii/src/styles.css`. The default Tailwind palette is disabled. The Noto Sans font comes from the `@fontsource-variable/noto-sans` package: `main.tsx` imports its CSS and Vite bundles the WOFF2 files, so the font is served from the Knowii origin. Never load a font or a stylesheet from a font service (#1341, GDPR): the CSP allows none.
 2. Two themes: dark (default) and light, selected with `data-theme` on `<html>`. The inline script in `app.blade.php` applies the saved choice before the first paint. `useTheme()` and `<ThemeToggle>` change it.
 3. Tokens change with the theme: never hardcode `white` or `black`. Check every screen in both themes.
 

@@ -36,13 +36,6 @@
     })();
   </script>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap"
-    rel="stylesheet"
-  />
-
   @php($plausible = \App\Support\Analytics::plausible())
   @if ($plausible)
     <!-- Plausible statistics through a proxy (#1316): only when PLAUSIBLE_DOMAIN and PLAUSIBLE_PROXY_URL are set -->
