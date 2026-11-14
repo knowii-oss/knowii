@@ -220,3 +220,9 @@ test('the privacy policy names Turnstile on the sign-up form and describes the a
             && str_contains($html, 'To know how many people visit the pages: our legitimate interest in improving the service (art. 6(1)(f)).'))
     );
 });
+
+test('the privacy policy says the minimum age of the terms (#1350)', function () {
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, 'Knowii is for people of 16 and older. We do not knowingly keep the data of younger people: write to us and we delete the account.')));
+    $this->get('/terms-of-service')->assertInertia(fn ($page) => $page->where('html', fn (string $html) => str_contains($html, '16')));
+});

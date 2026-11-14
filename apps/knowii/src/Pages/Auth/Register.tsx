@@ -144,7 +144,8 @@ export default function RegisterPage({ turnstileSiteKey = null }: Props) {
                   disabled={form.processing}
                 />
                 <label htmlFor="terms" className="text-sm text-muted">
-                  I agree to the{' '}
+                  {/* 16 is the minimum age of the terms. No date of birth: the checkbox is enough (#1350) */}I am 16 or older and I agree
+                  to the{' '}
                   <a target="_blank" rel="noreferrer" href={route(TERMS_OF_SERVICE_URL)} className="simple-link">
                     Terms of Service
                   </a>{' '}
