@@ -24,6 +24,8 @@ DeveloPassion SRL is the controller of the data of your Knowii account. For the 
 6. Waitlist and newsletter: your email address, if you join them.
 7. Data that we get from other people: when a manager of a community invites you, they give us your email address. When a member mentions you, that mention is content of the community.
 
+Your name, email address, username and password are required to create an account. Without them, we cannot give you one. Everything else is optional.
+
 We do not use advertising or tracking cookies, and we do not sell personal data.
 
 ## 3. Why we use it, and on what legal basis
@@ -41,7 +43,7 @@ We use these sub-processors:
 
 {{subprocessors}}
 
-Some of them are in the United States. These transfers use the EU-US Data Privacy Framework or the standard contractual clauses of the European Commission.
+Some of them are in the United States. These transfers use the EU-US Data Privacy Framework or the standard contractual clauses of the European Commission. Write to contact@developassion.be for a copy of these safeguards.
 
 Videos in course lessons come from YouTube or Vimeo. Your browser contacts YouTube or Vimeo only when you press Play: from then on, their own privacy policy applies.
 
@@ -80,6 +82,8 @@ All traffic uses HTTPS. Passwords are hashed, and two-factor authentication is a
 ## 8. Your rights
 
 You can ask us for a copy of your data, its correction or its deletion, limit or object to its use, and receive it in a machine-readable format. You can withdraw your consent at any time. You correct your profile and delete your account yourself in the settings. For the other requests, write to [contact@developassion.be](mailto:contact@developassion.be). We answer within one month.
+
+We make no automated decisions about you, and we do no profiling.
 
 For data in a community, you can also contact its owner.
 

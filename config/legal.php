@@ -36,7 +36,9 @@ return [
             'name' => 'Resend, Inc.',
             'country' => 'United States',
             'purpose' => 'Emails of the service: sign-in links, address verification, invitations',
-            'safeguard' => 'EU-US Data Privacy Framework or standard contractual clauses',
+            // Certified under the Data Privacy Framework since 2025; its data processing addendum keeps the standard
+            // contractual clauses as the fallback, like the one of Cloudflare (#1347)
+            'safeguard' => 'EU-US Data Privacy Framework',
         ],
         [
             'name' => 'EmailOctopus Ltd',

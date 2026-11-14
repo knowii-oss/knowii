@@ -183,3 +183,21 @@ test('the "Remember me" cookie lasts as long as the privacy policy says (#1342)'
 
     expect(intdiv($minutes, 60 * 24))->toBe(400);
 });
+
+test('the privacy policy says which data is required, that there is no automated decision, and how to get the safeguards (#1347)', function () {
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, 'Your name, email address, username and password are required to create an account. Without them, we cannot give you one. Everything else is optional.')
+            && str_contains($html, 'We make no automated decisions about you, and we do no profiling.')
+            // The address becomes a link
+            && str_contains($html, 'Write to <a href="mailto:contact@developassion.be">contact@developassion.be</a> for a copy of these safeguards.'))
+    );
+});
+
+test('each sub-processor in the United States names one transfer safeguard (#1347)', function () {
+    $american = array_filter(LegalPages::subprocessors(), static fn (array $entry): bool => $entry['country'] === 'United States');
+
+    expect($american)->not->toBeEmpty();
+    foreach ($american as $entry) {
+        expect($entry['safeguard'])->toBe('EU-US Data Privacy Framework');
+    }
+});
