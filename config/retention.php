@@ -25,7 +25,7 @@ return [
     // An uploaded image that no content uses is deleted after this many days (#1273)
     'unused_uploads_days' => (int) env('RETENTION_UNUSED_UPLOADS_DAYS', 7),
 
-    // A community export (php artisan communities:export, #1353) is a copy of personal data: the file is deleted after
+    // An export (php artisan communities:export or users:export, #1353, #1343) is a copy of personal data: the file is deleted after
     // this many days
     'exports_days' => (int) env('RETENTION_EXPORTS_DAYS', 7),
 

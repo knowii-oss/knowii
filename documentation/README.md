@@ -15,6 +15,7 @@ This folder is the technical reference of the Knowii Platform. It describes how 
 | [Rules](conventions/rules.md)                                  | The rules that every change must follow, and the definition of done                         |
 | [Architecture decision records](adr/README.md)                 | The decisions that shape the code, one file per decision                                    |
 | [Community export runbook](runbooks/community-export.md)       | The steps for the operator to export the data of a community on the request of its owner    |
+| [Member data export runbook](runbooks/member-data-export.md)   | The steps for the operator to answer a member who asks for a copy of their data             |
 | [API requests (Bruno)](api/README.md)                          | The Bruno collection that documents and exercises the REST API                              |
 
 Other documents at the root of the repository:
