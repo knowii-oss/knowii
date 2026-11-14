@@ -10,6 +10,7 @@ use App\Events\Spaces\SpaceContentChanged;
 use App\Models\Page;
 use App\Models\Space;
 use App\Models\User;
+use App\Rules\MaxMarkdownImages;
 use App\Support\Markdown;
 use App\Support\Positions;
 use App\Support\VideoEmbed;
@@ -82,7 +83,7 @@ class CreatePage implements CreatesPages
             // A section has a title only (#1188)
             'body' => $kind === KnowiiPageKind::Section
                 ? ['sometimes', 'nullable', 'string', 'max:0']
-                : [$presence, 'string', 'min:1', 'max:'.Constants::MAX_LENGTH_POST_BODY],
+                : [$presence, 'string', 'min:1', 'max:'.Constants::MAX_LENGTH_POST_BODY, new MaxMarkdownImages],
             // Lessons of a course space (#1188): YouTube or Vimeo only (App\Support\VideoEmbed)
             'video_url' => ['sometimes', 'nullable', 'string', 'max:'.Constants::MAX_LENGTH_SPACE_URL, static function (string $attribute, mixed $value, Closure $fail): void {
                 if (is_string($value) && trim($value) !== '' && VideoEmbed::parse($value) === null) {

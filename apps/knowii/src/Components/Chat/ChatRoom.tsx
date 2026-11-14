@@ -280,6 +280,8 @@ export function ChatRoom(props: ChatRoomProps) {
           icon="💬"
           title="No messages yet"
           description={props.canWrite ? 'Write the first message.' : 'Messages will show here.'}
+          // It gives its room to a tall composer, like the list of messages does
+          className="min-h-0 overflow-hidden"
         />
       ) : (
         <ol

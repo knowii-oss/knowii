@@ -109,7 +109,10 @@ export function ChatComposer({
   };
 
   return (
-    <div className="flex flex-col gap-2">
+    // The chat has a fixed height: a tall composer (several images that wait, #1207) takes 70% of it at most and
+    // scrolls, so it never goes over what follows the chat, and the messages keep some room. The padding keeps the
+    // focus rings of its edges visible
+    <div className="-m-1 flex max-h-[70%] shrink-0 flex-col gap-2 overflow-y-auto p-1">
       <label htmlFor={id} className="sr-only">
         {label}
       </label>

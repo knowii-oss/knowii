@@ -7,6 +7,7 @@ use App\Contracts\Comments\UpdatesComments;
 use App\Events\Spaces\SpaceContentChanged;
 use App\Models\Comment;
 use App\Models\User;
+use App\Rules\MaxMarkdownImages;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
@@ -22,7 +23,7 @@ class UpdateComment implements UpdatesComments
 
         /** @var array{body: string} $validated */
         $validated = Validator::make($input, [
-            'body' => ['required', 'string', 'min:1', 'max:'.Constants::MAX_LENGTH_COMMENT_BODY],
+            'body' => ['required', 'string', 'min:1', 'max:'.Constants::MAX_LENGTH_COMMENT_BODY, new MaxMarkdownImages],
         ])->validate();
 
         DB::transaction(function () use ($comment, $validated, $user) {

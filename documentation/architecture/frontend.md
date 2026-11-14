@@ -32,6 +32,8 @@ A component that throws while rendering does not blank the page. `<ErrorBoundary
 
 Member content: `MarkdownContent` shows the HTML that the server renders. It replaces each `div.video-embed` block (a YouTube or Vimeo link alone on its line, [ADR 0031](../adr/0031-videos-in-member-content.md)) with the click-to-load `VideoPlayer`. The `MarkdownEditor` has an "Add a video" button that checks the address with `parseVideoUrl` (`libs/common`).
 
+Images in the editor (#1207): the image button, a paste or a drop takes up to 10 images at a time. `ImageInsertPanel` lists them with a preview, a required description (the alt text), the state of each upload, and buttons to reorder and remove. "Insert the images" uploads them one after the other and writes them one per line; nothing goes in the text before every upload worked, and a second try uploads only the images that failed.
+
 ## Themes and tokens
 
 1. Colors, fonts and breakpoints are the Knowii brand tokens defined with `@theme` in `apps/knowii/src/styles.css`. The default Tailwind palette is disabled. The Noto Sans font comes from the `@fontsource-variable/noto-sans` package: `main.tsx` imports its CSS and Vite bundles the WOFF2 files, so the font is served from the Knowii origin. Never load a font or a stylesheet from a font service (#1341, GDPR): the CSP allows none.

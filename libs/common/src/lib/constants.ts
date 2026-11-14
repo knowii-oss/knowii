@@ -149,6 +149,9 @@ export const COMMENT_EDITOR_ROWS = 4;
 // Image uploads. WARNING: aligned with Constants.php
 export const MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024;
 export const MAX_LENGTH_UPLOAD_ALT = 500;
+// Several images (#1207): how many go in at a time, and how many one post, comment, message or page holds
+export const MAX_IMAGES_PER_INSERT = 10;
+export const MAX_IMAGES_PER_CONTENT = 20;
 
 // Lesson quizzes (#1335, ADR 0038). WARNING: aligned with Constants.php
 export const MIN_QUIZ_QUESTIONS = 1;

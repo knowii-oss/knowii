@@ -10,6 +10,7 @@ use App\Exceptions\BusinessException;
 use App\Models\ChatMessage;
 use App\Models\Space;
 use App\Models\User;
+use App\Rules\MaxMarkdownImages;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -78,12 +79,12 @@ class CreateChatMessage implements CreatesChatMessages
     /**
      * WARNING: aligned with chatMessageFormSchema (chat-message.schema.ts)
      *
-     * @return array<string, list<string>>
+     * @return array<string, list<string|object>>
      */
     public static function rules(): array
     {
         return [
-            'body' => ['required', 'string', 'min:1', 'max:'.Constants::MAX_LENGTH_CHAT_MESSAGE],
+            'body' => ['required', 'string', 'min:1', 'max:'.Constants::MAX_LENGTH_CHAT_MESSAGE, new MaxMarkdownImages],
         ];
     }
 }
