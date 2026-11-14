@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FaAt, FaCircleCheck } from 'react-icons/fa6';
+import { useRoute } from 'ziggy-js';
 import { z } from 'zod';
-import { knowiiApiClient, WAITLIST_HONEYPOT_FIELD, waitlistEmailSchema } from '@knowii/common';
+import { knowiiApiClient, PRIVACY_POLICY_URL, WAITLIST_HONEYPOT_FIELD, waitlistEmailSchema } from '@knowii/common';
 import InputError from '@/Components/InputError';
 import { Button, Card, TextInput, Turnstile } from '@/Components/ui';
 
@@ -22,6 +23,7 @@ interface WaitlistFormProps {
  * and a rate limit; the address must be confirmed by email (double opt-in).
  */
 export default function WaitlistForm({ turnstileSiteKey }: WaitlistFormProps) {
+  const route = useRoute();
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   // A Turnstile token works once: a new key mounts a new widget after each attempt
   const [turnstileKey, setTurnstileKey] = useState(0);
@@ -101,7 +103,7 @@ export default function WaitlistForm({ turnstileSiteKey }: WaitlistFormProps) {
                   icon={<FaAt />}
                   required
                   invalid={!!form.formState.errors.email}
-                  aria-describedby={form.formState.errors.email ? 'waitlist-email-error' : undefined}
+                  aria-describedby={form.formState.errors.email ? 'waitlist-email-error waitlist-consent' : 'waitlist-consent'}
                   disabled={submitting}
                 />
               )}
@@ -111,6 +113,14 @@ export default function WaitlistForm({ turnstileSiteKey }: WaitlistFormProps) {
             </Button>
           </div>
           <InputError id="waitlist-email-error" className="mt-2" message={form.formState.errors.email?.message} />
+          {/* Consent is informed when the address is given (GDPR art. 7 and 13, #1346). Approved text */}
+          <p id="waitlist-consent" className="mt-2 text-xs text-muted">
+            By subscribing, you agree to receive one email when Knowii opens. You can unsubscribe in that email. See the{' '}
+            <a href={route(PRIVACY_POLICY_URL)} className="simple-link">
+              privacy policy
+            </a>
+            .
+          </p>
 
           {/* Honeypot: hidden from people and from screen readers, bots fill it in */}
           <div aria-hidden="true" className="absolute -left-[10000px] h-px w-px overflow-hidden">

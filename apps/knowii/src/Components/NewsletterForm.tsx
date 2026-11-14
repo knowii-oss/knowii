@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FaAt, FaCircleCheck } from 'react-icons/fa6';
+import { useRoute } from 'ziggy-js';
 import { z } from 'zod';
-import { knowiiApiClient, WAITLIST_HONEYPOT_FIELD, waitlistEmailSchema } from '@knowii/common';
+import { knowiiApiClient, PRIVACY_POLICY_URL, WAITLIST_HONEYPOT_FIELD, waitlistEmailSchema } from '@knowii/common';
 import InputError from '@/Components/InputError';
 import { Button, TextInput, Turnstile } from '@/Components/ui';
 
@@ -27,6 +28,7 @@ interface NewsletterFormProps {
  * call Cloudflare for a form that nobody uses.
  */
 export default function NewsletterForm({ turnstileSiteKey, defaultEmail }: NewsletterFormProps) {
+  const route = useRoute();
   const [botCheckStarted, setBotCheckStarted] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   // A Turnstile token works once: a new key mounts a new widget after each attempt
@@ -109,7 +111,7 @@ export default function NewsletterForm({ turnstileSiteKey, defaultEmail }: Newsl
               icon={<FaAt />}
               required
               invalid={!!form.formState.errors.email}
-              aria-describedby={form.formState.errors.email ? 'newsletter-email-error' : undefined}
+              aria-describedby={form.formState.errors.email ? 'newsletter-email-error newsletter-consent' : 'newsletter-consent'}
               disabled={submitting}
             />
           )}
@@ -119,6 +121,14 @@ export default function NewsletterForm({ turnstileSiteKey, defaultEmail }: Newsl
         </Button>
       </div>
       <InputError id="newsletter-email-error" className="mt-2" message={form.formState.errors.email?.message} />
+      {/* Consent is informed when the address is given (GDPR art. 7 and 13, #1346). Approved text */}
+      <p id="newsletter-consent" className="mt-2 text-xs text-muted">
+        By subscribing, you agree to receive the Knowii newsletter by email. You can unsubscribe in every email. See the{' '}
+        <a href={route(PRIVACY_POLICY_URL)} className="simple-link">
+          privacy policy
+        </a>
+        .
+      </p>
 
       {/* Honeypot: hidden from people and from screen readers, bots fill it in */}
       <div aria-hidden="true" className="absolute -left-[10000px] h-px w-px overflow-hidden">
