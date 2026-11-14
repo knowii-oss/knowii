@@ -29,8 +29,8 @@ A personal API token (created on the "API tokens" page of the user menu) has abi
 | `chat:write`        | Write, edit and delete messages, react to them                        |
 | `messages:read`     | Read your direct messages, mark them as read (not in the default set) |
 | `messages:write`    | Start conversations, write, edit and delete direct messages, react    |
-| `pages:read`        | Read the pages of page spaces, mark lessons as done, read the progress |
-| `pages:write`       | Create, change, reorder and delete pages (owner, admins, moderators)  |
+| `pages:read`        | Read the pages of page spaces, mark lessons as done, read the progress, read and download course materials |
+| `pages:write`       | Create, change, reorder and delete pages and course materials (owner, admins, moderators) |
 | `resources:read`    | Read resources, their comments and reactions                          |
 | `resources:write`   | Add resources, comment and react on them                              |
 | `resources:create`  | Add resources, nothing else (the browser extension, ADR 0018)         |

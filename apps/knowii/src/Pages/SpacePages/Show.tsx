@@ -18,6 +18,7 @@ import { breadcrumbHome } from '@/Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
 import { CommunityShell } from '@/Components/Spaces/CommunityShell';
 import { VideoPlayer } from '@/Components/Video/VideoPlayer';
+import { CourseMaterials } from '@/Components/SpacePages/CourseMaterials';
 import { PageEditor } from '@/Components/SpacePages/PageEditor';
 import type { BreadcrumbItem } from '@/Components/ui';
 import { Button, Dialog, MarkdownContent, RelativeTime } from '@/Components/ui';
@@ -170,6 +171,17 @@ export default function SpacePage(props: Props) {
           {page.video && <VideoPlayer video={page.video} title={page.title} />}
 
           <MarkdownContent html={page.body_html ?? ''} className="break-words" />
+
+          {/* The files and links of the lesson (#1336): hidden from members while there is none */}
+          {isCourse && (
+            <CourseMaterials
+              key={page.cuid}
+              communityCuid={community.cuid}
+              spaceCuid={space.cuid}
+              targets={[{ pageCuid: page.cuid }]}
+              canManage={props.permissions.canManagePages}
+            />
+          )}
 
           {progress && (
             // One button that keeps its place and its focus when the lesson changes state (#1304)

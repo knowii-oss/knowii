@@ -149,6 +149,32 @@ export const COMMENT_EDITOR_ROWS = 4;
 // Image uploads. WARNING: aligned with Constants.php
 export const MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024;
 export const MAX_LENGTH_UPLOAD_ALT = 500;
+
+// Course materials (#1336). WARNING: aligned with Constants.php and CourseMaterials.php
+export const MIN_LENGTH_COURSE_MATERIAL_TITLE = 1;
+export const MAX_LENGTH_COURSE_MATERIAL_TITLE = 120;
+export const MAX_COURSE_MATERIALS_PER_TARGET = 20;
+// The default of the instance (COURSE_MATERIALS_MAX_MB): the server has the last word
+export const MAX_COURSE_MATERIAL_SIZE_BYTES = 50 * 1024 * 1024;
+export const COURSE_MATERIAL_EXTENSIONS = [
+  'pdf',
+  'zip',
+  'epub',
+  'json',
+  'txt',
+  'md',
+  'csv',
+  'docx',
+  'xlsx',
+  'pptx',
+  'odt',
+  'ods',
+  'odp',
+  'png',
+  'jpg',
+  'jpeg',
+  'webp',
+] as const;
 export const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'] as const;
 
 // Community resource
@@ -243,6 +269,12 @@ export const COMMUNITY_SPACE_PAGES_ORDER_API_PATH = `${COMMUNITY_SPACE_PAGES_API
 export const COMMUNITY_SPACE_PAGE_API_PATH = `${COMMUNITY_SPACE_PAGES_API_PATH}/${SPACE_API_PARAM_PAGE}`;
 // Course progress of the current member (#1304)
 export const COMMUNITY_SPACE_PROGRESS_API_PATH = `${COMMUNITY_SPACE_API_PATH}/progress`;
+// Supplementary materials of course spaces (#1336). WARNING: aligned with ApiRoutes.php
+export const SPACE_API_PARAM_MATERIAL = '{materialCuid}';
+export const COMMUNITY_SPACE_MATERIALS_API_PATH = `${COMMUNITY_SPACE_API_PATH}/materials`;
+export const COMMUNITY_SPACE_MATERIALS_ORDER_API_PATH = `${COMMUNITY_SPACE_MATERIALS_API_PATH}/order`;
+export const COMMUNITY_SPACE_MATERIAL_API_PATH = `${COMMUNITY_SPACE_MATERIALS_API_PATH}/${SPACE_API_PARAM_MATERIAL}`;
+export const COMMUNITY_SPACE_MATERIAL_DOWNLOAD_API_PATH = `${COMMUNITY_SPACE_MATERIAL_API_PATH}/download`;
 export const COMMUNITY_SPACE_PAGE_PROGRESS_API_PATH = `${COMMUNITY_SPACE_PAGE_API_PATH}/progress`;
 export const COMMUNITY_SPACE_POST_PIN_API_PATH = `${COMMUNITY_SPACE_POST_API_PATH}/pin`;
 

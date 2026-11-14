@@ -4,6 +4,8 @@ namespace App\Support;
 
 use App\Models\Community;
 use App\Models\CommunityResource;
+use App\Models\CourseMaterial;
+use App\Models\Page;
 use App\Models\Resource;
 use App\Models\Space;
 use App\Models\Upload;
@@ -25,11 +27,13 @@ final class ContentFiles
      * @param  list<array{disk: string, path: string}>  $uploads
      * @param  list<int>  $resourceIds
      * @param  list<string>  $communityResourceCuids
+     * @param  list<array{disk: string, path: string}>  $materials  the files of course materials (#1336)
      */
     private function __construct(
         private readonly array $uploads,
         private readonly array $resourceIds,
         private readonly array $communityResourceCuids,
+        private readonly array $materials = [],
     ) {}
 
     /**
@@ -41,6 +45,7 @@ final class ContentFiles
             self::uploads(Upload::query()->where('community_id', $community->id)),
             self::resourceIds(CommunityResource::query()->where('community_id', $community->id)),
             self::communityResourceCuids(CommunityResource::query()->where('community_id', $community->id)),
+            self::materials(CourseMaterial::query()->where('community_id', $community->id)),
         );
     }
 
@@ -54,6 +59,7 @@ final class ContentFiles
             [],
             self::resourceIds(CommunityResource::query()->where('space_id', $space->id)),
             self::communityResourceCuids(CommunityResource::query()->where('space_id', $space->id)),
+            self::materials(CourseMaterial::query()->where('space_id', $space->id)),
         );
     }
 
@@ -64,6 +70,22 @@ final class ContentFiles
     public static function ofCommunityResource(CommunityResource $resource): self
     {
         return new self([], [(int) $resource->resource_id], [$resource->cuid]);
+    }
+
+    /**
+     * The material files of a lesson or of a section of a course (#1336): the rows go with the page by cascade.
+     */
+    public static function ofPage(Page $page): self
+    {
+        return new self([], [], [], self::materials(CourseMaterial::query()->where('page_id', $page->id)));
+    }
+
+    /**
+     * The file of one course material (#1336).
+     */
+    public static function ofCourseMaterial(CourseMaterial $material): self
+    {
+        return new self([], [], [], self::materials(CourseMaterial::query()->whereKey($material->id)));
     }
 
     /**
@@ -79,6 +101,12 @@ final class ContentFiles
     {
         foreach ($this->uploads as $upload) {
             Storage::disk($upload['disk'])->delete($upload['path']);
+        }
+
+        foreach ($this->materials as $material) {
+            Storage::disk($material['disk'])->delete($material['path']);
+            // Each material has its own folder
+            Storage::disk($material['disk'])->deleteDirectory(dirname($material['path']));
         }
 
         // The captured content of the community resources (ADR 0018): the database deletes their rows by cascade
@@ -106,6 +134,24 @@ final class ContentFiles
         $files = [];
         foreach ($query->get(['disk', 'path']) as $upload) {
             $files[] = ['disk' => $upload->disk, 'path' => $upload->path];
+        }
+
+        return $files;
+    }
+
+    /**
+     * The files of the materials (links have none).
+     *
+     * @param  Builder<CourseMaterial>  $query
+     * @return list<array{disk: string, path: string}>
+     */
+    private static function materials($query): array
+    {
+        $files = [];
+        foreach ($query->whereNotNull('path')->get(['disk', 'path']) as $material) {
+            if (is_string($material->disk) && is_string($material->path)) {
+                $files[] = ['disk' => $material->disk, 'path' => $material->path];
+            }
         }
 
         return $files;

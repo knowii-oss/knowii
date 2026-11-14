@@ -367,6 +367,10 @@ A lesson is a page of a course space with an optional `video_url`; a section is 
 
 Videos in member content (#1206, [ADR 0031](../adr/0031-videos-in-member-content.md)): `App\Support\MarkdownVideos\VideoEmbedExtension` marks a YouTube or Vimeo link alone in its paragraph as a `div.video-embed` block with data attributes from `VideoEmbed::parse`. `MarkdownContent` turns the block into the `VideoPlayer` of the lessons.
 
+### Course materials
+
+A course space has supplementary materials (#1336, [ADR 0037](../adr/0037-course-materials.md)): files and links for the whole course, a section or a lesson (`course_materials`, `App\Models\CourseMaterial`). The managers of the course change them (`SpacePolicy::managePages`); members who can read the space list and download them. The files are on a private disk (`config/courses.php`: `COURSE_MATERIALS_DISK`, `local` by default) and never have a public address: `GET .../materials/{material}/download` checks the access, then streams the file as an attachment or redirects to a temporary address of the storage service. `App\Support\CourseMaterials` holds the accepted types and the size limit, and `App\Support\ContentFiles` deletes the files with the material, the lesson, the space and the community.
+
 ### Direct messages
 
 Direct messages (#1186, [ADR 0028](../adr/0028-direct-messages.md)) are chat messages with a `conversation_id`. `App\Events\Conversations\ConversationChanged` (`conversation.message.created`, `.updated`, `.deleted`, `conversation.reactions.changed`, with `conversation_cuid`, `message_cuid`, `author_cuid`) goes to `conversation.{conversationCuid}` (participants) and to `user.{userCuid}` of each participant (their lists and unread counts). `App\Support\ChatMessageEvents` sends the event of a chat message to its place: the space channel or the conversation channels.

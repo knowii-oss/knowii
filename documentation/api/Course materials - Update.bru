@@ -1,0 +1,27 @@
+meta {
+  name: Course materials - Update
+  type: http
+  seq: 133
+}
+
+patch {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a course space>/materials/<material cuid>
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Starter template",
+    "url": "https://example.com/new-template"
+  }
+}
+
+docs {
+  Changes the title of a material, or the address of a link (a file has no url: 400). A file is never replaced: delete the material and add it again. Ability pages:write.
+}

@@ -6,6 +6,7 @@ use App\Contracts\Pages\DeletesPages;
 use App\Events\Spaces\SpaceContentChanged;
 use App\Models\Page;
 use App\Models\User;
+use App\Support\ContentFiles;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 
@@ -20,7 +21,10 @@ class DeletePage implements DeletesPages
 
         // Built before the delete: the event needs the space of the page
         $event = SpaceContentChanged::forPage(SpaceContentChanged::PAGE_DELETED, $page, $user->cuid);
+        // Read before the delete: the material files of the lesson or the section go after it (#1336)
+        $files = ContentFiles::ofPage($page);
         $page->delete();
+        $files->deleteAfterCommit();
 
         Log::info('Page deleted', ['page' => $page->cuid]);
         event($event);

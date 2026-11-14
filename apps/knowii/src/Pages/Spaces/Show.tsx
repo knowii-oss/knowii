@@ -29,6 +29,7 @@ import { buttonClasses, EmptyState } from '@/Components/ui';
 import { PostList } from '@/Components/Posts/PostList';
 import { ResourceList } from '@/Components/Resources/ResourceList';
 import { PageList } from '@/Components/SpacePages/PageList';
+import { CourseMaterials } from '@/Components/SpacePages/CourseMaterials';
 import { ChatSpace } from '@/Components/Chat/ChatSpace';
 
 interface Props {
@@ -161,13 +162,28 @@ export default function SpacePage(props: Props) {
             showsOnlineStatus={page.props.auth.user?.show_online_status !== false}
           />
         ) : (space.type === 'pages' || space.type === 'course') && props.pages ? (
-          <PageList
-            community={community}
-            space={space}
-            pages={props.pages}
-            canManagePages={props.permissions.canManagePages}
-            progress={props.progress}
-          />
+          <div className="flex flex-col gap-6">
+            <PageList
+              community={community}
+              space={space}
+              pages={props.pages}
+              canManagePages={props.permissions.canManagePages}
+              progress={props.progress}
+            />
+            {/* The files and links of the course and of its sections (#1336); the ones of a lesson are on its page */}
+            {space.type === 'course' && (
+              <CourseMaterials
+                title="Course materials"
+                communityCuid={community.cuid}
+                spaceCuid={space.cuid}
+                targets={[
+                  { pageCuid: null, label: 'Whole course' },
+                  ...props.pages.filter((item) => item.kind === 'section').map((item) => ({ pageCuid: item.cuid, label: item.title })),
+                ]}
+                canManage={props.permissions.canManagePages}
+              />
+            )}
+          </div>
         ) : space.type === 'resources' && props.resources ? (
           <ResourceList
             community={community}

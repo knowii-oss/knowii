@@ -30,6 +30,10 @@ use App\Actions\CommunityMembers\UpdateCommunityMemberRole;
 use App\Actions\Conversations\MarkConversationAsRead;
 use App\Actions\Conversations\SendDirectMessage;
 use App\Actions\Conversations\StartConversation;
+use App\Actions\CourseMaterials\CreateCourseMaterial;
+use App\Actions\CourseMaterials\DeleteCourseMaterial;
+use App\Actions\CourseMaterials\ReorderCourseMaterials;
+use App\Actions\CourseMaterials\UpdateCourseMaterial;
 use App\Actions\EmailOctopus\PruneEmailOctopusContacts;
 use App\Actions\Newsletter\SubscribeToNewsletter;
 use App\Actions\Pages\CreatePage;
@@ -91,6 +95,10 @@ use App\Contracts\CommunityMembers\UpdatesCommunityMemberRoles;
 use App\Contracts\Conversations\MarksConversationsAsRead;
 use App\Contracts\Conversations\SendsDirectMessages;
 use App\Contracts\Conversations\StartsConversations;
+use App\Contracts\CourseMaterials\CreatesCourseMaterials;
+use App\Contracts\CourseMaterials\DeletesCourseMaterials;
+use App\Contracts\CourseMaterials\ReordersCourseMaterials;
+use App\Contracts\CourseMaterials\UpdatesCourseMaterials;
 use App\Contracts\Newsletter\SubscribesToNewsletter;
 use App\Contracts\Pages\CreatesPages;
 use App\Contracts\Pages\DeletesPages;
@@ -211,6 +219,11 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(TogglesReactions::class, ToggleReaction::class);
         app()->singleton(UploadsImages::class, UploadImage::class);
         app()->singleton(PrunesExpiredData::class, PruneExpiredData::class);
+        // Course materials (#1336)
+        app()->singleton(CreatesCourseMaterials::class, CreateCourseMaterial::class);
+        app()->singleton(UpdatesCourseMaterials::class, UpdateCourseMaterial::class);
+        app()->singleton(DeletesCourseMaterials::class, DeleteCourseMaterial::class);
+        app()->singleton(ReordersCourseMaterials::class, ReorderCourseMaterials::class);
         app()->singleton(PrunesMailingListContacts::class, PruneEmailOctopusContacts::class);
 
         // Public waitlist endpoint: a few requests per minute and per IP address

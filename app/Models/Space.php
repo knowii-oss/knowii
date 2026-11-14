@@ -176,6 +176,16 @@ class Space extends Model
     }
 
     /**
+     * The materials of a course space (#1336), in their order. Named after the route parameter, for scoped bindings.
+     *
+     * @return HasMany<CourseMaterial, covariant $this>
+     */
+    final public function materials(): HasMany
+    {
+        return $this->hasMany(CourseMaterial::class)->orderBy('position')->orderBy('id');
+    }
+
+    /**
      * The pages of a page space (#1179), in their order
      *
      * @return HasMany<Page, covariant $this>

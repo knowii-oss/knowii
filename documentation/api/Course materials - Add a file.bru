@@ -1,0 +1,25 @@
+meta {
+  name: Course materials - Add a file
+  type: http
+  seq: 132
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a course space>/materials
+  body: multipartForm
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+body:multipart-form {
+  kind: file
+  title: Cheat sheet
+  file: @file(path/to/cheat-sheet.pdf)
+}
+
+docs {
+  Adds a file (multipart/form-data). Accepted: PDF, ZIP, EPUB, Markdown, text, CSV, JSON, Office and OpenDocument files, PNG, JPEG, WebP, up to the limit of the instance (50 MB by default). The type is read from the content of the file. Add the field page for a section or a lesson. The answer never holds the place of the file: use the download request. Rate limited like the image uploads.
+}

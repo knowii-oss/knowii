@@ -61,3 +61,4 @@ Do not write an ADR for a bug fix, a refactor that keeps the structure, or a fea
 | [0034](0034-course-progress-per-member.md)                             | Course progress is one row per lesson done, private to the member        | Accepted |
 | [0035](0035-ownership-transfer.md)                                     | The owner transfers a community to an admin and becomes an admin         | Accepted |
 | [0036](0036-reserved-community-names.md)                               | Some community names are reserved for the administrators of the instance | Accepted |
+| [0037](0037-course-materials.md)                                       | Course materials are private files and links, added by the managers      | Accepted |

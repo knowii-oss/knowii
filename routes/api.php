@@ -9,6 +9,7 @@ use App\Http\Controllers\API\CommunityInvitationApiController;
 use App\Http\Controllers\API\CommunityResourceApiController;
 use App\Http\Controllers\API\CommunityResourceCommentApiController;
 use App\Http\Controllers\API\ConversationApiController;
+use App\Http\Controllers\API\CourseMaterialApiController;
 use App\Http\Controllers\API\LessonProgressApiController;
 use App\Http\Controllers\API\LoginApiController;
 use App\Http\Controllers\API\MarkdownApiController;
@@ -115,6 +116,14 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::get(ApiRoutes::COMMUNITY_SPACE_PROGRESS, [LessonProgressApiController::class, 'show'])->middleware('ability:pages:read');
             Route::put(ApiRoutes::COMMUNITY_SPACE_PAGE_PROGRESS, [LessonProgressApiController::class, 'store'])->middleware('ability:pages:read');
             Route::delete(ApiRoutes::COMMUNITY_SPACE_PAGE_PROGRESS, [LessonProgressApiController::class, 'destroy'])->middleware('ability:pages:read');
+
+            // Supplementary materials of course spaces (#1336, ADR 0037): members read and download, managers change
+            Route::get(ApiRoutes::COMMUNITY_SPACE_MATERIALS, [CourseMaterialApiController::class, 'index'])->middleware('ability:pages:read');
+            Route::post(ApiRoutes::COMMUNITY_SPACE_MATERIALS, [CourseMaterialApiController::class, 'store'])->middleware('ability:pages:write')->middleware('throttle:uploads');
+            Route::post(ApiRoutes::COMMUNITY_SPACE_MATERIALS_ORDER, [CourseMaterialApiController::class, 'reorder'])->middleware('ability:pages:write');
+            Route::patch(ApiRoutes::COMMUNITY_SPACE_MATERIAL, [CourseMaterialApiController::class, 'update'])->middleware('ability:pages:write');
+            Route::delete(ApiRoutes::COMMUNITY_SPACE_MATERIAL, [CourseMaterialApiController::class, 'destroy'])->middleware('ability:pages:write');
+            Route::get(ApiRoutes::COMMUNITY_SPACE_MATERIAL_DOWNLOAD, [CourseMaterialApiController::class, 'download'])->middleware('ability:pages:read');
 
             // Resources of resources spaces (ADR 0015)
             Route::get(ApiRoutes::COMMUNITY_SPACE_RESOURCES, [CommunityResourceApiController::class, 'index'])->middleware('ability:resources:read');

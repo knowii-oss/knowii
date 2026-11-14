@@ -1,0 +1,19 @@
+meta {
+  name: Course materials - Download
+  type: http
+  seq: 136
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a course space>/materials/<material cuid>/download
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Downloads the file of a material: members who can read the space. The answer is the file as an attachment (Content-Disposition: attachment, X-Content-Type-Options: nosniff), or a redirect to a temporary address (5 minutes) when the files are on a storage service. A link has no file: 404. Ability pages:read.
+}
