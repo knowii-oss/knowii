@@ -48,7 +48,7 @@ class CreateCommunity implements CreatesCommunities
         ]);
 
         // A shared community needs a name that no other shared community has (ADR 0033, #1136)
-        $validator->sometimes('name', [new AvailableCommunityName], static fn (Fluent $input) => $input->get('visibility') !== KnowiiCommunityVisibility::Personal->value);
+        $validator->sometimes('name', [new AvailableCommunityName(null, $user)], static fn (Fluent $input) => $input->get('visibility') !== KnowiiCommunityVisibility::Personal->value);
 
         $validator->validate();
 

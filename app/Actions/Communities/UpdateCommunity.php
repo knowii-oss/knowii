@@ -37,7 +37,7 @@ class UpdateCommunity implements UpdatesCommunities
             'visibility' => ['sometimes', 'required', Rule::enum(KnowiiCommunityVisibility::class)],
             // #1186: off, nobody starts a conversation or sends a direct message; the members still read theirs
             'direct_messages_enabled' => ['sometimes', 'boolean'],
-        ])->sometimes('name', [new AvailableCommunityName($community)], static fn () => $community->visibility !== KnowiiCommunityVisibility::Personal)
+        ])->sometimes('name', [new AvailableCommunityName($community, $user)], static fn () => $community->visibility !== KnowiiCommunityVisibility::Personal)
             ->validate();
 
         if (array_key_exists('visibility', $validated)) {
