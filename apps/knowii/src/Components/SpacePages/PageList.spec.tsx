@@ -64,12 +64,35 @@ describe('PageList', () => {
       .mockResolvedValue({ ok: true, message: '', data: [rules, welcome, intro] });
     renderList(true);
 
-    expect(screen.getByRole('button', { name: 'Move "Welcome" up' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Move "Introduce yourself" down' })).toBeDisabled();
+    // aria-disabled, not disabled: the buttons at the ends of the list can keep the focus (#1360)
+    expect(screen.getByRole('button', { name: 'Move "Welcome" up' })).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByRole('button', { name: 'Move "Welcome" up' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Move "Introduce yourself" down' })).toHaveAttribute('aria-disabled', 'true');
 
     await userEvent.click(screen.getByRole('button', { name: 'Move "House rules" up' }));
 
     expect(reorder).toHaveBeenCalledWith('c1', 's1', ['rules', 'welcome', 'intro']);
     await waitFor(() => expect(within(screen.getByRole('list')).getAllByRole('link')[0]).toHaveTextContent('House rules'));
+  });
+
+  it('keeps the focus on the move button when the page reaches the top, and does nothing more there (#1360)', async () => {
+    const reorder = vi
+      .spyOn(knowiiApiClient.communities.pages, 'reorder')
+      .mockResolvedValue({ ok: true, message: '', data: [rules, welcome, intro] });
+    renderList(true);
+
+    const up = screen.getByRole('button', { name: 'Move "House rules" up' });
+    up.focus();
+    await userEvent.keyboard('{Enter}');
+
+    await waitFor(() => expect(within(screen.getByRole('list')).getAllByRole('link')[0]).toHaveTextContent('House rules'));
+    const atTop = screen.getByRole('button', { name: 'Move "House rules" up' });
+    expect(atTop).toHaveFocus();
+    expect(atTop).toHaveAttribute('aria-disabled', 'true');
+
+    // At the top, the button does nothing
+    await userEvent.keyboard('{Enter}');
+    expect(reorder).toHaveBeenCalledTimes(1);
+    expect(atTop).toHaveFocus();
   });
 });

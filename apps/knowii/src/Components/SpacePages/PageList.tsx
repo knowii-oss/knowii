@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, router } from '@inertiajs/react';
 import type { Community, CourseProgress, Page, Space } from '@knowii/common';
 import { knowiiApiClient, PAGE_URL, useAppData, useSocket } from '@knowii/common';
@@ -45,6 +45,16 @@ export function PageList({ community, space, pages: initialPages, canManagePages
   const [toDelete, setToDelete] = useState<Page | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [moving, setMoving] = useState<string | null>(null);
+  // The button to focus again after a page moved: React moves its DOM node, and the browser drops the focus (#1360)
+  const movedButton = useRef<string | null>(null);
+  const container = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (movedButton.current !== null) {
+      container.current?.querySelector<HTMLButtonElement>(`[data-move="${movedButton.current}"]`)?.focus();
+      movedButton.current = null;
+    }
+  }, [pages]);
   const isCourse = space.type === 'course';
   const itemMode: PageEditorMode = isCourse ? 'lesson' : 'page';
   const noun = isCourse ? 'lesson' : 'page';
@@ -87,7 +97,8 @@ export function PageList({ community, space, pages: initialPages, canManagePages
     const target = index + offset;
     const page = pages[index];
     const other = pages[target];
-    if (!page || !other) {
+    // The buttons stay enabled (aria-disabled): nothing happens at the ends of the list, and while a move runs
+    if (!page || !other || moving !== null) {
       return;
     }
     const order = [...pages];
@@ -101,6 +112,7 @@ export function PageList({ community, space, pages: initialPages, canManagePages
     );
     setMoving(null);
     if (result.ok) {
+      movedButton.current = `${page.cuid}:${offset}`;
       setPages(result.data);
     } else {
       showToast({ severity: 'error', summary: result.message });
@@ -129,8 +141,10 @@ export function PageList({ community, space, pages: initialPages, canManagePages
         variant="ghost"
         size="sm"
         iconOnly
+        data-move={`${page.cuid}:-1`}
         aria-label={`Move "${page.title}" up`}
-        disabled={index === 0 || moving !== null}
+        // aria-disabled, not disabled: a disabled button loses the focus when the page reaches the end of the list
+        aria-disabled={index === 0 || moving !== null || undefined}
         onClick={() => void move(index, -1)}
       >
         <FaArrowUp aria-hidden="true" />
@@ -139,8 +153,9 @@ export function PageList({ community, space, pages: initialPages, canManagePages
         variant="ghost"
         size="sm"
         iconOnly
+        data-move={`${page.cuid}:1`}
         aria-label={`Move "${page.title}" down`}
-        disabled={index === pages.length - 1 || moving !== null}
+        aria-disabled={index === pages.length - 1 || moving !== null || undefined}
         onClick={() => void move(index, 1)}
       >
         <FaArrowDown aria-hidden="true" />
@@ -149,7 +164,7 @@ export function PageList({ community, space, pages: initialPages, canManagePages
   );
 
   return (
-    <section aria-label={isCourse ? `Lessons of ${space.name}` : `Pages of ${space.name}`} className="flex flex-col gap-4">
+    <section ref={container} aria-label={isCourse ? `Lessons of ${space.name}` : `Pages of ${space.name}`} className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-muted">
           {items.length === 1 ? `1 ${noun}` : `${items.length} ${noun}s`}
