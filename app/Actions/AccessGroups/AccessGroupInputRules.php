@@ -9,7 +9,7 @@ use Illuminate\Validation\Rule;
 final class AccessGroupInputRules
 {
     /**
-     * @return array<string, mixed>
+     * @return array<string, list<string|object>>
      */
     public static function editable(Community $community, bool $required, ?int $ignoreId = null): array
     {

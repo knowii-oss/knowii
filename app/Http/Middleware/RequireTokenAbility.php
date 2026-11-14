@@ -7,6 +7,7 @@ use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\Request;
 use Laravel\Sanctum\Exceptions\MissingAbilityException;
 use Laravel\Sanctum\PersonalAccessToken;
+use Laravel\Sanctum\TransientToken;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -30,7 +31,7 @@ class RequireTokenAbility
         }
 
         // A TransientToken (web session) or none in tests, despite the PHPDoc of HasApiTokens
-        /** @var mixed $token */
+        /** @var PersonalAccessToken|TransientToken|null $token */
         $token = $user->currentAccessToken();
         if ($token instanceof PersonalAccessToken) {
             foreach ($abilities as $ability) {

@@ -16,7 +16,8 @@ parameters:
         - routes/
         # - tests/
 
-    # Level 10 is the highest level
+    # Level 10 is the highest level: it includes checkExplicitMixed (level 9) and checkImplicitMixed (level 10), so no
+    # stricter setting exists for `mixed` (#726). tests/Unit/MixedTypeUsageTest.php keeps the word itself out of app/
     level: max
 
 #    ignoreErrors:

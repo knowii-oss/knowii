@@ -34,7 +34,7 @@ final class ProfileFieldVisibility
     /**
      * The stored choices on top of the defaults; unknown keys are dropped.
      *
-     * @param  array<mixed>|null  $stored
+     * @param  array<mixed>|null  $stored  the stored choices, or the input of the profile form: narrowed here
      * @return array<string, bool>
      */
     public static function resolve(?array $stored): array

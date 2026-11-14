@@ -71,7 +71,7 @@ class CreatePage implements CreatesPages
     /**
      * WARNING: aligned with pageFormSchema (page.schema.ts)
      *
-     * @return array<string, list<mixed>>
+     * @return array<string, list<string|object>>
      */
     public static function rules(bool $required, KnowiiPageKind $kind = KnowiiPageKind::Page): array
     {

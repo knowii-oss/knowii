@@ -16,7 +16,9 @@ class KnowiiApiResponse implements JsonSerializable
     private string $message;
 
     /**
-     * @var array<mixed>|null
+     * Pagination and flags about the answer
+     *
+     * @var array<string, bool|int|string|array<string, int|null>|null>|null
      */
     private ?array $metadata;
 
@@ -26,14 +28,16 @@ class KnowiiApiResponse implements JsonSerializable
     private array|JsonResource|null $data;
 
     /**
-     * @var array<mixed>|null
+     * Messages per field
+     *
+     * @var array<string, array<int, string>>|null
      */
     private ?array $errors;
 
     /**
-     * @param  array<mixed>|null  $metadata
-     * @param  array<mixed>|JsonResource|null  $data
-     * @param  array<mixed>|null  $errors
+     * @param  array<string, bool|int|string|array<string, int|null>|null>|null  $metadata
+     * @param  array<mixed>|JsonResource|null  $data  the JSON payload of the endpoint
+     * @param  array<string, array<int, string>>|null  $errors
      */
     public function __construct(
         KnowiiApiResponseCategory $category,
@@ -52,7 +56,7 @@ class KnowiiApiResponse implements JsonSerializable
     }
 
     /**
-     * @return array<mixed>
+     * @return array<string, mixed>
      */
     final public function jsonSerialize(): array
     {

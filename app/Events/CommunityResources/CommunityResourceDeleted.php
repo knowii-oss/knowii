@@ -15,7 +15,7 @@ class CommunityResourceDeleted extends CommunityResourceEvent
     /**
      * Get the data to broadcast.
      *
-     * @return array<string, mixed>
+     * @return array{cuid: string}
      */
     public function broadcastWith(): array
     {

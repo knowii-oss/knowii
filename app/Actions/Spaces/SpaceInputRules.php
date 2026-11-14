@@ -14,7 +14,7 @@ use Illuminate\Validation\Rule;
 final class SpaceInputRules
 {
     /**
-     * @return array<string, mixed>
+     * @return array<string, list<string|object>>
      */
     public static function editable(bool $required): array
     {
@@ -37,7 +37,7 @@ final class SpaceInputRules
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array<string, list<string|object>>
      */
     public static function create(): array
     {
