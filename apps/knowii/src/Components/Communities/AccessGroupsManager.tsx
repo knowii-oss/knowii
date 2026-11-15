@@ -1,15 +1,23 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { AccessGroup, AccessGroupForm, Author, CommunityPermissions, Pagination, SpaceGroup } from '@knowii/common';
-import { accessGroupFormSchema, COMMUNITY_MEMBERS_PAGE_SIZE, knowiiApiClient, useAppData } from '@knowii/common';
-import { FaLayerGroup, FaPen, FaTrash, FaUserLock, FaUserMinus, FaUserPlus, FaUsers } from 'react-icons/fa6';
-import { Avatar, Button, Card, CardBody, CardHeader, Checkbox, Dialog, EmptyState, TextInput } from '@/Components/ui';
+import type { AccessGroup, AccessGroupForm, AccessGroupMember, CommunityPermissions, Pagination, SpaceGroup } from '@knowii/common';
+import {
+  accessGroupFormSchema,
+  COMMUNITY_MEMBERS_PAGE_SIZE,
+  entitlementKeysError,
+  knowiiApiClient,
+  MAX_ENTITLEMENT_RULES_PER_GROUP,
+  parseEntitlementKeys,
+  useAppData,
+} from '@knowii/common';
+import { FaKey, FaLayerGroup, FaPen, FaTrash, FaUserLock, FaUserMinus, FaUserPlus, FaUsers } from 'react-icons/fa6';
+import { Avatar, Button, Card, CardBody, CardHeader, Checkbox, Dialog, EmptyState, Textarea, TextInput } from '@/Components/ui';
 import InputLabel from '@/Components/InputLabel';
 import InputError from '@/Components/InputError';
 
 export interface AccessGroupsManagerProps {
   communityCuid: string;
   permissions: Pick<CommunityPermissions, 'canManageAccessGroups' | 'canManageAccessGroupMembers'> &
-    Partial<Pick<CommunityPermissions, 'canManageSpaces'>>;
+    Partial<Pick<CommunityPermissions, 'canManageSpaces' | 'canManageEntitlementRules'>>;
   /**
    * Changes when the access groups changed elsewhere (real-time event): the list loads again
    */
@@ -74,12 +82,109 @@ function GroupFields(props: { idPrefix: string; value: AccessGroupForm; errors: 
 }
 
 /**
+ * Where a membership comes from (#1386, ADR 0047)
+ */
+function membershipSource(member: AccessGroupMember): string {
+  const byHand = member.sources.includes('manual');
+  const byRule = member.sources.includes('by_rule');
+  if (byHand && byRule) {
+    return 'Added by hand and by an entitlement rule';
+  }
+  return byRule ? 'By an entitlement rule' : 'Added by hand';
+}
+
+/**
+ * The entitlement keys that give a group (#1386, ADR 0047): "a member who holds one of these keys at the sign-in provider is
+ * in this group". Owner and admins of a community that the instance lists.
+ */
+function GroupRulesDialog(props: { communityCuid: string; group: AccessGroup | null; onClose: () => void; onSaved: () => void }) {
+  const { communityCuid, group, onClose, onSaved } = props;
+  const { showToast } = useAppData();
+  // What the manager typed; null: nothing yet, the dialog shows the current keys of the group
+  const [edited, setEdited] = useState<string | null>(null);
+  const [error, setError] = useState<string | undefined>(undefined);
+  const [saving, setSaving] = useState(false);
+  const text = edited ?? (group?.entitlement_keys ?? []).join('\n');
+
+  const close = () => {
+    setEdited(null);
+    setError(undefined);
+    onClose();
+  };
+
+  const save = async () => {
+    if (!group) {
+      return;
+    }
+    const keys = parseEntitlementKeys(text);
+    const problem = entitlementKeysError(keys, MAX_ENTITLEMENT_RULES_PER_GROUP);
+    if (problem) {
+      setError(problem);
+      return;
+    }
+    setSaving(true);
+    const result = await knowiiApiClient.communities.accessGroups.rules.set(communityCuid, group.cuid, keys);
+    setSaving(false);
+    if (!result.ok) {
+      setError(Object.values(result.errors)[0]?.[0] ?? result.message);
+      return;
+    }
+    showToast({ severity: 'success', summary: `Rules of ${group.name} saved` });
+    onSaved();
+    close();
+  };
+
+  return (
+    <Dialog
+      open={group !== null}
+      onClose={close}
+      size="md"
+      title={`Entitlement rules of ${group?.name ?? ''}`}
+      description="A member who holds one of these keys at the sign-in provider is in this group. Members you added by hand stay in it either way."
+      footer={
+        <>
+          <Button variant="secondary" onClick={close}>
+            Cancel
+          </Button>
+          <Button type="submit" form="access-group-rules-form" loading={saving}>
+            Save
+          </Button>
+        </>
+      }
+    >
+      <form
+        id="access-group-rules-form"
+        noValidate
+        onSubmit={(event) => {
+          event.preventDefault();
+          void save();
+        }}
+      >
+        <InputLabel htmlFor="access-group-rules">Entitlement keys, one per line</InputLabel>
+        <Textarea
+          id="access-group-rules"
+          data-autofocus
+          wrapperClassName="mt-1"
+          value={text}
+          onChange={(event) => setEdited(event.target.value)}
+          placeholder="example.paid"
+          invalid={!!error}
+          aria-describedby={error ? 'access-group-rules-error' : undefined}
+        />
+        <InputError id="access-group-rules-error" className="mt-2" message={error} />
+        <p className="mt-2 text-xs text-muted">Letters, digits, dots, dashes and underscores. Leave it empty to remove every rule.</p>
+      </form>
+    </Dialog>
+  );
+}
+
+/**
  * The members of one group (#1241): add a member of the community by username or email, remove members.
  */
 function GroupMembersDialog(props: { communityCuid: string; group: AccessGroup | null; onClose: () => void }) {
   const { communityCuid, group, onClose } = props;
   const { showToast } = useAppData();
-  const [members, setMembers] = useState<Author[]>([]);
+  const [members, setMembers] = useState<AccessGroupMember[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [who, setWho] = useState('');
   const [error, setError] = useState<string | undefined>(undefined);
@@ -149,13 +254,22 @@ function GroupMembersDialog(props: { communityCuid: string; group: AccessGroup |
     void load(0);
   };
 
-  const remove = async (member: Author) => {
+  const remove = async (member: AccessGroupMember) => {
     if (!group) {
       return;
     }
     const result = await knowiiApiClient.communities.accessGroups.members.remove(communityCuid, group.cuid, member.cuid);
     if (!result.ok) {
       showToast({ severity: 'error', summary: result.message });
+      return;
+    }
+    if (member.sources.includes('by_rule')) {
+      // Only the "by hand" source goes: an entitlement rule still gives the group (#1386, ADR 0047)
+      setMembers((current) => current.map((item) => (item.cuid === member.cuid ? { ...item, sources: ['by_rule'] } : item)));
+      showToast({
+        severity: 'info',
+        summary: `${member.name} is no longer added by hand. They stay in ${group.name} because of an entitlement rule`,
+      });
       return;
     }
     setMembers((current) => current.filter((item) => item.cuid !== member.cuid));
@@ -211,11 +325,15 @@ function GroupMembersDialog(props: { communityCuid: string; group: AccessGroup |
               <div className="flex min-w-0 flex-1 flex-col">
                 <span className="truncate font-bold">{member.name}</span>
                 <span className="truncate text-sm text-muted">@{member.username}</span>
+                <span className="text-xs text-muted">{membershipSource(member)}</span>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => void remove(member)} aria-label={`Remove ${member.name} from the group`}>
-                <FaUserMinus aria-hidden="true" />
-                Remove
-              </Button>
+              {/* A member that only a rule gives has nothing to remove by hand: the rule or the entitlement has to change */}
+              {member.sources.includes('manual') && (
+                <Button variant="ghost" size="sm" onClick={() => void remove(member)} aria-label={`Remove ${member.name} from the group`}>
+                  <FaUserMinus aria-hidden="true" />
+                  Remove
+                </Button>
+              )}
             </li>
           ))}
         </ul>
@@ -351,6 +469,7 @@ export function AccessGroupsManager({ communityCuid, permissions, refreshKey = 0
   const [deleting, setDeleting] = useState<AccessGroup | null>(null);
   const [membersOf, setMembersOf] = useState<AccessGroup | null>(null);
   const [spaceGroupsOf, setSpaceGroupsOf] = useState<AccessGroup | null>(null);
+  const [rulesOf, setRulesOf] = useState<AccessGroup | null>(null);
 
   const reload = useCallback(async () => {
     const result = await knowiiApiClient.communities.accessGroups.list(communityCuid);
@@ -464,6 +583,9 @@ export function AccessGroupsManager({ communityCuid, permissions, refreshKey = 0
                     {group.members_count ?? 0} {group.members_count === 1 ? 'member' : 'members'} · {group.spaces_count ?? 0}{' '}
                     {group.spaces_count === 1 ? 'space' : 'spaces'}
                   </span>
+                  {(group.entitlement_keys ?? []).length > 0 && (
+                    <span className="text-xs text-muted">Members also come from: {(group.entitlement_keys ?? []).join(', ')}</span>
+                  )}
                   {(group.space_groups ?? []).length > 0 && (
                     <span className="text-xs text-muted">
                       Opens the space {(group.space_groups ?? []).length === 1 ? 'group' : 'groups'}:{' '}
@@ -475,6 +597,12 @@ export function AccessGroupsManager({ communityCuid, permissions, refreshKey = 0
                   <Button variant="ghost" size="sm" onClick={() => setMembersOf(group)} aria-label={`Members of ${group.name}`}>
                     <FaUsers aria-hidden="true" />
                     Members
+                  </Button>
+                )}
+                {permissions.canManageEntitlementRules && (
+                  <Button variant="ghost" size="sm" onClick={() => setRulesOf(group)} aria-label={`Entitlement rules of ${group.name}`}>
+                    <FaKey aria-hidden="true" />
+                    Rules
                   </Button>
                 )}
                 {permissions.canManageSpaces && (
@@ -555,6 +683,8 @@ export function AccessGroupsManager({ communityCuid, permissions, refreshKey = 0
           </>
         }
       />
+
+      <GroupRulesDialog communityCuid={communityCuid} group={rulesOf} onClose={() => setRulesOf(null)} onSaved={() => void reload()} />
 
       <GroupSpaceGroupsDialog
         communityCuid={communityCuid}

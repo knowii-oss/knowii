@@ -209,6 +209,20 @@ class Constants
     // Starts and ends of a sign-in with the OpenID Connect provider per minute and per IP address (#1385)
     public const int OIDC_REQUESTS_PER_MINUTE = 10;
 
+    // Calls of the sign-in provider to the entitlements webhook per minute and per IP address (#1386, ADR 0047). The provider
+    // joins the changes of one person into one call, and retries with a growing delay
+    public const int OIDC_ENTITLEMENT_EVENTS_PER_MINUTE = 120;
+
+    // An entitlement key (free text of a rule, or a key that the provider sends): letters, digits, dot, dash and underscore
+    public const int MAX_LENGTH_ENTITLEMENT_KEY = 100;
+
+    public const string ENTITLEMENT_KEY_PATTERN = '/^[A-Za-z0-9._-]+$/';
+
+    // At most this many keys are kept for a person, and this many keys are given to an access group (#1386)
+    public const int MAX_ENTITLEMENTS_PER_USER = 200;
+
+    public const int MAX_ENTITLEMENT_RULES_PER_GROUP = 20;
+
     // Reads of the public spaces per minute and per IP address, for visitors (#1387, ADR 0044). Signed-in requests are not limited here
     public const int PUBLIC_READS_PER_MINUTE = 60;
 

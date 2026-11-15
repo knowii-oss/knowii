@@ -7,6 +7,7 @@ use App\Contracts\Auth\SignsInWithOpenIdConnect;
 use App\Exceptions\OpenIdConnectException;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\EntitlementReads;
 use App\Support\OpenIdConnect;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -117,6 +118,9 @@ class OpenIdConnectController extends Controller
         } catch (OpenIdConnectException $e) {
             return $this->fail($request, $member, $e);
         }
+
+        // The link is made: the entitlements of the person are read at the provider, in the background (#1386, ADR 0047)
+        EntitlementReads::afterSignIn($identity->issuer, $identity->subject);
 
         // The member connected the account from the profile settings
         if ($member instanceof User) {

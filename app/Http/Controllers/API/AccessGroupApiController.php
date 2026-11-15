@@ -6,12 +6,16 @@ use App\Contracts\AccessGroups\AddsAccessGroupMembers;
 use App\Contracts\AccessGroups\CreatesAccessGroups;
 use App\Contracts\AccessGroups\DeletesAccessGroups;
 use App\Contracts\AccessGroups\RemovesAccessGroupMembers;
+use App\Contracts\AccessGroups\SetsAccessGroupRules;
 use App\Contracts\AccessGroups\SetsAccessGroupSpaceGroups;
 use App\Contracts\AccessGroups\UpdatesAccessGroups;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\AccessGroupMembershipResource;
 use App\Http\Resources\AuthorResource;
 use App\Models\AccessGroup;
 use App\Models\Community;
+use App\Models\User;
+use App\Support\OidcEntitlements;
 use App\Support\Pagination;
 use App\Traits\ApiResponses;
 use Dedoc\Scramble\Attributes\BodyParameter;
@@ -39,7 +43,10 @@ class AccessGroupApiController extends Controller
     {
         Gate::authorize('viewAccessGroups', $community);
 
-        $groups = $community->accessGroups()->withCount(['members', 'spaces', 'spaceGroups'])->with('spaceGroups')->orderBy('name')->get();
+        $groups = $community->accessGroups()->withCount(['members', 'spaces', 'spaceGroups'])->with('spaceGroups')->orderBy('name')
+            // The keys that give a group are for the people who manage the groups, in a community that may use rules (#1386, ADR 0047)
+            ->when(self::showsRules($community), static fn ($query) => $query->with('rules'))
+            ->get();
 
         return self::success('Access groups', null, $groups->toResourceCollection());
     }
@@ -55,7 +62,7 @@ class AccessGroupApiController extends Controller
     {
         $group = app(CreatesAccessGroups::class)->create($request->user() ?? throw new AuthenticationException, $community, $request->only(['name', 'description']));
 
-        return self::created($group->loadCount(['members', 'spaces', 'spaceGroups'])->load('spaceGroups')->toResource(), 'Access group created');
+        return self::created($group->loadCount(['members', 'spaces', 'spaceGroups'])->load(self::relationsFor($community))->toResource(), 'Access group created');
     }
 
     /**
@@ -69,7 +76,7 @@ class AccessGroupApiController extends Controller
     {
         $group = app(UpdatesAccessGroups::class)->update($request->user() ?? throw new AuthenticationException, $accessGroup, $request->only(['name', 'description']));
 
-        return self::success('Access group updated', null, $group->loadCount(['members', 'spaces', 'spaceGroups'])->load('spaceGroups')->toResource());
+        return self::success('Access group updated', null, $group->loadCount(['members', 'spaces', 'spaceGroups'])->load(self::relationsFor($community))->toResource());
     }
 
     /**
@@ -93,13 +100,21 @@ class AccessGroupApiController extends Controller
     {
         Gate::authorize('viewAccessGroups', $community);
 
-        $page = Pagination::fromRequest($request)->apply($accessGroup->members()->getQuery()->orderBy('users.name')->orderBy('users.id'));
+        // Each member comes with the source of the membership (#1386, ADR 0047): by hand, by a rule, or both
+        $page = Pagination::fromRequest($request)->apply(
+            User::query()
+                ->join('access_group_members as memberships', 'memberships.user_id', '=', 'users.id')
+                ->where('memberships.access_group_id', $accessGroup->id)
+                ->select('users.*', 'memberships.manual as membership_manual', 'memberships.by_rule as membership_by_rule')
+                ->orderBy('users.name')
+                ->orderBy('users.id')
+        );
 
-        return self::success('Access group members', $page['metadata'], $page['items']->toResourceCollection(AuthorResource::class));
+        return self::success('Access group members', $page['metadata'], $page['items']->toResourceCollection(AccessGroupMembershipResource::class));
     }
 
     /**
-     * Add a member of the community to the group, named by exactly one of member (user cuid), username or email. Adding
+     * Add a member of the community to the group, by hand, named by exactly one of member (user cuid), username or email. Adding
      * a member twice changes nothing, so a sync can send the same list again.
      *
      * @throws AuthenticationException
@@ -115,7 +130,8 @@ class AccessGroupApiController extends Controller
     }
 
     /**
-     * Remove a member from the group.
+     * Remove a member from the group by hand. Only the "by hand" source goes: a member whom an entitlement rule gives the
+     * group stays in it (their `sources` then holds `by_rule` only).
      *
      * @throws AuthenticationException
      */
@@ -124,6 +140,61 @@ class AccessGroupApiController extends Controller
         app(RemovesAccessGroupMembers::class)->remove($request->user() ?? throw new AuthenticationException, $accessGroup, $member);
 
         return self::deleted();
+    }
+
+    /**
+     * The entitlement keys that give members this group (#1386, ADR 0047): "a member who holds one of these keys at the
+     * sign-in provider is in this group". Owner and admins. 404 when the instance has no provider with entitlements, or the
+     * community is not one that the operator lists.
+     */
+    final public function rules(Community $community, AccessGroup $accessGroup): JsonResponse
+    {
+        Gate::authorize('manageAccessGroups', $community);
+        abort_unless(OidcEntitlements::allows($community), 404);
+
+        return self::success('Entitlement rules of the access group', null, ['entitlement_keys' => self::keysOf($accessGroup)]);
+    }
+
+    /**
+     * Replace the entitlement keys that give members this group (#1386, ADR 0047). Free text, letters, digits, dot, dash and
+     * underscore, 100 characters at most, 20 keys at most. An empty list removes every rule. A rule that is added, changed or
+     * removed runs the sync for the members of the community in the background. Owner and admins.
+     *
+     * @throws AuthenticationException
+     */
+    #[BodyParameter('entitlement_keys', description: 'The keys that give the group: replaces the current ones. An empty list removes them all', required: true, type: 'array<string>', example: ['example.paid'])]
+    final public function setRules(Request $request, Community $community, AccessGroup $accessGroup): JsonResponse
+    {
+        $group = app(SetsAccessGroupRules::class)->set($request->user() ?? throw new AuthenticationException, $accessGroup, $request->only(['entitlement_keys']));
+
+        return self::success('Entitlement rules of the access group saved', null, ['entitlement_keys' => self::keysOf($group)]);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function keysOf(AccessGroup $group): array
+    {
+        /** @var list<string> $keys */
+        $keys = $group->rules()->orderBy('entitlement_key')->pluck('entitlement_key')->values()->all();
+
+        return $keys;
+    }
+
+    /**
+     * Whether the answer carries the keys of the rules: the feature is on for the community and the caller manages the groups
+     */
+    private static function showsRules(Community $community): bool
+    {
+        return OidcEntitlements::allows($community) && Gate::check('manageAccessGroups', $community);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function relationsFor(Community $community): array
+    {
+        return self::showsRules($community) ? ['spaceGroups', 'rules'] : ['spaceGroups'];
     }
 
     /**

@@ -65,6 +65,15 @@ export interface ConnectedAccount {
   last_used_at: string | null;
 }
 
+/**
+ * What the sign-in provider says that the member owns (#1386, ADR 0047): the keys that were stored at the last read and the
+ * date of that read. Only when the instance reads entitlements and the member connected the provider account.
+ */
+export interface AccountEntitlements {
+  keys: string[];
+  checked_at: string | null;
+}
+
 export interface Session {
   id: number;
   ip_address: string;
@@ -119,6 +128,7 @@ export const API_TOKEN_PERMISSIONS = [
   'groups:write',
   'identities:read',
   'identities:write',
+  'entitlements:read',
 ] as const;
 export type Permission = (typeof API_TOKEN_PERMISSIONS)[number];
 
@@ -144,6 +154,7 @@ export const API_TOKEN_PERMISSION_LABELS: Record<Permission, string> = {
   'groups:write': 'Manage access groups and their members',
   'identities:read': 'Read the provider accounts that you connected',
   'identities:write': 'Disconnect the provider accounts that you connected',
+  'entitlements:read': 'Read what your connected account gives access to',
 };
 
 /**

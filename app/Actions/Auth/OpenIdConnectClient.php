@@ -48,6 +48,11 @@ final class OpenIdConnectClient implements ReadsOpenIdConnectIdentities
 
     private const int MAX_BODY_BYTES = 262144;
 
+    /**
+     * The keys are read again for an unknown key id of a change call at most this often
+     */
+    private const int KEY_REFRESH_SECONDS = 60;
+
     private const int MAX_TOKEN_BYTES = 16384;
 
     private const int CLOCK_SKEW_SECONDS = 60;
@@ -201,26 +206,12 @@ final class OpenIdConnectClient implements ReadsOpenIdConnectIdentities
      */
     private function exchange(array $discovery, string $code, string $codeVerifier): string
     {
-        $form = [
+        $response = $this->postToTokenEndpoint($discovery, [
             'grant_type' => 'authorization_code',
             'code' => $code,
             'redirect_uri' => OpenIdConnect::redirectUri(),
             'code_verifier' => $codeVerifier,
-        ];
-
-        try {
-            $request = $this->request($discovery['token_endpoint'])->asForm();
-            if ($discovery['token_auth'] === 'basic') {
-                // RFC 6749, 2.3.1: the identifier and the secret are form-encoded before the Basic encoding
-                $request = $request->withBasicAuth(urlencode($this->clientId()), urlencode($this->clientSecret()));
-            } else {
-                $form['client_id'] = $this->clientId();
-                $form['client_secret'] = $this->clientSecret();
-            }
-            $response = $request->post($discovery['token_endpoint'], $form);
-        } catch (ConnectionException) {
-            throw new OpenIdConnectException('token_endpoint_unreachable');
-        }
+        ]);
 
         $body = $this->decode($response, 'token_endpoint_error');
         $idToken = $body['id_token'] ?? null;
@@ -232,6 +223,121 @@ final class OpenIdConnectClient implements ReadsOpenIdConnectIdentities
     }
 
     /**
+     * Post a form to the token endpoint with the authentication that the provider supports: the same for the code
+     * exchange and for the client credentials grant
+     *
+     * @param  array{authorization_endpoint: string, token_endpoint: string, jwks_uri: string, token_auth: 'basic'|'post'}  $discovery
+     * @param  array<string, string>  $form
+     *
+     * @throws OpenIdConnectException
+     */
+    private function postToTokenEndpoint(array $discovery, array $form): Response
+    {
+        try {
+            $request = $this->request($discovery['token_endpoint'])->asForm();
+            if ($discovery['token_auth'] === 'basic') {
+                // RFC 6749, 2.3.1: the identifier and the secret are form-encoded before the Basic encoding
+                $request = $request->withBasicAuth(urlencode($this->clientId()), urlencode($this->clientSecret()));
+            } else {
+                $form['client_id'] = $this->clientId();
+                $form['client_secret'] = $this->clientSecret();
+            }
+
+            return $request->post($discovery['token_endpoint'], $form);
+        } catch (ConnectionException) {
+            throw new OpenIdConnectException('token_endpoint_unreachable');
+        }
+    }
+
+    /**
+     * A token of the client credentials grant (#1386, ADR 0047): the client itself, never a member. The caller caches it.
+     * The status of a refusal is kept on the exception, so that a caller can tell a configuration problem (400, 401, 403)
+     * from a provider that is down (5xx) or a limit (429).
+     *
+     * @return array{token: string, expires_in: int}
+     *
+     * @throws OpenIdConnectException
+     */
+    final public function clientCredentialsToken(string $scope, ?string $resource): array
+    {
+        $form = ['grant_type' => 'client_credentials', 'scope' => $scope];
+        if ($resource !== null) {
+            $form['resource'] = $resource;
+        }
+
+        $response = $this->postToTokenEndpoint($this->discovery(), $form);
+        if ($response->status() !== 200) {
+            throw new OpenIdConnectException('token_endpoint_error', OpenIdConnectException::GENERIC_MESSAGE, $response->status());
+        }
+        $body = $this->decode($response, 'token_endpoint_error');
+
+        $token = $body['access_token'] ?? null;
+        $type = $body['token_type'] ?? null;
+        if (! is_string($token) || $token === '' || strlen($token) > self::MAX_TOKEN_BYTES || ! is_string($type) || strtolower($type) !== 'bearer') {
+            throw new OpenIdConnectException('no_access_token');
+        }
+        $lifetime = $body['expires_in'] ?? null;
+
+        // A token without a lifetime is used once and not kept (1 second)
+        return ['token' => $token, 'expires_in' => is_int($lifetime) ? max(1, min($lifetime, 3600)) : 1];
+    }
+
+    /**
+     * GET from the provider with a bearer token and hand the answer back: the caller decides what each status means
+     *
+     * @throws OpenIdConnectException
+     */
+    final public function authorizedGet(string $url, string $accessToken): Response
+    {
+        try {
+            return $this->request($url)->withToken($accessToken)->get($url);
+        } catch (ConnectionException) {
+            throw new OpenIdConnectException('provider_unreachable');
+        }
+    }
+
+    /**
+     * Check a token that the provider signed for this client (the change call of #1386, ADR 0047) and return its claims.
+     * In this order: the shape, the algorithm (never `none`, never an HMAC), the header `typ`, the key (by `kid`), the
+     * signature, then `iss`, `aud`, `exp` (strictly in the future, no skew), and `iat` (present, at most `$maxAgeSeconds`
+     * old and not in the future beyond the skew). The caller checks the claims that are its own (`event`, `sub`, `jti`).
+     *
+     * @return Claims
+     *
+     * @throws OpenIdConnectException
+     */
+    final public function verifySignedEvent(string $jws, string $type, int $maxAgeSeconds): array
+    {
+        if (strlen($jws) > self::MAX_TOKEN_BYTES) {
+            throw new OpenIdConnectException('bad_token');
+        }
+        // The shape, the algorithm and the type come before any request to the provider
+        [$algorithm, $keyId] = $this->header($jws, $type);
+        $claims = $this->verified($jws, $algorithm, $keyId, $this->discovery()['jwks_uri'], true);
+
+        if (($claims['iss'] ?? null) !== $this->issuer()) {
+            throw new OpenIdConnectException('wrong_issuer');
+        }
+        $audience = $claims['aud'] ?? null;
+        $audiences = is_string($audience) ? [$audience] : (is_array($audience) ? array_values($audience) : []);
+        if (! in_array($this->clientId(), $audiences, true)) {
+            throw new OpenIdConnectException('wrong_audience');
+        }
+
+        $now = now()->getTimestamp();
+        $expires = $claims['exp'] ?? null;
+        if ((! is_int($expires) && ! is_float($expires)) || $expires <= $now) {
+            throw new OpenIdConnectException('expired');
+        }
+        $issuedAt = $claims['iat'] ?? null;
+        if ((! is_int($issuedAt) && ! is_float($issuedAt)) || $issuedAt > $now + self::CLOCK_SKEW_SECONDS || $issuedAt < $now - $maxAgeSeconds) {
+            throw new OpenIdConnectException('bad_issued_at');
+        }
+
+        return $claims;
+    }
+
+    /**
      * Check the ID token and return its claims
      *
      * @return Claims
@@ -240,7 +346,24 @@ final class OpenIdConnectClient implements ReadsOpenIdConnectIdentities
      */
     private function validate(string $idToken, string $nonce, string $jwksUri): array
     {
-        $segments = explode('.', $idToken);
+        [$algorithm, $keyId] = $this->header($idToken, null);
+        $claims = $this->verified($idToken, $algorithm, $keyId, $jwksUri);
+        $this->checkClaims($claims, $nonce);
+
+        return $claims;
+    }
+
+    /**
+     * The shape and the header of a token: three segments, an algorithm of the list (`none`, every HMAC algorithm and
+     * anything else are refused before any key is read) and, when a type is required, exactly that `typ`
+     *
+     * @return array{0: string, 1: string|null} The algorithm and the key id
+     *
+     * @throws OpenIdConnectException
+     */
+    private function header(string $token, ?string $type): array
+    {
+        $segments = explode('.', $token);
         if (count($segments) !== 3) {
             throw new OpenIdConnectException('bad_token');
         }
@@ -248,15 +371,30 @@ final class OpenIdConnectClient implements ReadsOpenIdConnectIdentities
         $header = json_decode(JWT::urlsafeB64Decode($segments[0]), true, 4);
         $header = is_array($header) ? $header : [];
         $algorithm = $header['alg'] ?? null;
-        // Refuses `none`, every HMAC algorithm and anything else that is not on the list, before any key is read
         if (! is_string($algorithm) || ! in_array($algorithm, self::ALGORITHMS, true)) {
             throw new OpenIdConnectException('unsupported_algorithm');
         }
+        if ($type !== null && ($header['typ'] ?? null) !== $type) {
+            throw new OpenIdConnectException('wrong_type');
+        }
         $headerKeyId = $header['kid'] ?? null;
-        $keyId = is_string($headerKeyId) ? $headerKeyId : null;
 
+        return [$algorithm, is_string($headerKeyId) ? $headerKeyId : null];
+    }
+
+    /**
+     * The claims of a token whose signature is valid for the key of its key id. With `$limitRefresh` (a call that anybody
+     * can send, like the change call of #1386) the keys are read again for an unknown key id at most once a minute: the
+     * calls of a stranger cannot make the server read the keys of the provider at the rate of their requests.
+     *
+     * @return Claims
+     *
+     * @throws OpenIdConnectException
+     */
+    private function verified(string $token, string $algorithm, ?string $keyId, string $jwksUri, bool $limitRefresh = false): array
+    {
         [$jwk, $fresh] = $this->findKey($jwksUri, $algorithm, $keyId, false);
-        if ($jwk === null && $keyId !== null && ! $fresh) {
+        if ($jwk === null && $keyId !== null && ! $fresh && (! $limitRefresh || Cache::add('oidc:jwks:refreshed:'.hash('sha256', $jwksUri), true, self::KEY_REFRESH_SECONDS))) {
             // An unknown key id: the provider may have rotated its keys. Read them again, once
             [$jwk] = $this->findKey($jwksUri, $algorithm, $keyId, true);
         }
@@ -264,10 +402,7 @@ final class OpenIdConnectClient implements ReadsOpenIdConnectIdentities
             throw new OpenIdConnectException('unknown_key');
         }
 
-        $claims = $this->verifySignature($idToken, $jwk, $algorithm);
-        $this->checkClaims($claims, $nonce);
-
-        return $claims;
+        return $this->verifySignature($token, $jwk, $algorithm);
     }
 
     /**

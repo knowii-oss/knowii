@@ -50,6 +50,13 @@ return [
         'scopes' => env('OIDC_SCOPES', 'openid profile email'),
         // The text of the button. Without it, the host name of the issuer
         'label' => env('OIDC_LABEL'),
+        // Entitlements of the provider feed the access groups (#1386, ADR 0047). Off unless the address template is set. The
+        // communities that may use rules are listed by slug: empty means none
+        'entitlements_url' => env('OIDC_ENTITLEMENTS_URL'),
+        'entitlements_scope' => env('OIDC_ENTITLEMENTS_SCOPE', 'entitlements:read:subjects'),
+        'entitlements_resource' => env('OIDC_ENTITLEMENTS_RESOURCE'),
+        'entitlements_sign_in_scope' => env('OIDC_ENTITLEMENTS_SIGN_IN_SCOPE', 'entitlements:read'),
+        'entitlement_communities' => env('OIDC_ENTITLEMENT_COMMUNITIES'),
     ],
 
     'postmark' => [

@@ -1,0 +1,19 @@
+meta {
+  name: Entitlements - List
+  type: http
+  seq: 175
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/user/entitlements
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The entitlement keys that the sign-in provider reported for you and the date of the last check (#1386, ADR 0047). Own data only. 404 when the instance does not read entitlements. Token ability: entitlements:read (not in the default set).
+}

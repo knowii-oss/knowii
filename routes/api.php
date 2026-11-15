@@ -33,6 +33,7 @@ use App\Http\Controllers\API\ThreadFollowApiController;
 use App\Http\Controllers\API\UploadApiController;
 use App\Http\Controllers\API\UserApiController;
 use App\Http\Controllers\API\UserBlockApiController;
+use App\Http\Controllers\API\UserEntitlementApiController;
 use App\Http\Controllers\API\UserIdentityApiController;
 use App\Http\Controllers\API\WaitlistApiController;
 use Illuminate\Support\Facades\Route;
@@ -96,6 +97,8 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
         // 404. The abilities are not in the default set of a new token
         Route::get(ApiRoutes::USER_IDENTITIES, [UserIdentityApiController::class, 'index'])->middleware('ability:identities:read');
         Route::delete(ApiRoutes::USER_IDENTITY, [UserIdentityApiController::class, 'destroy'])->middleware('ability:identities:write');
+        // What the sign-in provider says the member owns (#1386, ADR 0047): own data only, the ability is not in the default set
+        Route::get(ApiRoutes::USER_ENTITLEMENTS, [UserEntitlementApiController::class, 'index'])->middleware('ability:entitlements:read');
         Route::post(ApiRoutes::USERS_IS_USERNAME_AVAILABLE, [UserApiController::class, 'isUsernameAvailable'])->middleware('ability:user:read');
 
         // The communities of the current member (#828)
@@ -264,6 +267,9 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             // An access group opens whole space groups (#1422, ADR 0041)
             Route::get(ApiRoutes::COMMUNITY_ACCESS_GROUP_SPACE_GROUPS, [AccessGroupApiController::class, 'spaceGroups'])->middleware('ability:groups:read');
             Route::put(ApiRoutes::COMMUNITY_ACCESS_GROUP_SPACE_GROUPS, [AccessGroupApiController::class, 'setSpaceGroups'])->middleware('ability:groups:write');
+            // The entitlement keys that give the group (#1386, ADR 0047): owner and admins, in a listed community
+            Route::get(ApiRoutes::COMMUNITY_ACCESS_GROUP_RULES, [AccessGroupApiController::class, 'rules'])->middleware('ability:groups:read');
+            Route::put(ApiRoutes::COMMUNITY_ACCESS_GROUP_RULES, [AccessGroupApiController::class, 'setRules'])->middleware('ability:groups:write');
             Route::get(ApiRoutes::COMMUNITY_SPACE_GROUP_ACCESS_GROUPS, [SpaceGroupApiController::class, 'accessGroups'])->middleware('ability:groups:read');
             Route::put(ApiRoutes::COMMUNITY_SPACE_GROUP_ACCESS_GROUPS, [SpaceGroupApiController::class, 'setAccessGroups'])->middleware('ability:groups:write');
         });

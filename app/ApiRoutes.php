@@ -92,6 +92,9 @@ final class ApiRoutes
 
     public const USER_IDENTITY = self::USER_IDENTITIES.'/{'.self::PARAM_IDENTITY_CUID.'}';
 
+    // The entitlement keys of the current user at the sign-in provider (#1386, ADR 0047)
+    public const USER_ENTITLEMENTS = 'user/entitlements';
+
     public const AUTH_LOGIN = 'auth/login';
 
     public const PING = 'ping';
@@ -245,6 +248,9 @@ final class ApiRoutes
     public const COMMUNITY_ACCESS_GROUP_SPACE_GROUPS = self::COMMUNITY_ACCESS_GROUP.'/space-groups';
 
     public const COMMUNITY_SPACE_GROUP_ACCESS_GROUPS = self::COMMUNITY_SPACE_GROUP.'/access-groups';
+
+    // The entitlement keys that give an access group (#1386, ADR 0047)
+    public const COMMUNITY_ACCESS_GROUP_RULES = self::COMMUNITY_ACCESS_GROUP.'/rules';
 
     // Direct messages (#1186, ADR 0028)
     public const COMMUNITY_CONVERSATIONS = self::COMMUNITY.'/conversations';

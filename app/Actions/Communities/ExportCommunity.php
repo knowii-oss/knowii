@@ -4,6 +4,7 @@ namespace App\Actions\Communities;
 
 use App\Contracts\Communities\ExportsCommunities;
 use App\Models\AccessGroup;
+use App\Models\AccessGroupRule;
 use App\Models\ChatMessage;
 use App\Models\Comment;
 use App\Models\Community;
@@ -218,7 +219,7 @@ final class ExportCommunity implements ExportsCommunities
      */
     private function accessGroups(Community $community): Generator
     {
-        foreach (AccessGroup::query()->where('community_id', $community->id)->with(['members', 'spaces', 'spaceGroups'])->lazyById(self::CHUNK) as $group) {
+        foreach (AccessGroup::query()->where('community_id', $community->id)->with(['members', 'spaces', 'spaceGroups', 'rules'])->lazyById(self::CHUNK) as $group) {
             /** @var AccessGroup $group */
             yield [
                 'cuid' => $group->cuid,
@@ -227,6 +228,8 @@ final class ExportCommunity implements ExportsCommunities
                 'members' => $group->members->map(static fn (User $member): string => $member->cuid)->values()->all(),
                 'spaces' => $group->spaces->map(static fn (Space $space): string => $space->cuid)->values()->all(),
                 'space_groups' => $group->spaceGroups->map(static fn (SpaceGroup $spaceGroup): string => $spaceGroup->cuid)->values()->all(),
+                // The entitlement keys that give the group (#1386, ADR 0047): the setting of the community
+                'entitlement_keys' => $group->rules->map(static fn (AccessGroupRule $rule): string => $rule->entitlement_key)->sort()->values()->all(),
                 'created_at' => $this->date($group->created_at),
             ];
         }

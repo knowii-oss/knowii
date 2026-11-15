@@ -104,7 +104,7 @@ describe('ConnectedAccountsForm (#1385)', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Disconnect Knowii account' }));
 
     expect(remove).toHaveBeenCalledWith('identity-cuid');
-    await waitFor(() => expect(reload).toHaveBeenCalledWith({ only: ['connectedAccounts', 'hasPassword'] }));
+    await waitFor(() => expect(reload).toHaveBeenCalledWith({ only: ['connectedAccounts', 'hasPassword', 'entitlements'] }));
   });
 
   it('keeps the card as it was when the API refuses', async () => {

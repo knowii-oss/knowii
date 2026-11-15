@@ -34,6 +34,11 @@ return [
     'notifications_read_days' => (int) env('RETENTION_NOTIFICATIONS_READ_DAYS', 60),
     'notifications_unread_days' => (int) env('RETENTION_NOTIFICATIONS_UNREAD_DAYS', 90),
 
+    // The ids (`jti`) of the change calls of the sign-in provider (#1386, ADR 0047) are kept 24 hours in the cache
+    // (ReceiveEntitlementEvent::JTI_HOURS) against a replay, and forgotten with it: the `cache` step of retention:prune
+    // deletes the expired entries when the cache is the database. The stored entitlement keys follow the link to the
+    // provider and the account: there is no period.
+
     // EmailOctopus: a waitlist contact is deleted this many months after the signup
     'waitlist_months' => (int) env('RETENTION_WAITLIST_MONTHS', 12),
 

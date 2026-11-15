@@ -45,7 +45,8 @@ final class OpenIdConnect
     }
 
     /**
-     * The scopes to ask for: always `openid`, never `offline_access` (no refresh token is asked or stored)
+     * The scopes to ask for: always `openid`, never `offline_access` (no refresh token is asked or stored), and the entitlements
+     * scope of the sign-in when that feature is on (#1386)
      *
      * @return list<string>
      */
@@ -53,7 +54,10 @@ final class OpenIdConnect
     {
         $configured = config('services.oidc.scopes');
         $scopes = ['openid'];
-        foreach (preg_split('/[\s,]+/', is_string($configured) ? $configured : '', -1, PREG_SPLIT_NO_EMPTY) ?: [] as $scope) {
+        // With the entitlements feature on (#1386, ADR 0047) the sign-in also asks for the scope that links this client to
+        // the person at the provider: without it the provider refuses to answer for the person
+        $wanted = preg_split('/[\s,]+/', (is_string($configured) ? $configured : '').' '.(OidcEntitlements::signInScope() ?? ''), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        foreach ($wanted as $scope) {
             if ($scope !== 'offline_access' && ! in_array($scope, $scopes, true)) {
                 $scopes[] = $scope;
             }

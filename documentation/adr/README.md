@@ -71,3 +71,4 @@ Do not write an ADR for a bug fix, a refactor that keeps the structure, or a fea
 | [0044](0044-public-spaces-for-visitors.md)                             | Public spaces can be read by visitors, without an account                | Accepted |
 | [0045](0045-openid-connect-sign-in.md)                                 | Sign in with an OpenID Connect provider, linked by subject               | Accepted |
 | [0046](0046-production-image-and-compose.md)                           | One production image, one Compose project with five services             | Accepted |
+| [0047](0047-entitlement-rules-feed-access-groups.md)                   | The entitlements of the sign-in provider feed the access groups          | Accepted |

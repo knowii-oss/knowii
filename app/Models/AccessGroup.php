@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\UseResource;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * A named group of members of a community, for example "Paid members" (#1241, ADR 0025). The spaces with the "groups"
@@ -25,6 +26,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property-read int|null $members_count
  * @property-read int|null $spaces_count
  * @property-read int|null $space_groups_count
+ * @property-read int|null $rules_count
  */
 #[UseResource(AccessGroupResource::class)]
 class AccessGroup extends Model
@@ -54,7 +56,17 @@ class AccessGroup extends Model
      */
     final public function members(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'access_group_members')->withPivot('created_at');
+        return $this->belongsToMany(User::class, 'access_group_members')->withPivot('created_at', 'manual', 'by_rule');
+    }
+
+    /**
+     * The entitlement keys that give a member this group (#1386, ADR 0047)
+     *
+     * @return HasMany<AccessGroupRule, covariant $this>
+     */
+    final public function rules(): HasMany
+    {
+        return $this->hasMany(AccessGroupRule::class);
     }
 
     /**

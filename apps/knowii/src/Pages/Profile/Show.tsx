@@ -1,5 +1,5 @@
 import AppLayout from '@/Layouts/AppLayout';
-import type { ConnectedAccount, Session } from '@knowii/common';
+import type { AccountEntitlements, ConnectedAccount, Session } from '@knowii/common';
 import { useTypedPage } from '@knowii/common';
 import UpdateProfileInformationForm from '@/Pages/Profile/Partials/UpdateProfileInformationForm';
 import UpdateAvatarForm from '@/Pages/Profile/Partials/UpdateAvatarForm';
@@ -10,6 +10,7 @@ import TwoFactorAuthenticationForm from '@/Pages/Profile/Partials/TwoFactorAuthe
 import LogoutOtherBrowserSessionsForm from '@/Pages/Profile/Partials/LogoutOtherBrowserSessionsForm';
 import DeleteUserForm from '@/Pages/Profile/Partials/DeleteUserForm';
 import ConnectedAccountsForm from '@/Pages/Profile/Partials/ConnectedAccountsForm';
+import EntitlementsCard from '@/Pages/Profile/Partials/EntitlementsCard';
 import type { BreadcrumbItem } from '@/Components/ui';
 import { breadcrumbHome } from '../../Components/BreadcrumbHome';
 import { FaUser } from 'react-icons/fa';
@@ -20,6 +21,8 @@ interface Props {
   // Only when the instance has an OpenID Connect provider (#1385)
   connectedAccounts?: ConnectedAccount[];
   hasPassword?: boolean;
+  // Only when the instance reads entitlements and the member connected the provider account (#1386)
+  entitlements?: AccountEntitlements;
 }
 
 export default function UserProfile(props: Props) {
@@ -61,6 +64,13 @@ export default function UserProfile(props: Props) {
       {props.connectedAccounts !== undefined && (
         <>
           <ConnectedAccountsForm accounts={props.connectedAccounts} hasPassword={props.hasPassword ?? true} />
+          <Separator />
+        </>
+      )}
+
+      {props.entitlements !== undefined && (
+        <>
+          <EntitlementsCard entitlements={props.entitlements} />
           <Separator />
         </>
       )}

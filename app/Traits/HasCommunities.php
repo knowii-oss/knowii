@@ -67,7 +67,7 @@ trait HasCommunities
      */
     final public function accessGroups(): BelongsToMany
     {
-        return $this->belongsToMany(AccessGroup::class, 'access_group_members')->withPivot('created_at');
+        return $this->belongsToMany(AccessGroup::class, 'access_group_members')->withPivot('created_at', 'manual', 'by_rule');
     }
 
     /**

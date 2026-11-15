@@ -5,6 +5,8 @@ namespace App\Providers;
 use App\Actions\DeleteUser;
 use App\Http\Controllers\ApiTokenController;
 use App\Models\User;
+use App\Models\UserEntitlement;
+use App\Support\OidcEntitlements;
 use App\Support\OpenIdConnect;
 use Illuminate\Http\Request;
 use Illuminate\Support\ServiceProvider;
@@ -38,7 +40,8 @@ class JetstreamServiceProvider extends ServiceProvider
     /**
      * The props of the profile page, and when the instance has a provider the provider accounts of the member
      * (`connectedAccounts`: the label and the dates, never the subject) and whether the account has a password to sign
-     * in with (`hasPassword`). Without a provider the props are absent and the page shows no card.
+     * in with (`hasPassword`). Without a provider the props are absent and the page shows no card. With the entitlements
+     * feature (#1386) the member also gets `entitlements`: the keys that the provider reported and the date of the check.
      *
      * @param  array<string, bool|string|array<array-key, scalar|array<array-key, scalar|null>|null>|null>  $data
      * @return array<string, bool|string|array<array-key, scalar|array<array-key, scalar|null>|null>|null>
@@ -62,7 +65,22 @@ class JetstreamServiceProvider extends ServiceProvider
             ];
         }
 
-        return [...$data, 'connectedAccounts' => $identities, 'hasPassword' => $user->hasPassword()];
+        $data = [...$data, 'connectedAccounts' => $identities, 'hasPassword' => $user->hasPassword()];
+
+        // "What your account gives access to" (#1386, ADR 0047): the keys and the date of the last check, for a member who
+        // connected the provider account, when the instance reads entitlements. Absent otherwise
+        if (OidcEntitlements::enabled()) {
+            $issuer = OpenIdConnect::issuer() ?? '';
+            $current = $user->identities()->where('issuer', $issuer)->first();
+            if ($current !== null) {
+                $data['entitlements'] = [
+                    'keys' => $user->entitlements()->where('issuer', $issuer)->orderBy('key')->get()->map(static fn (UserEntitlement $entitlement): string => $entitlement->key)->values()->all(),
+                    'checked_at' => $current->entitlements_checked_at?->toIso8601String(),
+                ];
+            }
+        }
+
+        return $data;
     }
 
     /**
@@ -92,6 +110,8 @@ class JetstreamServiceProvider extends ServiceProvider
             // Connected provider accounts (#1385, ADR 0045): never in the default set, they link the account to another service
             'identities:read',
             'identities:write',
+            // The entitlement keys that the sign-in provider reports (#1386, ADR 0047): never in the default set, they say what the member bought
+            'entitlements:read',
             'pages:read',
             'pages:write',
             'resources:read',
