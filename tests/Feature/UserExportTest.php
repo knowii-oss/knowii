@@ -203,6 +203,8 @@ test('the export has nothing that another member wrote, no secret and no interna
 
 test('the export is one zip file under exports/ of the local disk, named after the username', function () {
     $f = userExportFixture();
+    // The file name holds the current second: keep the clock still, or a slow run fails (#1471)
+    $this->freezeTime();
 
     Artisan::call('users:export', ['email' => 'member@example.com']);
     $path = trim(Artisan::output());
