@@ -27,6 +27,8 @@ The members of a paid group come from purchases. The Knowii account (ADR 0010) w
    - New token abilities `groups:read` and `groups:write` (ADR 0022): a sync token gets `groups:write` only, not `communities:write`.
 9. Changes broadcast `community.access_groups.changed` (settings pages) and `community.space_tree.changed` (navigation) on the community channel.
 
+Extended by [ADR 0041](0041-access-groups-open-space-groups.md): an access group can also open a whole space group.
+
 ## Consequences
 
 1. Paid access (#869) becomes: a purchase adds the buyer to a group, a refund or the end of a subscription removes them. The Knowii account can do it through the API with a `groups:write` token, or later directly (entitlement sync, ADR 0010).

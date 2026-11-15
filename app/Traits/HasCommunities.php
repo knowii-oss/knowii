@@ -71,17 +71,18 @@ trait HasCommunities
     }
 
     /**
-     * Whether the user is in one of the access groups of the space (#1241). The groups of the user load once per request
-     * (the relation is cached on the model), the groups of the space too.
+     * Whether the user is in one of the access groups that open the space, the ones of the space itself or the ones of
+     * its space group (#1241, #1422, ADR 0041). The groups of the user load once per request (the relation is cached on
+     * the model), the groups of the space and of its space group too.
      */
     final public function isInAccessGroupOf(Space $space): bool
     {
-        $spaceGroupIds = $space->accessGroups->modelKeys();
-        if ($spaceGroupIds === []) {
+        $openingIds = $space->openingAccessGroupIds();
+        if ($openingIds === []) {
             return false;
         }
 
-        return $this->accessGroups->contains(fn (AccessGroup $group) => in_array($group->id, $spaceGroupIds, true));
+        return $this->accessGroups->contains(fn (AccessGroup $group) => in_array($group->id, $openingIds, true));
     }
 
     /**

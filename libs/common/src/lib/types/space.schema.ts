@@ -96,15 +96,20 @@ export type SpaceCreateInput = Omit<SpaceForm, 'url'> & { url?: string };
 
 // A "groups" space needs at least one group (#1241). WARNING: aligned with SpaceAccessGroups.php
 // A link space needs an http or https URL (#1294). WARNING: aligned with SpaceInputRules.php
-export const spaceFormWithGroupsSchema = spaceFormSchema
-  .refine((form) => form.visibility !== 'groups' || form.access_groups.length > 0, {
-    error: 'Choose at least one access group',
-    path: ['access_groups'],
-  })
-  .refine((form) => form.type !== 'link' || safeHttpUrl(form.url) !== null, {
-    error: 'Enter a full address that starts with https:// or http://',
-    path: ['url'],
-  });
+// A group given to the space group of the space counts (#1422, ADR 0041): `spaceGroupHasAccessGroups` tells it
+export function createSpaceFormWithGroupsSchema(spaceGroupHasAccessGroups: (spaceGroupCuid: string) => boolean) {
+  return spaceFormSchema
+    .refine((form) => form.visibility !== 'groups' || form.access_groups.length > 0 || spaceGroupHasAccessGroups(form.space_group_cuid), {
+      error: 'Choose at least one access group',
+      path: ['access_groups'],
+    })
+    .refine((form) => form.type !== 'link' || safeHttpUrl(form.url) !== null, {
+      error: 'Enter a full address that starts with https:// or http://',
+      path: ['url'],
+    });
+}
+
+export const spaceFormWithGroupsSchema = createSpaceFormWithGroupsSchema(() => false);
 
 export const spaceSchema = baseEntitySchema.extend({
   name: z.string(),

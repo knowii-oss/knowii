@@ -1,0 +1,19 @@
+meta {
+  name: Space Groups - List access groups
+  type: http
+  seq: 145
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/space-groups/q8kspacegroupstarthere01/access-groups
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The access groups that open a whole space group, by name (#1422, ADR 0041). Owner, admins, moderators with the manage members or manage spaces right. Token ability: groups:read.
+}

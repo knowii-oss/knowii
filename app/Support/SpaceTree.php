@@ -25,7 +25,7 @@ final class SpaceTree
     {
         $canManage = $user !== null && Gate::forUser($user)->check('manageSpaces', $community);
 
-        $groups = $community->spaceGroups()->with(['spaces.accessGroups'])->get();
+        $groups = $community->spaceGroups()->with(['accessGroups', 'spaces.accessGroups'])->get();
 
         foreach ($groups as $group) {
             $visible = $group->spaces

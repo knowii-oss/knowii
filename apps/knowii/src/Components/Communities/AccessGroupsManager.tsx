@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { AccessGroup, AccessGroupForm, Author, CommunityPermissions, Pagination } from '@knowii/common';
+import type { AccessGroup, AccessGroupForm, Author, CommunityPermissions, Pagination, SpaceGroup } from '@knowii/common';
 import { accessGroupFormSchema, COMMUNITY_MEMBERS_PAGE_SIZE, knowiiApiClient, useAppData } from '@knowii/common';
-import { FaPen, FaTrash, FaUserLock, FaUserMinus, FaUserPlus, FaUsers } from 'react-icons/fa6';
-import { Avatar, Button, Card, CardBody, CardHeader, Dialog, EmptyState, TextInput } from '@/Components/ui';
+import { FaLayerGroup, FaPen, FaTrash, FaUserLock, FaUserMinus, FaUserPlus, FaUsers } from 'react-icons/fa6';
+import { Avatar, Button, Card, CardBody, CardHeader, Checkbox, Dialog, EmptyState, TextInput } from '@/Components/ui';
 import InputLabel from '@/Components/InputLabel';
 import InputError from '@/Components/InputError';
 
 export interface AccessGroupsManagerProps {
   communityCuid: string;
-  permissions: Pick<CommunityPermissions, 'canManageAccessGroups' | 'canManageAccessGroupMembers'>;
+  permissions: Pick<CommunityPermissions, 'canManageAccessGroups' | 'canManageAccessGroupMembers'> &
+    Partial<Pick<CommunityPermissions, 'canManageSpaces'>>;
   /**
    * Changes when the access groups changed elsewhere (real-time event): the list loads again
    */
@@ -231,6 +232,109 @@ function GroupMembersDialog(props: { communityCuid: string; group: AccessGroup |
 }
 
 /**
+ * The space groups that one group opens whole (#1422, ADR 0041): every space of them with the "Access groups only"
+ * visibility, the spaces added later included. For those who manage spaces.
+ */
+function GroupSpaceGroupsDialog(props: { communityCuid: string; group: AccessGroup | null; onClose: () => void; onSaved: () => void }) {
+  const { communityCuid, group, onClose, onSaved } = props;
+  const { showToast } = useAppData();
+  const [spaceGroups, setSpaceGroups] = useState<SpaceGroup[] | null>(null);
+  // What the manager changed; null: nothing yet, the dialog shows the current space groups of the group
+  const [edited, setEdited] = useState<string[] | null>(null);
+  const selected = edited ?? (group?.space_groups ?? []).map((spaceGroup) => spaceGroup.cuid);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!group) {
+      return;
+    }
+    let active = true;
+    void knowiiApiClient.communities.spaceGroups.list(communityCuid).then((result) => {
+      if (active) {
+        setSpaceGroups(result.ok ? result.data : []);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [communityCuid, group]);
+
+  const close = () => {
+    setEdited(null);
+    onClose();
+  };
+
+  const save = async () => {
+    if (!group) {
+      return;
+    }
+    setSaving(true);
+    const result = await knowiiApiClient.communities.accessGroups.spaceGroups.set(communityCuid, group.cuid, selected);
+    setSaving(false);
+    if (!result.ok) {
+      showToast({ severity: 'error', summary: result.errors['space_groups']?.[0] ?? result.message });
+      return;
+    }
+    showToast({ severity: 'success', summary: `Space groups of ${group.name} saved` });
+    onSaved();
+    close();
+  };
+
+  return (
+    <Dialog
+      open={group !== null}
+      onClose={close}
+      size="md"
+      title={`Space groups of ${group?.name ?? ''}`}
+      description="The members of this group read every space of the space groups that you choose, when the space has the visibility Access groups only. A space added to one of them later opens at once."
+      footer={
+        <>
+          <Button variant="secondary" onClick={close}>
+            Cancel
+          </Button>
+          <Button type="submit" form="access-group-space-groups-form" loading={saving} disabled={spaceGroups === null}>
+            Save
+          </Button>
+        </>
+      }
+    >
+      <form
+        id="access-group-space-groups-form"
+        noValidate
+        onSubmit={(event) => {
+          event.preventDefault();
+          void save();
+        }}
+      >
+        <fieldset aria-busy={spaceGroups === null}>
+          <legend className="block text-sm font-bold text-primary">Space groups that this group opens</legend>
+          {spaceGroups === null ? (
+            <p className="mt-2 text-sm text-muted">Loading the space groups…</p>
+          ) : spaceGroups.length === 0 ? (
+            <p className="mt-2 text-sm">This community has no space group yet.</p>
+          ) : (
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              {spaceGroups.map((spaceGroup) => (
+                <label key={spaceGroup.cuid} className="flex cursor-pointer items-center gap-2 text-sm">
+                  <Checkbox
+                    name={`space-group-${spaceGroup.cuid}`}
+                    checked={selected.includes(spaceGroup.cuid)}
+                    onChange={(event) =>
+                      setEdited(event.target.checked ? [...selected, spaceGroup.cuid] : selected.filter((cuid) => cuid !== spaceGroup.cuid))
+                    }
+                  />
+                  <span className="font-bold">{spaceGroup.name}</span>
+                </label>
+              ))}
+            </div>
+          )}
+        </fieldset>
+      </form>
+    </Dialog>
+  );
+}
+
+/**
  * Access groups (#1241, ADR 0025): named groups of members that open the spaces with the "Access groups only"
  * visibility. The owner and the admins create, rename and delete groups; moderators with the "manage members" right
  * add and remove their members. The API checks every action again.
@@ -246,6 +350,7 @@ export function AccessGroupsManager({ communityCuid, permissions, refreshKey = 0
   const [editErrors, setEditErrors] = useState<FieldErrors>({});
   const [deleting, setDeleting] = useState<AccessGroup | null>(null);
   const [membersOf, setMembersOf] = useState<AccessGroup | null>(null);
+  const [spaceGroupsOf, setSpaceGroupsOf] = useState<AccessGroup | null>(null);
 
   const reload = useCallback(async () => {
     const result = await knowiiApiClient.communities.accessGroups.list(communityCuid);
@@ -359,11 +464,23 @@ export function AccessGroupsManager({ communityCuid, permissions, refreshKey = 0
                     {group.members_count ?? 0} {group.members_count === 1 ? 'member' : 'members'} · {group.spaces_count ?? 0}{' '}
                     {group.spaces_count === 1 ? 'space' : 'spaces'}
                   </span>
+                  {(group.space_groups ?? []).length > 0 && (
+                    <span className="text-xs text-muted">
+                      Opens the space {(group.space_groups ?? []).length === 1 ? 'group' : 'groups'}:{' '}
+                      {(group.space_groups ?? []).map((spaceGroup) => spaceGroup.name).join(', ')}
+                    </span>
+                  )}
                 </div>
                 {permissions.canManageAccessGroupMembers && (
                   <Button variant="ghost" size="sm" onClick={() => setMembersOf(group)} aria-label={`Members of ${group.name}`}>
                     <FaUsers aria-hidden="true" />
                     Members
+                  </Button>
+                )}
+                {permissions.canManageSpaces && (
+                  <Button variant="ghost" size="sm" onClick={() => setSpaceGroupsOf(group)} aria-label={`Space groups of ${group.name}`}>
+                    <FaLayerGroup aria-hidden="true" />
+                    Space groups
                   </Button>
                 )}
                 {permissions.canManageAccessGroups && (
@@ -437,6 +554,13 @@ export function AccessGroupsManager({ communityCuid, permissions, refreshKey = 0
             </Button>
           </>
         }
+      />
+
+      <GroupSpaceGroupsDialog
+        communityCuid={communityCuid}
+        group={spaceGroupsOf}
+        onClose={() => setSpaceGroupsOf(null)}
+        onSaved={() => void reload()}
       />
 
       <GroupMembersDialog

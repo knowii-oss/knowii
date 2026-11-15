@@ -199,7 +199,7 @@ final class ExportCommunity implements ExportsCommunities
      */
     private function accessGroups(Community $community): Generator
     {
-        foreach (AccessGroup::query()->where('community_id', $community->id)->with(['members', 'spaces'])->lazyById(self::CHUNK) as $group) {
+        foreach (AccessGroup::query()->where('community_id', $community->id)->with(['members', 'spaces', 'spaceGroups'])->lazyById(self::CHUNK) as $group) {
             /** @var AccessGroup $group */
             yield [
                 'cuid' => $group->cuid,
@@ -207,6 +207,7 @@ final class ExportCommunity implements ExportsCommunities
                 'description' => $group->description,
                 'members' => $group->members->map(static fn (User $member): string => $member->cuid)->values()->all(),
                 'spaces' => $group->spaces->map(static fn (Space $space): string => $space->cuid)->values()->all(),
+                'space_groups' => $group->spaceGroups->map(static fn (SpaceGroup $spaceGroup): string => $spaceGroup->cuid)->values()->all(),
                 'created_at' => $this->date($group->created_at),
             ];
         }

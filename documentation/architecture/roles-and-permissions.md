@@ -44,6 +44,7 @@ The owner and the admins switch these rights in the community settings ("Moderat
 | Upload images                             | `CommunityPolicy::uploadImage`                            | yes    | yes    | yes                                          | yes        | no       | no      |
 | Read a members-only space                 | `SpacePolicy::view`                                       | yes    | yes    | yes                                          | yes        | no       | no      |
 | Read an "access groups only" space        | `SpacePolicy::view`                                       | yes    | yes    | in a group                                   | in a group | no       | no      |
+| Give an access group a whole space group  | `CommunityPolicy::manageSpaces` (#1422)                   | yes    | yes    | `manage_spaces`                              | no         | no       | no      |
 | Create, rename and delete access groups   | `CommunityPolicy::manageAccessGroups`                     | yes    | yes    | no                                           | no         | no       | no      |
 | Add and remove access group members       | `CommunityPolicy::manageAccessGroupMembers`               | yes    | yes    | `manage_members`                             | no         | no       | no      |
 | See the access groups                     | `CommunityPolicy::viewAccessGroups`                       | yes    | yes    | `manage_members` or `manage_spaces`          | no         | no       | no      |
@@ -107,6 +108,8 @@ Invitations ([ADR 0019](../adr/0019-community-invitations-by-email.md)): the ema
 The rules above are the same for every space type (discussion, chat, pages, course, resources, link). What changes per type is the content that `contribute` adds: posts, chat messages, pages, lessons or resources. A link space ([ADR 0026](../adr/0026-link-spaces.md)) holds no content: nobody contributes in it, and its visibility only decides who sees the link.
 
 Access groups ([ADR 0025](../adr/0025-access-groups.md)): a space with the `groups` visibility opens to the members of its access groups. The owner and the admins see every space. A member who cannot read a space cannot post in it, whatever the posting policy. A member removed from the community leaves its groups.
+
+Access groups on space groups ([ADR 0041](../adr/0041-access-groups-open-space-groups.md)): a space with the `groups` visibility also opens to the members of the access groups of its space group, the spaces added later included. `Space::openingAccessGroupIds()` is the one place that knows this rule, and `SpacePolicy::view` uses it. The people who can give a space its groups (`manageSpaces`) can also give a whole space group to an access group, with the API or the access group settings. A moderator does it only for a space group whose `groups` spaces they can all read (#1325): a closed space group stays out of their reach. Moving a space to another space group changes who can read it: the edit form warns first.
 
 ## Later
 

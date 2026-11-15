@@ -1,7 +1,11 @@
 import { Controller, useForm, useWatch } from 'react-hook-form';
+import { FaTriangleExclamation } from 'react-icons/fa6';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { AccessGroup, Space, SpaceForm, SpaceGroup, SpacePostingPolicy, SpaceType, SpaceVisibility } from '@knowii/common';
 import {
+  ACCESS_SOURCE_LABELS,
+  accessChangeOnMove,
+  createSpaceFormWithGroupsSchema,
   DEFAULT_TEXTAREA_ROWS,
   knowiiApiClient,
   SPACE_POSTING_POLICIES,
@@ -10,10 +14,11 @@ import {
   SPACE_TYPES,
   SPACE_VISIBILITIES,
   SPACE_VISIBILITY_LABELS,
-  spaceFormWithGroupsSchema,
+  openingAccessGroups,
+  spaceGroupHasAccessGroups,
   useAppData,
 } from '@knowii/common';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import { Button, Checkbox, Dialog, Select, Textarea, TextInput } from '@/Components/ui';
@@ -55,23 +60,32 @@ function initialValues(space: Space | undefined, defaultSpaceGroupCuid: string |
 
 export function SpaceDialog({ open, communityCuid, spaceGroups, space, defaultSpaceGroupCuid, onClose, onSaved }: SpaceDialogProps) {
   const { showToast } = useAppData();
+  // The access groups of the community, for a "groups" space (#1241)
+  const [accessGroups, setAccessGroups] = useState<AccessGroup[] | null>(null);
+  // A group given to the space group counts for the rule "a groups space needs a group" (#1422)
+  const resolver = useMemo(
+    () => zodResolver(createSpaceFormWithGroupsSchema((cuid) => spaceGroupHasAccessGroups(accessGroups ?? [], cuid))),
+    [accessGroups],
+  );
   const form = useForm<SpaceForm>({
-    resolver: zodResolver(spaceFormWithGroupsSchema),
+    resolver,
     defaultValues: initialValues(space, defaultSpaceGroupCuid),
     mode: 'onChange',
   });
 
+  // The manager confirms a move that changes who can read the space (#1422): the key of the move that was confirmed
+  const [confirmedMove, setConfirmedMove] = useState<string | null>(null);
   useEffect(() => {
     if (open) {
       form.reset(initialValues(space, defaultSpaceGroupCuid));
     }
   }, [open, space, defaultSpaceGroupCuid, form]);
 
-  // The access groups of the community, for a "groups" space (#1241)
   const visibility = useWatch({ control: form.control, name: 'visibility' });
   // A link space (#1294) opens a page outside Knowii: a URL, and nobody posts in it
   const isLink = useWatch({ control: form.control, name: 'type' }) === 'link';
-  const [accessGroups, setAccessGroups] = useState<AccessGroup[] | null>(null);
+  const spaceGroupCuid = useWatch({ control: form.control, name: 'space_group_cuid' });
+  const directGroupCuids = useWatch({ control: form.control, name: 'access_groups' });
   useEffect(() => {
     if (!open || visibility !== 'groups' || accessGroups !== null) {
       return;
@@ -87,7 +101,39 @@ export function SpaceDialog({ open, communityCuid, spaceGroups, space, defaultSp
     };
   }, [open, visibility, accessGroups, communityCuid]);
 
+  // A group of the space group may already open the space: check the rule again with the new list
+  useEffect(() => {
+    if (accessGroups !== null) {
+      void form.trigger('access_groups');
+    }
+  }, [accessGroups, form]);
+
+  // Moving a "groups" space to another space group changes who can read it (#1422, ADR 0041)
+  const movesGroupsSpace = space?.visibility === 'groups' && visibility === 'groups' && spaceGroupCuid !== space.space_group_cuid;
+  const moveChange =
+    movesGroupsSpace && space && accessGroups !== null
+      ? accessChangeOnMove(
+          accessGroups,
+          { directCuids: (space.access_groups ?? []).map((group) => group.cuid), spaceGroupCuid: space.space_group_cuid },
+          { directCuids: directGroupCuids, spaceGroupCuid },
+        )
+      : null;
+  const moveKey = moveChange
+    ? [spaceGroupCuid, ...moveChange.gain.map((group) => `+${group.cuid}`), ...moveChange.lose.map((group) => `-${group.cuid}`)].join('|')
+    : null;
+  const needsMoveConfirmation = moveChange !== null && (moveChange.gain.length > 0 || moveChange.lose.length > 0);
+  const moveBlocked = movesGroupsSpace && (accessGroups === null || (needsMoveConfirmation && confirmedMove !== moveKey));
+  const openingGroups = accessGroups === null ? [] : openingAccessGroups(accessGroups, directGroupCuids, spaceGroupCuid);
+
+  const close = () => {
+    setConfirmedMove(null);
+    onClose();
+  };
+
   const onSubmit = form.handleSubmit(async (data) => {
+    if (moveBlocked) {
+      return;
+    }
     const { url, ...fields } = data;
     const link = data.type === 'link';
     const result = space
@@ -106,7 +152,7 @@ export function SpaceDialog({ open, communityCuid, spaceGroups, space, defaultSp
     if (result.ok) {
       showToast({ severity: 'success', summary: space ? 'Space updated' : 'Space created' });
       onSaved(result.data);
-      onClose();
+      close();
     } else {
       for (const [field, messages] of Object.entries(result.errors)) {
         if (field in data && messages[0]) {
@@ -123,7 +169,7 @@ export function SpaceDialog({ open, communityCuid, spaceGroups, space, defaultSp
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={close}
       size="lg"
       title={space ? `Edit ${space.name}` : 'New space'}
       description={
@@ -131,10 +177,10 @@ export function SpaceDialog({ open, communityCuid, spaceGroups, space, defaultSp
       }
       footer={
         <>
-          <Button variant="secondary" onClick={onClose}>
+          <Button variant="secondary" onClick={close}>
             Cancel
           </Button>
-          <Button type="submit" form="space-form" disabled={!form.formState.isValid} loading={form.formState.isSubmitting}>
+          <Button type="submit" form="space-form" disabled={!form.formState.isValid || moveBlocked} loading={form.formState.isSubmitting}>
             {space ? 'Save' : 'Create'}
           </Button>
         </>
@@ -258,7 +304,11 @@ export function SpaceDialog({ open, communityCuid, spaceGroups, space, defaultSp
                 className="mt-1"
                 options={groupOptions}
                 value={field.value}
-                onChange={field.onChange}
+                onChange={(value) => {
+                  field.onChange(value);
+                  // A group of the new space group may open the space
+                  void form.trigger('access_groups');
+                }}
                 invalid={!!errors.space_group_cuid}
               />
             )}
@@ -290,7 +340,8 @@ export function SpaceDialog({ open, communityCuid, spaceGroups, space, defaultSp
           <fieldset className="sm:col-span-6" aria-describedby="space-access-groups-help">
             <legend className="block text-sm font-bold text-primary">Access groups that can read</legend>
             <p id="space-access-groups-help" className="text-xs text-muted">
-              The owner and the admins always see the space. Manage the groups in the settings of the community.
+              The owner and the admins always see the space. The access groups of its space group open it too. Manage the groups in the
+              settings of the community.
             </p>
             {accessGroups === null ? (
               <p className="mt-2 text-sm text-muted">Loading the access groups…</p>
@@ -321,7 +372,65 @@ export function SpaceDialog({ open, communityCuid, spaceGroups, space, defaultSp
               />
             )}
             <InputError className="mt-2" message={errors.access_groups?.message} />
+            {accessGroups !== null && accessGroups.length > 0 && (
+              <div className="mt-3">
+                <p id="space-opening-title" className="text-sm font-bold text-primary">
+                  Access groups that open this space
+                </p>
+                {openingGroups.length === 0 ? (
+                  <p className="text-sm text-muted">No access group opens it yet.</p>
+                ) : (
+                  <ul aria-labelledby="space-opening-title" className="mt-1 flex flex-col gap-1 text-sm">
+                    {openingGroups.map((group) => (
+                      <li key={group.cuid}>
+                        <span className="font-bold">{group.name}</span>{' '}
+                        <span className="text-muted">from {group.sources.map((source) => ACCESS_SOURCE_LABELS[source]).join(' and ')}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
           </fieldset>
+        )}
+
+        {movesGroupsSpace && (
+          <div className="rounded-lg border border-warning bg-warning/10 p-3 text-sm text-primary sm:col-span-6" id="space-move-warning">
+            <div role="alert">
+              <p className="flex items-center gap-2 font-bold">
+                <FaTriangleExclamation aria-hidden="true" className="text-warning" />
+                Moving this space changes who can read it
+              </p>
+              {moveChange === null ? (
+                <p className="mt-2">Loading the access groups…</p>
+              ) : !needsMoveConfirmation ? (
+                <p className="mt-2">No access group gains or loses this space.</p>
+              ) : (
+                <>
+                  {moveChange.gain.length > 0 && (
+                    <p className="mt-2">
+                      Will gain it: <strong>{moveChange.gain.map((group) => group.name).join(', ')}</strong>.
+                    </p>
+                  )}
+                  {moveChange.lose.length > 0 && (
+                    <p className="mt-2">
+                      Will lose it: <strong>{moveChange.lose.map((group) => group.name).join(', ')}</strong>.
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+            {needsMoveConfirmation && (
+              <label className="mt-3 flex cursor-pointer items-center gap-2 font-bold">
+                <Checkbox
+                  name="confirm-space-move"
+                  checked={confirmedMove === moveKey}
+                  onChange={(event) => setConfirmedMove(event.target.checked ? moveKey : null)}
+                />
+                <span>I understand, move the space</span>
+              </label>
+            )}
+          </div>
         )}
 
         {!isLink && (

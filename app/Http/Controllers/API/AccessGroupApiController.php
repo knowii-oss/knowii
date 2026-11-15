@@ -6,6 +6,7 @@ use App\Contracts\AccessGroups\AddsAccessGroupMembers;
 use App\Contracts\AccessGroups\CreatesAccessGroups;
 use App\Contracts\AccessGroups\DeletesAccessGroups;
 use App\Contracts\AccessGroups\RemovesAccessGroupMembers;
+use App\Contracts\AccessGroups\SetsAccessGroupSpaceGroups;
 use App\Contracts\AccessGroups\UpdatesAccessGroups;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\AuthorResource;
@@ -38,7 +39,7 @@ class AccessGroupApiController extends Controller
     {
         Gate::authorize('viewAccessGroups', $community);
 
-        $groups = $community->accessGroups()->withCount(['members', 'spaces'])->orderBy('name')->get();
+        $groups = $community->accessGroups()->withCount(['members', 'spaces', 'spaceGroups'])->with('spaceGroups')->orderBy('name')->get();
 
         return self::success('Access groups', null, $groups->toResourceCollection());
     }
@@ -54,7 +55,7 @@ class AccessGroupApiController extends Controller
     {
         $group = app(CreatesAccessGroups::class)->create($request->user() ?? throw new AuthenticationException, $community, $request->only(['name', 'description']));
 
-        return self::created($group->loadCount(['members', 'spaces'])->toResource(), 'Access group created');
+        return self::created($group->loadCount(['members', 'spaces', 'spaceGroups'])->load('spaceGroups')->toResource(), 'Access group created');
     }
 
     /**
@@ -68,7 +69,7 @@ class AccessGroupApiController extends Controller
     {
         $group = app(UpdatesAccessGroups::class)->update($request->user() ?? throw new AuthenticationException, $accessGroup, $request->only(['name', 'description']));
 
-        return self::success('Access group updated', null, $group->loadCount(['members', 'spaces'])->toResource());
+        return self::success('Access group updated', null, $group->loadCount(['members', 'spaces', 'spaceGroups'])->load('spaceGroups')->toResource());
     }
 
     /**
@@ -123,5 +124,32 @@ class AccessGroupApiController extends Controller
         app(RemovesAccessGroupMembers::class)->remove($request->user() ?? throw new AuthenticationException, $accessGroup, $member);
 
         return self::deleted();
+    }
+
+    /**
+     * List the space groups that the group opens whole, in navigation order (#1422, ADR 0041).
+     */
+    final public function spaceGroups(Community $community, AccessGroup $accessGroup): JsonResponse
+    {
+        Gate::authorize('viewAccessGroups', $community);
+
+        $groups = $accessGroup->spaceGroups()->orderBy('position')->orderBy('space_groups.id')->get();
+
+        return self::success('Space groups of the access group', null, $groups->toResourceCollection());
+    }
+
+    /**
+     * Replace the space groups that the group opens whole (#1422, ADR 0041). Its members read every space of those
+     * space groups that has the groups visibility, the spaces added later included. An empty list removes every link.
+     * Owner, admins, and moderators with the manage spaces right.
+     *
+     * @throws AuthenticationException
+     */
+    #[BodyParameter('space_groups', description: 'Cuids of the space groups of the community: replaces the current ones. An empty list removes them all', required: true, type: 'array<string>', example: ['q8kspacegroupstarthere01'])]
+    final public function setSpaceGroups(Request $request, Community $community, AccessGroup $accessGroup): JsonResponse
+    {
+        $group = app(SetsAccessGroupSpaceGroups::class)->set($request->user() ?? throw new AuthenticationException, $accessGroup, $request->only(['space_groups']));
+
+        return self::success('Space groups of the access group saved', null, $group->spaceGroups()->orderBy('position')->orderBy('space_groups.id')->get()->toResourceCollection());
     }
 }
