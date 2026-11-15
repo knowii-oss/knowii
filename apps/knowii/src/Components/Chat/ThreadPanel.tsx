@@ -56,7 +56,7 @@ export function ThreadPanel({
         <Spinner label="Loading the thread" />
       ) : (
         <div className="flex h-full flex-col gap-3">
-          <ChatMessageItem {...item} message={parent} editing={editingCuid === parent.cuid} />
+          <ChatMessageItem {...item} idPrefix="thread-message" message={parent} editing={editingCuid === parent.cuid} />
           <p className="border-b border-border pb-2 text-xs text-muted">
             {parent.reply_count === 1 ? '1 reply' : `${parent.reply_count} replies`}
           </p>
@@ -68,7 +68,7 @@ export function ThreadPanel({
             ) : (
               replies.map((reply) => (
                 <li key={reply.cuid}>
-                  <ChatMessageItem {...item} message={reply} editing={editingCuid === reply.cuid} />
+                  <ChatMessageItem {...item} idPrefix="thread-message" message={reply} editing={editingCuid === reply.cuid} />
                 </li>
               ))
             )}

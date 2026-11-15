@@ -254,10 +254,10 @@ export function CommentSection(props: CommentSectionProps) {
     return (
       <article
         id={commentAnchor(comment.cuid)}
-        // The target of a link to the comment gets the focus (#1205)
+        // The target of a link to the comment gets the focus (#1205), and its outline stays until the focus leaves (#1484)
         tabIndex={-1}
         aria-label={isMarker ? 'Deleted comment' : `Comment by ${authorName}`}
-        className="-mx-2 flex scroll-mt-24 flex-col gap-1 rounded-lg px-2 py-1 transition-colors duration-700 outline-none focus-visible:outline-2 focus-visible:outline-primary data-[highlighted=true]:bg-secondary/15"
+        className="-mx-2 flex scroll-mt-24 flex-col gap-1 rounded-lg px-2 py-1 transition-colors duration-700 outline-none focus:outline-2 focus:outline-solid focus:outline-primary motion-reduce:transition-none data-[highlighted=true]:bg-secondary/15"
       >
         {isMarker ? (
           <p className="text-sm text-muted italic">This comment was deleted.</p>

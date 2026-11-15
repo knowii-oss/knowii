@@ -15,9 +15,10 @@ interface ListsNotifications
      *
      * @param  ?string  $communityCuid  keep the rows of this community
      * @param  bool  $older  false: the rows of the last 14 days, true: the older ones ("Older")
+     * @param  ?bool  $read  false: the open rows (not read, the "Needs you" list), true: the rows that the member read, null: both
      * @return array{items: Collection<int, Notification>, metadata: array{pagination: array<string, int|null>}}
      */
-    public function list(User $user, Pagination $pagination, ?string $communityCuid = null, bool $older = false): array;
+    public function list(User $user, Pagination $pagination, ?string $communityCuid = null, bool $older = false, ?bool $read = false): array;
 
     /**
      * The rows that the member did not see, 14 days old at most, after the access check

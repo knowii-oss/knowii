@@ -17,6 +17,8 @@ import PageHeader from '@/Components/PageHeader';
 import ApplicationMark from '@/Components/ApplicationMark';
 import Footer from '@/Components/Footer';
 import MainMenu from '@/Components/MainMenu';
+import { NotificationBell } from '@/Components/Notifications/NotificationBell';
+import { NotificationsProvider } from '@/Components/Notifications/NotificationsProvider';
 import PageContentWrapper, { type PageContentWidth } from '@/Components/PageContentWrapper';
 import PageWrapper from '@/Components/PageWrapper';
 import { VisitorProvider } from '@/Components/Reader/Reader';
@@ -97,6 +99,11 @@ export default function AppLayout(props: Props) {
             </>
           ) : (
             <>
+              {/* The bell and the live region of the notifications: members only, so a visitor opens no connection (#1484) */}
+              <NotificationsProvider userCuid={user?.cuid ?? ''}>
+                <NotificationBell />
+              </NotificationsProvider>
+
               {/* MAIN menu */}
               <Button
                 variant="secondary"

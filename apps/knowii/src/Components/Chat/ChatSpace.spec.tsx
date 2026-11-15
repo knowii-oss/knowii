@@ -134,6 +134,58 @@ describe('ChatSpace', () => {
     expect(await within(panel).findByText('Thanks')).toBeInTheDocument();
   });
 
+  describe('a link from a notification (#1484)', () => {
+    afterEach(() => {
+      window.history.replaceState(null, '', '/');
+    });
+
+    it('loads older messages until the message of the address is in the page, and gives it the focus', async () => {
+      Element.prototype.scrollIntoView = vi.fn();
+      window.history.replaceState(null, '', '/#message-m1');
+      const list = vi.spyOn(knowiiApiClient.communities.chat, 'list').mockResolvedValue({
+        ok: true,
+        message: '',
+        data: { messages: [message('m1', 'The old one'), message('m2', 'Another')], hasMore: false },
+      });
+      render(
+        <AppDataProvider>
+          <ChatSpace
+            community={community}
+            space={space}
+            initialMessages={[message('m5', 'Newest')]}
+            hasMore
+            firstUnreadCuid={null}
+            currentUserCuid="me"
+            canWrite
+            canReact
+            canModerate={false}
+            presenceEnabled={false}
+            showsOnlineStatus
+          />
+        </AppDataProvider>,
+      );
+
+      await waitFor(() => expect(document.getElementById('message-m1')).toHaveFocus());
+      expect(list).toHaveBeenCalledWith('c1', 's1', 'm5');
+    });
+
+    it('opens the thread of the address and gives the reply the focus', async () => {
+      Element.prototype.scrollIntoView = vi.fn();
+      window.history.replaceState(null, '', '/?thread=m1#message-r1');
+      const parent = message('m1', 'Question?', 'ada', { reply_count: 1 });
+      vi.spyOn(knowiiApiClient.communities.chat, 'thread').mockResolvedValue({
+        ok: true,
+        message: '',
+        data: { message: parent, replies: [message('r1', 'An answer', 'ada', { parent_cuid: 'm1' })] },
+      });
+      renderChat([parent]);
+
+      const panel = await screen.findByRole('dialog', { name: 'Thread' });
+      await within(panel).findByText('An answer');
+      await waitFor(() => expect(document.getElementById('thread-message-r1')).toHaveFocus());
+    });
+  });
+
   it('shows a deleted message as a marker', () => {
     renderChat([message('m1', '', 'ada', { deleted_at: new Date(), body: null, body_html: null, author: null })]);
 

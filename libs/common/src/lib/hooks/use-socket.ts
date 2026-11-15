@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import type { NotificationsChangedPayload } from '../types/notification.schema';
 import type { Community } from '../types/community.schema';
 import type { CommunityResource } from '../types/community-resource.schema';
 import type { Identifiable } from '../types/identifiable.schema';
@@ -103,6 +104,11 @@ export interface SpaceContentPayload {
   author_cuid?: string | null;
 }
 
+// The notifications of the member changed (#1484): identifiers only, the bell loads the count through the API.
+// WARNING: aligned with NotificationsChanged.php
+export const NOTIFICATION_EVENTS = ['notifications.changed'] as const;
+export type NotificationEvent = (typeof NOTIFICATION_EVENTS)[number];
+
 type CommunityEvent = (typeof CommunityEvents)[keyof typeof CommunityEvents];
 type ResourceEvent = (typeof ResourceEvents)[keyof typeof ResourceEvents];
 
@@ -111,7 +117,7 @@ type CommunityChannelEvent = Exclude<CommunityEvent, typeof CommunityEvents.CREA
 // The resources of a resources space go to the channel of the space only (ADR 0015)
 type SpaceChannelEvent = ResourceEvent | SpaceContentEvent;
 
-type AllEvents = CommunitiesChannelEvent | CommunityChannelEvent | SpaceChannelEvent | ConversationEvent;
+type AllEvents = CommunitiesChannelEvent | CommunityChannelEvent | SpaceChannelEvent | ConversationEvent | NotificationEvent;
 
 // Map events to their payload types
 type EventPayloadMap = {
@@ -130,6 +136,8 @@ type EventPayloadMap = {
   [K in SpaceContentEvent]: SpaceContentPayload;
 } & {
   [K in ConversationEvent]: ConversationPayload;
+} & {
+  [K in NotificationEvent]: NotificationsChangedPayload;
 };
 
 // Define the hook options with improved type safety
@@ -139,7 +147,9 @@ type ChannelEvent<ChannelType extends Channel> = ChannelType['type'] extends 'co
     ? CommunityChannelEvent
     : ChannelType['type'] extends 'space'
       ? SpaceChannelEvent
-      : ConversationEvent;
+      : ChannelType['type'] extends 'user'
+        ? ConversationEvent | NotificationEvent
+        : ConversationEvent;
 
 type UseSocketOptions<ChannelType extends Channel, EventType extends ChannelEvent<ChannelType>> = {
   channel: ChannelType;
@@ -181,7 +191,11 @@ const getAllEventsForChannelType = (channelType: Channel['type']): AllEvents[] =
     return [...Object.values(CommunityEvents).filter((event) => event !== CommunityEvents.CREATED), ...Object.values(SpaceTreeEvents)];
   }
 
-  if (channelType === 'conversation' || channelType === 'user') {
+  if (channelType === 'user') {
+    return [...CONVERSATION_EVENTS, ...NOTIFICATION_EVENTS];
+  }
+
+  if (channelType === 'conversation') {
     return [...CONVERSATION_EVENTS];
   }
 
@@ -240,4 +254,35 @@ export const useSocket = <ChannelType extends Channel, EventType extends Channel
       releaseChannel(channelString);
     };
   }, [channelString, eventKey, channelType, enabled]);
+};
+
+/**
+ * Call back when the connection to the server comes back after a drop (#1484): events were missed meanwhile, so the
+ * caller loads again what it shows. Not called for the first connection. `enabled` false: nothing is bound, so a visitor
+ * opens no connection.
+ */
+export const useSocketReconnected = (callback: () => void, enabled = true) => {
+  const callbackRef = useRef(callback);
+  callbackRef.current = callback;
+
+  useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+    const connection = window.Echo.connector.pusher.connection;
+    let connectedBefore = connection.state === 'connected';
+    const handler = (states: { previous: string; current: string }) => {
+      if (states.current !== 'connected') {
+        return;
+      }
+      if (connectedBefore) {
+        callbackRef.current();
+      }
+      connectedBefore = true;
+    };
+    connection.bind('state_change', handler);
+    return () => {
+      connection.unbind('state_change', handler);
+    };
+  }, [enabled]);
 };

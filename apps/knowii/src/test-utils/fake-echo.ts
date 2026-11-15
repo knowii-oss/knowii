@@ -29,7 +29,36 @@ export const fakeEcho = {
   leaveChannel(): void {
     // The listeners are removed by stopListening
   },
+  // The connection of Pusher: useSocketReconnected binds to its state changes (#1484)
+  connector: {
+    pusher: {
+      connection: {
+        state: 'connected',
+        bind(event: string, handler: StateHandler) {
+          if (event === 'state_change') {
+            stateHandlers.add(handler);
+          }
+        },
+        unbind(event: string, handler: StateHandler) {
+          if (event === 'state_change') {
+            stateHandlers.delete(handler);
+          }
+        },
+      },
+    },
+  },
 };
+
+type StateHandler = (states: { previous: string; current: string }) => void;
+const stateHandlers = new Set<StateHandler>();
+
+/**
+ * The connection changes state, as Pusher reports it ("unavailable", then "connected" after a drop)
+ */
+export function emitConnectionState(previous: string, current: string): void {
+  fakeEcho.connector.pusher.connection.state = current;
+  stateHandlers.forEach((handler) => handler({ previous, current }));
+}
 
 interface FakePresence {
   here: Set<(members: unknown[]) => void>;
@@ -120,5 +149,7 @@ export function emitSocketEvent(channel: string, event: string, payload: unknown
 
 export function resetFakeEcho(): void {
   listeners.clear();
+  stateHandlers.clear();
+  fakeEcho.connector.pusher.connection.state = 'connected';
   presenceChannels.clear();
 }
