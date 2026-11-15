@@ -5,6 +5,7 @@ namespace App\Actions\Retention;
 use App\Actions\Communities\ExportCommunity;
 use App\Contracts\Retention\PrunesExpiredData;
 use App\Models\CommunityInvitation;
+use App\Models\Notification;
 use App\Support\Retention;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,8 @@ use Laravel\Sanctum\PersonalAccessToken;
  * - password reset tokens after their validity
  * - sessions (IP address, browser) after the session lifetime, when they are stored in the database: Laravel
  *   deletes them only at random on some requests
+ * - notifications (#1474): the rows that the member read, some days after they read them, and the rows that they never read,
+ *   some days after they were written
  * - community exports (zip files of `php artisan communities:export`, #1353) after their retention period
  * - cache entries after their expiry (sign-in link tokens, rate limit counters by IP address), when the cache is the
  *   database: an expired entry stays in the table until someone reads its key again
@@ -56,6 +59,15 @@ final class PruneExpiredData implements PrunesExpiredData
                 )
                 : 0,
             'cache' => $this->pruneCache($dryRun),
+            // Read rows by their read date, unread rows by their creation date (ADR 0042)
+            'notifications' => $this->apply(
+                Notification::query()
+                    ->where(fn ($query) => $query
+                        ->where('read_at', '<', now()->subDays(Retention::notificationsReadDays()))
+                        ->orWhere(fn ($unread) => $unread->whereNull('read_at')->where('created_at', '<', now()->subDays(Retention::notificationsUnreadDays()))))
+                    ->toBase(),
+                $dryRun
+            ),
             'exports' => $this->pruneExports($dryRun),
         ];
 

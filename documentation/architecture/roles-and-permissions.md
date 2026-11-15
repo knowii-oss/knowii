@@ -67,6 +67,8 @@ The owner and the admins switch these rights in the community settings ("Moderat
 | Delete a resource                         | `CommunityResourcePolicy::delete` (#324)                  | yes    | yes    | curator, `manage_spaces` or `delete_content` | curator    | no       | no      |
 | Edit one's own post or comment            | `PostPolicy::update`, `CommentPolicy::update`             | author | author | author                                       | author     | no       | no      |
 | Comment and react                         | `PostPolicy::comment`, `CommunityResourcePolicy::comment` | yes    | yes    | yes                                          | yes        | no       | no      |
+| Get a notification of a reply or mention  | `Notify` (#1474)                                          | yes    | yes    | yes                                          | yes        | no       | no      |
+| Read one's own notifications              | own rows only (#1474)                                     | yes    | yes    | yes                                          | yes        | no       | no      |
 
 Three rules hold for every ability (authorization audit, 2026-11-10):
 
@@ -94,6 +96,8 @@ Member management (#1242) adds a rule on top of the abilities above. `CommunityR
 | Owner                           | admins, moderators, members | admin, moderator, member |
 | Admin                           | moderators, members         | moderator, member        |
 | Moderator with `manage_members` | members                     | member                   |
+
+Notifications ([ADR 0042](../adr/0042-notifications.md), #1474): a member is told about a reply to their post, a reply to their comment or a mention only while they can view the item, with the same rule as the reading of the space (`SpacePolicy::view`). Nobody is told about their own action, and a member who blocked the author is not told. A member reads only their own notifications: the notification of another member gives 404. When access changes (an access group, a role, the visibility of a space), the notifications of the members who can no longer view the item are deleted. The list and the count check it again at every read.
 
 Quizzes ([ADR 0038](../adr/0038-lesson-quizzes.md), #1335): the correct choices and the explanations of a quiz reach the managers of the course only. A member gets them in the review of their own attempt, never before. Nobody reads the result of another member: managers get no scores. A signed-in outsider reads the questions of a public course and keeps no result.
 

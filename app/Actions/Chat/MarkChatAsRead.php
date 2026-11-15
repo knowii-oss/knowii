@@ -3,6 +3,7 @@
 namespace App\Actions\Chat;
 
 use App\Contracts\Chat\MarksChatAsRead;
+use App\Contracts\Notifications\MarksNotificationsRead;
 use App\Models\ChatRead;
 use App\Models\Space;
 use App\Models\User;
@@ -33,5 +34,8 @@ class MarkChatAsRead implements MarksChatAsRead
         $read = ChatRead::query()->firstOrNew(['user_id' => $user->id, 'space_id' => $space->id]);
         $read->last_read_message_id = max($read->last_read_message_id ?? 0, (int) $id);
         $read->save();
+
+        // The mentions of the space up to this message are read too (#1474, design 5.2.5)
+        app(MarksNotificationsRead::class)->readChat($user, $space, (int) $id);
     }
 }

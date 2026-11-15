@@ -77,6 +77,9 @@ test('every write operation documents its request body', function () {
         'POST /v1/communities/{community}/spaces/{space}/resources/{resource}/capture',
         // Block a member (#1186): the member is in the path
         'PUT /v1/user/blocks/{userCuid}',
+        // Mark a notification as read, or open it again (#1474): the notification is in the path
+        'PUT /v1/notifications/{notification}/read',
+        'POST /v1/notifications/{notification}/unread',
         // Mark a lesson as done (#1304): the lesson is in the path
         'PUT /v1/communities/{community}/spaces/{space}/pages/{page}/progress',
     ];

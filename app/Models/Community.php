@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Contracts\Notifications\PrunesNotifications;
 use App\Enums\KnowiiCommunityVisibility;
 use App\Enums\KnowiiModeratorPermission;
 use App\Events\Communities\CommunityCreated;
@@ -328,6 +329,8 @@ class Community extends Model
         DB::table('lesson_progress')->where('community_id', $this->id)->where('user_id', $user->id)->delete();
         // Nor their quiz results (#1335, ADR 0038)
         DB::table('quiz_results')->where('community_id', $this->id)->where('user_id', $user->id)->delete();
+        // Nor their notifications (#1474, ADR 0042)
+        app(PrunesNotifications::class)->forMember($user, $this);
     }
 
     /**

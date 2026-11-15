@@ -49,6 +49,8 @@ test('the periods of the privacy policy come from the configuration (ADR 0030)',
         ->and($periods['expired_api_tokens'])->toBe('30 days')
         ->and($periods['failed_jobs'])->toBe('7 days')
         ->and($periods['unused_uploads'])->toBe('7 days')
+        ->and($periods['notifications_read'])->toBe('60 days')
+        ->and($periods['notifications_unread'])->toBe('90 days')
         ->and($periods['logs'])->toBe('14 days')
         ->and($periods['waitlist'])->toBe('12 months')
         ->and($periods['inactive_contacts'])->toBe('30 days')
@@ -135,7 +137,7 @@ test('the dry run of the retention prune deletes nothing (#1306)', function () {
     $old = invitationCreatedDaysAgo($community, 60);
 
     $this->artisan('retention:prune', ['--dry-run' => true])
-        ->expectsTable(['Data', 'To delete'], [['invitations', 1], ['api_tokens', 0], ['failed_jobs', 0], ['password_reset_tokens', 0], ['sessions', 0], ['cache', 0], ['exports', 0]])
+        ->expectsTable(['Data', 'To delete'], [['invitations', 1], ['api_tokens', 0], ['failed_jobs', 0], ['password_reset_tokens', 0], ['sessions', 0], ['cache', 0], ['notifications', 0], ['exports', 0]])
         ->assertSuccessful();
 
     expect(CommunityInvitation::query()->whereKey($old->id)->exists())->toBeTrue();

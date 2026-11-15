@@ -1,0 +1,26 @@
+meta {
+  name: Notifications - Mark as seen
+  type: http
+  seq: 149
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/notifications/seen
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "notification_cuids": ["n4notificationexample0001", "n4notificationexample0002"]
+  }
+}
+
+docs {
+  The lines were on screen (#1474): sets seen_at on 1 to 100 notifications of the current member. A cuid that is not a notification of the member is ignored. An empty list gives 400. Needs notifications:write.
+}

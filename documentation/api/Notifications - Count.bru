@@ -1,0 +1,19 @@
+meta {
+  name: Notifications - Count
+  type: http
+  seq: 148
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/notifications/count
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The number that the bell shows (#1474): the notifications that you did not see, 14 days old at most, after the access check. The client shows 1 to 9, then 9+, and nothing at zero. Needs notifications:read.
+}

@@ -3,6 +3,7 @@
 namespace App\Actions\Posts;
 
 use App\Constants;
+use App\Contracts\Notifications\Notifies;
 use App\Contracts\Posts\CreatesPosts;
 use App\Enums\KnowiiSpaceType;
 use App\Events\Spaces\SpaceContentChanged;
@@ -52,6 +53,8 @@ class CreatePost implements CreatesPosts
         });
 
         Log::info('Post created', ['post' => $post->cuid]);
+        // The members mentioned in the post are told (#1474): a queued job, after the commit
+        app(Notifies::class)->notify($post);
         // Live updates (#1180)
         event(SpaceContentChanged::forPost(SpaceContentChanged::POST_CREATED, $post, $user->cuid));
 

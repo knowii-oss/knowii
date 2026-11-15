@@ -293,3 +293,12 @@ test('the DPA speaks only about the countries of its sub-processors (#1470, appr
 test('the version of a legal page is its updated date (#1353)', function () {
     expect(LegalPages::updated('dpa'))->toMatch('/^\d{4}-\d{2}-\d{2}$/');
 });
+
+test('the privacy policy tells about notifications and how long they stay (#1474)', function () {
+    config(['retention.notifications_read_days' => 60, 'retention.notifications_unread_days' => 90]);
+
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, 'and the notifications that tell you when a member replies to you or mentions you (who wrote, about which post, comment or message, and when you saw it).')
+            && str_contains($html, 'Notifications: 60 days after you read them, 90 days when you never read them.'))
+    );
+});

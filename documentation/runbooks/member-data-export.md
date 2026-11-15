@@ -18,7 +18,7 @@ The export is a copy of personal data: the account, the profile, the messages, t
 
 4. Open the zip file and read `README.txt`. Check that the files you expect are there. Do not read the content for other reasons.
 5. Send the file to the member through a link that expires (for example a file sharing link that ends after a few days, with a password sent in another message). Send it only to the address of the account. Never attach the file to an email.
-6. Tell the member what the file holds and what it leaves out. It never holds what other members wrote, nor the password hash, the two-factor secrets, the value of the API tokens or the session data. The `README.txt` in the file says the same.
+6. Tell the member what the file holds and what it leaves out. It holds the notifications about them (kind, community, identifiers, dates) without any text. It never holds what other members wrote, nor the password hash, the two-factor secrets, the value of the API tokens or the session data. The `README.txt` in the file says the same.
 7. The file stays on the server for `RETENTION_EXPORTS_DAYS` days (7 by default). Then `retention:prune` deletes it. If the member confirms the download earlier, delete the file yourself.
 8. Record the request: the day you received it, how you checked the identity, the day you answered. Do not record the content of the export.
 

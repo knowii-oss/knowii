@@ -107,6 +107,8 @@ Retention (ADR 0030): `config/retention.php` holds the retention periods of the 
 | `RETENTION_UNUSED_UPLOADS_DAYS`                                                    | Days an uploaded image that no content uses stays (default `7`)                                                                                                                                             |
 | `RETENTION_WAITLIST_MONTHS`                                                        | Months a waitlist contact stays in EmailOctopus after the signup (default `12`)                                                                                                                             |
 | `RETENTION_INACTIVE_CONTACTS_DAYS`                                                 | Days an unconfirmed or unsubscribed EmailOctopus contact stays after its last change (default `30`)                                                                                                         |
+| `RETENTION_NOTIFICATIONS_READ_DAYS`                                                | Days a notification stays after the member read it (default `60`)                                                                                                                                           |
+| `RETENTION_NOTIFICATIONS_UNREAD_DAYS`                                              | Days a notification stays when the member never read it, counted from its creation (default `90`)                                                                                                           |
 | `RETENTION_EXPORTS_DAYS`                                                           | Days an export file (`php artisan communities:export` or `users:export`) stays before `retention:prune` deletes it (default `7`)                                                                            |
 | `RETENTION_BACKUPS_DAILY`, `RETENTION_BACKUPS_WEEKLY`, `RETENTION_BACKUPS_MONTHLY` | The snapshots your backup script keeps (default `7`, `4` and `12`). Knowii does not run the backups: use the same numbers in your script (`restic forget --keep-daily 7 --keep-weekly 4 --keep-monthly 12`) |
 
@@ -148,7 +150,7 @@ php artisan optimize
 Knowii needs four processes, in addition to PHP-FPM:
 
 - The web server (nginx with PHP-FPM), which serves the `public/` folder
-- The queue worker, which processes jobs. Knowii sends its real-time (WebSocket) events through the queue: without a worker, users get no live updates.
+- The queue worker, which processes jobs. Knowii sends its real-time (WebSocket) events through the queue: without a worker, users get no live updates, and no notification is written. The worker reads three queues, in this order: `broadcasts` (live updates), `notifications` (who is told about replies and mentions, and the clean-up when access changes) and `default` (the rest). Keep the three names in the `--queue` option (ADR 0042).
 - The WebSocket server (Laravel Reverb)
 - The scheduler, which runs the scheduled tasks of `routes/console.php` (see the list below). Without it, unused uploaded images are never deleted.
 
@@ -156,7 +158,7 @@ Keep the queue worker, Reverb and the scheduler running with a process manager. 
 
 ```ini
 [program:knowii-queue]
-command=php /var/www/knowii/artisan queue:work --queue=default --sleep=3 --tries=3
+command=php /var/www/knowii/artisan queue:work --queue=broadcasts,notifications,default --sleep=3 --tries=3
 user=www-data
 autostart=true
 autorestart=true
@@ -186,7 +188,7 @@ The `knowii-scheduler` program (`schedule:work`) runs the scheduler every minute
 The scheduled tasks:
 
 1. `uploads:prune`, every day at 03:30: deletes the uploaded images that no post or comment used for 7 days (the member removed them from the text, cancelled the post, or deleted it). The 7 days protect a post that a member keeps open for days before saving it (#1273). Run `php artisan uploads:prune --dry-run` to see the list first.
-2. `retention:prune`, every day at 03:40: deletes the invitations 30 days after they expire, the API tokens 30 days after their expiry date, the failed background jobs after 7 days, the expired password reset tokens, and the expired sessions and cache entries when they are stored in the database (#1306). Run `php artisan retention:prune --dry-run` to see the counts first.
+2. `retention:prune`, every day at 03:40: deletes the invitations 30 days after they expire, the API tokens 30 days after their expiry date, the failed background jobs after 7 days, the notifications 60 days after they were read (90 days after they were written when never read), the expired password reset tokens, and the expired sessions and cache entries when they are stored in the database (#1306). Run `php artisan retention:prune --dry-run` to see the counts first.
 3. `mailing-lists:prune`, every day at 03:50: deletes the waitlist contacts 12 months after the signup, and the unconfirmed or unsubscribed contacts of the waitlist and the newsletter 30 days after their last change (EmailOctopus API). It does nothing while `EMAILOCTOPUS_API_KEY` is empty.
 
 The periods come from `config/retention.php` (see step 4).

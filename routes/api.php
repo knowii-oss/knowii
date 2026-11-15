@@ -16,6 +16,7 @@ use App\Http\Controllers\API\MarkdownApiController;
 use App\Http\Controllers\API\MemberApiController;
 use App\Http\Controllers\API\ModeratorPermissionApiController;
 use App\Http\Controllers\API\NewsletterApiController;
+use App\Http\Controllers\API\NotificationApiController;
 use App\Http\Controllers\API\OnlineMemberApiController;
 use App\Http\Controllers\API\PageApiController;
 use App\Http\Controllers\API\PingApiController;
@@ -179,6 +180,14 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::get(ApiRoutes::COMMUNITY_CONVERSATION_MESSAGE_REACTIONS, [ReactionApiController::class, 'listDirectMessage'])->middleware('ability:messages:read');
             Route::post(ApiRoutes::COMMUNITY_CONVERSATION_MESSAGE_REACTIONS, [ReactionApiController::class, 'toggleDirectMessage'])->middleware('ability:messages:write')->middleware('throttle:reactions');
         });
+
+        // The notifications of the current member, in every community (#1474, ADR 0042). Own rows only: the row of another
+        // member gives a 404. The abilities are not in the default set of a new token
+        Route::get(ApiRoutes::NOTIFICATIONS, [NotificationApiController::class, 'index'])->middleware('ability:notifications:read');
+        Route::get(ApiRoutes::NOTIFICATIONS_COUNT, [NotificationApiController::class, 'count'])->middleware('ability:notifications:read');
+        Route::post(ApiRoutes::NOTIFICATIONS_SEEN, [NotificationApiController::class, 'seen'])->middleware('ability:notifications:write');
+        Route::put(ApiRoutes::NOTIFICATION_READ, [NotificationApiController::class, 'read'])->middleware('ability:notifications:write');
+        Route::post(ApiRoutes::NOTIFICATION_UNREAD, [NotificationApiController::class, 'unread'])->middleware('ability:notifications:write');
 
         // Who is online now (#1187, ADR 0027)
         Route::get(ApiRoutes::COMMUNITY_ONLINE_MEMBERS, [OnlineMemberApiController::class, 'community'])->middleware('ability:communities:read');

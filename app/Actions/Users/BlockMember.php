@@ -2,6 +2,7 @@
 
 namespace App\Actions\Users;
 
+use App\Contracts\Notifications\PrunesNotifications;
 use App\Contracts\Users\BlocksMembers;
 use App\Exceptions\BusinessException;
 use App\Models\User;
@@ -20,6 +21,8 @@ class BlockMember implements BlocksMembers
         }
 
         $user->blockedUsers()->syncWithoutDetaching([$blocked->id => ['created_at' => now()]]);
+        // What the blocked member caused for the blocker goes away (#1474, design 6.9.4)
+        app(PrunesNotifications::class)->forBlock($user, $blocked);
         Log::info('Member blocked', ['user' => $user->cuid, 'blocked' => $blocked->cuid]);
     }
 

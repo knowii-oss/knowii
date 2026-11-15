@@ -208,6 +208,33 @@ class Constants
 
     public const int PAGINATION_MAX_LIMIT = 100;
 
+    // Notifications (#1474, ADR 0042): the queues of the worker (it reads broadcasts, notifications, default, in this order)
+    public const string QUEUE_BROADCASTS = 'broadcasts';
+
+    public const string QUEUE_NOTIFICATIONS = 'notifications';
+
+    // A page of the list of notifications
+    public const int NOTIFICATIONS_PER_PAGE = 20;
+
+    // The list folds a row into "Older" and the count forgets it after this many days without news
+    public const int NOTIFICATIONS_FOLD_DAYS = 14;
+
+    // Storm cap: a member gets at most this many unread mention rows from the same author in the window
+    public const int NOTIFICATIONS_MENTION_CAP = 3;
+
+    public const int NOTIFICATIONS_MENTION_CAP_MINUTES = 60;
+
+    // An item older than this at the moment of the event gives no notification (imports that forgot to be silent)
+    public const int NOTIFICATIONS_ITEM_MAX_AGE_MINUTES = 15;
+
+    public const int NOTIFICATIONS_EXCERPT_LENGTH = 300;
+
+    // The authors that a bundled row names, the others are counted
+    public const int NOTIFICATIONS_MAX_ACTORS = 3;
+
+    // Rows that one request marks as seen
+    public const int NOTIFICATIONS_SEEN_MAX = 100;
+
     /**
      * @var list<string>
      */

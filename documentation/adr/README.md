@@ -66,3 +66,4 @@ Do not write an ADR for a bug fix, a refactor that keeps the structure, or a fea
 | [0039](0039-images-that-follow-each-other-form-a-gallery.md)           | Images that follow each other form a gallery, with a viewer              | Accepted |
 | [0040](0040-stored-sizes-of-uploaded-images.md)                        | Uploaded images have stored smaller sizes, and the HTML uses srcset      | Accepted |
 | [0041](0041-access-groups-open-space-groups.md)                        | Access groups can open a whole space group, new spaces included          | Accepted |
+| [0042](0042-notifications.md)                                          | Notifications: one table, one action, four levels                        | Accepted |

@@ -29,6 +29,11 @@ return [
     // this many days
     'exports_days' => (int) env('RETENTION_EXPORTS_DAYS', 7),
 
+    // A notification (#1474, ADR 0042) is deleted this many days after the member read it, or this many days after it was
+    // written when the member never read it
+    'notifications_read_days' => (int) env('RETENTION_NOTIFICATIONS_READ_DAYS', 60),
+    'notifications_unread_days' => (int) env('RETENTION_NOTIFICATIONS_UNREAD_DAYS', 90),
+
     // EmailOctopus: a waitlist contact is deleted this many months after the signup
     'waitlist_months' => (int) env('RETENTION_WAITLIST_MONTHS', 12),
 

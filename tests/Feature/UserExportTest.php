@@ -9,6 +9,7 @@ use App\Models\Comment;
 use App\Models\Community;
 use App\Models\CommunityResource;
 use App\Models\Conversation;
+use App\Models\Notification;
 use App\Models\Post;
 use App\Models\Reaction;
 use App\Models\Space;
@@ -258,4 +259,26 @@ test('retention:prune deletes an old user export and keeps a recent one', functi
 
 test('the export action is behind its contract', function () {
     expect(app(ExportsUsers::class))->toBeInstanceOf(ExportUser::class);
+});
+
+test('the export lists the notifications of the member without any text or name of another member (#1474)', function () {
+    $f = userExportFixture();
+    $replier = $f['other'];
+    $post = Post::query()->where('author_id', $f['member']->id)->firstOrFail();
+    $comment = Comment::factory()->onPost($post)->create(['author_id' => $replier->id, 'body' => 'Secret words of the replier']);
+    Notification::factory()->forComment($comment, $f['member'], $replier)->create(['kind' => 'post_comment', 'seen_at' => now()]);
+
+    $files = runUserExport($f['member']);
+    $activity = json_decode($files['activity.json'], true);
+
+    expect($activity['notifications'])->toHaveCount(1)
+        ->and($activity['notifications'][0]['kind'])->toBe('post_comment')
+        ->and($activity['notifications'][0]['community'])->toBe($f['community']->cuid)
+        ->and($activity['notifications'][0]['comment'])->toBe($comment->cuid)
+        ->and($activity['notifications'][0]['post'])->toBeNull()
+        ->and($activity['notifications'][0]['seen_at'])->not->toBeNull()
+        ->and($activity['notifications'][0]['read_at'])->toBeNull()
+        ->and($activity['notifications'][0])->not->toHaveKey('actor')
+        ->and(json_encode($activity['notifications']))->not->toContain('Secret words')->not->toContain($replier->username)->not->toContain($replier->name)
+        ->and($files['README.txt'])->toContain('your notifications');
 });
