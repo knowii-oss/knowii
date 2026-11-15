@@ -41,6 +41,17 @@ return [
         'verify_url' => env('TURNSTILE_VERIFY_URL', 'https://challenges.cloudflare.com/turnstile/v0/siteverify'),
     ],
 
+    // Sign in with an OpenID Connect provider (#1385, ADR 0045). Off unless the issuer, the client ID and the client
+    // secret are all set. The scopes never include offline_access: no refresh token is asked or stored
+    'oidc' => [
+        'issuer' => env('OIDC_ISSUER'),
+        'client_id' => env('OIDC_CLIENT_ID'),
+        'client_secret' => env('OIDC_CLIENT_SECRET'),
+        'scopes' => env('OIDC_SCOPES', 'openid profile email'),
+        // The text of the button. Without it, the host name of the issuer
+        'label' => env('OIDC_LABEL'),
+    ],
+
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
     ],

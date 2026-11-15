@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Support\Newsletter;
+use App\Support\OpenIdConnect;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
@@ -38,6 +39,14 @@ class HandleInertiaRequests extends Middleware
             ],
             // The newsletter form of the footer (#938)
             'newsletter' => fn () => Newsletter::pageProp(),
+            // Sign in with an OpenID Connect provider (#1385): null when the instance has none, so that no page shows a
+            // button. The error and the status come from the callback, for one request
+            'oidc' => function () use ($request) {
+                $error = $request->hasSession() ? $request->session()->get('oidc_error') : null;
+                $status = $request->hasSession() ? $request->session()->get('oidc_status') : null;
+
+                return OpenIdConnect::pageProp(is_string($error) ? $error : null, is_string($status) ? $status : null);
+            },
         ];
 
         // If the user is authenticated, load their communities

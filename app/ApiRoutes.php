@@ -67,6 +67,9 @@ final class ApiRoutes
     // Named after the route parameter of the notification routes
     public const PARAM_NOTIFICATION = 'notification';
 
+    // The cuid of a connected provider account, in the path of the identity routes (#1385)
+    public const PARAM_IDENTITY_CUID = 'identityCuid';
+
     // Paths relative to the version prefix, used in routes/api.php.
     public const USER = 'user';
 
@@ -83,6 +86,11 @@ final class ApiRoutes
     public const USER_FREQUENT_EMOJI = 'user/frequent-emoji';
 
     public const USER_BLOCK = self::USER_BLOCKS.'/{'.self::PARAM_USER_CUID.'}';
+
+    // The OpenID Connect provider accounts that the current user connected (#1385, ADR 0045)
+    public const USER_IDENTITIES = 'user/identities';
+
+    public const USER_IDENTITY = self::USER_IDENTITIES.'/{'.self::PARAM_IDENTITY_CUID.'}';
 
     public const AUTH_LOGIN = 'auth/login';
 

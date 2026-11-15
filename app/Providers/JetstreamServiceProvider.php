@@ -4,6 +4,9 @@ namespace App\Providers;
 
 use App\Actions\DeleteUser;
 use App\Http\Controllers\ApiTokenController;
+use App\Models\User;
+use App\Support\OpenIdConnect;
+use Illuminate\Http\Request;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Jetstream\Http\Controllers\Inertia\ApiTokenController as JetstreamApiTokenController;
 use Laravel\Jetstream\Jetstream;
@@ -28,16 +31,38 @@ class JetstreamServiceProvider extends ServiceProvider
 
         Jetstream::deleteUsersUsing(DeleteUser::class);
 
-        // Example of how to pass additional data to a client-side page (via props)
-        // When rendered via Inertia
-        // Jetstream::inertia()->whenRendering(
-        //    'Profile/Show',
-        //    function (Request $request, array $data) {
-        //        return array_merge($data, [
-        //            // Custom data...
-        //        ]);
-        //    }
-        // );
+        // The "Connected accounts" card of the profile settings (#1385, ADR 0045)
+        Jetstream::inertia()->whenRendering('Profile/Show', $this->withConnectedAccounts(...));
+    }
+
+    /**
+     * The props of the profile page, and when the instance has a provider the provider accounts of the member
+     * (`connectedAccounts`: the label and the dates, never the subject) and whether the account has a password to sign
+     * in with (`hasPassword`). Without a provider the props are absent and the page shows no card.
+     *
+     * @param  array<string, bool|string|array<array-key, scalar|array<array-key, scalar|null>|null>|null>  $data
+     * @return array<string, bool|string|array<array-key, scalar|array<array-key, scalar|null>|null>|null>
+     */
+    final public function withConnectedAccounts(Request $request, array $data): array
+    {
+        $user = $request->user();
+        if (! OpenIdConnect::enabled() || ! $user instanceof User) {
+            return $data;
+        }
+
+        $identities = [];
+        foreach ($user->identities()->orderBy('linked_at')->get() as $identity) {
+            $identities[] = [
+                'cuid' => $identity->cuid,
+                'issuer' => $identity->issuer,
+                'label' => OpenIdConnect::labelFor($identity->issuer),
+                'current' => $identity->issuer === OpenIdConnect::issuer(),
+                'linked_at' => $identity->linked_at->toIso8601String(),
+                'last_used_at' => $identity->last_used_at?->toIso8601String(),
+            ];
+        }
+
+        return [...$data, 'connectedAccounts' => $identities, 'hasPassword' => $user->hasPassword()];
     }
 
     /**
@@ -64,6 +89,9 @@ class JetstreamServiceProvider extends ServiceProvider
             // Notifications (#1474, ADR 0042): never in the default set, they tell who writes to the member
             'notifications:read',
             'notifications:write',
+            // Connected provider accounts (#1385, ADR 0045): never in the default set, they link the account to another service
+            'identities:read',
+            'identities:write',
             'pages:read',
             'pages:write',
             'resources:read',

@@ -1,0 +1,19 @@
+meta {
+  name: Identities - Disconnect
+  type: http
+  seq: 153
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/user/identities/v76f8v6cw1zyl5wqxoucchmp
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Disconnect a provider account, by identity cuid (#1385). You keep your account, its email address and its sessions: a sign-in link or a password reset still works. Returns 204. The identity of another member gives 404. Needs identities:write (not in the default set).
+}

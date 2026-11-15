@@ -8,7 +8,11 @@ use App\Actions\AccessGroups\DeleteAccessGroup;
 use App\Actions\AccessGroups\RemoveAccessGroupMember;
 use App\Actions\AccessGroups\SetAccessGroupSpaceGroups;
 use App\Actions\AccessGroups\UpdateAccessGroup;
+use App\Actions\Auth\LinkIdentity;
 use App\Actions\Auth\MagicLinks;
+use App\Actions\Auth\OpenIdConnectClient;
+use App\Actions\Auth\SignInWithOpenIdConnect;
+use App\Actions\Auth\UnlinkIdentity;
 use App\Actions\Chat\CreateChatMessage;
 use App\Actions\Chat\DeleteChatMessage;
 use App\Actions\Chat\MarkChatAsRead;
@@ -89,7 +93,11 @@ use App\Contracts\AccessGroups\RemovesAccessGroupMembers;
 use App\Contracts\AccessGroups\SetsAccessGroupSpaceGroups;
 use App\Contracts\AccessGroups\UpdatesAccessGroups;
 use App\Contracts\Auth\ConsumesMagicLinks;
+use App\Contracts\Auth\LinksIdentities;
+use App\Contracts\Auth\ReadsOpenIdConnectIdentities;
 use App\Contracts\Auth\SendsMagicLinks;
+use App\Contracts\Auth\SignsInWithOpenIdConnect;
+use App\Contracts\Auth\UnlinksIdentities;
 use App\Contracts\Chat\CreatesChatMessages;
 use App\Contracts\Chat\DeletesChatMessages;
 use App\Contracts\Chat\MarksChatAsRead;
@@ -281,6 +289,11 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(MarksNotificationsSeen::class, MarkNotificationsSeen::class);
         app()->singleton(MarksNotificationsRead::class, MarkNotificationsRead::class);
         app()->singleton(PrunesNotifications::class, PruneNotifications::class);
+        // Sign in with an OpenID Connect provider (#1385, ADR 0045)
+        app()->singleton(ReadsOpenIdConnectIdentities::class, OpenIdConnectClient::class);
+        app()->singleton(SignsInWithOpenIdConnect::class, SignInWithOpenIdConnect::class);
+        app()->singleton(LinksIdentities::class, LinkIdentity::class);
+        app()->singleton(UnlinksIdentities::class, UnlinkIdentity::class);
 
         // Public waitlist endpoint: a few requests per minute and per IP address
         RateLimiter::for('waitlist', static function (Request $request) {
@@ -316,6 +329,11 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('uploads', static function (Request $request) {
             return Limit::perMinute(Constants::UPLOADS_PER_MINUTE)->by(self::rateLimitKey($request));
+        });
+
+        // Each start or end of a sign-in with the OpenID Connect provider calls it (#1385, ADR 0045): per IP address
+        RateLimiter::for('oidc', static function (Request $request) {
+            return Limit::perMinute(Constants::OIDC_REQUESTS_PER_MINUTE)->by('oidc:'.$request->ip());
         });
 
         // Each sign-in link sends an email (#703): per address and IP, like the login

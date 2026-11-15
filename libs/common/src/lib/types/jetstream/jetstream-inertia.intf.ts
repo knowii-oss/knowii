@@ -37,7 +37,33 @@ export type InertiaSharedProps<T = NonNullable<unknown>> = T & {
    * The newsletter form of the footer (#938): it shows only when the instance configures a list
    */
   newsletter?: { enabled: boolean; turnstileSiteKey: string | null };
+  /**
+   * Sign in with an OpenID Connect provider (#1385): null when the instance has none, so that no page shows a button.
+   * `error` and `status` come from the callback, for one request
+   */
+  oidc?: OpenIdConnectPageProp | null;
 };
+
+export interface OpenIdConnectPageProp {
+  label: string;
+  error: string | null;
+  status: string | null;
+}
+
+/**
+ * A provider account that the member connected (#1385): never the identifier at the provider
+ */
+export interface ConnectedAccount {
+  cuid: string;
+  issuer: string;
+  label: string;
+  /**
+   * Whether this is the provider of the instance (the one that the sign-in page offers)
+   */
+  current: boolean;
+  linked_at: string;
+  last_used_at: string | null;
+}
 
 export interface Session {
   id: number;
@@ -91,6 +117,8 @@ export const API_TOKEN_PERMISSIONS = [
   'resources:create',
   'groups:read',
   'groups:write',
+  'identities:read',
+  'identities:write',
 ] as const;
 export type Permission = (typeof API_TOKEN_PERMISSIONS)[number];
 
@@ -114,6 +142,8 @@ export const API_TOKEN_PERMISSION_LABELS: Record<Permission, string> = {
   'resources:create': 'Add resources only (browser extension)',
   'groups:read': 'Read access groups and their members',
   'groups:write': 'Manage access groups and their members',
+  'identities:read': 'Read the provider accounts that you connected',
+  'identities:write': 'Disconnect the provider accounts that you connected',
 };
 
 /**

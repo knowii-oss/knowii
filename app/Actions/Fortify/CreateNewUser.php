@@ -57,16 +57,34 @@ class CreateNewUser implements CreatesNewUsers
         /** @var array{name: string, email: string, password: string, terms: string} $input */
         $input = $validator->validated();
 
-        // Derive username from the user's name
-        $username = Knowii::generateRandomUsername($input['name']);
+        return $this->createAccount($input['name'], $input['email'], $input['password']);
+    }
 
-        return DB::transaction(function () use ($username, $input) {
+    /**
+     * The creation path of every new account: a free username derived from the name, the account, its profile and its
+     * personal community, in one transaction. The sign-up form and the sign-in with an OpenID Connect provider (#1385)
+     * both end here. The caller has validated the values.
+     *
+     * @param  string|null  $password  Null for an account without a password (the provider proved who the member is)
+     * @param  bool  $emailVerified  Whether the address is verified from the start (the provider verified it)
+     */
+    final public function createAccount(string $name, string $email, ?string $password, bool $emailVerified = false): User
+    {
+        // Derive username from the user's name
+        $username = Knowii::generateRandomUsername($name);
+
+        return DB::transaction(function () use ($username, $name, $email, $password, $emailVerified) {
             return tap(User::create([
-                'name' => $input['name'],
+                'name' => $name,
                 'username' => $username,
-                'email' => $input['email'],
-                'password' => Hash::make($input['password']),
-            ]), function (User $user) {
+                'email' => $email,
+                'password' => $password === null ? null : Hash::make($password),
+            ]), function (User $user) use ($emailVerified) {
+                // Not mass assignable: only this path and the sign-in links set it
+                if ($emailVerified) {
+                    $user->markEmailAsVerified();
+                }
+
                 // Always a new profile: the profile of a deleted account is gone with it (#1261, ADR 0024)
                 $user->profile()->create([
                     'user_id' => $user->id,

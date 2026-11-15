@@ -8,6 +8,7 @@ use App\Http\Controllers\Inertia\DashboardController;
 use App\Http\Controllers\Inertia\DeleteAccountController;
 use App\Http\Controllers\Inertia\MagicLinkController;
 use App\Http\Controllers\Inertia\MemberController;
+use App\Http\Controllers\Inertia\OpenIdConnectController;
 use App\Http\Controllers\Inertia\PageController;
 use App\Http\Controllers\Inertia\PostController;
 use App\Http\Controllers\Inertia\SpaceController;
@@ -85,6 +86,17 @@ Route::middleware('guest')->group(function () {
     Route::post('/login/link', [MagicLinkController::class, 'store'])->middleware('throttle:magic-link')->name('login.link.store');
     Route::get('/login/link/{token}', [MagicLinkController::class, 'show'])->name('login.link.show');
     Route::post('/login/link/{token}', [MagicLinkController::class, 'consume'])->middleware('throttle:magic-link')->name('login.link.consume');
+});
+
+// Sign in with an OpenID Connect provider, or connect it to the account of a signed-in member (#1385, ADR 0045). Both
+// routes answer 404 unless the instance configures a provider. No guest middleware: a member connects an account here
+Route::middleware('throttle:oidc')->prefix('auth/oidc')->group(function () {
+    Route::get('/redirect', [OpenIdConnectController::class, 'redirect'])->name('oidc.redirect');
+    Route::get('/callback', [OpenIdConnectController::class, 'callback'])->name('oidc.callback');
+    // A signed-in member connects a provider account: a POST with the CSRF token, never a link (#1385)
+    Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])
+        ->post('/connect', [OpenIdConnectController::class, 'connect'])
+        ->name('oidc.connect');
 });
 
 Route::inertia('/contact', 'Contact');

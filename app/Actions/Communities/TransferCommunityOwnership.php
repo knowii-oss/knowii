@@ -42,7 +42,9 @@ class TransferCommunityOwnership implements TransfersCommunityOwnership
             'password' => ['required', 'string'],
         ])->validate();
 
-        if (! Hash::check($validated['password'], $user->password)) {
+        // An account without a password (created by a sign-in provider) sets one first: Forgot your password?
+        $storedPassword = $user->password;
+        if ($storedPassword === null || ! Hash::check($validated['password'], $storedPassword)) {
             throw ValidationException::withMessages(['password' => [__('The provided password does not match your current password.')]]);
         }
 

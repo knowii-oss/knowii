@@ -1,5 +1,5 @@
 import AppLayout from '@/Layouts/AppLayout';
-import type { Session } from '@knowii/common';
+import type { ConnectedAccount, Session } from '@knowii/common';
 import { useTypedPage } from '@knowii/common';
 import UpdateProfileInformationForm from '@/Pages/Profile/Partials/UpdateProfileInformationForm';
 import UpdateAvatarForm from '@/Pages/Profile/Partials/UpdateAvatarForm';
@@ -9,6 +9,7 @@ import UpdatePasswordForm from '@/Pages/Profile/Partials/UpdatePasswordForm';
 import TwoFactorAuthenticationForm from '@/Pages/Profile/Partials/TwoFactorAuthenticationForm';
 import LogoutOtherBrowserSessionsForm from '@/Pages/Profile/Partials/LogoutOtherBrowserSessionsForm';
 import DeleteUserForm from '@/Pages/Profile/Partials/DeleteUserForm';
+import ConnectedAccountsForm from '@/Pages/Profile/Partials/ConnectedAccountsForm';
 import type { BreadcrumbItem } from '@/Components/ui';
 import { breadcrumbHome } from '../../Components/BreadcrumbHome';
 import { FaUser } from 'react-icons/fa';
@@ -16,6 +17,9 @@ import { FaUser } from 'react-icons/fa';
 interface Props {
   confirmsTwoFactorAuthentication: boolean;
   sessions: Session[];
+  // Only when the instance has an OpenID Connect provider (#1385)
+  connectedAccounts?: ConnectedAccount[];
+  hasPassword?: boolean;
 }
 
 export default function UserProfile(props: Props) {
@@ -50,6 +54,13 @@ export default function UserProfile(props: Props) {
       {page.props.jetstream.canManageTwoFactorAuthentication && (
         <>
           <TwoFactorAuthenticationForm requiresConfirmation={props.confirmsTwoFactorAuthentication} />
+          <Separator />
+        </>
+      )}
+
+      {props.connectedAccounts !== undefined && (
+        <>
+          <ConnectedAccountsForm accounts={props.connectedAccounts} hasPassword={props.hasPassword ?? true} />
           <Separator />
         </>
       )}

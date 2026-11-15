@@ -28,6 +28,7 @@ use App\Http\Controllers\API\SpaceGroupApiController;
 use App\Http\Controllers\API\UploadApiController;
 use App\Http\Controllers\API\UserApiController;
 use App\Http\Controllers\API\UserBlockApiController;
+use App\Http\Controllers\API\UserIdentityApiController;
 use App\Http\Controllers\API\WaitlistApiController;
 use Illuminate\Support\Facades\Route;
 
@@ -81,6 +82,10 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
         Route::get(ApiRoutes::USER_BLOCKS, [UserBlockApiController::class, 'index'])->middleware('ability:user:read');
         Route::put(ApiRoutes::USER_BLOCK, [UserBlockApiController::class, 'store'])->middleware('ability:user:write');
         Route::delete(ApiRoutes::USER_BLOCK, [UserBlockApiController::class, 'destroy'])->middleware('ability:user:write');
+        // The provider accounts that the member connected (#1385, ADR 0045). Own rows only: the row of another member gives a
+        // 404. The abilities are not in the default set of a new token
+        Route::get(ApiRoutes::USER_IDENTITIES, [UserIdentityApiController::class, 'index'])->middleware('ability:identities:read');
+        Route::delete(ApiRoutes::USER_IDENTITY, [UserIdentityApiController::class, 'destroy'])->middleware('ability:identities:write');
         Route::post(ApiRoutes::USERS_IS_USERNAME_AVAILABLE, [UserApiController::class, 'isUsernameAvailable'])->middleware('ability:user:read');
 
         // The communities of the current member (#828)

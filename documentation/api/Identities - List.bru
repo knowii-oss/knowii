@@ -1,0 +1,19 @@
+meta {
+  name: Identities - List
+  type: http
+  seq: 152
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/user/identities
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The provider accounts that you connected to sign in (#1385): the issuer, a label, the date of the link and of its last use. Never the identifier at the provider. Needs identities:read (not in the default set).
+}

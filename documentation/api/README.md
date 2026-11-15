@@ -38,6 +38,8 @@ A personal API token (created on the "API tokens" page of the user menu) has abi
 | `resources:create`  | Add resources, nothing else (the browser extension, ADR 0018)         |
 | `groups:read`       | Read access groups and their members                                  |
 | `groups:write`      | Manage access groups and their members (a sync from another system)   |
+| `identities:read`   | Read the provider accounts that you connected to sign in: the issuer, a label and the dates, never the identifier at the provider (not in the default set) |
+| `identities:write`  | Disconnect a provider account (not in the default set)                |
 
 ## Public spaces
 
