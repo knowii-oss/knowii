@@ -64,3 +64,4 @@ Do not write an ADR for a bug fix, a refactor that keeps the structure, or a fea
 | [0037](0037-course-materials.md)                                       | Course materials are private files and links, added by the managers      | Accepted |
 | [0038](0038-lesson-quizzes.md)                                         | A lesson has at most one quiz, graded by the server, one result a member | Accepted |
 | [0039](0039-images-that-follow-each-other-form-a-gallery.md)           | Images that follow each other form a gallery, with a viewer              | Accepted |
+| [0040](0040-stored-sizes-of-uploaded-images.md)                        | Uploaded images have stored smaller sizes, and the HTML uses srcset      | Accepted |

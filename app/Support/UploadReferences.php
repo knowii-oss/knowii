@@ -7,11 +7,12 @@ namespace App\Support;
  *
  * An upload is stored at uploads/{community cuid}/{year}/{month}/{upload cuid}.{extension} (UploadImage). Its URL
  * holds that path, whatever the disk (local storage or S3), so the path is enough to find it in a text: in an image,
- * a link, or a quote of another post.
+ * a link, or a quote of another post. The smaller versions (#1207) are at {upload cuid}-{width}.{extension}: the same
+ * cuid.
  */
 final class UploadReferences
 {
-    private const PATTERN = '#uploads/[a-z0-9]+/\d{4}/\d{2}/([a-z0-9]+)\.(?:webp|png|jpe?g|gif)#i';
+    private const PATTERN = '#uploads/[a-z0-9]+/\d{4}/\d{2}/([a-z0-9]+)(?:-\d+)?\.(?:webp|png|jpe?g|gif)#i';
 
     /**
      * @return list<string> The cuids of the uploads, without duplicates

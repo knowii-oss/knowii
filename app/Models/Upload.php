@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Http\Resources\UploadResource;
+use App\Support\UploadFiles;
 use App\Traits\GeneratesCuid;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Attributes\UseResource;
@@ -25,6 +26,7 @@ use Illuminate\Support\Facades\Storage;
  * @property int $height
  * @property int $size_bytes
  * @property string $alt
+ * @property list<int>|null $sizes The widths of the smaller versions: empty for a small image, null when not built yet
  * @property Carbon $created_at
  * @property-read Community $community
  * @property-read ?User $user
@@ -42,6 +44,7 @@ use Illuminate\Support\Facades\Storage;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Upload whereMimeType($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Upload wherePath($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Upload whereSizeBytes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Upload whereSizes($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Upload whereUserId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Upload whereWidth($value)
  * @method TResource toResource<TResource of \Illuminate\Http\Resources\Json\JsonResource = \App\Http\Resources\UploadResource>(class-string<TResource>|null $resourceClass = null)
@@ -58,7 +61,7 @@ class Upload extends Model
     /**
      * @var list<string>
      */
-    protected $fillable = ['cuid', 'community_id', 'user_id', 'disk', 'path', 'mime_type', 'width', 'height', 'size_bytes', 'alt'];
+    protected $fillable = ['cuid', 'community_id', 'user_id', 'disk', 'path', 'mime_type', 'width', 'height', 'size_bytes', 'alt', 'sizes'];
 
     /**
      * @var list<string>
@@ -97,6 +100,38 @@ class Upload extends Model
     final public function url(): string
     {
         return Storage::disk($this->disk)->url($this->path);
+    }
+
+    /**
+     * Storage path of the version that is `$width` pixels wide.
+     */
+    final public function sizePath(int $width): string
+    {
+        return UploadFiles::sizePath($this->path, $width);
+    }
+
+    /**
+     * Public URL of the version that is `$width` pixels wide.
+     */
+    final public function sizeUrl(int $width): string
+    {
+        return Storage::disk($this->disk)->url($this->sizePath($width));
+    }
+
+    /**
+     * Delete the original file and its smaller versions. The one place that does it: use it, never delete `path`.
+     */
+    final public function deleteFiles(): void
+    {
+        UploadFiles::delete($this->disk, $this->path, $this->sizes);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    final public function casts(): array
+    {
+        return ['sizes' => 'array'];
     }
 
     final public function getRouteKeyName(): string

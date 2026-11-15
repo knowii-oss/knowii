@@ -23,8 +23,8 @@ Member content is Markdown rendered on the server with raw HTML escaped ([ADR 00
 
 1. Posts, comments, chat messages, direct messages and pages all get galleries, because they share the renderer and `MarkdownContent`. The preview of the editor shows them too.
 2. Without JavaScript, in an email or in a feed, a gallery is a list of images that link to their files.
-3. The grid does not depend on the size of the images (each tile has a fixed shape and crops its image), so the layout does not move when the images load. A single image still takes its own height: the stored width and height come with the sizes of the third step of #1207.
-4. The HTML of existing content is stored: an old post shows its images as before until someone edits it. The third step of #1207 renders the stored HTML again (it adds `srcset`), which also brings the galleries to the old content.
+3. The grid does not depend on the size of the images (each tile has a fixed shape and crops its image), so the layout does not move when the images load. A single image still takes its own height: the stored width and height come with the sizes of the third step of #1207. That step delivered them: the renderer writes `width` and `height` on the images that are uploads ([ADR 0040](0040-stored-sizes-of-uploaded-images.md)).
+4. The HTML of existing content is stored: an old post shows its images as before until someone edits it. The third step of #1207 renders the stored HTML again (it adds `srcset`), which also brings the galleries to the old content. That step delivered it: `php artisan content:render-again` ([ADR 0040](0040-stored-sizes-of-uploaded-images.md)).
 5. `MaxMarkdownImages` still counts the `<img>` elements of the rendered text: a gallery does not change the limit of 20 images.
 6. A rich block in member content now has two patterns: a block that needs a component of its own gets a React root (videos); a block that only needs a shared dialog is plain HTML with CSS, and `MarkdownContent` handles its clicks (galleries). Prefer the second one when it is enough.
 

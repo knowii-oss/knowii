@@ -245,21 +245,27 @@
     @apply outline-2 -outline-offset-2 outline-primary;
   }
 
-  .image-gallery-item img {
+  /* The tiles of a grid fill their shape; one image does not (below) */
+  .image-gallery:not([data-image-count='1']) .image-gallery-item img {
     @apply size-full object-cover;
   }
 
-  /* One image keeps its own shape */
+  /*
+   * One image keeps its own shape. The img has width and height attributes (#1207, ADR 0040): the browser reserves
+   * the place before the image loads. So the CSS sets no width here: it comes from the attribute, capped by max-w-full,
+   * and h-auto gives the height from the ratio (no distortion). An image taller than the cap is shown whole, at the
+   * left of its box like any image of a text (the rest of the box is empty and has no background).
+   */
   .image-gallery[data-image-count='1'] {
     @apply block w-fit max-w-full;
   }
 
   .image-gallery[data-image-count='1'] .image-gallery-item {
-    @apply aspect-auto;
+    @apply aspect-auto bg-transparent;
   }
 
   .image-gallery[data-image-count='1'] .image-gallery-item img {
-    @apply h-auto max-h-[36rem] w-auto max-w-full object-contain;
+    @apply h-auto max-h-[36rem] max-w-full object-contain object-left;
   }
 
   /* Two images: two squares */

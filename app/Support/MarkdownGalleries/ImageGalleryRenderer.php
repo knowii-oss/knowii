@@ -2,6 +2,8 @@
 
 namespace App\Support\MarkdownGalleries;
 
+use App\Support\MarkdownUploads\StoredImage;
+use App\Support\MarkdownUploads\UploadImagesExtension;
 use League\CommonMark\Extension\CommonMark\Node\Inline\Image;
 use League\CommonMark\Node\Node;
 use League\CommonMark\Node\StringContainerInterface;
@@ -39,12 +41,18 @@ final class ImageGalleryRenderer implements NodeRendererInterface
         $more = $count - self::VISIBLE_IMAGES;
         $items = [];
         foreach ($images as $index => $image) {
-            $content = [new HtmlElement('img', [
+            $attributes = [
                 'src' => $image->getUrl(),
                 'alt' => self::altText($image),
                 'loading' => 'lazy',
                 'decoding' => 'async',
-            ], '', true)];
+            ];
+            // An upload of this instance: its size and its smaller versions (#1207, ADR 0040). The link stays the original.
+            $stored = UploadImagesExtension::storedImage($image);
+            if ($stored !== null) {
+                $attributes += $stored->attributes($count > 1 ? StoredImage::SIZES_TILE : StoredImage::SIZES_SINGLE);
+            }
+            $content = [new HtmlElement('img', $attributes, '', true)];
 
             if ($more > 0 && $index === self::VISIBLE_IMAGES - 1) {
                 $content[] = new HtmlElement('span', ['class' => 'image-gallery-more', 'aria-hidden' => 'true'], '+'.$more);

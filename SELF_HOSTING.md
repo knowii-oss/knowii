@@ -276,6 +276,16 @@ php artisan reverb:restart   # the WebSocket server restarts with the new code
 sudo systemctl reload php8.5-fpm
 ```
 
+Some releases need one more step after the migration. The release that adds smaller sizes for uploaded images ([ADR 0040](documentation/adr/0040-stored-sizes-of-uploaded-images.md)) needs this, in this order:
+
+```bash
+php artisan migrate --force
+php artisan uploads:build-sizes     # builds the smaller versions of the images that exist
+php artisan content:render-again    # renders the stored HTML again, so old content gets srcset and galleries
+```
+
+Both commands accept `--dry-run`, and you can run them again: they only do what is left to do. A file that is missing is reported and skipped, never deleted.
+
 Read the release notes (`CHANGELOG.md`) before you update. They tell you about new or changed environment values.
 
 ## Laravel Forge (optional)

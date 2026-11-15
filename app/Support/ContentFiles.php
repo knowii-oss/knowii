@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\Storage;
 final class ContentFiles
 {
     /**
-     * @param  list<array{disk: string, path: string}>  $uploads
+     * @param  list<array{disk: string, path: string, sizes: list<int>|null}>  $uploads
      * @param  list<int>  $resourceIds
      * @param  list<string>  $communityResourceCuids
      * @param  list<array{disk: string, path: string}>  $materials  the files of course materials (#1336)
@@ -100,7 +100,8 @@ final class ContentFiles
     private function delete(): void
     {
         foreach ($this->uploads as $upload) {
-            Storage::disk($upload['disk'])->delete($upload['path']);
+            // The original and its smaller versions (#1207)
+            UploadFiles::delete($upload['disk'], $upload['path'], $upload['sizes']);
         }
 
         foreach ($this->materials as $material) {
@@ -127,13 +128,13 @@ final class ContentFiles
 
     /**
      * @param  Builder<Upload>  $query
-     * @return list<array{disk: string, path: string}>
+     * @return list<array{disk: string, path: string, sizes: list<int>|null}>
      */
     private static function uploads($query): array
     {
         $files = [];
-        foreach ($query->get(['disk', 'path']) as $upload) {
-            $files[] = ['disk' => $upload->disk, 'path' => $upload->path];
+        foreach ($query->get(['disk', 'path', 'sizes']) as $upload) {
+            $files[] = ['disk' => $upload->disk, 'path' => $upload->path, 'sizes' => $upload->sizes];
         }
 
         return $files;
