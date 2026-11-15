@@ -48,12 +48,13 @@ class PageApiController extends Controller
     }
 
     /**
-     * Add a page at the end of a page space.
+     * Add a page at the end of a page space. In a public space (`visibility` public), anyone on the internet can read
+     * the page without an account, with the name, the username and the picture of its author.
      *
      * @throws AuthenticationException
      */
-    #[BodyParameter('title', description: 'Title of the page (3 to 200 characters)', required: true, type: 'string', example: 'Start here')]
-    #[BodyParameter('body', description: 'Text of the page in Markdown (up to 50 000 characters). Not for a section', required: true, type: 'string', example: 'Welcome! Read these pages in order.')]
+    #[BodyParameter('title', description: 'Title of the page (3 to 200 characters). In a public space, anyone on the internet can read it, with the name and picture of the author', required: true, type: 'string', example: 'Start here')]
+    #[BodyParameter('body', description: 'Text of the page in Markdown (up to 50 000 characters). Not for a section. In a public space, anyone on the internet can read it, with the name and picture of the author', required: true, type: 'string', example: 'Welcome! Read these pages in order.')]
     #[BodyParameter('kind', description: 'page (default; a lesson in a course space) or section (a heading for the pages after it, a title only)', required: false, type: 'string', example: 'page')]
     #[BodyParameter('video_url', description: 'Lessons of a course space only: the address of a YouTube or Vimeo video', required: false, type: 'string', format: 'uri', example: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')]
     final public function store(Request $request, Community $community, Space $space): JsonResponse

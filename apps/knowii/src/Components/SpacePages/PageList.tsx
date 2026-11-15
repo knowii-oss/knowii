@@ -15,6 +15,7 @@ import {
   FaTrash,
   FaVideo,
 } from 'react-icons/fa6';
+import { useIsVisitor } from '@/Components/Reader/Reader';
 import { Button, buttonClasses, Dialog, EmptyState } from '@/Components/ui';
 import type { PageEditorMode } from './PageEditor';
 import { PageEditor } from './PageEditor';
@@ -39,6 +40,7 @@ export interface PageListProps {
  */
 export function PageList({ community, space, pages: initialPages, canManagePages, progress = null }: PageListProps) {
   const { showToast } = useAppData();
+  const isVisitor = useIsVisitor();
   const [pages, setPages] = useState<Page[]>(initialPages);
   const [source, setSource] = useState(initialPages);
   const [editor, setEditor] = useState<{ mode: PageEditorMode; page?: Page } | null>(null);
@@ -71,6 +73,8 @@ export function PageList({ community, space, pages: initialPages, canManagePages
   );
   useSocket({
     channel,
+    // A visitor gets a static page: no connection (#1387)
+    enabled: !isVisitor,
     event: ['space.page.created', 'space.page.updated', 'space.page.deleted', 'space.pages.reordered'],
     callback: () => router.reload({ only: ['pages', 'progress'] }),
   });

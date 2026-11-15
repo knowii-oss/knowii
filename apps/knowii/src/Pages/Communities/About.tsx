@@ -44,7 +44,7 @@ function capabilities(props: Props): string[] {
   }
   const moderates = currentRole === 'owner' || currentRole === 'admin' || currentRole === 'moderator';
   const can = (right: 'pin_posts' | 'delete_content') =>
-    currentRole === 'owner' || currentRole === 'admin' || community.moderator_permissions[right];
+    currentRole === 'owner' || currentRole === 'admin' || community.moderator_permissions?.[right] === true;
   if (moderates && can('pin_posts')) {
     items.push('Pin posts');
   }
@@ -182,8 +182,8 @@ export default function CommunityAboutPage(props: Props) {
                           <span className="font-bold">{MODERATOR_PERMISSION_LABELS[right].name}</span>
                           <span className="block text-sm text-muted">{MODERATOR_PERMISSION_LABELS[right].description}</span>
                         </span>
-                        <span className={community.moderator_permissions[right] ? 'font-bold text-success' : 'text-muted'}>
-                          {community.moderator_permissions[right] ? 'Yes' : 'No'}
+                        <span className={community.moderator_permissions?.[right] ? 'font-bold text-success' : 'text-muted'}>
+                          {community.moderator_permissions?.[right] ? 'Yes' : 'No'}
                         </span>
                       </li>
                     ))}

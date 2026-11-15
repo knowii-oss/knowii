@@ -4,7 +4,9 @@ namespace App\Http\Resources;
 
 use App\Models\AccessGroup;
 use App\Models\Space;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * @mixin Space
@@ -29,8 +31,12 @@ class SpaceResource extends AbstractKnowiiJsonResource
             'url' => $this->url,
             'visibility' => $this->visibility,
             'posting_policy' => $this->posting_policy,
-            // The groups that open a "groups" space (#1241): cuid and name, when loaded
-            'access_groups' => $this->whenLoaded('accessGroups', fn () => $this->accessGroups->map(fn (AccessGroup $group) => ['cuid' => $group->cuid, 'name' => $group->name])->values()->all(), []),
+            // The groups that open a "groups" space (#1241): cuid and name, when loaded, for the people who manage the spaces
+            // only: the names of the groups are not for other members, outsiders and visitors (#1387)
+            'access_groups' => $this->when(
+                $this->relationLoaded('accessGroups') && $this->canManageSpaces($request),
+                fn () => $this->accessGroups->map(fn (AccessGroup $group) => ['cuid' => $group->cuid, 'name' => $group->name])->values()->all(),
+            ),
             'position' => $this->position,
             // Chat spaces in the navigation (#1185): the messages that the member did not read yet
             'unread_count' => $this->when($this->unreadCount() !== null, fn () => $this->unreadCount()),
@@ -38,6 +44,26 @@ class SpaceResource extends AbstractKnowiiJsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
+    }
+
+    /**
+     * Whether the reader manages the spaces of the community: false for a visitor. Asked once per community and request.
+     */
+    private function canManageSpaces(Request $request): bool
+    {
+        $user = $request->user();
+        if (! $user instanceof User) {
+            return false;
+        }
+
+        /** @var Space $space */
+        $space = $this->resource;
+        $key = 'knowii.manage_spaces.'.$space->community_id;
+        if (! $request->attributes->has($key)) {
+            $request->attributes->set($key, Gate::forUser($user)->check('manageSpaces', $space->loadMissing('community')->community));
+        }
+
+        return $request->attributes->get($key) === true;
     }
 
     /**

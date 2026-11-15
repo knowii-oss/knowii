@@ -38,11 +38,12 @@ class CommunityResourceCommentApiController extends Controller
     }
 
     /**
-     * Comment a resource, or reply to a comment (parent_cuid).
+     * Comment a resource, or reply to a comment (parent_cuid). In a public space (`visibility` public), anyone on the
+     * internet can read the comment without an account, with the name, the username and the picture of its author.
      *
      * @throws AuthenticationException
      */
-    #[BodyParameter('body', description: 'Comment in Markdown (up to 10,000 characters)', required: true, type: 'string', example: 'Worth reading!')]
+    #[BodyParameter('body', description: 'Comment in Markdown (up to 10,000 characters). In a public space, anyone on the internet can read it, with the name and picture of the author', required: true, type: 'string', example: 'Worth reading!')]
     #[BodyParameter('parent_cuid', description: 'The comment to reply to. A reply to a reply goes to its top-level comment (one level only)', required: false, type: 'string')]
     final public function store(Request $request, Community $community, Space $space, CommunityResource $resource): JsonResponse
     {

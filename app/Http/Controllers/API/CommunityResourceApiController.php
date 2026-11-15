@@ -62,11 +62,13 @@ class CommunityResourceApiController extends Controller
     /**
      * Add a link to a resources space. The posting policy of the space decides who can add one. The answer comes at once
      * with the capture status "pending": a queued job captures the page and the space channel announces each change
-     * (ADR 0018).
+     * (ADR 0018). In a public space (`visibility` public), anyone on the internet can read the resource without an
+     * account, with the name, the username and the picture of the member who added it. The captured article stays for
+     * the members of the community.
      *
      * @throws AuthenticationException
      */
-    #[BodyParameter('name', description: 'Name of the resource in the community (3 to 64 characters). Empty: the title of the page', required: false, type: 'string', example: 'How to take smart notes')]
+    #[BodyParameter('name', description: 'Name of the resource in the community (3 to 64 characters). Empty: the title of the page. In a public space, anyone on the internet can read it, with the name and picture of the member who added it', required: false, type: 'string', example: 'How to take smart notes')]
     #[BodyParameter('url', description: 'Absolute http or https URL of the page', required: true, type: 'string', format: 'uri', example: 'https://example.com/some-article')]
     #[BodyParameter('level', description: 'beginner, intermediate, advanced, expert or unknown', required: true, type: 'string', example: 'beginner')]
     #[BodyParameter('description', description: 'Why the resource is useful (up to 255 characters)', required: false, type: 'string')]

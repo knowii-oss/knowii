@@ -53,6 +53,15 @@ Route::middleware([
     // Direct messages (#1186)
     Route::get('/community/{communitySlug}/messages', [ConversationController::class, 'index'])->name('messages.index');
     Route::get('/community/{communitySlug}/messages/{conversationCuid}', [ConversationController::class, 'show'])->name('messages.show');
+});
+
+// The pages of the spaces that visitors may read (#1387, ADR 0044). Without an account the policies decide: a public
+// space (not a chat space) is read, any other address sends the visitor to the sign-in page and back. A signed-in
+// account goes through the same checks as the group above (session, verified email address)
+Route::middleware([
+    'auth.optional',
+    config('jetstream.auth_session'),
+])->group(function () {
     Route::get('/community/{communitySlug}/space/{spaceSlug}', [SpaceController::class, 'show'])->name('spaces.show');
     Route::get('/community/{communitySlug}/space/{spaceSlug}/post/{postSlug}', [PostController::class, 'show'])->name('posts.show');
     // Pages of page spaces (#1179)

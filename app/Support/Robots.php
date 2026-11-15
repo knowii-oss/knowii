@@ -45,10 +45,12 @@ final class Robots
     }
 
     /**
-     * The robots directive of a response: index only public pages for guests, when the instance allows indexing.
+     * The robots directive of a response: index only public pages for guests, when the instance allows indexing. The
+     * pages of the communities stay noindex, also the public spaces that visitors read: indexing them is a setting of
+     * the community that comes later (#1387, ADR 0044).
      */
-    public static function directive(bool $authenticated, bool $isApi): string
+    public static function directive(bool $authenticated, bool $isApi, bool $isCommunityPage = false): string
     {
-        return self::indexingAllowed() && ! $authenticated && ! $isApi ? 'index, follow, max-image-preview:large' : 'noindex, nofollow';
+        return self::indexingAllowed() && ! $authenticated && ! $isApi && ! $isCommunityPage ? 'index, follow, max-image-preview:large' : 'noindex, nofollow';
     }
 }

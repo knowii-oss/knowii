@@ -5,6 +5,7 @@ use App\Exceptions\BusinessException;
 use App\Exceptions\TechnicalException;
 use App\Http\Middleware\AddRobotsHeader;
 use App\Http\Middleware\AddViteContentSecurityPolicyNonce;
+use App\Http\Middleware\AuthenticateIfPresent;
 use App\Http\Middleware\EnsureRequestIsJson;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RequireTokenAbility;
@@ -75,6 +76,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Token abilities on the API routes (ADR 0022, #689): `ability:a,b` passes with any of them
         $middleware->alias([
             'ability' => RequireTokenAbility::class,
+            // The routes that visitors may read (#1387, ADR 0044)
+            'auth.optional' => AuthenticateIfPresent::class,
         ]);
 
         // Might need this later if we still get redirects with the API
@@ -116,6 +119,17 @@ return Application::configure(basePath: dirname(__DIR__))
   // https://inertiajs.com/error-handling
   // https://laravel.com/docs/11.x/errors#handling-exceptions
     ->withExceptions(function (Exceptions $exceptions) {
+
+        // A visitor on a page that visitors may read, but who may not read this one (a members-only space, a chat space,
+        // a page that does not exist): the sign-in page, then back to the address (#1387, ADR 0044). Not found gives the
+        // same answer as refused, so that nobody learns which private spaces exist
+        $exceptions->render(function (AccessDeniedHttpException|NotFoundHttpException $e, Request $request) {
+            if ($request->attributes->get(AuthenticateIfPresent::VISITOR_ATTRIBUTE) === true && ! $request->expectsJson() && ! $request->is('api/*')) {
+                return redirect()->guest(route('login'));
+            }
+
+            return null;
+        });
 
         // Convert NotFoundHttpException instances to Knowii's error representation
         $exceptions->render(function (NotFoundHttpException $e, Request $request) {
@@ -170,6 +184,14 @@ return Application::configure(basePath: dirname(__DIR__))
             if (! $request->expectsJson()) {
                 // Default Laravel processing if not expecting a JSON response
                 return null;
+            }
+
+            // A visitor who may not read this on a route that accepts visitors (#1387): signing in may help, so a 401
+            if ($request->attributes->get(AuthenticateIfPresent::VISITOR_ATTRIBUTE) === true) {
+                return (new class
+                {
+                    use ApiResponses;
+                })::authenticationIssue('Unauthenticated.', null, null);
             }
 
             return (new class

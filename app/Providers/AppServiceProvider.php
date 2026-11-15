@@ -331,6 +331,14 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(Constants::QUIZ_ATTEMPTS_PER_MINUTE)->by(self::rateLimitKey($request));
         });
 
+        // The API reads that visitors may call (#1387, ADR 0044): per IP address, for requests without an account. A signed-in
+        // request keeps the behaviour that it had before these routes accepted visitors
+        RateLimiter::for('public-reads', static function (Request $request) {
+            return $request->user() instanceof User
+                ? Limit::none()
+                : Limit::perMinute(Constants::PUBLIC_READS_PER_MINUTE)->by('ip:'.$request->ip());
+        });
+
         RateLimiter::for('markdown-preview', static function (Request $request) {
             return Limit::perMinute(Constants::MARKDOWN_PREVIEWS_PER_MINUTE)->by(self::rateLimitKey($request));
         });

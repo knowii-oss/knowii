@@ -93,6 +93,10 @@ Authorizations are checked in Action classes.
 
 `tests/Feature/PolicyTest.php` holds one matrix per policy: for each ability, the roles that have it (owner, admin, moderator, member, outsider, guest). The test checks that exactly these roles have it. When you add or change an ability, add or change its row in the same pull request.
 
+#### Visitors
+
+A visitor (not signed in) reads the public spaces ([ADR 0044](../adr/0044-public-spaces-for-visitors.md), #1387). The routes that allow it sit in a group behind the middleware `auth.optional` (`AuthenticateIfPresent`), in `routes/web.php` (the space, post, page and resource pages) and in `routes/api.php` (ten `GET` reads, limited per IP address by `throttle:public-reads`). The middleware signs the request in with the Sanctum guard when there is a session or a token (and then requires a verified email address, like `verified`), refuses a token that Sanctum does not accept, and otherwise lets a visitor go on and marks the request. `RequireTokenAbility` lets only a marked request pass without a user, so the `ability:` check of a token stays. The policies decide what a visitor reads (`SpacePolicy::view` refuses a chat space), the controllers pass cut props, and the resources cut the member data (`CommunityResource` for a non-member, `SpaceResource.access_groups` for managers only). Every other route keeps `auth:sanctum`. On the web, a visitor who may not read a page (also a page that does not exist) goes to the sign-in page and back to the address; on the API a visitor refused on a public route gets a 401. A page of a community stays `noindex` for everyone (`Robots::directive`).
+
 More details: https://laravel.com/docs/13.x/authorization
 
 ## Types

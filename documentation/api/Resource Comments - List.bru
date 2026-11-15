@@ -16,4 +16,5 @@ headers {
 
 docs {
   Comments on a resource of a resources space (#1034), oldest first, each with its replies. metadata.totalCount counts the replies too. Get a resource cuid with Resources - List.
+  Public: in a public space this request works without a session and without a token (the response carries the name, username and avatar of the authors, never more). Every other space answers 401 without an account.
 }

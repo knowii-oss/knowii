@@ -23,7 +23,8 @@ test('every authenticated API route names its token abilities (#689, ADR 0022)',
     foreach (RouteFacade::getRoutes()->getRoutes() as $route) {
         /** @var Route $route */
         $middleware = $route->gatherMiddleware();
-        if (! str_starts_with($route->uri(), 'api/v1/') || ! in_array('auth:sanctum', $middleware, true)) {
+        // The routes that visitors may call keep their abilities too (#1387)
+        if (! str_starts_with($route->uri(), 'api/v1/') || (! in_array('auth:sanctum', $middleware, true) && ! in_array('auth.optional', $middleware, true))) {
             continue;
         }
         $hasAbility = collect($middleware)->contains(fn ($m) => is_string($m) && str_starts_with($m, 'ability:'));
@@ -74,4 +75,31 @@ test('the session of the web app is not limited by abilities (#689)', function (
     $this->actingAs($this->c['owner'])
         ->patchJson(ApiRoutes::path(ApiRoutes::COMMUNITY, [ApiRoutes::PARAM_COMMUNITY => $this->c['community']->cuid]), ['description' => 'By session'])
         ->assertOk();
+});
+
+test('the API routes that a visitor may call are these, all of them GET, limited per address (#1387, ADR 0044)', function () {
+    $public = [];
+    foreach (RouteFacade::getRoutes()->getRoutes() as $route) {
+        /** @var Route $route */
+        $middleware = $route->gatherMiddleware();
+        if (str_starts_with($route->uri(), 'api/v1/') && in_array('auth.optional', $middleware, true)) {
+            expect($route->methods())->toBe(['GET', 'HEAD'])
+                ->and($middleware)->toContain('throttle:public-reads')
+                ->and($middleware)->not->toContain('auth:sanctum');
+            $public[] = $route->uri();
+        }
+    }
+
+    expect($public)->toEqualCanonicalizing([
+        'api/v1/communities/{community}/spaces/{space}',
+        'api/v1/communities/{community}/spaces/{space}/posts',
+        'api/v1/communities/{community}/spaces/{space}/posts/{post}',
+        'api/v1/communities/{community}/spaces/{space}/posts/{post}/comments',
+        'api/v1/communities/{community}/spaces/{space}/pages',
+        'api/v1/communities/{community}/spaces/{space}/pages/{page}',
+        'api/v1/communities/{community}/spaces/{space}/materials',
+        'api/v1/communities/{community}/spaces/{space}/resources',
+        'api/v1/communities/{community}/spaces/{space}/resources/{resource}',
+        'api/v1/communities/{community}/spaces/{space}/resources/{resource}/comments',
+    ]);
 });

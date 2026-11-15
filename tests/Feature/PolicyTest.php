@@ -3,6 +3,7 @@
 use App\Enums\KnowiiCommunityMemberRole;
 use App\Enums\KnowiiModeratorPermission;
 use App\Enums\KnowiiSpacePostingPolicy;
+use App\Enums\KnowiiSpaceType;
 use App\Enums\KnowiiSpaceVisibility;
 use App\Models\Comment;
 use App\Models\Community;
@@ -32,6 +33,11 @@ beforeEach(function () {
     $this->publicModeratedSpace = Space::factory()->inGroup($group)->create([
         'visibility' => KnowiiSpaceVisibility::Public,
         'posting_policy' => KnowiiSpacePostingPolicy::Moderators,
+    ]);
+    // A chat space stays for signed-in people, also when it is public (#1387)
+    $this->publicChatSpace = Space::factory()->inGroup($group)->create([
+        'type' => KnowiiSpaceType::Chat,
+        'visibility' => KnowiiSpaceVisibility::Public,
     ]);
     // The member writes the post and the comment
     $this->post = Post::factory()->inSpace($this->membersSpace)->create(['author_id' => $this->c['member']->id]);
@@ -81,6 +87,7 @@ test('space abilities per role', function (string $ability, string $space, array
 })->with([
     'view a members-only space' => ['view', 'membersSpace', POLICY_MEMBERS],
     'view a public space' => ['view', 'publicModeratedSpace', POLICY_ALL_ROLES],
+    'view a public chat space: not a visitor' => ['view', 'publicChatSpace', ['owner', 'admin', 'moderator', 'member', 'outsider']],
     'post in a space open to members' => ['contribute', 'membersSpace', POLICY_MEMBERS],
     'post in a moderators-only space' => ['contribute', 'publicModeratedSpace', POLICY_MODERATORS],
     'moderate a space' => ['moderate', 'membersSpace', POLICY_MODERATORS],

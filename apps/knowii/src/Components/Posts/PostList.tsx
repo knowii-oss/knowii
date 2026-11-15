@@ -2,6 +2,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import type { Community, Paginated, Post, Space, SpaceContentPayload } from '@knowii/common';
 import { knowiiApiClient, POST_URL, POSTS_PER_PAGE, useAppData, useSocket } from '@knowii/common';
 import { FaArrowUp, FaPen } from 'react-icons/fa6';
+import { SignInPrompt, useIsVisitor } from '@/Components/Reader/Reader';
 import { Button, EmptyState, ErrorBoundary } from '@/Components/ui';
 import { PostCard } from './PostCard';
 import { PostComposer } from './PostComposer';
@@ -23,6 +24,7 @@ export interface PostListProps {
  */
 export function PostList({ community, space, initialPosts, canContribute, canReact, currentUserCuid = null }: PostListProps) {
   const { showToast } = useAppData();
+  const isVisitor = useIsVisitor();
   const [posts, setPosts] = useState<Post[]>(initialPosts.items);
   const [nextOffset, setNextOffset] = useState<number | null>(initialPosts.pagination.nextOffset);
   const [loading, setLoading] = useState(false);
@@ -48,6 +50,8 @@ export function PostList({ community, space, initialPosts, canContribute, canRea
 
   useSocket({
     channel,
+    // A visitor gets a static page: no connection (#1387)
+    enabled: !isVisitor,
     event: [
       'space.post.created',
       'space.post.updated',
@@ -135,6 +139,7 @@ export function PostList({ community, space, initialPosts, canContribute, canRea
           </Button>
         </div>
       )}
+      {isVisitor && space.posting_policy === 'members' && <SignInPrompt className="text-right">Sign in to post</SignInPrompt>}
 
       <div role="status" aria-live="polite" className="flex justify-center empty:hidden">
         {newPosts.length > 0 && (
@@ -176,6 +181,7 @@ export function PostList({ community, space, initialPosts, canContribute, canRea
         communityCuid={community.cuid}
         spaceCuid={space.cuid}
         spaceName={space.name}
+        space={space}
         onClose={() => setComposerOpen(false)}
         onSaved={onPublished}
       />

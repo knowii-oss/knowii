@@ -16,6 +16,7 @@ import {
   useAppData,
 } from '@knowii/common';
 import InputError from '@/Components/InputError';
+import { SignInPrompt, useIsVisitor } from '@/Components/Reader/Reader';
 import { Button, Card, CardBody, CardHeader, Dialog, SegmentedControl, TextInput } from '@/Components/ui';
 
 /**
@@ -59,6 +60,8 @@ const firstIssue = (issues: { path: PropertyKey[]; message: string }[], field: s
  */
 export function CourseMaterials({ communityCuid, spaceCuid, targets, canManage, title = 'Materials' }: Props) {
   const { showToast } = useAppData();
+  // The list is public, the download needs an account (#1387)
+  const isVisitor = useIsVisitor();
   const headingId = useId();
   const formId = useId();
 
@@ -220,7 +223,12 @@ export function CourseMaterials({ communityCuid, spaceCuid, targets, canManage, 
           <FaLink aria-hidden="true" className="shrink-0 text-muted" />
         )}
         <span className="flex min-w-0 grow flex-col">
-          {material.kind === 'file' ? (
+          {material.kind === 'file' && isVisitor ? (
+            <>
+              <span className="font-bold break-words">{material.title}</span>
+              <SignInPrompt>Sign in to download</SignInPrompt>
+            </>
+          ) : material.kind === 'file' ? (
             <a
               href={knowiiApiClient.communities.materials.downloadUrl(communityCuid, spaceCuid, material.cuid)}
               download={material.file_name ?? true}

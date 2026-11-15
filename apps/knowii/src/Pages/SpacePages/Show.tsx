@@ -106,6 +106,8 @@ export default function SpacePage(props: Props) {
   );
   useSocket({
     channel,
+    // A visitor gets a static page: no connection (#1387)
+    enabled: !!currentUser,
     event: ['space.page.created', 'space.page.updated', 'space.page.deleted', 'space.pages.reordered'],
     callback: (event, payload) => {
       const data = payload as SpaceContentPayload;

@@ -21,12 +21,14 @@ class SpacePolicy
     use HandlesAuthorization;
 
     /**
-     * Public spaces are readable by anyone (visitors get access in M2); other spaces by the community members only.
+     * The one place of the reading rule (#1387, ADR 0044). A public space is readable by anyone, a visitor included,
+     * except a chat space: it holds running talk and stays for signed-in people, also when it is public. Other spaces
+     * are readable by the community members only.
      */
     final public function view(?User $user, Space $space): bool
     {
         if ($space->visibility === KnowiiSpaceVisibility::Public) {
-            return true;
+            return $user !== null || $space->type !== KnowiiSpaceType::Chat;
         }
 
         if ($user === null || ! $user->belongsToCommunity($space->community)) {

@@ -203,6 +203,9 @@ class Constants
     // Posts created per minute and per user
     public const int POSTS_PER_MINUTE = 5;
 
+    // Reads of the public spaces per minute and per IP address, for visitors (#1387, ADR 0044). Signed-in requests are not limited here
+    public const int PUBLIC_READS_PER_MINUTE = 60;
+
     // Pagination (ADR 0011: limit and offset, defaults of the NBB guide)
     public const int PAGINATION_DEFAULT_LIMIT = 10;
 

@@ -16,4 +16,5 @@ headers {
 
 docs {
   Resources of a resources space (ADR 0015), newest first. Offset pagination (ADR 0011): metadata.pagination has limit, offset, previousOffset, nextOffset, currentPage, pageCount, totalCount. The list never carries the large fields (article Markdown, base64 cover image). The seeded "Cool links" space has the cuid z40cggggsksggkgskkwocock.
+  Public: in a public space this request works without a session and without a token (the response carries the name, username and avatar of the authors, never more). Every other space answers 401 without an account.
 }
