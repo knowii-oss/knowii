@@ -6,6 +6,7 @@ import type {
   AssignableCommunityRole,
   CommunityInvitation,
   CommunityInvitationForm,
+  CommunityJoinBlock,
   CommunityMember,
   CommunityPermissions,
   CommunityRole,
@@ -21,7 +22,7 @@ import {
   MEMBER_URL,
   useAppData,
 } from '@knowii/common';
-import { FaMagnifyingGlass, FaUserMinus, FaUserPlus, FaUsers, FaXmark } from 'react-icons/fa6';
+import { FaMagnifyingGlass, FaUserLock, FaUserMinus, FaUserPlus, FaUsers, FaXmark } from 'react-icons/fa6';
 import { Avatar, Button, Card, CardBody, CardHeader, Dialog, EmptyState, RelativeTime, Select, TextInput } from '@/Components/ui';
 import InputLabel from '@/Components/InputLabel';
 import InputError from '@/Components/InputError';
@@ -62,6 +63,7 @@ export function CommunityMembersManager({
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
   const [invitations, setInvitations] = useState<CommunityInvitation[]>([]);
+  const [joinBlocks, setJoinBlocks] = useState<CommunityJoinBlock[]>([]);
   const [pendingRemoval, setPendingRemoval] = useState<CommunityMember | null>(null);
   const [busy, setBusy] = useState(false);
   const requestId = useRef(0);
@@ -116,6 +118,32 @@ export function CommunityMembersManager({
     };
   }, [communityCuid, permissions.canAddCommunityMembers, refreshKey]);
 
+  // The people whom a manager removed cannot join again by themselves (#1486): the managers of the members lift it
+  const loadJoinBlocks = useCallback(async () => {
+    if (!permissions.canRemoveCommunityMembers) {
+      return;
+    }
+    const result = await knowiiApiClient.communities.members.joinBlocks(communityCuid);
+    if (result.ok) {
+      setJoinBlocks(result.data);
+    }
+  }, [communityCuid, permissions.canRemoveCommunityMembers]);
+
+  useEffect(() => {
+    if (!permissions.canRemoveCommunityMembers) {
+      return;
+    }
+    let active = true;
+    void knowiiApiClient.communities.members.joinBlocks(communityCuid).then((result) => {
+      if (active && result.ok) {
+        setJoinBlocks(result.data);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [communityCuid, permissions.canRemoveCommunityMembers, refreshKey]);
+
   const form = useForm<CommunityInvitationForm>({
     resolver: zodResolver(communityInvitationFormSchema),
     defaultValues: { email: '', role: 'member' },
@@ -167,6 +195,17 @@ export function CommunityMembersManager({
     showToast({ severity: 'success', summary: `${pendingRemoval.name} was removed` });
     setMembers((current) => current.filter((item) => item.cuid !== pendingRemoval.cuid));
     setPendingRemoval(null);
+    void loadJoinBlocks();
+  };
+
+  const liftJoinBlock = async (block: CommunityJoinBlock) => {
+    const result = await knowiiApiClient.communities.members.liftJoinBlock(communityCuid, block.cuid);
+    if (!result.ok) {
+      showToast({ severity: 'error', summary: result.message });
+      return;
+    }
+    setJoinBlocks((current) => current.filter((item) => item.cuid !== block.cuid));
+    showToast({ severity: 'success', summary: `${block.name} may join again` });
   };
 
   const cancelInvitation = async (invitation: CommunityInvitation) => {
@@ -341,12 +380,44 @@ export function CommunityMembersManager({
         </Card>
       )}
 
+      {permissions.canRemoveCommunityMembers && joinBlocks.length > 0 && (
+        <Card aria-labelledby="join-blocks-title">
+          <CardHeader title={<span id="join-blocks-title">Removed members</span>} icon={<FaUserLock aria-hidden="true" />} />
+          <CardBody>
+            <ul className="flex flex-col divide-y divide-border" aria-label="Removed members">
+              {joinBlocks.map((block) => (
+                <li key={block.cuid} className="flex flex-wrap items-center gap-3 py-3">
+                  <Avatar name={block.name} imageUrl={block.avatar_url} size="sm" />
+                  <div className="flex min-w-0 flex-1 flex-col">
+                    <span className="truncate font-bold">{block.name}</span>
+                    <span className="text-sm text-muted">
+                      @{block.username}, removed <RelativeTime date={block.removed_at} />
+                    </span>
+                  </div>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    aria-label={`May join again: ${block.name}`}
+                    onClick={() => void liftJoinBlock(block)}
+                  >
+                    May join again
+                  </Button>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-3 text-xs text-muted">
+              These people cannot join the community by themselves, even when it is open. An invitation that they accept lets them in too.
+            </p>
+          </CardBody>
+        </Card>
+      )}
+
       <Dialog
         open={pendingRemoval !== null}
         onClose={() => setPendingRemoval(null)}
         size="sm"
         title={`Remove ${pendingRemoval?.name ?? ''}?`}
-        description="They lose access to the community. What they wrote stays. You can invite them again later."
+        description="They lose access to the community. What they wrote stays. They cannot join again by themselves, even when the community is open: you can invite them again, or let them join again."
         footer={
           <>
             <Button variant="secondary" onClick={() => setPendingRemoval(null)} autoFocus>

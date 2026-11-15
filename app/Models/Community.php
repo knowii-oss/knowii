@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Contracts\Notifications\PrunesNotifications;
+use App\Enums\KnowiiCommunityJoinPolicy;
 use App\Enums\KnowiiCommunityVisibility;
 use App\Enums\KnowiiModeratorPermission;
 use App\Events\Communities\CommunityCreated;
@@ -33,6 +34,7 @@ use Illuminate\Support\Facades\DB;
  * @property KnowiiCommunityVisibility $visibility
  * @property array<string, bool> $moderator_permissions
  * @property bool $direct_messages_enabled The owner turns direct messages off (#1186)
+ * @property KnowiiCommunityJoinPolicy $join_policy Who can join: by invitation or open (#1486)
  * @property ?Carbon $dpa_accepted_at When the owner accepted the data processing agreement; null for a personal community (#1353)
  * @property ?Carbon $dpa_version The `updated` date of the agreement at that time; null when it is not known (#1353)
  * @property Carbon $created_at
@@ -97,6 +99,7 @@ class Community extends Model
         'owner_id',
         'moderator_permissions',
         'direct_messages_enabled',
+        'join_policy',
         'dpa_accepted_at',
         'dpa_version',
     ];
@@ -134,6 +137,7 @@ class Community extends Model
             'visibility' => KnowiiCommunityVisibility::class,
             'moderator_permissions' => 'array',
             'direct_messages_enabled' => 'boolean',
+            'join_policy' => KnowiiCommunityJoinPolicy::class,
             'dpa_accepted_at' => 'datetime',
             'dpa_version' => 'date',
         ];
@@ -248,6 +252,32 @@ class Community extends Model
     }
 
     /**
+     * Who can join the community (#1486). A model built in memory does not hold the column yet: by invitation.
+     */
+    final public function joinPolicy(): KnowiiCommunityJoinPolicy
+    {
+        return array_key_exists('join_policy', $this->getAttributes()) ? $this->join_policy : KnowiiCommunityJoinPolicy::Invitation;
+    }
+
+    /**
+     * Whether any signed-in person with a verified address can join by themselves (#1486). Never a personal community.
+     */
+    final public function isOpen(): bool
+    {
+        return $this->visibility !== KnowiiCommunityVisibility::Personal && $this->joinPolicy() === KnowiiCommunityJoinPolicy::Open;
+    }
+
+    /**
+     * The people whom a manager removed: they cannot join again by themselves (#1486).
+     *
+     * @return HasMany<CommunityJoinBlock, covariant $this>
+     */
+    final public function joinBlocks(): HasMany
+    {
+        return $this->hasMany(CommunityJoinBlock::class);
+    }
+
+    /**
      * Get the space groups of the community, in navigation order.
      *
      * @return HasMany<SpaceGroup, covariant $this>
@@ -315,7 +345,8 @@ class Community extends Model
     }
 
     /**
-     * Remove the given user from the community.
+     * Remove the given user from the community. A member who leaves and a member whom a manager removes both go through
+     * here: only the removal writes a join block (RemoveCommunityMember, #1486).
      */
     final public function removeUser(User $user): void
     {

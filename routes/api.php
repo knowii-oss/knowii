@@ -6,10 +6,12 @@ use App\Http\Controllers\API\ChatMessageApiController;
 use App\Http\Controllers\API\CommentApiController;
 use App\Http\Controllers\API\CommunityApiController;
 use App\Http\Controllers\API\CommunityInvitationApiController;
+use App\Http\Controllers\API\CommunityJoinBlockApiController;
 use App\Http\Controllers\API\CommunityResourceApiController;
 use App\Http\Controllers\API\CommunityResourceCommentApiController;
 use App\Http\Controllers\API\ConversationApiController;
 use App\Http\Controllers\API\CourseMaterialApiController;
+use App\Http\Controllers\API\JoinPolicyApiController;
 use App\Http\Controllers\API\LessonProgressApiController;
 use App\Http\Controllers\API\LoginApiController;
 use App\Http\Controllers\API\MarkdownApiController;
@@ -101,6 +103,8 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
         Route::patch(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'update'])->middleware('ability:communities:write');
         Route::delete(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'destroy'])->middleware('ability:communities:write');
         Route::patch(ApiRoutes::COMMUNITY_MODERATOR_PERMISSIONS, [ModeratorPermissionApiController::class, 'update'])->middleware('ability:communities:write');
+        // Who can join the community (#1486)
+        Route::patch(ApiRoutes::COMMUNITY_JOIN_POLICY, [JoinPolicyApiController::class, 'update'])->middleware('ability:communities:write');
         // The owner gives the community to an admin, with their password (#1339): rate limited against password guessing
         Route::post(ApiRoutes::COMMUNITY_OWNERSHIP, [CommunityApiController::class, 'transferOwnership'])->middleware('ability:communities:write')->middleware('throttle:ownership-transfers');
 
@@ -218,8 +222,12 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
         Route::get(ApiRoutes::COMMUNITY_MEMBERS, [MemberApiController::class, 'index'])->middleware('ability:communities:read')->middleware('throttle:markdown-preview');
         Route::patch(ApiRoutes::COMMUNITY_MEMBER, [MemberApiController::class, 'update'])->middleware('ability:communities:write');
         Route::delete(ApiRoutes::COMMUNITY_MEMBER, [MemberApiController::class, 'destroy'])->middleware('ability:communities:write');
-        // The current member leaves the community (#1338)
+        // The current member leaves the community (#1338), or joins an open one by themselves (#1486, ADR 0044)
         Route::delete(ApiRoutes::COMMUNITY_MEMBERSHIP, [MemberApiController::class, 'leave'])->middleware('ability:communities:write');
+        Route::post(ApiRoutes::COMMUNITY_MEMBERSHIP, [MemberApiController::class, 'join'])->middleware('ability:communities:write')->middleware('throttle:joins');
+        // The people whom a manager removed cannot join again by themselves, until a manager lifts it (#1486)
+        Route::get(ApiRoutes::COMMUNITY_JOIN_BLOCKS, [CommunityJoinBlockApiController::class, 'index'])->middleware('ability:communities:read');
+        Route::delete(ApiRoutes::COMMUNITY_JOIN_BLOCK, [CommunityJoinBlockApiController::class, 'destroy'])->middleware('ability:communities:write');
 
         // Access groups (#1241, ADR 0025). scopeBindings: a group of another community gives a 404
         Route::scopeBindings()->group(function () {

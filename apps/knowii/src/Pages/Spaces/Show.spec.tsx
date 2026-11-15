@@ -53,3 +53,28 @@ describe('SpacePage, a public space (#1493)', () => {
     expect(within(heading).queryByText('Public')).toBeNull();
   });
 });
+
+describe('SpacePage, the way in of an open community (#1486)', () => {
+  const renderPage = (community: Community) =>
+    render(
+      <AppDataProvider>
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+        <SpacePage {...({ ...props, community } as any)} />
+      </AppDataProvider>,
+    );
+
+  it('shows "Sign up to join" and "Sign in" in the header to a visitor', () => {
+    renderPage({ ...props.community, join_policy: 'open', is_member: false } as Community);
+
+    const header = screen.getByRole('banner');
+    expect(within(header).getByRole('link', { name: 'Sign up to join' })).toBeInTheDocument();
+    expect(within(header).getByRole('link', { name: 'Sign in' })).toBeInTheDocument();
+  });
+
+  it('shows nothing when the community is by invitation', () => {
+    renderPage({ ...props.community, join_policy: 'invitation', is_member: false } as Community);
+
+    expect(screen.queryByRole('link', { name: 'Sign up to join' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Join' })).toBeNull();
+  });
+});

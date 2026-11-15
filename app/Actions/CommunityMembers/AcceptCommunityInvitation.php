@@ -7,6 +7,7 @@ use App\Events\CommunityMembers\CommunityMembersChanged;
 use App\Exceptions\BusinessException;
 use App\Models\Community;
 use App\Models\CommunityInvitation;
+use App\Models\CommunityJoinBlock;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -35,6 +36,8 @@ class AcceptCommunityInvitation implements AcceptsCommunityInvitations
             if (! $user->belongsToCommunity($community)) {
                 $community->users()->attach($user, ['role' => $invitation->role]);
             }
+            // A person whom a manager removed joins again with an invitation: the block ends (#1486)
+            CommunityJoinBlock::query()->where('community_id', $community->id)->where('user_id', $user->id)->delete();
             $invitation->delete();
         });
 

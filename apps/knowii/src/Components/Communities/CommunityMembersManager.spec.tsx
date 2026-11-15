@@ -1,7 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { CommunityInvitation, CommunityMember, CommunityRole, Paginated } from '@knowii/common';
+import type { CommunityInvitation, CommunityJoinBlock, CommunityMember, CommunityRole, Paginated } from '@knowii/common';
 import { AppDataProvider, canActOnRole, grantableRoles, knowiiApiClient } from '@knowii/common';
 import { CommunityMembersManager } from './CommunityMembersManager';
 
@@ -71,6 +71,7 @@ beforeEach(() => {
   vi.restoreAllMocks();
   vi.spyOn(knowiiApiClient.communities.members, 'list').mockResolvedValue({ ok: true, message: '', data: page(members) });
   vi.spyOn(knowiiApiClient.communities.invitations, 'list').mockResolvedValue({ ok: true, message: '', data: [invitation] });
+  vi.spyOn(knowiiApiClient.communities.members, 'joinBlocks').mockResolvedValue({ ok: true, message: '', data: [] });
 });
 
 describe('role hierarchy helpers (#1242)', () => {
@@ -184,5 +185,42 @@ describe('CommunityMembersManager', () => {
     expect(screen.queryByLabelText('Invite by email')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Remove/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('list', { name: 'Pending invitations' })).not.toBeInTheDocument();
+  });
+});
+
+describe('removed members (#1486)', () => {
+  const block: CommunityJoinBlock = { cuid: 'r1', name: 'Rita', username: 'rita', removed_at: new Date().toISOString() };
+
+  it('lists the removed members, and lets a manager say "May join again"', async () => {
+    vi.spyOn(knowiiApiClient.communities.members, 'joinBlocks').mockResolvedValue({ ok: true, message: '', data: [block] });
+    const lift = vi
+      .spyOn(knowiiApiClient.communities.members, 'liftJoinBlock')
+      .mockResolvedValue({ ok: true, message: '', data: undefined });
+    renderManager('admin');
+
+    const list = await screen.findByRole('list', { name: 'Removed members' });
+    expect(within(list).getByText('Rita')).toBeInTheDocument();
+    expect(screen.getByText(/cannot join the community by themselves, even when it is open/)).toBeInTheDocument();
+
+    screen.getByRole('button', { name: 'May join again: Rita' }).focus();
+    await userEvent.keyboard('{Enter}');
+
+    await waitFor(() => expect(lift).toHaveBeenCalledWith('c1', 'r1'));
+    await waitFor(() => expect(screen.queryByRole('list', { name: 'Removed members' })).toBeNull());
+  });
+
+  it('shows nothing without a removed member', async () => {
+    renderManager('admin');
+
+    await screen.findByRole('link', { name: 'Ursula' });
+    expect(screen.queryByText('Removed members')).toBeNull();
+  });
+
+  it('does not even ask for the list without the right to remove members', async () => {
+    const list = vi.spyOn(knowiiApiClient.communities.members, 'joinBlocks');
+    renderManager('moderator', { ...allRights, canRemoveCommunityMembers: false });
+
+    await screen.findByRole('link', { name: 'Ursula' });
+    expect(list).not.toHaveBeenCalled();
   });
 });

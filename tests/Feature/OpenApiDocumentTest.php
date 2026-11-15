@@ -82,6 +82,8 @@ test('every write operation documents its request body', function () {
         'POST /v1/notifications/{notification}/unread',
         // Mark a lesson as done (#1304): the lesson is in the path
         'PUT /v1/communities/{community}/spaces/{space}/pages/{page}/progress',
+        // Join an open community (#1486): the person is the signed-in account, the community is in the path
+        'POST /v1/communities/{community}/membership',
     ];
     $withoutBody = [];
     foreach (openApiDocument()['paths'] as $path => $operations) {
@@ -106,3 +108,14 @@ test('the older endpoints document their required body fields', function (string
     'username availability' => ['/v1/users/is-username-available', ['usernameToCheck']],
     'waitlist' => ['/v1/waitlist', ['email', 'turnstileToken']],
 ]);
+
+test('the join routes are documented (#1486)', function () {
+    $paths = openApiDocument()['paths'];
+
+    $policy = $paths['/v1/communities/{community}/join-policy']['patch'] ?? [];
+    expect($policy['requestBody']['content']['application/json']['schema']['required'] ?? [])->toBe(['join_policy']);
+
+    expect($paths['/v1/communities/{community}/membership'])->toHaveKeys(['post', 'delete'])
+        ->and($paths['/v1/communities/{community}/join-blocks'])->toHaveKey('get')
+        ->and($paths['/v1/communities/{community}/join-blocks/{member}'])->toHaveKey('delete');
+});

@@ -240,6 +240,7 @@ test('page: the props of a visitor and of an outsider hold no member data, and n
         'slug' => $this->c['community']->slug,
         'description' => $this->c['community']->description ?? '',
         'visibility' => $this->c['community']->visibility->value,
+        'join_policy' => 'invitation',
         'is_member' => false,
     ]);
     // Only the props of the page: no permission, no team, no resources, no member list
@@ -397,6 +398,7 @@ test('API: the community of a visitor and of an outsider is the public shape, th
             'slug' => $community->slug,
             'description' => $community->description ?? '',
             'visibility' => $community->visibility->value,
+            'join_policy' => 'invitation',
             'is_member' => false,
         ]);
     }

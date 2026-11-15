@@ -23,6 +23,7 @@ import { FaArrowUpRightFromSquare, FaGear } from 'react-icons/fa6';
 import AppLayout from '@/Layouts/AppLayout';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
+import { JoinCommunity } from '@/Components/Communities/JoinCommunity';
 import { CommunityShell } from '@/Components/Spaces/CommunityShell';
 import type { BreadcrumbItem } from '@/Components/ui';
 import { buttonClasses, EmptyState } from '@/Components/ui';
@@ -127,6 +128,8 @@ export default function SpacePage(props: Props) {
             {space.name}
           </h1>
           {space.description && <p className="text-muted">{space.description}</p>}
+          {/* "Join" for a signed-in outsider, "Sign up to join" for a visitor, when the community is open (#1486) */}
+          <JoinCommunity community={community} />
           <p className="flex flex-wrap gap-2 text-xs text-muted">
             <span className="rounded-full border border-border px-2 py-0.5">{typeLabel.name}</span>
             <span className="rounded-full border border-border px-2 py-0.5">

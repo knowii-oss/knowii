@@ -1,0 +1,19 @@
+meta {
+  name: Members - Removed - List
+  type: http
+  seq: 157
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/join-blocks?limit=20&offset=0
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The people whom a manager removed from the community and who cannot join it again by themselves (#1486): cuid, name, username, avatar_url and removed_at, the most recent removal first. Owner, admins and moderators with the manage_members right.
+}

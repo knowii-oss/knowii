@@ -25,12 +25,15 @@ use App\Actions\Communities\DeleteCommunity;
 use App\Actions\Communities\ExportCommunity;
 use App\Actions\Communities\TransferCommunityOwnership;
 use App\Actions\Communities\UpdateCommunity;
+use App\Actions\Communities\UpdateCommunityJoinPolicy;
 use App\Actions\Communities\UpdateModeratorPermissions;
 use App\Actions\Communities\VerifyCommunityNameAvailability;
 use App\Actions\CommunityMembers\AcceptCommunityInvitation;
 use App\Actions\CommunityMembers\CancelCommunityInvitation;
 use App\Actions\CommunityMembers\InviteCommunityMember;
+use App\Actions\CommunityMembers\JoinCommunity;
 use App\Actions\CommunityMembers\LeaveCommunity;
+use App\Actions\CommunityMembers\LiftCommunityJoinBlock;
 use App\Actions\CommunityMembers\RemoveCommunityMember;
 use App\Actions\CommunityMembers\UpdateCommunityMemberRole;
 use App\Actions\Content\RenderContentAgain;
@@ -110,12 +113,15 @@ use App\Contracts\Communities\DeletesCommunities;
 use App\Contracts\Communities\ExportsCommunities;
 use App\Contracts\Communities\TransfersCommunityOwnership;
 use App\Contracts\Communities\UpdatesCommunities;
+use App\Contracts\Communities\UpdatesCommunityJoinPolicy;
 use App\Contracts\Communities\UpdatesModeratorPermissions;
 use App\Contracts\Communities\VerifiesCommunityNameAvailability;
 use App\Contracts\CommunityMembers\AcceptsCommunityInvitations;
 use App\Contracts\CommunityMembers\CancelsCommunityInvitations;
 use App\Contracts\CommunityMembers\InvitesCommunityMembers;
+use App\Contracts\CommunityMembers\JoinsCommunities;
 use App\Contracts\CommunityMembers\LeavesCommunities;
+use App\Contracts\CommunityMembers\LiftsCommunityJoinBlocks;
 use App\Contracts\CommunityMembers\RemovesCommunityMembers;
 use App\Contracts\CommunityMembers\UpdatesCommunityMemberRoles;
 use App\Contracts\Content\RendersContentAgain;
@@ -225,6 +231,9 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(UpdatesCommunityResources::class, UpdateCommunityResource::class);
         app()->singleton(DeletesCommunityResources::class, DeleteCommunityResource::class);
         app()->singleton(UpdatesModeratorPermissions::class, UpdateModeratorPermissions::class);
+        app()->singleton(UpdatesCommunityJoinPolicy::class, UpdateCommunityJoinPolicy::class);
+        app()->singleton(JoinsCommunities::class, JoinCommunity::class);
+        app()->singleton(LiftsCommunityJoinBlocks::class, LiftCommunityJoinBlock::class);
         app()->singleton(TransfersCommunityOwnership::class, TransferCommunityOwnership::class);
         app()->singleton(ExportsCommunities::class, ExportCommunity::class);
         app()->singleton(SendsMagicLinks::class, MagicLinks::class);
@@ -350,6 +359,11 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('name-checks', static function (Request $request) {
             return Limit::perMinute(Constants::NAME_CHECKS_PER_MINUTE)->by(self::rateLimitKey($request));
+        });
+
+        // A person joins an open community (#1486)
+        RateLimiter::for('joins', static function (Request $request) {
+            return Limit::perMinute(Constants::JOINS_PER_MINUTE)->by(self::rateLimitKey($request));
         });
 
         RateLimiter::for('ownership-transfers', static function (Request $request) {
