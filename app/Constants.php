@@ -209,6 +209,11 @@ class Constants
     // Reads of the public spaces per minute and per IP address, for visitors (#1387, ADR 0044). Signed-in requests are not limited here
     public const int PUBLIC_READS_PER_MINUTE = 60;
 
+    // The public page of a community shows this many of the newest posts of its public discussion spaces, with an excerpt of this length (#1485)
+    public const int PUBLIC_NEWEST_POSTS = 10;
+
+    public const int PUBLIC_POST_EXCERPT_LENGTH = 200;
+
     // Pagination (ADR 0011: limit and offset, defaults of the NBB guide)
     public const int PAGINATION_DEFAULT_LIMIT = 10;
 

@@ -95,4 +95,34 @@ describe('AppLayout for a visitor (#1387)', () => {
     // One polite region, there from the load
     expect(screen.getAllByRole('status')).toHaveLength(1);
   });
+
+  it('sends the "Home" of the breadcrumb of a visitor to the home page, and the community to its public page (#1485)', () => {
+    page.user = null;
+    renderBreadcrumb();
+
+    expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: 'Tests' })).toHaveAttribute('href', '/community/tests');
+  });
+
+  it('keeps the "Home" of a signed-in person on the dashboard (#1485)', () => {
+    page.user = { cuid: 'u1', name: 'Ada', email: 'ada@example.com', avatar_url: null };
+    renderBreadcrumb();
+
+    expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/dashboard');
+    expect(screen.getByRole('link', { name: 'Tests' })).toHaveAttribute('href', '/community/tests');
+  });
 });
+
+function renderBreadcrumb() {
+  render(
+    <AppDataProvider>
+      <AppLayout
+        browserPageTitle="A space"
+        breadcrumbHome={{ label: 'Home', href: '/dashboard' }}
+        breadcrumbItems={[{ label: 'Tests', href: '/community/tests' }, { label: 'A space' }]}
+      >
+        <p>Content</p>
+      </AppLayout>
+    </AppDataProvider>,
+  );
+}

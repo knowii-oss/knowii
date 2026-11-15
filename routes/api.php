@@ -51,6 +51,11 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
     // never readable without an account) and its token abilities, and visitors are limited per IP address. Who reacted, chat
     // messages, online members, member search, quizzes, the download of a course material and every write need an account
     Route::middleware(['auth.optional', 'throttle:public-reads'])->scopeBindings()->group(function () {
+        // The public page of a community (#1485): the community in its cut shape, the navigation of its public spaces, and
+        // the newest posts of its public discussion spaces. A member gets the full community and their own navigation
+        Route::get(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'show'])->middleware('ability:communities:read');
+        Route::get(ApiRoutes::COMMUNITY_SPACE_GROUPS, [SpaceGroupApiController::class, 'index'])->middleware('ability:communities:read');
+        Route::get(ApiRoutes::COMMUNITY_NEWEST_POSTS, [PostApiController::class, 'newest'])->middleware('ability:posts:read');
         // Spaces
         Route::get(ApiRoutes::COMMUNITY_SPACE, [SpaceApiController::class, 'show'])->middleware('ability:communities:read');
         // Posts and comments of discussion spaces
@@ -93,7 +98,6 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
         Route::post(ApiRoutes::COMMUNITIES, [CommunityApiController::class, 'store'])->middleware('ability:communities:write');
         // The create and rename forms call it while the user types (#1136)
         Route::post(ApiRoutes::COMMUNITIES_IS_NAME_AVAILABLE, [CommunityApiController::class, 'isNameAvailable'])->middleware('ability:communities:read')->middleware('throttle:name-checks');
-        Route::get(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'show'])->middleware('ability:communities:read');
         Route::patch(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'update'])->middleware('ability:communities:write');
         Route::delete(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'destroy'])->middleware('ability:communities:write');
         Route::patch(ApiRoutes::COMMUNITY_MODERATOR_PERMISSIONS, [ModeratorPermissionApiController::class, 'update'])->middleware('ability:communities:write');
@@ -102,7 +106,6 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
 
         // Space groups and spaces (#1173). scopeBindings: a space group or space of another community gives a 404
         Route::scopeBindings()->group(function () {
-            Route::get(ApiRoutes::COMMUNITY_SPACE_GROUPS, [SpaceGroupApiController::class, 'index'])->middleware('ability:communities:read');
             Route::post(ApiRoutes::COMMUNITY_SPACE_GROUPS, [SpaceGroupApiController::class, 'store'])->middleware('ability:communities:write');
             Route::post(ApiRoutes::COMMUNITY_SPACE_GROUPS_REORDER, [SpaceGroupApiController::class, 'reorder'])->middleware('ability:communities:write');
             Route::patch(ApiRoutes::COMMUNITY_SPACE_GROUP, [SpaceGroupApiController::class, 'update'])->middleware('ability:communities:write');

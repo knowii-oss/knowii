@@ -10,6 +10,7 @@ use App\Contracts\SpaceGroups\UpdatesSpaceGroups;
 use App\Http\Controllers\Controller;
 use App\Models\Community;
 use App\Models\SpaceGroup;
+use App\Support\PublicCommunity;
 use App\Support\SpaceTree;
 use App\Traits\ApiResponses;
 use Dedoc\Scramble\Attributes\BodyParameter;
@@ -27,10 +28,18 @@ class SpaceGroupApiController extends Controller
     use ApiResponses;
 
     /**
-     * List the space groups of the community with their spaces, limited to what the user can see.
+     * List the space groups of the community with their spaces, limited to what the user can see. A visitor and a
+     * signed-in person who is not a member get the public spaces only, without any chat space, when the community has
+     * a public space (#1485, ADR 0044): 404 to a visitor and 403 to the signed-in person otherwise.
      */
     final public function index(Request $request, Community $community): JsonResponse
     {
+        if (! PublicCommunity::isMember($request->user(), $community)) {
+            PublicCommunity::ensureExists($community, $request);
+
+            return self::success('Space groups', null, PublicCommunity::tree($community, $request->user())->toResourceCollection());
+        }
+
         Gate::authorize('view', $community);
 
         $groups = SpaceTree::for($community, $request->user());

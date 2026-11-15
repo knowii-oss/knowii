@@ -1,0 +1,20 @@
+meta {
+  name: Communities - Newest posts
+  type: http
+  seq: 154
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/newest-posts
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The 10 newest posts of the public discussion spaces of a community, for its public page (#1485): cuid, title, slug, excerpt, author (name, username, avatar), space and date. Never a deleted post, a post of a space that is not public, or one of a chat space.
+  Public: works without a session and without a token when the community has a public space that is not a chat space (404 for a visitor and 403 for a signed-in person who is not a member otherwise). Needs the posts:read ability with a token. Limited per IP address for visitors.
+}

@@ -30,7 +30,7 @@ The owner and the admins switch these rights in the community settings ("Moderat
 
 | Ability                                   | Policy                                                    | Owner  | Admin  | Moderator                                    | Member     | Outsider          | Visitor                       |
 | ----------------------------------------- | --------------------------------------------------------- | ------ | ------ | -------------------------------------------- | ---------- | ----------------- | ----------------------------- |
-| See the community                         | `CommunityPolicy::view`                                   | yes    | yes    | yes                                          | yes        | no                | no                            |
+| See the community                         | `CommunityPolicy::view`                                   | yes    | yes    | yes                                          | yes        | public page only  | public page only              |
 | See the details page and the team         | `CommunityPolicy::view`                                   | yes    | yes    | yes                                          | yes        | no                | no                            |
 | Update the community                      | `CommunityPolicy::update`                                 | yes    | no     | no                                           | no         | no                | no                            |
 | Delete the community                      | `CommunityPolicy::delete`                                 | yes    | no     | no                                           | no         | no                | no                            |
@@ -76,6 +76,8 @@ Three rules hold for every ability (authorization audit, 2026-11-10):
 1. The API needs a verified email address, like the web app (#1323).
 2. A rule on authored content applies to members only: a curator or an author who left the community loses the rights on what they wrote (#1324).
 3. Nobody moderates, changes or deletes a space that they cannot read: a moderator outside the groups of a groups space has no right on it (#1325, ADR 0025).
+
+The public page of a community (#1485): a visitor and an outsider get it, instead of the community home, when the community has a public space that is not a chat space (404 and the sign-in page for a visitor, 403 for an outsider otherwise). It holds the name, the description, the public spaces without chat, and the newest public posts. The three API reads of it (`GET /communities/{community}`, `/space-groups`, `/newest-posts`) answer the same readers.
 
 Visitors (#1387, [ADR 0044](../adr/0044-public-spaces-for-visitors.md)): a visitor reads the pages of a public space of type discussion, pages, course, resources and link, and nothing else. A chat space is never readable by a visitor, also when it is public (`SpacePolicy::view`). On a post, a comment, a page and a resource a visitor gets the name, the username and the avatar of the author, and never a member list, the team, the online members, the profile fields, the member count, who reacted (counts only), the names of access groups, the moderator rights, the direct message setting, the captured article of a resource, the progress in a course or the quiz. Any page of a `members` or `groups` space, and every other community page, sends a visitor to the sign-in page and back to the same address. The API reads that a visitor may call are listed in the ADR and in `documentation/api/README.md`.
 

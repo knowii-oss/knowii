@@ -82,3 +82,18 @@ export interface PostPermissions {
   canPinPost: boolean;
   canComment: boolean;
 }
+
+/**
+ * A post in the list of the newest posts on the public page of a community (#1485). WARNING: aligned with NewestPostResource.php
+ */
+export const newestPostSchema = z.object({
+  cuid: z.string(),
+  title: z.string(),
+  slug: z.string(),
+  excerpt: z.string(),
+  // Null when the author deleted their account
+  author: authorSchema.nullable(),
+  space: z.object({ cuid: z.string(), slug: z.string(), name: z.string(), emoji: z.string() }),
+  created_at: z.coerce.date(),
+});
+export type NewestPost = z.infer<typeof newestPostSchema>;

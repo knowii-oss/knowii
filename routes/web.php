@@ -44,7 +44,6 @@ Route::middleware([
 ])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'show'])->name('dashboard');
 
-    Route::get('/community/{communitySlug}', [CommunityController::class, 'show'])->name('communities.show');
     Route::get('/community/{communitySlug}/about', [CommunityController::class, 'about'])->name('communities.about');
     Route::get('/community/{communitySlug}/settings', [CommunityController::class, 'settings'])->name('communities.settings');
 
@@ -64,6 +63,8 @@ Route::middleware([
     'auth.optional',
     config('jetstream.auth_session'),
 ])->group(function () {
+    // The community home (#1485): a member gets the community, a visitor and an outsider get its public page if it has one
+    Route::get('/community/{communitySlug}', [CommunityController::class, 'show'])->name('communities.show');
     Route::get('/community/{communitySlug}/space/{spaceSlug}', [SpaceController::class, 'show'])->name('spaces.show');
     Route::get('/community/{communitySlug}/space/{spaceSlug}/post/{postSlug}', [PostController::class, 'show'])->name('posts.show');
     // Pages of page spaces (#1179)

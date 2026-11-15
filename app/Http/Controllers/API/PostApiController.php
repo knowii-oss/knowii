@@ -7,10 +7,12 @@ use App\Contracts\Posts\DeletesPosts;
 use App\Contracts\Posts\PinsPosts;
 use App\Contracts\Posts\UpdatesPosts;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\NewestPostResource;
 use App\Models\Community;
 use App\Models\Post;
 use App\Models\Space;
 use App\Support\Pagination;
+use App\Support\PublicCommunity;
 use App\Traits\ApiResponses;
 use Dedoc\Scramble\Attributes\BodyParameter;
 use Dedoc\Scramble\Attributes\QueryParameter;
@@ -39,6 +41,22 @@ class PostApiController extends Controller
         $page = Pagination::fromRequest($request)->apply($space->posts()->listed()->with(['author', 'space', 'reactions'])->withCount('comments')->forSpacePage());
 
         return self::success('Posts', $page['metadata'], $page['items']->toResourceCollection());
+    }
+
+    /**
+     * The newest posts of the public discussion spaces of a community (10 at most), for its public page (#1485, ADR 0044):
+     * the title, an excerpt, the author (name, username, avatar), the space and the date of each. Never the posts of
+     * a space that is not public, of a chat space or of another community, nor the marker of a deleted post. A visitor
+     * and a signed-in person who is not a member get it when the community has a public space that is not a chat space:
+     * 404 to a visitor and 403 to the signed-in person otherwise. A member gets the same list.
+     */
+    final public function newest(Request $request, Community $community): JsonResponse
+    {
+        if (! PublicCommunity::isMember($request->user(), $community)) {
+            PublicCommunity::ensureExists($community, $request);
+        }
+
+        return self::success('Newest posts', null, PublicCommunity::newestPosts($community)->toResourceCollection(NewestPostResource::class));
     }
 
     /**

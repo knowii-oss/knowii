@@ -4,6 +4,7 @@ import { Head, Link } from '@inertiajs/react';
 import {
   API_TOKENS_URL,
   DASHBOARD_URL,
+  HOME_URL,
   LOGIN_URL,
   LOGOUT_URL,
   REGISTER_URL,
@@ -60,6 +61,8 @@ export default function AppLayout(props: Props) {
   const user = page.props.auth.user;
   // Nobody is signed in: a visitor reads the public spaces (#1387)
   const isVisitor = !user;
+  // A visitor has no dashboard: "Home" goes to the home page of the site (#1485)
+  const breadcrumbHome = isVisitor && props.breadcrumbHome ? { ...props.breadcrumbHome, href: HOME_URL } : props.breadcrumbHome;
 
   const [mainMenuVisible, setMainMenuVisible] = useState(false);
 
@@ -186,7 +189,7 @@ export default function AppLayout(props: Props) {
             <PageTitle
               pageTitle={props.pageTitle}
               breadcrumbItems={props.breadcrumbItems}
-              home={props.breadcrumbHome}
+              home={breadcrumbHome}
               pageActions={props.pageActions}
             />
           </div>

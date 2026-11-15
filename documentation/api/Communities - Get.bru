@@ -15,5 +15,5 @@ headers {
 }
 
 docs {
-  A community with its description, visibility, moderator rights and number of members (member_count, the owner included) (#1135). Members only. The team (owner, admins, moderators) comes from Members - List.
+  A community with its description, visibility, moderator rights and number of members (member_count, the owner included) (#1135). A member gets all of it. A visitor and a signed-in person who is not a member get the public shape (cuid, name, slug, description, visibility, is_member false) when the community has a public space that is not a chat space (#1485): without an account, this request works; otherwise 404 for a visitor and 403 for a signed-in person. The team (owner, admins, moderators) comes from Members - List.
 }

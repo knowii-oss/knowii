@@ -47,6 +47,9 @@ A public space (`visibility` public) can be read by anyone on the internet, with
 
 | Route                                                                  | What it returns                              |
 | ---------------------------------------------------------------------- | -------------------------------------------- |
+| `GET /v1/communities/{community}`                                      | The community, in its public shape (see below) |
+| `GET /v1/communities/{community}/space-groups`                         | The navigation: the public spaces, without chat |
+| `GET /v1/communities/{community}/newest-posts`                         | The 10 newest posts of the public discussion spaces |
 | `GET /v1/communities/{community}/spaces/{space}`                       | The space                                    |
 | `GET /v1/communities/{community}/spaces/{space}/posts`                 | The posts of a discussion space              |
 | `GET /v1/communities/{community}/spaces/{space}/posts/{post}`          | One post                                     |
@@ -58,7 +61,9 @@ A public space (`visibility` public) can be read by anyone on the internet, with
 | `GET /v1/communities/{community}/spaces/{space}/resources/{resource}`  | One resource                                 |
 | `GET /v1/communities/{community}/spaces/{space}/resources/{resource}/comments` | The comments of a resource           |
 
-Without an account, these answers hold the name, the username and the avatar of the authors, and the counts of the reactions. They never hold: a member list, the team, the online members, profile fields, the member count, who reacted, the names of access groups, the moderator rights, the direct message setting, the captured article of a resource, the progress in a course, or the results of a quiz. Everything else needs an account: who reacted, chat messages, online members, member search, quizzes, the download of a course material (the list is public, the download is not), the navigation of the community, and every write.
+The first three routes are the public page of a community (#1485). They answer a visitor and a signed-in person who is not a member when the community has at least one public space that is not a chat space. Otherwise a visitor gets 404 (the same answer as for a community that does not exist) and a signed-in person who is not a member gets 403. The community has the public shape only: `cuid`, `name`, `slug`, `description`, `visibility` and `is_member` (false). The navigation holds the public spaces without any chat space. `newest-posts` has, for each post: `cuid`, `title`, `slug`, `excerpt`, `author` (`cuid`, `name`, `username`, `avatar_url`, or null for a deleted account), `space` (`cuid`, `slug`, `name`, `emoji`) and `created_at`. It never lists a deleted post, a post of a space that is not public, or one of a chat space. A member gets their full community and their own navigation, and the same newest posts.
+
+Without an account, these answers hold the name, the username and the avatar of the authors, and the counts of the reactions. They never hold: a member list, the team, the online members, profile fields, the member count, who reacted, the names of access groups, the moderator rights, the direct message setting, the captured article of a resource, the progress in a course, or the results of a quiz. Everything else needs an account: who reacted, chat messages, online members, member search, quizzes, the download of a course material (the list is public, the download is not), the navigation of the community beyond its public spaces, and every write.
 
 A request with a token still needs the ability of the route (`posts:read`, `pages:read`, `resources:read`, `communities:read`). A token that is not accepted (unknown, revoked or expired) gets a 401: it is never treated as no token.
 
