@@ -11,6 +11,7 @@ use App\Http\Controllers\API\CommunityResourceApiController;
 use App\Http\Controllers\API\CommunityResourceCommentApiController;
 use App\Http\Controllers\API\ConversationApiController;
 use App\Http\Controllers\API\CourseMaterialApiController;
+use App\Http\Controllers\API\IndexingApiController;
 use App\Http\Controllers\API\JoinPolicyApiController;
 use App\Http\Controllers\API\LessonProgressApiController;
 use App\Http\Controllers\API\LoginApiController;
@@ -105,6 +106,8 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
         Route::patch(ApiRoutes::COMMUNITY_MODERATOR_PERMISSIONS, [ModeratorPermissionApiController::class, 'update'])->middleware('ability:communities:write');
         // Who can join the community (#1486)
         Route::patch(ApiRoutes::COMMUNITY_JOIN_POLICY, [JoinPolicyApiController::class, 'update'])->middleware('ability:communities:write');
+        // Search engines may index the public spaces of the community (#1487)
+        Route::patch(ApiRoutes::COMMUNITY_INDEXING, [IndexingApiController::class, 'update'])->middleware('ability:communities:write');
         // The owner gives the community to an admin, with their password (#1339): rate limited against password guessing
         Route::post(ApiRoutes::COMMUNITY_OWNERSHIP, [CommunityApiController::class, 'transferOwnership'])->middleware('ability:communities:write')->middleware('throttle:ownership-transfers');
 

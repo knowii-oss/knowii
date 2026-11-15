@@ -64,11 +64,11 @@ On 2026-11-15 the owner decided which spaces of the Knowii Community are public 
 
 ### Search engines
 
-18. Indexing does not change here. `robots.txt` still blocks `/community/`, and the pages of the communities stay `noindex`, also for a visitor of a public space, also on an instance that allows indexing.
+18. Indexing does not change in #1387. `robots.txt` still blocked `/community/`, and the pages of the communities stayed `noindex`, also for a visitor of a public space, also on an instance that allows indexing. The section "Indexing" below (#1487) changes this.
 
 ### What comes next
 
-19. #1485 (see "Public community page" below). #1486 (see "Who can join" below). #1487: the indexing setting of a community, and the robots rules that follow it.
+19. #1485 (see "Public community page" below). #1486 (see "Who can join" below). #1487 (see "Indexing" below).
 
 ## Public community page
 
@@ -78,7 +78,7 @@ A change inside the same decision (#1485): the community home has a public versi
 2. It shows the name and the description of the community, the navigation of the public spaces (never a chat space, also for a signed-in person), the 10 newest posts of the public discussion spaces (title, excerpt, author as name, username and avatar, space, date, a link to the post), and "Sign in" and "Sign up" for a visitor. The place of the "Join" button is filled by #1486 (see "Who can join" below).
 3. The props are cut on the server: the community in its public shape, the tree of the public spaces and the newest posts. Never the member count, the team, a member list, the online members, profile fields, the names of access groups, the moderator rights, the direct message setting, anything of a chat space or of a space that is not public, and no permission.
 4. API parity: `GET /communities/{community}`, `GET /communities/{community}/space-groups` and the new `GET /communities/{community}/newest-posts` accept a visitor, with the public rate limit and the abilities `communities:read` and `posts:read`. A deleted post is never listed (#1344).
-5. For a visitor, "Home" in the breadcrumb goes to `/` and the name of the community goes to this page. No WebSocket is opened. Indexing does not change (#1487).
+5. For a visitor, "Home" in the breadcrumb goes to `/` and the name of the community goes to this page. No WebSocket is opened. Indexing is decided by the community (see "Indexing" below, #1487).
 
 ## Who can join
 
@@ -91,6 +91,17 @@ A change inside the same decision (#1486), and not a new ADR: a visitor who read
 5. A person whom a manager removed cannot join again by themselves, even when the community is open (decision of the owner, 2026-11-15). The table `community_join_blocks` holds the smallest thing: community, person, date (a unique pair, deleted with the community and with the account). `RemoveCommunityMember` writes the row, in the same transaction as the removal. A member who leaves by themselves (`LeaveCommunity`) writes none. An accepted invitation deletes the row, and so does "May join again" in the member management (`DELETE /communities/{community}/join-blocks/{member}`, the managers of the members: owner, admins, and moderators with `manage_members`; `GET /communities/{community}/join-blocks` lists the people). The person sees a neutral message: "You cannot join this community by yourself. Ask its managers for an invitation." The row is new personal data: it is in the member export (`memberships.json`, `join_blocks`), in the community export, and it goes with the account (cascade). The privacy policy gets one sentence for it after the owner approves the words.
 6. Joining gives no access group. The entitlement rules of a later issue run when a person becomes a member: `CommunityMembersChanged` is the hook, fired by the join, by an accepted invitation and by a removal. Nothing is built for it here.
 7. An open community without a public space has no page for an outsider (the community home answers 403, as before) and no "Join" button on the web. The join still works through the API for a person who knows the community. There is no community directory.
+
+## Indexing
+
+A change inside the same decision (#1487), which replaces point 18 above: a community decides if search engines index its public spaces. The robots rules of the instance (#104) stay the first gate.
+
+1. A shared community (never a personal one) has a setting "Search engines may index the public spaces", the boolean column `indexing_enabled`, off by default. The owner and the admins change it (`CommunityPolicy::manageIndexing`, like who can join), on the settings page, with a sentence that says what it does and that it is off by default, and with `PATCH /communities/{community}/indexing` (body `indexing_enabled`, a strict boolean; a personal community answers 400). Members read the value on `GET /communities/{community}` (`indexing_enabled`). It is not part of the public shape: no page for a visitor needs it.
+2. `robots.txt` no longer blocks `/community/` as a whole. It keeps blocking what is never public: the pages about, settings, members and messages of a community (`/community/*/about`, `/community/*/settings`, `/community/*/member/`, `/community/*/messages`), the invitation links, the API, the sign-in pages and the other addresses of `config/robots.php`. The decision for a page is in its response.
+3. Each response of a page of a community carries the decision in the `X-Robots-Tag` header and in the meta tag, from one place: `Robots::forRequest` (used by `AddRobotsHeader` and by `app.blade.php`), which calls `Robots::directive`. The answer is `index, follow, max-image-preview:large` only when all of these hold: the reader is a visitor, the page is the public community page or a page of a public space that a visitor reads (the space page of a discussion, pages, course or resources space, a post page, a page or lesson page, a resource page), the community has the setting on, the instance allows indexing (`ROBOTS_ALLOW_INDEXING`, true in production by default), and the response is a success. Everything else is `noindex, nofollow`: a signed-in reader, a members or groups space, a chat space, a link space, the pages about, settings, members and messages, the API, and the marker of a deleted post (#1344), a section heading of a page space and any address that does not exist.
+4. The AI crawlers that `config/robots.php` lists stay refused everywhere in `robots.txt`, whatever a community decides. `robots.txt` is a request: the header and the meta tag are the decision, and the policies are the lock.
+5. Turning the setting off takes effect at the next request: the decision is made for each request, with no cache. A crawler that read the page before keeps what it has until it comes back: the community should know that "off" does not remove what a search engine already holds.
+6. The sitemap, the page titles and the descriptions of the public pages are not part of this change (#1400).
 
 ## Consequences
 

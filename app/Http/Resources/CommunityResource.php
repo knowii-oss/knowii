@@ -54,6 +54,8 @@ class CommunityResource extends AbstractKnowiiJsonResource
             'is_member' => true,
             // Direct messages (#1186): whether members can write them, and (pages of the community only) what the member did not read
             'direct_messages_enabled' => $community->allowsDirectMessages(),
+            // Search engines may index the public spaces (#1487): for the members, never part of the public shape
+            'indexing_enabled' => $community->allowsIndexing(),
             'unread_direct_messages' => $this->when(
                 $this->serializeLargeFields,
                 fn () => Conversations::unreadTotal($user, $community),

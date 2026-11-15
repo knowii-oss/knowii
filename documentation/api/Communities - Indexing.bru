@@ -1,0 +1,26 @@
+meta {
+  name: Communities - Indexing
+  type: http
+  seq: 159
+}
+
+patch {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/indexing
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "indexing_enabled": true
+  }
+}
+
+docs {
+  Lets search engines index the public spaces of a shared community, or not (#1487, ADR 0044). Off by default. Owner and admins only. A personal community answers 400. Needs communities:write. Returns the community with its indexing_enabled value.
+}

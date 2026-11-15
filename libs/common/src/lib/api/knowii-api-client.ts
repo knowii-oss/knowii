@@ -28,6 +28,7 @@ import {
   COMMUNITY_MEMBER_API_PATH,
   COMMUNITY_MEMBERSHIP_API_PATH,
   COMMUNITY_JOIN_POLICY_API_PATH,
+  COMMUNITY_INDEXING_API_PATH,
   COMMUNITY_JOIN_BLOCKS_API_PATH,
   COMMUNITY_JOIN_BLOCK_API_PATH,
   COMMUNITY_API_PARAM_MEMBER,
@@ -297,6 +298,19 @@ export const knowiiApiClient = {
       apiRequest('patch', communityPath(COMMUNITY_JOIN_POLICY_API_PATH, communityCuid), communitySchema, 'Failed to save who can join.', {
         join_policy: joinPolicy,
       }),
+    /**
+     * Let search engines index the public spaces of the community, or not (owner and admins, #1487). Returns the community.
+     */
+    updateIndexing: (communityCuid: string, indexingEnabled: boolean): Promise<ApiResult<Community>> =>
+      apiRequest(
+        'patch',
+        communityPath(COMMUNITY_INDEXING_API_PATH, communityCuid),
+        communitySchema,
+        'Failed to save the indexing setting.',
+        {
+          indexing_enabled: indexingEnabled,
+        },
+      ),
     /**
      * Switch some rights of the moderators (owner and admins, #1240). Returns the community.
      */

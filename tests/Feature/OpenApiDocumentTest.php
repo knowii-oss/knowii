@@ -119,3 +119,9 @@ test('the join routes are documented (#1486)', function () {
         ->and($paths['/v1/communities/{community}/join-blocks'])->toHaveKey('get')
         ->and($paths['/v1/communities/{community}/join-blocks/{member}'])->toHaveKey('delete');
 });
+
+test('the indexing route is documented (#1487)', function () {
+    $indexing = openApiDocument()['paths']['/v1/communities/{community}/indexing']['patch'] ?? [];
+
+    expect($indexing['requestBody']['content']['application/json']['schema']['required'] ?? [])->toBe(['indexing_enabled']);
+});

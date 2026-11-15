@@ -115,6 +115,9 @@ final class ApiRoutes
     // Who can join the community (#1486): by invitation or open
     public const COMMUNITY_JOIN_POLICY = self::COMMUNITY.'/join-policy';
 
+    // Search engines may index the public spaces of the community (#1487)
+    public const COMMUNITY_INDEXING = self::COMMUNITY.'/indexing';
+
     // The owner gives the community to an admin (#1339)
     public const COMMUNITY_OWNERSHIP = self::COMMUNITY.'/ownership';
 

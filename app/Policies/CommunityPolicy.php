@@ -82,6 +82,15 @@ class CommunityPolicy
     }
 
     /**
+     * Let search engines index the public spaces of the community (#1487, ADR 0044): owner and admins, like who can
+     * join. The action refuses a personal community: it has no public space.
+     */
+    final public function manageIndexing(User $user, Community $community): bool
+    {
+        return CommunityRoles::isOwnerOrAdmin($user, $community);
+    }
+
+    /**
      * Members upload images for their posts and comments (#1178).
      */
     final public function uploadImage(User $user, Community $community): bool
