@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Inertia;
 
 use App\Enums\KnowiiSpaceType;
 use App\Http\Resources\MemberWithRoleResource;
+use App\Http\Resources\NewestPostResource;
 use App\Models\Community;
 use App\Models\Space;
 use App\Models\SpaceGroup;
 use App\Models\User;
 use App\Support\CommunityMemberQuery;
 use App\Support\CommunityRoles;
+use App\Support\PublicCommunity;
 use App\Support\SpaceTree;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -32,6 +34,11 @@ class CommunityController extends Controller
     public function show(Request $request, string $slug): Response
     {
         $community = Community::where('slug', $slug)->firstOrFail();
+
+        // Someone who is not a member (a visitor, a signed-in outsider) gets the public page, or nothing (#1485)
+        if (! PublicCommunity::isMember($request->user(), $community)) {
+            return $this->showPublic($request, $community);
+        }
 
         Gate::authorize('view', $community);
 
@@ -59,6 +66,27 @@ class CommunityController extends Controller
             'spaceGroups' => $spaceGroups->toResourceCollection(),
 
             'permissions' => $this->getCommunityPermissions($community),
+        ]);
+    }
+
+    /**
+     * The public page of a community (#1485, ADR 0044), for a visitor and for a signed-in person who is not a member. It
+     * exists only when the community has a public space that is not a chat space: any other community answers 404 to a
+     * visitor (the sign-in page) and 403 to an outsider, as before. Its props are cut here, on the server: the community
+     * without its member count, rights and settings, the public spaces without any chat space, the newest public posts.
+     * No team, no member list, no permission.
+     */
+    private function showPublic(Request $request, Community $community): Response
+    {
+        PublicCommunity::ensureExists($community, $request);
+
+        JsonResource::withoutWrapping();
+
+        // WARNING: The props passed here must remain aligned with the props expected by Pages/Communities/Public.tsx
+        return Jetstream::inertia()->render($request, 'Communities/Public', [
+            'community' => $community->toResource(),
+            'spaceGroups' => PublicCommunity::tree($community, $request->user())->toResourceCollection(),
+            'newestPosts' => PublicCommunity::newestPosts($community)->toResourceCollection(NewestPostResource::class),
         ]);
     }
 

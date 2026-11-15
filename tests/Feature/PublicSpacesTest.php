@@ -189,7 +189,6 @@ test('web pages: the other pages of a community stay for members, a visitor goes
     $this->get(route($route, $parameters))->assertRedirect(route('login'));
     $this->actingAs($this->c['outsider'])->get(route($route, $parameters))->assertForbidden();
 })->with([
-    'community home' => ['communities.show', []],
     'about' => ['communities.about', []],
     'settings' => ['communities.settings', []],
     'messages' => ['messages.index', []],
@@ -512,8 +511,6 @@ test('API: everything else stays for signed-in people', function (string $method
     'online members of a space' => ['GET', ApiRoutes::COMMUNITY_SPACE_ONLINE_MEMBERS, []],
     'online members' => ['GET', ApiRoutes::COMMUNITY_ONLINE_MEMBERS, []],
     'member search' => ['GET', ApiRoutes::COMMUNITY_MEMBERS, []],
-    'the community' => ['GET', ApiRoutes::COMMUNITY, []],
-    'the space groups' => ['GET', ApiRoutes::COMMUNITY_SPACE_GROUPS, []],
     'the quiz of a lesson' => ['GET', ApiRoutes::COMMUNITY_SPACE_PAGE_QUIZ, []],
     'the progress in a course' => ['GET', ApiRoutes::COMMUNITY_SPACE_PROGRESS, []],
     'the download of a course material' => ['GET', ApiRoutes::COMMUNITY_SPACE_MATERIAL_DOWNLOAD, []],

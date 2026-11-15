@@ -115,6 +115,9 @@ final class ApiRoutes
     // The owner gives the community to an admin (#1339)
     public const COMMUNITY_OWNERSHIP = self::COMMUNITY.'/ownership';
 
+    // The newest posts of the public discussion spaces, for the public page of the community (#1485)
+    public const COMMUNITY_NEWEST_POSTS = self::COMMUNITY.'/newest-posts';
+
     public const COMMUNITY_SPACE_GROUPS = self::COMMUNITY.'/space-groups';
 
     public const COMMUNITY_SPACE_GROUPS_REORDER = self::COMMUNITY_SPACE_GROUPS.'/reorder';

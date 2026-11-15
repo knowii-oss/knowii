@@ -68,12 +68,22 @@ On 2026-11-15 the owner decided which spaces of the Knowii Community are public 
 
 ### What comes next
 
-19. #1485: the public page of the community, for a visitor. #1486: the "Who can join" setting and the join flow. #1487: the indexing setting of a community, and the robots rules that follow it.
+19. #1485 (see "Public community page" below). #1486: the "Who can join" setting and the join flow. #1487: the indexing setting of a community, and the robots rules that follow it.
+
+## Public community page
+
+A change inside the same decision (#1485): the community home has a public version, for a visitor and for a signed-in person who is not a member.
+
+1. It exists only for a community with at least one public space that is not a chat space. For any other community a visitor goes to the sign-in page and back (the API answers 404), and a signed-in outsider gets 403, as before. A community that does not exist answers a visitor like one without a public space. A member gets the community home as before.
+2. It shows the name and the description of the community, the navigation of the public spaces (never a chat space, also for a signed-in person), the 10 newest posts of the public discussion spaces (title, excerpt, author as name, username and avatar, space, date, a link to the post), and "Sign in" and "Sign up" for a visitor. A place is left for the "Join" button of #1486.
+3. The props are cut on the server: the community in its public shape, the tree of the public spaces and the newest posts. Never the member count, the team, a member list, the online members, profile fields, the names of access groups, the moderator rights, the direct message setting, anything of a chat space or of a space that is not public, and no permission.
+4. API parity: `GET /communities/{community}`, `GET /communities/{community}/space-groups` and the new `GET /communities/{community}/newest-posts` accept a visitor, with the public rate limit and the abilities `communities:read` and `posts:read`. A deleted post is never listed (#1344).
+5. For a visitor, "Home" in the breadcrumb goes to `/` and the name of the community goes to this page. No WebSocket is opened. Indexing does not change (#1487).
 
 ## Consequences
 
 1. A public space is public in the full sense: its authors are shown by name and picture to the whole internet. The policy and the notice say so before a member posts.
-2. A new route that a visitor may call has to be added to the public group of `routes/api.php`, with its `ability:` middleware, and to the list in `ApiTokenAbilitiesTest`. A new prop on one of the four pages needs a check in `PublicSpacesTest` for the visitor.
+2. A new route that a visitor may call has to be added to the public group of `routes/api.php`, with its `ability:` middleware, and to the list in `ApiTokenAbilitiesTest`. A new prop on one of the four pages needs a check in `PublicSpacesTest` for the visitor, and one on the public community page a check in `PublicCommunityPageTest`.
 3. The first public read costs the same as the member read. The rate limit protects the server from an anonymous crawler.
 4. A visitor who then goes to the sign-in page by hand may come back to the last public page that they read. This is the price of the "Sign in" links that need no parameter.
 

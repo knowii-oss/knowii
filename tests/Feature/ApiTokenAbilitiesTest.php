@@ -91,6 +91,10 @@ test('the API routes that a visitor may call are these, all of them GET, limited
     }
 
     expect($public)->toEqualCanonicalizing([
+        // The public page of a community (#1485)
+        'api/v1/communities/{community}',
+        'api/v1/communities/{community}/space-groups',
+        'api/v1/communities/{community}/newest-posts',
         'api/v1/communities/{community}/spaces/{space}',
         'api/v1/communities/{community}/spaces/{space}/posts',
         'api/v1/communities/{community}/spaces/{space}/posts/{post}',

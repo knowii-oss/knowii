@@ -16,4 +16,5 @@ headers {
 
 docs {
   The space groups of the community, in order, with the spaces that the user can see. Members do not get empty groups; admins do.
+  Public (#1485): a visitor and a signed-in person who is not a member get the public spaces only, never a chat space, when the community has a public space that is not a chat space. Otherwise 404 for a visitor and 403 for a signed-in person.
 }

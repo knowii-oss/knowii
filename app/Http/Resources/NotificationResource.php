@@ -7,6 +7,7 @@ use App\Models\ChatMessage;
 use App\Models\Comment;
 use App\Models\Notification;
 use App\Models\Post;
+use App\Support\Excerpt;
 use Illuminate\Http\Request;
 
 /**
@@ -71,12 +72,6 @@ class NotificationResource extends AbstractKnowiiJsonResource
             return '';
         }
 
-        $text = html_entity_decode(strip_tags($item->body), ENT_QUOTES | ENT_HTML5);
-        $text = (string) preg_replace(['/!?\[([^\]]*)\]\([^)]*\)/', '/[*_`>#~\[\]]+/', '/\s+/u'], ['$1', '', ' '], $text);
-        $text = trim($text);
-
-        return mb_strlen($text) > Constants::NOTIFICATIONS_EXCERPT_LENGTH
-            ? rtrim(mb_substr($text, 0, Constants::NOTIFICATIONS_EXCERPT_LENGTH - 1)).'…'
-            : $text;
+        return Excerpt::of($item->body, Constants::NOTIFICATIONS_EXCERPT_LENGTH);
     }
 }

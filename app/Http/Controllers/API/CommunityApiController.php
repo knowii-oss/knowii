@@ -11,6 +11,7 @@ use App\Enums\KnowiiCommunityVisibility;
 use App\Http\Controllers\Controller;
 use App\Models\Community;
 use App\Support\Pagination;
+use App\Support\PublicCommunity;
 use App\Traits\ApiResponses;
 use Dedoc\Scramble\Attributes\BodyParameter;
 use Dedoc\Scramble\Attributes\QueryParameter;
@@ -96,13 +97,20 @@ class CommunityApiController extends Controller
     }
 
     /**
-     * @throws AuthenticationException
+     * Get a community. A member gets it with its description, its moderator rights and its number of members (#1135).
+     * A visitor and a signed-in person who is not a member get the public shape (cuid, name, slug, description,
+     * visibility, `is_member` false) when the community has at least one public space that is not a chat space (#1485,
+     * ADR 0044). Otherwise a visitor gets 404 (like for a community that does not exist) and a signed-in person who is
+     * not a member gets 403.
      */
-    /**
-     * Get a community with its description, its moderator rights and its number of members (#1135). Members only.
-     */
-    final public function show(Community $community): JsonResponse
+    final public function show(Request $request, Community $community): JsonResponse
     {
+        if (! PublicCommunity::isMember($request->user(), $community)) {
+            PublicCommunity::ensureExists($community, $request);
+
+            return self::success('Community', null, $community->toResource());
+        }
+
         Gate::authorize('view', $community);
 
         return self::success('Community', null, $community->loadCount('users')->toResource()->withLargeFields());
