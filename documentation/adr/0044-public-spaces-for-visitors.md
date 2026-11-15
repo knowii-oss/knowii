@@ -59,7 +59,7 @@ On 2026-11-15 the owner decided which spaces of the Knowii Community are public 
 
 ### The notice
 
-16. A "Public" label next to the name of the space, and "Post publicly" and "Reply publicly" on the buttons of the composers, for members, in a space that anyone can read. The space form tells the manager: "Anyone on the internet can read this space, without an account, with the names and pictures of the authors." and, for a chat space: "A chat space stays for signed-in people." The form of the notice is one small component (`Components/Spaces/PublicSpaceNotice.tsx`) because the owner still confirms it. The routes that write content describe the same thing in the OpenAPI document, and `documentation/api/README.md` lists the public routes.
+16. No notice, by decision of the owner on 2026-11-15 (#1493): a public space shows no "Public" label next to its name and its composers keep their normal button texts. The space form tells the manager: "Anyone on the internet can read this space, without an account, with the names and pictures of the authors." and, for a chat space: "A chat space stays for signed-in people." The texts of the form are in `Components/Spaces/PublicSpaceNotice.tsx`. The routes that write content describe the same thing in the OpenAPI document, and `documentation/api/README.md` lists the public routes.
 17. The privacy policy has the approved sentence in the section about who receives the data.
 
 ### Search engines

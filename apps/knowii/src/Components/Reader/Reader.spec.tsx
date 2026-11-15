@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
-import type { Comment, CourseMaterial, Space } from '@knowii/common';
+import type { Comment, CourseMaterial } from '@knowii/common';
 import { AppDataProvider, knowiiApiClient } from '@knowii/common';
 import { CommentSection } from '@/Components/Comments/CommentSection';
 import { PostComposer } from '@/Components/Posts/PostComposer';
@@ -39,7 +39,6 @@ const comments: Comment[] = [
   },
 ];
 const subject = { communityCuid: 'community', spaceCuid: 'space', postCuid: 'post' };
-const publicSpace: Pick<Space, 'visibility' | 'type'> = { visibility: 'public', type: 'discussion' };
 
 function asVisitor(children: React.ReactNode) {
   return render(
@@ -146,71 +145,17 @@ describe('SignInPrompt', () => {
   });
 });
 
-describe('the notice of a public space (#1387)', () => {
-  it('puts "publicly" on the button of the post composer of a public space', () => {
+describe('the composers of a public space (#1493)', () => {
+  it('keep their normal button texts', () => {
     render(
       <AppDataProvider>
-        <PostComposer
-          open={true}
-          communityCuid="c"
-          spaceCuid="s"
-          spaceName="News"
-          space={publicSpace}
-          onClose={() => undefined}
-          onSaved={() => undefined}
-        />
+        <PostComposer open={true} communityCuid="c" spaceCuid="s" spaceName="News" onClose={() => undefined} onSaved={() => undefined} />
+        <CommentSection subject={subject} initialComments={comments} currentUserCuid="bob" canComment={true} canModerate={false} />
       </AppDataProvider>,
     );
 
-    expect(screen.getByRole('button', { name: 'Post publicly' })).toBeInTheDocument();
-  });
-
-  it('keeps "Publish" in a space that is not public, and in a public chat space', () => {
-    const { rerender } = render(
-      <AppDataProvider>
-        <PostComposer
-          open={true}
-          communityCuid="c"
-          spaceCuid="s"
-          spaceName="News"
-          space={{ visibility: 'members', type: 'discussion' }}
-          onClose={() => undefined}
-          onSaved={() => undefined}
-        />
-      </AppDataProvider>,
-    );
     expect(screen.getByRole('button', { name: 'Publish' })).toBeInTheDocument();
-
-    rerender(
-      <AppDataProvider>
-        <PostComposer
-          open={true}
-          communityCuid="c"
-          spaceCuid="s"
-          spaceName="News"
-          space={{ visibility: 'public', type: 'chat' }}
-          onClose={() => undefined}
-          onSaved={() => undefined}
-        />
-      </AppDataProvider>,
-    );
-    expect(screen.getByRole('button', { name: 'Publish' })).toBeInTheDocument();
-  });
-
-  it('puts "publicly" on the button of the comment form of a public space', () => {
-    render(
-      <AppDataProvider>
-        <CommentSection
-          subject={subject}
-          initialComments={comments}
-          currentUserCuid="bob"
-          canComment={true}
-          canModerate={false}
-          space={publicSpace}
-        />
-      </AppDataProvider>,
-    );
-
-    expect(screen.getByRole('button', { name: 'Reply publicly' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Comment' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /publicly/ })).toBeNull();
   });
 });
