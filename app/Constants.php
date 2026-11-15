@@ -112,6 +112,13 @@ class Constants
 
     public const int UPLOAD_IMAGE_QUALITY = 82;
 
+    // Smaller versions of an uploaded image (#1207, ADR 0040): widths in pixels, in increasing order
+    public const int UPLOAD_IMAGE_SIZE_SMALL = 640;
+
+    public const int UPLOAD_IMAGE_SIZE_MEDIUM = 1280;
+
+    public const array UPLOAD_IMAGE_SIZES = [self::UPLOAD_IMAGE_SIZE_SMALL, self::UPLOAD_IMAGE_SIZE_MEDIUM];
+
     // Largest page or image that the server downloads from an external address (#1231)
     public const int MAX_FETCH_SIZE_BYTES = 10 * 1024 * 1024;
 

@@ -24,7 +24,7 @@ final readonly class MaxMarkdownImages implements ValidationRule
         }
 
         // Raw HTML is escaped by the renderer, so every "<img " is an image of the text
-        return substr_count(Markdown::render($markdown), '<img ');
+        return substr_count(Markdown::render($markdown, imageSizes: false), '<img ');
     }
 
     public function validate(string $attribute, mixed $value, Closure $fail): void

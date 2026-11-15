@@ -8,7 +8,6 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * Deletes the uploaded images that no post or comment uses (#1201): the member cancelled the post, removed the image
@@ -39,7 +38,7 @@ class PruneUnusedUploads extends Command
 
                         continue;
                     }
-                    Storage::disk($upload->disk)->delete($upload->path);
+                    $upload->deleteFiles();
                     $upload->delete();
                     Log::info('Unused upload deleted', ['upload' => $upload->cuid, 'path' => $upload->path]);
                 }

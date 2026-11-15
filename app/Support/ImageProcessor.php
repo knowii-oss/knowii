@@ -64,6 +64,55 @@ final class ImageProcessor
         return $result;
     }
 
+    /**
+     * Smaller versions of an image that is already processed (#1207, ADR 0040): one per wanted width that is smaller
+     * than the image, never larger, with the same encoding and quality. An image that cannot be decoded gives none.
+     *
+     * @param  list<int>  $widths
+     * @param  string  $extension  The extension of the stored image: webp, or png when GD has no WebP
+     * @return array<int, string> The encoded files, by width
+     */
+    public static function smallerVersions(string $contents, array $widths, string $extension = 'webp'): array
+    {
+        $image = @imagecreatefromstring($contents);
+        if (! $image instanceof GdImage) {
+            return [];
+        }
+
+        $width = imagesx($image);
+        $height = imagesy($image);
+        $webp = $extension === 'webp' && function_exists('imagewebp');
+        $versions = [];
+
+        foreach ($widths as $wanted) {
+            if ($wanted >= $width) {
+                continue;
+            }
+
+            $scaled = imagescale($image, $wanted, max(1, (int) round($height * $wanted / $width)), IMG_BICUBIC);
+            if (! $scaled instanceof GdImage) {
+                continue;
+            }
+
+            imagepalettetotruecolor($scaled);
+            imagealphablending($scaled, false);
+            imagesavealpha($scaled, true);
+
+            ob_start();
+            $webp ? imagewebp($scaled, null, Constants::UPLOAD_IMAGE_QUALITY) : imagepng($scaled, null, 6);
+            $output = (string) ob_get_clean();
+            imagedestroy($scaled);
+
+            if ($output !== '') {
+                $versions[$wanted] = $output;
+            }
+        }
+
+        imagedestroy($image);
+
+        return $versions;
+    }
+
     private static function cropToSquare(GdImage $image): GdImage
     {
         $width = imagesx($image);

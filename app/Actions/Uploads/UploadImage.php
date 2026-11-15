@@ -8,6 +8,7 @@ use App\Models\Community;
 use App\Models\Upload;
 use App\Models\User;
 use App\Support\ImageProcessor;
+use App\Support\UploadSizes;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -39,6 +40,8 @@ class UploadImage implements UploadsImages
         $path = sprintf('uploads/%s/%s/%s.%s', $community->cuid, now()->format('Y/m'), $cuid, $image['extension']);
 
         Storage::disk($disk)->put($path, $image['contents'], ['visibility' => 'public']);
+        // The smaller versions (#1207): a small image has none
+        $sizes = UploadSizes::store($disk, $path, $image['contents'], $image['width']);
 
         $upload = Upload::create([
             'cuid' => $cuid,
@@ -51,6 +54,7 @@ class UploadImage implements UploadsImages
             'height' => $image['height'],
             'size_bytes' => strlen($image['contents']),
             'alt' => trim($validated['alt']),
+            'sizes' => $sizes,
         ]);
 
         Log::info('Image uploaded', ['upload' => $upload->cuid, 'community' => $community->cuid]);

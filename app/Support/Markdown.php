@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\Community;
 use App\Models\User;
 use App\Support\MarkdownGalleries\ImageGalleryExtension;
+use App\Support\MarkdownUploads\UploadImagesExtension;
 use App\Support\MarkdownVideos\VideoEmbedExtension;
 use League\CommonMark\Environment\Environment;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
@@ -22,6 +23,7 @@ use League\CommonMark\MarkdownConverter;
  * `@username` becomes a link to the member's profile when the username is a member of the community (#1177).
  * A YouTube or Vimeo link alone on its line becomes a click-to-load video (#1206, ADR 0031).
  * Images that follow each other form a gallery (#1207, ADR 0039).
+ * An image that is an upload of this instance gets its size and its `srcset` (#1207, ADR 0040).
  */
 final class Markdown
 {
@@ -47,11 +49,30 @@ final class Markdown
     private static array $mentioned = [];
 
     /**
-     * Render without mentions (`@name` stays text).
+     * Whether the current rendering gives the images that are uploads their size and `srcset` (one query per text).
      */
-    public static function render(string $markdown): string
+    private static bool $imageSizes = true;
+
+    /**
+     * Render without mentions (`@name` stays text).
+     *
+     * @param  bool  $imageSizes  False to skip the query that finds the uploads of the images (a count of images needs none)
+     */
+    public static function render(string $markdown, bool $imageSizes = true): string
     {
-        return trim(self::converter()->convert($markdown)->getContent());
+        $previous = self::$imageSizes;
+        self::$imageSizes = $imageSizes;
+
+        try {
+            return trim(self::converter()->convert($markdown)->getContent());
+        } finally {
+            self::$imageSizes = $previous;
+        }
+    }
+
+    public static function imageSizesEnabled(): bool
+    {
+        return self::$imageSizes;
     }
 
     /**
@@ -164,6 +185,7 @@ final class Markdown
         $environment->addExtension(new MentionExtension);
         $environment->addExtension(new VideoEmbedExtension);
         $environment->addExtension(new ImageGalleryExtension);
+        $environment->addExtension(new UploadImagesExtension);
 
         return self::$converter = new MarkdownConverter($environment);
     }
