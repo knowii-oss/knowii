@@ -1,13 +1,13 @@
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { Post, PostForm } from '@knowii/common';
 import { knowiiApiClient, MAX_LENGTH_POST_BODY, MAX_LENGTH_POST_TITLE, POST_EDITOR_ROWS, postFormSchema, useAppData } from '@knowii/common';
 import { useMentionSource } from '@/Components/Members/use-mention-source';
 import { useImageUploader } from '@/Components/Uploads/use-image-uploader';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
-import { Button, Dialog, MarkdownEditor, TextInput } from '@/Components/ui';
+import { Button, Checkbox, Dialog, MarkdownEditor, TextInput } from '@/Components/ui';
 
 export interface PostComposerProps {
   open: boolean;
@@ -18,11 +18,24 @@ export interface PostComposerProps {
    * The post to edit (with its Markdown body). Absent: write a new post.
    */
   post?: Post | undefined;
+  /**
+   * The member can moderate the space: a new post can tell its followers now, without the 5 minutes of waiting (#1497)
+   */
+  canModerate?: boolean | undefined;
   onClose: () => void;
   onSaved: (post: Post) => void;
 }
 
-export function PostComposer({ open, communityCuid, spaceCuid, spaceName, post, onClose, onSaved }: PostComposerProps) {
+export function PostComposer({
+  open,
+  communityCuid,
+  spaceCuid,
+  spaceName,
+  post,
+  canModerate = false,
+  onClose,
+  onSaved,
+}: PostComposerProps) {
   const { showToast } = useAppData();
   const mentions = useMentionSource(communityCuid);
   const images = useImageUploader(communityCuid);
@@ -30,6 +43,8 @@ export function PostComposer({ open, communityCuid, spaceCuid, spaceName, post, 
     () => (markdown: string, signal: AbortSignal) => knowiiApiClient.markdown.preview(markdown, signal, communityCuid),
     [communityCuid],
   );
+  // "Tell the followers of this space now": off by default, the post tells them after 5 minutes
+  const [notifyNow, setNotifyNow] = useState(false);
   const form = useForm<PostForm>({
     resolver: zodResolver(postFormSchema),
     defaultValues: { title: post?.title ?? '', body: post?.body ?? '' },
@@ -42,15 +57,25 @@ export function PostComposer({ open, communityCuid, spaceCuid, spaceName, post, 
     }
   }, [open, post, form]);
 
+  // The choice does not stay for the next post
+  const close = () => {
+    setNotifyNow(false);
+    onClose();
+  };
+
   const onSubmit = form.handleSubmit(async (data) => {
     const result = post
       ? await knowiiApiClient.communities.posts.update(communityCuid, spaceCuid, post.cuid, data)
-      : await knowiiApiClient.communities.posts.create(communityCuid, spaceCuid, data);
+      : await knowiiApiClient.communities.posts.create(
+          communityCuid,
+          spaceCuid,
+          canModerate && notifyNow ? { ...data, notify_now: true } : data,
+        );
 
     if (result.ok) {
       showToast({ severity: 'success', summary: post ? 'Post saved' : 'Post published' });
       onSaved(result.data);
-      onClose();
+      close();
       return;
     }
     for (const field of ['title', 'body'] as const) {
@@ -67,12 +92,12 @@ export function PostComposer({ open, communityCuid, spaceCuid, spaceName, post, 
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={close}
       size="lg"
       title={post ? 'Edit the post' : `New post in ${spaceName}`}
       footer={
         <>
-          <Button variant="secondary" onClick={onClose}>
+          <Button variant="secondary" onClick={close}>
             Cancel
           </Button>
           <Button type="submit" form="post-form" disabled={!form.formState.isValid} loading={form.formState.isSubmitting}>
@@ -128,6 +153,22 @@ export function PostComposer({ open, communityCuid, spaceCuid, spaceName, post, 
           </div>
           <InputError id="post-body-error" className="mt-2" message={errors.body?.message} />
         </div>
+        {!post && canModerate && (
+          <label className="flex min-h-11 cursor-pointer items-start gap-3">
+            <Checkbox
+              name="notify_now"
+              checked={notifyNow}
+              onChange={(event) => setNotifyNow(event.target.checked)}
+              aria-describedby="post-notify-now-hint"
+            />
+            <span>
+              <span className="font-bold">Tell the followers of this space now</span>
+              <span id="post-notify-now-hint" className="block text-sm text-muted">
+                Without it, the post tells them after 5 minutes. An edit or a deletion in that time tells nobody.
+              </span>
+            </span>
+          </label>
+        )}
       </form>
     </Dialog>
   );

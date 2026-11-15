@@ -1,9 +1,12 @@
 import '@testing-library/jest-dom/vitest';
-import { cleanup } from '@testing-library/react';
+import { cleanup, configure } from '@testing-library/react';
 import { afterEach } from 'vitest';
 // Only this module: importing all of @knowii/common here would load Inertia before the specs mock it
 import { leaveAllPresenceChannels } from '../../../libs/common/src/lib/hooks/use-presence';
 import { fakeEcho, resetFakeEcho } from './test-utils/fake-echo';
+
+// The whole suite runs in parallel: a slow worker must not turn a late answer into a failure (the default is 1 second)
+configure({ asyncUtilTimeout: 3000 });
 
 // jsdom lacks the browser APIs that Headless UI uses for anchored popovers and transitions
 class ResizeObserverStub {

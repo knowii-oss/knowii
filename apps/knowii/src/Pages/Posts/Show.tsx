@@ -10,6 +10,7 @@ import { CommunityShell } from '@/Components/Spaces/CommunityShell';
 import { PostComposer } from '@/Components/Posts/PostComposer';
 import { CommentSection } from '@/Components/Comments/CommentSection';
 import { ReactionBar } from '@/Components/Reactions/ReactionBar';
+import { ThreadFollowControl } from '@/Components/Notifications/ThreadFollowControl';
 import type { BreadcrumbItem } from '@/Components/ui';
 import { Button, Dialog, ErrorBoundary, MarkdownContent, RelativeTime } from '@/Components/ui';
 
@@ -128,6 +129,10 @@ export default function PostPage(props: Props) {
                   </>
                 )}
               </p>
+            )}
+            {/* The state of the thread for the member, with Follow, Stop following and Mute this thread (#1497) */}
+            {!isMarker && community.is_member === true && (
+              <ThreadFollowControl communityCuid={community.cuid} spaceCuid={space.cuid} kind="post" cuid={post.cuid} />
             )}
             {(props.permissions.canUpdatePost || props.permissions.canDeletePost || props.permissions.canPinPost) && (
               <div className="flex flex-wrap gap-2">

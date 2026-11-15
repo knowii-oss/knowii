@@ -42,21 +42,29 @@ export function NotificationBell() {
     if (!open || narrow) {
       return;
     }
+    // The menu of a line opens outside the panel (a portal): its Escape closes the menu only, a click in it keeps the panel
+    const inMenu = (target: EventTarget | null) => target instanceof Element && target.closest('[role="menu"]') !== null;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      // The listener runs before the menu handles its own Escape (capture phase): an open menu closes alone
+      if (
+        event.key === 'Escape' &&
+        !event.defaultPrevented &&
+        !inMenu(document.activeElement) &&
+        document.querySelector('[role="menu"]') === null
+      ) {
         setOpen(false);
         button.current?.focus();
       }
     };
     const onPointerDown = (event: PointerEvent) => {
-      if (event.target instanceof Node && !container.current?.contains(event.target)) {
+      if (event.target instanceof Node && !container.current?.contains(event.target) && !inMenu(event.target)) {
         setOpen(false);
       }
     };
-    document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('keydown', onKeyDown, true);
     document.addEventListener('pointerdown', onPointerDown);
     return () => {
-      document.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('keydown', onKeyDown, true);
       document.removeEventListener('pointerdown', onPointerDown);
     };
   }, [open, narrow]);
@@ -67,8 +75,23 @@ export function NotificationBell() {
       return;
     }
     focusHeading();
-    const timer = setTimeout(focusHeading, 50);
-    return () => clearTimeout(timer);
+    // A slow machine may run this after the member started to use the panel: then the focus stays where they put it
+    let used = false;
+    const markUsed = () => {
+      used = true;
+    };
+    document.addEventListener('pointerdown', markUsed, true);
+    document.addEventListener('keydown', markUsed, true);
+    const timer = setTimeout(() => {
+      if (!used) {
+        focusHeading();
+      }
+    }, 50);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('pointerdown', markUsed, true);
+      document.removeEventListener('keydown', markUsed, true);
+    };
   }, [open, narrow, focusHeading]);
 
   const badge = notificationBadge(count);

@@ -8,12 +8,13 @@ import {
   LOGIN_URL,
   LOGOUT_URL,
   REGISTER_URL,
+  USER_NOTIFICATIONS_URL,
   USER_PROFILE_URL,
   useAppData,
   useTypedPage,
 } from '@knowii/common';
 import { useRoute } from 'ziggy-js';
-import { FaBars, FaHome, FaKey, FaSignOutAlt, FaUser } from 'react-icons/fa';
+import { FaBars, FaBell, FaHome, FaKey, FaSignOutAlt, FaUser } from 'react-icons/fa';
 import PageHeader from '@/Components/PageHeader';
 import ApplicationMark from '@/Components/ApplicationMark';
 import Footer from '@/Components/Footer';
@@ -158,6 +159,17 @@ export default function AppLayout(props: Props) {
                   >
                     <FaUser aria-hidden="true" className="text-muted" />
                     Edit profile
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Link
+                    href={route(USER_NOTIFICATIONS_URL)}
+                    preserveState={true}
+                    aria-current={isCurrentUrl(route(USER_NOTIFICATIONS_URL), page.url) ? 'page' : undefined}
+                    className={cn(dropdownMenuItemClasses, 'aria-[current=page]:bg-overlay/10 aria-[current=page]:font-bold')}
+                  >
+                    <FaBell aria-hidden="true" className="text-muted" />
+                    Notification settings
                   </Link>
                 </DropdownMenuItem>
                 {page.props.jetstream.hasApiFeatures && (

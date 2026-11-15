@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { baseEntitySchema } from './base-entity.schema';
+import { followStateSchema } from './notification-follow.schema';
 import { MAX_LENGTH_POST_BODY, MAX_LENGTH_POST_TITLE, MIN_LENGTH_POST_TITLE } from '../constants';
 
 /**
@@ -34,6 +35,8 @@ export const postSchema = baseEntitySchema.extend({
   // When loaded: count per emoji and whether the current member reacted
   reactions: z.array(z.object({ emoji: z.string(), count: z.number().int(), reacted: z.boolean() })).optional(),
   space_cuid: z.string(),
+  // What the current member chose for the thread (#1497): following, muted, stopped, or null. Present when the server loaded it
+  follow_state: followStateSchema.nullable().optional(),
 });
 export type Post = z.infer<typeof postSchema>;
 
@@ -52,6 +55,12 @@ export const postFormSchema = z.object({
     .max(MAX_LENGTH_POST_BODY, { error: `The post is too long (maximum ${MAX_LENGTH_POST_BODY} characters)` }),
 });
 export type PostForm = z.infer<typeof postFormSchema>;
+
+/**
+ * What the API accepts to publish a post: `notify_now` tells the followers of the space at once, for the people who can
+ * moderate the space (#1497)
+ */
+export type PostCreateInput = PostForm & { notify_now?: boolean };
 
 /**
  * Offset pagination metadata of the NBB REST API Design Guide (ADR 0011). WARNING: aligned with Pagination.php

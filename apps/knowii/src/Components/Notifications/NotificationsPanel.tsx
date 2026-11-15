@@ -1,12 +1,13 @@
 import type { MouseEvent, ReactNode } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Notification } from '@knowii/common';
-import { knowiiApiClient, NOTIFICATIONS_PER_PAGE, useTypedPage } from '@knowii/common';
+import { knowiiApiClient, NOTIFICATIONS_PER_PAGE, USER_NOTIFICATIONS_URL, useTypedPage } from '@knowii/common';
 import { useRoute } from 'ziggy-js';
 import { FaChevronDown, FaChevronRight } from 'react-icons/fa6';
 import { Button, EmptyState } from '@/Components/ui';
 import { NotificationLine } from './NotificationLine';
 import { notificationHref } from './notification-link';
+import { threadOf } from './notification-thread';
 import { useNotifications } from './NotificationsProvider';
 import type { NotificationsChange } from './NotificationsProvider';
 import { useNotificationFeed } from './use-notification-feed';
@@ -20,6 +21,7 @@ export const SAME_PAGE_JUMP_DELAY_MS = 260;
 // The events that this tab caused are not news
 const OWN_CHANGE_MS = 5000;
 const SKELETON_LINES = 4;
+const FOLLOWING_SKELETON_LINES = 2;
 
 export interface NotificationsPanelProps {
   // Close the panel (a line was opened)
@@ -34,12 +36,17 @@ interface UndoState {
   older: boolean;
 }
 
+// "Muted. Undo": what to do to take the mute back (#1497)
+interface MuteState {
+  undo: () => Promise<boolean>;
+}
+
 // The server tells every tab about a change, the tab that caused it included: it ignores its own changes for a moment
 function markOwnChange(changes: Map<string, number>, cuid: string): void {
   changes.set(cuid, Date.now());
 }
 
-type FocusRequest = { cuid: string } | 'heading';
+type FocusRequest = { cuid: string } | 'heading' | 'following-heading';
 
 /**
  * The content of the Notifications panel: "Needs you" with its lines, "Older" and the status text (#1484, design 5.1, 9.1).
@@ -54,10 +61,13 @@ export function NotificationsPanel({ onClose, focusHeading }: NotificationsPanel
   const main = useNotificationFeed();
   const [olderOpen, setOlderOpen] = useState(false);
   const older = useNotificationFeed({ older: true, enabled: olderOpen });
+  // "Following" (level 2): the last 14 days, never counted, never announced (#1497)
+  const following = useNotificationFeed({ following: true });
 
   const [busy, setBusy] = useState<ReadonlySet<string>>(new Set());
   const [doneElsewhere, setDoneElsewhere] = useState<ReadonlySet<string>>(new Set());
   const [undo, setUndo] = useState<UndoState | null>(null);
+  const [muted, setMuted] = useState<MuteState | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   // Lines that arrived while the panel is open wait behind "2 new. Show"
@@ -67,6 +77,8 @@ export function NotificationsPanel({ onClose, focusHeading }: NotificationsPanel
   const linkElements = useRef(new Map<string, HTMLAnchorElement>());
   const retryButton = useRef<HTMLButtonElement>(null);
   const undoButton = useRef<HTMLButtonElement>(null);
+  const muteUndoButton = useRef<HTMLButtonElement>(null);
+  const followingHeading = useRef<HTMLHeadingElement>(null);
   const focusRequest = useRef<FocusRequest | null>(null);
   const busyRef = useRef(new Set<string>());
   const ownChanges = useRef(new Map<string, number>());
@@ -108,10 +120,12 @@ export function NotificationsPanel({ onClose, focusHeading }: NotificationsPanel
     focusRequest.current = null;
     if (request === 'heading') {
       focusHeading();
+    } else if (request === 'following-heading') {
+      followingHeading.current?.focus();
     } else {
       linkElements.current.get(request.cuid)?.focus();
     }
-  }, [main.items, older.items, focusHeading]);
+  }, [main.items, older.items, following.items, focusHeading]);
 
   // On an error the focus goes to "Retry"
   useEffect(() => {
@@ -122,7 +136,7 @@ export function NotificationsPanel({ onClose, focusHeading }: NotificationsPanel
 
   // Seen: a line that stayed in the open panel for one second. One request for the lines of the same moment.
   const seenSent = useRef(new Set<string>());
-  const unseenKey = main.items
+  const unseenKey = [...main.items, ...following.items]
     .filter((item) => item.seen_at === null)
     .map((item) => item.cuid)
     .join(',');
@@ -303,6 +317,7 @@ export function NotificationsPanel({ onClose, focusHeading }: NotificationsPanel
 
     clearUndoTimer();
     setMessage(null);
+    setMuted(null);
     setUndo({ notification, index: Math.max(index, 0), older: isOlder });
     undoTimer.current = setTimeout(() => {
       undoTimer.current = null;
@@ -368,6 +383,194 @@ export function NotificationsPanel({ onClose, focusHeading }: NotificationsPanel
     main.remove(notification.cuid);
   };
 
+  // A line left by a button: the focus goes to the next line, else the line before, else the heading of its list
+  const moveFocusFrom = (feed: typeof main, cuid: string, fallback: FocusRequest, gone: ReadonlySet<string> = new Set([cuid])) => {
+    const list = feed.items;
+    const index = list.findIndex((item) => item.cuid === cuid);
+    const after = list.slice(index + 1).find((item) => !gone.has(item.cuid));
+    const before = list
+      .slice(0, Math.max(index, 0))
+      .reverse()
+      .find((item) => !gone.has(item.cuid));
+    const neighbour = after ?? before;
+    focusRequest.current = neighbour ? { cuid: neighbour.cuid } : fallback;
+  };
+
+  const showMuted = (undoMute: () => Promise<boolean>) => {
+    clearUndoTimer();
+    setMessage(null);
+    setUndo(null);
+    setMuted({ undo: undoMute });
+    undoTimer.current = setTimeout(() => {
+      undoTimer.current = null;
+      if (document.activeElement === muteUndoButton.current) {
+        focusHeading();
+      }
+      setMuted(null);
+    }, UNDO_MS);
+  };
+
+  const undoMute = async () => {
+    if (!muted || busyRef.current.has('undo:mute')) {
+      return;
+    }
+    const target = muted;
+    busyRef.current.add('undo:mute');
+    const ok = await target.undo();
+    busyRef.current.delete('undo:mute');
+    clearUndoTimer();
+    setMuted(null);
+    focusHeading();
+    if (ok) {
+      setMessage('Mute undone');
+    } else {
+      setActionError('We could not undo. Try again.');
+    }
+  };
+
+  // "Stop following" on a thread line: the thread stops, the line leaves, the row is read
+  const stopFollowing = async (notification: Notification, feed: typeof main) => {
+    const thread = threadOf(notification);
+    if (!thread || busyRef.current.has(notification.cuid) || !notification.space) {
+      return;
+    }
+    busyRef.current.add(notification.cuid);
+    setBusy(new Set(busyRef.current));
+    setActionError(null);
+    ownChange(notification.cuid);
+    const { community, space } = notification;
+    const result =
+      thread.kind === 'post'
+        ? await knowiiApiClient.threads.stopPost(community.cuid, space.cuid, thread.postCuid)
+        : await knowiiApiClient.threads.stopMessage(community.cuid, space.cuid, thread.messageCuid);
+    busyRef.current.delete(notification.cuid);
+    setBusy(new Set(busyRef.current));
+    if (!result.ok) {
+      setActionError('We could not stop following. Try again.');
+      return;
+    }
+    void knowiiApiClient.notifications.read(notification.cuid);
+    moveFocusFrom(feed, notification.cuid, 'following-heading');
+    feed.remove(notification.cuid);
+    setMessage('You stopped following this thread');
+  };
+
+  const sameThread = (a: Notification, b: Notification) => {
+    const left = threadOf(a);
+    const right = threadOf(b);
+    return (
+      left !== null &&
+      right !== null &&
+      a.space?.cuid === b.space?.cuid &&
+      ((left.kind === 'post' && right.kind === 'post' && left.postCuid === right.postCuid) ||
+        (left.kind === 'message' && right.kind === 'message' && left.messageCuid === right.messageCuid))
+    );
+  };
+
+  // Lines that left because of a mute: every feed drops them. The focus goes where the line of the menu was.
+  const dropLines = (feed: typeof main, notification: Notification, gone: (other: Notification) => boolean) => {
+    const ids = new Set([...main.items, ...older.items, ...following.items].filter(gone).map((item) => item.cuid));
+    moveFocusFrom(feed, notification.cuid, feed === following ? 'following-heading' : 'heading', ids);
+    [main, older, following].forEach((list) => list.setItems((current) => current.filter((item) => !ids.has(item.cuid))));
+    return ids;
+  };
+
+  // "Mute this thread": nothing from the thread, a mention included. It applies at once and can be undone for 8 seconds.
+  const muteThread = async (notification: Notification, feed: typeof main) => {
+    const thread = threadOf(notification);
+    if (!thread || !notification.space || busyRef.current.has(notification.cuid)) {
+      return;
+    }
+    busyRef.current.add(notification.cuid);
+    setBusy(new Set(busyRef.current));
+    setActionError(null);
+    const { community, space } = notification;
+    const before =
+      thread.kind === 'post'
+        ? await knowiiApiClient.threads.getPost(community.cuid, space.cuid, thread.postCuid)
+        : await knowiiApiClient.threads.getMessage(community.cuid, space.cuid, thread.messageCuid);
+    const result =
+      thread.kind === 'post'
+        ? await knowiiApiClient.threads.mutePost(community.cuid, space.cuid, thread.postCuid)
+        : await knowiiApiClient.threads.muteMessage(community.cuid, space.cuid, thread.messageCuid);
+    busyRef.current.delete(notification.cuid);
+    setBusy(new Set(busyRef.current));
+    if (!result.ok) {
+      setActionError('We could not mute this thread. Try again.');
+      return;
+    }
+    const ids = dropLines(feed, notification, (other) => sameThread(notification, other));
+    ids.forEach(ownChange);
+    refreshCount();
+    const was = before.ok ? before.data.state : null;
+    showMuted(async () => {
+      const back =
+        thread.kind === 'post'
+          ? await (was === 'following'
+              ? knowiiApiClient.threads.followPost(community.cuid, space.cuid, thread.postCuid)
+              : knowiiApiClient.threads.stopPost(community.cuid, space.cuid, thread.postCuid))
+          : await (was === 'following'
+              ? knowiiApiClient.threads.followMessage(community.cuid, space.cuid, thread.messageCuid)
+              : knowiiApiClient.threads.stopMessage(community.cuid, space.cuid, thread.messageCuid));
+      return back.ok;
+    });
+  };
+
+  // "Mute <space>": nothing from the space, a mention included. The open lines of the space go.
+  const muteSpace = async (notification: Notification, feed: typeof main) => {
+    const space = notification.space;
+    const busyKey = `space:${space?.cuid ?? ''}`;
+    if (!space || busyRef.current.has(busyKey)) {
+      return;
+    }
+    busyRef.current.add(busyKey);
+    setBusy(new Set(busyRef.current));
+    setActionError(null);
+    const communityCuid = notification.community.cuid;
+    const before = await knowiiApiClient.notificationLevels.get(communityCuid, space.cuid);
+    const result = await knowiiApiClient.notificationLevels.set(communityCuid, space.cuid, 'none');
+    busyRef.current.delete(busyKey);
+    setBusy(new Set(busyRef.current));
+    if (!result.ok) {
+      setActionError(`We could not mute ${space.name}. Try again.`);
+      return;
+    }
+    const ids = dropLines(feed, notification, (other) => other.space?.cuid === space.cuid);
+    ids.forEach(ownChange);
+    refreshCount();
+    showMuted(async () => {
+      const back =
+        before.ok && before.data.chosen
+          ? await knowiiApiClient.notificationLevels.set(communityCuid, space.cuid, before.data.level)
+          : await knowiiApiClient.notificationLevels.reset(communityCuid, space.cuid);
+      return back.ok;
+    });
+  };
+
+  // "I am caught up": one request clears every line of "Following", never a line of "Needs you"
+  const caughtUp = async () => {
+    if (busyRef.current.has('caught-up')) {
+      return;
+    }
+    busyRef.current.add('caught-up');
+    setBusy(new Set(busyRef.current));
+    setActionError(null);
+    const result = await knowiiApiClient.notifications.caughtUp();
+    busyRef.current.delete('caught-up');
+    setBusy(new Set(busyRef.current));
+    if (!result.ok) {
+      setActionError('We could not clear Following. Try again.');
+      return;
+    }
+    following.items.forEach((item) => ownChange(item.cuid));
+    focusRequest.current = 'following-heading';
+    following.setItems([]);
+    clearUndoTimer();
+    setUndo(null);
+    setMuted(null);
+    setMessage('You are caught up');
+  };
+
   const loadMore = async (feed: typeof main) => {
     const added = await feed.loadMore((page) => {
       const first = page[0];
@@ -385,10 +588,14 @@ export function NotificationsPanel({ onClose, focusHeading }: NotificationsPanel
       href={notificationHref(notification, route)}
       isNew={!isOlder && feed.freshCuids.has(notification.cuid)}
       showCommunity={showCommunity}
-      busy={busy.has(notification.cuid)}
+      busy={busy.has(notification.cuid) || busy.has(`space:${notification.space?.cuid ?? ''}`)}
       doneElsewhere={doneElsewhere.has(notification.cuid)}
+      settingsHref={`${route(USER_NOTIFICATIONS_URL, {})}#notifications-space-${notification.space?.cuid ?? ''}`}
       onOpen={openLine}
       onDone={(n) => void done(n, feed, isOlder)}
+      onStopFollowing={(n) => void stopFollowing(n, feed)}
+      onMuteThread={(n) => void muteThread(n, feed)}
+      onMuteSpace={(n) => void muteSpace(n, feed)}
       onLeave={leaveLine}
       registerLine={registerLine(notification.cuid)}
       registerLink={registerLink(notification.cuid)}
@@ -400,7 +607,7 @@ export function NotificationsPanel({ onClose, focusHeading }: NotificationsPanel
   return (
     <div className="flex flex-col gap-3">
       {/* The status text of the panel: "Done. Undo", "20 more loaded" (polite) */}
-      <div role="status" aria-live="polite" className={undo || message ? 'rounded-lg bg-overlay/10 px-3 py-2 text-sm' : undefined}>
+      <div role="status" aria-live="polite" className={undo || muted || message ? 'rounded-lg bg-overlay/10 px-3 py-2 text-sm' : undefined}>
         {undo ? (
           <>
             Done.{' '}
@@ -408,6 +615,18 @@ export function NotificationsPanel({ onClose, focusHeading }: NotificationsPanel
               ref={undoButton}
               type="button"
               onClick={() => void undoDone()}
+              className="cursor-pointer rounded font-bold underline focus-visible:outline-2 focus-visible:outline-primary"
+            >
+              Undo
+            </button>
+          </>
+        ) : muted ? (
+          <>
+            Muted.{' '}
+            <button
+              ref={muteUndoButton}
+              type="button"
+              onClick={() => void undoMute()}
               className="cursor-pointer rounded font-bold underline focus-visible:outline-2 focus-visible:outline-primary"
             >
               Undo
@@ -476,6 +695,76 @@ export function NotificationsPanel({ onClose, focusHeading }: NotificationsPanel
             className="self-start"
           >
             Load older
+          </Button>
+        )}
+      </section>
+
+      {/* "Following": level 2, the last 14 days. Never counted by the bell, never announced (design 5.1, 9.3) */}
+      <section aria-labelledby="notifications-following" className="flex flex-col gap-2 border-t border-border pt-3">
+        <div className="flex items-center justify-between gap-2">
+          <h3
+            id="notifications-following"
+            ref={followingHeading}
+            tabIndex={-1}
+            className="rounded text-sm font-extrabold outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          >
+            Following
+          </h3>
+          {following.status === 'ready' && following.items.length > 0 && (
+            <Button
+              variant="secondary"
+              size="sm"
+              aria-disabled={busy.has('caught-up') || undefined}
+              aria-busy={busy.has('caught-up') || undefined}
+              onClick={() => void caughtUp()}
+            >
+              I am caught up
+            </Button>
+          )}
+        </div>
+
+        {following.status === 'loading' && (
+          <div aria-busy="true" className="flex flex-col gap-2">
+            {Array.from({ length: FOLLOWING_SKELETON_LINES }, (_, index) => (
+              <div key={index} aria-hidden="true" className="flex gap-3 px-2 py-3">
+                <span className="size-8 shrink-0 rounded-full bg-overlay/10 motion-safe:animate-pulse" />
+                <span className="flex grow flex-col gap-2">
+                  <span className="h-3 w-3/4 rounded bg-overlay/10 motion-safe:animate-pulse" />
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {following.status === 'error' && (
+          <div className="flex flex-col items-start gap-2 rounded-lg border border-border px-3 py-3 text-sm">
+            <p>We could not load Following.</p>
+            <Button variant="secondary" size="sm" onClick={following.retry}>
+              Retry Following
+            </Button>
+          </div>
+        )}
+
+        {following.status === 'ready' &&
+          (following.items.length === 0 ? (
+            <p className="px-2 text-sm text-muted">Nothing new in what you follow.</p>
+          ) : (
+            <ul aria-busy={following.loadingMore || undefined} className="flex flex-col">
+              {following.items.map((notification) => renderLine(following, notification, false))}
+            </ul>
+          ))}
+
+        {following.status === 'ready' && following.hasMore && (
+          <Button
+            variant="secondary"
+            size="sm"
+            aria-label="Load more in Following"
+            aria-busy={following.loadingMore || undefined}
+            aria-disabled={following.loadingMore || undefined}
+            onClick={() => void loadMore(following)}
+            className="self-start"
+          >
+            Load more
           </Button>
         )}
       </section>

@@ -3,9 +3,13 @@ import {
   notificationActorNames,
   notificationBadge,
   notificationBellName,
+  notificationReasonSentence,
   notificationSchema,
   notificationSentence,
+  notificationSentenceHasTitle,
+  notificationSettingsLinkName,
 } from './notification.schema';
+import { SPACE_NOTIFICATION_LEVEL_LABELS, spaceNotificationLevelsFor, threadFollowLabel } from './notification-follow.schema';
 
 const person = (name: string) => ({ cuid: name.toLowerCase(), name, username: name.toLowerCase(), avatar_url: null });
 
@@ -13,20 +17,24 @@ const resource = {
   cuid: 'n1',
   kind: 'post_comment',
   level: 1,
+  reason: 'wrote_post',
   community: { cuid: 'c1', slug: 'knowii', name: 'Knowii' },
   space: { cuid: 's1', slug: 'open', name: 'Open discussion' },
   actor: person('Anna'),
   actors: [person('Anna')],
   others_count: 0,
+  items_count: 1,
   title: 'Notes workflow',
   excerpt: 'I use one inbox note per day',
   target: {
     post_slug: 'notes-workflow',
+    post_cuid: 'p1',
     comment_cuid: 'k1',
     chat_message_cuid: null,
     thread_cuid: null,
     resource_cuid: null,
     resource_slug: null,
+    page_slug: null,
   },
   seen_at: null,
   read_at: null,
@@ -110,5 +118,100 @@ describe('notificationSentence (#1484)', () => {
     expect(notificationSentence(notification({ kind: 'mention', space: null, actors: [person('Marc')] }))).toBe(
       'Marc mentioned you in Knowii',
     );
+  });
+});
+
+describe('the "Following" kinds (#1497)', () => {
+  const level2 = (changes: Partial<Notification>) =>
+    notification({ level: 2, reason: 'follows_thread', actors: [person('Anna')], actor: person('Anna'), ...changes });
+
+  it('parses the five level 2 kinds, the reason, the follow reason and the new target fields', () => {
+    const parsed = notificationSchema.parse({
+      ...resource,
+      kind: 'lesson_new',
+      level: 2,
+      reason: 'started_course',
+      follow_reason: null,
+      items_count: '3',
+      target: { ...resource.target, page_slug: 'lesson-2' },
+    });
+
+    expect(parsed.kind).toBe('lesson_new');
+    expect(parsed.level).toBe(2);
+    expect(parsed.reason).toBe('started_course');
+    expect(parsed.items_count).toBe(3);
+    expect(parsed.target.page_slug).toBe('lesson-2');
+    for (const kind of ['thread_comment', 'thread_reply', 'space_post', 'space_chat']) {
+      expect(notificationSchema.safeParse({ ...resource, kind, level: 2 }).success).toBe(true);
+    }
+    expect(notificationSchema.safeParse({ ...resource, reason: 'because' }).success).toBe(false);
+  });
+
+  it('builds one sentence per kind from the live counts', () => {
+    expect(notificationSentence(level2({ kind: 'thread_comment', items_count: 3 }))).toBe('3 new replies in Notes workflow');
+    expect(notificationSentence(level2({ kind: 'thread_comment', items_count: 1 }))).toBe('Anna replied in Notes workflow');
+    expect(notificationSentence(level2({ kind: 'thread_reply', items_count: 2, title: null }))).toBe(
+      '2 new replies in a thread of Open discussion',
+    );
+    expect(notificationSentence(level2({ kind: 'space_post', items_count: 1 }))).toBe('Anna posted in Open discussion: Notes workflow');
+    expect(notificationSentence(level2({ kind: 'space_post', items_count: 4 }))).toBe('4 new posts in Open discussion');
+    expect(notificationSentence(level2({ kind: 'space_chat', items_count: 9, title: null }))).toBe('New messages in Open discussion');
+    expect(
+      notificationSentence(
+        level2({ kind: 'lesson_new', items_count: 1, title: 'Lesson one', space: { cuid: 's2', slug: 'c', name: 'Course' } }),
+      ),
+    ).toBe('Lesson Lesson one of Course is out');
+    expect(notificationSentence(level2({ kind: 'lesson_new', items_count: 2, space: { cuid: 's2', slug: 'c', name: 'Course' } }))).toBe(
+      '2 new lessons in Course',
+    );
+  });
+
+  it('shows the title once: in the sentence, or under it', () => {
+    expect(notificationSentenceHasTitle(level2({ kind: 'thread_comment' }))).toBe(true);
+    expect(notificationSentenceHasTitle(level2({ kind: 'space_post', items_count: 1 }))).toBe(true);
+    expect(notificationSentenceHasTitle(level2({ kind: 'space_post', items_count: 3 }))).toBe(false);
+    expect(notificationSentenceHasTitle(notification())).toBe(false);
+  });
+
+  it('says why in a sentence for each reason, and names the link after its setting', () => {
+    const space = { cuid: 's1', slug: 'open', name: 'Open discussion' };
+    expect(notificationReasonSentence({ reason: 'wrote_post', follow_reason: null, space })).toBe(
+      'You wrote this post, and someone replied to it.',
+    );
+    expect(notificationReasonSentence({ reason: 'mentioned', follow_reason: null, space })).toBe('Someone mentioned you.');
+    expect(notificationReasonSentence({ reason: 'follows_thread', follow_reason: 'wrote', space })).toBe(
+      'You follow this thread because you wrote it.',
+    );
+    expect(notificationReasonSentence({ reason: 'follows_thread', follow_reason: 'replied', space })).toBe(
+      'You follow this thread because you replied in it.',
+    );
+    expect(notificationReasonSentence({ reason: 'follows_thread', follow_reason: 'manual', space })).toBe(
+      'You follow this thread because you chose to follow it.',
+    );
+    expect(notificationReasonSentence({ reason: 'space_everything', follow_reason: null, space })).toContain('Open discussion');
+    expect(notificationSettingsLinkName({ space, community: { cuid: 'c1', slug: 'knowii', name: 'Knowii' } })).toBe(
+      'Notification settings for Open discussion',
+    );
+  });
+});
+
+describe('the words of a thread and of a space level (#1497)', () => {
+  it('names the five states of a thread', () => {
+    expect(threadFollowLabel({ state: 'following', reason: 'wrote' })).toBe('Following (you wrote this)');
+    expect(threadFollowLabel({ state: 'following', reason: 'replied' })).toBe('Following (you replied)');
+    expect(threadFollowLabel({ state: 'following', reason: 'manual' })).toBe('Following');
+    expect(threadFollowLabel({ state: 'stopped', reason: 'replied' })).toBe('Not following');
+    expect(threadFollowLabel({ state: null, reason: null })).toBe('Not following');
+    expect(threadFollowLabel({ state: 'muted', reason: null })).toBe('Muted');
+  });
+
+  it('offers Everything to a discussion space and a chat space only, and nothing to a link space', () => {
+    expect(spaceNotificationLevelsFor('discussion')).toEqual(['all', 'mine', 'none']);
+    expect(spaceNotificationLevelsFor('chat')).toEqual(['all', 'mine', 'none']);
+    expect(spaceNotificationLevelsFor('course')).toEqual(['mine', 'none']);
+    expect(spaceNotificationLevelsFor('link')).toEqual([]);
+    expect(SPACE_NOTIFICATION_LEVEL_LABELS.none.description).toBe('You will get nothing from this space, also when someone mentions you.');
+    expect(SPACE_NOTIFICATION_LEVEL_LABELS.all.name).toBe('Everything');
+    expect(SPACE_NOTIFICATION_LEVEL_LABELS.mine.name).toBe('Only what is for me');
   });
 });

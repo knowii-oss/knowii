@@ -39,7 +39,7 @@ final class ChooseSpaceLevels implements ChoosesSpaceLevels
         }
 
         $spaces = SpaceTree::for($community, $user)
-            ->flatMap(static fn ($group) => $group->spaces->map(static fn (Space $space): array => ['group' => $group->cuid, 'space' => $space]))
+            ->flatMap(static fn ($group) => $group->spaces->map(static fn (Space $space): array => ['group' => $group->cuid, 'group_name' => $group->name, 'space' => $space]))
             ->filter(static fn (array $entry): bool => $entry['space']->type !== KnowiiSpaceType::Link)
             ->values();
         $chosen = NotificationSpaceLevel::query()
@@ -59,6 +59,7 @@ final class ChooseSpaceLevels implements ChoosesSpaceLevels
                 'space_slug' => $space->slug,
                 'space_type' => $space->type->value,
                 'space_group_cuid' => $entry['group'],
+                'space_group_name' => $entry['group_name'],
                 'level' => ($own ?? $default)->value,
                 'chosen' => $own !== null,
                 'default' => $default->value,

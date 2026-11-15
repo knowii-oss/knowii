@@ -8,6 +8,7 @@ import {
   createSpaceFormWithGroupsSchema,
   DEFAULT_TEXTAREA_ROWS,
   knowiiApiClient,
+  SPACE_NOTIFICATION_LEVEL_LABELS,
   SPACE_POSTING_POLICIES,
   SPACE_POSTING_POLICY_LABELS,
   SPACE_TYPE_LABELS,
@@ -45,6 +46,17 @@ const typeOptions = SPACE_TYPES.map((type) => ({
 const visibilityOptions = SPACE_VISIBILITIES.map((visibility) => ({ value: visibility, label: SPACE_VISIBILITY_LABELS[visibility] }));
 const postingPolicyOptions = SPACE_POSTING_POLICIES.map((policy) => ({ value: policy, label: SPACE_POSTING_POLICY_LABELS[policy] }));
 
+type DefaultLevel = 'all' | 'mine';
+
+const defaultLevelOptions = (type: SpaceType) => [
+  ...(type === 'discussion' ? [{ value: 'all' as const, label: SPACE_NOTIFICATION_LEVEL_LABELS.all.name }] : []),
+  { value: 'mine' as const, label: SPACE_NOTIFICATION_LEVEL_LABELS.mine.name },
+];
+
+// What members get when the manager chose nothing: Everything where only moderators post in a discussion space (#1475)
+const builtInDefaultLevel = (type: SpaceType, postingPolicy: SpacePostingPolicy): DefaultLevel =>
+  type === 'discussion' && postingPolicy === 'moderators' ? 'all' : 'mine';
+
 function initialValues(space: Space | undefined, defaultSpaceGroupCuid: string | undefined): SpaceForm {
   return {
     name: space?.name ?? '',
@@ -56,6 +68,9 @@ function initialValues(space: Space | undefined, defaultSpaceGroupCuid: string |
     space_group_cuid: space?.space_group_cuid ?? defaultSpaceGroupCuid ?? '',
     access_groups: (space?.access_groups ?? []).map((group) => group.cuid),
     url: space?.url ?? '',
+    default_notification_level: space
+      ? (space.default_notification_level ?? builtInDefaultLevel(space.type, space.posting_policy))
+      : 'mine',
   };
 }
 
@@ -86,6 +101,9 @@ export function SpaceDialog({ open, communityCuid, spaceGroups, space, defaultSp
   // A link space (#1294) opens a page outside Knowii: a URL, and nobody posts in it
   const spaceType = useWatch({ control: form.control, name: 'type' });
   const isLink = spaceType === 'link';
+  const postingPolicy = useWatch({ control: form.control, name: 'posting_policy' });
+  // Only a change of the manager is sent: an untouched built-in default stays "no choice"
+  const defaultLevelChanged = !!form.formState.dirtyFields.default_notification_level;
   const spaceGroupCuid = useWatch({ control: form.control, name: 'space_group_cuid' });
   const directGroupCuids = useWatch({ control: form.control, name: 'access_groups' });
   useEffect(() => {
@@ -136,7 +154,7 @@ export function SpaceDialog({ open, communityCuid, spaceGroups, space, defaultSp
     if (moveBlocked) {
       return;
     }
-    const { url, ...fields } = data;
+    const { url, default_notification_level: defaultLevel, ...fields } = data;
     const link = data.type === 'link';
     const result = space
       ? await knowiiApiClient.communities.spaces.update(communityCuid, space.cuid, {
@@ -148,6 +166,7 @@ export function SpaceDialog({ open, communityCuid, spaceGroups, space, defaultSp
           space_group_cuid: data.space_group_cuid,
           ...(data.visibility === 'groups' ? { access_groups: data.access_groups } : {}),
           ...(link ? { url } : {}),
+          ...(defaultLevelChanged && defaultLevel ? { default_notification_level: defaultLevel } : {}),
         })
       : await knowiiApiClient.communities.spaces.create(communityCuid, link ? { ...fields, url } : fields);
 
@@ -439,6 +458,29 @@ export function SpaceDialog({ open, communityCuid, spaceGroups, space, defaultSp
                 <span>I understand, move the space</span>
               </label>
             )}
+          </div>
+        )}
+
+        {space && !isLink && (
+          <div className="sm:col-span-6">
+            <InputLabel htmlFor="space-default-level">What members get by default</InputLabel>
+            <Controller
+              name="default_notification_level"
+              control={form.control}
+              render={({ field }) => (
+                <Select<DefaultLevel>
+                  id="space-default-level"
+                  className="mt-1"
+                  options={defaultLevelOptions(space.type)}
+                  value={field.value ?? builtInDefaultLevel(space.type, postingPolicy)}
+                  onChange={field.onChange}
+                />
+              )}
+            />
+            <p className="mt-1 text-xs text-muted">
+              This applies to the members who did not choose for this space. The choice of a member always wins.
+              {space.type !== 'discussion' && ' Everything is only for a discussion space.'}
+            </p>
           </div>
         )}
 

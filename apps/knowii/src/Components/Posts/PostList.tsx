@@ -13,6 +13,8 @@ export interface PostListProps {
   initialPosts: Paginated<Post>;
   canContribute: boolean;
   canReact: boolean;
+  // The member can moderate the space: the composer offers "Tell the followers of this space now" (#1497)
+  canModerate?: boolean;
   /**
    * The signed-in member: their own new posts are already in the list (no "new posts" button for them)
    */
@@ -22,7 +24,15 @@ export interface PostListProps {
 /**
  * The posts of a discussion space, pinned first, with "Load more" and the composer for new posts.
  */
-export function PostList({ community, space, initialPosts, canContribute, canReact, currentUserCuid = null }: PostListProps) {
+export function PostList({
+  community,
+  space,
+  initialPosts,
+  canContribute,
+  canReact,
+  canModerate = false,
+  currentUserCuid = null,
+}: PostListProps) {
   const { showToast } = useAppData();
   const isVisitor = useIsVisitor();
   const [posts, setPosts] = useState<Post[]>(initialPosts.items);
@@ -181,6 +191,7 @@ export function PostList({ community, space, initialPosts, canContribute, canRea
         communityCuid={community.cuid}
         spaceCuid={space.cuid}
         spaceName={space.name}
+        canModerate={canModerate}
         onClose={() => setComposerOpen(false)}
         onSaved={onPublished}
       />
