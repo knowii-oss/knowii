@@ -1,6 +1,6 @@
 ---
 title: Data processing agreement
-updated: 2026-11-14
+updated: 2026-11-15
 draft: false
 ---
 
@@ -60,7 +60,7 @@ The Processor notifies the Controller without undue delay, and at most 48 hours 
 
 ## 8. Transfers outside the European Economic Area
 
-Some sub-processors are in the United States. These transfers use the EU-US Data Privacy Framework or the standard contractual clauses of the European Commission. The United Kingdom has an adequacy decision.
+Some sub-processors are in the United States. These transfers use the EU-US Data Privacy Framework or the standard contractual clauses of the European Commission.
 
 ## 9. End of the processing
 

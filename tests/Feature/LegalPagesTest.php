@@ -284,6 +284,12 @@ test('the DPA tells that Knowii records the acceptance date, and how to ask for 
     ));
 });
 
+test('the DPA speaks only about the countries of its sub-processors (#1470, approved 2026-11-15)', function () {
+    $this->get('/dpa')->assertInertia(fn ($page) => $page->where('html', fn (string $html) => str_contains($html, 'These transfers use the EU-US Data Privacy Framework or the standard contractual clauses of the European Commission.')
+        && ! str_contains($html, 'United Kingdom')
+    ));
+});
+
 test('the version of a legal page is its updated date (#1353)', function () {
     expect(LegalPages::updated('dpa'))->toMatch('/^\d{4}-\d{2}-\d{2}$/');
 });
