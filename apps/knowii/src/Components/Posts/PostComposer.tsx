@@ -1,13 +1,12 @@
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useMemo } from 'react';
-import type { Post, PostForm, Space } from '@knowii/common';
+import type { Post, PostForm } from '@knowii/common';
 import { knowiiApiClient, MAX_LENGTH_POST_BODY, MAX_LENGTH_POST_TITLE, POST_EDITOR_ROWS, postFormSchema, useAppData } from '@knowii/common';
 import { useMentionSource } from '@/Components/Members/use-mention-source';
 import { useImageUploader } from '@/Components/Uploads/use-image-uploader';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
-import { publicSubmitLabel } from '@/Components/Spaces/PublicSpaceNotice';
 import { Button, Dialog, MarkdownEditor, TextInput } from '@/Components/ui';
 
 export interface PostComposerProps {
@@ -16,10 +15,6 @@ export interface PostComposerProps {
   spaceCuid: string;
   spaceName: string;
   /**
-   * The space: in a public space, the button says "Post publicly" (#1387)
-   */
-  space?: Pick<Space, 'visibility' | 'type'> | undefined;
-  /**
    * The post to edit (with its Markdown body). Absent: write a new post.
    */
   post?: Post | undefined;
@@ -27,7 +22,7 @@ export interface PostComposerProps {
   onSaved: (post: Post) => void;
 }
 
-export function PostComposer({ open, communityCuid, spaceCuid, spaceName, space, post, onClose, onSaved }: PostComposerProps) {
+export function PostComposer({ open, communityCuid, spaceCuid, spaceName, post, onClose, onSaved }: PostComposerProps) {
   const { showToast } = useAppData();
   const mentions = useMentionSource(communityCuid);
   const images = useImageUploader(communityCuid);
@@ -81,7 +76,7 @@ export function PostComposer({ open, communityCuid, spaceCuid, spaceName, space,
             Cancel
           </Button>
           <Button type="submit" form="post-form" disabled={!form.formState.isValid} loading={form.formState.isSubmitting}>
-            {post ? 'Save' : publicSubmitLabel(space, 'post', 'Publish')}
+            {post ? 'Save' : 'Publish'}
           </Button>
         </>
       }

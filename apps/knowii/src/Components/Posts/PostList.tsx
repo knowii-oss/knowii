@@ -181,7 +181,6 @@ export function PostList({ community, space, initialPosts, canContribute, canRea
         communityCuid={community.cuid}
         spaceCuid={space.cuid}
         spaceName={space.name}
-        space={space}
         onClose={() => setComposerOpen(false)}
         onSaved={onPublished}
       />

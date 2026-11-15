@@ -306,7 +306,8 @@ test('the privacy policy tells about notifications and how long they stay (#1474
 test('the privacy policy says that a public space is read by anyone, with the name and the picture (#1387)', function () {
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
         ->where('updated', '2026-11-15')
-        ->where('html', fn (string $html) => str_contains($html, 'What you post in a public space of a community can be read by anyone on the internet, with your name and your picture. The space tells you so before you post.')));
+        ->where('html', fn (string $html) => str_contains($html, 'What you post in a public space of a community can be read by anyone on the internet, with your name and your picture.')
+            && ! str_contains($html, 'The space tells you so before you post.')));
 });
 
 test('the privacy policy says that a member can delete their content with the account, and write to us afterwards (#1344)', function () {

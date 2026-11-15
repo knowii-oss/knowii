@@ -43,7 +43,7 @@ We do not use advertising or tracking cookies, and we do not sell personal data.
 
 Members of a community see what you post in it, and the profile fields you choose to show. The owner and the administrators of a community see its member list.
 
-What you post in a public space of a community can be read by anyone on the internet, with your name and your picture. The space tells you so before you post.
+What you post in a public space of a community can be read by anyone on the internet, with your name and your picture.
 
 We use these sub-processors:
 

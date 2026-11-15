@@ -154,7 +154,6 @@ export default function ResourcePage(props: Props) {
           currentUserCuid={page.props.auth.user?.cuid ?? null}
           canComment={props.permissions.canComment}
           canModerate={props.permissions.canModerate}
-          space={space}
         />
       </CommunityShell>
 
