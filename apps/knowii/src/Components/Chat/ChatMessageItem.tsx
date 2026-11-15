@@ -21,6 +21,11 @@ export interface ChatMessageItemProps {
    * Open the thread of the message. Absent for the replies (one level).
    */
   onOpenThread?: ((message: ChatMessage) => void) | undefined;
+  /**
+   * Prefix of the id of the message in the page (`message-{cuid}`): the target of a link from a notification (#1484). The
+   * thread panel shows the same messages again, so it gives another prefix.
+   */
+  idPrefix?: string;
 }
 
 /**
@@ -44,8 +49,11 @@ export function ChatMessageItem(props: ChatMessageItemProps) {
 
   return (
     <article
+      id={`${props.idPrefix ?? 'message'}-${message.cuid}`}
+      // The target of a link from a notification gets the focus, and its outline stays until the focus leaves (#1484)
+      tabIndex={-1}
       aria-label={`Message by ${authorName}`}
-      className="group flex gap-3 rounded-lg px-2 py-2 focus-within:bg-overlay/5 hover:bg-overlay/5"
+      className="group flex gap-3 rounded-lg px-2 py-2 outline-none focus:outline-2 focus:outline-solid focus:outline-primary focus-within:bg-overlay/5 hover:bg-overlay/5"
     >
       <Avatar name={authorName} imageUrl={message.author?.avatar_url ?? null} size="sm" />
       <div className="flex min-w-0 grow flex-col gap-1">

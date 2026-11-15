@@ -49,6 +49,13 @@ const SPACE_MESSAGE_EVENTS = [
   'space.reactions.changed',
 ] as const;
 
+// Pages of older messages that a link from a notification may load to reach its message (#1484)
+const JUMP_MAX_PAGES = 10;
+const JUMP_IN_THREAD_DELAY_MS = 300;
+const MESSAGE_HASH = '#message-';
+// WARNING: aligned with THREAD_QUERY_PARAM in Notifications/notification-link.ts
+const THREAD_QUERY_PARAM = 'thread';
+
 const sortByTime = (messages: ChatMessage[]) =>
   [...messages].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
@@ -70,6 +77,10 @@ export function ChatRoom(props: ChatRoomProps) {
   const [replies, setReplies] = useState<ChatMessage[] | null>(null);
   const logRef = useRef<HTMLOListElement>(null);
   const stickToBottom = useRef(true);
+  // A link from a notification (#1484): `?thread={cuid}#message-{cuid}`. The message gets the focus once it is in the page.
+  const [jump, setJump] = useState<{ cuid: string; inThread: boolean } | null>(null);
+  const handledJump = useRef<typeof jump>(null);
+  const latest = useRef({ messages, hasMore });
 
   const presence = usePresence({
     channel: currentUserCuid ? props.presence.channel : null,
@@ -98,6 +109,10 @@ export function ChatRoom(props: ChatRoomProps) {
       void backend.markAsRead(lastCuid);
     }
   }, [lastCuid, currentUserCuid, backend]);
+
+  useEffect(() => {
+    latest.current = { messages, hasMore };
+  });
 
   const upsert = useCallback((list: ChatMessage[], message: ChatMessage) => {
     const exists = list.some((item) => item.cuid === message.cuid);
@@ -145,6 +160,67 @@ export function ChatRoom(props: ChatRoomProps) {
       }
     },
   });
+
+  // The address names a message (`?thread={cuid}#message-{cuid}`): open its thread, or load older messages until it is there
+  const { thread: openThreadOf, list: listMessages } = backend;
+  useEffect(() => {
+    const followLink = async () => {
+      if (!window.location.hash.startsWith(MESSAGE_HASH)) {
+        return;
+      }
+      const cuid = decodeURIComponent(window.location.hash.slice(MESSAGE_HASH.length));
+      const thread = new URLSearchParams(window.location.search).get(THREAD_QUERY_PARAM);
+      if (thread && openThreadOf) {
+        const result = await openThreadOf(thread);
+        if (result.ok) {
+          setThreadOf(result.data.message);
+          setReplies(result.data.replies);
+          setJump({ cuid, inThread: true });
+        }
+        return;
+      }
+      let known = latest.current.messages;
+      let more = latest.current.hasMore;
+      for (let page = 0; page < JUMP_MAX_PAGES && more; page++) {
+        const shown = known;
+        const oldest = shown[0];
+        if (!oldest || shown.some((message) => message.cuid === cuid)) {
+          break;
+        }
+        const result = await listMessages(oldest.cuid);
+        if (!result.ok) {
+          break;
+        }
+        stickToBottom.current = false;
+        known = sortByTime([...result.data.messages.filter((item) => !shown.some((message) => message.cuid === item.cuid)), ...shown]);
+        more = result.data.hasMore;
+        setMessages(known);
+        setHasMore(more);
+      }
+      setJump({ cuid, inThread: false });
+    };
+    const onHashChange = () => void followLink();
+    void followLink();
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, [listMessages, openThreadOf]);
+
+  useEffect(() => {
+    if (!jump || handledJump.current === jump) {
+      return;
+    }
+    const delay = jump.inThread ? JUMP_IN_THREAD_DELAY_MS : 0;
+    const timer = setTimeout(() => {
+      const element = document.getElementById(`${jump.inThread ? 'thread-message' : 'message'}-${jump.cuid}`);
+      if (element) {
+        handledJump.current = jump;
+        stickToBottom.current = false;
+        element.scrollIntoView({ block: 'center' });
+        element.focus({ preventScroll: true });
+      }
+    }, delay);
+    return () => clearTimeout(timer);
+  }, [jump, messages, replies]);
 
   const loadOlder = async () => {
     const oldest = messages[0];

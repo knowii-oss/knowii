@@ -52,6 +52,8 @@ class NotificationResource extends AbstractKnowiiJsonResource
                 'chat_message_cuid' => $message?->cuid,
                 'thread_cuid' => $message?->parent?->cuid,
                 'resource_cuid' => $comment?->communityResource?->cuid,
+                // The page of a resource is addressed by its slug
+                'resource_slug' => $comment?->communityResource?->slug,
             ],
             'seen_at' => $notification->seen_at,
             'read_at' => $notification->read_at,

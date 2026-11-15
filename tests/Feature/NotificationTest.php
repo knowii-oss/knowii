@@ -34,6 +34,7 @@ use App\Models\ChatMessage;
 use App\Models\ChatRead;
 use App\Models\Comment;
 use App\Models\Community;
+use App\Models\CommunityResource;
 use App\Models\Conversation;
 use App\Models\Notification;
 use App\Models\Post;
@@ -604,7 +605,7 @@ test('the list has the documented shape, built from the live content', function 
         ->and($item['actors'])->toHaveCount(1)
         ->and($item['others_count'])->toBe(0)
         ->and($item['title'])->toBe('My title')
-        ->and($item['target'])->toBe(['post_slug' => $post->slug, 'comment_cuid' => $comment->cuid, 'chat_message_cuid' => null, 'thread_cuid' => null, 'resource_cuid' => null])
+        ->and($item['target'])->toBe(['post_slug' => $post->slug, 'comment_cuid' => $comment->cuid, 'chat_message_cuid' => null, 'thread_cuid' => null, 'resource_cuid' => null, 'resource_slug' => null])
         ->and($item['seen_at'])->toBeNull()
         ->and($item['read_at'])->toBeNull()
         ->and($item)->toHaveKeys(['created_at', 'updated_at'])
@@ -627,6 +628,33 @@ test('the list of a mention in a chat thread names the message and its thread', 
         ->and($item['title'])->toBeNull()
         ->and($item['excerpt'])->toStartWith('In the thread')
         ->and($item['target'])->toMatchArray(['chat_message_cuid' => $reply->cuid, 'thread_cuid' => $root->cuid, 'post_slug' => null, 'comment_cuid' => null]);
+});
+
+test('the list of a reply to a comment on a resource names the resource and its slug (#1484)', function () {
+    $space = Space::factory()->inGroup($this->group)->create(['type' => KnowiiSpaceType::Resources]);
+    $resource = CommunityResource::factory()->create(['space_id' => $space->id]);
+    $mine = app(CreatesComments::class)->create($this->author, $resource, ['body' => 'My comment on the resource']);
+    $reply = app(CreatesComments::class)->create($this->replier, $resource, ['body' => 'A reply', 'parent_cuid' => $mine->cuid]);
+
+    $item = $this->actingAs($this->author)->getJson(ntfPath(ApiRoutes::NOTIFICATIONS))->assertOk()->json('data.0');
+
+    expect($item['kind'])->toBe('comment_reply')
+        ->and($item['space']['slug'])->toBe($space->slug)
+        ->and($item['target'])->toMatchArray([
+            'comment_cuid' => $reply->cuid,
+            'post_slug' => null,
+            'resource_cuid' => $resource->cuid,
+            'resource_slug' => $resource->slug,
+        ]);
+});
+
+test('the pages share the number of communities of the member, for the bell (#1484)', function () {
+    $this->actingAs($this->author)->get('/dashboard')->assertInertia(fn ($page) => $page->where('communityCount', 1));
+
+    $other = Community::factory()->create();
+    $other->users()->attach($this->author, ['role' => 'member']);
+
+    $this->actingAs($this->author)->get('/dashboard')->assertInertia(fn ($page) => $page->where('communityCount', 2));
 });
 
 test('the list is paginated 20 by 20, newest news first, and filters by community and age', function () {
@@ -761,6 +789,26 @@ test('seen, read and undo work on the rows of the member only', function () {
     // No endpoint deletes a row
     $this->deleteJson(ntfPath(ApiRoutes::NOTIFICATION_READ, [ApiRoutes::PARAM_NOTIFICATION => $mine->cuid]))->assertStatus(405);
     expect(Notification::query()->count())->toBe(2);
+});
+
+test('the list holds the open rows: a row that was read leaves it, and state gives the read ones or both (#1484)', function () {
+    $first = ntfPost($this->author, $this->space);
+    ntfComment($this->replier, $first);
+    ntfComment($this->third, ntfPost($this->author, $this->space, 'Second', 'Second post of the tests'));
+    [$read, $open] = ntfRows($this->author)->all();
+    $this->actingAs($this->author);
+    $this->putJson(ntfPath(ApiRoutes::NOTIFICATION_READ, [ApiRoutes::PARAM_NOTIFICATION => $read->cuid]))->assertOk();
+
+    $path = ntfPath(ApiRoutes::NOTIFICATIONS);
+    expect($this->getJson($path)->assertOk()->json('data.*.cuid'))->toBe([$open->cuid])
+        ->and($this->getJson($path.'?state=open')->assertOk()->json('data.*.cuid'))->toBe([$open->cuid])
+        ->and($this->getJson($path.'?state=read')->assertOk()->json('data.*.cuid'))->toBe([$read->cuid])
+        ->and($this->getJson($path.'?state=all')->assertOk()->json('data.*.cuid'))->toHaveCount(2);
+    $this->getJson($path.'?state=other')->assertStatus(400)->assertJsonPath('type', KnowiiApiResponseType::ValidationIssue->value);
+
+    // Undo puts the row back in the list
+    $this->postJson(ntfPath(ApiRoutes::NOTIFICATION_UNREAD, [ApiRoutes::PARAM_NOTIFICATION => $read->cuid]))->assertOk();
+    expect($this->getJson($path)->assertOk()->json('data.*.cuid'))->toHaveCount(2);
 });
 
 test('seen needs a list of 1 to 100 cuids: a validation issue is a 400', function () {

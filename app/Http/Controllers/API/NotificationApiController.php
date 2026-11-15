@@ -15,6 +15,7 @@ use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 /**
  * The notifications of the current member, in every community (#1474, ADR 0042, design 5.1, 5.2, 6.1). Own rows only:
@@ -29,7 +30,9 @@ class NotificationApiController extends Controller
      * The "Needs you" notifications of the member, the newest news first (a bundled row moves up when a new comment
      * arrives). Each one holds the community, the space, the last author, up to 3 authors with `others_count`, a plain
      * text excerpt (300 characters at most) and the title built from the live content, and the target to open.
-     * Without `older`, the rows of the last 14 days; with `older=true`, the older ones.
+     * Without `older`, the rows of the last 14 days; with `older=true`, the older ones. Without `state`, the open
+     * notifications (not read: the "Needs you" list); `state=read` gives the ones that the member opened or marked
+     * done, `state=all` gives both.
      *
      * @throws AuthenticationException
      */
@@ -37,6 +40,7 @@ class NotificationApiController extends Controller
     #[QueryParameter('offset', description: 'Notifications to skip (default 0)', type: 'int', example: 0)]
     #[QueryParameter('community', description: 'Keep the notifications of this community (cuid)', type: 'string')]
     #[QueryParameter('older', description: 'true: the notifications that are older than 14 days', type: 'bool', example: false)]
+    #[QueryParameter('state', description: 'open (default): not read. read: opened or marked done. all: both', type: 'string', example: 'open')]
     final public function index(Request $request): JsonResponse
     {
         $user = $request->user() ?? throw new AuthenticationException;
@@ -47,9 +51,25 @@ class NotificationApiController extends Controller
             Pagination::fromRequest($request, Constants::NOTIFICATIONS_PER_PAGE),
             is_string($community) && $community !== '' ? $community : null,
             $request->boolean('older'),
+            self::readFilter($request),
         );
 
         return self::success('Notifications', $page['metadata'], $page['items']->toResourceCollection());
+    }
+
+    /**
+     * The `state` of the list: false for the open rows, true for the read ones, null for both
+     */
+    private static function readFilter(Request $request): ?bool
+    {
+        $state = $request->query('state', 'open');
+
+        return match ($state) {
+            'open' => false,
+            'read' => true,
+            'all' => null,
+            default => throw ValidationException::withMessages(['state' => 'The state is open, read or all']),
+        };
     }
 
     /**

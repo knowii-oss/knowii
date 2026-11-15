@@ -23,11 +23,18 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
  */
 final class ListNotifications implements ListsNotifications
 {
-    final public function list(User $user, Pagination $pagination, ?string $communityCuid = null, bool $older = false): array
+    final public function list(User $user, Pagination $pagination, ?string $communityCuid = null, bool $older = false, ?bool $read = false): array
     {
         $rows = $this->ofMember($user);
         if ($communityCuid !== null && $communityCuid !== '') {
             $rows->whereIn('community_id', Community::query()->where('cuid', $communityCuid)->select('id'));
+        }
+
+        // "Needs you" holds the open rows: a row that the member opened or marked done leaves it (design 5.1.4)
+        if ($read === false) {
+            $rows->whereNull('read_at');
+        } elseif ($read === true) {
+            $rows->whereNotNull('read_at');
         }
 
         $cutoff = now()->subDays(Constants::NOTIFICATIONS_FOLD_DAYS);

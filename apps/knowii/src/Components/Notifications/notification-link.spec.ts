@@ -1,0 +1,76 @@
+import { describe, expect, it } from 'vitest';
+import { commentAnchor } from '@/Components/Comments/CommentSection';
+import { makeNotification } from '@/test-utils/notifications';
+import { commentHash, messageAnchor, notificationHref } from './notification-link';
+
+const route = (name: string, params: Record<string, string>) => `/${name}/${Object.values(params).join('/')}`;
+
+describe('notificationHref (#1484)', () => {
+  it('uses the anchor of the comment permalinks (#1205)', () => {
+    expect(commentHash('abc')).toBe(commentAnchor('abc'));
+  });
+
+  it('opens the post page at the comment', () => {
+    expect(notificationHref(makeNotification('a'), route)).toBe('/posts.show/knowii/open/post-a#comment-comment-a');
+  });
+
+  it('opens the post page for a mention in the post itself', () => {
+    const mention = makeNotification('a', {
+      kind: 'mention',
+      target: {
+        post_slug: 'my-post',
+        comment_cuid: null,
+        chat_message_cuid: null,
+        thread_cuid: null,
+        resource_cuid: null,
+        resource_slug: null,
+      },
+    });
+
+    expect(notificationHref(mention, route)).toBe('/posts.show/knowii/open/my-post');
+  });
+
+  it('opens the chat space at the message, and at its thread for a reply', () => {
+    const target = {
+      post_slug: null,
+      comment_cuid: null,
+      chat_message_cuid: 'm1',
+      thread_cuid: null,
+      resource_cuid: null,
+      resource_slug: null,
+    };
+
+    expect(notificationHref(makeNotification('a', { kind: 'mention', target }), route)).toBe(
+      `/spaces.show/knowii/open#${messageAnchor('m1')}`,
+    );
+    expect(notificationHref(makeNotification('a', { kind: 'mention', target: { ...target, thread_cuid: 'root' } }), route)).toBe(
+      '/spaces.show/knowii/open?thread=root#message-m1',
+    );
+  });
+
+  it('opens the resource page at the comment', () => {
+    const target = {
+      post_slug: null,
+      comment_cuid: 'k1',
+      chat_message_cuid: null,
+      thread_cuid: null,
+      resource_cuid: 'r1',
+      resource_slug: 'a-resource',
+    };
+
+    expect(notificationHref(makeNotification('a', { target }), route)).toBe('/resources.show/knowii/open/a-resource#comment-k1');
+  });
+
+  it('has no address without a space, or without a target', () => {
+    expect(notificationHref(makeNotification('a', { space: null }), route)).toBeNull();
+    const empty = {
+      post_slug: null,
+      comment_cuid: null,
+      chat_message_cuid: null,
+      thread_cuid: null,
+      resource_cuid: null,
+      resource_slug: null,
+    };
+    expect(notificationHref(makeNotification('a', { target: empty }), route)).toBeNull();
+  });
+});

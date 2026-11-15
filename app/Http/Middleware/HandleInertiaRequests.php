@@ -41,10 +41,14 @@ class HandleInertiaRequests extends Middleware
         ];
 
         // If the user is authenticated, load their communities
-        if ($request->user()) {
+        $user = $request->user();
+        if ($user !== null) {
             // Add the user profile
-            $userProfile = $request->user()->profile;
+            $userProfile = $user->profile;
             $retVal['userProfile'] = $userProfile;
+            // The bell shows the name of the community on each notification when the member is in more than one (#1484).
+            // The closure keeps the user of this moment: a later middleware can change who the request answers for
+            $retVal['communityCount'] = fn () => $user->communities()->count();
         }
 
         return $retVal;

@@ -78,6 +78,13 @@ import {
   USERS_API_IS_USERNAME_AVAILABLE_PATH,
   NEWSLETTER_API_PATH,
   WAITLIST_API_PATH,
+  NOTIFICATIONS_PER_PAGE,
+  NOTIFICATION_API_PARAM_NOTIFICATION,
+  NOTIFICATION_READ_API_PATH,
+  NOTIFICATION_UNREAD_API_PATH,
+  NOTIFICATIONS_API_PATH,
+  NOTIFICATIONS_COUNT_API_PATH,
+  NOTIFICATIONS_SEEN_API_PATH,
 } from '../constants';
 import type { PingResponse } from './ping-response.schema';
 import { pingResponseSchema } from './ping-response.schema';
@@ -99,12 +106,14 @@ import type { ApiResult } from './api-result';
 import { apiPath, apiRequest, fieldErrors } from './api-result';
 import type { Space, SpaceCreateInput, SpaceForm, SpaceGroup, SpaceGroupForm } from '../types/space.schema';
 import { spaceGroupSchema, spaceSchema } from '../types/space.schema';
-import type { Author, Paginated, Post, PostForm } from '../types/post.schema';
+import type { Author, Paginated, Pagination, Post, PostForm } from '../types/post.schema';
 import { authorSchema, paginationSchema, postSchema } from '../types/post.schema';
 import type { Comment, CommentForm } from '../types/comment.schema';
 import { commentSchema } from '../types/comment.schema';
 import type { Conversation, NewConversationForm } from '../types/conversation.schema';
 import { conversationSchema } from '../types/conversation.schema';
+import type { Notification } from '../types/notification.schema';
+import { notificationSchema } from '../types/notification.schema';
 import type { PresenceMember } from '../types/presence.schema';
 import { presenceMemberSchema } from '../types/presence.schema';
 import type { Upload } from '../types/upload.schema';
@@ -1232,6 +1241,70 @@ export const knowiiApiClient = {
         };
       }
     },
+  },
+  /**
+   * The notifications of the current member, in every community (#1484, ADR 0042). The server holds the count: the client
+   * never computes it.
+   */
+  notifications: {
+    /**
+     * A page of the "Needs you" notifications, newest news first. `older`: the ones that are older than 14 days.
+     */
+    list: async (
+      input: { limit?: number; offset?: number; older?: boolean } = {},
+      signal?: AbortSignal,
+    ): Promise<ApiResult<{ items: Notification[]; pagination: Pagination }>> => {
+      const query = new URLSearchParams({ limit: String(input.limit ?? NOTIFICATIONS_PER_PAGE), offset: String(input.offset ?? 0) });
+      if (input.older) {
+        query.set('older', 'true');
+      }
+      try {
+        const response = await fetch(`${NOTIFICATIONS_API_PATH}?${query.toString()}`, {
+          headers: { Accept: 'application/json' },
+          ...(signal === undefined ? {} : { signal }),
+        });
+        const json: unknown = await response.json();
+        const parsed = z
+          .object({ data: z.array(notificationSchema), metadata: z.object({ pagination: paginationSchema }) })
+          .safeParse(json);
+        if (!response.ok || !parsed.success) {
+          return { ok: false, status: response.status, message: 'Failed to load your notifications.', errors: {} };
+        }
+        return { ok: true, message: '', data: { items: parsed.data.data, pagination: parsed.data.metadata.pagination } };
+      } catch {
+        return { ok: false, status: 0, message: 'Failed to load your notifications.', errors: {} };
+      }
+    },
+    /**
+     * The number of the bell: the notifications that the member did not see, 14 days old at most
+     */
+    count: (): Promise<ApiResult<{ count: number }>> =>
+      apiRequest('get', NOTIFICATIONS_COUNT_API_PATH, z.object({ count: z.number().int() }), 'Failed to load the notification count.'),
+    /**
+     * The lines were on screen
+     */
+    seen: (notificationCuids: string[]): Promise<ApiResult<undefined>> =>
+      apiRequest('post', NOTIFICATIONS_SEEN_API_PATH, null, 'Failed to save what you saw.', { notification_cuids: notificationCuids }),
+    /**
+     * The line was opened or marked "Done"
+     */
+    read: (notificationCuid: string): Promise<ApiResult<Notification>> =>
+      apiRequest(
+        'put',
+        apiPath(NOTIFICATION_READ_API_PATH, { [NOTIFICATION_API_PARAM_NOTIFICATION]: notificationCuid }),
+        notificationSchema,
+        'Failed to mark the notification as done.',
+      ),
+    /**
+     * Undo "Done". A newer notification about the same thing makes it fail with status 422.
+     */
+    unread: (notificationCuid: string): Promise<ApiResult<Notification>> =>
+      apiRequest(
+        'post',
+        apiPath(NOTIFICATION_UNREAD_API_PATH, { [NOTIFICATION_API_PARAM_NOTIFICATION]: notificationCuid }),
+        notificationSchema,
+        'Failed to undo.',
+      ),
   },
   markdown: {
     /**

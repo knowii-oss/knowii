@@ -23,6 +23,10 @@ export type InertiaSharedProps<T = NonNullable<unknown>> = T & {
     hasEmailVerification: boolean;
   };
   auth: Auth;
+  /**
+   * The communities of the signed-in member (#1484): the bell names the community of a notification when there are several
+   */
+  communityCount?: number;
   // FIXME improve types
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   errorBags: any;
