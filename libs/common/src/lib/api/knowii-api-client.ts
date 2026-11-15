@@ -34,6 +34,7 @@ import {
   COMMUNITY_ACCESS_GROUPS_API_PATH,
   COMMUNITY_ACCESS_GROUP_API_PATH,
   COMMUNITY_ACCESS_GROUP_MEMBERS_API_PATH,
+  COMMUNITY_ACCESS_GROUP_SPACE_GROUPS_API_PATH,
   COMMUNITY_ACCESS_GROUP_MEMBER_API_PATH,
   COMMUNITY_API_PARAM_ACCESS_GROUP,
   COMMUNITY_UPLOADS_API_PATH,
@@ -91,8 +92,8 @@ import type { JoinWaitlistRequest } from './waitlist/join-waitlist-request.schem
 import type { JoinWaitlistResponse } from './waitlist/join-waitlist-response.schema';
 import { joinWaitlistResponseSchema } from './waitlist/join-waitlist-response.schema';
 import { z } from 'zod';
-import type { AccessGroup, AccessGroupForm, AccessGroupMemberInput } from '../types/access-group.schema';
-import { accessGroupSchema } from '../types/access-group.schema';
+import type { AccessGroup, AccessGroupForm, AccessGroupMemberInput, AccessGroupSpaceGroup } from '../types/access-group.schema';
+import { accessGroupSchema, accessGroupSpaceGroupSchema } from '../types/access-group.schema';
 import { HttpStatus } from '../types/http-status.intf';
 import type { ApiResult } from './api-result';
 import { apiPath, apiRequest, fieldErrors } from './api-result';
@@ -995,6 +996,29 @@ export const knowiiApiClient = {
         apiRequest('patch', accessGroupPath(communityCuid, groupCuid), accessGroupSchema, 'Failed to save the access group.', input),
       delete: (communityCuid: string, groupCuid: string): Promise<ApiResult<void>> =>
         apiRequest('delete', accessGroupPath(communityCuid, groupCuid), null, 'Failed to delete the access group.'),
+      spaceGroups: {
+        /**
+         * The space groups that the group opens whole, in navigation order (#1422).
+         */
+        list: (communityCuid: string, groupCuid: string): Promise<ApiResult<AccessGroupSpaceGroup[]>> =>
+          apiRequest(
+            'get',
+            accessGroupPath(communityCuid, groupCuid, COMMUNITY_ACCESS_GROUP_SPACE_GROUPS_API_PATH),
+            z.array(accessGroupSpaceGroupSchema),
+            'Failed to load the space groups of the access group.',
+          ),
+        /**
+         * Replace the space groups that the group opens whole (#1422). An empty list removes them all.
+         */
+        set: (communityCuid: string, groupCuid: string, spaceGroupCuids: string[]): Promise<ApiResult<AccessGroupSpaceGroup[]>> =>
+          apiRequest(
+            'put',
+            accessGroupPath(communityCuid, groupCuid, COMMUNITY_ACCESS_GROUP_SPACE_GROUPS_API_PATH),
+            z.array(accessGroupSpaceGroupSchema),
+            'Failed to save the space groups of the access group.',
+            { space_groups: spaceGroupCuids },
+          ),
+      },
       members: {
         /**
          * A page of the members of a group, by name (#1241).

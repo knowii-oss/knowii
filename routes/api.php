@@ -201,6 +201,11 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::get(ApiRoutes::COMMUNITY_ACCESS_GROUP_MEMBERS, [AccessGroupApiController::class, 'members'])->middleware('ability:groups:read');
             Route::post(ApiRoutes::COMMUNITY_ACCESS_GROUP_MEMBERS, [AccessGroupApiController::class, 'addMember'])->middleware('ability:groups:write');
             Route::delete(ApiRoutes::COMMUNITY_ACCESS_GROUP_MEMBER, [AccessGroupApiController::class, 'removeMember'])->middleware('ability:groups:write');
+            // An access group opens whole space groups (#1422, ADR 0041)
+            Route::get(ApiRoutes::COMMUNITY_ACCESS_GROUP_SPACE_GROUPS, [AccessGroupApiController::class, 'spaceGroups'])->middleware('ability:groups:read');
+            Route::put(ApiRoutes::COMMUNITY_ACCESS_GROUP_SPACE_GROUPS, [AccessGroupApiController::class, 'setSpaceGroups'])->middleware('ability:groups:write');
+            Route::get(ApiRoutes::COMMUNITY_SPACE_GROUP_ACCESS_GROUPS, [SpaceGroupApiController::class, 'accessGroups'])->middleware('ability:groups:read');
+            Route::put(ApiRoutes::COMMUNITY_SPACE_GROUP_ACCESS_GROUPS, [SpaceGroupApiController::class, 'setAccessGroups'])->middleware('ability:groups:write');
         });
 
         // Invitations (#1242). scopeBindings: an invitation of another community gives a 404

@@ -205,6 +205,11 @@ final class ApiRoutes
 
     public const COMMUNITY_ACCESS_GROUP_MEMBER = self::COMMUNITY_ACCESS_GROUP_MEMBERS.'/{'.self::PARAM_MEMBER.'}';
 
+    // Access groups that open whole space groups (#1422, ADR 0041)
+    public const COMMUNITY_ACCESS_GROUP_SPACE_GROUPS = self::COMMUNITY_ACCESS_GROUP.'/space-groups';
+
+    public const COMMUNITY_SPACE_GROUP_ACCESS_GROUPS = self::COMMUNITY_SPACE_GROUP.'/access-groups';
+
     // Direct messages (#1186, ADR 0028)
     public const COMMUNITY_CONVERSATIONS = self::COMMUNITY.'/conversations';
 

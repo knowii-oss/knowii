@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property-read Community $community
  * @property-read int|null $members_count
  * @property-read int|null $spaces_count
+ * @property-read int|null $space_groups_count
  */
 #[UseResource(AccessGroupResource::class)]
 class AccessGroup extends Model
@@ -62,6 +63,17 @@ class AccessGroup extends Model
     final public function spaces(): BelongsToMany
     {
         return $this->belongsToMany(Space::class, 'access_group_space');
+    }
+
+    /**
+     * The space groups that the group opens whole (#1422, ADR 0041): every space of them with the "groups" visibility,
+     * the spaces added later included.
+     *
+     * @return BelongsToMany<SpaceGroup, covariant $this>
+     */
+    final public function spaceGroups(): BelongsToMany
+    {
+        return $this->belongsToMany(SpaceGroup::class, 'access_group_space_group');
     }
 
     final public function getRouteKeyName(): string

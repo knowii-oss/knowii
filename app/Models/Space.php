@@ -140,6 +140,22 @@ class Space extends Model
     }
 
     /**
+     * The ids of every access group that opens the space: the groups of the space itself and the groups of its space
+     * group (#1422, ADR 0041). This is the ONE place that knows the reading rule of a "groups" space: the policy, the
+     * navigation and every other read go through it. A space added to a space group is open at once; a space moved
+     * out of it is closed at once.
+     *
+     * @return list<int>
+     */
+    final public function openingAccessGroupIds(): array
+    {
+        return array_values(array_unique([
+            ...$this->accessGroups->modelKeys(),
+            ...$this->spaceGroup->accessGroups->modelKeys(),
+        ]));
+    }
+
+    /**
      * @return BelongsTo<SpaceGroup, covariant $this>
      */
     final public function spaceGroup(): BelongsTo

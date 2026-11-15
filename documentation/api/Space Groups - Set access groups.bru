@@ -1,0 +1,26 @@
+meta {
+  name: Space Groups - Set access groups
+  type: http
+  seq: 146
+}
+
+put {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/space-groups/q8kspacegroupstarthere01/access-groups
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "access_groups": ["k2j4h6g8f0d2s4a6p8o0i2u4"]
+  }
+}
+
+docs {
+  Replaces the access groups that open a whole space group (#1422, ADR 0041): the same links as "Access groups - Set space groups", seen from the space group. An empty list removes every link. Owner, admins, moderators with the manage spaces right. A cuid of another community gives a 400. Token ability: groups:write.
+}

@@ -1,0 +1,26 @@
+meta {
+  name: Access groups - Set space groups
+  type: http
+  seq: 144
+}
+
+put {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/access-groups/<group cuid>/space-groups
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "space_groups": ["q8kspacegroupstarthere01"]
+  }
+}
+
+docs {
+  Replaces the space groups that an access group opens whole (#1422, ADR 0041). The members of the group read every space of those space groups that has the groups visibility, the spaces added later included. An empty list removes every link. Owner, admins, moderators with the manage spaces right. A cuid of another community gives a 400. Token ability: groups:write.
+}

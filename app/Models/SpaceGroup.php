@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
@@ -26,6 +27,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Community $community
  * @property-read Collection<int, Space> $spaces
  * @property-read ?int $spaces_count
+ * @property-read Collection<int, AccessGroup> $accessGroups
  *
  * @method static \Database\Factories\SpaceGroupFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SpaceGroup newModelQuery()
@@ -94,6 +96,16 @@ class SpaceGroup extends Model
     final public function spaces(): HasMany
     {
         return $this->hasMany(Space::class)->orderBy('position')->orderBy('id');
+    }
+
+    /**
+     * The access groups that open every "groups" space of this space group (#1422, ADR 0041).
+     *
+     * @return BelongsToMany<AccessGroup, covariant $this>
+     */
+    final public function accessGroups(): BelongsToMany
+    {
+        return $this->belongsToMany(AccessGroup::class, 'access_group_space_group');
     }
 
     final public function getRouteKeyName(): string
