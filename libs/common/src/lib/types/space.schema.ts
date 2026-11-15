@@ -86,13 +86,15 @@ export const spaceFormSchema = z.object({
     .string()
     .trim()
     .max(MAX_LENGTH_SPACE_URL, { error: `The URL is too long (maximum ${MAX_LENGTH_SPACE_URL} characters)` }),
+  // What members get by default (#1497): the form of an existing space sets it, a new space has the built-in default
+  default_notification_level: z.enum(['all', 'mine']).optional(),
 });
 export type SpaceForm = z.infer<typeof spaceFormSchema>;
 
 /**
  * What the API accepts to create a space: the URL only for a link space
  */
-export type SpaceCreateInput = Omit<SpaceForm, 'url'> & { url?: string };
+export type SpaceCreateInput = Omit<SpaceForm, 'url' | 'default_notification_level'> & { url?: string };
 
 // A "groups" space needs at least one group (#1241). WARNING: aligned with SpaceAccessGroups.php
 // A link space needs an http or https URL (#1294). WARNING: aligned with SpaceInputRules.php
@@ -127,6 +129,8 @@ export const spaceSchema = baseEntitySchema.extend({
   space_group_cuid: z.string(),
   // The groups that open a "groups" space (#1241)
   access_groups: z.array(z.object({ cuid: z.string(), name: z.string() })).optional(),
+  // What the members who did not choose get (#1497): null is the built-in default. For the people who manage the spaces only
+  default_notification_level: z.enum(['all', 'mine']).nullable().optional(),
 });
 export type Space = z.infer<typeof spaceSchema>;
 

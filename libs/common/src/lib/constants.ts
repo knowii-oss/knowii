@@ -40,6 +40,8 @@ export const SECURITY_URL = 'security.show';
 
 // User profile
 export const USER_PROFILE_URL = 'profile.show';
+// The notification settings of the member (#1497)
+export const USER_NOTIFICATIONS_URL = 'profile.notifications';
 export const USER_PROFILE_INFORMATION_UPDATE_URL = 'user-profile-information.update';
 export const USER_PROFILE_PASSWORD_UPDATE_URL = 'user-password.update';
 
@@ -289,6 +291,16 @@ export const NOTIFICATIONS_SEEN_API_PATH = `${NOTIFICATIONS_API_PATH}/seen`;
 export const NOTIFICATION_API_PATH = `${NOTIFICATIONS_API_PATH}/${NOTIFICATION_API_PARAM_NOTIFICATION}`;
 export const NOTIFICATION_READ_API_PATH = `${NOTIFICATION_API_PATH}/read`;
 export const NOTIFICATION_UNREAD_API_PATH = `${NOTIFICATION_API_PATH}/unread`;
+// "I am caught up" (#1497): the open rows of "Following" are read
+export const NOTIFICATIONS_CAUGHT_UP_API_PATH = `${NOTIFICATIONS_API_PATH}/caught-up`;
+// The levels of the current member for the spaces of a community, and for one space (#1497)
+export const COMMUNITY_NOTIFICATION_LEVELS_API_PATH = `${COMMUNITY_API_PATH}/notification-levels`;
+export const COMMUNITY_SPACE_NOTIFICATION_LEVEL_API_PATH = `${COMMUNITY_SPACE_API_PATH}/notification-level`;
+// The follow state of a post thread and of a chat thread: read (GET), follow (PUT), stop following (DELETE), mute (PUT /mute)
+export const COMMUNITY_SPACE_POST_FOLLOW_API_PATH = `${COMMUNITY_SPACE_POST_API_PATH}/follow`;
+export const COMMUNITY_SPACE_POST_MUTE_API_PATH = `${COMMUNITY_SPACE_POST_API_PATH}/mute`;
+export const COMMUNITY_SPACE_MESSAGE_FOLLOW_API_PATH = `${COMMUNITY_SPACE_MESSAGE_API_PATH}/follow`;
+export const COMMUNITY_SPACE_MESSAGE_MUTE_API_PATH = `${COMMUNITY_SPACE_MESSAGE_API_PATH}/mute`;
 // Notifications per page (WARNING: aligned with Constants::NOTIFICATIONS_PER_PAGE)
 export const NOTIFICATIONS_PER_PAGE = 20;
 // Pages of page spaces (#1179)

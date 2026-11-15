@@ -16,6 +16,8 @@ export interface ChatSpaceProps {
   canWrite: boolean;
   canReact: boolean;
   canModerate: boolean;
+  // A member of the community: the threads can be followed, muted or left (#1497)
+  canFollow?: boolean;
   /**
    * Presence (#1187): the current user is a member. False for visitors of a public space: no presence for them
    */
@@ -51,6 +53,7 @@ export function ChatSpace(props: ChatSpaceProps) {
       canWrite={props.canWrite}
       canReact={props.canReact}
       canModerate={props.canModerate}
+      follow={props.canFollow ? { spaceCuid: space.cuid } : undefined}
       presence={{
         channel: props.presenceEnabled ? spacePresenceChannel(community.cuid, space.cuid) : null,
         visible: props.showsOnlineStatus !== false,

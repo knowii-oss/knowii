@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { ChatMessage, PresenceMember } from '@knowii/common';
 import { TypingIndicator } from '@/Components/Presence/TypingIndicator';
+import { ThreadFollowControl } from '@/Components/Notifications/ThreadFollowControl';
 import { Drawer, Spinner } from '@/Components/ui';
 import { ChatComposer } from './ChatComposer';
 import type { ChatMessageItemProps } from './ChatMessageItem';
@@ -10,6 +11,8 @@ export interface ThreadPanelProps {
   open: boolean;
   onClose: () => void;
   communityCuid: string;
+  // A member of the community of a chat space follows, mutes or stops following a thread (#1497). Absent: no control
+  follow?: { spaceCuid: string } | undefined;
   parent: ChatMessage | null;
   replies: ChatMessage[] | null;
   canWrite: boolean;
@@ -32,6 +35,7 @@ export function ThreadPanel({
   open,
   onClose,
   communityCuid,
+  follow,
   parent,
   replies,
   canWrite,
@@ -57,6 +61,15 @@ export function ThreadPanel({
       ) : (
         <div className="flex h-full flex-col gap-3">
           <ChatMessageItem {...item} idPrefix="thread-message" message={parent} editing={editingCuid === parent.cuid} />
+          {follow && !parent.deleted_at && (
+            <ThreadFollowControl
+              key={parent.cuid}
+              communityCuid={communityCuid}
+              spaceCuid={follow.spaceCuid}
+              kind="message"
+              cuid={parent.cuid}
+            />
+          )}
           <p className="border-b border-border pb-2 text-xs text-muted">
             {parent.reply_count === 1 ? '1 reply' : `${parent.reply_count} replies`}
           </p>

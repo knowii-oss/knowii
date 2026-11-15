@@ -8,6 +8,7 @@ use App\Http\Controllers\Inertia\DashboardController;
 use App\Http\Controllers\Inertia\DeleteAccountController;
 use App\Http\Controllers\Inertia\MagicLinkController;
 use App\Http\Controllers\Inertia\MemberController;
+use App\Http\Controllers\Inertia\NotificationSettingsController;
 use App\Http\Controllers\Inertia\OpenIdConnectController;
 use App\Http\Controllers\Inertia\PageController;
 use App\Http\Controllers\Inertia\PostController;
@@ -51,6 +52,9 @@ Route::middleware([
     'verified',
 ])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'show'])->name('dashboard');
+
+    // The notification settings of the member: the level of each space (#1497)
+    Route::get('/user/notifications', [NotificationSettingsController::class, 'show'])->name('profile.notifications');
 
     Route::get('/community/{communitySlug}/about', [CommunityController::class, 'about'])->name('communities.about');
     Route::get('/community/{communitySlug}/settings', [CommunityController::class, 'settings'])->name('communities.settings');

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { MAX_LENGTH_CHAT_MESSAGE } from '../constants';
+import { followStateSchema } from './notification-follow.schema';
 import { authorSchema } from './post.schema';
 import { reactionSummarySchema } from './reaction.schema';
 
@@ -19,6 +20,8 @@ export const chatMessageSchema = z.object({
   deleted_at: z.coerce.date().nullable(),
   reactions: reactionSummarySchema.optional(),
   created_at: z.coerce.date(),
+  // What the current member chose for the thread of a first-level message (#1497): following, muted, stopped, or null
+  follow_state: followStateSchema.nullable().optional(),
 });
 
 export type ChatMessage = z.infer<typeof chatMessageSchema>;

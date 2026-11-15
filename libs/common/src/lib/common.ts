@@ -43,6 +43,7 @@ export * from './types/toast.intf';
 export * from './types/url.schema';
 export * from './types/conversation.schema';
 export * from './types/notification.schema';
+export * from './types/notification-follow.schema';
 export * from './types/presence.schema';
 export * from './types/user.schema';
 export * from './types/username.schema';

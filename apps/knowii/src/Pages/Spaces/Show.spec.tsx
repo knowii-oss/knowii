@@ -1,7 +1,8 @@
-import { beforeAll, describe, expect, it, vi } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import type { Community, Space } from '@knowii/common';
-import { AppDataProvider } from '@knowii/common';
+import { AppDataProvider, knowiiApiClient } from '@knowii/common';
+import { spyOnFollowApi } from '@/test-utils/notifications';
 import SpacePage from './Show';
 
 vi.mock('@inertiajs/react', () => ({
@@ -76,5 +77,43 @@ describe('SpacePage, the way in of an open community (#1486)', () => {
 
     expect(screen.queryByRole('link', { name: 'Sign up to join' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Join' })).toBeNull();
+  });
+});
+
+describe('SpacePage, the level of the space (#1497)', () => {
+  const renderPage = (community: Community, space: Space = props.space) =>
+    render(
+      <AppDataProvider>
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+        <SpacePage {...({ ...props, community, space } as any)} />
+      </AppDataProvider>,
+    );
+
+  beforeEach(() => {
+    spyOnFollowApi();
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('shows the level of the space to a member', async () => {
+    renderPage({ ...props.community, is_member: true } as Community);
+
+    expect(await screen.findByRole('button', { name: 'Notifications: Only what is for me' })).toBeInTheDocument();
+  });
+
+  it('shows no control to a visitor, nor to a signed-in person who is not a member', async () => {
+    renderPage({ ...props.community, is_member: false } as Community);
+    renderPage({ ...props.community } as Community);
+
+    await waitFor(() => expect(knowiiApiClient.notificationLevels.get).not.toHaveBeenCalled());
+    expect(screen.queryByRole('button', { name: /^Notifications:/ })).toBeNull();
+  });
+
+  it('shows no control for a link space', async () => {
+    renderPage({ ...props.community, is_member: true } as Community, { ...props.space, type: 'link', url: null } as Space);
+
+    expect(knowiiApiClient.notificationLevels.get).not.toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: /^Notifications:/ })).toBeNull();
   });
 });

@@ -32,6 +32,7 @@ import { ResourceList } from '@/Components/Resources/ResourceList';
 import { PageList } from '@/Components/SpacePages/PageList';
 import { CourseMaterials } from '@/Components/SpacePages/CourseMaterials';
 import { ChatSpace } from '@/Components/Chat/ChatSpace';
+import { SpaceLevelControl } from '@/Components/Notifications/SpaceLevelControl';
 
 interface Props {
   // WARNING: aligned with SpaceController.php
@@ -130,6 +131,10 @@ export default function SpacePage(props: Props) {
           {space.description && <p className="text-muted">{space.description}</p>}
           {/* "Join" for a signed-in outsider, "Sign up to join" for a visitor, when the community is open (#1486) */}
           <JoinCommunity community={community} />
+          {/* The level of the space for the member: Everything, Only what is for me, Muted (#1497). Members only, no link space */}
+          {community.is_member === true && space.type !== 'link' && (
+            <SpaceLevelControl communityCuid={community.cuid} spaceCuid={space.cuid} spaceType={space.type} />
+          )}
           <p className="flex flex-wrap gap-2 text-xs text-muted">
             <span className="rounded-full border border-border px-2 py-0.5">{typeLabel.name}</span>
             <span className="rounded-full border border-border px-2 py-0.5">
@@ -148,6 +153,7 @@ export default function SpacePage(props: Props) {
             initialPosts={props.posts}
             canContribute={props.permissions.canContribute}
             canReact={props.permissions.canReact}
+            canModerate={props.permissions.canModerate}
             currentUserCuid={page.props.auth.user?.cuid ?? null}
           />
         ) : space.type === 'chat' && props.chat ? (
@@ -161,6 +167,7 @@ export default function SpacePage(props: Props) {
             canWrite={props.permissions.canContribute}
             canReact={props.permissions.canReact}
             canModerate={props.permissions.canModerate}
+            canFollow={community.is_member === true}
             presenceEnabled={community.is_member === true}
             showsOnlineStatus={page.props.auth.user?.show_online_status !== false}
           />

@@ -608,7 +608,7 @@ test('the list has the documented shape, built from the live content', function 
         ->and($item['actors'])->toHaveCount(1)
         ->and($item['others_count'])->toBe(0)
         ->and($item['title'])->toBe('My title')
-        ->and($item['target'])->toBe(['post_slug' => $post->slug, 'comment_cuid' => $comment->cuid, 'chat_message_cuid' => null, 'thread_cuid' => null, 'resource_cuid' => null, 'resource_slug' => null, 'page_slug' => null])
+        ->and($item['target'])->toBe(['post_slug' => $post->slug, 'post_cuid' => $post->cuid, 'comment_cuid' => $comment->cuid, 'chat_message_cuid' => null, 'thread_cuid' => null, 'resource_cuid' => null, 'resource_slug' => null, 'page_slug' => null])
         ->and($item['seen_at'])->toBeNull()
         ->and($item['read_at'])->toBeNull()
         ->and($item)->toHaveKeys(['created_at', 'updated_at'])

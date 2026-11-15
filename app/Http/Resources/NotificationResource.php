@@ -57,6 +57,8 @@ class NotificationResource extends AbstractKnowiiJsonResource
             // What the client needs to open the exact item
             'target' => [
                 'post_slug' => $post?->slug,
+                // The thread to follow or to mute: a post (#1497). A chat thread is `thread_cuid`, or the message itself
+                'post_cuid' => $post?->cuid,
                 'comment_cuid' => $comment?->cuid,
                 'chat_message_cuid' => $message?->cuid,
                 'thread_cuid' => $message?->parent?->cuid,

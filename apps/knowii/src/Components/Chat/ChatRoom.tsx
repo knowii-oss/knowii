@@ -28,6 +28,8 @@ export interface ChatRoomProps {
   canWrite: boolean;
   canReact: boolean;
   canModerate: boolean;
+  // A member of the community of a chat space can follow, mute or stop following a thread (#1497)
+  follow?: { spaceCuid: string } | undefined;
   // Why the member cannot write, shown instead of the field (a block, direct messages turned off)
   readOnlyReason?: string | undefined;
   /**
@@ -418,6 +420,7 @@ export function ChatRoom(props: ChatRoomProps) {
           setReplies(null);
         }}
         communityCuid={props.communityCuid}
+        follow={props.follow}
         parent={threadOf}
         replies={replies}
         canWrite={props.canWrite}

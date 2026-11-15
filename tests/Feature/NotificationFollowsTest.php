@@ -1345,7 +1345,7 @@ test('the levels of the member for a whole community come in one call, in the or
     expect($bySpace->keys()->all())->toBe([$this->space->cuid, $this->announce->cuid, $this->chat->cuid, $this->course->cuid])
         ->and($bySpace->has($link->cuid))->toBeFalse()
         ->and($bySpace->has($groups->cuid))->toBeFalse()
-        ->and($bySpace[$this->space->cuid])->toMatchArray(['level' => 'none', 'chosen' => true, 'default' => 'mine', 'space_type' => 'discussion', 'space_group_cuid' => $this->group->cuid])
+        ->and($bySpace[$this->space->cuid])->toMatchArray(['level' => 'none', 'chosen' => true, 'default' => 'mine', 'space_type' => 'discussion', 'space_group_cuid' => $this->group->cuid, 'space_group_name' => $this->group->name])
         ->and($bySpace[$this->announce->cuid])->toMatchArray(['level' => 'all', 'chosen' => false, 'default' => 'all'])
         ->and($bySpace[$this->chat->cuid])->toMatchArray(['level' => 'all', 'chosen' => true, 'default' => 'mine'])
         ->and($bySpace[$this->course->cuid])->toMatchArray(['level' => 'mine', 'chosen' => false, 'default' => 'mine']);

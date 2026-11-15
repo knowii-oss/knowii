@@ -91,6 +91,13 @@ import {
   NOTIFICATIONS_API_PATH,
   NOTIFICATIONS_COUNT_API_PATH,
   NOTIFICATIONS_SEEN_API_PATH,
+  NOTIFICATIONS_CAUGHT_UP_API_PATH,
+  COMMUNITY_NOTIFICATION_LEVELS_API_PATH,
+  COMMUNITY_SPACE_NOTIFICATION_LEVEL_API_PATH,
+  COMMUNITY_SPACE_POST_FOLLOW_API_PATH,
+  COMMUNITY_SPACE_POST_MUTE_API_PATH,
+  COMMUNITY_SPACE_MESSAGE_FOLLOW_API_PATH,
+  COMMUNITY_SPACE_MESSAGE_MUTE_API_PATH,
 } from '../constants';
 import type { PingResponse } from './ping-response.schema';
 import { pingResponseSchema } from './ping-response.schema';
@@ -118,7 +125,7 @@ import type { ApiResult } from './api-result';
 import { apiPath, apiRequest, fieldErrors } from './api-result';
 import type { Space, SpaceCreateInput, SpaceForm, SpaceGroup, SpaceGroupForm } from '../types/space.schema';
 import { spaceGroupSchema, spaceSchema } from '../types/space.schema';
-import type { Author, Paginated, Pagination, Post, PostForm } from '../types/post.schema';
+import type { Author, Paginated, Pagination, Post, PostCreateInput, PostForm } from '../types/post.schema';
 import { authorSchema, paginationSchema, postSchema } from '../types/post.schema';
 import type { Comment, CommentForm } from '../types/comment.schema';
 import { commentSchema } from '../types/comment.schema';
@@ -126,6 +133,8 @@ import type { Conversation, NewConversationForm } from '../types/conversation.sc
 import { conversationSchema } from '../types/conversation.schema';
 import type { Notification } from '../types/notification.schema';
 import { notificationSchema } from '../types/notification.schema';
+import type { CommunitySpaceLevel, SpaceLevel, SpaceNotificationLevel, ThreadFollow } from '../types/notification-follow.schema';
+import { communitySpaceLevelSchema, spaceLevelSchema, threadFollowSchema } from '../types/notification-follow.schema';
 import type { PresenceMember } from '../types/presence.schema';
 import { presenceMemberSchema } from '../types/presence.schema';
 import type { Upload } from '../types/upload.schema';
@@ -195,6 +204,42 @@ const accessGroupPath = (communityCuid: string, groupCuid: string, path = COMMUN
   });
 const postsPath = (communityCuid: string, spaceCuid: string, postCuid = '', path = COMMUNITY_SPACE_POSTS_API_PATH) =>
   apiPath(path, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE]: spaceCuid, [SPACE_API_PARAM_POST]: postCuid });
+
+const FOLLOW_FAILURE = 'Failed to save what you follow.';
+const spaceLevelPath = (communityCuid: string, spaceCuid: string) =>
+  apiPath(COMMUNITY_SPACE_NOTIFICATION_LEVEL_API_PATH, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE]: spaceCuid });
+
+/**
+ * A page of the notifications of one level: 1 is "Needs you" (with `older`), 2 is "Following"
+ */
+async function listNotifications(
+  input: { limit?: number; offset?: number; older?: boolean },
+  level: 1 | 2,
+  signal?: AbortSignal,
+): Promise<ApiResult<{ items: Notification[]; pagination: Pagination }>> {
+  const query = new URLSearchParams({ limit: String(input.limit ?? NOTIFICATIONS_PER_PAGE), offset: String(input.offset ?? 0) });
+  if (input.older) {
+    query.set('older', 'true');
+  }
+  if (level === 2) {
+    query.set('level', '2');
+  }
+  const failureMessage = level === 2 ? 'Failed to load what you follow.' : 'Failed to load your notifications.';
+  try {
+    const response = await fetch(`${NOTIFICATIONS_API_PATH}?${query.toString()}`, {
+      headers: { Accept: 'application/json' },
+      ...(signal === undefined ? {} : { signal }),
+    });
+    const json: unknown = await response.json();
+    const parsed = z.object({ data: z.array(notificationSchema), metadata: z.object({ pagination: paginationSchema }) }).safeParse(json);
+    if (!response.ok || !parsed.success) {
+      return { ok: false, status: response.status, message: failureMessage, errors: {} };
+    }
+    return { ok: true, message: '', data: { items: parsed.data.data, pagination: parsed.data.metadata.pagination } };
+  } catch {
+    return { ok: false, status: 0, message: failureMessage, errors: {} };
+  }
+}
 
 const postListSchema = z.array(postSchema);
 const pagesPath = (communityCuid: string, spaceCuid: string, pageCuid = '', path = COMMUNITY_SPACE_PAGES_API_PATH) =>
@@ -429,7 +474,11 @@ export const knowiiApiClient = {
         ),
       create: (communityCuid: string, input: SpaceCreateInput): Promise<ApiResult<Space>> =>
         apiRequest('post', communityPath(COMMUNITY_SPACES_API_PATH, communityCuid), spaceSchema, 'Failed to create the space.', input),
-      update: (communityCuid: string, spaceCuid: string, input: Partial<Omit<SpaceForm, 'type'>>): Promise<ApiResult<Space>> =>
+      update: (
+        communityCuid: string,
+        spaceCuid: string,
+        input: Partial<Omit<SpaceForm, 'type' | 'default_notification_level'>> & { default_notification_level?: 'all' | 'mine' | null },
+      ): Promise<ApiResult<Space>> =>
         apiRequest('patch', spacePath(communityCuid, spaceCuid), spaceSchema, 'Failed to update the space.', input),
       delete: (communityCuid: string, spaceCuid: string): Promise<ApiResult<undefined>> =>
         apiRequest('delete', spacePath(communityCuid, spaceCuid), null, 'Failed to delete the space.'),
@@ -470,7 +519,7 @@ export const knowiiApiClient = {
           return { ok: false, status: 0, message: 'Failed to load the posts.', errors: {} };
         }
       },
-      create: (communityCuid: string, spaceCuid: string, input: PostForm): Promise<ApiResult<Post>> =>
+      create: (communityCuid: string, spaceCuid: string, input: PostCreateInput): Promise<ApiResult<Post>> =>
         apiRequest('post', postsPath(communityCuid, spaceCuid), postSchema, 'Failed to publish the post.', input),
       update: (communityCuid: string, spaceCuid: string, postCuid: string, input: Partial<PostForm>): Promise<ApiResult<Post>> =>
         apiRequest(
@@ -1339,31 +1388,23 @@ export const knowiiApiClient = {
     /**
      * A page of the "Needs you" notifications, newest news first. `older`: the ones that are older than 14 days.
      */
-    list: async (
-      input: { limit?: number; offset?: number; older?: boolean } = {},
-      signal?: AbortSignal,
-    ): Promise<ApiResult<{ items: Notification[]; pagination: Pagination }>> => {
-      const query = new URLSearchParams({ limit: String(input.limit ?? NOTIFICATIONS_PER_PAGE), offset: String(input.offset ?? 0) });
-      if (input.older) {
-        query.set('older', 'true');
-      }
-      try {
-        const response = await fetch(`${NOTIFICATIONS_API_PATH}?${query.toString()}`, {
-          headers: { Accept: 'application/json' },
-          ...(signal === undefined ? {} : { signal }),
-        });
-        const json: unknown = await response.json();
-        const parsed = z
-          .object({ data: z.array(notificationSchema), metadata: z.object({ pagination: paginationSchema }) })
-          .safeParse(json);
-        if (!response.ok || !parsed.success) {
-          return { ok: false, status: response.status, message: 'Failed to load your notifications.', errors: {} };
-        }
-        return { ok: true, message: '', data: { items: parsed.data.data, pagination: parsed.data.metadata.pagination } };
-      } catch {
-        return { ok: false, status: 0, message: 'Failed to load your notifications.', errors: {} };
-      }
-    },
+    list: (input: { limit?: number; offset?: number; older?: boolean } = {}, signal?: AbortSignal) => listNotifications(input, 1, signal),
+    /**
+     * A page of "Following" (level 2): the last 14 days, newest news first, never counted by the bell (#1497)
+     */
+    listFollowing: (input: { limit?: number; offset?: number } = {}, signal?: AbortSignal) => listNotifications(input, 2, signal),
+    /**
+     * "I am caught up": every open line of "Following" is read, in every community or in the one given. It never touches
+     * "Needs you" (#1497).
+     */
+    caughtUp: (communityCuid?: string): Promise<ApiResult<{ marked: number }>> =>
+      apiRequest(
+        'post',
+        NOTIFICATIONS_CAUGHT_UP_API_PATH,
+        z.object({ marked: z.number().int() }),
+        'Failed to clear Following.',
+        communityCuid === undefined ? {} : { community: communityCuid },
+      ),
     /**
      * The number of the bell: the notifications that the member did not see, 14 days old at most
      */
@@ -1394,6 +1435,92 @@ export const knowiiApiClient = {
         notificationSchema,
         'Failed to undo.',
       ),
+  },
+  /**
+   * The follow state of a thread for the current member, and the actions "Follow", "Stop following" and "Mute this thread"
+   * (#1497). A thread is a post or a first-level chat message.
+   */
+  threads: {
+    getPost: (communityCuid: string, spaceCuid: string, postCuid: string): Promise<ApiResult<ThreadFollow>> =>
+      apiRequest(
+        'get',
+        postsPath(communityCuid, spaceCuid, postCuid, COMMUNITY_SPACE_POST_FOLLOW_API_PATH),
+        threadFollowSchema,
+        FOLLOW_FAILURE,
+      ),
+    followPost: (communityCuid: string, spaceCuid: string, postCuid: string): Promise<ApiResult<ThreadFollow>> =>
+      apiRequest(
+        'put',
+        postsPath(communityCuid, spaceCuid, postCuid, COMMUNITY_SPACE_POST_FOLLOW_API_PATH),
+        threadFollowSchema,
+        FOLLOW_FAILURE,
+      ),
+    stopPost: (communityCuid: string, spaceCuid: string, postCuid: string): Promise<ApiResult<ThreadFollow>> =>
+      apiRequest(
+        'delete',
+        postsPath(communityCuid, spaceCuid, postCuid, COMMUNITY_SPACE_POST_FOLLOW_API_PATH),
+        threadFollowSchema,
+        FOLLOW_FAILURE,
+      ),
+    mutePost: (communityCuid: string, spaceCuid: string, postCuid: string): Promise<ApiResult<ThreadFollow>> =>
+      apiRequest(
+        'put',
+        postsPath(communityCuid, spaceCuid, postCuid, COMMUNITY_SPACE_POST_MUTE_API_PATH),
+        threadFollowSchema,
+        FOLLOW_FAILURE,
+      ),
+    getMessage: (communityCuid: string, spaceCuid: string, messageCuid: string): Promise<ApiResult<ThreadFollow>> =>
+      apiRequest(
+        'get',
+        messagesPath(communityCuid, spaceCuid, messageCuid, COMMUNITY_SPACE_MESSAGE_FOLLOW_API_PATH),
+        threadFollowSchema,
+        FOLLOW_FAILURE,
+      ),
+    followMessage: (communityCuid: string, spaceCuid: string, messageCuid: string): Promise<ApiResult<ThreadFollow>> =>
+      apiRequest(
+        'put',
+        messagesPath(communityCuid, spaceCuid, messageCuid, COMMUNITY_SPACE_MESSAGE_FOLLOW_API_PATH),
+        threadFollowSchema,
+        FOLLOW_FAILURE,
+      ),
+    stopMessage: (communityCuid: string, spaceCuid: string, messageCuid: string): Promise<ApiResult<ThreadFollow>> =>
+      apiRequest(
+        'delete',
+        messagesPath(communityCuid, spaceCuid, messageCuid, COMMUNITY_SPACE_MESSAGE_FOLLOW_API_PATH),
+        threadFollowSchema,
+        FOLLOW_FAILURE,
+      ),
+    muteMessage: (communityCuid: string, spaceCuid: string, messageCuid: string): Promise<ApiResult<ThreadFollow>> =>
+      apiRequest(
+        'put',
+        messagesPath(communityCuid, spaceCuid, messageCuid, COMMUNITY_SPACE_MESSAGE_MUTE_API_PATH),
+        threadFollowSchema,
+        FOLLOW_FAILURE,
+      ),
+  },
+  /**
+   * The level of the current member for the spaces: Everything, Only what is for me, Muted (#1497)
+   */
+  notificationLevels: {
+    /**
+     * The levels for every space of a community that the member can view, in the order of the navigation
+     */
+    forCommunity: (communityCuid: string): Promise<ApiResult<CommunitySpaceLevel[]>> =>
+      apiRequest(
+        'get',
+        communityPath(COMMUNITY_NOTIFICATION_LEVELS_API_PATH, communityCuid),
+        z.array(communitySpaceLevelSchema),
+        'Failed to load the notification levels.',
+      ),
+    get: (communityCuid: string, spaceCuid: string): Promise<ApiResult<SpaceLevel>> =>
+      apiRequest('get', spaceLevelPath(communityCuid, spaceCuid), spaceLevelSchema, 'Failed to load the notification level.'),
+    set: (communityCuid: string, spaceCuid: string, level: SpaceNotificationLevel): Promise<ApiResult<SpaceLevel>> =>
+      apiRequest('put', spaceLevelPath(communityCuid, spaceCuid), spaceLevelSchema, 'Failed to save the notification level.', { level }),
+    /**
+     * Forget the choice: the default of the space applies again
+     */
+    reset: (communityCuid: string, spaceCuid: string): Promise<ApiResult<SpaceLevel>> =>
+      apiRequest('delete', spaceLevelPath(communityCuid, spaceCuid), spaceLevelSchema, 'Failed to reset the notification level.'),
   },
   markdown: {
     /**

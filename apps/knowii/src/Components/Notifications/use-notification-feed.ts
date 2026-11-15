@@ -8,7 +8,11 @@ export type FeedStatus = 'loading' | 'ready' | 'error';
  * One list of the panel: the notifications of the last 14 days, or the older ones (#1484). It loads the first page, the
  * next pages with offsets, and gives the operations that the panel needs on the lines.
  */
-export function useNotificationFeed({ older = false, enabled = true }: { older?: boolean; enabled?: boolean } = {}) {
+export function useNotificationFeed({
+  older = false,
+  enabled = true,
+  following = false,
+}: { older?: boolean; enabled?: boolean; following?: boolean } = {}) {
   const [items, setItems] = useState<Notification[]>([]);
   const [status, setStatus] = useState<FeedStatus>('loading');
   const [nextOffset, setNextOffset] = useState<number | null>(null);
@@ -17,6 +21,13 @@ export function useNotificationFeed({ older = false, enabled = true }: { older?:
   const [freshCuids, setFreshCuids] = useState<ReadonlySet<string>>(new Set());
   const requestId = useRef(0);
   const loadingMoreRef = useRef(false);
+
+  // "Following" (level 2) has its own call and no "Older"
+  const fetchPage = useCallback(
+    (input: { offset?: number; limit?: number } = {}) =>
+      following ? knowiiApiClient.notifications.listFollowing(input) : knowiiApiClient.notifications.list({ older, ...input }),
+    [following, older],
+  );
 
   const apply = useCallback((page: Notification[], next: number | null) => {
     setItems(page);
@@ -30,7 +41,7 @@ export function useNotificationFeed({ older = false, enabled = true }: { older?:
    */
   const load = useCallback(async (): Promise<Notification[] | null> => {
     const id = ++requestId.current;
-    const result = await knowiiApiClient.notifications.list({ older });
+    const result = await fetchPage();
     if (id !== requestId.current) {
       return null;
     }
@@ -40,7 +51,7 @@ export function useNotificationFeed({ older = false, enabled = true }: { older?:
     }
     apply(result.data.items, result.data.pagination.nextOffset);
     return result.data.items;
-  }, [apply, older]);
+  }, [apply, fetchPage]);
 
   const retry = useCallback(() => {
     setStatus('loading');
@@ -54,7 +65,7 @@ export function useNotificationFeed({ older = false, enabled = true }: { older?:
     }
     const run = async () => {
       const id = ++requestId.current;
-      const result = await knowiiApiClient.notifications.list({ older });
+      const result = await fetchPage();
       if (id !== requestId.current) {
         return;
       }
@@ -68,7 +79,7 @@ export function useNotificationFeed({ older = false, enabled = true }: { older?:
     return () => {
       requestId.current += 1;
     };
-  }, [enabled, older, apply]);
+  }, [enabled, fetchPage, apply]);
 
   /**
    * The next page. Returns the lines that were added, and calls `onAdded` with them before they render.
@@ -80,7 +91,7 @@ export function useNotificationFeed({ older = false, enabled = true }: { older?:
       }
       loadingMoreRef.current = true;
       setLoadingMore(true);
-      const result = await knowiiApiClient.notifications.list({ older, offset: nextOffset, limit: NOTIFICATIONS_PER_PAGE });
+      const result = await fetchPage({ offset: nextOffset, limit: NOTIFICATIONS_PER_PAGE });
       loadingMoreRef.current = false;
       setLoadingMore(false);
       if (!result.ok) {
@@ -94,7 +105,7 @@ export function useNotificationFeed({ older = false, enabled = true }: { older?:
       setFreshCuids((current) => new Set([...current, ...added.filter((item) => item.seen_at === null).map((item) => item.cuid)]));
       return added;
     },
-    [items, nextOffset, older],
+    [items, nextOffset, fetchPage],
   );
 
   const remove = useCallback((cuid: string) => {

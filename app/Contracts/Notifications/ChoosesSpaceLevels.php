@@ -30,7 +30,7 @@ interface ChoosesSpaceLevels
      * The levels of the member for every space of the community that they can view, in the order of the navigation: one
      * call for a settings screen. A link space has no level and is not listed.
      *
-     * @return list<array{space_cuid: string, space_name: string, space_slug: string, space_type: string, space_group_cuid: string, level: string, chosen: bool, default: string}>
+     * @return list<array{space_cuid: string, space_name: string, space_slug: string, space_type: string, space_group_cuid: string, space_group_name: string, level: string, chosen: bool, default: string}>
      *
      * @throws AuthorizationException
      */
