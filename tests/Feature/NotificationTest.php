@@ -121,12 +121,14 @@ test('the contracts are bound to the actions (ADR 0042)', function () {
         ->and(app(PrunesNotifications::class))->toBeInstanceOf(PruneNotifications::class);
 });
 
-test('every kind has a level, and all the kinds of the first slice are level 1', function () {
-    foreach (KnowiiNotificationKind::cases() as $kind) {
+test('every kind has a level: the three kinds of the first slice are level 1, the five of the second are level 2 (#1475)', function () {
+    foreach ([KnowiiNotificationKind::PostComment, KnowiiNotificationKind::CommentReply, KnowiiNotificationKind::Mention] as $kind) {
         expect($kind->level())->toBe(1);
     }
     expect(KnowiiNotificationKind::valuesOfLevel(1))->toBe(['post_comment', 'comment_reply', 'mention'])
-        ->and(KnowiiNotificationKind::valuesOfLevel(2))->toBe([]);
+        ->and(KnowiiNotificationKind::valuesOfLevel(2))->toBe(['thread_comment', 'thread_reply', 'space_post', 'space_chat', 'lesson_new'])
+        ->and(KnowiiNotificationKind::valuesOfLevel(0))->toBe([])
+        ->and(KnowiiNotificationKind::valuesOfLevel(3))->toBe([]);
 });
 
 test('a first-level comment on a post tells the author of the post, with the comment as subject', function () {
@@ -157,8 +159,9 @@ test('a reply to a comment tells the author of that comment, not the author of t
         ->and($rows[0]->kind)->toBe(KnowiiNotificationKind::CommentReply)
         ->and($rows[0]->comment_id)->toBe($reply->id)
         ->and($rows[0]->actor_id)->toBe($this->third->id)
-        // The author of the post got the first comment only: a reply is not a comment on the post
-        ->and(ntfRows($this->author))->toHaveCount(1)
+        // The author of the post got the first comment only at level 1: a reply is not a comment on the post (the author
+        // follows the thread and is told about the reply at level 2, #1475)
+        ->and(ntfRows($this->author)->filter(fn (Notification $row) => $row->kind->level() === 1))->toHaveCount(1)
         ->and(ntfRows($this->third))->toHaveCount(0);
 });
 
@@ -605,7 +608,7 @@ test('the list has the documented shape, built from the live content', function 
         ->and($item['actors'])->toHaveCount(1)
         ->and($item['others_count'])->toBe(0)
         ->and($item['title'])->toBe('My title')
-        ->and($item['target'])->toBe(['post_slug' => $post->slug, 'comment_cuid' => $comment->cuid, 'chat_message_cuid' => null, 'thread_cuid' => null, 'resource_cuid' => null, 'resource_slug' => null])
+        ->and($item['target'])->toBe(['post_slug' => $post->slug, 'comment_cuid' => $comment->cuid, 'chat_message_cuid' => null, 'thread_cuid' => null, 'resource_cuid' => null, 'resource_slug' => null, 'page_slug' => null])
         ->and($item['seen_at'])->toBeNull()
         ->and($item['read_at'])->toBeNull()
         ->and($item)->toHaveKeys(['created_at', 'updated_at'])
@@ -951,18 +954,19 @@ test('the event is sent when a row is bundled, seen, read, and deleted', functio
     $row = ntfRows($this->author)->first();
     $this->actingAs($this->author);
 
+    // The new comment bundles into the row of the author, and the member who follows the thread gets a row of level 2 (#1475)
     Event::fake([NotificationsChanged::class]);
     ntfComment($this->third, $post);
-    Event::assertDispatchedTimes(NotificationsChanged::class, 1);
-
-    $this->postJson(ntfPath(ApiRoutes::NOTIFICATIONS_SEEN), ['notification_cuids' => [$row->cuid]])->assertOk();
     Event::assertDispatchedTimes(NotificationsChanged::class, 2);
 
-    $this->putJson(ntfPath(ApiRoutes::NOTIFICATION_READ, [ApiRoutes::PARAM_NOTIFICATION => $row->cuid]))->assertOk();
+    $this->postJson(ntfPath(ApiRoutes::NOTIFICATIONS_SEEN), ['notification_cuids' => [$row->cuid]])->assertOk();
     Event::assertDispatchedTimes(NotificationsChanged::class, 3);
 
-    $this->community->removeUser($this->author);
+    $this->putJson(ntfPath(ApiRoutes::NOTIFICATION_READ, [ApiRoutes::PARAM_NOTIFICATION => $row->cuid]))->assertOk();
     Event::assertDispatchedTimes(NotificationsChanged::class, 4);
+
+    $this->community->removeUser($this->author);
+    Event::assertDispatchedTimes(NotificationsChanged::class, 5);
     Event::assertDispatched(NotificationsChanged::class, fn (NotificationsChanged $event) => $event->notificationCuid === null || $event->notificationCuid === $row->cuid);
 });
 

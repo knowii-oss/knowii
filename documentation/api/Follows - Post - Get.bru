@@ -1,0 +1,19 @@
+meta {
+  name: Follows - Post - Get
+  type: http
+  seq: 165
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a discussion space>/posts/<post cuid>/follow
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The follow state of the current member for a post thread (#1475): `state` (following, muted or stopped; null without a row) and `reason` (wrote, replied or manual). The posts of the list and of the post page carry the same value as `follow_state`. Only a member of the community who can view the space has one (403 otherwise); the marker of a deleted post has none (422). Needs notifications:read.
+}

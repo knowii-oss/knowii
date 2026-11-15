@@ -6,6 +6,8 @@ use App\Enums\KnowiiCommunityMemberRole;
 use App\Enums\KnowiiModeratorPermission;
 use App\Models\Community;
 use App\Models\User;
+use Closure;
+use Illuminate\Support\Facades\DB;
 
 /**
  * The role rules of ADR 0017 (#1240), shared by the policies: the owner and the admins have every moderator right;
@@ -13,8 +15,59 @@ use App\Models\User;
  */
 final class CommunityRoles
 {
+    /**
+     * The admin status of members of a community, known for the length of one callback (see withKnownAdmins), by
+     * community id and user id. Empty outside a callback: the rule then reads the database, as always.
+     *
+     * @var array<int, array<int, bool>>
+     */
+    private static array $knownAdmins = [];
+
+    /**
+     * Run the callback with the admin status of the given members of a community already known, so that the check of
+     * many members (the fan-out of a notification, #1475) does not ask the database once per member. The status is
+     * read now, with one query for all the members, and forgotten when the callback ends.
+     *
+     * @template TReturn
+     *
+     * @param  list<int>  $userIds
+     * @param  Closure(): TReturn  $callback
+     * @return TReturn
+     */
+    public static function withKnownAdmins(Community $community, array $userIds, Closure $callback)
+    {
+        $before = self::$knownAdmins[$community->id] ?? null;
+        // Nested calls for the same members (a check inside a check) do not ask again
+        if ($before !== null && array_diff_key(array_flip($userIds), $before) === []) {
+            return $callback();
+        }
+
+        $roles = DB::table('community_members')->where('community_id', $community->id)->whereIn('user_id', $userIds)->pluck('role', 'user_id');
+        $known = [];
+        foreach ($userIds as $userId) {
+            $known[$userId] = $roles->get($userId) === KnowiiCommunityMemberRole::Admin->value;
+        }
+
+        self::$knownAdmins[$community->id] = $known + ($before ?? []);
+
+        try {
+            return $callback();
+        } finally {
+            if ($before === null) {
+                unset(self::$knownAdmins[$community->id]);
+            } else {
+                self::$knownAdmins[$community->id] = $before;
+            }
+        }
+    }
+
     public static function isOwnerOrAdmin(User $user, Community $community): bool
     {
+        $known = self::$knownAdmins[$community->id][$user->id] ?? null;
+        if ($known !== null) {
+            return $user->ownsCommunity($community) || ($known && $user->belongsToCommunity($community));
+        }
+
         return $user->ownsCommunity($community) || $user->hasCommunityRole($community, KnowiiCommunityMemberRole::Admin);
     }
 

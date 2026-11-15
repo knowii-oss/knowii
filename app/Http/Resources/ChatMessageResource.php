@@ -29,6 +29,9 @@ class ChatMessageResource extends AbstractKnowiiJsonResource
             'reply_count' => $this->reply_count,
             'last_reply_at' => $this->last_reply_at,
             'edited_at' => $this->edited_at,
+            // What the current member chose for the thread of a first-level message (#1475): following, muted, stopped, or
+            // null. The controllers set it for a page of first-level messages with one query (NotificationFollowStates)
+            'follow_state' => $this->when($this->relationLoaded('follow'), fn () => $this->follow?->state->value),
             'deleted_at' => $this->deleted_at,
             'reactions' => $this->when($this->relationLoaded('reactions'), fn () => $deleted ? [] : $this->reactionSummary($request->user())),
             'created_at' => $this->created_at,

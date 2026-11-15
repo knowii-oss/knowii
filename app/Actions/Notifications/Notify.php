@@ -6,18 +6,23 @@ use App\Constants;
 use App\Contracts\Notifications\Notifies;
 use App\Enums\KnowiiNotificationKind;
 use App\Events\Notifications\NotificationsChanged;
+use App\Jobs\FanOutNotifications;
 use App\Jobs\WriteNotifications;
 use App\Models\ChatMessage;
 use App\Models\Comment;
 use App\Models\Community;
 use App\Models\Notification;
+use App\Models\Page;
 use App\Models\Post;
 use App\Models\Space;
 use App\Models\User;
 use App\Support\NotificationAccess;
+use App\Support\NotificationItem;
+use App\Support\SpaceNotificationLevels;
 use Closure;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
+use LogicException;
 
 /**
  * The one place that decides who is told, and writes the rows (#1474, ADR 0042, design 3, 6.6, 6.8, 6.9, 6.10).
@@ -32,8 +37,20 @@ use Illuminate\Support\Facades\DB;
  * a new comment bundles into it (the row says "New" again) instead of adding a row. Mentions do not bundle, and three
  * unread mention rows from one author in an hour are the most a member gets from them.
  *
- * Callers use notify(): it queues a job on the queue `notifications`, after the commit of the caller. The job calls
- * deliver(). Imports and seeders wrap their work in Notify::silenced().
+ * Level 2, "Following" (#1475), has five kinds, all written by fanOut() in chunks of 500 members, one queued job per chunk
+ * (LevelTwoFanOut holds the audience, LevelTwoWriter the bulk writes):
+ *
+ * - `thread_comment`: a new comment in a post thread tells the members who follow the thread.
+ * - `thread_reply`: a new reply in a chat thread tells the members who follow the thread.
+ * - `space_post`: a new post in a discussion space tells the members whose level for the space is "Everything", after 5 minutes.
+ * - `space_chat`: a new first-level message in a chat space tells the members who chose "Everything" for it.
+ * - `lesson_new`: a new lesson in a course tells the members who started the course.
+ *
+ * A member who gets a level 1 row for the item gets no level 2 row for it. A muted space or thread gives the member nothing
+ * at any level: the level 1 kinds respect it too. Reactions give nothing.
+ *
+ * Callers use notify(): it queues the jobs on the queue `notifications`, after the commit of the caller. The jobs call
+ * deliver() and fanOut(). Imports and seeders wrap their work in Notify::silenced().
  */
 final class Notify implements Notifies
 {
@@ -66,7 +83,7 @@ final class Notify implements Notifies
         return self::$silencedDepth > 0;
     }
 
-    final public function notify(Post|Comment|ChatMessage $item): void
+    final public function notify(Post|Comment|ChatMessage|Page $item, bool $now = false): void
     {
         if (self::isSilenced()) {
             return;
@@ -80,7 +97,38 @@ final class Notify implements Notifies
             return;
         }
 
-        WriteNotifications::dispatch($item);
+        // Level 1: a reply, a mention (a page has neither)
+        if (! $item instanceof Page) {
+            WriteNotifications::dispatch($item);
+        }
+
+        // Level 2: the followers of the thread, the members at "Everything", the members of the course. The job decides if
+        // the item gives a kind (the space type is its to read). A new post waits 5 minutes: an edit inside the wait
+        // changes the content and tells nobody, a deletion inside the wait tells nobody (design 6.11)
+        if (($item instanceof Comment && $item->post_id === null) || ($item instanceof Page && $item->isSection())) {
+            return;
+        }
+        $fanOut = FanOutNotifications::dispatch($item);
+        if ($item instanceof Post && ! $now) {
+            $fanOut->delay(now()->addMinutes(Constants::NOTIFICATIONS_POST_FANOUT_DELAY_MINUTES));
+        }
+    }
+
+    final public function fanOut(Post|Comment|ChatMessage|Page $item, ?array $excluded = null, int $after = 0, ?int $size = null): void
+    {
+        $fanOut = app(LevelTwoFanOut::class);
+        $kind = $fanOut->kindOf($item);
+        if ($kind === null) {
+            return;
+        }
+
+        $size ??= Constants::NOTIFICATIONS_FANOUT_CHUNK;
+        $excluded ??= $item instanceof Page ? [] : array_keys($this->reasons($item));
+
+        $next = $fanOut->chunk($item, $kind, $excluded, $after, $size);
+        if ($next !== null) {
+            FanOutNotifications::dispatch($item, $excluded, $next, $size);
+        }
     }
 
     final public function deliver(Post|Comment|ChatMessage $item): void
@@ -105,7 +153,16 @@ final class Notify implements Notifies
         }
 
         $community = $item->community;
-        $space = $this->spaceOf($item);
+        $space = NotificationItem::spaceOf($item);
+
+        // A muted space or thread gives nothing, a reply and a mention included (design 1.2.10, 2.2.6)
+        foreach (SpaceNotificationLevels::mutedAmong($space, NotificationItem::threadOf($item), array_keys($reasons)) as $mutedId) {
+            unset($reasons[$mutedId]);
+        }
+        if ($reasons === []) {
+            return;
+        }
+
         // A member who blocked the author gets nothing (ADR 0028, design 6.9)
         $blockers = DB::table('user_blocks')->where('blocked_id', $actorId)->whereIn('blocker_id', array_keys($reasons))->pluck('blocker_id')->all();
 
@@ -145,19 +202,6 @@ final class Notify implements Notifies
         }
 
         return $reasons;
-    }
-
-    /**
-     * The space of the item, with what the access check reads
-     */
-    private function spaceOf(Post|Comment|ChatMessage $item): ?Space
-    {
-        $spaceId = match (true) {
-            $item instanceof Comment => $item->post->space_id ?? $item->communityResource?->space_id,
-            default => $item->space_id,
-        };
-
-        return $spaceId === null ? null : Space::query()->with(['accessGroups', 'spaceGroup.accessGroups'])->find($spaceId);
     }
 
     private function write(User $recipient, KnowiiNotificationKind $kind, Post|Comment|ChatMessage $item, Community $community, ?Space $space, int $actorId): void
@@ -219,6 +263,8 @@ final class Notify implements Notifies
             KnowiiNotificationKind::PostComment => 'post_comment:post:'.($item instanceof Comment ? $item->post_id : $item->id),
             KnowiiNotificationKind::CommentReply => 'comment_reply:comment:'.($item instanceof Comment ? $item->parent_id : $item->id),
             KnowiiNotificationKind::Mention => 'mention:'.$column.':'.$item->id,
+            // The level 2 kinds are written by fanOut(), not here
+            default => throw new LogicException('The kind '.$kind->value.' is not a level 1 kind'),
         };
     }
 

@@ -40,6 +40,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read ?Conversation $conversation
  * @property-read ?User $author
  * @property-read ?ChatMessage $parent
+ * @property-read ?NotificationFollow $follow What the current member chose for the thread (set for a page of first-level messages, not stored)
  *
  * @method static \Database\Factories\ChatMessageFactory factory($count = null, $state = [])
  * @method TResource toResource<TResource of \Illuminate\Http\Resources\Json\JsonResource = \App\Http\Resources\ChatMessageResource>(class-string<TResource>|null $resourceClass = null)

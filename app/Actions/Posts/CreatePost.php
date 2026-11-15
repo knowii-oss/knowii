@@ -3,8 +3,10 @@
 namespace App\Actions\Posts;
 
 use App\Constants;
+use App\Contracts\Notifications\FollowsThreads;
 use App\Contracts\Notifications\Notifies;
 use App\Contracts\Posts\CreatesPosts;
+use App\Enums\KnowiiFollowReason;
 use App\Enums\KnowiiSpaceType;
 use App\Events\Spaces\SpaceContentChanged;
 use App\Exceptions\BusinessException;
@@ -32,8 +34,14 @@ class CreatePost implements CreatesPosts
             throw new BusinessException('Posts can only be written in discussion spaces');
         }
 
-        /** @var array{title: string, body: string} $validated */
-        $validated = Validator::make($input, self::rules(true))->validate();
+        /** @var array{title: string, body: string, notify_now?: bool} $validated */
+        $validated = Validator::make($input, [...self::rules(true), 'notify_now' => ['sometimes', 'boolean']])->validate();
+
+        // "Send now" skips the 5 minutes of the fan-out of a new post: the people who moderate the space only (design 6.11)
+        $notifyNow = ($validated['notify_now'] ?? false) === true;
+        if ($notifyNow) {
+            Gate::forUser($user)->authorize('moderate', $space);
+        }
 
         $post = DB::transaction(function () use ($space, $user, $validated) {
             $post = Post::create([
@@ -53,8 +61,11 @@ class CreatePost implements CreatesPosts
         });
 
         Log::info('Post created', ['post' => $post->cuid]);
-        // The members mentioned in the post are told (#1474): a queued job, after the commit
-        app(Notifies::class)->notify($post);
+        // The author follows the thread of their post (#1475)
+        app(FollowsThreads::class)->followByWriting($user, $post, KnowiiFollowReason::Wrote);
+        // The members mentioned in the post are told (#1474), and after 5 minutes the members at "Everything" (#1475):
+        // queued jobs, after the commit
+        app(Notifies::class)->notify($post, $notifyNow);
         // Live updates (#1180)
         event(SpaceContentChanged::forPost(SpaceContentChanged::POST_CREATED, $post, $user->cuid));
 

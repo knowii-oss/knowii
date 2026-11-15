@@ -1,0 +1,19 @@
+meta {
+  name: Notification levels - Get
+  type: http
+  seq: 162
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a space>/notification-level
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The level of the current member for one space (#1475): `level`, `chosen`, `default`. Only a member of the community who can view the space has a level (403 otherwise); a link space has none (422). Needs notifications:read.
+}

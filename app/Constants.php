@@ -249,6 +249,12 @@ class Constants
     // Rows that one request marks as seen
     public const int NOTIFICATIONS_SEEN_MAX = 100;
 
+    // A new post waits this long before its fan-out to the members at "Everything": edits and deletions inside the wait tell nobody (#1475, design 6.11)
+    public const int NOTIFICATIONS_POST_FANOUT_DELAY_MINUTES = 5;
+
+    // The fan-out reads its recipients in chunks of this size, one queued job per chunk (#1475, design 6.14)
+    public const int NOTIFICATIONS_FANOUT_CHUNK = 500;
+
     /**
      * @var list<string>
      */

@@ -1,0 +1,19 @@
+meta {
+  name: Follows - Chat - Stop following
+  type: http
+  seq: 171
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a chat space>/messages/<cuid of a first-level message>/follow
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Stop following a chat thread (#1475). The state becomes `stopped` and the row stays. Needs notifications:write.
+}

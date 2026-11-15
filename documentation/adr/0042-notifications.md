@@ -4,12 +4,15 @@
 - Date: 2026-11-15
 - Issue: #1474
 - Pull request: #1488
+- Extended by: #1475 (section "Slice 2: follows and space levels")
 
 ## Context
 
 Members need to know when a person writes to them: a reply to their post, a reply to their comment, a mention. Without it they must open every thread to find out. The approved design (#1392, #1393, #191, #841) tells them in the app first, then by email, once, with the real text and the reason, and stays silent when nothing is for them.
 
-This record covers the first slice: the server part for the app. It has one table, one action and three kinds of notification. The email, the pop-up, the follows, the settings, the weekly summary and direct messages come in later slices. The record fixes the rules that those slices build on, so that they add cases and not new rules.
+This record covers the first slice (the server part for the app) and, in the section "Slice 2: follows and space levels", the second (#1475: thread follows, the level of a space, the "Following" kinds). The section extends the same decision, with no new rule about channels, so it is not a new record.
+
+The first slice: It has one table, one action and three kinds of notification. The email, the pop-up, the follows, the settings, the weekly summary and direct messages come in later slices. The record fixes the rules that those slices build on, so that they add cases and not new rules.
 
 ## Decision
 
@@ -68,6 +71,48 @@ This record covers the first slice: the server part for the app. It has one tabl
 27. Retention ([ADR 0030](0030-retention-periods-enforced-by-scheduled-tasks.md)): `retention.notifications_read_days` (60 days after the member read the row, by `read_at`) and `retention.notifications_unread_days` (90 days when never read, by `created_at`), a step in `retention:prune`, and a line in the privacy policy with placeholders. The age of a row for the retention is not the age for the list.
 28. The member export holds the notifications of the member: the kind, the community, the cuids of the items and the dates. It holds no text and no name of another member. The community export holds no notification rows: a notification belongs to its recipient, not to the community, and it holds no content.
 
+## Slice 2: follows and space levels
+
+A change inside the same decision (#1475, the server part of the second slice; the screens are #1497). It adds five kinds of level 2 ("Following") to the same table and the same action, the choices of the member (follows and levels), and the API for them. The level still gives the channel: level 2 shows in the list and is never counted. It is an extension of this record and not a new one (a record numbered 0048), because it keeps the table, the action, the levels, the access rule and the queues, and only adds cases and tables that the first slice announced ("the follows, the settings").
+
+### The choices of the member
+
+29. `notification_follows`, one row per member and thread. A thread is a post with its comments, or a first-level chat message with its replies, so it follows [ADR 0014](0014-explicit-foreign-keys-instead-of-polymorphic-relations.md): `post_id` and `chat_message_id`, each nullable and deleted with its thread, and a check that exactly one is set. `user_id` and `community_id` are deleted with the account and with the community. The state has three values, not two: `following`, `muted` and `stopped`. `stopped` is the memory of a "Stop following" by hand: the row stays, so that the next comment of the member does not follow the thread again without a new request. No row means that the member does not follow the thread. The reason is `wrote`, `replied` or `manual`.
+30. A member who writes a post, comments a post, or replies in a chat thread follows the thread (`wrote` or `replied`), unless they have a row already (stopped, muted, or following). A mention does not make them follow. The author of a first-level chat message follows its thread from the first reply, with the reason `wrote`: a chat does not write a row for each message, only for the threads that exist. Nothing follows inside `Notify::silenced()`, for a marker, or for a person who is not a member any more. A comment on a resource has no thread.
+31. The actions are "Follow", "Stop following" and "Mute this thread". Only a member of the community who can view the space has a state: a visitor or a signed-in person who is not a member is never told about anything (ADR 0044), so they follow nothing. A marker (ADR 0043) has no follows and loses its follows.
+32. `notification_space_levels`, one row per member and space: `all` ("Everything"), `mine` ("Only what is for me") or `none` ("Muted"). No row means the default of the space. The most specific choice wins: the thread, then the member's level for the space, then the default of the space that a manager set, then the built-in default. `SpaceNotificationLevels` is the one place that knows it.
+33. `spaces.default_notification_level` (null means the built-in default) is set by the people who manage the spaces (`CommunityPolicy::manageSpaces`: the owner, the admins, and the moderators with the right), with the field of the space update. It accepts `all` and `mine`: a manager does not mute a space for the members, a mute is the choice of each one. `all` exists for a discussion space only, and a chat space is never at "Everything" by default. The built-in default is `all` for a discussion space where only moderators post (the place where the team speaks to everyone), and `mine` for every other space. An owner or an admin who sees a `groups` space only because of the role, and not through an access group, gets `mine` there, whatever the default.
+34. A member can choose "Everything" for a discussion space or a chat space only (the two kinds of space that have a stream of new items), and no level exists for a link space.
+
+### Mute is full
+
+35. A muted space or thread gives the member nothing: no level 2 row and no level 1 row either (no reply, no mention, no comment line). `Notify` removes the muted members before it writes the level 1 rows, and the fan-out never reads them. Muting deletes the open rows of that space (every row), or of that thread (the rows about the post and its comments, or about the chat message and its replies; the rows that bundle a space, such as `space_post`, are not about one thread and stay).
+
+### The five kinds
+
+36. All written by the same action, with the access and block rules of the first slice. `thread_comment` (a new comment or reply in a post thread tells its followers), `thread_reply` (a reply in a chat thread tells its followers), `space_post` (a new post in a discussion space tells the members at "Everything"), `space_chat` (a new first-level message in a chat space tells the members who chose "Everything") and `lesson_new` (a new lesson of a course tells the members who have a progress in it, if they did not mute the space). Reactions give nothing.
+37. Never the author, never a member who gets a level 1 row for the same item (a reply, a mention, the author of the post: level 1 wins over level 2, so one event gives one line), never a member who muted, who cannot view the space, who is not a member of the community, or who blocked the author. A mention in a post gives the mentioned member the mention and no `space_post`.
+38. Bundling: one open row per member and thread (`thread_comment`, `thread_reply`), per member and space (`space_post`, `space_chat`, `lesson_new`). A new item sets `actor_id` to its author, clears `seen_at` and moves `updated_at`; the subject stays the first item that the member did not read. `space_chat` is updated and never more than one row is open. The list gives the number of live posts, comments, replies or lessons of a bundle (`items_count`), with the authors, from the live content and with a fixed number of queries.
+39. `notifications.page_id` is the item of `lesson_new` (ADR 0014: a new kind of item adds a column), and the check says that exactly one of the four items is set. A partial unique index on `(user_id, kind, page_id)` makes a retry harmless for the lessons.
+
+### The fan-out
+
+40. `Notify::notify()` queues the level 1 job as before, and the job `FanOutNotifications` for the level 2 kinds. A new post waits 5 minutes (design 6.11): the job reads the post again when it runs, so an edit inside the wait changes what the rows show and tells nobody, and a post that was deleted or became a marker tells nobody (`deleteWhenMissingModels` drops the job of a deleted post). `notify_now` on the creation of a post skips the wait, for the people who can moderate the space (`SpacePolicy::moderate`): the others get a 403, not a silent ignore.
+41. The fan-out reads its recipients in chunks of 500 (`Constants::NOTIFICATIONS_FANOUT_CHUNK`), ordered by member id, after a cursor. Each chunk is its own job on the queue `notifications` and queues the next one when it was full. A chunk runs a fixed number of queries whatever the number of members: one query for the candidates, one for the blocks, three to load the members with their communities and groups, one for their levels, one query for the roles of the members of a `groups` space (`CommunityRoles::withKnownAdmins`, which only holds for the length of the check), then one query to find the rows that exist, one to find the open rows, one update to bundle, one insert for the new rows. A retry is harmless: a member who has the row of the item is skipped, the unique index of the open rows keeps one open row per member and thing, and `insertOrIgnore` never fails on it. A job that lost a race joins the open row of the other.
+42. Events: one `NotificationsChanged` per member and community, queued on `broadcasts` (as a queued event, never in the request).
+
+### API
+
+43. Under `/api/v1`, with the abilities `notifications:read` and `notifications:write` (not in the default set): `GET`, `PUT` and `DELETE` `/communities/{community}/spaces/{space}/posts/{post}/follow` (the state, follow, stop following), `PUT .../posts/{post}/mute`, the same four for a first-level chat message under `.../messages/{message}`; `GET`, `PUT` and `DELETE` `/communities/{community}/spaces/{space}/notification-level` (read, choose, go back to the default); `GET /communities/{community}/notification-levels` (all the levels of the member for one community, in one call, for a settings screen); `POST /notifications/caught-up` ("I am caught up": the open rows of level 2 are read, in every community or in one; it never touches level 1). `GET /notifications` takes `level` (1, the default, or 2). Level 2 rows older than 14 days are never listed and have no "Older"; the count of the bell never counts level 2. Each notification has `reason` (`wrote_post`, `wrote_comment`, `mentioned`, `follows_thread`, `space_everything`, `started_course`), `follow_reason` and `items_count`. The post resource and the chat message resource carry `follow_state` (`following`, `muted`, `stopped`, or null), set for a whole page with one query. The space resource carries `default_notification_level` for the people who manage the spaces only.
+
+### Rows go away
+
+44. A member who leaves or is removed loses their follows and levels in that community. A deleted thread or space takes its follows and levels with it (cascades). A marker loses its follows. The job `PruneUnviewableNotifications` also deletes the follows and levels of a member who cannot view the space any more.
+
+### Data kept
+
+45. The follows, the mutes and the levels are new personal data ("the choices of the member"): kept while the member is in the community (no step in `retention:prune`; the notification rows keep their two periods), in the member export (`activity.json`: `notification_follows` and `notification_levels`, with no text and no name of another member), and in the privacy policy (a sentence for the owner to approve, see the issue). The community export holds none: they belong to the member.
+
 ## Consequences
 
 1. The email, the pop-up, the follows and the settings of the next slices add cases to the enum and read the same rows. Nothing in them needs a new rule about who is told.
@@ -75,6 +120,8 @@ This record covers the first slice: the server part for the app. It has one tabl
 3. `User` uses the `Notifiable` trait of Laravel, whose `notifications()` relation points at a table with the same name and another shape. Nothing calls it. Do not call it: use `App\Models\Notification` queries.
 4. The queue `notifications` needs a worker. Without one, no notification is written and the prune jobs do not run. The bell shows what exists.
 5. Every kind of data in the table is counted in the privacy policy, the retention and the member export (rules 8 and 10 of the data rules).
+6. Slice 2 added choices that outlive the rows: a follow or a level stays while the member is in the community. Every place that makes a member lose the way into a space deletes them too (rule 44).
+7. A fan-out of 2 000 members at "Everything" runs 4 chunks, one job each, with the same number of queries per chunk as a fan-out of 10. The queue `notifications` needs a worker for it, as for the first slice.
 
 ## Alternatives considered
 
@@ -83,3 +130,6 @@ This record covers the first slice: the server part for the app. It has one tabl
 3. A count of unread rows kept on the user: a second source of truth that drifts. The partial index makes the count cheap.
 4. Writing the rows in the request: the fan-out of a later kind (an announcement to every member) would slow the request of the author. The same action serves both, queued.
 5. One channel per kind, chosen by the member (a matrix of kinds by channels): 16 kinds times 3 channels are 48 questions, and members keep the defaults. The level gives the channel and the member answers one question per place.
+6. A new record (0048) for slice 2: the decision is the same, and the cases that it adds (kinds, choices, API) are what the first slice announced. Two records would force a reader to open both to know who is told.
+7. Two states for a follow (`following` and `muted`) and the deletion of the row on "Stop following": the next comment of the member would follow the thread again, against what they asked. The third state, `stopped`, costs one row and keeps the choice.
+8. A row of `notification_follows` for each chat message that a member writes: a chat of 2 000 members would grow the table with every message. The row of a chat thread starts with its first reply.

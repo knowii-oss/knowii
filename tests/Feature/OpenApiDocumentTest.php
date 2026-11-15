@@ -84,6 +84,11 @@ test('every write operation documents its request body', function () {
         'PUT /v1/communities/{community}/spaces/{space}/pages/{page}/progress',
         // Join an open community (#1486): the person is the signed-in account, the community is in the path
         'POST /v1/communities/{community}/membership',
+        // Follow or mute a thread (#1475): the thread is in the path
+        'PUT /v1/communities/{community}/spaces/{space}/posts/{post}/follow',
+        'PUT /v1/communities/{community}/spaces/{space}/posts/{post}/mute',
+        'PUT /v1/communities/{community}/spaces/{space}/messages/{message}/follow',
+        'PUT /v1/communities/{community}/spaces/{space}/messages/{message}/mute',
     ];
     $withoutBody = [];
     foreach (openApiDocument()['paths'] as $path => $operations) {
@@ -124,4 +129,27 @@ test('the indexing route is documented (#1487)', function () {
     $indexing = openApiDocument()['paths']['/v1/communities/{community}/indexing']['patch'] ?? [];
 
     expect($indexing['requestBody']['content']['application/json']['schema']['required'] ?? [])->toBe(['indexing_enabled']);
+});
+
+test('the follows, the levels and "I am caught up" are documented (#1475)', function () {
+    $paths = openApiDocument()['paths'];
+    $space = '/v1/communities/{community}/spaces/{space}';
+
+    expect($paths[$space.'/posts/{post}/follow'])->toHaveKeys(['get', 'put', 'delete'])
+        ->and($paths[$space.'/posts/{post}/mute'])->toHaveKey('put')
+        ->and($paths[$space.'/messages/{message}/follow'])->toHaveKeys(['get', 'put', 'delete'])
+        ->and($paths[$space.'/messages/{message}/mute'])->toHaveKey('put')
+        ->and($paths[$space.'/notification-level'])->toHaveKeys(['get', 'put', 'delete'])
+        ->and($paths['/v1/communities/{community}/notification-levels'])->toHaveKey('get')
+        ->and($paths['/v1/notifications/caught-up'])->toHaveKey('post');
+
+    $level = $paths[$space.'/notification-level']['put'];
+    expect($level['requestBody']['content']['application/json']['schema']['required'] ?? [])->toBe(['level']);
+
+    $names = array_column($paths['/v1/notifications']['get']['parameters'] ?? [], 'name');
+    expect($names)->toContain('level')->toContain('state');
+    $post = $paths[$space.'/posts']['post']['requestBody']['content']['application/json']['schema']['properties'] ?? [];
+    expect($post)->toHaveKey('notify_now');
+    $update = $paths[$space]['patch']['requestBody']['content']['application/json']['schema']['properties'] ?? [];
+    expect($update)->toHaveKey('default_notification_level');
 });

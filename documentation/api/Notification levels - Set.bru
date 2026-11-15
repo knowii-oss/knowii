@@ -1,0 +1,26 @@
+meta {
+  name: Notification levels - Set
+  type: http
+  seq: 163
+}
+
+put {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a space>/notification-level
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "level": "mine"
+  }
+}
+
+docs {
+  Choose a level for a space (#1475): all (Everything), mine (Only what is for me) or none (Muted). Muted gives the member nothing from the space, a mention included, and deletes their open notifications of the space. Everything exists for discussion spaces and chat spaces only (422 for another type). An unknown level gives 400. Needs notifications:write.
+}

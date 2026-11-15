@@ -29,8 +29,8 @@ A personal API token (created on the "API tokens" page of the user menu) has abi
 | `chat:write`        | Write, edit and delete messages, react to them                        |
 | `messages:read`     | Read your direct messages, mark them as read (not in the default set) |
 | `messages:write`    | Start conversations, write, edit and delete direct messages, react    |
-| `notifications:read`  | Read your notifications and their count (not in the default set)       |
-| `notifications:write` | Mark your notifications as seen or read, undo read (not in the default set) |
+| `notifications:read`  | Read your notifications and their count, the state of a thread that you follow, your level for a space (not in the default set) |
+| `notifications:write` | Mark your notifications as seen or read, undo read, "I am caught up", follow, stop following and mute a thread, choose your level for a space (not in the default set) |
 | `pages:read`        | Read the pages of page spaces, mark lessons as done, read the progress, read and download course materials, read and answer lesson quizzes |
 | `pages:write`       | Create, change, reorder and delete pages and course materials, write and delete lesson quizzes (owner, admins, moderators) |
 | `resources:read`    | Read resources, their comments and reactions                          |
@@ -89,6 +89,24 @@ A shared community lets search engines index its public spaces, or not ([ADR 004
 | `PATCH /v1/communities/{community}/indexing` | Let search engines index the public spaces, or not (owner and admins). Body: `indexing_enabled` (a boolean). Never for a personal community (400). Needs an account and the ability `communities:write` |
 
 The setting only matters on an instance that allows indexing (`ROBOTS_ALLOW_INDEXING`). The decision for each page is in its `X-Robots-Tag` header and its meta tag. The API itself is never indexed.
+
+## Notifications, follows and levels
+
+The notifications of the current member, in every community ([ADR 0042](../adr/0042-notifications.md), #1474, #1475). Only a member of the community who can view a space has follows and levels there: a visitor and a signed-in person who is not a member get 403. A notification of another member gives 404. None of these abilities is in the default set of a token.
+
+| Route | What it does |
+| ----- | ------------ |
+| `GET /v1/notifications` | The list. `level=1` (default) is "Needs you", `level=2` is "Following" (the last 14 days, no `older`), `state` (open, read, all), `community`, `older`. Each notification has `reason` (`wrote_post`, `wrote_comment`, `mentioned`, `follows_thread`, `space_everything`, `started_course`), `follow_reason` (`wrote`, `replied`, `manual`) and `items_count`. Needs `notifications:read` |
+| `GET /v1/notifications/count` | The number of the bell. It never counts "Following" |
+| `POST /v1/notifications/seen`, `PUT /v1/notifications/{notification}/read`, `POST /v1/notifications/{notification}/unread` | Seen, read, undo read. Need `notifications:write` |
+| `POST /v1/notifications/caught-up` | "I am caught up": every open "Following" notification is read, in every community or in the one that the optional `community` (cuid) names. It never touches "Needs you". Answers `data.marked` |
+| `GET`, `PUT`, `DELETE /v1/communities/{community}/spaces/{space}/posts/{post}/follow` | The state of the thread for the member (`state`: `following`, `muted`, `stopped` or null; `reason`: `wrote`, `replied`, `manual`), "Follow", "Stop following" (the state becomes `stopped`: writing again does not follow the thread again) |
+| `PUT /v1/communities/{community}/spaces/{space}/posts/{post}/mute` | "Mute this thread": nothing reaches the member from the thread, a mention included, and their open notifications about it are deleted |
+| `GET`, `PUT`, `DELETE /v1/communities/{community}/spaces/{space}/messages/{message}/follow`, `PUT .../messages/{message}/mute` | The same for a chat thread (a first-level message; a reply has no thread: 422) |
+| `GET /v1/communities/{community}/notification-levels` | The levels of the member for every space of the community that they can view, in one call, for a settings screen |
+| `GET`, `PUT`, `DELETE /v1/communities/{community}/spaces/{space}/notification-level` | The level for one space (`level`: `all` "Everything", `mine` "Only what is for me", `none` "Muted"; `chosen`; `default`), choose it (`level`), go back to the default. Muted gives nothing from the space, a mention included |
+
+The posts and the first-level chat messages carry `follow_state` (`following`, `muted`, `stopped`, or null). The space carries `default_notification_level` (`all`, `mine` or null) for the people who manage the spaces only; they set it with `PATCH /v1/communities/{community}/spaces/{space}` (`all` for a discussion space only, never a chat space; `none` is not allowed). `POST .../posts` takes `notify_now` (a boolean) to skip the 5 minutes before the members at "Everything" are told, for the people who can moderate the space (403 for the others).
 
 ## Keep it current
 

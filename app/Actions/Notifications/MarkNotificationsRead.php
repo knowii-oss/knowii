@@ -7,11 +7,13 @@ use App\Enums\KnowiiNotificationKind;
 use App\Exceptions\BusinessException;
 use App\Models\ChatMessage;
 use App\Models\ChatRead;
+use App\Models\Community;
 use App\Models\Notification;
 use App\Models\Space;
 use App\Models\User;
 use App\Support\NotificationAccess;
 use App\Support\NotificationEvents;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 
@@ -79,6 +81,29 @@ final class MarkNotificationsRead implements MarksNotificationsRead
             'read_at' => now(),
         ]);
         NotificationEvents::changed($changed);
+    }
+
+    final public function caughtUp(User $user, ?string $communityCuid = null): int
+    {
+        $rows = Notification::query()
+            ->where('user_id', $user->id)
+            ->following()
+            ->whereNull('read_at')
+            ->when($communityCuid !== null && $communityCuid !== '', static fn (Builder $query) => $query->whereIn('community_id', Community::query()->where('cuid', $communityCuid)->select('id')));
+
+        $changed = (clone $rows)->get(['notifications.id', 'notifications.cuid', 'notifications.user_id', 'notifications.community_id']);
+        if ($changed->isEmpty()) {
+            return 0;
+        }
+
+        // toBase: the update must not touch updated_at, which orders the list
+        Notification::query()->whereIn('id', $changed->modelKeys())->toBase()->update([
+            'seen_at' => DB::raw('COALESCE(seen_at, CURRENT_TIMESTAMP)'),
+            'read_at' => now(),
+        ]);
+        NotificationEvents::changed($changed);
+
+        return $changed->count();
     }
 
     /**

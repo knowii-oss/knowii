@@ -37,6 +37,9 @@ class SpaceResource extends AbstractKnowiiJsonResource
                 $this->relationLoaded('accessGroups') && $this->canManageSpaces($request),
                 fn () => $this->accessGroups->map(fn (AccessGroup $group) => ['cuid' => $group->cuid, 'name' => $group->name])->values()->all(),
             ),
+            // What the members who did not choose get (#1475): null means the built-in default. For the people who manage
+            // the spaces only
+            'default_notification_level' => $this->when($this->canManageSpaces($request), fn () => $this->default_notification_level),
             'position' => $this->position,
             // Chat spaces in the navigation (#1185): the messages that the member did not read yet
             'unread_count' => $this->when($this->unreadCount() !== null, fn () => $this->unreadCount()),

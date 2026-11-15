@@ -11,6 +11,7 @@ use App\Http\Resources\NewestPostResource;
 use App\Models\Community;
 use App\Models\Post;
 use App\Models\Space;
+use App\Support\NotificationFollowStates;
 use App\Support\Pagination;
 use App\Support\PublicCommunity;
 use App\Traits\ApiResponses;
@@ -39,6 +40,8 @@ class PostApiController extends Controller
         Gate::authorize('view', $space);
 
         $page = Pagination::fromRequest($request)->apply($space->posts()->listed()->with(['author', 'space', 'reactions'])->withCount('comments')->forSpacePage());
+        // The follow state of the current member, for the whole page with one query (#1475)
+        NotificationFollowStates::attach($request->user(), $page['items']);
 
         return self::success('Posts', $page['metadata'], $page['items']->toResourceCollection());
     }
@@ -67,9 +70,12 @@ class PostApiController extends Controller
      */
     #[BodyParameter('title', description: 'Title (3 to 200 characters). In a public space, anyone on the internet can read it, with the name and picture of the author', required: true, type: 'string', example: 'Welcome to the community')]
     #[BodyParameter('body', description: 'Body in Markdown (up to 50,000 characters). Raw HTML is escaped. In a public space, anyone on the internet can read it, with the name and picture of the author', required: true, type: 'string', example: 'Hello **everyone**!')]
+    #[BodyParameter('notify_now', description: 'true: tell the members at Everything now, without the 5 minutes of waiting in which an edit or a deletion tells nobody. For the people who can moderate the space only (403 for the others). Default false', required: false, type: 'bool', example: false)]
     final public function store(Request $request, Community $community, Space $space): JsonResponse
     {
-        $post = app(CreatesPosts::class)->create($request->user() ?? throw new AuthenticationException, $space, $request->only(['title', 'body']));
+        $post = app(CreatesPosts::class)->create($request->user() ?? throw new AuthenticationException, $space, $request->only(['title', 'body', 'notify_now']));
+
+        NotificationFollowStates::attach($request->user(), [$post]);
 
         return self::created($post->load(['author', 'space', 'reactions'])->toResource()->withLargeFields(), 'Post created successfully');
     }
@@ -77,9 +83,10 @@ class PostApiController extends Controller
     /**
      * Get a post, with its Markdown source.
      */
-    final public function show(Community $community, Space $space, Post $post): JsonResponse
+    final public function show(Request $request, Community $community, Space $space, Post $post): JsonResponse
     {
         Gate::authorize('view', $post);
+        NotificationFollowStates::attach($request->user(), [$post]);
 
         return self::success('Post', null, $post->load(['author', 'space', 'reactions'])->toResource()->withLargeFields());
     }
@@ -94,6 +101,8 @@ class PostApiController extends Controller
     final public function update(Request $request, Community $community, Space $space, Post $post): JsonResponse
     {
         $post = app(UpdatesPosts::class)->update($request->user() ?? throw new AuthenticationException, $post, $request->only(['title', 'body']));
+
+        NotificationFollowStates::attach($request->user(), [$post]);
 
         return self::success('Post updated successfully', null, $post->load(['author', 'space', 'reactions'])->toResource()->withLargeFields());
     }
@@ -119,6 +128,8 @@ class PostApiController extends Controller
     final public function pin(Request $request, Community $community, Space $space, Post $post): JsonResponse
     {
         $post = app(PinsPosts::class)->pin($request->user() ?? throw new AuthenticationException, $post, $request->only(['pinned']));
+
+        NotificationFollowStates::attach($request->user(), [$post]);
 
         return self::success($post->is_pinned ? 'Post pinned' : 'Post unpinned', null, $post->load(['author', 'space', 'reactions'])->toResource());
     }

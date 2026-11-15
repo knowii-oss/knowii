@@ -13,6 +13,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ChatMessage;
 use App\Models\Community;
 use App\Models\Space;
+use App\Support\NotificationFollowStates;
 use App\Traits\ApiResponses;
 use Dedoc\Scramble\Attributes\BodyParameter;
 use Dedoc\Scramble\Attributes\QueryParameter;
@@ -49,6 +50,8 @@ class ChatMessageApiController extends Controller
         $items = $query->orderByDesc('id')->limit(Constants::CHAT_MESSAGES_PER_PAGE + 1)->get();
         $hasMore = $items->count() > Constants::CHAT_MESSAGES_PER_PAGE;
         $page = $items->take(Constants::CHAT_MESSAGES_PER_PAGE)->reverse()->values();
+        // The follow state of the current member for the threads of the page, with one query (#1475)
+        NotificationFollowStates::attach($request->user(), $page);
 
         return self::success('Messages', ['has_more' => $hasMore], $page->toResourceCollection());
     }
@@ -56,9 +59,10 @@ class ChatMessageApiController extends Controller
     /**
      * One message (a live update loads it again).
      */
-    final public function show(Community $community, Space $space, ChatMessage $message): JsonResponse
+    final public function show(Request $request, Community $community, Space $space, ChatMessage $message): JsonResponse
     {
         Gate::authorize('view', $space);
+        NotificationFollowStates::attach($request->user(), [$message]);
 
         return self::success('Message', null, $message->load(['author', 'reactions', 'parent'])->toResource());
     }
@@ -66,12 +70,13 @@ class ChatMessageApiController extends Controller
     /**
      * The thread of a message: the message and its replies, oldest first.
      */
-    final public function thread(Community $community, Space $space, ChatMessage $message): JsonResponse
+    final public function thread(Request $request, Community $community, Space $space, ChatMessage $message): JsonResponse
     {
         Gate::authorize('view', $space);
         if ($message->parent_id !== null) {
             throw new BusinessException('Threads start at a first-level message');
         }
+        NotificationFollowStates::attach($request->user(), [$message]);
 
         return self::success('Thread', null, [
             'message' => $message->load(['author', 'reactions'])->toResource()->toArray(request()),
@@ -90,6 +95,8 @@ class ChatMessageApiController extends Controller
     {
         $message = app(CreatesChatMessages::class)->create($request->user() ?? throw new AuthenticationException, $space, $request->only(['body', 'parent_cuid']));
 
+        NotificationFollowStates::attach($request->user(), [$message]);
+
         return self::created($message->load(['author', 'reactions', 'parent'])->toResource(), 'Message sent');
     }
 
@@ -102,6 +109,8 @@ class ChatMessageApiController extends Controller
     final public function update(Request $request, Community $community, Space $space, ChatMessage $message): JsonResponse
     {
         $message = app(UpdatesChatMessages::class)->update($request->user() ?? throw new AuthenticationException, $message, $request->only(['body']));
+
+        NotificationFollowStates::attach($request->user(), [$message]);
 
         return self::success('Message updated', null, $message->load(['author', 'reactions', 'parent'])->toResource());
     }

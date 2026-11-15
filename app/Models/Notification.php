@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\KnowiiFollowReason;
 use App\Enums\KnowiiNotificationKind;
 use App\Http\Resources\NotificationResource;
 use App\Traits\GeneratesCuid;
@@ -15,8 +16,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * A notification (#1474, ADR 0042): one row per recipient, about one item (a post, a comment or a chat message,
- * exactly one, ADR 0014). It holds no text of content: the list builds titles and excerpts from the live content.
+ * A notification (#1474, ADR 0042): one row per recipient, about one item (a post, a comment, a chat message or a
+ * lesson, exactly one, ADR 0014). It holds no text of content: the list builds titles and excerpts from the live content.
  *
  * Seen means the line was on screen, read means it was opened or marked done (design 6.1). An open row (not read)
  * bundles the next comments on the same thing; a read row is never opened again.
@@ -31,6 +32,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property ?int $post_id
  * @property ?int $comment_id
  * @property ?int $chat_message_id
+ * @property ?int $page_id
  * @property string $dedupe_key
  * @property ?Carbon $seen_at
  * @property ?Carbon $read_at
@@ -43,8 +45,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read ?Post $post
  * @property-read ?Comment $comment
  * @property-read ?ChatMessage $chatMessage
+ * @property-read ?Page $page
  * @property-read Collection<int, User> $bundledActors The authors that a bundled row names (set by the list, not stored)
  * @property-read int $others_count The authors that a bundled row does not name (set by the list, not stored)
+ * @property-read int $items_count The live posts, comments, replies or lessons that a bundled row holds (set by the list, not stored)
+ * @property-read ?KnowiiFollowReason $follow_reason Why the member follows the thread of a level 2 thread row (set by the list, not stored)
  *
  * @method static \Database\Factories\NotificationFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification newModelQuery()
@@ -76,6 +81,7 @@ class Notification extends Model
         'post_id',
         'comment_id',
         'chat_message_id',
+        'page_id',
         'dedupe_key',
         'seen_at',
         'read_at',
@@ -93,6 +99,7 @@ class Notification extends Model
         'post_id',
         'comment_id',
         'chat_message_id',
+        'page_id',
         'dedupe_key',
     ];
 
@@ -169,14 +176,33 @@ class Notification extends Model
     }
 
     /**
-     * The rows of the levels that the bell and the list show, "Needs you" (design 2.1)
+     * @return BelongsTo<Page, covariant $this>
+     */
+    final public function page(): BelongsTo
+    {
+        return $this->belongsTo(Page::class);
+    }
+
+    /**
+     * The rows of the levels that the bell and the list show, "Needs you": level 0 and level 1 (design 2.1)
      *
      * @param  Builder<Notification>  $query
      * @return Builder<Notification>
      */
     final public function scopeNeedingYou(Builder $query): Builder
     {
-        return $query->whereIn('kind', KnowiiNotificationKind::valuesOfLevel(1));
+        return $query->whereIn('kind', [...KnowiiNotificationKind::valuesOfLevel(0), ...KnowiiNotificationKind::valuesOfLevel(1)]);
+    }
+
+    /**
+     * The rows of level 2, "Following": never counted, never listed after 14 days (design 2.1, 6.3)
+     *
+     * @param  Builder<Notification>  $query
+     * @return Builder<Notification>
+     */
+    final public function scopeFollowing(Builder $query): Builder
+    {
+        return $query->whereIn('kind', KnowiiNotificationKind::valuesOfLevel(2));
     }
 
     final public function getRouteKeyName(): string

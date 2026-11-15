@@ -23,4 +23,12 @@ interface MarksNotificationsRead
      * The member read a chat space up to a message: the mention rows of the space up to it are seen and read.
      */
     public function readChat(User $user, Space $space, int $lastReadMessageId): void;
+
+    /**
+     * "I am caught up" (#1475): every open row of level 2 ("Following") of the member is seen and read, in every community
+     * or in one. It never touches a row of level 0 or 1 ("Needs you"). It returns the number of rows that it marked.
+     *
+     * @param  ?string  $communityCuid  keep the rows of this community
+     */
+    public function caughtUp(User $user, ?string $communityCuid = null): int;
 }

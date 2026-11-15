@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\KnowiiSpaceNotificationLevel;
 use App\Enums\KnowiiSpacePostingPolicy;
 use App\Enums\KnowiiSpaceType;
 use App\Enums\KnowiiSpaceVisibility;
@@ -35,6 +36,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property KnowiiSpaceVisibility $visibility
  * @property-read Collection<int, AccessGroup> $accessGroups
  * @property KnowiiSpacePostingPolicy $posting_policy
+ * @property ?KnowiiSpaceNotificationLevel $default_notification_level What the members who did not choose get (#1475); null: the built-in default of the kind of space
  * @property int $position
  * @property Carbon $created_at
  * @property Carbon $updated_at
@@ -94,6 +96,7 @@ class Space extends Model
         'type',
         'visibility',
         'posting_policy',
+        'default_notification_level',
         'position',
         'community_id',
         'space_group_id',
@@ -117,6 +120,7 @@ class Space extends Model
             'type' => KnowiiSpaceType::class,
             'visibility' => KnowiiSpaceVisibility::class,
             'posting_policy' => KnowiiSpacePostingPolicy::class,
+            'default_notification_level' => KnowiiSpaceNotificationLevel::class,
             'position' => 'integer',
         ];
     }
