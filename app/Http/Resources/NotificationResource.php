@@ -42,7 +42,8 @@ class NotificationResource extends AbstractKnowiiJsonResource
             // Up to 3 authors of the bundle (newest first, blocked and deleted authors left out), and the others
             'actors' => $this->whenLoaded('bundledActors', fn () => $notification->bundledActors->toResourceCollection(AuthorResource::class), []),
             'others_count' => $notification->getAttributes()['others_count'] ?? 0,
-            'title' => $post?->title,
+            // The marker of a deleted post or comment shows nothing of the old content (#1344)
+            'title' => $post === null || $post->isDeleted() ? null : $post->title,
             'excerpt' => self::excerpt($post !== null && $comment === null ? $post : ($comment ?? $message)),
             // What the client needs to open the exact item
             'target' => [

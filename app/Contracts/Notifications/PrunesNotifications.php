@@ -30,4 +30,22 @@ interface PrunesNotifications
      * A chat message was deleted (it stays as a marker): the rows about it.
      */
     public function forChatMessage(int $chatMessageId): int;
+
+    /**
+     * Posts, comments or chat messages are deleted or become markers (#1344): the rows about them, with one event per
+     * recipient. The database cascades only cover the rows that really go.
+     *
+     * @param  list<int>  $postIds
+     */
+    public function forPosts(array $postIds): int;
+
+    /**
+     * @param  list<int>  $commentIds
+     */
+    public function forComments(array $commentIds): int;
+
+    /**
+     * @param  list<int>  $chatMessageIds
+     */
+    public function forChatMessages(array $chatMessageIds): int;
 }

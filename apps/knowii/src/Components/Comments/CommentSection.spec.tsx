@@ -16,6 +16,7 @@ function comment(cuid: string, author: typeof ada, body: string, parent: string 
     body,
     body_html: `<p>${body}</p>`,
     edited_at: null,
+    deleted_at: null,
     author,
     parent_cuid: parent,
     replies,
@@ -98,6 +99,18 @@ describe('CommentSection', () => {
     expect(remove).toHaveBeenCalledWith({ communityCuid: 'community', spaceCuid: 'space', postCuid: 'post' }, 'c1');
     expect(onCountChange).toHaveBeenLastCalledWith(1);
     expect(screen.getByRole('heading', { name: '1 comment' })).toBeInTheDocument();
+  });
+
+  it('shows the marker of a deleted comment with its replies, and nothing of the old comment (#1344)', async () => {
+    const marker: Comment = { ...comment('m1', ada, '', null, [comment('r9', bob, 'Still here', 'm1')]), author: null, deleted_at: now };
+    renderSection({ initialComments: [marker] });
+
+    expect(screen.getByRole('article', { name: 'Deleted comment' })).toHaveTextContent('This comment was deleted.');
+    expect(screen.getByText('Still here')).toBeInTheDocument();
+    // No author, no edit, no reactions; the thread stays open to replies
+    expect(screen.queryByText('Deleted member')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Edit your comment' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Reply in the thread of the deleted comment' })).toBeInTheDocument();
   });
 
   it('hides the comment form from people who cannot comment', () => {

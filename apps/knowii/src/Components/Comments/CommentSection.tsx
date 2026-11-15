@@ -249,19 +249,25 @@ export function CommentSection(props: CommentSectionProps) {
   const renderComment = (comment: Comment, topLevel: Comment) => {
     const isAuthor = currentUserCuid !== null && comment.author?.cuid === currentUserCuid;
     const authorName = comment.author ? comment.author.name : 'Deleted member';
+    // The marker of a comment that its author deleted with their account, while it still had replies (#1344)
+    const isMarker = comment.deleted_at !== null;
     return (
       <article
         id={commentAnchor(comment.cuid)}
         // The target of a link to the comment gets the focus (#1205)
         tabIndex={-1}
-        aria-label={`Comment by ${authorName}`}
+        aria-label={isMarker ? 'Deleted comment' : `Comment by ${authorName}`}
         className="-mx-2 flex scroll-mt-24 flex-col gap-1 rounded-lg px-2 py-1 transition-colors duration-700 outline-none focus-visible:outline-2 focus-visible:outline-primary data-[highlighted=true]:bg-secondary/15"
       >
-        <p className="text-xs text-muted">
-          <span className="font-bold text-primary">{authorName}</span> · <RelativeTime date={comment.created_at} />
-          {comment.edited_at && ' · edited'}
-        </p>
-        {editing === comment.cuid ? (
+        {isMarker ? (
+          <p className="text-sm text-muted italic">This comment was deleted.</p>
+        ) : (
+          <p className="text-xs text-muted">
+            <span className="font-bold text-primary">{authorName}</span> · <RelativeTime date={comment.created_at} />
+            {comment.edited_at && ' · edited'}
+          </p>
+        )}
+        {isMarker ? null : editing === comment.cuid ? (
           <CommentForm
             communityCuid={subject.communityCuid}
             label="Edit your comment"
@@ -285,7 +291,12 @@ export function CommentSection(props: CommentSectionProps) {
         {editing !== comment.cuid && (
           <div className="flex flex-wrap gap-1">
             {canComment && (
-              <Button size="sm" variant="ghost" aria-label={`Reply to ${authorName}`} onClick={() => setReplyingTo(topLevel.cuid)}>
+              <Button
+                size="sm"
+                variant="ghost"
+                aria-label={isMarker ? 'Reply in the thread of the deleted comment' : `Reply to ${authorName}`}
+                onClick={() => setReplyingTo(topLevel.cuid)}
+              >
                 <FaReply aria-hidden="true" />
                 Reply
               </Button>
@@ -293,7 +304,7 @@ export function CommentSection(props: CommentSectionProps) {
             <Button
               size="sm"
               variant="ghost"
-              aria-label={`Copy the link to the comment by ${authorName}`}
+              aria-label={isMarker ? 'Copy the link to the deleted comment' : `Copy the link to the comment by ${authorName}`}
               onClick={() => void copyLink(comment)}
             >
               <FaLink aria-hidden="true" />
@@ -309,7 +320,7 @@ export function CommentSection(props: CommentSectionProps) {
               <Button
                 size="sm"
                 variant="ghost"
-                aria-label={`Delete the comment by ${authorName}`}
+                aria-label={isMarker ? 'Delete the deleted comment' : `Delete the comment by ${authorName}`}
                 onClick={() => setPendingDeletion(comment)}
               >
                 <FaTrash aria-hidden="true" />
@@ -351,7 +362,7 @@ export function CommentSection(props: CommentSectionProps) {
 
       <ol className="flex flex-col gap-5">
         {comments.map((comment) => {
-          const authorName = comment.author?.name ?? 'a deleted member';
+          const authorName = comment.deleted_at !== null ? 'a deleted comment' : (comment.author?.name ?? 'a deleted member');
           const replyCount = comment.replies?.length ?? 0;
           const isCollapsed = collapsed.has(comment.cuid);
           const threadId = `thread-${comment.cuid}`;
@@ -370,7 +381,9 @@ export function CommentSection(props: CommentSectionProps) {
               </Button>
               {isCollapsed ? (
                 <p id={threadId} className="flex min-h-8 items-center text-xs text-muted">
-                  <span className="font-bold text-primary">{comment.author ? comment.author.name : 'Deleted member'}</span>
+                  <span className="font-bold text-primary">
+                    {comment.deleted_at !== null ? 'Deleted comment' : comment.author ? comment.author.name : 'Deleted member'}
+                  </span>
                   &nbsp;· {replyCount === 0 ? 'no replies' : replyCount === 1 ? '1 reply' : `${replyCount} replies`}
                 </p>
               ) : (
@@ -388,7 +401,12 @@ export function CommentSection(props: CommentSectionProps) {
                       >
                         <span className="absolute top-0 bottom-0 left-0 w-0.5 bg-border group-hover:bg-secondary" />
                       </button>
-                      <ol className="flex flex-col gap-3 pl-6" aria-label={`Replies to the comment by ${authorName}`}>
+                      <ol
+                        className="flex flex-col gap-3 pl-6"
+                        aria-label={
+                          comment.deleted_at !== null ? 'Replies to the deleted comment' : `Replies to the comment by ${authorName}`
+                        }
+                      >
                         {comment.replies?.map((reply) => (
                           <li key={reply.cuid}>{renderComment(reply, comment)}</li>
                         ))}

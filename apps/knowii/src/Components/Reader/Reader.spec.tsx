@@ -30,6 +30,7 @@ const comments: Comment[] = [
     body: 'First',
     body_html: '<p>First</p>',
     edited_at: null,
+    deleted_at: null,
     author: ada,
     parent_cuid: null,
     replies: [],

@@ -19,7 +19,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * A post in a discussion space (#1174).
+ * A post in a discussion space (#1174). A post that a member deleted with their account, while it still had comments of
+ * other members, stays as a marker (#1344, ADR 0043): no title, no text, no author, `deleted_at` set.
  *
  * @property-read int $id
  * @property-read string $cuid
@@ -33,6 +34,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property bool $is_pinned
  * @property ?Carbon $pinned_at
  * @property ?Carbon $edited_at
+ * @property ?Carbon $deleted_at
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read Community $community
@@ -99,6 +101,7 @@ class Post extends Model
         'is_pinned',
         'pinned_at',
         'edited_at',
+        'deleted_at',
     ];
 
     /**
@@ -120,7 +123,16 @@ class Post extends Model
             'is_pinned' => 'boolean',
             'pinned_at' => 'datetime',
             'edited_at' => 'datetime',
+            'deleted_at' => 'datetime',
         ];
+    }
+
+    /**
+     * A marker keeps its row for the comments of other members, without its content
+     */
+    final public function isDeleted(): bool
+    {
+        return $this->deleted_at !== null;
     }
 
     /**
@@ -155,6 +167,17 @@ class Post extends Model
     final public function comments(): HasMany
     {
         return $this->hasMany(Comment::class)->orderBy('created_at')->orderBy('id');
+    }
+
+    /**
+     * The posts that a list shows: not the markers of deleted posts, which only show on their own page.
+     *
+     * @param  Builder<Post>  $query
+     * @return Builder<Post>
+     */
+    final public function scopeListed(Builder $query): Builder
+    {
+        return $query->whereNull('deleted_at');
     }
 
     /**

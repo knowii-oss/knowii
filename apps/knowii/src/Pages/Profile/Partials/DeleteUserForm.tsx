@@ -2,14 +2,16 @@ import { useRoute } from 'ziggy-js';
 import type { FormEventHandler } from 'react';
 import { useRef, useState } from 'react';
 import { useForm } from '@inertiajs/react';
-import { DELETE_USER_URL } from '@knowii/common';
+import { DELETE_USER_URL, metadata } from '@knowii/common';
 import { FaLock } from 'react-icons/fa';
 import InputError from '@/Components/InputError';
 import ActionSection from '@/Components/ActionSection';
-import { Button, Dialog, PasswordInput } from '@/Components/ui';
+import { Button, Checkbox, Dialog, PasswordInput } from '@/Components/ui';
 
 interface DeleteUserFormProps {
   password: string;
+  // Also delete the posts, comments and messages of the member (#1344, ADR 0043)
+  delete_content: boolean;
 }
 
 export default function DeleteUserForm() {
@@ -19,6 +21,7 @@ export default function DeleteUserForm() {
 
   const form = useForm<DeleteUserFormProps>({
     password: '',
+    delete_content: false,
   });
 
   const passwordRef = useRef<HTMLInputElement | null>(null);
@@ -73,6 +76,9 @@ export default function DeleteUserForm() {
         }
       >
         <form id="delete-user-form" onSubmit={deleteUser}>
+          <p className="mb-4 text-sm">
+            {`Your posts, comments, resources and messages stay in their communities under the name "Deleted member". Delete what you want removed before you delete your account, or tick the box below. Afterwards, write to ${metadata.contact.info} to have content removed.`}
+          </p>
           <label htmlFor="delete-user-password" className="text-sm">
             Please enter your password to confirm you would like to permanently delete your account.
           </label>
@@ -89,6 +95,18 @@ export default function DeleteUserForm() {
               invalid={!!form.errors.password}
             />
             <InputError className="mt-2" message={form.errors.password} />
+          </div>
+          <div className="mt-4">
+            <label className="flex cursor-pointer items-start gap-3 text-sm">
+              <Checkbox
+                name="delete_content"
+                checked={form.data.delete_content}
+                onChange={(e) => form.setData('delete_content', e.target.checked)}
+                aria-invalid={!!form.errors.delete_content}
+              />
+              <span className="pt-0.5">Also delete my posts, comments and messages</span>
+            </label>
+            <InputError className="mt-2" message={form.errors.delete_content} />
           </div>
         </form>
       </Dialog>
