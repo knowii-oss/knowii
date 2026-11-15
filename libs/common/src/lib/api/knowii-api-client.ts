@@ -12,6 +12,7 @@ import {
   COMMUNITY_CONVERSATION_READ_API_PATH,
   COMMUNITY_CONVERSATION_MESSAGE_API_PATH,
   COMMUNITY_CONVERSATION_MESSAGE_REACTIONS_API_PATH,
+  USER_IDENTITIES_API_PATH,
   USER_ONLINE_STATUS_API_PATH,
   COMMUNITY_ONLINE_MEMBERS_API_PATH,
   COMMUNITY_SPACE_ONLINE_MEMBERS_API_PATH,
@@ -1217,6 +1218,13 @@ export const knowiiApiClient = {
         apiRequest('put', `${USER_BLOCKS_API_PATH}/${encodeURIComponent(userCuid)}`, null, 'Failed to block the member.'),
       unblock: (userCuid: string): Promise<ApiResult<unknown>> =>
         apiRequest('delete', `${USER_BLOCKS_API_PATH}/${encodeURIComponent(userCuid)}`, null, 'Failed to unblock the member.'),
+    },
+    /**
+     * The provider accounts that the current member connected (#1385). The sign-in itself is a browser flow
+     */
+    identities: {
+      remove: (identityCuid: string): Promise<ApiResult<unknown>> =>
+        apiRequest('delete', `${USER_IDENTITIES_API_PATH}/${encodeURIComponent(identityCuid)}`, null, 'Failed to disconnect the account.'),
     },
     updateOnlineStatus: (show: boolean): Promise<ApiResult<unknown>> =>
       apiRequest('patch', USER_ONLINE_STATUS_API_PATH, null, 'Failed to change your online status.', { show_online_status: show }),

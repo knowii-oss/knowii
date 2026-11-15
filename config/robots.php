@@ -17,6 +17,8 @@ return [
         '/community/',
         '/docs/',
         '/login',
+        // The sign-in with an OpenID Connect provider (#1385): a crawler never starts a flow
+        '/auth/',
         '/register',
         '/forgot-password',
         '/reset-password/',

@@ -9,9 +9,12 @@
   "require": {
     "php": "^8.5",
     "ext-curl": "*",
+    "ext-openssl": "*",
+    "ext-sodium": "*",
     "bepsvpt/secure-headers": "^9.1",
     "cviebrock/eloquent-sluggable": "^13.0",
     "dedoc/scramble": "^0.13",
+    "firebase/php-jwt": "7.2.1",
     "fivefilters/readability.php": "^4.0",
     "guzzlehttp/guzzle": "^7.10 || ^8.0",
     "inertiajs/inertia-laravel": "^3.0",

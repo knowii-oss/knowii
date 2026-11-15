@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -38,7 +39,7 @@ use TaylorNetwork\UsernameGenerator\GeneratesUsernames;
  * @property string $email
  * @property bool $show_online_status Whether the other members see when this member is online (#1187)
  * @property ?Carbon $email_verified_at
- * @property string $password
+ * @property ?string $password Null for an account without a password (created by an OpenID Connect provider, or its password was removed, #1385)
  * @property ?string $two_factor_secret
  * @property ?string $two_factor_recovery_codes
  * @property ?Carbon $two_factor_confirmed_at
@@ -55,6 +56,8 @@ use TaylorNetwork\UsernameGenerator\GeneratesUsernames;
  * @property-read ?int $notifications_count
  * @property-read Collection<int, Community> $ownedCommunities
  * @property-read ?int $owned_communities_count
+ * @property-read Collection<int, UserIdentity> $identities
+ * @property-read ?int $identities_count
  * @property-read Collection<int, PersonalAccessToken> $tokens
  * @property-read ?int $tokens_count
  *
@@ -223,6 +226,25 @@ class User extends Authenticatable implements MustVerifyEmail
     final public function profile(): HasOne
     {
         return $this->hasOne(UserProfile::class);
+    }
+
+    /**
+     * The accounts of OpenID Connect providers that this member connected (#1385, ADR 0045)
+     *
+     * @return HasMany<UserIdentity, covariant $this>
+     */
+    final public function identities(): HasMany
+    {
+        return $this->hasMany(UserIdentity::class);
+    }
+
+    /**
+     * Whether the account has a password that can sign in. An account that the provider created has none, and the
+     * takeover of an unverified account removes it (#1385).
+     */
+    final public function hasPassword(): bool
+    {
+        return is_string($this->password) && $this->password !== '';
     }
 
     final public function getRouteKeyName(): string

@@ -1,4 +1,5 @@
 import Footer from '@/Components/Footer';
+import OpenIdConnectButton from '@/Components/Auth/OpenIdConnectButton';
 import { Button, Checkbox, PasswordInput, TextInput, Turnstile } from '@/Components/ui';
 import AuthenticationCard from '@/Components/AuthenticationCard';
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -55,6 +56,7 @@ export default function RegisterPage({ turnstileSiteKey = null }: Props) {
     <>
       <Head title="Register" />
       <AuthenticationCard>
+        <OpenIdConnectButton />
         <form onSubmit={submit}>
           {/* Name */}
           <div>

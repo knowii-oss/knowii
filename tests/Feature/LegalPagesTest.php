@@ -314,3 +314,8 @@ test('the privacy policy says that a member can delete their content with the ac
         ->where('html', fn (string $html) => str_contains($html, 'When you delete your account, you can also delete your posts, comments and messages. Afterwards, write to <a href="mailto:contact@developassion.be">contact@developassion.be</a> to have content removed.'))
     );
 });
+
+test('the privacy policy names the identifier of the provider account and the date it was connected (#1385)', function () {
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, 'and, when you sign in with a Knowii account, the identifier of that account and the date you connected it.')));
+});

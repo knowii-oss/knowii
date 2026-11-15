@@ -18,7 +18,7 @@ DeveloPassion SRL is the controller of the data of your Knowii account. For the 
 
 ## 2. The data we collect
 
-1. Account: your name, email address, username, password (stored as a hash, never in clear text), two-factor authentication secret and recovery codes (encrypted), avatar, the date you verified your email address, and your choice to show or hide your online status.
+1. Account: your name, email address, username, password (stored as a hash, never in clear text), two-factor authentication secret and recovery codes (encrypted), avatar, the date you verified your email address, and your choice to show or hide your online status, and, when you sign in with a Knowii account, the identifier of that account and the date you connected it.
 2. Profile: what you choose to add (bio, location, phone number, links to your sites and social accounts), and which of these fields other members see. Your phone number is hidden by default.
 3. Communities: your memberships, your role, your access groups, the lessons of a course that you marked as done, your answers and scores in the quizzes of lessons, the members you blocked, the invitations sent to your email address, what you read in chat spaces and conversations, to show what is new, and the notifications that tell you when a member replies to you or mentions you (who wrote, about which post, comment or message, and when you saw it).
 4. Your content: posts, comments, reactions, mentions, resources and their captured content, chat messages, direct messages, pages, lessons, and uploaded images and their alternative text. Uploaded images are re-encoded on our server, which removes their metadata (location, camera).

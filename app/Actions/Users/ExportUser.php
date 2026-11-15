@@ -21,6 +21,7 @@ use App\Models\Reaction;
 use App\Models\Space;
 use App\Models\Upload;
 use App\Models\User;
+use App\Models\UserIdentity;
 use App\Support\JsonExportFile;
 use Carbon\CarbonInterface;
 use Generator;
@@ -87,7 +88,7 @@ final class ExportUser implements ExportsUsers
 
         try {
             $json = [
-                'account.json' => [$this->accountHead($user), []],
+                'account.json' => [$this->accountHead($user), ['connected_accounts' => $this->connectedAccounts($user)]],
                 'memberships.json' => [[], [
                     'memberships' => $this->memberships($user),
                     'owned_communities' => $this->ownedCommunities($user),
@@ -174,6 +175,26 @@ final class ExportUser implements ExportsUsers
             ],
             'profile' => $profileRow,
         ];
+    }
+
+    /**
+     * The accounts of OpenID Connect providers that the member connected (#1385, ADR 0045): the issuer, the identifier
+     * of the member's own account at the provider (the subject: it is their data) and the dates. Never a token: none is
+     * stored.
+     *
+     * @return Generator<int, Row>
+     */
+    private function connectedAccounts(User $user): Generator
+    {
+        foreach (UserIdentity::query()->where('user_id', $user->id)->lazyById(self::CHUNK) as $identity) {
+            yield [
+                'cuid' => $identity->cuid,
+                'issuer' => $identity->issuer,
+                'subject' => $identity->subject,
+                'linked_at' => $this->date($identity->linked_at),
+                'last_used_at' => $this->date($identity->last_used_at),
+            ];
+        }
     }
 
     /**
@@ -736,7 +757,7 @@ final class ExportUser implements ExportsUsers
             '',
         ];
         $descriptions = [
-            'account.json' => 'your account and your profile, with the choice of who sees each profile field',
+            'account.json' => 'your account and your profile, with the choice of who sees each profile field, and the accounts of other providers that you connected to sign in (the provider, your identifier there and the dates)',
             'memberships.json' => 'your communities and your role, the communities you own, your access groups and the invitations sent to your email address',
             'activity.json' => 'the lessons you marked as done, your quiz results, what you read in chat spaces and conversations, the members you blocked, where you were mentioned, your notifications (kind, community, the items by identifier and the dates, never a text), your API tokens and your sessions',
             'posts.json' => 'your posts (Markdown)',

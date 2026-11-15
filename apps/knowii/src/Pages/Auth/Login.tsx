@@ -8,6 +8,7 @@ import { useRoute } from 'ziggy-js';
 import { FORGOT_PASSWORD_URL, LOGIN_LINK_STORE_URL, LOGIN_URL, REGISTER_URL } from '@knowii/common';
 import { FaAt, FaLock } from 'react-icons/fa';
 import Footer from '@/Components/Footer';
+import OpenIdConnectButton from '@/Components/Auth/OpenIdConnectButton';
 import { Button, Checkbox, PasswordInput, TextInput } from '@/Components/ui';
 
 interface LoginFormData {
@@ -54,6 +55,9 @@ export default function LoginPage({ canResetPassword, status }: Props) {
             {status}
           </div>
         )}
+
+        {/* The provider comes first: above the password and the sign-in link (#1385) */}
+        <OpenIdConnectButton />
 
         {linkMode ? (
           <form onSubmit={sendLink} className="flex flex-col gap-4">

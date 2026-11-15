@@ -203,6 +203,9 @@ class Constants
     // Posts created per minute and per user
     public const int POSTS_PER_MINUTE = 5;
 
+    // Starts and ends of a sign-in with the OpenID Connect provider per minute and per IP address (#1385)
+    public const int OIDC_REQUESTS_PER_MINUTE = 10;
+
     // Reads of the public spaces per minute and per IP address, for visitors (#1387, ADR 0044). Signed-in requests are not limited here
     public const int PUBLIC_READS_PER_MINUTE = 60;
 

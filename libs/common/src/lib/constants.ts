@@ -72,6 +72,10 @@ export const RESOURCE_URL = 'resources.show';
 
 // Authentication
 export const LOGIN_URL = 'login';
+// The redirect to the OpenID Connect provider of the instance, when it has one (#1385)
+export const OIDC_REDIRECT_URL = 'oidc.redirect';
+// A signed-in member connects a provider account: a POST, never a link (#1385)
+export const OIDC_CONNECT_URL = 'oidc.connect';
 export const REGISTER_URL = 'register';
 export const LOGOUT_URL = 'logout';
 export const PASSWORD_CONFIRM_URL = 'password.confirm';
@@ -220,6 +224,8 @@ export const USER_AVATAR_API_PATH = `${API_BASE_PATH}/user/avatar`;
 export const USER_ONLINE_STATUS_API_PATH = `${API_BASE_PATH}/user/online-status`;
 // The members the current user blocked (#1186)
 export const USER_BLOCKS_API_PATH = `${API_BASE_PATH}/user/blocks`;
+// The provider accounts that the member connected (#1385, ADR 0045)
+export const USER_IDENTITIES_API_PATH = `${API_BASE_PATH}/user/identities`;
 export const USER_FREQUENT_EMOJI_API_PATH = `${API_BASE_PATH}/user/frequent-emoji`;
 export const COMMUNITY_API_BASE_PATH = `${API_BASE_PATH}/communities`;
 // Whether a shared community can take a name (#1136). WARNING: aligned with ApiRoutes.php

@@ -39,7 +39,9 @@ class LoginApiController extends Controller
 
         // Check the password without logging in: the session starts only after every factor (#1256)
         $user = User::query()->where('email', $input['email'])->first();
-        if ($user === null || ! Hash::check($input['password'], $user->password)) {
+        // An account without a password (created by a sign-in provider) cannot log in here
+        $storedPassword = $user?->password;
+        if ($user === null || $storedPassword === null || ! Hash::check($input['password'], $storedPassword)) {
             return self::authenticationIssue('The provided credentials do not match our records.');
         }
 
