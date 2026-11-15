@@ -11,6 +11,7 @@ import DeleteCommunityForm from '@/Pages/Communities/Partials/DeleteCommunityFor
 import TransferOwnershipForm from '@/Pages/Communities/Partials/TransferOwnershipForm';
 import { SpaceTreeEditor } from '@/Components/Spaces/SpaceTreeEditor';
 import { DirectMessagesSetting } from '@/Components/Communities/DirectMessagesSetting';
+import { IndexingSetting } from '@/Components/Communities/IndexingSetting';
 import { JoinPolicySetting } from '@/Components/Communities/JoinPolicySetting';
 import { ModeratorPermissionsForm } from '@/Components/Communities/ModeratorPermissionsForm';
 import { CommunityMembersManager } from '@/Components/Communities/CommunityMembersManager';
@@ -107,6 +108,14 @@ export default function CommunitySettingsPage(props: Props) {
       {props.permissions.canManageJoinPolicy === true && props.community.visibility !== 'personal' && (
         <>
           <JoinPolicySetting community={props.community} onSaved={() => router.reload({ only: ['community'] })} />
+          <Separator />
+        </>
+      )}
+
+      {/* Owner and admins: search engines and the public spaces (#1487). A personal community has no public space */}
+      {props.permissions.canManageIndexing === true && props.community.visibility !== 'personal' && (
+        <>
+          <IndexingSetting community={props.community} onSaved={() => router.reload({ only: ['community'] })} />
           <Separator />
         </>
       )}

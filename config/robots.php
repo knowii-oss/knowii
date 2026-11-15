@@ -9,12 +9,19 @@ return [
     // Default: true in production only.
     'allow_indexing' => (bool) env('ROBOTS_ALLOW_INDEXING', env('APP_ENV') === 'production'),
 
-    // Paths that no crawler visits, even when indexing is allowed (member areas, API, documentation)
+    // Paths that no crawler visits, even when indexing is allowed (member areas, API, documentation). The AI crawlers
+    // below are refused everywhere, whatever a community decides
     'disallow' => [
         '/api/',
         '/dashboard',
         '/user/',
-        '/community/',
+        // Never public: the pages of the members of a community. The public spaces and the public community page are not
+        // blocked as a whole: each response carries its decision (X-Robots-Tag and meta tag, #1487)
+        '/community/*/about',
+        '/community/*/settings',
+        '/community/*/member/',
+        '/community/*/messages',
+        '/community-invitations/',
         '/docs/',
         '/login',
         // The sign-in with an OpenID Connect provider (#1385): a crawler never starts a flow

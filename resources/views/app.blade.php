@@ -6,7 +6,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1" />
   <meta name="description" content="Knowii is a place for your community's Knowledge, Ideas and Inspiration." />
-  <meta name="robots" content="{{ \App\Support\Robots::directive(auth()->check(), false, request()->is('community/*')) }}" />
+  <meta name="robots" content="{{ \App\Support\Robots::forRequest(request()) }}" />
 
   <!--
     Per-request nonce for the <style> elements that scripts inject (Inertia progress bar and error dialog, Vite dev server).

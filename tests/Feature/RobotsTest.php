@@ -12,7 +12,9 @@ test('robots.txt refuses the AI crawlers and keeps crawlers out of member areas 
         expect($body)->toContain("User-agent: {$crawler}\n");
     }
     expect($body)->toContain("User-agent: *\nDisallow: /api/")
-        ->and($body)->toContain('Disallow: /community/')
+        // The community pages are not blocked as a whole (#1487): each response carries its decision
+        ->and(explode("\n", $body))->not->toContain('Disallow: /community/')
+        ->and($body)->toContain('Disallow: /community/*/settings')
         ->and($body)->toContain('Disallow: /dashboard')
         ->and($body)->toContain("Allow: /\n");
 });

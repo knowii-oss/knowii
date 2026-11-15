@@ -326,6 +326,8 @@ export const COMMUNITY_MEMBER_API_PATH = `${COMMUNITY_MEMBERS_API_PATH}/${COMMUN
 export const COMMUNITY_MEMBERSHIP_API_PATH = `${COMMUNITY_API_PATH}/membership`;
 // Who can join the community, and the people whom a manager removed (#1486). WARNING: aligned with ApiRoutes.php
 export const COMMUNITY_JOIN_POLICY_API_PATH = `${COMMUNITY_API_PATH}/join-policy`;
+// Search engines may index the public spaces (#1487). WARNING: aligned with ApiRoutes.php
+export const COMMUNITY_INDEXING_API_PATH = `${COMMUNITY_API_PATH}/indexing`;
 export const COMMUNITY_JOIN_BLOCKS_API_PATH = `${COMMUNITY_API_PATH}/join-blocks`;
 export const COMMUNITY_JOIN_BLOCK_API_PATH = `${COMMUNITY_JOIN_BLOCKS_API_PATH}/{memberCuid}`;
 export const COMMUNITY_INVITATIONS_API_PATH = `${COMMUNITY_API_PATH}/invitations`;

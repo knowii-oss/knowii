@@ -22,7 +22,7 @@ A personal API token (created on the "API tokens" page of the user menu) has abi
 | `user:read`         | Read the current user, their blocks and their frequently used emoji   |
 | `user:write`        | Change the avatar                                                     |
 | `communities:read`  | Read communities, space groups, spaces, members and invitations       |
-| `communities:write` | Create, change and delete communities, spaces, members, invitations; join an open community, leave a community, let a removed member join again, change who can join, transfer its ownership |
+| `communities:write` | Create, change and delete communities, spaces, members, invitations; join an open community, leave a community, let a removed member join again, change who can join, let search engines index the public spaces, transfer its ownership |
 | `posts:read`        | Read posts, comments and reactions, preview Markdown                  |
 | `posts:write`       | Write posts and comments, pin, react, upload images                   |
 | `chat:read`         | Read the messages and threads of chat spaces, mark them as read       |
@@ -79,6 +79,16 @@ A shared community is by invitation (`join_policy` `invitation`, the default) or
 | `DELETE /v1/communities/{community}/join-blocks/{member}` | "May join again": the person can join by themselves again (same managers). 204, or 404 without a block |
 
 All four need an account and the ability `communities:write` (`communities:read` for the list).
+
+## Indexing
+
+A shared community lets search engines index its public spaces, or not ([ADR 0044](../adr/0044-public-spaces-for-visitors.md), "Indexing", #1487). It is off by default. Members read `indexing_enabled` on `GET /v1/communities/{community}`; it is not part of the public shape.
+
+| Route | What it does |
+| ----- | ------------ |
+| `PATCH /v1/communities/{community}/indexing` | Let search engines index the public spaces, or not (owner and admins). Body: `indexing_enabled` (a boolean). Never for a personal community (400). Needs an account and the ability `communities:write` |
+
+The setting only matters on an instance that allows indexing (`ROBOTS_ALLOW_INDEXING`). The decision for each page is in its `X-Robots-Tag` header and its meta tag. The API itself is never indexed.
 
 ## Keep it current
 

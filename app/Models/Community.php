@@ -35,6 +35,7 @@ use Illuminate\Support\Facades\DB;
  * @property array<string, bool> $moderator_permissions
  * @property bool $direct_messages_enabled The owner turns direct messages off (#1186)
  * @property KnowiiCommunityJoinPolicy $join_policy Who can join: by invitation or open (#1486)
+ * @property bool $indexing_enabled Search engines may index the public spaces: off by default (#1487)
  * @property ?Carbon $dpa_accepted_at When the owner accepted the data processing agreement; null for a personal community (#1353)
  * @property ?Carbon $dpa_version The `updated` date of the agreement at that time; null when it is not known (#1353)
  * @property Carbon $created_at
@@ -100,6 +101,7 @@ class Community extends Model
         'moderator_permissions',
         'direct_messages_enabled',
         'join_policy',
+        'indexing_enabled',
         'dpa_accepted_at',
         'dpa_version',
     ];
@@ -138,6 +140,7 @@ class Community extends Model
             'moderator_permissions' => 'array',
             'direct_messages_enabled' => 'boolean',
             'join_policy' => KnowiiCommunityJoinPolicy::class,
+            'indexing_enabled' => 'boolean',
             'dpa_accepted_at' => 'datetime',
             'dpa_version' => 'date',
         ];
@@ -257,6 +260,16 @@ class Community extends Model
     final public function joinPolicy(): KnowiiCommunityJoinPolicy
     {
         return array_key_exists('join_policy', $this->getAttributes()) ? $this->join_policy : KnowiiCommunityJoinPolicy::Invitation;
+    }
+
+    /**
+     * Whether search engines may index the public spaces of the community (#1487). Off by default, and a model built in
+     * memory does not hold the column yet: off. Never a personal community.
+     */
+    final public function allowsIndexing(): bool
+    {
+        return $this->visibility !== KnowiiCommunityVisibility::Personal
+            && filter_var($this->getAttributes()['indexing_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN);
     }
 
     /**

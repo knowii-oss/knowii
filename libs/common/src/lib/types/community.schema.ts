@@ -92,6 +92,8 @@ export const communitySchema = baseEntitySchema
     member_count: z.number().int().optional(),
     // Who can join (#1486): known to the page and to the API clients, for a member and for someone who is not one
     join_policy: communityJoinPolicySchema.optional(),
+    // Search engines may index the public spaces (#1487): for the members only, never part of the public shape
+    indexing_enabled: z.boolean().optional(),
     // Whether the current user belongs to the community (#1187): false for a visitor or an outsider
     is_member: z.boolean().optional(),
     // Direct messages (#1186): whether members can write them; what the member did not read (community pages only)
@@ -108,6 +110,8 @@ export interface CommunityPermissions {
   canManageModeratorPermissions: boolean;
   // Owner and admins change who can join (#1486)
   canManageJoinPolicy?: boolean;
+  // Owner and admins let search engines index the public spaces (#1487)
+  canManageIndexing?: boolean;
   canUpdateCommunity: boolean;
   canDeleteCommunity: boolean;
   // The owner of a shared community gives it to an admin (#1339)

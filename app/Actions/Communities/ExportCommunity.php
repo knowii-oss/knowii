@@ -130,6 +130,7 @@ final class ExportCommunity implements ExportsCommunities
             'description' => $community->description,
             'visibility' => $community->visibility->value,
             'join_policy' => $community->joinPolicy()->value,
+            'indexing_enabled' => $community->allowsIndexing(),
             'created_at' => $this->date($community->created_at),
             'updated_at' => $this->date($community->updated_at),
             'dpa_accepted_at' => $this->date($community->dpa_accepted_at),

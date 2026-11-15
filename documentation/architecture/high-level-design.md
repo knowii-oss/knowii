@@ -73,7 +73,7 @@ Real time uses Reverb ([ADR 0009](../adr/0009-real-time-through-reverb.md)):
 5. Uploaded images are decoded and re-encoded on the server (GD, WebP): metadata is dropped, the size and the pixel count are limited, and the files are served from the uploads disk, never executed.
 6. Identifiers in URLs and APIs are cuid2 strings, never the integer keys ([ADR 0005](../adr/0005-cuid2-public-identifiers.md)).
 7. The server fetches addresses given by members or by fetched pages (resources, cover images) only through `App\Support\SafeUrl`: http and https on ports 80 and 443, public IP addresses only (also after each redirect), the host pinned to the checked address, TLS verified, 10 MB at most (#1231).
-8. Crawling (#104): `robots.txt` (a route, `config/robots.php`) refuses AI crawlers everywhere and every crawler in the member areas and the API. Signed-in pages and the API send `X-Robots-Tag: noindex, nofollow`; a test or private instance (`ROBOTS_ALLOW_INDEXING=false`) refuses all indexing. Cloudflare "Block AI bots" enforces it at the edge.
+8. Crawling (#104): `robots.txt` (a route, `config/robots.php`) refuses AI crawlers everywhere and every crawler in the member areas and the API. Signed-in pages and the API send `X-Robots-Tag: noindex, nofollow`; a test or private instance (`ROBOTS_ALLOW_INDEXING=false`) refuses all indexing. Cloudflare "Block AI bots" enforces it at the edge. Changed by #1487 ([ADR 0044](../adr/0044-public-spaces-for-visitors.md), "Indexing"): `robots.txt` no longer blocks `/community/` as a whole, and a community may let search engines index its public spaces; each page of a community carries its own decision.
 
 ## Accounts
 
