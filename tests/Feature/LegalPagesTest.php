@@ -320,3 +320,8 @@ test('the privacy policy names the identifier of the provider account and the da
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
         ->where('html', fn (string $html) => str_contains($html, 'and, when you sign in with a Knowii account, the identifier of that account and the date you connected it.')));
 });
+
+test('the privacy policy says what Knowii keeps when a manager removes a member, and when it goes away (#1501, approved 2026-11-15)', function () {
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, 'If a manager of a community removes you from it, Knowii keeps a record of that community, your account and the date, so that you cannot join it again by yourself; the record is deleted when you accept a new invitation, when a manager lets you join again, when the community is deleted or when you delete your account.')));
+});
