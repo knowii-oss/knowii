@@ -162,6 +162,11 @@ final class ApiRoutes
 
     public const COMMUNITY_SPACE_MESSAGE_REACTIONS = self::COMMUNITY_SPACE_MESSAGE.'/reactions';
 
+    // The follow state of the current member for a chat thread: read, follow, stop following, mute (#1475, ADR 0042)
+    public const COMMUNITY_SPACE_MESSAGE_FOLLOW = self::COMMUNITY_SPACE_MESSAGE.'/follow';
+
+    public const COMMUNITY_SPACE_MESSAGE_MUTE = self::COMMUNITY_SPACE_MESSAGE.'/mute';
+
     // Pages of page spaces (#1179)
     public const COMMUNITY_SPACE_PAGES = self::COMMUNITY_SPACE.'/pages';
 
@@ -182,6 +187,11 @@ final class ApiRoutes
     public const COMMUNITY_SPACE_POST = self::COMMUNITY_SPACE_POSTS.'/{'.self::PARAM_POST.'}';
 
     public const COMMUNITY_SPACE_POST_PIN = self::COMMUNITY_SPACE_POST.'/pin';
+
+    // The follow state of the current member for a post thread: read, follow, stop following, mute (#1475, ADR 0042)
+    public const COMMUNITY_SPACE_POST_FOLLOW = self::COMMUNITY_SPACE_POST.'/follow';
+
+    public const COMMUNITY_SPACE_POST_MUTE = self::COMMUNITY_SPACE_POST.'/mute';
 
     public const COMMUNITY_SPACE_POST_COMMENTS = self::COMMUNITY_SPACE_POST.'/comments';
 
@@ -256,11 +266,19 @@ final class ApiRoutes
 
     public const NOTIFICATIONS_SEEN = self::NOTIFICATIONS.'/seen';
 
+    // "I am caught up" (#1475): the open rows of "Following" are read
+    public const NOTIFICATIONS_CAUGHT_UP = self::NOTIFICATIONS.'/caught-up';
+
     public const NOTIFICATION = self::NOTIFICATIONS.'/{'.self::PARAM_NOTIFICATION.'}';
 
     public const NOTIFICATION_READ = self::NOTIFICATION.'/read';
 
     public const NOTIFICATION_UNREAD = self::NOTIFICATION.'/unread';
+
+    // The level that the current member chose for each space of a community, and for one space (#1475, ADR 0042)
+    public const COMMUNITY_NOTIFICATION_LEVELS = self::COMMUNITY.'/notification-levels';
+
+    public const COMMUNITY_SPACE_NOTIFICATION_LEVEL = self::COMMUNITY_SPACE.'/notification-level';
 
     // Who is online now (#1187, ADR 0027)
     public const COMMUNITY_ONLINE_MEMBERS = self::COMMUNITY.'/online-members';

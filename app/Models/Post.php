@@ -40,6 +40,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Community $community
  * @property-read Space $space
  * @property-read ?User $author
+ * @property-read ?NotificationFollow $follow What the current member chose for the thread (set for a page, not stored)
  * @property-read Collection<int, Comment> $comments
  * @property-read ?int $comments_count
  * @property-read Collection<int, Reaction> $reactions

@@ -1,0 +1,19 @@
+meta {
+  name: Follows - Post - Follow
+  type: http
+  seq: 166
+}
+
+put {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a discussion space>/posts/<post cuid>/follow
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Follow a post thread (#1475): the member is told about its new comments (level 2, Following). A member who writes a post or a comment follows its thread by themselves, a mention does not make them follow. A thread that the member follows already keeps its reason. Needs notifications:write.
+}

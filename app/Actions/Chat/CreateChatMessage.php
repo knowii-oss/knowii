@@ -4,7 +4,9 @@ namespace App\Actions\Chat;
 
 use App\Constants;
 use App\Contracts\Chat\CreatesChatMessages;
+use App\Contracts\Notifications\FollowsThreads;
 use App\Contracts\Notifications\Notifies;
+use App\Enums\KnowiiFollowReason;
 use App\Enums\KnowiiSpaceType;
 use App\Events\Spaces\SpaceContentChanged;
 use App\Exceptions\BusinessException;
@@ -72,7 +74,17 @@ class CreateChatMessage implements CreatesChatMessages
         });
 
         Log::info('Chat message created', ['message' => $message->cuid, 'thread' => $parent?->cuid]);
-        // The members mentioned in the message are told (#1474): a queued job, after the commit
+        // A reply makes a thread: the author of the first message and the member who replies follow it (#1475). A first
+        // message follows nothing until it has a reply, so that a chat does not write a row per message
+        if ($parent !== null) {
+            $follows = app(FollowsThreads::class);
+            if ($parent->author !== null) {
+                $follows->followByWriting($parent->author, $parent, KnowiiFollowReason::Wrote);
+            }
+            $follows->followByWriting($user, $parent, KnowiiFollowReason::Replied);
+        }
+        // The members mentioned in the message are told (#1474), and the ones who follow the thread or chose "Everything"
+        // for the space (#1475): queued jobs, after the commit
         app(Notifies::class)->notify($message);
         event(SpaceContentChanged::forMessage(SpaceContentChanged::MESSAGE_CREATED, $message, $user->cuid));
 

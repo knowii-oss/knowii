@@ -1,0 +1,19 @@
+meta {
+  name: Follows - Chat - Follow
+  type: http
+  seq: 170
+}
+
+put {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a chat space>/messages/<cuid of a first-level message>/follow
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Follow a chat thread (#1475): the member is told about its new replies (level 2, Following). Needs notifications:write.
+}

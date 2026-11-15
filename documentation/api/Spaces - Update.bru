@@ -18,10 +18,11 @@ headers {
 body:json {
   {
     "description": "Start here: how the community works",
-    "visibility": "public"
+    "visibility": "public",
+    "default_notification_level": "mine"
   }
 }
 
 docs {
-  Partial update. Fields: name, description, emoji, visibility (public, members or groups), access_groups (access group cuids of a groups space, #1241), posting_policy, space_group_cuid (moves the space to the end of that group, and a groups space is then read by the access groups of the new space group, ADR 0041). The type and the slug never change.
+  Partial update. Fields: name, description, emoji, visibility (public, members or groups), access_groups (access group cuids of a groups space, #1241), posting_policy, space_group_cuid (moves the space to the end of that group, and a groups space is then read by the access groups of the new space group, ADR 0041). default_notification_level (#1475): what the members who did not choose get for this space, all (Everything: discussion spaces only, never a chat space) or mine (Only what is for me); null gives the built-in default back (Everything in a discussion space where only moderators post, Only what is for me elsewhere). The choice of a member always wins. The space resource gives it to the people who manage the spaces only. The type and the slug never change.
 }

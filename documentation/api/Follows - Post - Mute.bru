@@ -1,0 +1,19 @@
+meta {
+  name: Follows - Post - Mute
+  type: http
+  seq: 168
+}
+
+put {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a discussion space>/posts/<post cuid>/mute
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Mute a post thread (#1475): nothing reaches the member from the thread, a reply and a mention included, and their open notifications about the thread are deleted. Follow the thread again to undo it. Needs notifications:write.
+}

@@ -1,0 +1,19 @@
+meta {
+  name: Follows - Chat - Mute
+  type: http
+  seq: 172
+}
+
+put {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a chat space>/messages/<cuid of a first-level message>/mute
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Mute a chat thread (#1475): nothing reaches the member from the thread, a mention included, and their open notifications about the thread are deleted. Needs notifications:write.
+}

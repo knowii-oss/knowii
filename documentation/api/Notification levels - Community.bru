@@ -1,0 +1,19 @@
+meta {
+  name: Notification levels - Community
+  type: http
+  seq: 161
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/notification-levels
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The level of the current member for every space of the community that they can view, in the order of the navigation, in one call (for a settings screen, #1475). Each entry holds the space (cuid, name, slug, type, space group), `level` (all: Everything, mine: Only what is for me, none: Muted) that applies, `chosen` (true when the member chose it) and `default` (the level that applies without a choice: what a manager set, else the built-in default). A link space is not listed. A person who is not a member gets 403. Needs notifications:read.
+}

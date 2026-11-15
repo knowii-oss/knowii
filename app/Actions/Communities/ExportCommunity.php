@@ -264,6 +264,7 @@ final class ExportCommunity implements ExportsCommunities
                 'type' => $space->type->value,
                 'visibility' => $space->visibility->value,
                 'posting_policy' => $space->posting_policy->value,
+                'default_notification_level' => $space->default_notification_level?->value,
                 'position' => $space->position,
                 'created_at' => $this->date($space->created_at),
             ];

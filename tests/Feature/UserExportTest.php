@@ -10,6 +10,8 @@ use App\Models\Community;
 use App\Models\CommunityResource;
 use App\Models\Conversation;
 use App\Models\Notification;
+use App\Models\NotificationFollow;
+use App\Models\NotificationSpaceLevel;
 use App\Models\Post;
 use App\Models\Reaction;
 use App\Models\Space;
@@ -281,4 +283,32 @@ test('the export lists the notifications of the member without any text or name 
         ->and($activity['notifications'][0])->not->toHaveKey('actor')
         ->and(json_encode($activity['notifications']))->not->toContain('Secret words')->not->toContain($replier->username)->not->toContain($replier->name)
         ->and($files['README.txt'])->toContain('your notifications');
+});
+
+test('the export lists the follows and the levels of the member without any text or name of another member (#1475)', function () {
+    $f = userExportFixture();
+    $other = $f['other'];
+    $mine = Post::query()->where('author_id', $f['member']->id)->firstOrFail();
+    $theirs = Post::query()->where('author_id', $other->id)->firstOrFail();
+    $chat = Space::query()->where('community_id', $f['community']->id)->where('type', 'chat')->firstOrFail();
+    $space = Space::query()->where('community_id', $f['community']->id)->where('type', 'discussion')->firstOrFail();
+    $root = ChatMessage::factory()->inSpace($chat)->create(['author_id' => $other->id]);
+    NotificationFollow::query()->create(['user_id' => $f['member']->id, 'community_id' => $f['community']->id, 'post_id' => $mine->id, 'state' => 'following', 'reason' => 'wrote']);
+    NotificationFollow::query()->create(['user_id' => $f['member']->id, 'community_id' => $f['community']->id, 'post_id' => $theirs->id, 'state' => 'muted', 'reason' => 'manual']);
+    NotificationFollow::query()->create(['user_id' => $f['member']->id, 'community_id' => $f['community']->id, 'chat_message_id' => $root->id, 'state' => 'stopped', 'reason' => 'manual']);
+    NotificationFollow::query()->create(['user_id' => $other->id, 'community_id' => $f['community']->id, 'post_id' => $mine->id, 'state' => 'following', 'reason' => 'manual']);
+    NotificationSpaceLevel::query()->create(['user_id' => $f['member']->id, 'space_id' => $space->id, 'level' => 'none']);
+    NotificationSpaceLevel::query()->create(['user_id' => $other->id, 'space_id' => $space->id, 'level' => 'all']);
+
+    $files = runUserExport($f['member']);
+    $activity = json_decode($files['activity.json'], true);
+
+    expect($activity['notification_follows'])->toHaveCount(3)
+        ->and(collect($activity['notification_follows'])->firstWhere('post', $mine->cuid))->toMatchArray(['state' => 'following', 'reason' => 'wrote', 'community' => $f['community']->cuid, 'chat_message' => null])
+        ->and(collect($activity['notification_follows'])->firstWhere('post', $theirs->cuid)['state'])->toBe('muted')
+        ->and(collect($activity['notification_follows'])->firstWhere('chat_message', $root->cuid))->toMatchArray(['state' => 'stopped', 'post' => null])
+        ->and($activity['notification_levels'])->toHaveCount(1)
+        ->and($activity['notification_levels'][0])->toMatchArray(['level' => 'none', 'community' => $f['community']->cuid, 'space' => $space->cuid])
+        ->and(json_encode([$activity['notification_follows'], $activity['notification_levels']]))->not->toContain($other->username)->not->toContain($other->name)->not->toContain('Body written by the other member')
+        ->and($files['README.txt'])->toContain('the threads that you follow or muted');
 });

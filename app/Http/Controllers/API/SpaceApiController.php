@@ -73,9 +73,10 @@ class SpaceApiController extends Controller
     #[BodyParameter('posting_policy', description: 'members or moderators (who can post)', required: false, type: 'string', example: 'members')]
     #[BodyParameter('space_group_cuid', description: 'Space group of the community. On update: moves the space to the end of that group', required: false, type: 'string')]
     #[BodyParameter('url', description: 'Link spaces only: the absolute http or https URL that the navigation opens', required: false, type: 'string', format: 'uri', example: 'https://example.com/book-a-call')]
+    #[BodyParameter('default_notification_level', description: 'What the members who did not choose get for this space: all (Everything, discussion spaces only, never a chat space) or mine (Only what is for me). null: the built-in default (Everything in a discussion space where only moderators post, Only what is for me elsewhere). The choice of a member always wins', required: false, type: 'string', example: 'mine')]
     final public function update(Request $request, Community $community, Space $space): JsonResponse
     {
-        $input = $request->only(self::EDITABLE_FIELDS);
+        $input = $request->only([...self::EDITABLE_FIELDS, 'default_notification_level']);
 
         $space = app(UpdatesSpaces::class)->update($request->user() ?? throw new AuthenticationException, $space, $input);
 

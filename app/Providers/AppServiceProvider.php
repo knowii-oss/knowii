@@ -48,6 +48,8 @@ use App\Actions\CourseMaterials\UpdateCourseMaterial;
 use App\Actions\DeleteUser;
 use App\Actions\EmailOctopus\PruneEmailOctopusContacts;
 use App\Actions\Newsletter\SubscribeToNewsletter;
+use App\Actions\Notifications\ChooseSpaceLevels;
+use App\Actions\Notifications\FollowThreads;
 use App\Actions\Notifications\ListNotifications;
 use App\Actions\Notifications\MarkNotificationsRead;
 use App\Actions\Notifications\MarkNotificationsSeen;
@@ -135,6 +137,8 @@ use App\Contracts\CourseMaterials\DeletesCourseMaterials;
 use App\Contracts\CourseMaterials\ReordersCourseMaterials;
 use App\Contracts\CourseMaterials\UpdatesCourseMaterials;
 use App\Contracts\Newsletter\SubscribesToNewsletter;
+use App\Contracts\Notifications\ChoosesSpaceLevels;
+use App\Contracts\Notifications\FollowsThreads;
 use App\Contracts\Notifications\ListsNotifications;
 use App\Contracts\Notifications\MarksNotificationsRead;
 use App\Contracts\Notifications\MarksNotificationsSeen;
@@ -301,6 +305,8 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(MarksNotificationsSeen::class, MarkNotificationsSeen::class);
         app()->singleton(MarksNotificationsRead::class, MarkNotificationsRead::class);
         app()->singleton(PrunesNotifications::class, PruneNotifications::class);
+        app()->singleton(FollowsThreads::class, FollowThreads::class);
+        app()->singleton(ChoosesSpaceLevels::class, ChooseSpaceLevels::class);
         // Sign in with an OpenID Connect provider (#1385, ADR 0045)
         app()->singleton(ReadsOpenIdConnectIdentities::class, OpenIdConnectClient::class);
         app()->singleton(SignsInWithOpenIdConnect::class, SignInWithOpenIdConnect::class);

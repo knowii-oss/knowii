@@ -4,7 +4,9 @@ namespace App\Actions\Comments;
 
 use App\Constants;
 use App\Contracts\Comments\CreatesComments;
+use App\Contracts\Notifications\FollowsThreads;
 use App\Contracts\Notifications\Notifies;
+use App\Enums\KnowiiFollowReason;
 use App\Events\Spaces\SpaceContentChanged;
 use App\Models\Comment;
 use App\Models\CommunityResource;
@@ -61,7 +63,11 @@ class CreateComment implements CreatesComments
             return $comment;
         });
 
-        // Tell the members who are concerned (#1474): a queued job, after the commit. Never from an edit
+        // A member who comments a post follows its thread, unless they stopped following it or muted it (#1475)
+        if ($subject instanceof Post) {
+            app(FollowsThreads::class)->followByWriting($user, $subject, KnowiiFollowReason::Replied);
+        }
+        // Tell the members who are concerned (#1474, #1475): queued jobs, after the commit. Never from an edit
         app(Notifies::class)->notify($comment);
 
         return $comment;

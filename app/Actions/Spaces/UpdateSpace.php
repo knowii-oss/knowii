@@ -3,6 +3,7 @@
 namespace App\Actions\Spaces;
 
 use App\Contracts\Spaces\UpdatesSpaces;
+use App\Enums\KnowiiSpaceNotificationLevel;
 use App\Enums\KnowiiSpaceType;
 use App\Events\Spaces\SpaceTreeChanged;
 use App\Jobs\PruneUnviewableNotifications;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class UpdateSpace implements UpdatesSpaces
@@ -32,8 +34,18 @@ class UpdateSpace implements UpdatesSpaces
         // A group space stays out of reach of the managers who cannot read it (#1325, ADR 0025)
         Gate::forUser($user)->authorize('view', $space);
 
-        /** @var array{name?: string, description?: string|null, emoji?: string|null, visibility?: string, posting_policy?: string, space_group_cuid?: string, access_groups?: list<string>, url?: string} $validated */
-        $validated = Validator::make($input, SpaceInputRules::editable(false))->validate();
+        /** @var array{name?: string, description?: string|null, emoji?: string|null, visibility?: string, posting_policy?: string, space_group_cuid?: string, access_groups?: list<string>, url?: string, default_notification_level?: string|null} $validated */
+        $validated = Validator::make($input, [
+            ...SpaceInputRules::editable(false),
+            // What the members who did not choose get (#1475, ADR 0042): "Everything" or "Only what is for me". A manager
+            // does not mute a space for the members: a mute is the choice of each member
+            'default_notification_level' => ['sometimes', 'nullable', Rule::in([KnowiiSpaceNotificationLevel::All->value, KnowiiSpaceNotificationLevel::Mine->value])],
+        ])->validate();
+
+        // "Everything" is a stream of new posts: only a discussion space has one, and a chat space is never at "Everything" by default
+        if (($validated['default_notification_level'] ?? null) === KnowiiSpaceNotificationLevel::All->value && $space->type !== KnowiiSpaceType::Discussion) {
+            throw ValidationException::withMessages(['default_notification_level' => 'Everything is the default of a discussion space only. A chat space is never at Everything by default']);
+        }
 
         // Only a link space has a URL (#1294, ADR 0026)
         if (array_key_exists('url', $validated) && $space->type !== KnowiiSpaceType::Link) {
@@ -58,6 +70,10 @@ class UpdateSpace implements UpdatesSpaces
 
             if (array_key_exists('url', $validated)) {
                 $changes['url'] = trim($validated['url']);
+            }
+
+            if (array_key_exists('default_notification_level', $validated)) {
+                $changes['default_notification_level'] = $validated['default_notification_level'];
             }
 
             foreach (['visibility', 'posting_policy'] as $field) {

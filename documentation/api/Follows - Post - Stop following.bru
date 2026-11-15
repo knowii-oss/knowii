@@ -1,0 +1,19 @@
+meta {
+  name: Follows - Post - Stop following
+  type: http
+  seq: 167
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a discussion space>/posts/<post cuid>/follow
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Stop following a post thread (#1475). The state becomes `stopped` and the row stays: writing in the thread again does not follow it again without a new request. Needs notifications:write.
+}

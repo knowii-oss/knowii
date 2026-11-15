@@ -15,6 +15,8 @@ use App\Models\CommunityResource;
 use App\Models\LessonProgress;
 use App\Models\Mention;
 use App\Models\Notification;
+use App\Models\NotificationFollow;
+use App\Models\NotificationSpaceLevel;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\QuizResult;
@@ -105,6 +107,8 @@ final class ExportUser implements ExportsUsers
                     'blocked_members' => $this->blockedMembers($user),
                     'mentions_of_you' => $this->mentions($user),
                     'notifications' => $this->notifications($user),
+                    'notification_follows' => $this->notificationFollows($user),
+                    'notification_levels' => $this->notificationLevels($user),
                     'api_tokens' => $this->apiTokens($user),
                     'sessions' => $this->sessions($user),
                 ]],
@@ -402,6 +406,44 @@ final class ExportUser implements ExportsUsers
                 'read_at' => $this->date($notification->read_at),
                 'created_at' => $this->date($notification->created_at),
                 'updated_at' => $this->date($notification->updated_at),
+            ];
+        }
+    }
+
+    /**
+     * The threads that the member follows, stopped following or muted (#1475, ADR 0042): the state, the reason, the
+     * community, the post or the message by cuid, and the dates. The choices of the member, never a text of content.
+     *
+     * @return Generator<int, Row>
+     */
+    private function notificationFollows(User $user): Generator
+    {
+        foreach (NotificationFollow::query()->where('user_id', $user->id)->with(['post:id,cuid', 'chatMessage:id,cuid'])->lazyById(self::CHUNK) as $follow) {
+            yield [
+                ...$this->place($follow->community_id, null),
+                'post' => $follow->post?->cuid,
+                'chat_message' => $follow->chatMessage?->cuid,
+                'state' => $follow->state->value,
+                'reason' => $follow->reason->value,
+                'created_at' => $this->date($follow->created_at),
+                'updated_at' => $this->date($follow->updated_at),
+            ];
+        }
+    }
+
+    /**
+     * The level that the member chose for each space (#1475, ADR 0042): everything, only what is for me, or muted
+     *
+     * @return Generator<int, Row>
+     */
+    private function notificationLevels(User $user): Generator
+    {
+        foreach (NotificationSpaceLevel::query()->where('user_id', $user->id)->with('space')->lazyById(self::CHUNK) as $level) {
+            yield [
+                ...$this->place($level->space->community_id, $level->space),
+                'level' => $level->level->value,
+                'created_at' => $this->date($level->created_at),
+                'updated_at' => $this->date($level->updated_at),
             ];
         }
     }
@@ -776,7 +818,7 @@ final class ExportUser implements ExportsUsers
         $descriptions = [
             'account.json' => 'your account and your profile, with the choice of who sees each profile field, and the accounts of other providers that you connected to sign in (the provider, your identifier there and the dates)',
             'memberships.json' => 'your communities and your role, the communities you own, your access groups, the invitations sent to your email address and the communities where a manager removed you and where you cannot join again by yourself',
-            'activity.json' => 'the lessons you marked as done, your quiz results, what you read in chat spaces and conversations, the members you blocked, where you were mentioned, your notifications (kind, community, the items by identifier and the dates, never a text), your API tokens and your sessions',
+            'activity.json' => 'the lessons you marked as done, your quiz results, what you read in chat spaces and conversations, the members you blocked, where you were mentioned, your notifications (kind, community, the items by identifier and the dates, never a text), the threads that you follow or muted and the level that you chose for each space, your API tokens and your sessions',
             'posts.json' => 'your posts (Markdown)',
             'comments.json' => 'your comments (Markdown), with the cuid and the title of what they answer',
             'pages.json' => 'the pages and lessons you wrote (Markdown)',

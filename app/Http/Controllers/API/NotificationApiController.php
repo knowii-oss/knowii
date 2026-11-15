@@ -32,7 +32,12 @@ class NotificationApiController extends Controller
      * text excerpt (300 characters at most) and the title built from the live content, and the target to open.
      * Without `older`, the rows of the last 14 days; with `older=true`, the older ones. Without `state`, the open
      * notifications (not read: the "Needs you" list); `state=read` gives the ones that the member opened or marked
-     * done, `state=all` gives both.
+     * done, `state=all` gives both. `level=2` gives "Following" instead (a new comment in a thread that the member
+     * follows, a new post in a space at Everything, a new lesson of a course that they started): the last 14 days only,
+     * never counted by the bell. Each notification holds `reason`, a code that the client turns into the sentence "Why did
+     * I get this?" (`wrote_post`, `wrote_comment`, `mentioned`, `follows_thread`, `space_everything`, `started_course`), the
+     * `follow_reason` of a thread that the member follows (`wrote`, `replied`, `manual`), and `items_count`, the live
+     * posts, comments, replies or lessons that a bundled notification holds.
      *
      * @throws AuthenticationException
      */
@@ -41,6 +46,7 @@ class NotificationApiController extends Controller
     #[QueryParameter('community', description: 'Keep the notifications of this community (cuid)', type: 'string')]
     #[QueryParameter('older', description: 'true: the notifications that are older than 14 days', type: 'bool', example: false)]
     #[QueryParameter('state', description: 'open (default): not read. read: opened or marked done. all: both', type: 'string', example: 'open')]
+    #[QueryParameter('level', description: '1 (default): "Needs you". 2: "Following", the last 14 days only', type: 'int', example: 1)]
     final public function index(Request $request): JsonResponse
     {
         $user = $request->user() ?? throw new AuthenticationException;
@@ -52,6 +58,7 @@ class NotificationApiController extends Controller
             is_string($community) && $community !== '' ? $community : null,
             $request->boolean('older'),
             self::readFilter($request),
+            self::levelFilter($request),
         );
 
         return self::success('Notifications', $page['metadata'], $page['items']->toResourceCollection());
@@ -69,6 +76,20 @@ class NotificationApiController extends Controller
             'read' => true,
             'all' => null,
             default => throw ValidationException::withMessages(['state' => 'The state is open, read or all']),
+        };
+    }
+
+    /**
+     * The `level` of the list: 1 for "Needs you" (the default), 2 for "Following"
+     */
+    private static function levelFilter(Request $request): int
+    {
+        $level = $request->query('level', '1');
+
+        return match (is_string($level) ? $level : '') {
+            '1' => 1,
+            '2' => 2,
+            default => throw ValidationException::withMessages(['level' => 'The level is 1 (Needs you) or 2 (Following)']),
         };
     }
 
@@ -96,6 +117,25 @@ class NotificationApiController extends Controller
         app(MarksNotificationsSeen::class)->seen($request->user() ?? throw new AuthenticationException, $request->only(['notification_cuids']));
 
         return self::success('Notifications seen');
+    }
+
+    /**
+     * "I am caught up": every open notification of level 2 ("Following") of the member is marked as read, in every
+     * community or in the one that `community` names. It never touches "Needs you". It answers with the number of
+     * notifications that it marked.
+     *
+     * @throws AuthenticationException
+     */
+    #[BodyParameter('community', description: 'Only the notifications of this community (cuid)', required: false, type: 'string')]
+    final public function caughtUp(Request $request): JsonResponse
+    {
+        $user = $request->user() ?? throw new AuthenticationException;
+        $community = $request->input('community');
+        if ($community !== null && ! is_string($community)) {
+            throw ValidationException::withMessages(['community' => 'The community is a cuid']);
+        }
+
+        return self::success('Caught up', null, ['marked' => app(MarksNotificationsRead::class)->caughtUp($user, $community)]);
     }
 
     /**

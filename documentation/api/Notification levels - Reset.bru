@@ -1,0 +1,19 @@
+meta {
+  name: Notification levels - Reset
+  type: http
+  seq: 164
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a space>/notification-level
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The member goes back to the default of the space (#1475): their choice is forgotten. Answers with the level that applies now. Needs notifications:write.
+}

@@ -2,7 +2,9 @@
 
 namespace App\Contracts\Notifications;
 
+use App\Models\ChatMessage;
 use App\Models\Community;
+use App\Models\Post;
 use App\Models\Space;
 use App\Models\User;
 
@@ -48,4 +50,15 @@ interface PrunesNotifications
      * @param  list<int>  $chatMessageIds
      */
     public function forChatMessages(array $chatMessageIds): int;
+
+    /**
+     * The member muted the space (#1475): their open rows of that space go, at every level. The next ones are never written.
+     */
+    public function forMutedSpace(User $member, Space $space): int;
+
+    /**
+     * The member muted a thread (#1475): their open rows about the thread go, at every level: the rows about the post and
+     * its comments, or about the chat message and its replies.
+     */
+    public function forMutedThread(User $member, Post|ChatMessage $thread): int;
 }

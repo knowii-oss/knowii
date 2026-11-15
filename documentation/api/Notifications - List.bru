@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{BASE_URL}}/api/v1/notifications?limit=20&offset=0&community=nswswk8w8wso0ko8owwk8k0w&older=false&state=open
+  url: {{BASE_URL}}/api/v1/notifications?limit=20&offset=0&community=nswswk8w8wso0ko8owwk8k0w&older=false&state=open&level=1
   body: none
   auth: none
 }
@@ -15,5 +15,5 @@ headers {
 }
 
 docs {
-  The "Needs you" notifications of the current member, in every community (#1474, ADR 0042): a reply to your post, a reply to your comment, a mention. The newest news first, 20 per page, offset pagination (ADR 0011). Each one holds the community, the space, the last author (null for a deleted member), up to 3 authors with others_count, a plain text excerpt of 300 characters at most and the title of the post, built from the live content, and the target to open (post_slug, comment_cuid, chat_message_cuid). community keeps one community (cuid). older=true lists the notifications that are older than 14 days. Needs notifications:read (not in the default set of a token).
+  The "Needs you" notifications of the current member, in every community (#1474, ADR 0042): a reply to your post, a reply to your comment, a mention. The newest news first, 20 per page, offset pagination (ADR 0011). Each one holds the community, the space, the last author (null for a deleted member), up to 3 authors with others_count, a plain text excerpt of 300 characters at most and the title of the post, built from the live content, and the target to open (post_slug, comment_cuid, chat_message_cuid). community keeps one community (cuid). older=true lists the notifications that are older than 14 days. level=1 (default) is Needs you, level=2 is Following (#1475): a new comment in a thread that the member follows, a new reply in a chat thread that they follow, a new post in a space at Everything, new messages in a chat space at Everything, a new lesson of a course that they started. Following shows the last 14 days only (no older=true) and is never counted by the bell. Each notification holds `reason` (wrote_post, wrote_comment, mentioned, follows_thread, space_everything, started_course), `follow_reason` (wrote, replied, manual, for a thread that the member follows) and `items_count` (the live posts, comments, replies or lessons of a bundled notification). Needs notifications:read (not in the default set of a token).
 }

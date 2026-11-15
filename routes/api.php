@@ -20,6 +20,7 @@ use App\Http\Controllers\API\MemberApiController;
 use App\Http\Controllers\API\ModeratorPermissionApiController;
 use App\Http\Controllers\API\NewsletterApiController;
 use App\Http\Controllers\API\NotificationApiController;
+use App\Http\Controllers\API\NotificationLevelApiController;
 use App\Http\Controllers\API\OnlineMemberApiController;
 use App\Http\Controllers\API\PageApiController;
 use App\Http\Controllers\API\PingApiController;
@@ -28,6 +29,7 @@ use App\Http\Controllers\API\QuizApiController;
 use App\Http\Controllers\API\ReactionApiController;
 use App\Http\Controllers\API\SpaceApiController;
 use App\Http\Controllers\API\SpaceGroupApiController;
+use App\Http\Controllers\API\ThreadFollowApiController;
 use App\Http\Controllers\API\UploadApiController;
 use App\Http\Controllers\API\UserApiController;
 use App\Http\Controllers\API\UserBlockApiController;
@@ -129,6 +131,20 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::delete(ApiRoutes::COMMUNITY_SPACE_POST, [PostApiController::class, 'destroy'])->middleware('ability:posts:write');
             Route::post(ApiRoutes::COMMUNITY_SPACE_POST_PIN, [PostApiController::class, 'pin'])->middleware('ability:posts:write');
 
+            // Follows of a thread and levels of a space, of the current member (#1475, ADR 0042): they change only the member's
+            // own choices, and only a member of the community who can view the space has them
+            Route::get(ApiRoutes::COMMUNITY_SPACE_POST_FOLLOW, [ThreadFollowApiController::class, 'showPost'])->middleware('ability:notifications:read');
+            Route::put(ApiRoutes::COMMUNITY_SPACE_POST_FOLLOW, [ThreadFollowApiController::class, 'followPost'])->middleware('ability:notifications:write');
+            Route::delete(ApiRoutes::COMMUNITY_SPACE_POST_FOLLOW, [ThreadFollowApiController::class, 'stopPost'])->middleware('ability:notifications:write');
+            Route::put(ApiRoutes::COMMUNITY_SPACE_POST_MUTE, [ThreadFollowApiController::class, 'mutePost'])->middleware('ability:notifications:write');
+            Route::get(ApiRoutes::COMMUNITY_SPACE_MESSAGE_FOLLOW, [ThreadFollowApiController::class, 'showMessage'])->middleware('ability:notifications:read');
+            Route::put(ApiRoutes::COMMUNITY_SPACE_MESSAGE_FOLLOW, [ThreadFollowApiController::class, 'followMessage'])->middleware('ability:notifications:write');
+            Route::delete(ApiRoutes::COMMUNITY_SPACE_MESSAGE_FOLLOW, [ThreadFollowApiController::class, 'stopMessage'])->middleware('ability:notifications:write');
+            Route::put(ApiRoutes::COMMUNITY_SPACE_MESSAGE_MUTE, [ThreadFollowApiController::class, 'muteMessage'])->middleware('ability:notifications:write');
+            Route::get(ApiRoutes::COMMUNITY_SPACE_NOTIFICATION_LEVEL, [NotificationLevelApiController::class, 'show'])->middleware('ability:notifications:read');
+            Route::put(ApiRoutes::COMMUNITY_SPACE_NOTIFICATION_LEVEL, [NotificationLevelApiController::class, 'update'])->middleware('ability:notifications:write');
+            Route::delete(ApiRoutes::COMMUNITY_SPACE_NOTIFICATION_LEVEL, [NotificationLevelApiController::class, 'destroy'])->middleware('ability:notifications:write');
+
             // Messages of chat spaces (#1185)
             Route::get(ApiRoutes::COMMUNITY_SPACE_MESSAGES, [ChatMessageApiController::class, 'index'])->middleware('ability:chat:read');
             Route::post(ApiRoutes::COMMUNITY_SPACE_MESSAGES, [ChatMessageApiController::class, 'store'])->middleware('ability:chat:write')->middleware('throttle:messages');
@@ -213,6 +229,10 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
         Route::get(ApiRoutes::NOTIFICATIONS, [NotificationApiController::class, 'index'])->middleware('ability:notifications:read');
         Route::get(ApiRoutes::NOTIFICATIONS_COUNT, [NotificationApiController::class, 'count'])->middleware('ability:notifications:read');
         Route::post(ApiRoutes::NOTIFICATIONS_SEEN, [NotificationApiController::class, 'seen'])->middleware('ability:notifications:write');
+        // "I am caught up" (#1475): the rows of "Following" are read, "Needs you" is never touched
+        Route::post(ApiRoutes::NOTIFICATIONS_CAUGHT_UP, [NotificationApiController::class, 'caughtUp'])->middleware('ability:notifications:write');
+        // What the member chose for each space of a community, in one call (#1475)
+        Route::get(ApiRoutes::COMMUNITY_NOTIFICATION_LEVELS, [NotificationLevelApiController::class, 'index'])->middleware('ability:notifications:read');
         Route::put(ApiRoutes::NOTIFICATION_READ, [NotificationApiController::class, 'read'])->middleware('ability:notifications:write');
         Route::post(ApiRoutes::NOTIFICATION_UNREAD, [NotificationApiController::class, 'unread'])->middleware('ability:notifications:write');
 

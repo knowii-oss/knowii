@@ -18,10 +18,11 @@ headers {
 body:json {
   {
     "title": "Welcome to the community",
-    "body": "Hello **everyone**! Read the [guide](https://example.com)."
+    "body": "Hello **everyone**! Read the [guide](https://example.com).",
+    "notify_now": false
   }
 }
 
 docs {
-  Writes a post (Markdown body, raw HTML is escaped). The space posting policy decides who can post. Rate limited: 5 posts per minute per member.
+  Writes a post (Markdown body, raw HTML is escaped). The space posting policy decides who can post. Rate limited: 5 posts per minute per member. The author follows the thread of their post (#1475). The members at Everything for the space are told after 5 minutes (an edit or a deletion inside the wait tells nobody); notify_now=true skips the wait, for the people who can moderate the space only (403 for the others).
 }

@@ -3,6 +3,7 @@
 namespace App\Actions\Pages;
 
 use App\Constants;
+use App\Contracts\Notifications\Notifies;
 use App\Contracts\Pages\CreatesPages;
 use App\Enums\KnowiiPageKind;
 use App\Enums\KnowiiSpaceType;
@@ -64,6 +65,9 @@ class CreatePage implements CreatesPages
         });
 
         Log::info('Page created', ['page' => $page->cuid]);
+        // A new lesson of a course tells the members who started it (#1475): a queued job, after the commit. A page of a
+        // page space and a section tell nobody (the job reads the type of the space)
+        app(Notifies::class)->notify($page);
         event(SpaceContentChanged::forPage(SpaceContentChanged::PAGE_CREATED, $page, $user->cuid));
 
         return $page;

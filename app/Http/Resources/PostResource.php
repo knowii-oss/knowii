@@ -37,6 +37,9 @@ class PostResource extends AbstractKnowiiJsonResource
             'space_cuid' => $this->relationLoaded('space') ? $this->space->cuid : $this->space()->value('cuid'),
             // Count per emoji and whether the current member reacted (when the reactions are loaded)
             'reactions' => $this->when($this->relationLoaded('reactions'), fn () => $deleted ? [] : $this->reactionSummary($request->user())),
+            // What the current member chose for the thread (#1475): following, muted, stopped, or null. The controllers set it
+            // for a whole page with one query (NotificationFollowStates); a resource without it has no such field
+            'follow_state' => $this->when($this->relationLoaded('follow'), fn () => $this->follow?->state->value),
             'deleted_at' => $this->deleted_at,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
