@@ -32,6 +32,8 @@ class CommunityResource extends AbstractKnowiiJsonResource
                 'slug' => $this->slug,
                 'description' => $this->description ?? '', // Ensures the returned value is never null
                 'visibility' => $this->visibility,
+                // Who can join (#1486): the page and the API clients know whether to offer "Join"
+                'join_policy' => $community->joinPolicy(),
                 'is_member' => false,
             ];
         }
@@ -42,6 +44,8 @@ class CommunityResource extends AbstractKnowiiJsonResource
             'slug' => $this->slug,
             'description' => $this->description ?? '', // Ensures the returned value is never null
             'visibility' => $this->visibility,
+            // Who can join: by invitation or open (#1486)
+            'join_policy' => $community->joinPolicy(),
             // Every right with its value, also the defaults (#1240, ADR 0017)
             'moderator_permissions' => $this->moderatorPermissions(),
             // Only when the users are counted (loadCount('users')): the owner is not in the pivot, so + 1 (#1135)

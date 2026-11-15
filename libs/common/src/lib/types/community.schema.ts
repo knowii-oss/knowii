@@ -13,6 +13,18 @@ const communityVisibilitySchema = z.enum(['personal', 'private', 'public'], {
 });
 export type CommunityVisibility = z.infer<typeof communityVisibilitySchema>;
 
+/**
+ * Who can join a shared community (#1486): by invitation (the default) or open: anyone with an account joins by themselves.
+ * WARNING: aligned with KnowiiCommunityJoinPolicy (back-end)
+ */
+export const communityJoinPolicySchema = z.enum(['invitation', 'open']);
+export type CommunityJoinPolicy = z.infer<typeof communityJoinPolicySchema>;
+
+/**
+ * What "open" means, said once, in the settings of the community (#1486)
+ */
+export const COMMUNITY_OPEN_JOIN_DESCRIPTION = 'Anyone with an account can join this community and read its members-only spaces.';
+
 export const communityVisibilityOptions: Array<{ name: string; visibility: CommunityVisibility; color: string }> = [
   { name: 'Personal', visibility: 'personal', color: 'text-warning' },
   { name: 'Private', visibility: 'private', color: 'text-secondary-text' },
@@ -78,6 +90,8 @@ export const communitySchema = baseEntitySchema
     // direct message setting (#1387, ADR 0044)
     moderator_permissions: moderatorPermissionsSchema.optional(),
     member_count: z.number().int().optional(),
+    // Who can join (#1486): known to the page and to the API clients, for a member and for someone who is not one
+    join_policy: communityJoinPolicySchema.optional(),
     // Whether the current user belongs to the community (#1187): false for a visitor or an outsider
     is_member: z.boolean().optional(),
     // Direct messages (#1186): whether members can write them; what the member did not read (community pages only)
@@ -92,6 +106,8 @@ export interface CommunityPermissions {
   canManageCommunity: boolean;
   canManageSpaces: boolean;
   canManageModeratorPermissions: boolean;
+  // Owner and admins change who can join (#1486)
+  canManageJoinPolicy?: boolean;
   canUpdateCommunity: boolean;
   canDeleteCommunity: boolean;
   // The owner of a shared community gives it to an admin (#1339)

@@ -70,6 +70,19 @@ export const communityMemberSchema = z.object({
 export type CommunityMember = z.infer<typeof communityMemberSchema>;
 
 /**
+ * A person whom a manager removed: they cannot join the community again by themselves (#1486). WARNING: aligned with
+ * CommunityJoinBlockResource.php
+ */
+export const communityJoinBlockSchema = z.object({
+  cuid: z.string(),
+  name: z.string(),
+  username: z.string(),
+  avatar_url: z.string().nullable().optional(),
+  removed_at: z.string(),
+});
+export type CommunityJoinBlock = z.infer<typeof communityJoinBlockSchema>;
+
+/**
  * A pending invitation (#1242). WARNING: aligned with CommunityInvitationResource.php
  */
 export const communityInvitationSchema = z.object({

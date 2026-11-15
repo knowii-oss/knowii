@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Contracts\CommunityMembers\JoinsCommunities;
 use App\Contracts\CommunityMembers\LeavesCommunities;
 use App\Contracts\CommunityMembers\RemovesCommunityMembers;
 use App\Contracts\CommunityMembers\UpdatesCommunityMemberRoles;
@@ -72,6 +73,21 @@ class MemberApiController extends Controller
         app(RemovesCommunityMembers::class)->remove($request->user() ?? throw new AuthenticationException, $community, $member);
 
         return self::deleted();
+    }
+
+    /**
+     * Join an open community by yourself, as a member (#1486, ADR 0044). The community must be open (`join_policy`), and
+     * your email address verified. You must not be a member yet, and no manager must have removed you: ask the managers for
+     * an invitation then. Joining gives no access group. Every refusal is a 422 with a message. Returns the community as a
+     * member sees it. Limited per minute.
+     *
+     * @throws AuthenticationException
+     */
+    final public function join(Request $request, Community $community): JsonResponse
+    {
+        $joined = app(JoinsCommunities::class)->join($request->user() ?? throw new AuthenticationException, $community);
+
+        return self::created($joined->loadCount('users')->toResource()->withLargeFields(), 'Community joined');
     }
 
     /**

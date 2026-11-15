@@ -9,6 +9,7 @@ use App\Models\ChatRead;
 use App\Models\Comment;
 use App\Models\Community;
 use App\Models\CommunityInvitation;
+use App\Models\CommunityJoinBlock;
 use App\Models\CommunityMember;
 use App\Models\CommunityResource;
 use App\Models\LessonProgress;
@@ -94,6 +95,7 @@ final class ExportUser implements ExportsUsers
                     'owned_communities' => $this->ownedCommunities($user),
                     'access_groups' => $this->accessGroups($user),
                     'invitations' => $this->invitations($user),
+                    'join_blocks' => $this->joinBlocks($user),
                 ]],
                 'activity.json' => [[], [
                     'lessons_done' => $this->lessonsDone($user),
@@ -256,6 +258,21 @@ final class ExportUser implements ExportsUsers
                 'email' => $invitation->email,
                 'role' => $invitation->role->value,
                 'created_at' => $this->date($invitation->created_at),
+            ];
+        }
+    }
+
+    /**
+     * The communities where a manager removed the member: they cannot join them again by themselves (#1486)
+     *
+     * @return Generator<int, Row>
+     */
+    private function joinBlocks(User $user): Generator
+    {
+        foreach (CommunityJoinBlock::query()->where('user_id', $user->id)->lazyById(self::CHUNK) as $block) {
+            yield [
+                ...$this->place($block->community_id, null),
+                'removed_at' => $this->date($block->created_at),
             ];
         }
     }
@@ -758,7 +775,7 @@ final class ExportUser implements ExportsUsers
         ];
         $descriptions = [
             'account.json' => 'your account and your profile, with the choice of who sees each profile field, and the accounts of other providers that you connected to sign in (the provider, your identifier there and the dates)',
-            'memberships.json' => 'your communities and your role, the communities you own, your access groups and the invitations sent to your email address',
+            'memberships.json' => 'your communities and your role, the communities you own, your access groups, the invitations sent to your email address and the communities where a manager removed you and where you cannot join again by yourself',
             'activity.json' => 'the lessons you marked as done, your quiz results, what you read in chat spaces and conversations, the members you blocked, where you were mentioned, your notifications (kind, community, the items by identifier and the dates, never a text), your API tokens and your sessions',
             'posts.json' => 'your posts (Markdown)',
             'comments.json' => 'your comments (Markdown), with the cuid and the title of what they answer',

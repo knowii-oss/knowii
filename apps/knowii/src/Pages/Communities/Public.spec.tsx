@@ -90,6 +90,42 @@ describe('The public community page (#1485)', () => {
     expect(screen.queryByRole('link', { name: 'Sign up' })).toBeNull();
   });
 
+  it('shows "Sign up to join" and "Sign in" to a visitor when the community is open (#1486)', () => {
+    page.user = null;
+    render(
+      <PublicCommunityPage community={{ ...community, join_policy: 'open' }} spaceGroups={[] as SpaceGroup[]} newestPosts={newestPosts} />,
+    );
+
+    const slot = document.querySelector('[data-slot="join"]') as HTMLElement;
+    expect(within(slot).getByRole('link', { name: 'Sign up to join' })).toHaveAttribute('href', '/register');
+    expect(within(slot).getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/login');
+    expect(screen.queryByRole('link', { name: 'Sign up' })).toBeNull();
+  });
+
+  it('shows "Join" to a signed-in person who is not a member when the community is open (#1486)', () => {
+    page.user = { cuid: 'u9' };
+    render(
+      <PublicCommunityPage community={{ ...community, join_policy: 'open' }} spaceGroups={[] as SpaceGroup[]} newestPosts={newestPosts} />,
+    );
+
+    const slot = document.querySelector('[data-slot="join"]') as HTMLElement;
+    expect(within(slot).getByRole('button', { name: 'Join' })).toBeInTheDocument();
+  });
+
+  it('shows no "Join" when the community is by invitation (#1486)', () => {
+    page.user = { cuid: 'u9' };
+    render(
+      <PublicCommunityPage
+        community={{ ...community, join_policy: 'invitation' }}
+        spaceGroups={[] as SpaceGroup[]}
+        newestPosts={newestPosts}
+      />,
+    );
+
+    expect(screen.queryByRole('button', { name: 'Join' })).toBeNull();
+    expect(screen.queryByText(/join/i)).toBeNull();
+  });
+
   it('lists the newest posts: a link to the post, an excerpt, the author, the space and the date', () => {
     page.user = null;
     renderPage();

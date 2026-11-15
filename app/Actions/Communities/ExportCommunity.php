@@ -129,6 +129,7 @@ final class ExportCommunity implements ExportsCommunities
             'slug' => $community->slug,
             'description' => $community->description,
             'visibility' => $community->visibility->value,
+            'join_policy' => $community->joinPolicy()->value,
             'created_at' => $this->date($community->created_at),
             'updated_at' => $this->date($community->updated_at),
             'dpa_accepted_at' => $this->date($community->dpa_accepted_at),
@@ -145,6 +146,7 @@ final class ExportCommunity implements ExportsCommunities
         return [
             'members' => $this->members($community),
             'invitations' => $this->invitations($community),
+            'join_blocks' => $this->joinBlocks($community),
             'access_groups' => $this->accessGroups($community),
             'space_groups' => $this->spaceGroups($community),
             'spaces' => $this->spaces($community),
@@ -190,6 +192,22 @@ final class ExportCommunity implements ExportsCommunities
                 'email' => $invitation->email,
                 'role' => $invitation->role->value,
                 'created_at' => $this->date($invitation->created_at),
+            ];
+        }
+    }
+
+    /**
+     * The people whom a manager removed: they cannot join the community again by themselves (#1486)
+     *
+     * @return Generator<int, Row>
+     */
+    private function joinBlocks(Community $community): Generator
+    {
+        foreach ($community->joinBlocks()->with('user')->lazyById(self::CHUNK) as $block) {
+            yield [
+                'user' => $block->user->cuid,
+                'username' => $block->user->username,
+                'removed_at' => $this->date($block->created_at),
             ];
         }
     }
@@ -637,7 +655,7 @@ final class ExportCommunity implements ExportsCommunities
             '',
         ];
         $descriptions = [
-            'community.json' => 'the community, its members, invitations, access groups, space groups and spaces',
+            'community.json' => 'the community, who can join it, its members, invitations, the people removed who cannot join again by themselves, access groups, space groups and spaces',
             'posts.json' => 'the posts (Markdown)',
             'comments.json' => 'the comments on posts and on resources (Markdown)',
             'pages.json' => 'the pages and the lessons (Markdown)',

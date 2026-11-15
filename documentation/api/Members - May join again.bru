@@ -1,0 +1,19 @@
+meta {
+  name: Members - May join again
+  type: http
+  seq: 158
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/join-blocks/tz4a98xxat96iws9zmbrgj3a
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  "May join again" (#1486): the person whom a manager removed can join the community by themselves again, when it is open. The user cuid is the one of the removed person. Owner, admins and moderators with the manage_members right. Returns 204, or 404 when the person has no block.
+}

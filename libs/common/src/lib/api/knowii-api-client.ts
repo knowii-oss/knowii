@@ -27,6 +27,9 @@ import {
   COMMUNITY_MEMBERS_API_PATH,
   COMMUNITY_MEMBER_API_PATH,
   COMMUNITY_MEMBERSHIP_API_PATH,
+  COMMUNITY_JOIN_POLICY_API_PATH,
+  COMMUNITY_JOIN_BLOCKS_API_PATH,
+  COMMUNITY_JOIN_BLOCK_API_PATH,
   COMMUNITY_API_PARAM_MEMBER,
   COMMUNITY_INVITATIONS_API_PATH,
   COMMUNITY_INVITATION_API_PATH,
@@ -120,7 +123,7 @@ import { presenceMemberSchema } from '../types/presence.schema';
 import type { Upload } from '../types/upload.schema';
 import { uploadSchema } from '../types/upload.schema';
 import type { CommunityResource } from '../types/community-resource.schema';
-import type { Community, ModeratorPermissions, NewCommunity } from '../types/community.schema';
+import type { Community, CommunityJoinPolicy, ModeratorPermissions, NewCommunity } from '../types/community.schema';
 import { communitySchema } from '../types/community.schema';
 import { communityResourceSchema } from '../types/community-resource.schema';
 import type { ChatMessage, ChatMessageForm, ChatThread } from '../types/chat-message.schema';
@@ -134,8 +137,14 @@ import type { LessonQuiz, QuizAnswer, QuizAttempt, QuizForm } from '../types/qui
 import { lessonQuizSchema, quizAttemptSchema } from '../types/quiz.schema';
 import type { CommunityResourceChanges, NewCommunityResource } from '../types/new-community-resource.schema';
 import type { ReactionSummary, WhoReacted } from '../types/reaction.schema';
-import type { AssignableCommunityRole, CommunityInvitation, CommunityInvitationForm, CommunityMember } from '../types/member.schema';
-import { communityInvitationSchema, communityMemberSchema } from '../types/member.schema';
+import type {
+  AssignableCommunityRole,
+  CommunityInvitation,
+  CommunityInvitationForm,
+  CommunityJoinBlock,
+  CommunityMember,
+} from '../types/member.schema';
+import { communityInvitationSchema, communityJoinBlockSchema, communityMemberSchema } from '../types/member.schema';
 import { reactionEmojiSchema, reactionSummarySchema, whoReactedSchema } from '../types/reaction.schema';
 
 const avatarResponseSchema = z.object({ avatar_url: z.string().nullable() });
@@ -280,6 +289,13 @@ export const knowiiApiClient = {
       apiRequest('post', communityPath(COMMUNITY_OWNERSHIP_API_PATH, communityCuid), communitySchema, 'Failed to transfer the ownership.', {
         member: memberCuid,
         password,
+      }),
+    /**
+     * Change who can join the community (owner and admins, #1486): by invitation or open. Returns the community.
+     */
+    updateJoinPolicy: (communityCuid: string, joinPolicy: CommunityJoinPolicy): Promise<ApiResult<Community>> =>
+      apiRequest('patch', communityPath(COMMUNITY_JOIN_POLICY_API_PATH, communityCuid), communitySchema, 'Failed to save who can join.', {
+        join_policy: joinPolicy,
       }),
     /**
      * Switch some rights of the moderators (owner and admins, #1240). Returns the community.
@@ -964,6 +980,32 @@ export const knowiiApiClient = {
        */
       remove: (communityCuid: string, memberCuid: string): Promise<ApiResult<void>> =>
         apiRequest('delete', memberPath(communityCuid, memberCuid), null, 'Failed to remove the member.'),
+      /**
+       * The current person joins an open community by themselves, as a member (#1486). Every refusal is a 422 with its message.
+       * Returns the community as a member sees it.
+       */
+      join: (communityCuid: string): Promise<ApiResult<Community>> =>
+        apiRequest('post', communityPath(COMMUNITY_MEMBERSHIP_API_PATH, communityCuid), communitySchema, 'Failed to join the community.'),
+      /**
+       * The people whom a manager removed, the most recent first (#1486).
+       */
+      joinBlocks: (communityCuid: string): Promise<ApiResult<CommunityJoinBlock[]>> =>
+        apiRequest(
+          'get',
+          `${communityPath(COMMUNITY_JOIN_BLOCKS_API_PATH, communityCuid)}?limit=100`,
+          z.array(communityJoinBlockSchema),
+          'Failed to load the removed members.',
+        ),
+      /**
+       * "May join again": the person can join the community by themselves again (#1486).
+       */
+      liftJoinBlock: (communityCuid: string, memberCuid: string): Promise<ApiResult<void>> =>
+        apiRequest(
+          'delete',
+          apiPath(COMMUNITY_JOIN_BLOCK_API_PATH, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [COMMUNITY_API_PARAM_MEMBER]: memberCuid }),
+          null,
+          'Failed to let the member join again.',
+        ),
       /**
        * The current member leaves the community (#1338). The owner gets a 422: they transfer the ownership first.
        */

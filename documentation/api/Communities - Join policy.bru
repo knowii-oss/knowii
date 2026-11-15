@@ -1,0 +1,26 @@
+meta {
+  name: Communities - Join policy
+  type: http
+  seq: 155
+}
+
+patch {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/join-policy
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "join_policy": "open"
+  }
+}
+
+docs {
+  Changes who can join a shared community (#1486, ADR 0044): "invitation" (the default) or "open" (a signed-in person with a verified email address joins by themselves, as a member). Owner and admins only. A personal community answers 400. Returns the community with its join_policy.
+}

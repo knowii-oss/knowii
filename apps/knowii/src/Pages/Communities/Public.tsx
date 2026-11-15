@@ -5,6 +5,7 @@ import { FaRegNewspaper } from 'react-icons/fa6';
 import AppLayout from '@/Layouts/AppLayout';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
+import { JoinCommunity } from '@/Components/Communities/JoinCommunity';
 import { CommunityShell } from '@/Components/Spaces/CommunityShell';
 import type { BreadcrumbItem } from '@/Components/ui';
 import { Avatar, Card, CardBody, CardHeader, LinkButton, RelativeTime } from '@/Components/ui';
@@ -38,7 +39,7 @@ export default function PublicCommunityPage({ community, spaceGroups, newestPost
             </h1>
             {community.description && <p className="text-base text-muted">{community.description}</p>}
             <div className="flex flex-wrap items-center gap-3">
-              {isVisitor && (
+              {isVisitor && community.join_policy !== 'open' && (
                 <>
                   <LinkButton href={route(LOGIN_URL)} variant="secondary">
                     Sign in
@@ -46,8 +47,10 @@ export default function PublicCommunityPage({ community, spaceGroups, newestPost
                   <LinkButton href={route(REGISTER_URL)}>Sign up</LinkButton>
                 </>
               )}
-              {/* The "Join" button of the community goes here (#1486) */}
-              <div id="community-join-slot" data-slot="join" />
+              {/* The way in of an open community (#1486): "Join" for a signed-in outsider, "Sign up to join" and "Sign in" for a visitor */}
+              <div id="community-join-slot" data-slot="join">
+                <JoinCommunity community={community} />
+              </div>
             </div>
           </section>
 

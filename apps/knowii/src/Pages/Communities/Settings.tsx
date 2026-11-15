@@ -11,6 +11,7 @@ import DeleteCommunityForm from '@/Pages/Communities/Partials/DeleteCommunityFor
 import TransferOwnershipForm from '@/Pages/Communities/Partials/TransferOwnershipForm';
 import { SpaceTreeEditor } from '@/Components/Spaces/SpaceTreeEditor';
 import { DirectMessagesSetting } from '@/Components/Communities/DirectMessagesSetting';
+import { JoinPolicySetting } from '@/Components/Communities/JoinPolicySetting';
 import { ModeratorPermissionsForm } from '@/Components/Communities/ModeratorPermissionsForm';
 import { CommunityMembersManager } from '@/Components/Communities/CommunityMembersManager';
 import { UpdateCommunityForm } from '@/Components/Communities/UpdateCommunityForm';
@@ -98,6 +99,14 @@ export default function CommunitySettingsPage(props: Props) {
           <UpdateCommunityForm community={props.community} onSaved={() => router.reload({ only: ['community'] })} />
           <Separator />
           <DirectMessagesSetting community={props.community} onSaved={() => router.reload({ only: ['community'] })} />
+          <Separator />
+        </>
+      )}
+
+      {/* Owner and admins: who can join (#1486). A personal community has nobody to let in */}
+      {props.permissions.canManageJoinPolicy === true && props.community.visibility !== 'personal' && (
+        <>
+          <JoinPolicySetting community={props.community} onSaved={() => router.reload({ only: ['community'] })} />
           <Separator />
         </>
       )}

@@ -70,6 +70,7 @@ test('community abilities per role', function (string $ability, array $allowed) 
     'manageSpaces' => ['manageSpaces', ['owner', 'admin']],
     'uploadImage' => ['uploadImage', POLICY_MEMBERS],
     'manageModeratorPermissions' => ['manageModeratorPermissions', ['owner', 'admin']],
+    'manageJoinPolicy' => ['manageJoinPolicy', ['owner', 'admin']],
     'addCommunityMember' => ['addCommunityMember', ['owner', 'admin']],
     'updateCommunityMember' => ['updateCommunityMember', ['owner', 'admin']],
     'removeCommunityMember' => ['removeCommunityMember', ['owner', 'admin']],

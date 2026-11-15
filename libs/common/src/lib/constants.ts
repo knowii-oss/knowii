@@ -322,8 +322,12 @@ export const COMMUNITY_SPACE_POST_COMMENT_API_PATH = `${COMMUNITY_SPACE_POST_COM
 export const COMMUNITY_MEMBERS_API_PATH = `${COMMUNITY_API_PATH}/members`;
 export const COMMUNITY_API_PARAM_MEMBER = '{memberCuid}';
 export const COMMUNITY_MEMBER_API_PATH = `${COMMUNITY_MEMBERS_API_PATH}/${COMMUNITY_API_PARAM_MEMBER}`;
-// The membership of the current user: DELETE to leave the community (#1338)
+// The membership of the current user: DELETE to leave the community (#1338), POST to join an open community (#1486)
 export const COMMUNITY_MEMBERSHIP_API_PATH = `${COMMUNITY_API_PATH}/membership`;
+// Who can join the community, and the people whom a manager removed (#1486). WARNING: aligned with ApiRoutes.php
+export const COMMUNITY_JOIN_POLICY_API_PATH = `${COMMUNITY_API_PATH}/join-policy`;
+export const COMMUNITY_JOIN_BLOCKS_API_PATH = `${COMMUNITY_API_PATH}/join-blocks`;
+export const COMMUNITY_JOIN_BLOCK_API_PATH = `${COMMUNITY_JOIN_BLOCKS_API_PATH}/{memberCuid}`;
 export const COMMUNITY_INVITATIONS_API_PATH = `${COMMUNITY_API_PATH}/invitations`;
 export const COMMUNITY_API_PARAM_INVITATION = '{invitationCuid}';
 export const COMMUNITY_INVITATION_API_PATH = `${COMMUNITY_INVITATIONS_API_PATH}/${COMMUNITY_API_PARAM_INVITATION}`;

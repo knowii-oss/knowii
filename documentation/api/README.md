@@ -22,7 +22,7 @@ A personal API token (created on the "API tokens" page of the user menu) has abi
 | `user:read`         | Read the current user, their blocks and their frequently used emoji   |
 | `user:write`        | Change the avatar                                                     |
 | `communities:read`  | Read communities, space groups, spaces, members and invitations       |
-| `communities:write` | Create, change and delete communities, spaces, members, invitations; leave a community, transfer its ownership |
+| `communities:write` | Create, change and delete communities, spaces, members, invitations; join an open community, leave a community, let a removed member join again, change who can join, transfer its ownership |
 | `posts:read`        | Read posts, comments and reactions, preview Markdown                  |
 | `posts:write`       | Write posts and comments, pin, react, upload images                   |
 | `chat:read`         | Read the messages and threads of chat spaces, mark them as read       |
@@ -61,11 +61,24 @@ A public space (`visibility` public) can be read by anyone on the internet, with
 | `GET /v1/communities/{community}/spaces/{space}/resources/{resource}`  | One resource                                 |
 | `GET /v1/communities/{community}/spaces/{space}/resources/{resource}/comments` | The comments of a resource           |
 
-The first three routes are the public page of a community (#1485). They answer a visitor and a signed-in person who is not a member when the community has at least one public space that is not a chat space. Otherwise a visitor gets 404 (the same answer as for a community that does not exist) and a signed-in person who is not a member gets 403. The community has the public shape only: `cuid`, `name`, `slug`, `description`, `visibility` and `is_member` (false). The navigation holds the public spaces without any chat space. `newest-posts` has, for each post: `cuid`, `title`, `slug`, `excerpt`, `author` (`cuid`, `name`, `username`, `avatar_url`, or null for a deleted account), `space` (`cuid`, `slug`, `name`, `emoji`) and `created_at`. It never lists a deleted post, a post of a space that is not public, or one of a chat space. A member gets their full community and their own navigation, and the same newest posts.
+The first three routes are the public page of a community (#1485). They answer a visitor and a signed-in person who is not a member when the community has at least one public space that is not a chat space. Otherwise a visitor gets 404 (the same answer as for a community that does not exist) and a signed-in person who is not a member gets 403. The community has the public shape only: `cuid`, `name`, `slug`, `description`, `visibility`, `join_policy` (`invitation` or `open`, #1486) and `is_member` (false). The navigation holds the public spaces without any chat space. `newest-posts` has, for each post: `cuid`, `title`, `slug`, `excerpt`, `author` (`cuid`, `name`, `username`, `avatar_url`, or null for a deleted account), `space` (`cuid`, `slug`, `name`, `emoji`) and `created_at`. It never lists a deleted post, a post of a space that is not public, or one of a chat space. A member gets their full community and their own navigation, and the same newest posts.
 
 Without an account, these answers hold the name, the username and the avatar of the authors, and the counts of the reactions. They never hold: a member list, the team, the online members, profile fields, the member count, who reacted, the names of access groups, the moderator rights, the direct message setting, the captured article of a resource, the progress in a course, or the results of a quiz. Everything else needs an account: who reacted, chat messages, online members, member search, quizzes, the download of a course material (the list is public, the download is not), the navigation of the community beyond its public spaces, and every write.
 
 A request with a token still needs the ability of the route (`posts:read`, `pages:read`, `resources:read`, `communities:read`). A token that is not accepted (unknown, revoked or expired) gets a 401: it is never treated as no token.
+
+## Who can join
+
+A shared community is by invitation (`join_policy` `invitation`, the default) or open (`open`) ([ADR 0044](../adr/0044-public-spaces-for-visitors.md), #1486). Read `join_policy` on `GET /v1/communities/{community}`, for a member and for someone who is not one.
+
+| Route | What it does |
+| ----- | ------------ |
+| `PATCH /v1/communities/{community}/join-policy` | Change who can join (owner and admins). Body: `join_policy`. Never for a personal community (400) |
+| `POST /v1/communities/{community}/membership` | Join an open community by yourself, as a member. 201 with the community as a member sees it. 422 with a message when the community is by invitation, you are a member, or a manager removed you ("You cannot join this community by yourself. Ask its managers for an invitation."). Needs a verified address (403 without). Limited to 10 a minute per person |
+| `GET /v1/communities/{community}/join-blocks` | The people whom a manager removed (owner, admins, moderators with `manage_members`) |
+| `DELETE /v1/communities/{community}/join-blocks/{member}` | "May join again": the person can join by themselves again (same managers). 204, or 404 without a block |
+
+All four need an account and the ability `communities:write` (`communities:read` for the list).
 
 ## Keep it current
 

@@ -73,6 +73,15 @@ class CommunityPolicy
     }
 
     /**
+     * Change who can join the community (#1486, ADR 0044): owner and admins, like the rights of the moderators. The
+     * action refuses a personal community: nobody joins it.
+     */
+    final public function manageJoinPolicy(User $user, Community $community): bool
+    {
+        return CommunityRoles::isOwnerOrAdmin($user, $community);
+    }
+
+    /**
      * Members upload images for their posts and comments (#1178).
      */
     final public function uploadImage(User $user, Community $community): bool

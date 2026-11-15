@@ -289,6 +289,7 @@ test('web pages: the props of a visitor and of an outsider hold no member data, 
         'slug' => $this->c['community']->slug,
         'description' => $this->c['community']->description ?? '',
         'visibility' => $this->c['community']->visibility->value,
+        'join_policy' => 'invitation',
         'is_member' => false,
     ]);
     // No right, no progress, no result, no article

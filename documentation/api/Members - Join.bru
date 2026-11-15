@@ -1,0 +1,19 @@
+meta {
+  name: Members - Join
+  type: http
+  seq: 156
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/membership
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The current person joins an open community by themselves, as a member (#1486, ADR 0044). The community must be open (join_policy), the email address verified (403 otherwise), and the person not a member yet. A person whom a manager removed gets a 422: "You cannot join this community by yourself. Ask its managers for an invitation." A community by invitation also gets a 422. Joining gives no access group. Returns 201 with the community as a member sees it. Limited to 10 a minute per person.
+}

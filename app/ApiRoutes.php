@@ -112,6 +112,9 @@ final class ApiRoutes
     // The rights of the moderators (#1240)
     public const COMMUNITY_MODERATOR_PERMISSIONS = self::COMMUNITY.'/moderator-permissions';
 
+    // Who can join the community (#1486): by invitation or open
+    public const COMMUNITY_JOIN_POLICY = self::COMMUNITY.'/join-policy';
+
     // The owner gives the community to an admin (#1339)
     public const COMMUNITY_OWNERSHIP = self::COMMUNITY.'/ownership';
 
@@ -201,8 +204,14 @@ final class ApiRoutes
     // Member management (#1242)
     public const COMMUNITY_MEMBER = self::COMMUNITY_MEMBERS.'/{'.self::PARAM_MEMBER.'}';
 
-    // The membership of the current user: they leave the community with a DELETE (#1338)
+    // The membership of the current user: they leave the community with a DELETE (#1338), and join an open community with
+    // a POST (#1486)
     public const COMMUNITY_MEMBERSHIP = self::COMMUNITY.'/membership';
+
+    // The members whom a manager removed, who cannot join again by themselves, and the action that lifts it (#1486)
+    public const COMMUNITY_JOIN_BLOCKS = self::COMMUNITY.'/join-blocks';
+
+    public const COMMUNITY_JOIN_BLOCK = self::COMMUNITY_JOIN_BLOCKS.'/{'.self::PARAM_MEMBER.'}';
 
     public const COMMUNITY_INVITATIONS = self::COMMUNITY.'/invitations';
 
