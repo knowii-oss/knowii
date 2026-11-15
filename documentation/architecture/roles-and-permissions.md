@@ -4,14 +4,14 @@ Who can do what in a community ([ADR 0017](../adr/0017-roles-with-configurable-m
 
 ## Roles
 
-| Role      | Who                                                   |
-| --------- | ----------------------------------------------------- |
-| Owner     | The member who owns the community (one per community) |
-| Admin     | Members that the owner made admins                    |
-| Moderator | Members with the moderator role                       |
-| Member    | Every other member of the community                   |
-| Outsider  | A signed-in user who is not a member                  |
-| Visitor   | Not signed in (public spaces, M2)                     |
+| Role      | Who                                                                                                         |
+| --------- | ----------------------------------------------------------------------------------------------------------- |
+| Owner     | The member who owns the community (one per community)                                                       |
+| Admin     | Members that the owner made admins                                                                          |
+| Moderator | Members with the moderator role                                                                             |
+| Member    | Every other member of the community                                                                         |
+| Outsider  | A signed-in user who is not a member                                                                        |
+| Visitor   | Not signed in: reads the public spaces, except chat ([ADR 0044](../adr/0044-public-spaces-for-visitors.md)) |
 
 ## Moderator rights
 
@@ -28,53 +28,56 @@ The owner and the admins switch these rights in the community settings ("Moderat
 
 "Moderator (right)" means: moderators, when the community switched that right on.
 
-| Ability                                   | Policy                                                    | Owner  | Admin  | Moderator                                    | Member     | Outsider | Visitor |
-| ----------------------------------------- | --------------------------------------------------------- | ------ | ------ | -------------------------------------------- | ---------- | -------- | ------- |
-| See the community                         | `CommunityPolicy::view`                                   | yes    | yes    | yes                                          | yes        | no       | no      |
-| See the details page and the team         | `CommunityPolicy::view`                                   | yes    | yes    | yes                                          | yes        | no       | no      |
-| Update the community                      | `CommunityPolicy::update`                                 | yes    | no     | no                                           | no         | no       | no      |
-| Delete the community                      | `CommunityPolicy::delete`                                 | yes    | no     | no                                           | no         | no       | no      |
-| Community settings                        | `CommunityPolicy::manage`                                 | yes    | yes    | no                                           | no         | no       | no      |
-| Switch the moderator rights               | `CommunityPolicy::manageModeratorPermissions`             | yes    | yes    | no                                           | no         | no       | no      |
-| Manage space groups and spaces            | `CommunityPolicy::manageSpaces`                           | yes    | yes    | `manage_spaces`                              | no         | no       | no      |
-| List the members and their roles          | `CommunityPolicy::view`                                   | yes    | yes    | yes                                          | yes        | no       | no      |
-| Invite, change and remove members         | `CommunityPolicy::add/update/removeCommunityMember`       | yes    | yes    | `manage_members`                             | no         | no       | no      |
-| Transfer the ownership to an admin        | `CommunityPolicy::transferOwnership` (#1339)              | yes    | no     | no                                           | no         | no       | no      |
-| Leave the community                       | `CommunityPolicy::leave` (#1338)                          | no     | yes    | yes                                          | yes        | no       | no      |
-| Upload images                             | `CommunityPolicy::uploadImage`                            | yes    | yes    | yes                                          | yes        | no       | no      |
-| Read a members-only space                 | `SpacePolicy::view`                                       | yes    | yes    | yes                                          | yes        | no       | no      |
-| Read an "access groups only" space        | `SpacePolicy::view`                                       | yes    | yes    | in a group                                   | in a group | no       | no      |
-| Give an access group a whole space group  | `CommunityPolicy::manageSpaces` (#1422)                   | yes    | yes    | `manage_spaces`                              | no         | no       | no      |
-| Create, rename and delete access groups   | `CommunityPolicy::manageAccessGroups`                     | yes    | yes    | no                                           | no         | no       | no      |
-| Add and remove access group members       | `CommunityPolicy::manageAccessGroupMembers`               | yes    | yes    | `manage_members`                             | no         | no       | no      |
-| See the access groups                     | `CommunityPolicy::viewAccessGroups`                       | yes    | yes    | `manage_members` or `manage_spaces`          | no         | no       | no      |
-| Read a public space                       | `SpacePolicy::view`                                       | yes    | yes    | yes                                          | yes        | yes      | yes     |
-| Post where members post                   | `SpacePolicy::contribute` (needs `view`)                  | yes    | yes    | yes                                          | yes        | no       | no      |
-| Post where only moderators post           | `SpacePolicy::contribute`                                 | yes    | yes    | yes (role)                                   | no         | no       | no      |
-| Delete the posts and comments of others   | `SpacePolicy::moderate` (needs `view`, #1325)             | yes    | yes    | `delete_content`                             | no         | no       | no      |
-| Pin a post                                | `PostPolicy::pin`                                         | yes    | yes    | `pin_posts`                                  | no         | no       | no      |
-| Mark lessons as done, read one's progress | `SpacePolicy::trackProgress` (needs `view`, #1304)        | yes    | yes    | yes                                          | yes        | no       | no      |
-| Create, edit, reorder and delete pages    | `SpacePolicy::managePages` (needs `view`)                 | yes    | yes    | yes (role)                                   | no         | no       | no      |
-| Read and download course materials        | `SpacePolicy::view` (#1336)                               | yes    | yes    | yes                                          | yes        | no       | no      |
-| Add, change and delete course materials   | `SpacePolicy::managePages` (#1336)                        | yes    | yes    | yes (role)                                   | no         | no       | no      |
-| Read the questions of a lesson quiz       | `SpacePolicy::view` (#1335)                               | yes    | yes    | yes                                          | yes        | no       | no      |
-| Answer a quiz, read one's own result      | `SpacePolicy::trackProgress` (#1335)                      | yes    | yes    | yes                                          | yes        | no       | no      |
-| Write and delete a lesson quiz            | `SpacePolicy::managePages` (#1335)                        | yes    | yes    | yes (role)                                   | no         | no       | no      |
-| Write in a chat space                     | `SpacePolicy::contribute` (posting policy)                | yes    | yes    | yes                                          | members    | no       | no      |
-| Edit or delete one's own chat message     | `ChatMessagePolicy::update`, `::delete`                   | author | author | author                                       | author     | no       | no      |
-| Delete the chat messages of others        | `ChatMessagePolicy::delete` (`SpacePolicy::moderate`)     | yes    | yes    | `delete_content`                             | no         | no       | no      |
-| Change a resource, capture it again       | `CommunityResourcePolicy::update`, `::capture` (members)  | yes    | yes    | curator or `manage_spaces`                   | curator    | no       | no      |
-| Delete a resource                         | `CommunityResourcePolicy::delete` (#324)                  | yes    | yes    | curator, `manage_spaces` or `delete_content` | curator    | no       | no      |
-| Edit one's own post or comment            | `PostPolicy::update`, `CommentPolicy::update`             | author | author | author                                       | author     | no       | no      |
-| Comment and react                         | `PostPolicy::comment`, `CommunityResourcePolicy::comment` | yes    | yes    | yes                                          | yes        | no       | no      |
-| Get a notification of a reply or mention  | `Notify` (#1474)                                          | yes    | yes    | yes                                          | yes        | no       | no      |
-| Read one's own notifications              | own rows only (#1474)                                     | yes    | yes    | yes                                          | yes        | no       | no      |
+| Ability                                   | Policy                                                    | Owner  | Admin  | Moderator                                    | Member     | Outsider          | Visitor                       |
+| ----------------------------------------- | --------------------------------------------------------- | ------ | ------ | -------------------------------------------- | ---------- | ----------------- | ----------------------------- |
+| See the community                         | `CommunityPolicy::view`                                   | yes    | yes    | yes                                          | yes        | no                | no                            |
+| See the details page and the team         | `CommunityPolicy::view`                                   | yes    | yes    | yes                                          | yes        | no                | no                            |
+| Update the community                      | `CommunityPolicy::update`                                 | yes    | no     | no                                           | no         | no                | no                            |
+| Delete the community                      | `CommunityPolicy::delete`                                 | yes    | no     | no                                           | no         | no                | no                            |
+| Community settings                        | `CommunityPolicy::manage`                                 | yes    | yes    | no                                           | no         | no                | no                            |
+| Switch the moderator rights               | `CommunityPolicy::manageModeratorPermissions`             | yes    | yes    | no                                           | no         | no                | no                            |
+| Manage space groups and spaces            | `CommunityPolicy::manageSpaces`                           | yes    | yes    | `manage_spaces`                              | no         | no                | no                            |
+| List the members and their roles          | `CommunityPolicy::view`                                   | yes    | yes    | yes                                          | yes        | no                | no                            |
+| Invite, change and remove members         | `CommunityPolicy::add/update/removeCommunityMember`       | yes    | yes    | `manage_members`                             | no         | no                | no                            |
+| Transfer the ownership to an admin        | `CommunityPolicy::transferOwnership` (#1339)              | yes    | no     | no                                           | no         | no                | no                            |
+| Leave the community                       | `CommunityPolicy::leave` (#1338)                          | no     | yes    | yes                                          | yes        | no                | no                            |
+| Upload images                             | `CommunityPolicy::uploadImage`                            | yes    | yes    | yes                                          | yes        | no                | no                            |
+| Read a members-only space                 | `SpacePolicy::view`                                       | yes    | yes    | yes                                          | yes        | no                | no                            |
+| Read an "access groups only" space        | `SpacePolicy::view`                                       | yes    | yes    | in a group                                   | in a group | no                | no                            |
+| Give an access group a whole space group  | `CommunityPolicy::manageSpaces` (#1422)                   | yes    | yes    | `manage_spaces`                              | no         | no                | no                            |
+| Create, rename and delete access groups   | `CommunityPolicy::manageAccessGroups`                     | yes    | yes    | no                                           | no         | no                | no                            |
+| Add and remove access group members       | `CommunityPolicy::manageAccessGroupMembers`               | yes    | yes    | `manage_members`                             | no         | no                | no                            |
+| See the access groups                     | `CommunityPolicy::viewAccessGroups`                       | yes    | yes    | `manage_members` or `manage_spaces`          | no         | no                | no                            |
+| Read a public space                       | `SpacePolicy::view`                                       | yes    | yes    | yes                                          | yes        | yes               | yes (not a chat space, #1387) |
+| Post where members post                   | `SpacePolicy::contribute` (needs `view`)                  | yes    | yes    | yes                                          | yes        | no                | no                            |
+| Post where only moderators post           | `SpacePolicy::contribute`                                 | yes    | yes    | yes (role)                                   | no         | no                | no                            |
+| Delete the posts and comments of others   | `SpacePolicy::moderate` (needs `view`, #1325)             | yes    | yes    | `delete_content`                             | no         | no                | no                            |
+| Pin a post                                | `PostPolicy::pin`                                         | yes    | yes    | `pin_posts`                                  | no         | no                | no                            |
+| Mark lessons as done, read one's progress | `SpacePolicy::trackProgress` (needs `view`, #1304)        | yes    | yes    | yes                                          | yes        | no                | no                            |
+| Create, edit, reorder and delete pages    | `SpacePolicy::managePages` (needs `view`)                 | yes    | yes    | yes (role)                                   | no         | no                | no                            |
+| Read the list of course materials         | `SpacePolicy::view` (#1336, #1387)                        | yes    | yes    | yes                                          | yes        | in a public space | in a public space             |
+| Download a course material                | `SpacePolicy::view` (#1336), signed in                    | yes    | yes    | yes                                          | yes        | in a public space | no                            |
+| Add, change and delete course materials   | `SpacePolicy::managePages` (#1336)                        | yes    | yes    | yes (role)                                   | no         | no                | no                            |
+| Read the questions of a lesson quiz       | `SpacePolicy::view` (#1335), signed in                    | yes    | yes    | yes                                          | yes        | in a public space | no                            |
+| Answer a quiz, read one's own result      | `SpacePolicy::trackProgress` (#1335)                      | yes    | yes    | yes                                          | yes        | no                | no                            |
+| Write and delete a lesson quiz            | `SpacePolicy::managePages` (#1335)                        | yes    | yes    | yes (role)                                   | no         | no                | no                            |
+| Write in a chat space                     | `SpacePolicy::contribute` (posting policy)                | yes    | yes    | yes                                          | members    | no                | no                            |
+| Edit or delete one's own chat message     | `ChatMessagePolicy::update`, `::delete`                   | author | author | author                                       | author     | no                | no                            |
+| Delete the chat messages of others        | `ChatMessagePolicy::delete` (`SpacePolicy::moderate`)     | yes    | yes    | `delete_content`                             | no         | no                | no                            |
+| Change a resource, capture it again       | `CommunityResourcePolicy::update`, `::capture` (members)  | yes    | yes    | curator or `manage_spaces`                   | curator    | no                | no                            |
+| Delete a resource                         | `CommunityResourcePolicy::delete` (#324)                  | yes    | yes    | curator, `manage_spaces` or `delete_content` | curator    | no                | no                            |
+| Edit one's own post or comment            | `PostPolicy::update`, `CommentPolicy::update`             | author | author | author                                       | author     | no                | no                            |
+| Comment and react                         | `PostPolicy::comment`, `CommunityResourcePolicy::comment` | yes    | yes    | yes                                          | yes        | no                | no                            |
+| Get a notification of a reply or mention  | `Notify` (#1474)                                          | yes    | yes    | yes                                          | yes        | no                | no                            |
+| Read one's own notifications              | own rows only (#1474)                                     | yes    | yes    | yes                                          | yes        | no                | no                            |
 
 Three rules hold for every ability (authorization audit, 2026-11-10):
 
 1. The API needs a verified email address, like the web app (#1323).
 2. A rule on authored content applies to members only: a curator or an author who left the community loses the rights on what they wrote (#1324).
 3. Nobody moderates, changes or deletes a space that they cannot read: a moderator outside the groups of a groups space has no right on it (#1325, ADR 0025).
+
+Visitors (#1387, [ADR 0044](../adr/0044-public-spaces-for-visitors.md)): a visitor reads the pages of a public space of type discussion, pages, course, resources and link, and nothing else. A chat space is never readable by a visitor, also when it is public (`SpacePolicy::view`). On a post, a comment, a page and a resource a visitor gets the name, the username and the avatar of the author, and never a member list, the team, the online members, the profile fields, the member count, who reacted (counts only), the names of access groups, the moderator rights, the direct message setting, the captured article of a resource, the progress in a course or the quiz. Any page of a `members` or `groups` space, and every other community page, sends a visitor to the sign-in page and back to the same address. The API reads that a visitor may call are listed in the ADR and in `documentation/api/README.md`.
 
 Decided on purpose after the audit (Sébastien, 2026-11-10):
 

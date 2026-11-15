@@ -57,6 +57,8 @@ export default function ResourcePage(props: Props) {
   // The capture job saves the resource at each step (ADR 0018): the page loads it again
   useSocket({
     channel: spaceChannel,
+    // A visitor gets a static page: no connection (#1387)
+    enabled: !!page.props.auth.user,
     event: ['community.resource.updated', 'community.resource.deleted'],
     callback: (event, payload) => {
       if (payload.cuid !== resource.cuid) {
@@ -152,6 +154,7 @@ export default function ResourcePage(props: Props) {
           currentUserCuid={page.props.auth.user?.cuid ?? null}
           canComment={props.permissions.canComment}
           canModerate={props.permissions.canModerate}
+          space={space}
         />
       </CommunityShell>
 

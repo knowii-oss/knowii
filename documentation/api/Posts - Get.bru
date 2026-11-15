@@ -16,4 +16,5 @@ headers {
 
 docs {
   Returns a post with its Markdown source (body) and its HTML (body_html).
+  Public: in a public space this request works without a session and without a token (the response carries the name, username and avatar of the authors, never more). Every other space answers 401 without an account.
 }

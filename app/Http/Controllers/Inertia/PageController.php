@@ -61,8 +61,9 @@ class PageController extends Controller
             'position' => ['current' => $index + 1, 'total' => $pages->count()],
             'section' => $section?->title,
             'progress' => $progress,
-            // Lessons of a course (#1335): the quiz as this reader may see it, with their result; null without a quiz
-            'quiz' => $space->type === KnowiiSpaceType::Course ? Quizzes::for($user, $page) : null,
+            // Lessons of a course (#1335): the quiz as this reader may see it, with their result; null without a quiz, and for
+            // a visitor: the quiz is for signed-in people (#1387)
+            'quiz' => $space->type === KnowiiSpaceType::Course && $user !== null ? Quizzes::for($user, $page) : null,
             'permissions' => [
                 'canManagePages' => Gate::check('managePages', $space),
             ],

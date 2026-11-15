@@ -74,9 +74,11 @@ export const communitySchema = baseEntitySchema
   .extend(slugSchema.shape)
   // member_count: only where the server counts the members (community page, details page, GET community, #1135)
   .extend({
-    moderator_permissions: moderatorPermissionsSchema,
+    // Members only: a visitor or an outsider reads the public spaces and gets no moderator rights, no member count and no
+    // direct message setting (#1387, ADR 0044)
+    moderator_permissions: moderatorPermissionsSchema.optional(),
     member_count: z.number().int().optional(),
-    // Whether the current user belongs to the community (#1187); absent without a signed-in user
+    // Whether the current user belongs to the community (#1187): false for a visitor or an outsider
     is_member: z.boolean().optional(),
     // Direct messages (#1186): whether members can write them; what the member did not read (community pages only)
     direct_messages_enabled: z.boolean().optional(),

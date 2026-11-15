@@ -45,6 +45,28 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
     // Newsletter of the footer (public, rate limited, #938)
     Route::post(ApiRoutes::NEWSLETTER, [NewsletterApiController::class, 'subscribe'])->middleware('throttle:newsletter');
 
+    // What visitors may read (#1387, ADR 0044): the public spaces. The request goes on without an account (a session or a token
+    // still sign in, and an unverified account is refused), each route keeps its gate (SpacePolicy::view: a chat space is
+    // never readable without an account) and its token abilities, and visitors are limited per IP address. Who reacted, chat
+    // messages, online members, member search, quizzes, the download of a course material and every write need an account
+    Route::middleware(['auth.optional', 'throttle:public-reads'])->scopeBindings()->group(function () {
+        // Spaces
+        Route::get(ApiRoutes::COMMUNITY_SPACE, [SpaceApiController::class, 'show'])->middleware('ability:communities:read');
+        // Posts and comments of discussion spaces
+        Route::get(ApiRoutes::COMMUNITY_SPACE_POSTS, [PostApiController::class, 'index'])->middleware('ability:posts:read');
+        Route::get(ApiRoutes::COMMUNITY_SPACE_POST, [PostApiController::class, 'show'])->middleware('ability:posts:read');
+        Route::get(ApiRoutes::COMMUNITY_SPACE_POST_COMMENTS, [CommentApiController::class, 'index'])->middleware('ability:posts:read');
+        // Pages and lessons
+        Route::get(ApiRoutes::COMMUNITY_SPACE_PAGES, [PageApiController::class, 'index'])->middleware('ability:pages:read');
+        Route::get(ApiRoutes::COMMUNITY_SPACE_PAGE, [PageApiController::class, 'show'])->middleware('ability:pages:read');
+        // The list of the course materials (the download needs an account)
+        Route::get(ApiRoutes::COMMUNITY_SPACE_MATERIALS, [CourseMaterialApiController::class, 'index'])->middleware('ability:pages:read');
+        // Resources and their comments
+        Route::get(ApiRoutes::COMMUNITY_SPACE_RESOURCES, [CommunityResourceApiController::class, 'index'])->middleware('ability:resources:read');
+        Route::get(ApiRoutes::COMMUNITY_SPACE_RESOURCE, [CommunityResourceApiController::class, 'show'])->middleware('ability:resources:read');
+        Route::get(ApiRoutes::COMMUNITY_SPACE_RESOURCE_COMMENTS, [CommunityResourceCommentApiController::class, 'index'])->middleware('ability:resources:read');
+    });
+
     // Every route names the token abilities that it needs (ADR 0022, #689). Session users pass every check
     // Verified email addresses only, like the web app (#1323): an account proves that it owns its address first
     Route::middleware(['auth:sanctum', 'verified'])->group(function () {
@@ -83,14 +105,11 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::post(ApiRoutes::COMMUNITY_SPACE_GROUP_SPACES_REORDER, [SpaceApiController::class, 'reorder'])->middleware('ability:communities:write');
 
             Route::post(ApiRoutes::COMMUNITY_SPACES, [SpaceApiController::class, 'store'])->middleware('ability:communities:write');
-            Route::get(ApiRoutes::COMMUNITY_SPACE, [SpaceApiController::class, 'show'])->middleware('ability:communities:read');
             Route::patch(ApiRoutes::COMMUNITY_SPACE, [SpaceApiController::class, 'update'])->middleware('ability:communities:write');
             Route::delete(ApiRoutes::COMMUNITY_SPACE, [SpaceApiController::class, 'destroy'])->middleware('ability:communities:write');
 
             // Posts (#1174)
-            Route::get(ApiRoutes::COMMUNITY_SPACE_POSTS, [PostApiController::class, 'index'])->middleware('ability:posts:read');
             Route::post(ApiRoutes::COMMUNITY_SPACE_POSTS, [PostApiController::class, 'store'])->middleware('ability:posts:write')->middleware('throttle:posts');
-            Route::get(ApiRoutes::COMMUNITY_SPACE_POST, [PostApiController::class, 'show'])->middleware('ability:posts:read');
             Route::patch(ApiRoutes::COMMUNITY_SPACE_POST, [PostApiController::class, 'update'])->middleware('ability:posts:write');
             Route::delete(ApiRoutes::COMMUNITY_SPACE_POST, [PostApiController::class, 'destroy'])->middleware('ability:posts:write');
             Route::post(ApiRoutes::COMMUNITY_SPACE_POST_PIN, [PostApiController::class, 'pin'])->middleware('ability:posts:write');
@@ -107,10 +126,8 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::post(ApiRoutes::COMMUNITY_SPACE_MESSAGE_REACTIONS, [ReactionApiController::class, 'toggleMessage'])->middleware('ability:chat:write')->middleware('throttle:reactions');
 
             // Pages of page spaces (#1179)
-            Route::get(ApiRoutes::COMMUNITY_SPACE_PAGES, [PageApiController::class, 'index'])->middleware('ability:pages:read');
             Route::post(ApiRoutes::COMMUNITY_SPACE_PAGES, [PageApiController::class, 'store'])->middleware('ability:pages:write');
             Route::post(ApiRoutes::COMMUNITY_SPACE_PAGES_ORDER, [PageApiController::class, 'reorder'])->middleware('ability:pages:write');
-            Route::get(ApiRoutes::COMMUNITY_SPACE_PAGE, [PageApiController::class, 'show'])->middleware('ability:pages:read');
             Route::patch(ApiRoutes::COMMUNITY_SPACE_PAGE, [PageApiController::class, 'update'])->middleware('ability:pages:write');
             Route::delete(ApiRoutes::COMMUNITY_SPACE_PAGE, [PageApiController::class, 'destroy'])->middleware('ability:pages:write');
 
@@ -126,7 +143,6 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::post(ApiRoutes::COMMUNITY_SPACE_PAGE_QUIZ_ATTEMPTS, [QuizApiController::class, 'attempt'])->middleware('ability:pages:read')->middleware('throttle:quiz-attempts');
 
             // Supplementary materials of course spaces (#1336, ADR 0037): members read and download, managers change
-            Route::get(ApiRoutes::COMMUNITY_SPACE_MATERIALS, [CourseMaterialApiController::class, 'index'])->middleware('ability:pages:read');
             Route::post(ApiRoutes::COMMUNITY_SPACE_MATERIALS, [CourseMaterialApiController::class, 'store'])->middleware('ability:pages:write')->middleware('throttle:uploads');
             Route::post(ApiRoutes::COMMUNITY_SPACE_MATERIALS_ORDER, [CourseMaterialApiController::class, 'reorder'])->middleware('ability:pages:write');
             Route::patch(ApiRoutes::COMMUNITY_SPACE_MATERIAL, [CourseMaterialApiController::class, 'update'])->middleware('ability:pages:write');
@@ -134,15 +150,12 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::get(ApiRoutes::COMMUNITY_SPACE_MATERIAL_DOWNLOAD, [CourseMaterialApiController::class, 'download'])->middleware('ability:pages:read');
 
             // Resources of resources spaces (ADR 0015)
-            Route::get(ApiRoutes::COMMUNITY_SPACE_RESOURCES, [CommunityResourceApiController::class, 'index'])->middleware('ability:resources:read');
             Route::post(ApiRoutes::COMMUNITY_SPACE_RESOURCES, [CommunityResourceApiController::class, 'store'])->middleware('ability:resources:create,resources:write');
-            Route::get(ApiRoutes::COMMUNITY_SPACE_RESOURCE, [CommunityResourceApiController::class, 'show'])->middleware('ability:resources:read');
             Route::patch(ApiRoutes::COMMUNITY_SPACE_RESOURCE, [CommunityResourceApiController::class, 'update'])->middleware('ability:resources:write');
             Route::delete(ApiRoutes::COMMUNITY_SPACE_RESOURCE, [CommunityResourceApiController::class, 'destroy'])->middleware('ability:resources:write');
             Route::post(ApiRoutes::COMMUNITY_SPACE_RESOURCE_CAPTURE, [CommunityResourceApiController::class, 'capture'])->middleware('ability:resources:write')->middleware('throttle:captures');
 
             // Comments on resources (#1034)
-            Route::get(ApiRoutes::COMMUNITY_SPACE_RESOURCE_COMMENTS, [CommunityResourceCommentApiController::class, 'index'])->middleware('ability:resources:read');
             Route::post(ApiRoutes::COMMUNITY_SPACE_RESOURCE_COMMENTS, [CommunityResourceCommentApiController::class, 'store'])->middleware('ability:resources:write')->middleware('throttle:comments');
             Route::patch(ApiRoutes::COMMUNITY_SPACE_RESOURCE_COMMENT, [CommunityResourceCommentApiController::class, 'update'])->middleware('ability:resources:write');
             Route::delete(ApiRoutes::COMMUNITY_SPACE_RESOURCE_COMMENT, [CommunityResourceCommentApiController::class, 'destroy'])->middleware('ability:resources:write');
@@ -150,7 +163,6 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::post(ApiRoutes::COMMUNITY_SPACE_RESOURCE_COMMENT_REACTIONS, [ReactionApiController::class, 'toggleResourceComment'])->middleware('ability:resources:write')->middleware('throttle:reactions');
 
             // Comments (#1175)
-            Route::get(ApiRoutes::COMMUNITY_SPACE_POST_COMMENTS, [CommentApiController::class, 'index'])->middleware('ability:posts:read');
             Route::post(ApiRoutes::COMMUNITY_SPACE_POST_COMMENTS, [CommentApiController::class, 'store'])->middleware('ability:posts:write')->middleware('throttle:comments');
             Route::patch(ApiRoutes::COMMUNITY_SPACE_POST_COMMENT, [CommentApiController::class, 'update'])->middleware('ability:posts:write');
             Route::delete(ApiRoutes::COMMUNITY_SPACE_POST_COMMENT, [CommentApiController::class, 'destroy'])->middleware('ability:posts:write');

@@ -21,6 +21,7 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
+import { PUBLIC_CHAT_SPACE_FORM_NOTE, PUBLIC_SPACE_FORM_WARNING } from './PublicSpaceNotice';
 import { Button, Checkbox, Dialog, Select, Textarea, TextInput } from '@/Components/ui';
 
 export interface SpaceDialogProps {
@@ -83,7 +84,8 @@ export function SpaceDialog({ open, communityCuid, spaceGroups, space, defaultSp
 
   const visibility = useWatch({ control: form.control, name: 'visibility' });
   // A link space (#1294) opens a page outside Knowii: a URL, and nobody posts in it
-  const isLink = useWatch({ control: form.control, name: 'type' }) === 'link';
+  const spaceType = useWatch({ control: form.control, name: 'type' });
+  const isLink = spaceType === 'link';
   const spaceGroupCuid = useWatch({ control: form.control, name: 'space_group_cuid' });
   const directGroupCuids = useWatch({ control: form.control, name: 'access_groups' });
   useEffect(() => {
@@ -335,6 +337,13 @@ export function SpaceDialog({ open, communityCuid, spaceGroups, space, defaultSp
             )}
           />
         </div>
+
+        {visibility === 'public' && (
+          <div role="note" className="flex flex-col gap-1 rounded-lg border border-border bg-well p-3 text-sm sm:col-span-6">
+            <p>{PUBLIC_SPACE_FORM_WARNING}</p>
+            {spaceType === 'chat' && <p>{PUBLIC_CHAT_SPACE_FORM_NOTE}</p>}
+          </div>
+        )}
 
         {visibility === 'groups' && (
           <fieldset className="sm:col-span-6" aria-describedby="space-access-groups-help">

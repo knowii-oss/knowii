@@ -41,6 +41,8 @@ export default function PostPage(props: Props) {
   );
   useSocket({
     channel,
+    // A visitor gets a static page: no connection (#1387)
+    enabled: !!page.props.auth.user,
     event: ['space.post.updated', 'space.post.deleted', 'space.reactions.changed'],
     callback: (event, payload) => {
       const data = payload as SpaceContentPayload;
@@ -163,6 +165,7 @@ export default function PostPage(props: Props) {
           currentUserCuid={page.props.auth.user?.cuid ?? null}
           canComment={props.permissions.canComment}
           canModerate={props.permissions.canModerate}
+          space={space}
         />
       </CommunityShell>
 

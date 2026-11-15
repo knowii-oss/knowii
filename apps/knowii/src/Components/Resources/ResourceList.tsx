@@ -2,6 +2,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import type { Community, CommunityResource, Identifiable, Paginated, Space } from '@knowii/common';
 import { knowiiApiClient, RESOURCE_URL, RESOURCES_PER_PAGE, useAppData, useSocket } from '@knowii/common';
 import { FaPlus } from 'react-icons/fa6';
+import { SignInPrompt, useIsVisitor } from '@/Components/Reader/Reader';
 import { Button, EmptyState } from '@/Components/ui';
 import { CreateResourceDialog } from './CreateResourceDialog';
 import { ResourceCard } from './ResourceCard';
@@ -19,6 +20,7 @@ export interface ResourceListProps {
  */
 export function ResourceList({ community, space, initialResources, canContribute }: ResourceListProps) {
   const { showToast } = useAppData();
+  const isVisitor = useIsVisitor();
   const [resources, setResources] = useState<CommunityResource[]>(initialResources.items);
   const [nextOffset, setNextOffset] = useState<number | null>(initialResources.pagination.nextOffset);
   // Total in the space, kept current by the resource events (#1137)
@@ -59,6 +61,8 @@ export function ResourceList({ community, space, initialResources, canContribute
 
   useSocket({
     channel,
+    // A visitor gets a static page: no connection (#1387)
+    enabled: !isVisitor,
     event: ['community.resource.created', 'community.resource.updated', 'community.resource.deleted'],
     callback: (event, payload) => {
       if (event === 'community.resource.created') {
@@ -104,6 +108,7 @@ export function ResourceList({ community, space, initialResources, canContribute
             Add a resource
           </Button>
         )}
+        {isVisitor && space.posting_policy === 'members' && <SignInPrompt>Sign in to post</SignInPrompt>}
       </div>
 
       {resources.length === 0 ? (

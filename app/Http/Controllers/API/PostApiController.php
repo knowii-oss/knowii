@@ -42,12 +42,13 @@ class PostApiController extends Controller
     }
 
     /**
-     * Write a post in a discussion space.
+     * Write a post in a discussion space. In a public space (`visibility` public), anyone on the internet can read the
+     * post without an account, with the name, the username and the picture of its author.
      *
      * @throws AuthenticationException
      */
-    #[BodyParameter('title', description: 'Title (3 to 200 characters)', required: true, type: 'string', example: 'Welcome to the community')]
-    #[BodyParameter('body', description: 'Body in Markdown (up to 50,000 characters). Raw HTML is escaped', required: true, type: 'string', example: 'Hello **everyone**!')]
+    #[BodyParameter('title', description: 'Title (3 to 200 characters). In a public space, anyone on the internet can read it, with the name and picture of the author', required: true, type: 'string', example: 'Welcome to the community')]
+    #[BodyParameter('body', description: 'Body in Markdown (up to 50,000 characters). Raw HTML is escaped. In a public space, anyone on the internet can read it, with the name and picture of the author', required: true, type: 'string', example: 'Hello **everyone**!')]
     final public function store(Request $request, Community $community, Space $space): JsonResponse
     {
         $post = app(CreatesPosts::class)->create($request->user() ?? throw new AuthenticationException, $space, $request->only(['title', 'body']));

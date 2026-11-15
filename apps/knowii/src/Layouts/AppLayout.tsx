@@ -1,7 +1,16 @@
 import type { ReactElement, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import { API_TOKENS_URL, DASHBOARD_URL, LOGOUT_URL, USER_PROFILE_URL, useAppData, useTypedPage } from '@knowii/common';
+import {
+  API_TOKENS_URL,
+  DASHBOARD_URL,
+  LOGIN_URL,
+  LOGOUT_URL,
+  REGISTER_URL,
+  USER_PROFILE_URL,
+  useAppData,
+  useTypedPage,
+} from '@knowii/common';
 import { useRoute } from 'ziggy-js';
 import { FaBars, FaHome, FaKey, FaSignOutAlt, FaUser } from 'react-icons/fa';
 import PageHeader from '@/Components/PageHeader';
@@ -10,6 +19,7 @@ import Footer from '@/Components/Footer';
 import MainMenu from '@/Components/MainMenu';
 import PageContentWrapper, { type PageContentWidth } from '@/Components/PageContentWrapper';
 import PageWrapper from '@/Components/PageWrapper';
+import { VisitorProvider } from '@/Components/Reader/Reader';
 import PageTitle from '@/Components/PageTitle';
 import type { BreadcrumbItem } from '@/Components/ui';
 import {
@@ -22,6 +32,7 @@ import {
   dropdownMenuItemClasses,
   ErrorBoundary,
   isCurrentUrl,
+  LinkButton,
 } from '@/Components/ui';
 
 // A message after a redirect explains why the member landed here: it stays longer than a usual toast
@@ -45,6 +56,8 @@ export default function AppLayout(props: Props) {
   const page = useTypedPage();
   const route = useRoute();
   const user = page.props.auth.user;
+  // Nobody is signed in: a visitor reads the public spaces (#1387)
+  const isVisitor = !user;
 
   const [mainMenuVisible, setMainMenuVisible] = useState(false);
 
@@ -62,7 +75,7 @@ export default function AppLayout(props: Props) {
   }, [flashMessage, flashStyle, showToast]);
 
   return (
-    <>
+    <VisitorProvider value={isVisitor}>
       <Head title={props.browserPageTitle} />
 
       <PageWrapper>
@@ -74,79 +87,91 @@ export default function AppLayout(props: Props) {
           showDashboardButton={false}
           showLogoutButton={false}
         >
-          {/* MAIN menu */}
-          <Button
-            variant="secondary"
-            iconOnly
-            aria-label="Open the main menu"
-            aria-expanded={mainMenuVisible}
-            onClick={() => setMainMenuVisible(true)}
-          >
-            <FaBars aria-hidden="true" />
-          </Button>
-          <Drawer
-            open={mainMenuVisible}
-            onClose={() => setMainMenuVisible(false)}
-            title={
-              <>
-                <ApplicationMark className="w-8" />
-                Menu
-              </>
-            }
-          >
-            <MainMenu
-              entries={[{ label: 'Dashboard', href: route(DASHBOARD_URL), icon: <FaHome /> }]}
-              currentUrl={page.url}
-              onNavigate={() => setMainMenuVisible(false)}
-            />
-          </Drawer>
-
-          {/* USER menu */}
-          <DropdownMenu
-            label="Open the user menu"
-            trigger={<Avatar name={user?.name} imageUrl={user?.avatar_url} size="md" />}
-            triggerClassName="rounded-full"
-            header={
-              <div className="flex items-center gap-3">
-                <Avatar name={user?.name} imageUrl={user?.avatar_url} size="lg" />
-                <div className="min-w-0">
-                  <p className="truncate font-bold">{user?.name}</p>
-                  <p className="truncate text-xs text-muted">{user?.email}</p>
-                </div>
-              </div>
-            }
-          >
-            <DropdownMenuItem>
-              <Link
-                href={route(USER_PROFILE_URL)}
-                preserveState={true}
-                aria-current={isCurrentUrl(route(USER_PROFILE_URL), page.url) ? 'page' : undefined}
-                className={cn(dropdownMenuItemClasses, 'aria-[current=page]:bg-overlay/10 aria-[current=page]:font-bold')}
+          {isVisitor ? (
+            // A visitor has no menu and no dashboard: the way in, and the theme switch of the header
+            <>
+              <LinkButton href={route(LOGIN_URL)} variant="secondary">
+                Sign in
+              </LinkButton>
+              <LinkButton href={route(REGISTER_URL)}>Sign up</LinkButton>
+            </>
+          ) : (
+            <>
+              {/* MAIN menu */}
+              <Button
+                variant="secondary"
+                iconOnly
+                aria-label="Open the main menu"
+                aria-expanded={mainMenuVisible}
+                onClick={() => setMainMenuVisible(true)}
               >
-                <FaUser aria-hidden="true" className="text-muted" />
-                Edit profile
-              </Link>
-            </DropdownMenuItem>
-            {page.props.jetstream.hasApiFeatures && (
-              <DropdownMenuItem>
-                <Link
-                  href={route(API_TOKENS_URL)}
-                  preserveState={true}
-                  aria-current={isCurrentUrl(route(API_TOKENS_URL), page.url) ? 'page' : undefined}
-                  className={cn(dropdownMenuItemClasses, 'aria-[current=page]:bg-overlay/10 aria-[current=page]:font-bold')}
-                >
-                  <FaKey aria-hidden="true" className="text-muted" />
-                  API tokens
-                </Link>
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem>
-              <Link href={route(LOGOUT_URL)} method="post" as="button" className={dropdownMenuItemClasses}>
-                <FaSignOutAlt aria-hidden="true" className="text-muted" />
-                Log out
-              </Link>
-            </DropdownMenuItem>
-          </DropdownMenu>
+                <FaBars aria-hidden="true" />
+              </Button>
+              <Drawer
+                open={mainMenuVisible}
+                onClose={() => setMainMenuVisible(false)}
+                title={
+                  <>
+                    <ApplicationMark className="w-8" />
+                    Menu
+                  </>
+                }
+              >
+                <MainMenu
+                  entries={[{ label: 'Dashboard', href: route(DASHBOARD_URL), icon: <FaHome /> }]}
+                  currentUrl={page.url}
+                  onNavigate={() => setMainMenuVisible(false)}
+                />
+              </Drawer>
+
+              {/* USER menu */}
+              <DropdownMenu
+                label="Open the user menu"
+                trigger={<Avatar name={user?.name} imageUrl={user?.avatar_url} size="md" />}
+                triggerClassName="rounded-full"
+                header={
+                  <div className="flex items-center gap-3">
+                    <Avatar name={user?.name} imageUrl={user?.avatar_url} size="lg" />
+                    <div className="min-w-0">
+                      <p className="truncate font-bold">{user?.name}</p>
+                      <p className="truncate text-xs text-muted">{user?.email}</p>
+                    </div>
+                  </div>
+                }
+              >
+                <DropdownMenuItem>
+                  <Link
+                    href={route(USER_PROFILE_URL)}
+                    preserveState={true}
+                    aria-current={isCurrentUrl(route(USER_PROFILE_URL), page.url) ? 'page' : undefined}
+                    className={cn(dropdownMenuItemClasses, 'aria-[current=page]:bg-overlay/10 aria-[current=page]:font-bold')}
+                  >
+                    <FaUser aria-hidden="true" className="text-muted" />
+                    Edit profile
+                  </Link>
+                </DropdownMenuItem>
+                {page.props.jetstream.hasApiFeatures && (
+                  <DropdownMenuItem>
+                    <Link
+                      href={route(API_TOKENS_URL)}
+                      preserveState={true}
+                      aria-current={isCurrentUrl(route(API_TOKENS_URL), page.url) ? 'page' : undefined}
+                      className={cn(dropdownMenuItemClasses, 'aria-[current=page]:bg-overlay/10 aria-[current=page]:font-bold')}
+                    >
+                      <FaKey aria-hidden="true" className="text-muted" />
+                      API tokens
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem>
+                  <Link href={route(LOGOUT_URL)} method="post" as="button" className={dropdownMenuItemClasses}>
+                    <FaSignOutAlt aria-hidden="true" className="text-muted" />
+                    Log out
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenu>
+            </>
+          )}
         </PageHeader>
 
         <div className="border-b border-border bg-surface">
@@ -167,6 +192,6 @@ export default function AppLayout(props: Props) {
 
         <Footer />
       </PageWrapper>
-    </>
+    </VisitorProvider>
   );
 }

@@ -16,4 +16,5 @@ headers {
 
 docs {
   Posts of a discussion space: pinned first, then the newest. Offset pagination (ADR 0011): metadata.pagination has limit, offset, previousOffset, nextOffset, currentPage, pageCount, totalCount. Get a space cuid with Space Groups - List (the seeded "Announcements" space is a discussion space).
+  Public: in a public space this request works without a session and without a token (the response carries the name, username and avatar of the authors, never more). Every other space answers 401 without an account.
 }

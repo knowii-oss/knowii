@@ -13,7 +13,8 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * The token abilities of an API route (ADR 0022, #689): a request with a personal access token passes when the token
  * has any of the given abilities. Members signed in through the web session (first party) are not limited by
- * abilities, like Sanctum's TransientToken.
+ * abilities, like Sanctum's TransientToken. A visitor (no session, no token) passes only on a route that accepts
+ * visitors (#1387).
  */
 class RequireTokenAbility
 {
@@ -27,6 +28,12 @@ class RequireTokenAbility
     {
         $user = $request->user();
         if ($user === null) {
+            // A visitor on a route that accepts visitors (AuthenticateIfPresent) has no token: nothing to check. Any
+            // other request without a user is refused
+            if ($request->attributes->get(AuthenticateIfPresent::VISITOR_ATTRIBUTE) === true) {
+                return $next($request);
+            }
+
             throw new AuthenticationException;
         }
 

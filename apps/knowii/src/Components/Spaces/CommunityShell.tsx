@@ -23,7 +23,8 @@ export interface CommunityShellProps {
 /**
  * Community pages: the space navigation in a sidebar (desktop) or a drawer (mobile), next to the content.
  * The navigation reloads when the space tree of the community changes (SpaceTreeChanged event). Members see who is
- * online under it (#1187).
+ * online under it (#1187). A visitor (nobody signed in, #1387) gets a static page: no channel, no presence, and no
+ * link to the messages.
  */
 export function CommunityShell({ community, spaceGroups, activeSpaceCuid, contentWidth = 'wide', children }: CommunityShellProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -42,6 +43,8 @@ export function CommunityShell({ community, spaceGroups, activeSpaceCuid, conten
         router.reload({ only: ['community'] });
       }
     },
+    // A visitor opens no connection at all (#1387)
+    enabled: !!user,
   });
   const messagesLink = isMember ? (
     <MessagesLink
@@ -71,6 +74,7 @@ export function CommunityShell({ community, spaceGroups, activeSpaceCuid, conten
     channel,
     event: 'community.space_tree.changed',
     callback: reloadSpaceTree,
+    enabled: !!user,
   });
 
   // The community was renamed or changed: the breadcrumb and the titles follow (#1128)
@@ -78,6 +82,7 @@ export function CommunityShell({ community, spaceGroups, activeSpaceCuid, conten
     channel,
     event: 'community.updated',
     callback: () => router.reload({ only: ['community'] }),
+    enabled: !!user,
   });
 
   const getSpaceHref = useCallback(

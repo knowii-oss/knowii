@@ -253,3 +253,24 @@ describe('SpaceDialog link spaces (#1294)', () => {
     expect(create.mock.calls[0]?.[1]).not.toHaveProperty('url');
   });
 });
+
+describe('SpaceDialog public spaces (#1387)', () => {
+  it('warns the manager who chooses "public", and says that a chat space stays for signed-in people', async () => {
+    renderDialog();
+    const dialog = await screen.findByRole('dialog', { name: 'New space' });
+
+    expect(within(dialog).queryByRole('note')).not.toBeInTheDocument();
+    await userEvent.click(within(dialog).getByRole('button', { name: /Who can read/ }));
+    await userEvent.click(await screen.findByRole('option', { name: 'Public: anyone can read' }));
+
+    const note = within(dialog).getByRole('note');
+    expect(note).toHaveTextContent(
+      'Anyone on the internet can read this space, without an account, with the names and pictures of the authors.',
+    );
+    expect(note).not.toHaveTextContent('A chat space stays for signed-in people.');
+
+    await userEvent.click(within(dialog).getByRole('button', { name: /^Type/ }));
+    await userEvent.click(await screen.findByRole('option', { name: /^Chat/ }));
+    expect(within(dialog).getByRole('note')).toHaveTextContent('A chat space stays for signed-in people.');
+  });
+});

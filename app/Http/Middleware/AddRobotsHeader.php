@@ -19,7 +19,7 @@ class AddRobotsHeader
         $response = $next($request);
 
         if (! $response->headers->has('X-Robots-Tag')) {
-            $directive = Robots::directive($request->user() !== null, $request->is('api/*'));
+            $directive = Robots::directive($request->user() !== null, $request->is('api/*'), $request->is('community/*'));
             $response->headers->set('X-Robots-Tag', $directive);
         }
 

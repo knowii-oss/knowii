@@ -2,6 +2,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import type { ReactionSummary, ReactionTarget, WhoReacted } from '@knowii/common';
 import { knowiiApiClient, MAX_REACTION_EMOJI_PER_ITEM, reactionEmojiSchema, useAppData } from '@knowii/common';
 import { FaFaceSmile, FaPlus } from 'react-icons/fa6';
+import { useIsVisitor } from '@/Components/Reader/Reader';
 import { Button, cn, Dialog, Spinner } from '@/Components/ui';
 import type { EmojiPickerProps } from './EmojiPicker';
 import { EmojiPicker } from './EmojiPicker';
@@ -38,6 +39,7 @@ function toSummary(input: ReactionBarProps['initialReactions']): ReactionSummary
  */
 export function ReactionBar({ target, initialReactions, canReact, itemLabel, loadEmojiData }: ReactionBarProps) {
   const { showToast } = useAppData();
+  const isVisitor = useIsVisitor();
   const [reactions, setReactions] = useState<ReactionSummary>(() => toSummary(initialReactions));
   // Live updates (#1180): a new summary from the server (the item loaded again) replaces the shown one
   const [source, setSource] = useState(initialReactions);
@@ -107,6 +109,24 @@ export function ReactionBar({ target, initialReactions, canReact, itemLabel, loa
 
   if (total === 0 && !canReact) {
     return null;
+  }
+
+  // A visitor sees the counts only (#1387): no button, no picker, and no list of who reacted
+  if (isVisitor) {
+    return (
+      <ul className="flex flex-wrap items-center gap-1.5" aria-label={`Reactions to ${itemLabel}`}>
+        {reactions.map((reaction) => (
+          <li
+            key={reaction.emoji}
+            aria-label={`${reaction.emoji}: ${plural(reaction.count)}`}
+            className="flex h-7 items-center gap-1 rounded-full border border-border px-2 text-sm"
+          >
+            <span aria-hidden="true">{reaction.emoji}</span>
+            <span aria-hidden="true">{reaction.count}</span>
+          </li>
+        ))}
+      </ul>
+    );
   }
 
   return (

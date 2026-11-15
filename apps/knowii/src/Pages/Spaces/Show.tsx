@@ -24,6 +24,7 @@ import AppLayout from '@/Layouts/AppLayout';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
 import { CommunityShell } from '@/Components/Spaces/CommunityShell';
+import { isReadableByVisitors, PublicLabel } from '@/Components/Spaces/PublicSpaceNotice';
 import type { BreadcrumbItem } from '@/Components/ui';
 import { buttonClasses, EmptyState } from '@/Components/ui';
 import { PostList } from '@/Components/Posts/PostList';
@@ -125,13 +126,17 @@ export default function SpacePage(props: Props) {
           <h1 className="flex items-center gap-3 text-2xl font-extrabold">
             <span aria-hidden="true">{space.emoji || typeLabel.emoji}</span>
             {space.name}
+            <PublicLabel space={space} />
           </h1>
           {space.description && <p className="text-muted">{space.description}</p>}
           <p className="flex flex-wrap gap-2 text-xs text-muted">
             <span className="rounded-full border border-border px-2 py-0.5">{typeLabel.name}</span>
-            <span className="rounded-full border border-border px-2 py-0.5">
-              {space.visibility === 'public' ? 'Public' : space.visibility === 'groups' ? 'Access groups only' : 'Members only'}
-            </span>
+            {/* A space that anyone can read has its "Public" label next to its name */}
+            {!isReadableByVisitors(space) && (
+              <span className="rounded-full border border-border px-2 py-0.5">
+                {space.visibility === 'public' ? 'Public' : space.visibility === 'groups' ? 'Access groups only' : 'Members only'}
+              </span>
+            )}
             {space.posting_policy === 'moderators' && (
               <span className="rounded-full border border-border px-2 py-0.5">{SPACE_POSTING_POLICY_LABELS.moderators}</span>
             )}

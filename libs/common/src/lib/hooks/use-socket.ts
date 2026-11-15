@@ -145,6 +145,11 @@ type UseSocketOptions<ChannelType extends Channel, EventType extends ChannelEven
   channel: ChannelType;
   event: EventType | EventType[] | 'all';
   callback: (event: EventType, payload: EventPayloadMap[EventType]) => void;
+  /**
+   * false: no subscription, so no connection (#1387). A visitor reads the public spaces without an account: the pages are
+   * static for them, and every channel is private anyway. Default: true
+   */
+  enabled?: boolean;
 };
 
 // Helper function to get the channel string
@@ -207,10 +212,14 @@ export const useSocket = <ChannelType extends Channel, EventType extends Channel
   const channelString = getChannelString(options.channel);
   const channelType = options.channel.type;
   const eventKey = Array.isArray(options.event) ? options.event.join(',') : options.event;
+  const enabled = options.enabled !== false;
   const callbackRef = useRef(options.callback);
   callbackRef.current = options.callback;
 
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
     const echo = window.Echo.private(channelString);
     retainChannel(channelString);
 
@@ -230,5 +239,5 @@ export const useSocket = <ChannelType extends Channel, EventType extends Channel
       handlers.forEach(({ event, handler }) => echo.stopListening(`.${event}`, handler));
       releaseChannel(channelString);
     };
-  }, [channelString, eventKey, channelType]);
+  }, [channelString, eventKey, channelType, enabled]);
 };

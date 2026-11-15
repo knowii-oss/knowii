@@ -17,6 +17,9 @@ export interface ModeratorPermissionsFormProps {
   onSaved?: (community: Community) => void;
 }
 
+// The community of a member always holds the rights; the fallback only satisfies the type of the schema (#1387)
+const NO_RIGHTS: ModeratorPermissions = { manage_spaces: false, manage_members: false, pin_posts: false, delete_content: false };
+
 /**
  * The rights of the moderators of a community, switched by the owner and the admins (#1240, ADR 0017).
  * Owners and admins always have every right.
@@ -25,17 +28,17 @@ export function ModeratorPermissionsForm({ community, onSaved }: ModeratorPermis
   const { showToast } = useAppData();
   const form = useForm<ModeratorPermissions>({
     resolver: zodResolver(moderatorPermissionsSchema),
-    defaultValues: community.moderator_permissions,
+    defaultValues: community.moderator_permissions ?? NO_RIGHTS,
   });
 
   useEffect(() => {
-    form.reset(community.moderator_permissions);
+    form.reset(community.moderator_permissions ?? NO_RIGHTS);
   }, [community.moderator_permissions, form]);
 
   const onSubmit = form.handleSubmit(async (data) => {
     const result = await knowiiApiClient.communities.updateModeratorPermissions(community.cuid, data);
     if (result.ok) {
-      form.reset(result.data.moderator_permissions);
+      form.reset(result.data.moderator_permissions ?? NO_RIGHTS);
       showToast({ severity: 'success', summary: 'Moderator rights saved' });
       onSaved?.(result.data);
     } else {

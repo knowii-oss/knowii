@@ -9,6 +9,7 @@ The front-end is a React 19 application rendered through Inertia.js 3. Laravel d
 3. Every page renders inside `<AppLayout>`, which gives the header, the breadcrumb, the page actions and the footer. Community pages also render `<CommunityShell>` (`Components/Spaces`): the space navigation in a sidebar on desktop and in a drawer on mobile, reloaded when the space tree changes.
 4. Further data and every change go through the Knowii API client, never through Inertia form posts. The API stays complete.
 5. Links use Inertia `<Link>`. A link that changes the URL without a reload sets `preserveState={true}`.
+6. A visitor (nobody signed in, `page.props.auth.user` is null) reads the public spaces through four pages: the space, the post, the page or lesson and the resource ([ADR 0044](../adr/0044-public-spaces-for-visitors.md)). `<AppLayout>` gives them "Sign in" and "Sign up" in place of the user menu and no dashboard link, and tells the components below it through `VisitorProvider` (`Components/Reader`). `<SignInPrompt>` ("Sign in to reply", "Sign in to post", "Sign in to download") takes the place of a composer or of the download. Reactions are counts, and no member name is a link. The props are cut by the server: the client never hides what it received. The notice of a public space (the "Public" label, "Post publicly", "Reply publicly" and the texts of the space form) is in `Components/Spaces/PublicSpaceNotice.tsx`.
 
 ## Rendering errors
 
@@ -59,7 +60,7 @@ The policy has no `'unsafe-inline'` for scripts or styles ([ADR 0007](../adr/000
 
 ## Real time
 
-`useSocket` (`libs/common/src/lib/hooks/use-socket.ts`) wraps Laravel Echo. A page names a channel and the events it wants, and gets typed payloads. The event names match `broadcastAs()` on the back-end. Each hook removes only its own listeners when it unmounts, and the channel is left when its last user unmounts, so several components can listen on the same channel. Pages merge incoming events into their state (by `cuid`, so a duplicate is ignored) without losing what the member is typing.
+`useSocket` (`libs/common/src/lib/hooks/use-socket.ts`) wraps Laravel Echo. A page names a channel and the events it wants, and gets typed payloads. The event names match `broadcastAs()` on the back-end. Each hook removes only its own listeners when it unmounts, and the channel is left when its last user unmounts, so several components can listen on the same channel. A visitor opens no connection: the hook takes `enabled`, which a page or component sets to false for a visitor, and `window.Echo` (`bootstrap.ts`) is created on its first use, because creating it opens the connection. Pages merge incoming events into their state (by `cuid`, so a duplicate is ignored) without losing what the member is typing.
 
 ## Tests
 

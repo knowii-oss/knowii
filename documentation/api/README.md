@@ -39,6 +39,27 @@ A personal API token (created on the "API tokens" page of the user menu) has abi
 | `groups:read`       | Read access groups and their members                                  |
 | `groups:write`      | Manage access groups and their members (a sync from another system)   |
 
+## Public spaces
+
+A public space (`visibility` public) can be read by anyone on the internet, without an account ([ADR 0044](../adr/0044-public-spaces-for-visitors.md)). The `GET` routes below answer a request with no session and no token, each with the gate of its space, and are limited per IP address (60 requests a minute; a signed-in request is not limited). A chat space is never readable without an account, also when it is public. In any other space they answer 401 without an account, and 403 to a signed-in person who may not read it.
+
+| Route                                                                  | What it returns                              |
+| ---------------------------------------------------------------------- | -------------------------------------------- |
+| `GET /v1/communities/{community}/spaces/{space}`                       | The space                                    |
+| `GET /v1/communities/{community}/spaces/{space}/posts`                 | The posts of a discussion space              |
+| `GET /v1/communities/{community}/spaces/{space}/posts/{post}`          | One post                                     |
+| `GET /v1/communities/{community}/spaces/{space}/posts/{post}/comments` | The comments of a post                       |
+| `GET /v1/communities/{community}/spaces/{space}/pages`                 | The titles of the pages or lessons           |
+| `GET /v1/communities/{community}/spaces/{space}/pages/{page}`          | One page or lesson                           |
+| `GET /v1/communities/{community}/spaces/{space}/materials`             | The list of the materials of a course        |
+| `GET /v1/communities/{community}/spaces/{space}/resources`             | The resources of a resources space           |
+| `GET /v1/communities/{community}/spaces/{space}/resources/{resource}`  | One resource                                 |
+| `GET /v1/communities/{community}/spaces/{space}/resources/{resource}/comments` | The comments of a resource           |
+
+Without an account, these answers hold the name, the username and the avatar of the authors, and the counts of the reactions. They never hold: a member list, the team, the online members, profile fields, the member count, who reacted, the names of access groups, the moderator rights, the direct message setting, the captured article of a resource, the progress in a course, or the results of a quiz. Everything else needs an account: who reacted, chat messages, online members, member search, quizzes, the download of a course material (the list is public, the download is not), the navigation of the community, and every write.
+
+A request with a token still needs the ability of the route (`posts:read`, `pages:read`, `resources:read`, `communities:read`). A token that is not accepted (unknown, revoked or expired) gets a 401: it is never treated as no token.
+
 ## Keep it current
 
 Each pull request that adds or changes an endpoint adds or updates the requests here, in the same pull request:

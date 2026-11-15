@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
-import type { Comment, CommentSubject, SpaceContentPayload } from '@knowii/common';
+import type { Comment, CommentSubject, Space, SpaceContentPayload } from '@knowii/common';
 import { knowiiApiClient, useAppData, useSocket } from '@knowii/common';
 import { FaChevronDown, FaChevronRight, FaLink, FaPen, FaReply, FaTrash } from 'react-icons/fa6';
 import { Button, Dialog, ErrorBoundary, MarkdownContent, RelativeTime } from '@/Components/ui';
 import { CommentForm } from './CommentForm';
 import { ReactionBar } from '@/Components/Reactions/ReactionBar';
+import { SignInPrompt, useIsVisitor } from '@/Components/Reader/Reader';
+import { publicSubmitLabel } from '@/Components/Spaces/PublicSpaceNotice';
 
 export interface CommentSectionProps {
   // The post or the resource that the comments are about (#1034)
@@ -14,6 +16,10 @@ export interface CommentSectionProps {
   currentUserCuid: string | null;
   canComment: boolean;
   canModerate: boolean;
+  /**
+   * The space of the post or the resource: in a public space, the buttons of the composers say "publicly" (#1387)
+   */
+  space?: Pick<Space, 'visibility' | 'type'>;
   /**
    * Called when the number of comments (top-level and replies) changes
    */
@@ -77,8 +83,9 @@ function showComment(cuid: string) {
  * delete them (a deleted comment takes its replies with it).
  */
 export function CommentSection(props: CommentSectionProps) {
-  const { subject, currentUserCuid, canComment, canModerate, onCountChange } = props;
+  const { subject, currentUserCuid, canComment, canModerate, space, onCountChange } = props;
   const { showToast } = useAppData();
+  const isVisitor = useIsVisitor();
   const [comments, setComments] = useState<Comment[]>(props.initialComments);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
@@ -168,6 +175,8 @@ export function CommentSection(props: CommentSectionProps) {
 
   useSocket({
     channel,
+    // A visitor gets a static page: no connection (#1387)
+    enabled: !isVisitor,
     event: ['space.comment.created', 'space.comment.updated', 'space.comment.deleted', 'space.reactions.changed'],
     callback: (event, payload) => {
       const data = payload as SpaceContentPayload;
@@ -388,7 +397,7 @@ export function CommentSection(props: CommentSectionProps) {
                             <CommentForm
                               communityCuid={subject.communityCuid}
                               label={`Reply to ${comment.author?.name ?? 'the comment'}`}
-                              submitLabel="Reply"
+                              submitLabel={publicSubmitLabel(space, 'reply', 'Reply')}
                               autoFocus
                               onSubmit={(values) => create(values.body, comment.cuid)}
                               onCancel={() => setReplyingTo(null)}
@@ -409,10 +418,11 @@ export function CommentSection(props: CommentSectionProps) {
         <CommentForm
           communityCuid={subject.communityCuid}
           label="Write a comment"
-          submitLabel="Comment"
+          submitLabel={publicSubmitLabel(space, 'reply', 'Comment')}
           onSubmit={(values) => create(values.body, null)}
         />
       )}
+      {isVisitor && <SignInPrompt>Sign in to reply</SignInPrompt>}
 
       <Dialog
         open={pendingDeletion !== null}

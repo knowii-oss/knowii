@@ -3,6 +3,7 @@ import type { CommunityResource } from '@knowii/common';
 import { MEMBER_URL, resourceLevelSchemaOptions, resourceTypeSchemaOptions, safeHttpUrl, useAppData } from '@knowii/common';
 import { FaArrowUpRightFromSquare, FaLink, FaRotateRight } from 'react-icons/fa6';
 import { Button, buttonClasses, RelativeTime } from '@/Components/ui';
+import { useIsVisitor } from '@/Components/Reader/Reader';
 import { CaptureStatus } from './CaptureStatus';
 import { ResourceTypeIcon } from './ResourceTypeIcon';
 
@@ -35,6 +36,8 @@ function hostOf(url: string | null): string | null {
  */
 export function ResourceDetails({ communitySlug, resource, shareUrl, onCaptureAgain, captureStarting = false }: ResourceDetailsProps) {
   const { showToast } = useAppData();
+  // The member page is for members: a visitor sees the name of the curator, not a link (#1387)
+  const isVisitor = useIsVisitor();
   const page = resource.resource;
   const name = resource.name || page.name;
   const articleUrl = safeHttpUrl(page.url);
@@ -142,7 +145,7 @@ export function ResourceDetails({ communitySlug, resource, shareUrl, onCaptureAg
         Added by{' '}
         {curator ? (
           <>
-            {curator.username ? (
+            {curator.username && !isVisitor ? (
               <Link
                 href={route(MEMBER_URL, { communitySlug, username: curator.username })}
                 preserveState={true}
