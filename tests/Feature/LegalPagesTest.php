@@ -308,3 +308,9 @@ test('the privacy policy says that a public space is read by anyone, with the na
         ->where('updated', '2026-11-15')
         ->where('html', fn (string $html) => str_contains($html, 'What you post in a public space of a community can be read by anyone on the internet, with your name and your picture. The space tells you so before you post.')));
 });
+
+test('the privacy policy says that a member can delete their content with the account, and write to us afterwards (#1344)', function () {
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, 'When you delete your account, you can also delete your posts, comments and messages. Afterwards, write to <a href="mailto:contact@developassion.be">contact@developassion.be</a> to have content removed.'))
+    );
+});

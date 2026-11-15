@@ -256,7 +256,7 @@ final class ExportCommunity implements ExportsCommunities
      */
     private function posts(Community $community): Generator
     {
-        foreach (Post::query()->where('community_id', $community->id)->with(['space', 'author'])->lazyById(self::CHUNK) as $post) {
+        foreach (Post::query()->where('community_id', $community->id)->whereNull('deleted_at')->with(['space', 'author'])->lazyById(self::CHUNK) as $post) {
             yield [
                 'cuid' => $post->cuid,
                 'space' => $post->space->cuid,
@@ -278,7 +278,7 @@ final class ExportCommunity implements ExportsCommunities
      */
     private function comments(Community $community): Generator
     {
-        foreach (Comment::query()->where('community_id', $community->id)->with(['post', 'communityResource', 'parent', 'author'])->lazyById(self::CHUNK) as $comment) {
+        foreach (Comment::query()->where('community_id', $community->id)->whereNull('deleted_at')->with(['post', 'communityResource', 'parent', 'author'])->lazyById(self::CHUNK) as $comment) {
             yield [
                 'cuid' => $comment->cuid,
                 'post' => $comment->post?->cuid,

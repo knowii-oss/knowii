@@ -10,6 +10,8 @@ const commentBaseSchema = baseEntitySchema.extend({
   body: z.string(),
   body_html: z.string(),
   edited_at: z.coerce.date().nullable(),
+  // Set for the marker of a deleted comment (#1344): no text, no author
+  deleted_at: z.coerce.date().nullable(),
   author: authorSchema.nullable(),
   // null for a top-level comment
   parent_cuid: z.string().nullable(),

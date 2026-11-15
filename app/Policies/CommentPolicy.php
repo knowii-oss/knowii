@@ -25,12 +25,13 @@ class CommentPolicy
      */
     final public function react(User $user, Comment $comment): bool
     {
-        return Gate::forUser($user)->check('comment', $comment->subject());
+        return ! $comment->isDeleted() && Gate::forUser($user)->check('comment', $comment->subject());
     }
 
     final public function update(User $user, Comment $comment): bool
     {
-        return $comment->author_id === $user->id && $user->belongsToCommunity($comment->community);
+        return ! $comment->isDeleted()
+            && $comment->author_id === $user->id && $user->belongsToCommunity($comment->community);
     }
 
     final public function delete(User $user, Comment $comment): bool

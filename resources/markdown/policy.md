@@ -57,7 +57,7 @@ When a member adds a link to a resources space, our server fetches the page to c
 
 ## 5. How long we keep the data
 
-1. Account and profile: while your account exists. When you delete your account, we delete your personal data at once. Your posts, comments, resources and messages stay where you wrote them, under the name "Deleted member".
+1. Account and profile: while your account exists. When you delete your account, we delete your personal data at once. Your posts, comments, resources and messages stay where you wrote them, under the name "Deleted member". When you delete your account, you can also delete your posts, comments and messages. Afterwards, write to contact@developassion.be to have content removed.
 2. Content: until its author, a moderator or the owner deletes it, or the community is deleted. A deleted message leaves an empty marker ("This message was deleted"), without its text.
 3. Sessions: {{retention.session}} after your last activity. Sign-in links: {{retention.sign_in_link}}. Password reset links: {{retention.password_reset_link}}.
 4. Invitations: valid for {{retention.invitation}}, deleted {{retention.expired_invitations}} after they expire.

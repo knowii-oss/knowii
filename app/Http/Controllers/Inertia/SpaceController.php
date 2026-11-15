@@ -43,7 +43,7 @@ class SpaceController extends Controller
         // Discussion spaces: the first page of posts (the page loads more through the API)
         $posts = null;
         if ($space->type === KnowiiSpaceType::Discussion) {
-            $page = (new Pagination(self::POSTS_PER_PAGE, 0))->apply($space->posts()->with(['author', 'space', 'reactions'])->withCount('comments')->forSpacePage());
+            $page = (new Pagination(self::POSTS_PER_PAGE, 0))->apply($space->posts()->listed()->with(['author', 'space', 'reactions'])->withCount('comments')->forSpacePage());
             $posts = [
                 'items' => $page['items']->toResourceCollection(),
                 'pagination' => $page['metadata']['pagination'],

@@ -31,6 +31,9 @@ export default function PostPage(props: Props) {
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [busy, setBusy] = useState(false);
+  // The marker of a post that its author deleted with their account, while it still had comments (#1344)
+  const isMarker = post.deleted_at !== null;
+  const postTitle = isMarker ? 'This post was deleted' : post.title;
 
   const spaceHref = route(SPACE_URL, { communitySlug: community.slug, spaceSlug: space.slug });
 
@@ -74,7 +77,7 @@ export default function PostPage(props: Props) {
       icon: <CommunityIcon visibility={community.visibility} />,
     },
     { label: space.name, href: spaceHref, icon: <span aria-hidden="true">{space.emoji || SPACE_TYPE_LABELS[space.type].emoji}</span> },
-    { label: post.title },
+    { label: postTitle },
   ];
 
   const togglePin = async () => {
@@ -102,7 +105,7 @@ export default function PostPage(props: Props) {
   };
 
   return (
-    <AppLayout browserPageTitle={`${post.title} - ${space.name}`} breadcrumbItems={breadcrumbItems} breadcrumbHome={breadcrumbHome()}>
+    <AppLayout browserPageTitle={`${postTitle} - ${space.name}`} breadcrumbItems={breadcrumbItems} breadcrumbHome={breadcrumbHome()}>
       <CommunityShell community={community} spaceGroups={props.spaceGroups} activeSpaceCuid={space.cuid} contentWidth="readable">
         <article aria-labelledby="post-title" className="flex flex-col gap-4">
           <header className="flex flex-col gap-2 border-b border-border pb-4">
@@ -112,18 +115,20 @@ export default function PostPage(props: Props) {
                 Pinned
               </p>
             )}
-            <h1 id="post-title" className="text-2xl font-extrabold">
-              {post.title}
+            <h1 id="post-title" className={isMarker ? 'text-2xl font-extrabold text-muted italic' : 'text-2xl font-extrabold'}>
+              {postTitle}
             </h1>
-            <p className="text-sm text-muted">
-              {post.author ? post.author.name : 'Deleted member'} · <RelativeTime date={post.created_at} />
-              {post.edited_at && (
-                <>
-                  {' '}
-                  · edited <RelativeTime date={post.edited_at} />
-                </>
-              )}
-            </p>
+            {!isMarker && (
+              <p className="text-sm text-muted">
+                {post.author ? post.author.name : 'Deleted member'} · <RelativeTime date={post.created_at} />
+                {post.edited_at && (
+                  <>
+                    {' '}
+                    · edited <RelativeTime date={post.edited_at} />
+                  </>
+                )}
+              </p>
+            )}
             {(props.permissions.canUpdatePost || props.permissions.canDeletePost || props.permissions.canPinPost) && (
               <div className="flex flex-wrap gap-2">
                 {props.permissions.canUpdatePost && (
@@ -148,15 +153,17 @@ export default function PostPage(props: Props) {
             )}
           </header>
 
-          <ErrorBoundary variant="block" label="this post">
-            <MarkdownContent html={post.body_html} />
-            <ReactionBar
-              target={{ communityCuid: community.cuid, spaceCuid: space.cuid, postCuid: post.cuid }}
-              initialReactions={post.reactions}
-              canReact={props.permissions.canComment}
-              itemLabel="this post"
-            />
-          </ErrorBoundary>
+          {!isMarker && (
+            <ErrorBoundary variant="block" label="this post">
+              <MarkdownContent html={post.body_html} />
+              <ReactionBar
+                target={{ communityCuid: community.cuid, spaceCuid: space.cuid, postCuid: post.cuid }}
+                initialReactions={post.reactions}
+                canReact={props.permissions.canComment}
+                itemLabel="this post"
+              />
+            </ErrorBoundary>
+          )}
         </article>
 
         <CommentSection

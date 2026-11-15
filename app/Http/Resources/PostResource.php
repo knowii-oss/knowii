@@ -17,23 +17,27 @@ class PostResource extends AbstractKnowiiJsonResource
      */
     final public function toArray(Request $request): array
     {
+        $deleted = $this->isDeleted();
+
         return [
             'cuid' => $this->cuid,
-            'title' => $this->title,
+            // A deleted post is a marker (#1344): no title, no text, no author, whatever the row holds
+            'title' => $deleted ? '' : $this->title,
             'slug' => $this->slug,
             // The Markdown source is needed to edit; lists only need the HTML
-            'body' => $this->when($this->serializeLargeFields, $this->body),
-            'body_html' => $this->body_html,
+            'body' => $this->when($this->serializeLargeFields, $deleted ? '' : $this->body),
+            'body_html' => $deleted ? '' : $this->body_html,
             'is_pinned' => $this->is_pinned,
             'pinned_at' => $this->pinned_at,
             'edited_at' => $this->edited_at,
             // null when the author deleted their account
-            'author' => $this->author?->toResource(AuthorResource::class),
+            'author' => $deleted ? null : $this->author?->toResource(AuthorResource::class),
             // Comments and replies, when the query counted them
             'comments_count' => $this->whenCounted('comments'),
             'space_cuid' => $this->relationLoaded('space') ? $this->space->cuid : $this->space()->value('cuid'),
             // Count per emoji and whether the current member reacted (when the reactions are loaded)
-            'reactions' => $this->when($this->relationLoaded('reactions'), fn () => $this->reactionSummary($request->user())),
+            'reactions' => $this->when($this->relationLoaded('reactions'), fn () => $deleted ? [] : $this->reactionSummary($request->user())),
+            'deleted_at' => $this->deleted_at,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

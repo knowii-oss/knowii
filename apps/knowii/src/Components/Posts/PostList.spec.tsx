@@ -53,6 +53,7 @@ function post(cuid: string, title: string, pinned = false): Post {
     is_pinned: pinned,
     pinned_at: pinned ? now : null,
     edited_at: null,
+    deleted_at: null,
     author: { cuid: 'u1', name: 'Ada', username: 'ada' },
     space_cuid: 's1',
     created_at: now,

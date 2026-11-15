@@ -5,6 +5,7 @@ use App\Http\Controllers\Inertia\CommunityInvitationController;
 use App\Http\Controllers\Inertia\CommunityResourceController;
 use App\Http\Controllers\Inertia\ConversationController;
 use App\Http\Controllers\Inertia\DashboardController;
+use App\Http\Controllers\Inertia\DeleteAccountController;
 use App\Http\Controllers\Inertia\MagicLinkController;
 use App\Http\Controllers\Inertia\MemberController;
 use App\Http\Controllers\Inertia\PageController;
@@ -70,6 +71,14 @@ Route::middleware([
     // A resource of a resources space (ADR 0015). The page itself is #1133
     Route::get('/community/{communitySlug}/space/{spaceSlug}/resource/{resourceSlug}', [CommunityResourceController::class, 'show'])->name('resources.show');
 });
+
+// Delete the account (#1261, #1344): the same address and name as the Jetstream route, which cannot pass the option to
+// delete the content of the member. The routes of the application are registered last, so this one answers
+Route::middleware([
+    'web',
+    'auth:sanctum',
+    config('jetstream.auth_session'),
+])->delete('/user', [DeleteAccountController::class, 'destroy'])->name('current-user.destroy');
 
 // Sign in with a link sent by email (#703, ADR 0023)
 Route::middleware('guest')->group(function () {

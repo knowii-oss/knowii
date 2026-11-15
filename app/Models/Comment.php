@@ -19,6 +19,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * A comment on a post (#1175) or on a resource of a resources space (#1034): exactly one of post_id and
  * community_resource_id is set (ADR 0014). A reply has a parent (a top-level comment): one level of nesting only.
+ * A comment that a member deleted with their account, while it still had replies, stays as a marker (#1344, ADR 0043):
+ * no text, no author, `deleted_at` set.
  *
  * @property-read int $id
  * @property-read string $cuid
@@ -30,6 +32,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $body
  * @property string $body_html
  * @property ?Carbon $edited_at
+ * @property ?Carbon $deleted_at
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read Community $community
@@ -89,6 +92,7 @@ class Comment extends Model
         'body',
         'body_html',
         'edited_at',
+        'deleted_at',
     ];
 
     /**
@@ -110,7 +114,16 @@ class Comment extends Model
     {
         return [
             'edited_at' => 'datetime',
+            'deleted_at' => 'datetime',
         ];
+    }
+
+    /**
+     * A marker keeps its row for its replies, without its content
+     */
+    final public function isDeleted(): bool
+    {
+        return $this->deleted_at !== null;
     }
 
     /**

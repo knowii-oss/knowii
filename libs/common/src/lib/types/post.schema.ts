@@ -26,6 +26,8 @@ export const postSchema = baseEntitySchema.extend({
   is_pinned: z.boolean(),
   pinned_at: z.coerce.date().nullable(),
   edited_at: z.coerce.date().nullable(),
+  // Set for the marker of a deleted post (#1344): no title, no text, no author
+  deleted_at: z.coerce.date().nullable(),
   author: authorSchema.nullable(),
   // Comments and replies, when counted
   comments_count: z.number().int().optional(),

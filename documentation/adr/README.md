@@ -67,4 +67,5 @@ Do not write an ADR for a bug fix, a refactor that keeps the structure, or a fea
 | [0040](0040-stored-sizes-of-uploaded-images.md)                        | Uploaded images have stored smaller sizes, and the HTML uses srcset      | Accepted |
 | [0041](0041-access-groups-open-space-groups.md)                        | Access groups can open a whole space group, new spaces included          | Accepted |
 | [0042](0042-notifications.md)                                          | Notifications: one table, one action, four levels                        | Accepted |
+| [0043](0043-delete-content-with-the-account.md)                        | A member can delete their posts, comments and messages with the account  | Accepted |
 | [0044](0044-public-spaces-for-visitors.md)                             | Public spaces can be read by visitors, without an account                | Accepted |

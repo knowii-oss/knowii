@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Builder;
 /**
  * Deletes the rows that must go (#1474, ADR 0042, design 6.8, 6.9). The database cascades cover a deleted post,
  * comment, space, community and account. This action covers the rest: access that changed, a member who left, a block,
- * and a chat message that is only soft-deleted.
+ * and a chat message, post or comment that is only a marker (a soft delete).
  */
 final class PruneNotifications implements PrunesNotifications
 {
@@ -54,6 +54,21 @@ final class PruneNotifications implements PrunesNotifications
     final public function forChatMessage(int $chatMessageId): int
     {
         return $this->delete(Notification::query()->where('chat_message_id', $chatMessageId));
+    }
+
+    final public function forPosts(array $postIds): int
+    {
+        return $postIds === [] ? 0 : $this->delete(Notification::query()->whereIn('post_id', $postIds));
+    }
+
+    final public function forComments(array $commentIds): int
+    {
+        return $commentIds === [] ? 0 : $this->delete(Notification::query()->whereIn('comment_id', $commentIds));
+    }
+
+    final public function forChatMessages(array $chatMessageIds): int
+    {
+        return $chatMessageIds === [] ? 0 : $this->delete(Notification::query()->whereIn('chat_message_id', $chatMessageIds));
     }
 
     /**

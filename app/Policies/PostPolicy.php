@@ -22,11 +22,12 @@ class PostPolicy
     }
 
     /**
-     * Only the author edits a post, while they are still a member of the community.
+     * Only the author edits a post, while they are still a member of the community. A marker has no author.
      */
     final public function update(User $user, Post $post): bool
     {
-        return $post->author_id === $user->id && $user->belongsToCommunity($post->community);
+        return ! $post->isDeleted()
+            && $post->author_id === $user->id && $user->belongsToCommunity($post->community);
     }
 
     /**
@@ -42,7 +43,9 @@ class PostPolicy
      */
     final public function comment(User $user, Post $post): bool
     {
-        return $user->belongsToCommunity($post->community) && Gate::forUser($user)->check('view', $post->space);
+        // The comments of a marker stay, and nobody adds to them (#1344)
+        return ! $post->isDeleted()
+            && $user->belongsToCommunity($post->community) && Gate::forUser($user)->check('view', $post->space);
     }
 
     /**
@@ -58,6 +61,6 @@ class PostPolicy
      */
     final public function pin(User $user, Post $post): bool
     {
-        return CommunityRoles::allows($user, $post->community, KnowiiModeratorPermission::PinPosts);
+        return ! $post->isDeleted() && CommunityRoles::allows($user, $post->community, KnowiiModeratorPermission::PinPosts);
     }
 }

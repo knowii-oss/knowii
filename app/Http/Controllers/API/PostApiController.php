@@ -28,7 +28,7 @@ class PostApiController extends Controller
     use ApiResponses;
 
     /**
-     * List the posts of a space: pinned first, then the newest. Offset pagination (ADR 0011).
+     * List the posts of a space: pinned first, then the newest. The markers of deleted posts are not listed. Offset pagination (ADR 0011).
      */
     #[QueryParameter('limit', description: 'Number of posts (default 10, maximum 100)', type: 'int', example: 10)]
     #[QueryParameter('offset', description: 'Number of posts to skip (default 0)', type: 'int', example: 0)]
@@ -36,7 +36,7 @@ class PostApiController extends Controller
     {
         Gate::authorize('view', $space);
 
-        $page = Pagination::fromRequest($request)->apply($space->posts()->with(['author', 'space', 'reactions'])->withCount('comments')->forSpacePage());
+        $page = Pagination::fromRequest($request)->apply($space->posts()->listed()->with(['author', 'space', 'reactions'])->withCount('comments')->forSpacePage());
 
         return self::success('Posts', $page['metadata'], $page['items']->toResourceCollection());
     }

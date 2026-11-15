@@ -3,6 +3,7 @@
 - Status: Accepted
 - Date: 2026-11-09
 - Issue: #1261
+- Changed by [ADR 0043](0043-delete-content-with-the-account.md): the member can also delete their posts, comments and messages with the account
 
 ## Context
 
