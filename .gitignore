@@ -74,6 +74,7 @@ vite.config.mts.timestamp*
 .env
 .env.*
 !.env.example
+!.env.production.example
 !/documentation/api/.env.example
 
 vite.config.*.timestamp*

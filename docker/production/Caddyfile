@@ -1,0 +1,36 @@
+# Web server of the production image: FrankenPHP in classic mode (every request runs PHP from a clean state, no worker
+# mode). It listens on plain HTTP: the TLS is ended by the proxy in front (SELF_HOSTING.md).
+{
+	admin off
+	auto_https off
+	persist_config off
+
+	frankenphp
+}
+
+:{$SERVER_PORT:8000} {
+	root * /app/public
+
+	# Uploads: PHP (upload_max_filesize and post_max_size in php.ini) refuses the oversized ones with a clear message;
+	# this limit only protects the server. Keep it a little above post_max_size.
+	request_body {
+		max_size 60MB
+	}
+
+	encode zstd gzip
+
+	# Do not tell the world which server runs here (like expose_php=Off in php.ini)
+	header -Server
+
+	# The files of the Vite build have a hash in their name: the browser can keep them for a year
+	@build path /build/*
+	header @build Cache-Control "public, max-age=31536000, immutable"
+
+	# Errors go to stderr (the container log). The access log is the job of the proxy in front.
+	log {
+		output stderr
+		level WARN
+	}
+
+	php_server
+}
