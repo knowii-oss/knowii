@@ -13,7 +13,7 @@ final class OpenIdConnectException extends RuntimeException
 {
     public const string GENERIC_MESSAGE = 'We could not sign you in with this account. Please try again, or use another way to sign in.';
 
-    public function __construct(public readonly string $reason, string $message = self::GENERIC_MESSAGE)
+    public function __construct(public readonly string $reason, string $message = self::GENERIC_MESSAGE, public readonly ?int $httpStatus = null)
     {
         parent::__construct($message);
     }

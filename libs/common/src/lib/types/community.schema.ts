@@ -125,4 +125,6 @@ export interface CommunityPermissions {
   canManageAccessGroups: boolean;
   canManageAccessGroupMembers: boolean;
   canViewAccessGroups: boolean;
+  // Owner and admins of a community that the instance lists give a group by entitlement keys (#1386, ADR 0047)
+  canManageEntitlementRules?: boolean;
 }

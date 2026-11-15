@@ -8,6 +8,7 @@ use App\Events\CommunityMembers\CommunityMembersChanged;
 use App\Exceptions\BusinessException;
 use App\Models\Community;
 use App\Models\User;
+use App\Support\EntitlementReads;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -18,8 +19,9 @@ class JoinCommunity implements JoinsCommunities
      * address, a community that is open (never a personal one), a person who is not a member yet, and a person whom no
      * manager removed (CommunityJoinBlock): they ask the managers for an invitation instead.
      *
-     * Joining gives no access group. The entitlement rules of a later issue run when a person becomes a member: the
-     * members-changed event is their hook (the same event as an accepted invitation).
+     * Joining gives no access group by itself. The entitlement rules run when a person becomes a member (#1386, ADR
+     * 0047): in a community that has rules, a read of the entitlements of the person is queued (the same hook as an
+     * accepted invitation).
      *
      * @throws BusinessException
      */
@@ -53,6 +55,8 @@ class JoinCommunity implements JoinsCommunities
 
         Log::info('Member joined the community', ['community' => $community->cuid, 'member' => $user->cuid]);
         CommunityMembersChanged::dispatch($community->cuid);
+        // A community with entitlement rules gives the person their groups at once (#1386, ADR 0047)
+        EntitlementReads::afterJoin($user, $community);
 
         return $community;
     }

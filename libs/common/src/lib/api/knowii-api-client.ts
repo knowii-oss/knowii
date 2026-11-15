@@ -39,6 +39,7 @@ import {
   COMMUNITY_ACCESS_GROUPS_API_PATH,
   COMMUNITY_ACCESS_GROUP_API_PATH,
   COMMUNITY_ACCESS_GROUP_MEMBERS_API_PATH,
+  COMMUNITY_ACCESS_GROUP_RULES_API_PATH,
   COMMUNITY_ACCESS_GROUP_SPACE_GROUPS_API_PATH,
   COMMUNITY_ACCESS_GROUP_MEMBER_API_PATH,
   COMMUNITY_API_PARAM_ACCESS_GROUP,
@@ -104,8 +105,14 @@ import type { JoinWaitlistRequest } from './waitlist/join-waitlist-request.schem
 import type { JoinWaitlistResponse } from './waitlist/join-waitlist-response.schema';
 import { joinWaitlistResponseSchema } from './waitlist/join-waitlist-response.schema';
 import { z } from 'zod';
-import type { AccessGroup, AccessGroupForm, AccessGroupMemberInput, AccessGroupSpaceGroup } from '../types/access-group.schema';
-import { accessGroupSchema, accessGroupSpaceGroupSchema } from '../types/access-group.schema';
+import type {
+  AccessGroup,
+  AccessGroupForm,
+  AccessGroupMember,
+  AccessGroupMemberInput,
+  AccessGroupSpaceGroup,
+} from '../types/access-group.schema';
+import { accessGroupMemberSchema, accessGroupSchema, accessGroupSpaceGroupSchema } from '../types/access-group.schema';
 import { HttpStatus } from '../types/http-status.intf';
 import type { ApiResult } from './api-result';
 import { apiPath, apiRequest, fieldErrors } from './api-result';
@@ -1085,16 +1092,34 @@ export const knowiiApiClient = {
             { space_groups: spaceGroupCuids },
           ),
       },
+      rules: {
+        /**
+         * Replace the entitlement keys that give members the group (#1386, ADR 0047). An empty list removes every rule.
+         */
+        set: (communityCuid: string, groupCuid: string, entitlementKeys: string[]): Promise<ApiResult<{ entitlement_keys: string[] }>> =>
+          apiRequest(
+            'put',
+            accessGroupPath(communityCuid, groupCuid, COMMUNITY_ACCESS_GROUP_RULES_API_PATH),
+            z.object({ entitlement_keys: z.array(z.string()) }),
+            'Failed to save the rules.',
+            { entitlement_keys: entitlementKeys },
+          ),
+      },
       members: {
         /**
-         * A page of the members of a group, by name (#1241).
+         * A page of the members of a group, by name, with the source of each membership (#1241, #1386).
          */
-        list: async (communityCuid: string, groupCuid: string, limit: number, offset: number): Promise<ApiResult<Paginated<Author>>> => {
+        list: async (
+          communityCuid: string,
+          groupCuid: string,
+          limit: number,
+          offset: number,
+        ): Promise<ApiResult<Paginated<AccessGroupMember>>> => {
           const url = `${accessGroupPath(communityCuid, groupCuid, COMMUNITY_ACCESS_GROUP_MEMBERS_API_PATH)}?limit=${limit}&offset=${offset}`;
           try {
             const response = await fetch(url, { headers: { Accept: 'application/json' } });
             const parsed = z
-              .object({ data: z.array(authorSchema), metadata: z.object({ pagination: paginationSchema }) })
+              .object({ data: z.array(accessGroupMemberSchema), metadata: z.object({ pagination: paginationSchema }) })
               .safeParse(await response.json());
             if (!response.ok || !parsed.success) {
               return { ok: false, status: response.status, message: 'Failed to load the members of the group.', errors: {} };

@@ -1,5 +1,12 @@
 import { z } from 'zod';
-import { MAX_LENGTH_ACCESS_GROUP_DESCRIPTION, MAX_LENGTH_ACCESS_GROUP_NAME, MIN_LENGTH_ACCESS_GROUP_NAME } from '../constants';
+import {
+  ENTITLEMENT_KEY_PATTERN,
+  MAX_LENGTH_ACCESS_GROUP_DESCRIPTION,
+  MAX_LENGTH_ACCESS_GROUP_NAME,
+  MAX_LENGTH_ENTITLEMENT_KEY,
+  MIN_LENGTH_ACCESS_GROUP_NAME,
+} from '../constants';
+import { authorSchema } from './post.schema';
 
 /**
  * An access group (#1241, ADR 0025): a named group of members that opens the spaces with the "groups" visibility.
@@ -14,9 +21,51 @@ export const accessGroupSchema = z.object({
   // The space groups that the group opens whole (#1422, ADR 0041)
   space_groups_count: z.number().int().optional(),
   space_groups: z.array(z.object({ cuid: z.string(), name: z.string() })).optional(),
+  // The entitlement keys that give the group (#1386, ADR 0047): only for those who manage the groups, in a community that may use rules
+  entitlement_keys: z.array(z.string()).optional(),
   created_at: z.string(),
 });
 export type AccessGroup = z.infer<typeof accessGroupSchema>;
+
+/**
+ * Where a membership of a group comes from (#1386, ADR 0047): added by hand (or by the API), given by an entitlement rule,
+ * or both. WARNING: aligned with AccessGroupMembershipResource.php
+ */
+export const accessGroupMemberSchema = authorSchema.extend({
+  sources: z.array(z.enum(['manual', 'by_rule'])),
+});
+export type AccessGroupMember = z.infer<typeof accessGroupMemberSchema>;
+
+/**
+ * The entitlement keys of a group, one per line or separated by commas or spaces, as the editor takes them
+ */
+export function parseEntitlementKeys(text: string): string[] {
+  const keys: string[] = [];
+  for (const key of text.split(/[\s,]+/)) {
+    if (key !== '' && !keys.includes(key)) {
+      keys.push(key);
+    }
+  }
+  return keys;
+}
+
+/**
+ * The first problem of a list of entitlement keys, or null. WARNING: aligned with SetAccessGroupRules.php
+ */
+export function entitlementKeysError(keys: string[], max: number): string | null {
+  if (keys.length > max) {
+    return `Use at most ${max} keys`;
+  }
+  for (const key of keys) {
+    if (key.length > MAX_LENGTH_ENTITLEMENT_KEY) {
+      return `A key is too long (maximum ${MAX_LENGTH_ENTITLEMENT_KEY} characters)`;
+    }
+    if (!ENTITLEMENT_KEY_PATTERN.test(key)) {
+      return 'A key holds letters, digits, dots, dashes and underscores only';
+    }
+  }
+  return null;
+}
 
 /**
  * A space group that an access group opens whole (#1422). WARNING: aligned with SpaceGroupResource.php (the fields

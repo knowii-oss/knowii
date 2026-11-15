@@ -24,6 +24,7 @@ use App\Models\Reaction;
 use App\Models\Space;
 use App\Models\Upload;
 use App\Models\User;
+use App\Models\UserEntitlement;
 use App\Models\UserIdentity;
 use App\Support\JsonExportFile;
 use Carbon\CarbonInterface;
@@ -91,7 +92,7 @@ final class ExportUser implements ExportsUsers
 
         try {
             $json = [
-                'account.json' => [$this->accountHead($user), ['connected_accounts' => $this->connectedAccounts($user)]],
+                'account.json' => [$this->accountHead($user), ['connected_accounts' => $this->connectedAccounts($user), 'entitlements' => $this->entitlements($user)]],
                 'memberships.json' => [[], [
                     'memberships' => $this->memberships($user),
                     'owned_communities' => $this->ownedCommunities($user),
@@ -199,6 +200,23 @@ final class ExportUser implements ExportsUsers
                 'subject' => $identity->subject,
                 'linked_at' => $this->date($identity->linked_at),
                 'last_used_at' => $this->date($identity->last_used_at),
+                'entitlements_checked_at' => $this->date($identity->entitlements_checked_at),
+            ];
+        }
+    }
+
+    /**
+     * The entitlement keys that the sign-in provider reported for the member (#1386, ADR 0047): the issuer and the key. Only
+     * the keys: no grant, source or date of the provider is stored.
+     *
+     * @return Generator<int, Row>
+     */
+    private function entitlements(User $user): Generator
+    {
+        foreach (UserEntitlement::query()->where('user_id', $user->id)->orderBy('issuer')->orderBy('key')->lazyById(self::CHUNK) as $entitlement) {
+            yield [
+                'issuer' => $entitlement->issuer,
+                'key' => $entitlement->key,
             ];
         }
     }
@@ -244,6 +262,9 @@ final class ExportUser implements ExportsUsers
                 'name' => $group->name,
                 ...$this->place($group->community_id, null),
                 'joined_at' => $this->pivotDate($group),
+                // Where the membership comes from (#1386, ADR 0047): added by hand, given by an entitlement rule, or both
+                'added_by_hand' => $this->pivotFlag($group, 'manual'),
+                'given_by_rule' => $this->pivotFlag($group, 'by_rule'),
             ];
         }
     }
@@ -712,6 +733,13 @@ final class ExportUser implements ExportsUsers
     /**
      * The date of the pivot row of a many-to-many relation
      */
+    private function pivotFlag(Model $model, string $column): bool
+    {
+        $pivot = $model->relationLoaded('pivot') ? $model->getRelation('pivot') : null;
+
+        return $pivot instanceof Pivot && (bool) $pivot->getAttribute($column);
+    }
+
     private function pivotDate(Model $model, string $column = 'created_at'): ?string
     {
         $pivot = $model->relationLoaded('pivot') ? $model->getRelation('pivot') : null;
@@ -816,8 +844,8 @@ final class ExportUser implements ExportsUsers
             '',
         ];
         $descriptions = [
-            'account.json' => 'your account and your profile, with the choice of who sees each profile field, and the accounts of other providers that you connected to sign in (the provider, your identifier there and the dates)',
-            'memberships.json' => 'your communities and your role, the communities you own, your access groups, the invitations sent to your email address and the communities where a manager removed you and where you cannot join again by yourself',
+            'account.json' => 'your account and your profile, with the choice of who sees each profile field, and the accounts of other providers that you connected to sign in (the provider, your identifier there and the dates), with the entitlement keys that the provider reported for you and the date of the last check',
+            'memberships.json' => 'your communities and your role, the communities you own, your access groups (and whether you were added by hand or by an entitlement rule), the invitations sent to your email address and the communities where a manager removed you and where you cannot join again by yourself',
             'activity.json' => 'the lessons you marked as done, your quiz results, what you read in chat spaces and conversations, the members you blocked, where you were mentioned, your notifications (kind, community, the items by identifier and the dates, never a text), the threads that you follow or muted and the level that you chose for each space, your API tokens and your sessions',
             'posts.json' => 'your posts (Markdown)',
             'comments.json' => 'your comments (Markdown), with the cuid and the title of what they answer',

@@ -8,6 +8,7 @@ use App\Events\Spaces\SpaceTreeChanged;
 use App\Models\AccessGroup;
 use App\Models\Community;
 use App\Models\User;
+use App\Support\AccessGroupMemberships;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -18,7 +19,8 @@ class AddAccessGroupMember implements AddsAccessGroupMembers
     /**
      * Add a member of the community to an access group (#1241, ADR 0025). The member is named by exactly one of
      * member (user cuid), username or email, so that a sync from another system (the Knowii account) can use the email
-     * address it knows. Adding a member twice changes nothing.
+     * address it knows. Adding a member twice changes nothing. The membership is marked as added by hand
+     * (`manual`): it stays when a rule of the group stops giving it (#1386).
      */
     final public function add(User $user, AccessGroup $group, array $input): User
     {
@@ -34,7 +36,8 @@ class AddAccessGroupMember implements AddsAccessGroupMembers
 
         $member = self::findMember($community, $validated);
 
-        $group->members()->syncWithoutDetaching([$member->id]);
+        // By hand: the `manual` flag. A member whom a rule already gave the group keeps that source too (#1386, ADR 0047)
+        AccessGroupMemberships::addManual($group, $member);
 
         Log::info('Access group member added', ['group' => $group->cuid, 'member' => $member->cuid]);
         AccessGroupsChanged::dispatch($community->cuid);

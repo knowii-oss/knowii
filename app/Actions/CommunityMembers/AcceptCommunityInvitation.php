@@ -9,6 +9,7 @@ use App\Models\Community;
 use App\Models\CommunityInvitation;
 use App\Models\CommunityJoinBlock;
 use App\Models\User;
+use App\Support\EntitlementReads;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -43,6 +44,8 @@ class AcceptCommunityInvitation implements AcceptsCommunityInvitations
 
         Log::info('Community invitation accepted', ['community' => $community->cuid, 'member' => $user->cuid]);
         CommunityMembersChanged::dispatch($community->cuid);
+        // A community with entitlement rules gives the person their groups at once (#1386, ADR 0047)
+        EntitlementReads::afterJoin($user, $community);
 
         return $community;
     }

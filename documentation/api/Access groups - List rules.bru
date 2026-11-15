@@ -1,0 +1,19 @@
+meta {
+  name: Access groups - List rules
+  type: http
+  seq: 173
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/access-groups/<group cuid>/rules
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The entitlement keys of the sign-in provider that give members this access group (#1386, ADR 0047): "a member who holds one of these keys is in this group". Owner and admins. 404 when the instance has no provider with entitlements (OIDC_ENTITLEMENTS_URL) or the community is not listed in OIDC_ENTITLEMENT_COMMUNITIES. Token ability: groups:read.
+}

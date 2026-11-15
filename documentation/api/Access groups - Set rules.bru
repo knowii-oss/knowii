@@ -1,0 +1,26 @@
+meta {
+  name: Access groups - Set rules
+  type: http
+  seq: 174
+}
+
+put {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/access-groups/<group cuid>/rules
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "entitlement_keys": ["example.paid"]
+  }
+}
+
+docs {
+  Replaces the entitlement keys that give members this access group (#1386, ADR 0047). A key holds letters, digits, dots, dashes and underscores, 100 characters at most, 20 keys at most, no duplicate. An empty list removes every rule. A rule that is added, changed or removed runs the sync for the members of the community in the background. Members added by hand stay in the group either way. Owner and admins. Token ability: groups:write.
+}

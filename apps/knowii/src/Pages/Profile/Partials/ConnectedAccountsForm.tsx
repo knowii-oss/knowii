@@ -49,7 +49,7 @@ export default function ConnectedAccountsForm({ accounts, hasPassword }: Props) 
       return;
     }
     showToast({ severity: 'success', summary: `${account.label} is disconnected` });
-    router.reload({ only: ['connectedAccounts', 'hasPassword'] });
+    router.reload({ only: ['connectedAccounts', 'hasPassword', 'entitlements'] });
   };
 
   return (

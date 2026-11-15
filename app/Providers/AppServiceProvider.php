@@ -6,8 +6,10 @@ use App\Actions\AccessGroups\AddAccessGroupMember;
 use App\Actions\AccessGroups\CreateAccessGroup;
 use App\Actions\AccessGroups\DeleteAccessGroup;
 use App\Actions\AccessGroups\RemoveAccessGroupMember;
+use App\Actions\AccessGroups\SetAccessGroupRules;
 use App\Actions\AccessGroups\SetAccessGroupSpaceGroups;
 use App\Actions\AccessGroups\UpdateAccessGroup;
+use App\Actions\Auth\EntitlementsClient;
 use App\Actions\Auth\LinkIdentity;
 use App\Actions\Auth\MagicLinks;
 use App\Actions\Auth\OpenIdConnectClient;
@@ -47,6 +49,9 @@ use App\Actions\CourseMaterials\ReorderCourseMaterials;
 use App\Actions\CourseMaterials\UpdateCourseMaterial;
 use App\Actions\DeleteUser;
 use App\Actions\EmailOctopus\PruneEmailOctopusContacts;
+use App\Actions\Entitlements\ReceiveEntitlementEvent;
+use App\Actions\Entitlements\RefreshEntitlements;
+use App\Actions\Entitlements\SyncEntitlementRules;
 use App\Actions\Newsletter\SubscribeToNewsletter;
 use App\Actions\Notifications\ChooseSpaceLevels;
 use App\Actions\Notifications\FollowThreads;
@@ -96,11 +101,13 @@ use App\Contracts\AccessGroups\AddsAccessGroupMembers;
 use App\Contracts\AccessGroups\CreatesAccessGroups;
 use App\Contracts\AccessGroups\DeletesAccessGroups;
 use App\Contracts\AccessGroups\RemovesAccessGroupMembers;
+use App\Contracts\AccessGroups\SetsAccessGroupRules;
 use App\Contracts\AccessGroups\SetsAccessGroupSpaceGroups;
 use App\Contracts\AccessGroups\UpdatesAccessGroups;
 use App\Contracts\Auth\ConsumesMagicLinks;
 use App\Contracts\Auth\LinksIdentities;
 use App\Contracts\Auth\ReadsOpenIdConnectIdentities;
+use App\Contracts\Auth\ReadsSubjectEntitlements;
 use App\Contracts\Auth\SendsMagicLinks;
 use App\Contracts\Auth\SignsInWithOpenIdConnect;
 use App\Contracts\Auth\UnlinksIdentities;
@@ -136,6 +143,9 @@ use App\Contracts\CourseMaterials\CreatesCourseMaterials;
 use App\Contracts\CourseMaterials\DeletesCourseMaterials;
 use App\Contracts\CourseMaterials\ReordersCourseMaterials;
 use App\Contracts\CourseMaterials\UpdatesCourseMaterials;
+use App\Contracts\Entitlements\ReceivesEntitlementEvents;
+use App\Contracts\Entitlements\RefreshesEntitlements;
+use App\Contracts\Entitlements\SyncsEntitlementRules;
 use App\Contracts\Newsletter\SubscribesToNewsletter;
 use App\Contracts\Notifications\ChoosesSpaceLevels;
 use App\Contracts\Notifications\FollowsThreads;
@@ -312,6 +322,12 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(SignsInWithOpenIdConnect::class, SignInWithOpenIdConnect::class);
         app()->singleton(LinksIdentities::class, LinkIdentity::class);
         app()->singleton(UnlinksIdentities::class, UnlinkIdentity::class);
+        // The entitlements of the sign-in provider feed the access groups (#1386, ADR 0047)
+        app()->singleton(ReadsSubjectEntitlements::class, EntitlementsClient::class);
+        app()->singleton(RefreshesEntitlements::class, RefreshEntitlements::class);
+        app()->singleton(SyncsEntitlementRules::class, SyncEntitlementRules::class);
+        app()->singleton(ReceivesEntitlementEvents::class, ReceiveEntitlementEvent::class);
+        app()->singleton(SetsAccessGroupRules::class, SetAccessGroupRules::class);
 
         // Public waitlist endpoint: a few requests per minute and per IP address
         RateLimiter::for('waitlist', static function (Request $request) {
@@ -352,6 +368,11 @@ class AppServiceProvider extends ServiceProvider
         // Each start or end of a sign-in with the OpenID Connect provider calls it (#1385, ADR 0045): per IP address
         RateLimiter::for('oidc', static function (Request $request) {
             return Limit::perMinute(Constants::OIDC_REQUESTS_PER_MINUTE)->by('oidc:'.$request->ip());
+        });
+
+        // The change calls of the sign-in provider (#1386, ADR 0047): per IP address
+        RateLimiter::for('oidc-entitlements', static function (Request $request) {
+            return Limit::perMinute(Constants::OIDC_ENTITLEMENT_EVENTS_PER_MINUTE)->by('oidc-entitlements:'.$request->ip());
         });
 
         // Each sign-in link sends an email (#703): per address and IP, like the login

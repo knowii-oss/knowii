@@ -14,8 +14,16 @@ use App\Http\Controllers\Inertia\PostController;
 use App\Http\Controllers\Inertia\SpaceController;
 use App\Http\Controllers\LegalPageController;
 use App\Http\Controllers\RobotsController;
+use App\Http\Controllers\Webhooks\OidcEntitlementsWebhookController;
+use App\Http\Middleware\HandleInertiaRequests;
 use App\Support\LegalPages;
+use App\Support\OidcEntitlements;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Inertia\Inertia;
 
 // Built from config/robots.php (#104): AI crawlers refused, member areas never crawled
@@ -99,6 +107,21 @@ Route::middleware('throttle:oidc')->prefix('auth/oidc')->group(function () {
         ->post('/connect', [OpenIdConnectController::class, 'connect'])
         ->name('oidc.connect');
 });
+
+// The change call of the sign-in provider (#1386, ADR 0047). Public: no session, no cookie, no CSRF token and no token ability,
+// because the proof is the signature of the call (a JWS checked against the keys of the issuer). Limited per IP address. The
+// route answers 404 unless the instance has the entitlements feature on
+Route::post(OidcEntitlements::WEBHOOK_PATH, [OidcEntitlementsWebhookController::class, 'store'])
+    ->withoutMiddleware([
+        EncryptCookies::class,
+        AddQueuedCookiesToResponse::class,
+        StartSession::class,
+        ShareErrorsFromSession::class,
+        PreventRequestForgery::class,
+        HandleInertiaRequests::class,
+    ])
+    ->middleware('throttle:oidc-entitlements')
+    ->name('oidc.entitlements.webhook');
 
 Route::inertia('/contact', 'Contact');
 // The legal pages (#904): one controller, one Markdown file per page (App\Support\LegalPages)

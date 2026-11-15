@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { AccessGroup, Author, Paginated, SpaceGroup } from '@knowii/common';
+import type { AccessGroup, AccessGroupMember, Author, Paginated, SpaceGroup } from '@knowii/common';
 import { AppDataProvider, knowiiApiClient } from '@knowii/common';
+import { Toaster } from '@/Components/ui';
 import { AccessGroupsManager } from './AccessGroupsManager';
 
 const paid: AccessGroup = {
@@ -14,16 +15,26 @@ const paid: AccessGroup = {
   created_at: '',
 };
 const ada: Author = { cuid: 'u1', name: 'Ada Lovelace', username: 'ada-lovelace', avatar_url: null };
+const adaMember: AccessGroupMember = { ...ada, sources: ['manual'] };
 
-const page = (items: Author[]): Paginated<Author> => ({
+const page = (items: AccessGroupMember[]): Paginated<AccessGroupMember> => ({
   items,
   pagination: { limit: 20, offset: 0, previousOffset: null, nextOffset: null, currentPage: 1, pageCount: 1, totalCount: items.length },
 });
 
-function renderManager(canManageAccessGroups = true, canManageAccessGroupMembers = true, canManageSpaces = false) {
+function renderManager(
+  canManageAccessGroups = true,
+  canManageAccessGroupMembers = true,
+  canManageSpaces = false,
+  canManageEntitlementRules = false,
+) {
   render(
     <AppDataProvider>
-      <AccessGroupsManager communityCuid="c1" permissions={{ canManageAccessGroups, canManageAccessGroupMembers, canManageSpaces }} />
+      <AccessGroupsManager
+        communityCuid="c1"
+        permissions={{ canManageAccessGroups, canManageAccessGroupMembers, canManageSpaces, canManageEntitlementRules }}
+      />
+      <Toaster />
     </AppDataProvider>,
   );
 }
@@ -31,7 +42,7 @@ function renderManager(canManageAccessGroups = true, canManageAccessGroupMembers
 beforeEach(() => {
   vi.restoreAllMocks();
   vi.spyOn(knowiiApiClient.communities.accessGroups, 'list').mockResolvedValue({ ok: true, message: '', data: [paid] });
-  vi.spyOn(knowiiApiClient.communities.accessGroups.members, 'list').mockResolvedValue({ ok: true, message: '', data: page([ada]) });
+  vi.spyOn(knowiiApiClient.communities.accessGroups.members, 'list').mockResolvedValue({ ok: true, message: '', data: page([adaMember]) });
 });
 
 describe('AccessGroupsManager (#1241)', () => {
@@ -122,6 +133,137 @@ describe('AccessGroupsManager (#1241)', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));
 
     await waitFor(() => expect(destroy).toHaveBeenCalledWith('c1', 'g1'));
+  });
+});
+
+describe('AccessGroupsManager entitlement rules (#1386)', () => {
+  const ruled: AccessGroup = { ...paid, entitlement_keys: ['example.paid', 'example.plus'] };
+
+  beforeEach(() => {
+    vi.spyOn(knowiiApiClient.communities.accessGroups, 'list').mockResolvedValue({ ok: true, message: '', data: [ruled] });
+  });
+
+  it('shows where the members also come from', async () => {
+    renderManager(true, true, false, true);
+
+    expect(await screen.findByText('Members also come from: example.paid, example.plus')).toBeInTheDocument();
+  });
+
+  it('has no rules button without the right to manage rules', async () => {
+    renderManager(true, true, false, false);
+    await screen.findByText('Paid members');
+    expect(screen.queryByRole('button', { name: 'Entitlement rules of Paid members' })).not.toBeInTheDocument();
+  });
+
+  it('edits the keys, one per line, and saves the whole list', async () => {
+    const set = vi
+      .spyOn(knowiiApiClient.communities.accessGroups.rules, 'set')
+      .mockResolvedValue({ ok: true, message: '', data: { entitlement_keys: ['example.paid', 'example.vip'] } });
+    renderManager(true, true, false, true);
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Entitlement rules of Paid members' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Entitlement rules of Paid members' });
+    const field = within(dialog).getByLabelText('Entitlement keys, one per line');
+    expect(field).toHaveValue('example.paid\nexample.plus');
+
+    await userEvent.clear(field);
+    await userEvent.type(field, 'example.paid, example.vip example.paid');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => expect(set).toHaveBeenCalledWith('c1', 'g1', ['example.paid', 'example.vip']));
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Entitlement rules of Paid members' })).not.toBeInTheDocument());
+  });
+
+  it('refuses a key with a forbidden character before any request, and shows the server error', async () => {
+    const set = vi.spyOn(knowiiApiClient.communities.accessGroups.rules, 'set').mockResolvedValue({
+      ok: false,
+      status: 400,
+      message: 'Invalid',
+      errors: { entitlement_keys: ['The keys are not valid'] },
+    });
+    renderManager(true, true, false, true);
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Entitlement rules of Paid members' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Entitlement rules of Paid members' });
+    const field = within(dialog).getByLabelText('Entitlement keys, one per line');
+    await userEvent.clear(field);
+    await userEvent.type(field, 'bad/key');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
+    expect(await within(dialog).findByText('A key holds letters, digits, dots, dashes and underscores only')).toBeInTheDocument();
+    expect(set).not.toHaveBeenCalled();
+
+    await userEvent.clear(field);
+    await userEvent.type(field, 'good.key');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
+    expect(await within(dialog).findByText('The keys are not valid')).toBeInTheDocument();
+  });
+
+  it('empties the rules with an empty list', async () => {
+    const set = vi
+      .spyOn(knowiiApiClient.communities.accessGroups.rules, 'set')
+      .mockResolvedValue({ ok: true, message: '', data: { entitlement_keys: [] } });
+    renderManager(true, true, false, true);
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Entitlement rules of Paid members' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Entitlement rules of Paid members' });
+    await userEvent.clear(within(dialog).getByLabelText('Entitlement keys, one per line'));
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => expect(set).toHaveBeenCalledWith('c1', 'g1', []));
+  });
+});
+
+describe('AccessGroupsManager member sources (#1386)', () => {
+  const byHand: AccessGroupMember = { ...ada, sources: ['manual'] };
+  const byRule: AccessGroupMember = { cuid: 'u2', name: 'Grace Hopper', username: 'grace', avatar_url: null, sources: ['by_rule'] };
+  const both: AccessGroupMember = { cuid: 'u3', name: 'Alan Turing', username: 'alan', avatar_url: null, sources: ['manual', 'by_rule'] };
+
+  beforeEach(() => {
+    vi.spyOn(knowiiApiClient.communities.accessGroups.members, 'list').mockResolvedValue({
+      ok: true,
+      message: '',
+      data: page([byHand, byRule, both]),
+    });
+  });
+
+  async function openMembers() {
+    renderManager();
+    await userEvent.click(await screen.findByRole('button', { name: 'Members of Paid members' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Members of Paid members' });
+    await within(dialog).findByText('Ada Lovelace');
+    return dialog;
+  }
+
+  it('shows the source of each membership', async () => {
+    const dialog = await openMembers();
+
+    expect(within(dialog).getByText('Added by hand')).toBeInTheDocument();
+    expect(within(dialog).getByText('By an entitlement rule')).toBeInTheDocument();
+    expect(within(dialog).getByText('Added by hand and by an entitlement rule')).toBeInTheDocument();
+  });
+
+  it('offers no removal for a member that only a rule gives', async () => {
+    const dialog = await openMembers();
+
+    expect(within(dialog).getByRole('button', { name: 'Remove Ada Lovelace from the group' })).toBeInTheDocument();
+    expect(within(dialog).queryByRole('button', { name: 'Remove Grace Hopper from the group' })).not.toBeInTheDocument();
+  });
+
+  it('says that the member stays when a rule keeps them in the group', async () => {
+    const remove = vi
+      .spyOn(knowiiApiClient.communities.accessGroups.members, 'remove')
+      .mockResolvedValue({ ok: true, message: '', data: undefined });
+    const dialog = await openMembers();
+
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Remove Alan Turing from the group' }));
+
+    await waitFor(() => expect(remove).toHaveBeenCalledWith('c1', 'g1', 'u3'));
+    expect(
+      await screen.findByText(/Alan Turing is no longer added by hand. They stay in Paid members because of an entitlement rule/),
+    ).toBeInTheDocument();
+    // The member is still listed, now by the rule only, and there is nothing left to remove by hand
+    expect(within(dialog).queryByRole('button', { name: 'Remove Alan Turing from the group' })).not.toBeInTheDocument();
+    expect(within(dialog).getAllByText('By an entitlement rule')).toHaveLength(2);
   });
 });
 

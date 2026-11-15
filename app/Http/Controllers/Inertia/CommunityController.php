@@ -11,6 +11,7 @@ use App\Models\SpaceGroup;
 use App\Models\User;
 use App\Support\CommunityMemberQuery;
 use App\Support\CommunityRoles;
+use App\Support\OidcEntitlements;
 use App\Support\PublicCommunity;
 use App\Support\SpaceTree;
 use Illuminate\Http\Request;
@@ -175,6 +176,8 @@ class CommunityController extends Controller
             'canManageAccessGroups' => Gate::check('manageAccessGroups', $community),
             'canManageAccessGroupMembers' => Gate::check('manageAccessGroupMembers', $community),
             'canViewAccessGroups' => Gate::check('viewAccessGroups', $community),
+            // The entitlement keys that give an access group (#1386, ADR 0047): a listed community, and the people who manage the groups
+            'canManageEntitlementRules' => OidcEntitlements::allows($community) && Gate::check('manageAccessGroups', $community),
         ];
     }
 }

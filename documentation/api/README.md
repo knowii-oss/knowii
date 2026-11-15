@@ -40,6 +40,21 @@ A personal API token (created on the "API tokens" page of the user menu) has abi
 | `groups:write`      | Manage access groups and their members (a sync from another system)   |
 | `identities:read`   | Read the provider accounts that you connected to sign in: the issuer, a label and the dates, never the identifier at the provider (not in the default set) |
 | `identities:write`  | Disconnect a provider account (not in the default set)                |
+| `entitlements:read` | Read the entitlement keys that the sign-in provider reported for you and the date of the last check (not in the default set) |
+
+## Entitlements of the sign-in provider
+
+When the instance reads the entitlements of its sign-in provider ([ADR 0047](../adr/0047-entitlement-rules-feed-access-groups.md), #1386, `OIDC_ENTITLEMENTS_URL`), an owner or an admin of a community that the operator lists can give an access group by entitlement keys. Without the feature, and for a community that is not listed, these routes answer 404.
+
+| Method and path | What it does |
+|---|---|
+| `GET /communities/{community}/access-groups/{group}/rules` | The keys that give the group (`entitlement_keys`, sorted). Owner and admins. Ability `groups:read` |
+| `PUT /communities/{community}/access-groups/{group}/rules` | Replace the keys: body `{"entitlement_keys": ["example.paid"]}`. A key holds letters, digits, dots, dashes and underscores, 100 characters at most, 20 keys at most, no duplicate. An empty list removes every rule. Owner and admins. Ability `groups:write` |
+| `GET /user/entitlements` | Your own keys (`entitlements`) and the date of the last check (`checked_at`). Ability `entitlements:read`, not in the default set |
+
+A rule that is added, changed or removed runs the sync for the members of the community in the background. The list of access groups carries `entitlement_keys` for those who manage the groups, and `GET /communities/{community}/access-groups/{group}/members` returns `sources` for each member: `manual` (added by hand or by the API), `by_rule` (an entitlement rule gives the group), or both. `DELETE .../members/{member}` clears `manual` only: a member whom a rule gives the group stays in it (the answer is 204 either way, and the member then has `sources` `["by_rule"]`).
+
+The change call of the provider, `POST /webhooks/oidc/entitlements`, is not part of the API: it is public, takes no token and no session, accepts only `Content-Type: application/jwt` and is proven by the signature of the provider. It answers 202 (also for a repeated call and for a person that this instance does not know), 401 with an empty body for any invalid call, 404 without the feature and 429 over the limit.
 
 ## Public spaces
 

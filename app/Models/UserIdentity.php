@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $subject
  * @property Carbon $linked_at
  * @property ?Carbon $last_used_at
+ * @property ?Carbon $entitlements_checked_at When the entitlement keys of this account were last read at the provider (#1386, ADR 0047)
  * @property-read User $user
  *
  * @method static \Database\Factories\UserIdentityFactory factory($count = null, $state = [])
@@ -54,6 +55,7 @@ class UserIdentity extends Model
         'subject',
         'linked_at',
         'last_used_at',
+        'entitlements_checked_at',
     ];
 
     /**
@@ -73,6 +75,7 @@ class UserIdentity extends Model
         return [
             'linked_at' => 'datetime',
             'last_used_at' => 'datetime',
+            'entitlements_checked_at' => 'datetime',
         ];
     }
 

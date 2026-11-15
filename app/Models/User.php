@@ -58,6 +58,7 @@ use TaylorNetwork\UsernameGenerator\GeneratesUsernames;
  * @property-read ?int $owned_communities_count
  * @property-read Collection<int, UserIdentity> $identities
  * @property-read ?int $identities_count
+ * @property-read Collection<int, UserEntitlement> $entitlements
  * @property-read Collection<int, PersonalAccessToken> $tokens
  * @property-read ?int $tokens_count
  *
@@ -236,6 +237,16 @@ class User extends Authenticatable implements MustVerifyEmail
     final public function identities(): HasMany
     {
         return $this->hasMany(UserIdentity::class);
+    }
+
+    /**
+     * The entitlement keys that the sign-in provider reported for this member (#1386, ADR 0047)
+     *
+     * @return HasMany<UserEntitlement, covariant $this>
+     */
+    final public function entitlements(): HasMany
+    {
+        return $this->hasMany(UserEntitlement::class);
     }
 
     /**

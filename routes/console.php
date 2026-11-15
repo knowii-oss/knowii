@@ -13,3 +13,8 @@ Schedule::command('retention:prune')->dailyAt('03:40')->withoutOverlapping()->on
 
 // Old waitlist contacts, unconfirmed and unsubscribed contacts of the EmailOctopus lists (#77)
 Schedule::command('mailing-lists:prune')->dailyAt('03:50')->withoutOverlapping()->onOneServer();
+
+// The entitlements of the sign-in provider (#1386, ADR 0047): a read for every connected account, spread over the night,
+// and the rule memberships that no rule can give any more are cleared. The change calls of the provider are best effort:
+// this is the safety net
+Schedule::command('entitlements:sync')->dailyAt('02:30')->withoutOverlapping()->onOneServer();
