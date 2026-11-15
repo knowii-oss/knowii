@@ -64,6 +64,9 @@ final class ApiRoutes
     // Named after Community::accessGroups() for the scoped binding (#1241)
     public const PARAM_ACCESS_GROUP = 'accessGroup';
 
+    // Named after the route parameter of the notification routes
+    public const PARAM_NOTIFICATION = 'notification';
+
     // Paths relative to the version prefix, used in routes/api.php.
     public const USER = 'user';
 
@@ -222,6 +225,19 @@ final class ApiRoutes
     public const COMMUNITY_CONVERSATION_MESSAGE = self::COMMUNITY_CONVERSATION_MESSAGES.'/{'.self::PARAM_MESSAGE.'}';
 
     public const COMMUNITY_CONVERSATION_MESSAGE_REACTIONS = self::COMMUNITY_CONVERSATION_MESSAGE.'/reactions';
+
+    // Notifications of the current member, in every community (#1474, ADR 0042)
+    public const NOTIFICATIONS = 'notifications';
+
+    public const NOTIFICATIONS_COUNT = self::NOTIFICATIONS.'/count';
+
+    public const NOTIFICATIONS_SEEN = self::NOTIFICATIONS.'/seen';
+
+    public const NOTIFICATION = self::NOTIFICATIONS.'/{'.self::PARAM_NOTIFICATION.'}';
+
+    public const NOTIFICATION_READ = self::NOTIFICATION.'/read';
+
+    public const NOTIFICATION_UNREAD = self::NOTIFICATION.'/unread';
 
     // Who is online now (#1187, ADR 0027)
     public const COMMUNITY_ONLINE_MEMBERS = self::COMMUNITY.'/online-members';

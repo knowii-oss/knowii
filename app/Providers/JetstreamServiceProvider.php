@@ -61,6 +61,9 @@ class JetstreamServiceProvider extends ServiceProvider
             // Direct messages (#1186, ADR 0028): never in the default set of a new token, they are private
             'messages:read',
             'messages:write',
+            // Notifications (#1474, ADR 0042): never in the default set, they tell who writes to the member
+            'notifications:read',
+            'notifications:write',
             'pages:read',
             'pages:write',
             'resources:read',

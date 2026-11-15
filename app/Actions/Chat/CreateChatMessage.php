@@ -4,6 +4,7 @@ namespace App\Actions\Chat;
 
 use App\Constants;
 use App\Contracts\Chat\CreatesChatMessages;
+use App\Contracts\Notifications\Notifies;
 use App\Enums\KnowiiSpaceType;
 use App\Events\Spaces\SpaceContentChanged;
 use App\Exceptions\BusinessException;
@@ -71,6 +72,8 @@ class CreateChatMessage implements CreatesChatMessages
         });
 
         Log::info('Chat message created', ['message' => $message->cuid, 'thread' => $parent?->cuid]);
+        // The members mentioned in the message are told (#1474): a queued job, after the commit
+        app(Notifies::class)->notify($message);
         event(SpaceContentChanged::forMessage(SpaceContentChanged::MESSAGE_CREATED, $message, $user->cuid));
 
         return $message;

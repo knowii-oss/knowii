@@ -4,6 +4,7 @@ namespace App\Actions\Comments;
 
 use App\Constants;
 use App\Contracts\Comments\CreatesComments;
+use App\Contracts\Notifications\Notifies;
 use App\Events\Spaces\SpaceContentChanged;
 use App\Models\Comment;
 use App\Models\CommunityResource;
@@ -41,7 +42,7 @@ class CreateComment implements CreatesComments
             $parentId = $parent->parent_id ?? $parent->id;
         }
 
-        return DB::transaction(function () use ($subject, $user, $parentId, $validated) {
+        $comment = DB::transaction(function () use ($subject, $user, $parentId, $validated) {
             $comment = Comment::create([
                 'community_id' => $subject->community_id,
                 'post_id' => $subject instanceof Post ? $subject->id : null,
@@ -59,5 +60,10 @@ class CreateComment implements CreatesComments
 
             return $comment;
         });
+
+        // Tell the members who are concerned (#1474): a queued job, after the commit. Never from an edit
+        app(Notifies::class)->notify($comment);
+
+        return $comment;
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Inertia;
 
+use App\Contracts\Notifications\MarksNotificationsSeen;
 use App\Models\Community;
 use App\Support\CommentThread;
 use App\Support\SpaceTree;
@@ -24,6 +25,12 @@ class PostController extends Controller
         $post = $space->posts()->with(['author', 'space', 'reactions'])->withCount('comments')->where('slug', $postSlug)->firstOrFail();
 
         Gate::authorize('view', $post);
+
+        // The member sees the post and its comments: the notifications about them are seen, not read (#1474)
+        $user = $request->user();
+        if ($user !== null) {
+            app(MarksNotificationsSeen::class)->seenForPost($user, $post);
+        }
 
         JsonResource::withoutWrapping();
 

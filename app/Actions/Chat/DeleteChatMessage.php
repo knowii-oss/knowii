@@ -3,6 +3,7 @@
 namespace App\Actions\Chat;
 
 use App\Contracts\Chat\DeletesChatMessages;
+use App\Contracts\Notifications\PrunesNotifications;
 use App\Models\ChatMessage;
 use App\Models\User;
 use App\Support\ChatMessageEvents;
@@ -25,6 +26,8 @@ class DeleteChatMessage implements DeletesChatMessages
             $message->mentions()->delete();
             $message->reactions()->delete();
             $message->uploadUsages()->delete();
+            // The message stays as a marker: its notifications go (#1474), the cascade does not cover a soft delete
+            app(PrunesNotifications::class)->forChatMessage($message->id);
 
             $parent = $message->parent;
             if ($parent !== null) {

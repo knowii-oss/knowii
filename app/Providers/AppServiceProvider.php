@@ -39,6 +39,11 @@ use App\Actions\CourseMaterials\ReorderCourseMaterials;
 use App\Actions\CourseMaterials\UpdateCourseMaterial;
 use App\Actions\EmailOctopus\PruneEmailOctopusContacts;
 use App\Actions\Newsletter\SubscribeToNewsletter;
+use App\Actions\Notifications\ListNotifications;
+use App\Actions\Notifications\MarkNotificationsRead;
+use App\Actions\Notifications\MarkNotificationsSeen;
+use App\Actions\Notifications\Notify;
+use App\Actions\Notifications\PruneNotifications;
 use App\Actions\Pages\CreatePage;
 use App\Actions\Pages\DeletePage;
 use App\Actions\Pages\ReorderPages;
@@ -112,6 +117,11 @@ use App\Contracts\CourseMaterials\DeletesCourseMaterials;
 use App\Contracts\CourseMaterials\ReordersCourseMaterials;
 use App\Contracts\CourseMaterials\UpdatesCourseMaterials;
 use App\Contracts\Newsletter\SubscribesToNewsletter;
+use App\Contracts\Notifications\ListsNotifications;
+use App\Contracts\Notifications\MarksNotificationsRead;
+use App\Contracts\Notifications\MarksNotificationsSeen;
+use App\Contracts\Notifications\Notifies;
+use App\Contracts\Notifications\PrunesNotifications;
 use App\Contracts\Pages\CreatesPages;
 use App\Contracts\Pages\DeletesPages;
 use App\Contracts\Pages\ReordersPages;
@@ -253,6 +263,12 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(DeletesQuizzes::class, DeleteQuiz::class);
         app()->singleton(AttemptsQuizzes::class, AttemptQuiz::class);
         app()->singleton(PrunesMailingListContacts::class, PruneEmailOctopusContacts::class);
+        // Notifications (#1474, ADR 0042)
+        app()->singleton(Notifies::class, Notify::class);
+        app()->singleton(ListsNotifications::class, ListNotifications::class);
+        app()->singleton(MarksNotificationsSeen::class, MarkNotificationsSeen::class);
+        app()->singleton(MarksNotificationsRead::class, MarkNotificationsRead::class);
+        app()->singleton(PrunesNotifications::class, PruneNotifications::class);
 
         // Public waitlist endpoint: a few requests per minute and per IP address
         RateLimiter::for('waitlist', static function (Request $request) {

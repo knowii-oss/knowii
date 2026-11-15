@@ -13,6 +13,7 @@ use App\Models\CommunityMember;
 use App\Models\CommunityResource;
 use App\Models\LessonProgress;
 use App\Models\Mention;
+use App\Models\Notification;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\QuizResult;
@@ -100,6 +101,7 @@ final class ExportUser implements ExportsUsers
                     'conversation_read_markers' => $this->conversationReadMarkers($user),
                     'blocked_members' => $this->blockedMembers($user),
                     'mentions_of_you' => $this->mentions($user),
+                    'notifications' => $this->notifications($user),
                     'api_tokens' => $this->apiTokens($user),
                     'sessions' => $this->sessions($user),
                 ]],
@@ -338,6 +340,30 @@ final class ExportUser implements ExportsUsers
                 'item_type' => $type,
                 'item' => $item,
                 'created_at' => $this->date($mention->created_at),
+            ];
+        }
+    }
+
+    /**
+     * The notifications of the member (#1474, ADR 0042): the kind, the community, the items by cuid and the dates. Never
+     * a text of content and never the name of the member who caused them.
+     *
+     * @return Generator<int, Row>
+     */
+    private function notifications(User $user): Generator
+    {
+        foreach (Notification::query()->where('user_id', $user->id)->with(['post:id,cuid', 'comment:id,cuid', 'chatMessage:id,cuid'])->lazyById(self::CHUNK) as $notification) {
+            yield [
+                'cuid' => $notification->cuid,
+                'kind' => $notification->kind->value,
+                ...$this->place($notification->community_id, null),
+                'post' => $notification->post?->cuid,
+                'comment' => $notification->comment?->cuid,
+                'chat_message' => $notification->chatMessage?->cuid,
+                'seen_at' => $this->date($notification->seen_at),
+                'read_at' => $this->date($notification->read_at),
+                'created_at' => $this->date($notification->created_at),
+                'updated_at' => $this->date($notification->updated_at),
             ];
         }
     }
@@ -712,7 +738,7 @@ final class ExportUser implements ExportsUsers
         $descriptions = [
             'account.json' => 'your account and your profile, with the choice of who sees each profile field',
             'memberships.json' => 'your communities and your role, the communities you own, your access groups and the invitations sent to your email address',
-            'activity.json' => 'the lessons you marked as done, your quiz results, what you read in chat spaces and conversations, the members you blocked, where you were mentioned, your API tokens and your sessions',
+            'activity.json' => 'the lessons you marked as done, your quiz results, what you read in chat spaces and conversations, the members you blocked, where you were mentioned, your notifications (kind, community, the items by identifier and the dates, never a text), your API tokens and your sessions',
             'posts.json' => 'your posts (Markdown)',
             'comments.json' => 'your comments (Markdown), with the cuid and the title of what they answer',
             'pages.json' => 'the pages and lessons you wrote (Markdown)',

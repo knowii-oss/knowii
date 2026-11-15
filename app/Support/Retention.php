@@ -62,6 +62,16 @@ final class Retention
         return self::int('retention.exports_days', 7);
     }
 
+    public static function notificationsReadDays(): int
+    {
+        return self::int('retention.notifications_read_days', 60);
+    }
+
+    public static function notificationsUnreadDays(): int
+    {
+        return self::int('retention.notifications_unread_days', 90);
+    }
+
     public static function logDays(): int
     {
         return self::int('logging.channels.daily.days', 14);
@@ -108,6 +118,8 @@ final class Retention
             'expired_api_tokens' => self::count(self::expiredApiTokensDays(), 'day'),
             'failed_jobs' => self::count(self::failedJobsDays(), 'day'),
             'unused_uploads' => self::count(self::unusedUploadsDays(), 'day'),
+            'notifications_read' => self::count(self::notificationsReadDays(), 'day'),
+            'notifications_unread' => self::count(self::notificationsUnreadDays(), 'day'),
             'logs' => self::count(self::logDays(), 'day'),
             'waitlist' => self::count(self::waitlistMonths(), 'month'),
             'inactive_contacts' => self::count(self::inactiveContactsDays(), 'day'),

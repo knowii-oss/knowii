@@ -1,0 +1,19 @@
+meta {
+  name: Notifications - Undo read
+  type: http
+  seq: 151
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/notifications/n4notificationexample0001/unread
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Undo "read" (#1474, the Done. Undo of the list): the notification is open again, and still seen. Gives 422 when a newer notification about the same post or comment is open already. The chat cursor stays where it is. The notification of another member gives 404. Needs notifications:write.
+}

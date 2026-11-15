@@ -1,0 +1,19 @@
+meta {
+  name: Notifications - Mark as read
+  type: http
+  seq: 150
+}
+
+put {
+  url: {{BASE_URL}}/api/v1/notifications/n4notificationexample0001/read
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The line was opened or marked done (#1474): sets read_at and seen_at, and returns the notification. A mention in a chat space also moves the chat cursor of the member forward to its message, never backward. The notification of another member gives 404. Needs notifications:write.
+}

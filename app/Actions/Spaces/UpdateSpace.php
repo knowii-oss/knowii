@@ -5,6 +5,7 @@ namespace App\Actions\Spaces;
 use App\Contracts\Spaces\UpdatesSpaces;
 use App\Enums\KnowiiSpaceType;
 use App\Events\Spaces\SpaceTreeChanged;
+use App\Jobs\PruneUnviewableNotifications;
 use App\Models\Space;
 use App\Models\User;
 use App\Support\Positions;
@@ -39,6 +40,9 @@ class UpdateSpace implements UpdatesSpaces
             throw ValidationException::withMessages(['url' => 'Only a link space has a URL']);
         }
 
+        $visibilityBefore = $space->visibility;
+        $spaceGroupBefore = $space->space_group_id;
+
         DB::transaction(function () use ($space, $community, $validated) {
             $changes = [];
 
@@ -71,6 +75,11 @@ class UpdateSpace implements UpdatesSpaces
             $space->update($changes);
             SpaceAccessGroups::sync($space, $validated['access_groups'] ?? null);
         });
+
+        // Who can view the space changed: the notifications of the members who lost the access go away (#1474, ADR 0042)
+        if ($space->visibility !== $visibilityBefore || $space->space_group_id !== $spaceGroupBefore || array_key_exists('access_groups', $validated)) {
+            PruneUnviewableNotifications::dispatch($community, $space);
+        }
 
         SpaceTreeChanged::dispatch($community->cuid);
 

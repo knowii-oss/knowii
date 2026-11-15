@@ -1,0 +1,19 @@
+meta {
+  name: Notifications - List
+  type: http
+  seq: 147
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/notifications?limit=20&offset=0&community=nswswk8w8wso0ko8owwk8k0w&older=false
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The "Needs you" notifications of the current member, in every community (#1474, ADR 0042): a reply to your post, a reply to your comment, a mention. The newest news first, 20 per page, offset pagination (ADR 0011). Each one holds the community, the space, the last author (null for a deleted member), up to 3 authors with others_count, a plain text excerpt of 300 characters at most and the title of the post, built from the live content, and the target to open (post_slug, comment_cuid, chat_message_cuid). community keeps one community (cuid). older=true lists the notifications that are older than 14 days. Needs notifications:read (not in the default set of a token).
+}
