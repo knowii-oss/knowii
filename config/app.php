@@ -56,6 +56,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Trusted Proxies
+    |--------------------------------------------------------------------------
+    |
+    | The addresses of the reverse proxies that Laravel trusts for the X-Forwarded-* headers (the real client address,
+    | the scheme and the host): a comma-separated list of addresses or CIDR ranges, or * to trust every proxy. Empty
+    | (default): no proxy is trusted. Only use * when nothing but the proxy can reach the application (SELF_HOSTING.md).
+    |
+    */
+
+    'trusted_proxies' => env('TRUSTED_PROXIES', ''),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

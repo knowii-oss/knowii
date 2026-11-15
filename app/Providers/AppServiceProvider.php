@@ -168,6 +168,7 @@ use App\Support\ReverbPresenceChannels;
 use Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -189,6 +190,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // The reverse proxy in front (SELF_HOSTING.md): without a trusted proxy, Laravel sees the proxy address and the http scheme
+        $trustedProxies = config()->string('app.trusted_proxies');
+        if (trim($trustedProxies) !== '') {
+            TrustProxies::at(trim($trustedProxies) === '*' ? '*' : array_map('trim', explode(',', $trustedProxies)));
+        }
 
         // Register singletons implementing contracts (cfr \App\Contracts)
         app()->singleton(VerifiesUsernameAvailability::class, VerifyUsernameAvailability::class);

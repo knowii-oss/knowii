@@ -130,6 +130,8 @@ Bare schemes (`https:`) and `*` in these values are ignored. In the `local` envi
 
 Do not set `SANCTUM_STATEFUL_DOMAINS` to an empty value. The front-end calls the API with the session cookie, so the API must treat requests from your domain as first-party ("stateful"). If the value is empty, every API call fails with `401 Unauthorized`. Leave the key out (the default includes the host of `APP_URL`), or set it to `<YOUR_DOMAIN>`.
 
+Behind a reverse proxy that is not on the same machine, or that does not use `127.0.0.1`, set `TRUSTED_PROXIES` to the addresses of the proxy (comma-separated, CIDR ranges allowed), or to `*` when only the proxy can reach the application. Laravel then reads the real client address and the scheme from `X-Forwarded-For` and `X-Forwarded-Proto`. The default is empty: no proxy is trusted.
+
 The `VITE_*` values are read when you build the front-end (step 5). If you change `APP_NAME` or a `REVERB_*` value later, build the front-end again.
 
 ## 5. Install and build
@@ -289,6 +291,109 @@ php artisan content:render-again    # renders the stored HTML again, so old cont
 Both commands accept `--dry-run`, and you can run them again: they only do what is left to do. A file that is missing is reported and skipped, never deleted.
 
 Read the release notes (`CHANGELOG.md`) before you update. They tell you about new or changed environment values.
+
+## Docker
+
+Instead of steps 1 to 8, you can run Knowii with Docker. The repository has a production image (`Dockerfile`) and one Compose project (`compose.production.yaml`) with five services: `app` (the web server, FrankenPHP), `queue` (the queue worker), `reverb` (WebSockets), `scheduler` (the scheduled tasks) and `postgres` (PostgreSQL 18). The four application services use the same image with another command. You need Docker with the Compose plugin, a reverse proxy that ends the TLS (see below), and nothing else: no PHP, Composer or Node.js on the server. The image never runs development tools. See [ADR 0046](documentation/adr/0046-production-image-and-compose.md).
+
+### Get the image
+
+GitHub Actions builds the image and, when the repository variable `PUBLISH_IMAGE` is `true`, pushes it to the container registry of the repository: `ghcr.io/knowii-oss/knowii:main` (the latest `main`), `ghcr.io/knowii-oss/knowii:sha-<short>` (one commit). Pin a `sha-` tag in production. To build it yourself instead, run `docker build -t knowii:local .` and set `KNOWII_IMAGE=knowii:local`.
+
+### First start
+
+1. Copy `compose.production.yaml` and `.env.production.example` to a folder of the server. Name the second one `.env`.
+2. Edit `.env`: replace every `CHANGE_ME`, and set `COMPOSE_PROJECT_NAME` (mandatory: one name per environment, so that two environments never share volumes), `APP_URL`, `SESSION_DOMAIN`, `REVERB_HOST` and `REVERB_ALLOWED_ORIGINS` to your domain. Generate `APP_KEY` with `docker run --rm --entrypoint php ghcr.io/knowii-oss/knowii:main artisan key:generate --show`. `ROBOTS_ALLOW_INDEXING=false` is the safe default: set it to `true` only on the public instance. Step 4 explains the other values.
+3. Start the stack: `docker compose -f compose.production.yaml up -d`. The `app` service runs the migrations, then the other three start. `docker compose -f compose.production.yaml ps` shows `healthy` for the five services after about a minute.
+4. Put the reverse proxy in front (next section). The app listens on `127.0.0.1:3400` and Reverb on `127.0.0.1:3401` (`KNOWII_APP_PORT` and `KNOWII_REVERB_PORT` change them). No other port is published, and the database has none.
+
+### The proxy
+
+One host name serves the app and Reverb. The proxy sends `/app/` and `/apps/` (the WebSocket connection and the Reverb API) to Reverb, and everything else to the app. In `.env`, `REVERB_HOST` is that host name, `REVERB_PORT=443` and `REVERB_SCHEME=https`: the browser connects to the proxy, not to the container. Set `TRUSTED_PROXIES=*` when the proxy runs on the same server (the ports are published on `127.0.0.1`, so only the proxy reaches them). An nginx example (change the domain and the certificate files):
+
+```nginx
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name app.example.com;
+
+    ssl_certificate     /etc/ssl/app.example.com/fullchain.pem;
+    ssl_certificate_key /etc/ssl/app.example.com/privkey.pem;
+
+    # Same as upload_max_filesize and post_max_size of docker/production/php.ini (50 MB of course materials by default)
+    client_max_body_size 55m;
+
+    # WebSockets (Reverb)
+    location ~ ^/apps?/ {
+        proxy_http_version 1.1;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_read_timeout 3600s;
+        proxy_pass http://127.0.0.1:3401;
+    }
+
+    # The application
+    location / {
+        proxy_http_version 1.1;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_pass http://127.0.0.1:3400;
+    }
+}
+```
+
+### Update
+
+Change `KNOWII_IMAGE` in `.env` to the new tag (or keep `main`), then:
+
+```bash
+docker compose -f compose.production.yaml pull
+docker compose -f compose.production.yaml up -d --wait
+docker compose -f compose.production.yaml exec -T app php artisan app:health
+```
+
+The `app` service runs the migrations when it starts, and the other services restart on the new image after it is healthy. Read the release notes (`CHANGELOG.md`) first: some releases need the extra commands of step 8, which you run as shown below. To go back, set the previous tag and run `up -d --wait` again: the migrations of the newer version stay in the database, so only go back to a version that tolerates them.
+
+### Health checks
+
+`/up` answers without touching the database: Docker and the proxy use it. `php artisan app:health` is the deep check: it tests the database, the migrations, the cache, the queue connection and Reverb, prints one line per check and exits with 1 when one fails. It runs only on the command line, so it shows no detail to the internet.
+
+### Run an Artisan command
+
+```bash
+docker compose -f compose.production.yaml exec app php artisan about
+docker compose -f compose.production.yaml exec app php artisan uploads:build-sizes
+docker compose -f compose.production.yaml exec app php artisan communities:export <community-slug>
+```
+
+The export commands write under `storage/app`, which is the `storage` volume.
+
+### Backup
+
+Back up the two named volumes: the database (`<project>_postgres-data`) and the files (`<project>_storage`, where `<project>` is `COMPOSE_PROJECT_NAME`). For the database, a dump is safer than a copy of the files of a running server:
+
+```bash
+docker compose -f compose.production.yaml exec -T postgres sh -c 'pg_dump --username="$POSTGRES_USER" --dbname="$POSTGRES_DB"' | gzip > knowii-db-$(date +%F).sql.gz
+docker run --rm -v <project>_storage:/data:ro -v "$PWD":/backup alpine tar czf /backup/knowii-storage-$(date +%F).tar.gz -C /data .
+```
+
+To restore, start an empty stack, then load the dump with `psql` in the `postgres` service and unpack the archive into the `storage` volume. Keep the snapshots as long as `RETENTION_BACKUPS_*` say.
+
+### What the image changes compared to the host-based guide
+
+1. The environment lives in the container, not in a `.env` file inside the image. The caches (`config`, `route`, `view`, `event`) are built at every start.
+2. The `VITE_*` values are not read: the container takes the Reverb settings and the app name of the browser build from `REVERB_*` and `APP_NAME` at start.
+3. PHP uses FrankenPHP in classic mode. The upload limits are in `docker/production/php.ini` (50 MB by default, like `COURSE_MATERIALS_MAX_MB`): raise them together with that value.
+4. Logs go to stderr: `docker compose -f compose.production.yaml logs -f app`.
 
 ## Laravel Forge (optional)
 

@@ -1,0 +1,53 @@
+# Keep the build context small and free of secrets. The Dockerfile copies the folders that it needs by name.
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+!.env.production.example
+auth.json
+
+# Dependencies (installed in the image)
+node_modules
+vendor
+
+# Git, editors and tooling
+.git
+.github
+.idea
+.vscode
+.devcontainer
+.nx
+.phpunit.cache
+.phpunit.result.cache
+
+# Build output (built in the image)
+dist
+tmp
+coverage
+out-tsc
+public/build
+public/hot
+public/storage
+bootstrap/cache/*
+!bootstrap/cache/.gitignore
+
+# Runtime data (a volume in production)
+storage/app/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/logs/*
+
+# Tests and test data, documentation, development images
+tests
+documentation
+docker/8.0
+docker/8.1
+docker/8.2
+docker/8.5
+docker/mariadb
+docker/mysql
+docker/pgsql
+docker-compose.yml
+compose.production.yaml

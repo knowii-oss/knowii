@@ -1,0 +1,110 @@
+# Knowii production stack (#1172, ADR 0046): one Compose project with five services. The four application services run
+# the same image with another command. The image is built by GitHub Actions and pulled, never built on the server.
+#
+# Start: cp .env.production.example .env, edit it, then: docker compose -f compose.production.yaml up -d
+# The project name (COMPOSE_PROJECT_NAME in .env) is mandatory: two environments on one server must never share one.
+# See SELF_HOSTING.md, section "Docker".
+
+name: ${COMPOSE_PROJECT_NAME:?Set COMPOSE_PROJECT_NAME in .env (for example knowii-acceptance), so that two environments never share a project}
+
+x-knowii: &knowii
+  image: ${KNOWII_IMAGE:-ghcr.io/knowii-oss/knowii:main}
+  restart: unless-stopped
+  init: true
+  env_file: .env
+  volumes:
+    # Uploads, private files and exports
+    - storage:/app/storage/app
+
+services:
+  # The web server (FrankenPHP, classic mode). The only service that runs the migrations, at start. Its host port is
+  # fixed, so a second replica cannot start and race with the first.
+  app:
+    <<: *knowii
+    ports:
+      - '127.0.0.1:${KNOWII_APP_PORT:-3400}:8000'
+    environment:
+      MIGRATE_ON_START: 'true'
+      # php artisan app:health in this container also checks Reverb in its own container
+      HEALTH_REVERB_URL: http://reverb:${REVERB_SERVER_PORT:-8080}/up
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'curl', '--fail', '--silent', '--show-error', '--output', '/dev/null', 'http://127.0.0.1:8000/up']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+
+  # The queue worker. Queues in this order (ADR 0042): live updates, notifications, the rest.
+  queue:
+    <<: *knowii
+    command: ['php', 'artisan', 'queue:work', '--queue=broadcasts,notifications,default', '--sleep=3', '--tries=3']
+    stop_grace_period: 60s
+    depends_on:
+      app:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'knowii-healthcheck-process', 'queue:work']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # The WebSocket server (Laravel Reverb). The proxy forwards /app/ and /apps/ to its published port.
+  reverb:
+    <<: *knowii
+    command: ['php', 'artisan', 'reverb:start']
+    ports:
+      - '127.0.0.1:${KNOWII_REVERB_PORT:-3401}:${REVERB_SERVER_PORT:-8080}'
+    # One file descriptor per connection
+    ulimits:
+      nofile:
+        soft: 10000
+        hard: 10000
+    depends_on:
+      app:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'php', 'artisan', 'app:health', '--only=reverb']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # The scheduler: runs the scheduled tasks of routes/console.php every minute (no cron)
+  scheduler:
+    <<: *knowii
+    command: ['php', 'artisan', 'schedule:work']
+    depends_on:
+      app:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'knowii-healthcheck-process', 'schedule:work']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # PostgreSQL 18: its own volume, no published port
+  postgres:
+    image: ${POSTGRES_IMAGE:-postgres:18}
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:?Set DB_DATABASE in .env}
+      POSTGRES_USER: ${DB_USERNAME:?Set DB_USERNAME in .env}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+    volumes:
+      # PostgreSQL 18+ images keep their data under /var/lib/postgresql/<major>/docker: mount the parent directory
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready --quiet --dbname="$${POSTGRES_DB}" --username="$${POSTGRES_USER}"']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+volumes:
+  postgres-data:
+  storage:

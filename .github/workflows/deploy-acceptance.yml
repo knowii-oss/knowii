@@ -1,0 +1,119 @@
+name: Deploy acceptance
+
+# Deploys an image to the acceptance environment (#1172, ADR 0046). Manual only (workflow_dispatch): there is no
+# automatic trigger until the owner decides how GitHub Actions reaches the server (#1172 step J).
+#
+# STATUS: skeleton. The connection step fails on purpose. Everything after it documents what the deployment does.
+#
+# The GitHub environment "acceptance" holds the values of this workflow. The list is complete: add a name here before
+# you use it in a step.
+#   Variables
+#     ACCEPTANCE_PATH   Folder of the compose project on the server (holds compose.production.yaml and .env)
+#   Secrets
+#     (none yet: the secrets of the connection are chosen in #1172 step J, then listed here)
+#
+# What the deployment does, in order:
+#   1. Resolve the image tag (main, a sha-<short> tag, or a version) and the image name of this repository.
+#   2. Connect to the server (TODO).
+#   3. Remember the tag that runs now (the roll back target), pull the new image and start the stack with it.
+#      The app service runs the migrations at start.
+#   4. Wait for the stack to be healthy, then run the deep check: php artisan app:health.
+#   5. On failure: start the previous tag again and run the deep check on it.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Image tag to deploy (main, sha-<short>, or a version)'
+        required: true
+        default: 'main'
+        type: string
+
+concurrency:
+  group: deploy-acceptance
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: acceptance
+    timeout-minutes: 20
+    steps:
+      - name: Resolve the image
+        id: image
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          case "${TAG}" in
+            ''|*[!A-Za-z0-9._-]*) echo "::error::Invalid image tag: ${TAG}"; exit 1 ;;
+          esac
+          # Registry names are lower case
+          repository="$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')"
+          echo "image=ghcr.io/${repository}:${TAG}" >> "${GITHUB_OUTPUT}"
+          echo "Deploying ghcr.io/${repository}:${TAG}"
+
+      # TODO(#1172 step J): decide how this job reaches the server. Options discussed: a runner on the server that pulls,
+      # a webhook on the server behind the access check, or a short-lived key over the private network. Until then this
+      # step fails, so nothing can run by mistake. When it is decided, this step writes $RUNNER_TEMP/remote.sh: a script
+      # that runs its arguments on the server (for example over SSH) and exits with their exit code.
+      - name: Connect to the server
+        run: |
+          echo "::error::The connection to the server is not decided yet, see #1172 step J."
+          exit 1
+
+      - name: Pull the image and start the stack
+        id: deploy
+        env:
+          IMAGE: ${{ steps.image.outputs.image }}
+          ACCEPTANCE_PATH: ${{ vars.ACCEPTANCE_PATH }}
+        run: |
+          set -euo pipefail
+          remote="${RUNNER_TEMP}/remote.sh"
+          # The tag that runs now, for the roll back. The file is written after each successful deployment.
+          previous="$("${remote}" "cat '${ACCEPTANCE_PATH}/.deployed-image' 2>/dev/null || true")"
+          echo "previous=${previous}" >> "${GITHUB_OUTPUT}"
+          "${remote}" "cd '${ACCEPTANCE_PATH}' && KNOWII_IMAGE='${IMAGE}' docker compose -f compose.production.yaml pull"
+          "${remote}" "cd '${ACCEPTANCE_PATH}' && KNOWII_IMAGE='${IMAGE}' docker compose -f compose.production.yaml up -d --remove-orphans"
+
+      - name: Wait for the stack and run the deep check
+        env:
+          ACCEPTANCE_PATH: ${{ vars.ACCEPTANCE_PATH }}
+        run: |
+          set -euo pipefail
+          remote="${RUNNER_TEMP}/remote.sh"
+          # --wait returns when every service with a health check is healthy (or fails when one is not)
+          "${remote}" "cd '${ACCEPTANCE_PATH}' && docker compose -f compose.production.yaml up -d --wait --wait-timeout 300"
+          "${remote}" "cd '${ACCEPTANCE_PATH}' && docker compose -f compose.production.yaml exec -T app php artisan app:health"
+
+      - name: Remember the deployed image
+        env:
+          IMAGE: ${{ steps.image.outputs.image }}
+          ACCEPTANCE_PATH: ${{ vars.ACCEPTANCE_PATH }}
+        run: |
+          set -euo pipefail
+          "${RUNNER_TEMP}/remote.sh" "echo '${IMAGE}' > '${ACCEPTANCE_PATH}/.deployed-image'"
+
+      # Roll back when this run failed after the connection worked (pull, start, health or deep check)
+      - name: Roll back to the previous image
+        if: failure() && steps.deploy.outcome != 'skipped'
+        env:
+          PREVIOUS: ${{ steps.deploy.outputs.previous }}
+          ACCEPTANCE_PATH: ${{ vars.ACCEPTANCE_PATH }}
+        run: |
+          set -euo pipefail
+          remote="${RUNNER_TEMP}/remote.sh"
+          if [ -z "${PREVIOUS}" ]; then
+            echo "::error::No previous image is known: roll back by hand."
+            exit 1
+          fi
+          echo "Rolling back to ${PREVIOUS}"
+          "${remote}" "cd '${ACCEPTANCE_PATH}' && KNOWII_IMAGE='${PREVIOUS}' docker compose -f compose.production.yaml up -d --wait --wait-timeout 300"
+          "${remote}" "cd '${ACCEPTANCE_PATH}' && docker compose -f compose.production.yaml exec -T app php artisan app:health"
+          # The migrations of the failed version stay in the database: the previous version must tolerate them (ADR 0046)
+          echo "::error::The deployment failed and the previous image runs again."
+          exit 1

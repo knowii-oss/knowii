@@ -70,3 +70,13 @@ The repository is an Nx monorepo with a Laravel application at its root.
 | Production  | Knowii VPS                                    | Real data, with backups | A release tag         |
 
 Acceptance and production are tracked in issues #1172 and #1182.
+
+## Deployment
+
+([ADR 0046](../adr/0046-production-image-and-compose.md), `SELF_HOSTING.md` section "Docker")
+
+1. **The image.** The `Dockerfile` builds one production image: PHP 8.5 on FrankenPHP in classic mode, the Composer packages without dev packages, the Vite build, a non-root user, no development tools. The image does not depend on the environment: the `VITE_*` values of the browser build are filled in from the container environment at start. The Sail image (`docker/8.5`) is for development only.
+2. **The five services.** `compose.production.yaml` runs `app` (web), `queue` (`queue:work` on `broadcasts,notifications,default`), `reverb`, `scheduler` (`schedule:work`) and `postgres` (PostgreSQL 18). The first four use the same image with another command. Two named volumes hold the database and `storage/app`. The ports of `app` and `reverb` are published on `127.0.0.1` only: a proxy in front ends the TLS and forwards `/app/` and `/apps/` to Reverb, so the app and Reverb share one host name.
+3. **Migrations.** Only the `app` service runs `php artisan migrate --force`, at start. The other services wait until `app` is healthy.
+4. **Health checks.** `/up` is cheap (proxy, Docker). `php artisan app:health` is the deep check (database, migrations, cache, queue connection, Reverb), with exit code 1 on failure: the deployment runs it after the start. The `queue` and `scheduler` services check that their process runs.
+5. **Workflows.** `.github/workflows/image.yml` builds the image on every pull request and on a push to `main`. It pushes `:main` and `:sha-<short>` to the GitHub container registry only when the repository variable `PUBLISH_IMAGE` is `true` (not set by default). `.github/workflows/deploy-acceptance.yml` is manual, behind the GitHub environment `acceptance`, and a skeleton until the connection to the server is decided (#1172 step J). The server pulls the image, it never builds.

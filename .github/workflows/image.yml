@@ -1,0 +1,73 @@
+name: Image
+
+# Builds the production image (Dockerfile, #1172, ADR 0046).
+# - Pull request: build only, with a cache and a smoke test, so that the image cannot break unseen. Nothing is pushed.
+# - Push to main: the same build and smoke test. The image is pushed to the GitHub container registry
+#   (ghcr.io/<owner>/<repo>:main and :sha-<short>) ONLY when the repository variable PUBLISH_IMAGE is "true".
+#   The variable is not set by default: publishing an image is a decision of the owner of the repository.
+# The server pulls the image. Nothing is built on the server.
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: image-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Needed only to push to the container registry of this repository (push to main)
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: docker/setup-buildx-action@v4
+
+      # Pushing needs the registry login. A pull request (also from a fork) never logs in, and main only with PUBLISH_IMAGE
+      - name: Log in to the GitHub container registry
+        if: github.event_name == 'push' && vars.PUBLISH_IMAGE == 'true'
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute the image tags
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=main,enable=${{ github.ref == 'refs/heads/main' }}
+            type=sha,prefix=sha-,format=short
+          labels: |
+            org.opencontainers.image.title=Knowii
+
+      - name: Build (and push on main)
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: ${{ github.event_name == 'push' && vars.PUBLISH_IMAGE == 'true' }}
+          # Not published: keep the image in the runner for the smoke test below
+          load: ${{ !(github.event_name == 'push' && vars.PUBLISH_IMAGE == 'true') }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Artisan boots without a database, the extensions are there, the build exists and the user is not root
+      - name: Smoke test
+        if: ${{ !(github.event_name == 'push' && vars.PUBLISH_IMAGE == 'true') }}
+        run: |
+          image="$(echo '${{ steps.meta.outputs.tags }}' | head -n 1)"
+          docker run --rm -e MAIL_FROM_ADDRESS=ci@example.com --entrypoint php "${image}" artisan --version
+          docker run --rm --entrypoint php "${image}" -m | grep -E '^(gd|intl|pcntl|pdo_pgsql|sodium|zip)$'
+          docker run --rm --entrypoint sh "${image}" -c 'test -f public/build/manifest.json && test "$(id -u)" != 0'
