@@ -8,6 +8,7 @@ use App\Exceptions\TechnicalException;
 use App\Models\User;
 use App\Models\UserProfile;
 use App\Support\ProfileFieldVisibility;
+use App\Support\TimeZones;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -35,6 +36,8 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'location' => ['nullable', 'string', 'max:'.Constants::MAX_LENGTH_USER_LOCATION],
             'phone' => ['nullable', 'string', 'max:'.Constants::MAX_LENGTH_USER_PHONE, 'regex:'.Constants::USER_PHONE_REGEX],
             ...array_fill_keys(Constants::SOCIAL_MEDIA_LINK_PROPERTIES, ['nullable', 'string', 'max:255']),
+            // The zone of the account (#1476): only when the member sends the field. An unknown name is an error
+            'time_zone' => ['sometimes', 'nullable', 'string', Rule::in(TimeZones::identifiers())],
             // What the other members see (#1076, ADR 0020): known fields only, unknown keys are dropped
             'field_visibility' => ['sometimes', 'array'],
             ...array_fill_keys(array_map(fn (string $field) => 'field_visibility.'.$field, ProfileFieldVisibility::fields()), ['sometimes', 'boolean']),
@@ -42,7 +45,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 
         $validator->validateWithBag('updateProfileInformation');
 
-        /** @var array{name: string|null, username: string|null, email: string, bio: string|null, location: string|null, phone: string|null, field_visibility?: array<string, mixed>} $input */
+        /** @var array{name: string|null, username: string|null, email: string, bio: string|null, location: string|null, phone: string|null, field_visibility?: array<string, mixed>, time_zone?: string|null} $input */
         $input = $validator->validated();
 
         $userProfile = $user->profile;
@@ -85,6 +88,11 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             ])->save();
 
             $this->updateSocialLinks($userProfile, $input);
+
+            // Only a field that the member sent changes the zone: the platform never changes it by itself (#1476)
+            if (array_key_exists('time_zone', $input)) {
+                $user->forceFill(['time_zone' => $input['time_zone']])->save();
+            }
 
             if (isset($input['field_visibility'])) {
                 $userProfile->forceFill([

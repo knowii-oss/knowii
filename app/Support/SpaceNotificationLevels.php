@@ -95,6 +95,31 @@ final class SpaceNotificationLevels
     }
 
     /**
+     * The level that applies to one member for each of the given spaces, by space id (#1476): one query for the choices of
+     * the member, and no query per space. The member needs their access groups loaded (the default depends on them).
+     *
+     * @param  Collection<int, Space>|\Illuminate\Support\Collection<int, Space>  $spaces
+     * @return array<int, KnowiiSpaceNotificationLevel>
+     */
+    public static function levelsForSpaces(User $user, Community $community, Collection|\Illuminate\Support\Collection $spaces): array
+    {
+        $chosen = NotificationSpaceLevel::query()
+            ->where('user_id', $user->id)
+            ->whereIn('space_id', $spaces->map(static fn (Space $space): int => $space->id)->values()->all())
+            ->get()
+            ->keyBy(static fn (NotificationSpaceLevel $level): int => $level->space_id);
+
+        return CommunityRoles::withKnownAdmins($community, [$user->id], static function () use ($spaces, $chosen, $user, $community): array {
+            $levels = [];
+            foreach ($spaces as $space) {
+                $levels[$space->id] = $chosen->get($space->id)->level ?? self::defaultFor($user, $community, $space);
+            }
+
+            return $levels;
+        });
+    }
+
+    /**
      * The members, among the given ones, who muted the space or the thread: nothing reaches them from there, whatever the
      * kind (design 1.2.10). Two queries at most, for any number of members.
      *

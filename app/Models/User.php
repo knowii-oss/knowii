@@ -38,6 +38,9 @@ use TaylorNetwork\UsernameGenerator\GeneratesUsernames;
  * @property string $name
  * @property string $email
  * @property bool $show_online_status Whether the other members see when this member is online (#1187)
+ * @property ?string $time_zone The IANA zone that the member chose (#1476); null: the zone of the instance. Only the member reads it
+ * @property ?Carbon $last_visit_on The date of the last visit, without an hour (#1476). Nobody reads it: hidden from every serialization
+ * @property bool $notification_popups Whether the app shows pop-ups for the lines that need the member (#1476)
  * @property ?Carbon $email_verified_at
  * @property ?string $password Null for an account without a password (created by an OpenID Connect provider, or its password was removed, #1385)
  * @property ?string $two_factor_secret
@@ -151,6 +154,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'id',
         'password',
         'remember_token',
+        // Nobody reads it, not even the member (#1476, ADR 0048): the own export holds it
+        'last_visit_on',
         'two_factor_recovery_codes',
         'two_factor_secret',
     ];
@@ -166,6 +171,8 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'show_online_status' => 'boolean',
+            'notification_popups' => 'boolean',
+            'last_visit_on' => 'date',
         ];
     }
 
@@ -217,6 +224,25 @@ class User extends Authenticatable implements MustVerifyEmail
     final public function showsOnlineStatus(): bool
     {
         return filter_var($this->getAttributes()['show_online_status'] ?? true, FILTER_VALIDATE_BOOLEAN);
+    }
+
+    /**
+     * The time zone that the member chose (#1476), null when they did not: the zone of the instance applies
+     */
+    final public function timeZone(): ?string
+    {
+        $value = $this->getAttributes()['time_zone'] ?? null;
+
+        return is_string($value) && $value !== '' ? $value : null;
+    }
+
+    /**
+     * Whether the app shows pop-ups (#1476). A new account shows them: the column defaults to true, and a model built in
+     * memory does not hold it yet.
+     */
+    final public function showsNotificationPopups(): bool
+    {
+        return filter_var($this->getAttributes()['notification_popups'] ?? true, FILTER_VALIDATE_BOOLEAN);
     }
 
     /**

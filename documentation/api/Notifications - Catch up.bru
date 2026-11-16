@@ -1,0 +1,19 @@
+meta {
+  name: Notifications - Catch up
+  type: http
+  seq: 178
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/catch-up?since=2026-11-01
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The data of the Catch up card (#1476): what the member missed in the community since a date, in at most 5 lines, in this order. up to 2 needs_you lines (open notifications of level 1, newest first), up to 2 announcement lines (posts of other members in the discussion spaces where only the moderators post, never left out because of their age), and 1 thread line (the thread with the most new comments, among the posts that the member follows and the spaces at Everything). Each line holds kind, title, excerpt (plain text from the live content), space, author, date and target (to open the item, like a notification). has_more is true when a source holds more than what is shown. The answer never holds a count of what was missed. since is required: a date YYYY-MM-DD, not in the future, at most 366 days back (400 otherwise). Members of the community only (403 otherwise). Needs notifications:read.
+}

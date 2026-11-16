@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Contracts\Notifications\PrunesNotifications;
+use App\Contracts\Notifications\TracksSpaceVisits;
 use App\Enums\KnowiiCommunityJoinPolicy;
 use App\Enums\KnowiiCommunityVisibility;
 use App\Enums\KnowiiModeratorPermission;
@@ -375,6 +376,8 @@ class Community extends Model
         DB::table('quiz_results')->where('community_id', $this->id)->where('user_id', $user->id)->delete();
         // Nor their notifications (#1474, ADR 0042)
         app(PrunesNotifications::class)->forMember($user, $this);
+        // Nor their visits of its spaces (#1476, ADR 0048)
+        app(TracksSpaceVisits::class)->forget($user, $this);
     }
 
     /**

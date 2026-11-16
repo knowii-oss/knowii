@@ -1,0 +1,19 @@
+meta {
+  name: Spaces - Visit
+  type: http
+  seq: 179
+}
+
+put {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a space>/visit
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The current member visited the space (#1476, ADR 0048): the dot of the space in the navigation goes. One row per member and space, replaced at each visit. The web pages of a space write it already: the client calls this route when a space opens without a page load. Only a member of the community who can view the space visits it (403 otherwise): a visitor and a signed-in person who is not a member never get a row. Needs notifications:write.
+}

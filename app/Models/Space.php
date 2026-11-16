@@ -38,6 +38,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property KnowiiSpacePostingPolicy $posting_policy
  * @property ?KnowiiSpaceNotificationLevel $default_notification_level What the members who did not choose get (#1475); null: the built-in default of the kind of space
  * @property int $position
+ * @property ?Carbon $last_content_at When content was last added (#1476); chat messages do not count: a chat space has its own cursor
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read Community $community
@@ -109,6 +110,8 @@ class Space extends Model
         'id',
         'community_id',
         'space_group_id',
+        // Read by the navigation only (has_new, #1476)
+        'last_content_at',
     ];
 
     /**
@@ -122,6 +125,7 @@ class Space extends Model
             'posting_policy' => KnowiiSpacePostingPolicy::class,
             'default_notification_level' => KnowiiSpaceNotificationLevel::class,
             'position' => 'integer',
+            'last_content_at' => 'datetime',
         ];
     }
 

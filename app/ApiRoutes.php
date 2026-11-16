@@ -79,6 +79,11 @@ final class ApiRoutes
     // Show or hide when the current user is online (#1187)
     public const USER_ONLINE_STATUS = 'user/online-status';
 
+    // The time zone and the notification choices of the current user (#1476, ADR 0048)
+    public const USER_TIME_ZONE = 'user/time-zone';
+
+    public const USER_NOTIFICATION_SETTINGS = 'user/notification-settings';
+
     // The members the current user blocked (#1186)
     public const USER_BLOCKS = 'user/blocks';
 
@@ -285,6 +290,11 @@ final class ApiRoutes
     public const COMMUNITY_NOTIFICATION_LEVELS = self::COMMUNITY.'/notification-levels';
 
     public const COMMUNITY_SPACE_NOTIFICATION_LEVEL = self::COMMUNITY_SPACE.'/notification-level';
+
+    // The data of the "Catch up" card, and the visit of a space (#1476, ADR 0048)
+    public const COMMUNITY_CATCH_UP = self::COMMUNITY.'/catch-up';
+
+    public const COMMUNITY_SPACE_VISIT = self::COMMUNITY_SPACE.'/visit';
 
     // Who is online now (#1187, ADR 0027)
     public const COMMUNITY_ONLINE_MEMBERS = self::COMMUNITY.'/online-members';

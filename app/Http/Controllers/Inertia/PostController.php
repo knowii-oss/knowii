@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Inertia;
 
 use App\Contracts\Notifications\MarksNotificationsSeen;
+use App\Contracts\Notifications\TracksSpaceVisits;
 use App\Models\Community;
 use App\Support\CommentThread;
 use App\Support\SpaceTree;
@@ -25,6 +26,11 @@ class PostController extends Controller
         $post = $space->posts()->with(['author', 'space', 'reactions'])->withCount('comments')->where('slug', $postSlug)->firstOrFail();
 
         Gate::authorize('view', $post);
+
+        // A member who opens the space has visited it: the dot of the navigation goes (#1476). Before the navigation is built
+        if ($request->user() !== null) {
+            app(TracksSpaceVisits::class)->visit($request->user(), $space);
+        }
 
         // The member sees the post and its comments: the notifications about them are seen, not read (#1474)
         $user = $request->user();

@@ -72,3 +72,4 @@ Do not write an ADR for a bug fix, a refactor that keeps the structure, or a fea
 | [0045](0045-openid-connect-sign-in.md)                                 | Sign in with an OpenID Connect provider, linked by subject               | Accepted |
 | [0046](0046-production-image-and-compose.md)                           | One production image, one Compose project with five services             | Accepted |
 | [0047](0047-entitlement-rules-feed-access-groups.md)                   | The entitlements of the sign-in provider feed the access groups          | Accepted |
+| [0048](0048-where-i-am.md)                                             | Where I am: time zone, last visit, visits of spaces, "Catch up" data     | Accepted |

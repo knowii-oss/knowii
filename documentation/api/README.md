@@ -20,7 +20,7 @@ A personal API token (created on the "API tokens" page of the user menu) has abi
 | Ability             | What it allows                                                        |
 | ------------------- | --------------------------------------------------------------------- |
 | `user:read`         | Read the current user, their blocks and their frequently used emoji   |
-| `user:write`        | Change the avatar                                                     |
+| `user:write`        | Change the avatar, the online status and the time zone                |
 | `communities:read`  | Read communities, space groups, spaces, members and invitations       |
 | `communities:write` | Create, change and delete communities, spaces, members, invitations; join an open community, leave a community, let a removed member join again, change who can join, let search engines index the public spaces, transfer its ownership |
 | `posts:read`        | Read posts, comments and reactions, preview Markdown                  |
@@ -29,8 +29,8 @@ A personal API token (created on the "API tokens" page of the user menu) has abi
 | `chat:write`        | Write, edit and delete messages, react to them                        |
 | `messages:read`     | Read your direct messages, mark them as read (not in the default set) |
 | `messages:write`    | Start conversations, write, edit and delete direct messages, react    |
-| `notifications:read`  | Read your notifications and their count, the state of a thread that you follow, your level for a space (not in the default set) |
-| `notifications:write` | Mark your notifications as seen or read, undo read, "I am caught up", follow, stop following and mute a thread, choose your level for a space (not in the default set) |
+| `notifications:read`  | Read your notifications and their count, the state of a thread that you follow, your level for a space, the "Catch up" data (not in the default set) |
+| `notifications:write` | Mark your notifications as seen or read, undo read, "I am caught up", follow, stop following and mute a thread, choose your level for a space, visit a space, the pop-up switch (not in the default set) |
 | `pages:read`        | Read the pages of page spaces, mark lessons as done, read the progress, read and download course materials, read and answer lesson quizzes |
 | `pages:write`       | Create, change, reorder and delete pages and course materials, write and delete lesson quizzes (owner, admins, moderators) |
 | `resources:read`    | Read resources, their comments and reactions                          |
@@ -112,14 +112,18 @@ The notifications of the current member, in every community ([ADR 0042](../adr/0
 | Route | What it does |
 | ----- | ------------ |
 | `GET /v1/notifications` | The list. `level=1` (default) is "Needs you", `level=2` is "Following" (the last 14 days, no `older`), `state` (open, read, all), `community`, `older`. Each notification has `reason` (`wrote_post`, `wrote_comment`, `mentioned`, `follows_thread`, `space_everything`, `started_course`), `follow_reason` (`wrote`, `replied`, `manual`) and `items_count`. Needs `notifications:read` |
-| `GET /v1/notifications/count` | The number of the bell. It never counts "Following" |
+| `GET /v1/notifications/count` | The number of the bell (`data.count`). It never counts "Following". `data.messages` is the number of conversations with new messages, in every community, for the title of the browser tab |
 | `POST /v1/notifications/seen`, `PUT /v1/notifications/{notification}/read`, `POST /v1/notifications/{notification}/unread` | Seen, read, undo read. Need `notifications:write` |
-| `POST /v1/notifications/caught-up` | "I am caught up": every open "Following" notification is read, in every community or in the one that the optional `community` (cuid) names. It never touches "Needs you". Answers `data.marked` |
+| `POST /v1/notifications/caught-up` | "I am caught up": every open "Following" notification is read, in every community or in the one that the optional `community` (cuid) names. It never touches "Needs you". With a session, it also forgets the date of the "Catch up" card. Answers `data.marked` |
 | `GET`, `PUT`, `DELETE /v1/communities/{community}/spaces/{space}/posts/{post}/follow` | The state of the thread for the member (`state`: `following`, `muted`, `stopped` or null; `reason`: `wrote`, `replied`, `manual`), "Follow", "Stop following" (the state becomes `stopped`: writing again does not follow the thread again) |
 | `PUT /v1/communities/{community}/spaces/{space}/posts/{post}/mute` | "Mute this thread": nothing reaches the member from the thread, a mention included, and their open notifications about it are deleted |
 | `GET`, `PUT`, `DELETE /v1/communities/{community}/spaces/{space}/messages/{message}/follow`, `PUT .../messages/{message}/mute` | The same for a chat thread (a first-level message; a reply has no thread: 422) |
 | `GET /v1/communities/{community}/notification-levels` | The levels of the member for every space of the community that they can view, in one call, for a settings screen |
 | `GET`, `PUT`, `DELETE /v1/communities/{community}/spaces/{space}/notification-level` | The level for one space (`level`: `all` "Everything", `mine` "Only what is for me", `none` "Muted"; `chosen`; `default`), choose it (`level`), go back to the default. Muted gives nothing from the space, a mention included |
+| `GET /v1/communities/{community}/catch-up?since=YYYY-MM-DD` | The data of the "Catch up" card ([ADR 0048](../adr/0048-where-i-am.md), #1476): at most 5 lines (up to 2 `needs_you`, up to 2 `announcement`, 1 `thread`), each with `kind`, `title`, `excerpt`, `space`, `author`, `date` and `target`, and `has_more`. `since` is required, not in the future, at most 366 days back. Members only. Needs `notifications:read` |
+| `PUT /v1/communities/{community}/spaces/{space}/visit` | The member visited the space: its dot in the navigation goes. Members who can view the space only (403 otherwise). Needs `notifications:write` |
+| `PUT /v1/user/time-zone` | Set the time zone of the account (`time_zone`, an IANA name; an unknown name is a validation error). Only the member sets and reads it. Needs `user:write` |
+| `PUT /v1/user/notification-settings` | The switch "Show pop-ups" (`popups`, boolean). Needs `notifications:write` |
 
 The posts and the first-level chat messages carry `follow_state` (`following`, `muted`, `stopped`, or null). The space carries `default_notification_level` (`all`, `mine` or null) for the people who manage the spaces only; they set it with `PATCH /v1/communities/{community}/spaces/{space}` (`all` for a discussion space only, never a chat space; `none` is not allowed). `POST .../posts` takes `notify_now` (a boolean) to skip the 5 minutes before the members at "Everything" are told, for the people who can moderate the space (403 for the others).
 

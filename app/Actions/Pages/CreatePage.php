@@ -4,6 +4,7 @@ namespace App\Actions\Pages;
 
 use App\Constants;
 use App\Contracts\Notifications\Notifies;
+use App\Contracts\Notifications\TracksSpaceVisits;
 use App\Contracts\Pages\CreatesPages;
 use App\Enums\KnowiiPageKind;
 use App\Enums\KnowiiSpaceType;
@@ -65,6 +66,10 @@ class CreatePage implements CreatesPages
         });
 
         Log::info('Page created', ['page' => $page->cuid]);
+        // A page or a lesson is new content (#1476); a section is a heading, not content
+        if ($kind === KnowiiPageKind::Page) {
+            app(TracksSpaceVisits::class)->wroteIn($user, $space);
+        }
         // A new lesson of a course tells the members who started it (#1475): a queued job, after the commit. A page of a
         // page space and a section tell nobody (the job reads the type of the space)
         app(Notifies::class)->notify($page);

@@ -33,14 +33,29 @@ final class Conversations
      */
     public static function unreadTotal(User $user, Community $community): int
     {
-        return (int) DB::table('chat_messages')
+        return self::unreadMessages($user)->where('chat_messages.community_id', $community->id)->count();
+    }
+
+    /**
+     * The conversations with messages that the member did not read, in every community (#1476): the "messages" number of the
+     * tab title. It reads the same cursor (`last_read_message_id`) as the unread counts above: one source.
+     */
+    public static function unreadConversations(User $user): int
+    {
+        return self::unreadMessages($user)->distinct()->count('chat_messages.conversation_id');
+    }
+
+    /**
+     * The messages after the read marker of the member in the conversations that they take part in, by the others
+     */
+    private static function unreadMessages(User $user): QueryBuilder
+    {
+        return DB::table('chat_messages')
             ->join('conversation_participants', 'conversation_participants.conversation_id', '=', 'chat_messages.conversation_id')
-            ->where('chat_messages.community_id', $community->id)
             ->where('conversation_participants.user_id', $user->id)
             ->whereColumn('chat_messages.id', '>', 'conversation_participants.last_read_message_id')
             ->where(fn (QueryBuilder $query) => $query->whereNull('chat_messages.author_id')->orWhere('chat_messages.author_id', '!=', $user->id))
-            ->whereNull('chat_messages.deleted_at')
-            ->count();
+            ->whereNull('chat_messages.deleted_at');
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Inertia;
 
+use App\Contracts\Notifications\TracksSpaceVisits;
 use App\Enums\KnowiiSpaceType;
 use App\Models\Community;
 use App\Models\Page;
@@ -27,6 +28,11 @@ class PageController extends Controller
         $space = $community->spaces()->where('slug', $spaceSlug)->whereIn('type', [KnowiiSpaceType::Pages, KnowiiSpaceType::Course])->firstOrFail();
 
         Gate::authorize('view', $space);
+
+        // A member who opens the space has visited it: the dot of the navigation goes (#1476). Before the navigation is built
+        if ($request->user() !== null) {
+            app(TracksSpaceVisits::class)->visit($request->user(), $space);
+        }
 
         $rows = $space->pages()->get(['id', 'cuid', 'kind', 'title', 'slug', 'position']);
         $pages = $rows->reject(fn (Page $page) => $page->isSection())->values();

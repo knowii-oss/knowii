@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Inertia;
 
 use App\Constants;
+use App\Contracts\Notifications\TracksSpaceVisits;
 use App\Enums\KnowiiSpaceType;
 use App\Models\ChatMessage;
 use App\Models\ChatRead;
@@ -37,6 +38,11 @@ class SpaceController extends Controller
         $space = $community->spaces()->where('slug', $spaceSlug)->firstOrFail();
 
         Gate::authorize('view', $space);
+
+        // A member who opens the space has visited it: the dot of the navigation goes (#1476). Before the navigation is built
+        if ($request->user() !== null) {
+            app(TracksSpaceVisits::class)->visit($request->user(), $space);
+        }
 
         JsonResource::withoutWrapping();
 

@@ -27,10 +27,6 @@ class NotificationResource extends AbstractKnowiiJsonResource
     {
         /** @var Notification $notification */
         $notification = $this->resource;
-        $comment = $notification->comment;
-        $post = $notification->post ?? $comment?->post;
-        $message = $notification->chatMessage;
-        $page = $notification->page;
         $community = $notification->community;
         $space = $notification->space;
 
@@ -52,26 +48,61 @@ class NotificationResource extends AbstractKnowiiJsonResource
             // The live posts, comments, replies or lessons that a bundled row holds (set by the list)
             'items_count' => $notification->getAttributes()['items_count'] ?? 0,
             // The marker of a deleted post or comment shows nothing of the old content (#1344)
-            'title' => $page->title ?? ($post === null || $post->isDeleted() ? null : $post->title),
-            'excerpt' => self::excerpt($page ?? ($post !== null && $comment === null ? $post : ($comment ?? $message))),
+            'title' => self::titleOf($notification),
+            'excerpt' => self::excerptOf($notification),
             // What the client needs to open the exact item
-            'target' => [
-                'post_slug' => $post?->slug,
-                // The thread to follow or to mute: a post (#1497). A chat thread is `thread_cuid`, or the message itself
-                'post_cuid' => $post?->cuid,
-                'comment_cuid' => $comment?->cuid,
-                'chat_message_cuid' => $message?->cuid,
-                'thread_cuid' => $message?->parent?->cuid,
-                'resource_cuid' => $comment?->communityResource?->cuid,
-                // The page of a resource is addressed by its slug
-                'resource_slug' => $comment?->communityResource?->slug,
-                // A new lesson of a course (#1475): the lesson is addressed by its slug
-                'page_slug' => $page?->slug,
-            ],
+            'target' => self::targetOf($notification),
             'seen_at' => $notification->seen_at,
             'read_at' => $notification->read_at,
             'created_at' => $notification->created_at,
             'updated_at' => $notification->updated_at,
+        ];
+    }
+
+    /**
+     * The title, built from the live content. The marker of a deleted post or comment shows nothing of the old content (#1344)
+     */
+    public static function titleOf(Notification $notification): ?string
+    {
+        $post = $notification->post ?? $notification->comment?->post;
+
+        return $notification->page->title ?? ($post === null || $post->isDeleted() ? null : $post->title);
+    }
+
+    /**
+     * The plain text excerpt, built from the live content
+     */
+    public static function excerptOf(Notification $notification): string
+    {
+        $comment = $notification->comment;
+        $post = $notification->post ?? $comment?->post;
+
+        return self::excerpt($notification->page ?? ($post !== null && $comment === null ? $post : ($comment ?? $notification->chatMessage)));
+    }
+
+    /**
+     * What the client needs to open the exact item (also used by the "Catch up" lines, #1476)
+     *
+     * @return array{post_slug: ?string, post_cuid: ?string, comment_cuid: ?string, chat_message_cuid: ?string, thread_cuid: ?string, resource_cuid: ?string, resource_slug: ?string, page_slug: ?string}
+     */
+    public static function targetOf(Notification $notification): array
+    {
+        $comment = $notification->comment;
+        $post = $notification->post ?? $comment?->post;
+        $message = $notification->chatMessage;
+
+        return [
+            'post_slug' => $post?->slug,
+            // The thread to follow or to mute: a post (#1497). A chat thread is `thread_cuid`, or the message itself
+            'post_cuid' => $post?->cuid,
+            'comment_cuid' => $comment?->cuid,
+            'chat_message_cuid' => $message?->cuid,
+            'thread_cuid' => $message?->parent?->cuid,
+            'resource_cuid' => $comment?->communityResource?->cuid,
+            // The page of a resource is addressed by its slug
+            'resource_slug' => $comment?->communityResource?->slug,
+            // A new lesson of a course (#1475): the lesson is addressed by its slug
+            'page_slug' => $notification->page?->slug,
         ];
     }
 

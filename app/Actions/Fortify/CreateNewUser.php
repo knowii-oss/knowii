@@ -7,6 +7,7 @@ use App\Enums\KnowiiCommunityVisibility;
 use App\Knowii;
 use App\Models\Community;
 use App\Models\User;
+use App\Support\TimeZones;
 use App\Support\Turnstile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -54,10 +55,15 @@ class CreateNewUser implements CreatesNewUsers
             Turnstile::verify(is_string($token) ? $token : null, request()->ip(), 'turnstile_token');
         }
 
+        // The zone of the browser (#1476, ADR 0048): the member asks for it by sending it. A zone that PHP does not know, or
+        // none, gives null: the sign-up never fails because of it
+        $zone = $input['time_zone'] ?? null;
+        $timeZone = is_string($zone) ? TimeZones::orNull($zone) : null;
+
         /** @var array{name: string, email: string, password: string, terms: string} $input */
         $input = $validator->validated();
 
-        return $this->createAccount($input['name'], $input['email'], $input['password']);
+        return $this->createAccount($input['name'], $input['email'], $input['password'], false, $timeZone);
     }
 
     /**
@@ -67,22 +73,26 @@ class CreateNewUser implements CreatesNewUsers
      *
      * @param  string|null  $password  Null for an account without a password (the provider proved who the member is)
      * @param  bool  $emailVerified  Whether the address is verified from the start (the provider verified it)
+     * @param  string|null  $timeZone  The zone that the member sent, already checked (TimeZones::orNull); null: none
      */
-    final public function createAccount(string $name, string $email, ?string $password, bool $emailVerified = false): User
+    final public function createAccount(string $name, string $email, ?string $password, bool $emailVerified = false, ?string $timeZone = null): User
     {
         // Derive username from the user's name
         $username = Knowii::generateRandomUsername($name);
 
-        return DB::transaction(function () use ($username, $name, $email, $password, $emailVerified) {
+        return DB::transaction(function () use ($username, $name, $email, $password, $emailVerified, $timeZone) {
             return tap(User::create([
                 'name' => $name,
                 'username' => $username,
                 'email' => $email,
                 'password' => $password === null ? null : Hash::make($password),
-            ]), function (User $user) use ($emailVerified) {
+            ]), function (User $user) use ($emailVerified, $timeZone) {
                 // Not mass assignable: only this path and the sign-in links set it
                 if ($emailVerified) {
                     $user->markEmailAsVerified();
+                }
+                if ($timeZone !== null) {
+                    $user->forceFill(['time_zone' => $timeZone])->save();
                 }
 
                 // Always a new profile: the profile of a deleted account is gone with it (#1261, ADR 0024)

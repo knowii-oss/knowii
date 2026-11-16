@@ -43,6 +43,9 @@ class SpaceResource extends AbstractKnowiiJsonResource
             'position' => $this->position,
             // Chat spaces in the navigation (#1185): the messages that the member did not read yet
             'unread_count' => $this->when($this->unreadCount() !== null, fn () => $this->unreadCount()),
+            // The dot and the level of the navigation (#1476): set by SpaceTree for a member only, absent for a visitor and an outsider
+            'has_new' => $this->when($this->hasMarker('has_new'), fn () => $this->marker('has_new')),
+            'notification_level' => $this->when($this->hasMarker('notification_level'), fn () => $this->marker('notification_level')),
             'space_group_cuid' => $this->relationLoaded('spaceGroup') ? $this->spaceGroup->cuid : $this->spaceGroup()->value('cuid'),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
@@ -67,6 +70,26 @@ class SpaceResource extends AbstractKnowiiJsonResource
         }
 
         return $request->attributes->get($key) === true;
+    }
+
+    /**
+     * Whether SpaceTree set the attribute on this space (it does for the spaces of a member of the community only)
+     */
+    private function hasMarker(string $key): bool
+    {
+        /** @var Space $space */
+        $space = $this->resource;
+
+        return array_key_exists($key, $space->getAttributes());
+    }
+
+    private function marker(string $key): bool|string|null
+    {
+        /** @var Space $space */
+        $space = $this->resource;
+        $value = $space->getAttributes()[$key] ?? null;
+
+        return is_bool($value) || is_string($value) ? $value : null;
     }
 
     /**

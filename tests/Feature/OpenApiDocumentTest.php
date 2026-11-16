@@ -89,6 +89,8 @@ test('every write operation documents its request body', function () {
         'PUT /v1/communities/{community}/spaces/{space}/posts/{post}/mute',
         'PUT /v1/communities/{community}/spaces/{space}/messages/{message}/follow',
         'PUT /v1/communities/{community}/spaces/{space}/messages/{message}/mute',
+        // Visit a space (#1476): the space is in the path
+        'PUT /v1/communities/{community}/spaces/{space}/visit',
     ];
     $withoutBody = [];
     foreach (openApiDocument()['paths'] as $path => $operations) {

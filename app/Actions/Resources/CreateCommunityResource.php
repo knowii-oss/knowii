@@ -3,6 +3,7 @@
 namespace App\Actions\Resources;
 
 use App\Constants;
+use App\Contracts\Notifications\TracksSpaceVisits;
 use App\Contracts\Resources\CreatesCommunityResources;
 use App\Enums\KnowiiCaptureStatus;
 use App\Enums\KnowiiResourceLevel;
@@ -104,6 +105,9 @@ class CreateCommunityResource implements CreatesCommunityResources
                 'is_featured' => false,
             ]);
         });
+
+        // The space has new content (#1476)
+        app(TracksSpaceVisits::class)->wroteIn($user, $space);
 
         if (! $capture) {
             Log::info('Resource added without capture', ['resource' => $communityResource->cuid]);
