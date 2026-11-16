@@ -298,14 +298,22 @@ test('the privacy policy tells about notifications and how long they stay (#1474
     config(['retention.notifications_read_days' => 60, 'retention.notifications_unread_days' => 90]);
 
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
-        ->where('html', fn (string $html) => str_contains($html, 'and the notifications that tell you when a member replies to you or mentions you (who wrote, about which post, comment or message, and when you saw it).')
+        ->where('html', fn (string $html) => str_contains($html, 'and the notifications that tell you when a member replies to you or mentions you, or when something new happens in a thread that you follow, in a space where you chose Everything, or in a course that you started (who wrote, about which post, comment, message or lesson, and when you saw it)')
             && str_contains($html, 'Notifications: 60 days after you read them, 90 days when you never read them.'))
+    );
+});
+
+test('the privacy policy tells about the follows, the space levels and the entitlements of a sign-in account (#1505, approved 2026-11-16)', function () {
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, 'the threads that you follow or muted and the level that you chose for each space (Everything, Only what is for me, or Muted), which Knowii keeps while you are a member of the community and which you can change at any time,')
+            && str_contains($html, 'and, when you sign in with a Knowii account, the list of what that account gives access to, which Knowii reads when you sign in, when it changes, and once a night, to open or close the spaces of a community.')
+            && str_contains($html, 'Follows, mutes and space levels: while you are a member of the community.'))
     );
 });
 
 test('the privacy policy says that a public space is read by anyone, with the name and the picture (#1387)', function () {
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
-        ->where('updated', '2026-11-15')
+        ->where('updated', '2026-11-16')
         ->where('html', fn (string $html) => str_contains($html, 'What you post in a public space of a community can be read by anyone on the internet, with your name and your picture.')
             && ! str_contains($html, 'The space tells you so before you post.')));
 });
