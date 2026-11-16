@@ -1,0 +1,34 @@
+meta {
+  name: Users - Delete my account
+  type: http
+  seq: 182
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/user
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "password": "{{PASSWORD}}",
+    "delete_content": false,
+    "code": "<only with two-factor authentication: the code of the app or a recovery code>"
+  }
+}
+
+docs {
+  Delete your own account, for good (#1492, ADR 0024, ADR 0043). The rules of the web deletion apply: your profile, the communities that you own, your memberships, reactions, tokens and sessions go, and what you wrote in the communities of others stays under "Deleted member". With `delete_content` true, your posts, comments and messages go too (ADR 0043).
+
+  Proof of the intent: `password`, your current password. With two-factor authentication turned on, `code` too: the code of the authenticator app, or a recovery code (a recovery code that is used is consumed). Remove the `code` line without two-factor authentication.
+
+  Token ability: `account:delete`, never in the default set of a new token (the token screen shows it as its own choice).
+
+  Answers 204 and every token of the account is gone. Errors: 400 for a missing or wrong `password`, a missing or wrong `code`, or an invalid `delete_content` (the field is named in `errors`), 401 without a token, 403 without the ability or with an unverified email address, 422 when the account has no password (it signs in only through a provider: delete it in the web application), 429 after 3 requests in a minute.
+}

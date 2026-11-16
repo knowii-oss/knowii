@@ -21,6 +21,7 @@ A personal API token (created on the "API tokens" page of the user menu) has abi
 | ------------------- | --------------------------------------------------------------------- |
 | `user:read`         | Read the current user, their blocks and their frequently used emoji   |
 | `user:write`        | Change the avatar, the online status and the time zone                |
+| `account:delete`    | Delete your own account for good, with your password (and your two-factor code), `DELETE /v1/user`. Never in the default set of a new token |
 | `communities:read`  | Read communities, space groups, spaces, members and invitations       |
 | `communities:write` | Create, change and delete communities, spaces, members, invitations; join an open community, leave a community, let a removed member join again, change who can join, let search engines index the public spaces, transfer its ownership |
 | `posts:read`        | Read posts, comments and reactions, preview Markdown                  |
@@ -122,6 +123,7 @@ The notifications of the current member, in every community ([ADR 0042](../adr/0
 | `GET`, `PUT`, `DELETE /v1/communities/{community}/spaces/{space}/notification-level` | The level for one space (`level`: `all` "Everything", `mine` "Only what is for me", `none` "Muted"; `chosen`; `default`), choose it (`level`), go back to the default. Muted gives nothing from the space, a mention included |
 | `GET /v1/communities/{community}/catch-up?since=YYYY-MM-DD` | The data of the "Catch up" card ([ADR 0048](../adr/0048-where-i-am.md), #1476): at most 5 lines (up to 2 `needs_you`, up to 2 `announcement`, 1 `thread`), each with `kind`, `title`, `excerpt`, `space`, `author`, `date` and `target`, and `has_more`. `since` is required, not in the future, at most 366 days back. Members only. Needs `notifications:read` |
 | `PUT /v1/communities/{community}/spaces/{space}/visit` | The member visited the space: its dot in the navigation goes. Members who can view the space only (403 otherwise). Needs `notifications:write` |
+| `DELETE /v1/user` | Delete your own account (#1492, [ADR 0043](../adr/0043-delete-content-with-the-account.md)): body `password` (required), `delete_content` (boolean, also deletes your posts, comments and messages) and `code` (the code of the authenticator app or a recovery code, required with two-factor authentication; a recovery code is consumed). 204 and every token of the account is gone. 400 for a wrong or missing `password` or `code`, 422 for an account without a password (delete it in the web application), 429 after 3 tries a minute. Needs `account:delete`, not in the default set |
 | `PUT /v1/user/time-zone` | Set the time zone of the account (`time_zone`, an IANA name; an unknown name is a validation error). Only the member sets and reads it. Needs `user:write` |
 | `PUT /v1/user/notification-settings` | The switch "Show pop-ups" (`popups`, boolean). Needs `notifications:write` |
 

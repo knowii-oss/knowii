@@ -416,6 +416,11 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(Constants::OWNERSHIP_TRANSFERS_PER_MINUTE)->by(self::rateLimitKey($request));
         });
 
+        // The deletion of the own account through the API checks the password (#1492)
+        RateLimiter::for('account-deletions', static function (Request $request) {
+            return Limit::perMinute(Constants::ACCOUNT_DELETIONS_PER_MINUTE)->by(self::rateLimitKey($request));
+        });
+
         // Quiz attempts (#1335): the server grades each one
         RateLimiter::for('quiz-attempts', static function (Request $request) {
             return Limit::perMinute(Constants::QUIZ_ATTEMPTS_PER_MINUTE)->by(self::rateLimitKey($request));
