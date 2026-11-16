@@ -49,7 +49,7 @@ trait ApiResponses
      * Success with a list of plain items: an empty list is the JSON list `[]`. `success()` sends an empty array as the
      * JSON object `{}`, which a client that expects a list cannot read.
      *
-     * @param  array<int, mixed>  $items  the keys are dropped
+     * @param  array<int, array<string, bool|int|string|null>>  $items  the keys are dropped
      */
     final public static function successList(string $message, array $items): JsonResponse
     {
