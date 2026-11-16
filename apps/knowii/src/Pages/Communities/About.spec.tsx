@@ -88,7 +88,9 @@ describe('CommunityAboutPage', () => {
 
     expect(screen.getByText('A place to learn')).toBeInTheDocument();
     expect(screen.getByText('12')).toBeInTheDocument();
-    expect(screen.getByText('Members only. People join with an invitation.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Not shown in a list of communities. Each space says who can read it, and "Who can join" says how people join.'),
+    ).toBeInTheDocument();
     const teamList = screen.getByRole('list', { name: 'Team' });
     expect(within(teamList).getByRole('link', { name: 'Olivia' })).toHaveAttribute('href', '/members.show/tests/olivia');
     expect(within(teamList).getByText('Moderator')).toBeInTheDocument();
