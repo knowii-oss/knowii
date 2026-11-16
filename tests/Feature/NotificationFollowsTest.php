@@ -1378,6 +1378,15 @@ test('the levels of the member for a community: no query per space', function ()
     expect($count())->toBe($few);
 });
 
+test('the levels of a community without a space are an empty JSON list, not a JSON object', function () {
+    $empty = Community::factory()->create(['owner_id' => $this->owner->id]);
+    $path = flwPath(ApiRoutes::COMMUNITY_NOTIFICATION_LEVELS, [ApiRoutes::PARAM_COMMUNITY => $empty->cuid]);
+
+    $content = $this->actingAs($this->owner)->getJson($path)->assertOk()->getContent();
+
+    expect($content)->toContain('"data":[]');
+});
+
 test('the space resource gives the default level to the people who manage the spaces only', function () {
     app(UpdatesSpaces::class)->update($this->owner, $this->space, ['default_notification_level' => 'all']);
     $path = flwSpacePath(ApiRoutes::COMMUNITY_SPACE, $this->community, $this->space);

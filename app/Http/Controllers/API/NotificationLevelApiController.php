@@ -31,7 +31,7 @@ class NotificationLevelApiController extends Controller
      */
     final public function index(Request $request, Community $community): JsonResponse
     {
-        return self::success('Notification levels', null, app(ChoosesSpaceLevels::class)->forCommunity(self::user($request), $community));
+        return self::successList('Notification levels', app(ChoosesSpaceLevels::class)->forCommunity(self::user($request), $community));
     }
 
     /**

@@ -46,6 +46,19 @@ trait ApiResponses
     }
 
     /**
+     * Success with a list of plain items: an empty list is the JSON list `[]`. `success()` sends an empty array as the
+     * JSON object `{}`, which a client that expects a list cannot read.
+     *
+     * @param  array<int, mixed>  $items  the keys are dropped
+     */
+    final public static function successList(string $message, array $items): JsonResponse
+    {
+        $knowiiResponse = new KnowiiApiResponse(KnowiiApiResponseCategory::Business, KnowiiApiResponseType::Success, $message, null, array_values($items), null)->asList();
+
+        return response()->json($knowiiResponse->jsonSerialize());
+    }
+
+    /**
      * Return an authentication issue response.
      *
      * @param  array<string, bool|int|string|array<string, int|null>|null>|null  $metadata
