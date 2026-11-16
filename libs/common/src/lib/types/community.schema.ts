@@ -32,12 +32,14 @@ export const communityVisibilityOptions: Array<{ name: string; visibility: Commu
 ];
 
 /**
- * What each visibility means, for the details page of a community (#1135)
+ * What each visibility means, for the details page and the settings of a community (#1135, #1500). The visibility of a
+ * space decides who reads it (ADR 0044) and the join policy decides who joins (#1486): the visibility of a shared community
+ * only marks it for a list of public communities.
  */
 export const COMMUNITY_VISIBILITY_DESCRIPTIONS: Record<CommunityVisibility, string> = {
   personal: 'Only you. A place for your own notes and resources.',
-  private: 'Members only. People join with an invitation.',
-  public: 'Members only for now. Public spaces come later.',
+  private: 'Not shown in a list of communities. Each space says who can read it, and "Who can join" says how people join.',
+  public: 'For a list of public communities, which comes later. Each space says who can read it, and "Who can join" says how people join.',
 };
 
 export const newCommunitySchema = z.object({
