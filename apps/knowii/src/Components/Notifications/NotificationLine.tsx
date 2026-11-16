@@ -1,16 +1,25 @@
 import type { MouseEvent } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from '@inertiajs/react';
-import { format } from 'date-fns';
 import { FaEllipsis } from 'react-icons/fa6';
 import type { Notification } from '@knowii/common';
 import {
+  formatFullDateTime,
   notificationReasonSentence,
   notificationSentence,
   notificationSentenceHasTitle,
   notificationSettingsLinkName,
 } from '@knowii/common';
-import { Avatar, Button, cn, DropdownMenu, DropdownMenuItem, dropdownMenuItemClasses, RelativeTime } from '@/Components/ui';
+import {
+  Avatar,
+  Button,
+  cn,
+  DropdownMenu,
+  DropdownMenuItem,
+  dropdownMenuItemClasses,
+  RelativeTime,
+  useAccountTimeZone,
+} from '@/Components/ui';
 import { canStopFollowing, threadOf } from './notification-thread';
 
 // The menu of a line closes with a short transition and then gives the focus back to its button
@@ -48,6 +57,7 @@ export interface NotificationLineProps {
  */
 export function NotificationLine(props: NotificationLineProps) {
   const { notification, href, isNew, showCommunity, busy, doneElsewhere, registerLine, registerLink } = props;
+  const zone = useAccountTimeZone();
   const sentence = notificationSentence(notification);
   const where = [notification.space?.name, showCommunity ? notification.community.name : null].filter(Boolean).join(' · ');
   const label = `${sentence}${notification.title && !notificationSentenceHasTitle(notification) ? `: ${notification.title}` : ''}`;
@@ -124,7 +134,7 @@ export function NotificationLine(props: NotificationLineProps) {
           {where && <span>{where}</span>}
           <span>
             <RelativeTime date={notification.updated_at} />
-            <span className="sr-only">, {format(notification.updated_at, 'PPpp')}</span>
+            <span className="sr-only">, {formatFullDateTime(notification.updated_at, zone)}</span>
           </span>
         </p>
         {doneElsewhere && <p className="text-xs font-bold text-primary">Done on another device</p>}

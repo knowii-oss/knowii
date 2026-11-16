@@ -459,7 +459,7 @@ describe('the Notifications panel (#1484)', () => {
       expect(within(panel()).queryByRole('button', { name: 'Load older' })).toBeNull();
     });
 
-    it('keeps "Older" closed, and loads it when the member opens it the first time', async () => {
+    it('keeps "Earlier" closed, and loads it when the member opens it the first time', async () => {
       api.list.mockImplementation((input) =>
         Promise.resolve(input?.older ? page([makeNotification('old', { title: 'An old one' })]) : page([makeNotification('a')])),
       );
@@ -467,7 +467,7 @@ describe('the Notifications panel (#1484)', () => {
       const user = await openPanel();
       await screen.findByText('Title of a');
 
-      const disclosure = within(panel()).getByRole('button', { name: 'Older' });
+      const disclosure = within(panel()).getByRole('button', { name: 'Earlier' });
       expect(disclosure).toHaveAttribute('aria-expanded', 'false');
       expect(api.list).not.toHaveBeenCalledWith(expect.objectContaining({ older: true }));
 
@@ -557,7 +557,7 @@ describe('the Notifications panel (#1484)', () => {
   });
 
   describe('accessibility', () => {
-    it('has no automated violation (axe) with lines, the status text and "Older" open', async () => {
+    it('has no automated violation (axe) with lines, the status text and "Earlier" open', async () => {
       api.list.mockImplementation((input) =>
         Promise.resolve(
           input?.older
@@ -568,7 +568,7 @@ describe('the Notifications panel (#1484)', () => {
       renderBell();
       const user = await openPanel();
       await screen.findByText('Title of a');
-      await user.click(within(panel()).getByRole('button', { name: 'Older' }));
+      await user.click(within(panel()).getByRole('button', { name: 'Earlier' }));
       await screen.findByText('An old one');
       await user.click(within(lineOf('Title of b')).getByRole('button', { name: /^Done:/ }));
       await screen.findByRole('button', { name: 'Undo' });

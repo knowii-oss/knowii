@@ -10,6 +10,7 @@ import { Link, router } from '@inertiajs/react';
 import { FaCircleInfo, FaGear } from 'react-icons/fa6';
 import type { BreadcrumbItem } from '@/Components/ui';
 import { buttonClasses, Card, CardBody, CardHeader } from '@/Components/ui';
+import { CatchUpCard } from '@/Components/Notifications/CatchUpCard';
 import { CommunityShell } from '@/Components/Spaces/CommunityShell';
 
 interface Props {
@@ -71,9 +72,13 @@ export default function CommunityPage(props: Props) {
       }
     >
       <CommunityShell community={props.community} spaceGroups={props.spaceGroups}>
+        <h1 className="sr-only">{props.community.name}</h1>
         <div className="flex flex-col gap-6 lg:flex-row">
           {/* First Column */}
           <div className="flex flex-col gap-6 lg:w-4/5">
+            {/* "Catch up" (#1476): the first card, only after a week away and when the community has lines */}
+            <CatchUpCard community={props.community} />
+
             {/* Recent resources */}
             <Card aria-labelledby="recent-resources-title" className="overflow-hidden">
               <CardHeader title={<span id="recent-resources-title">Recent Resources</span>} icon={<ResourceIcon />} />

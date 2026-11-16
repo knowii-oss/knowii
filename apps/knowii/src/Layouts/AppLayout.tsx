@@ -1,12 +1,13 @@
 import type { ReactElement, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import {
   API_TOKENS_URL,
   DASHBOARD_URL,
   HOME_URL,
   LOGIN_URL,
   LOGOUT_URL,
+  NOTIFICATIONS_URL,
   REGISTER_URL,
   USER_NOTIFICATIONS_URL,
   USER_PROFILE_URL,
@@ -14,19 +15,23 @@ import {
   useTypedPage,
 } from '@knowii/common';
 import { useRoute } from 'ziggy-js';
-import { FaBars, FaBell, FaHome, FaKey, FaSignOutAlt, FaUser } from 'react-icons/fa';
+import { FaBars, FaBell, FaHome, FaKey, FaRegClock, FaSignOutAlt, FaUser } from 'react-icons/fa';
 import PageHeader from '@/Components/PageHeader';
 import ApplicationMark from '@/Components/ApplicationMark';
 import Footer from '@/Components/Footer';
 import MainMenu from '@/Components/MainMenu';
+import { useActiveCatchUp } from '@/Components/Notifications/catch-up-state';
 import { NotificationBell } from '@/Components/Notifications/NotificationBell';
 import { NotificationsProvider } from '@/Components/Notifications/NotificationsProvider';
+import { TabTitle } from '@/Components/Notifications/TabTitle';
+import { TimeZoneAsk } from '@/Components/TimeZone/TimeZoneAsk';
 import PageContentWrapper, { type PageContentWidth } from '@/Components/PageContentWrapper';
 import PageWrapper from '@/Components/PageWrapper';
 import { VisitorProvider } from '@/Components/Reader/Reader';
 import PageTitle from '@/Components/PageTitle';
 import type { BreadcrumbItem } from '@/Components/ui';
 import {
+  AccountTimeZoneProvider,
   Avatar,
   Button,
   cn,
@@ -66,6 +71,8 @@ export default function AppLayout(props: Props) {
   const breadcrumbHome = isVisitor && props.breadcrumbHome ? { ...props.breadcrumbHome, href: HOME_URL } : props.breadcrumbHome;
 
   const [mainMenuVisible, setMainMenuVisible] = useState(false);
+  // The "Catch up" entry of the user menu shows while the card has a date, until the member clears it (#1476)
+  const catchUpSince = useActiveCatchUp(page.props.catchUp?.since);
 
   // A message flashed by a redirect of the server (for example the link of an invitation, #1242) shows as a toast
   const { showToast } = useAppData();
@@ -80,9 +87,9 @@ export default function AppLayout(props: Props) {
     }
   }, [flashMessage, flashStyle, showToast]);
 
-  return (
-    <VisitorProvider value={isVisitor}>
-      <Head title={props.browserPageTitle} />
+  const layout = (
+    <>
+      <TabTitle title={props.browserPageTitle} />
 
       <PageWrapper>
         <PageHeader
@@ -103,10 +110,8 @@ export default function AppLayout(props: Props) {
             </>
           ) : (
             <>
-              {/* The bell and the live region of the notifications: members only, so a visitor opens no connection (#1484) */}
-              <NotificationsProvider userCuid={user?.cuid ?? ''}>
-                <NotificationBell />
-              </NotificationsProvider>
+              {/* The bell of the notifications: members only, so a visitor opens no connection (#1484) */}
+              <NotificationBell />
 
               {/* MAIN menu */}
               <Button
@@ -150,6 +155,19 @@ export default function AppLayout(props: Props) {
                   </div>
                 }
               >
+                {catchUpSince && (
+                  <DropdownMenuItem>
+                    <Link
+                      href={route(NOTIFICATIONS_URL)}
+                      preserveState={true}
+                      aria-current={isCurrentUrl(route(NOTIFICATIONS_URL), page.url) ? 'page' : undefined}
+                      className={cn(dropdownMenuItemClasses, 'aria-[current=page]:bg-overlay/10 aria-[current=page]:font-bold')}
+                    >
+                      <FaRegClock aria-hidden="true" className="text-muted" />
+                      Catch up
+                    </Link>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem>
                   <Link
                     href={route(USER_PROFILE_URL)}
@@ -196,6 +214,9 @@ export default function AppLayout(props: Props) {
           )}
         </PageHeader>
 
+        {/* The question about the time zone (#1476): members only, a plain region, never a dialog */}
+        {!isVisitor && <TimeZoneAsk />}
+
         <div className="border-b border-border bg-surface">
           <div className="page-container flex justify-center py-3">
             <PageTitle
@@ -214,6 +235,15 @@ export default function AppLayout(props: Props) {
 
         <Footer />
       </PageWrapper>
+    </>
+  );
+
+  return (
+    <VisitorProvider value={isVisitor}>
+      <AccountTimeZoneProvider value={user?.time_zone ?? null}>
+        {/* The bell number, the tab title, the pop-up and the live region share one provider: members only (#1484, #1476) */}
+        {isVisitor ? layout : <NotificationsProvider userCuid={user?.cuid ?? ''}>{layout}</NotificationsProvider>}
+      </AccountTimeZoneProvider>
     </VisitorProvider>
   );
 }

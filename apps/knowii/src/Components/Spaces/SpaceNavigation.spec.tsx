@@ -127,3 +127,77 @@ describe('SpaceNavigation', () => {
     expect(screen.getByText('No spaces yet.')).toBeInTheDocument();
   });
 });
+
+describe('the dots of the navigation (#1476, design 5.2 and 9.5)', () => {
+  const renderSpaces = (spaces: Space[]) =>
+    render(
+      <SpaceNavigation
+        spaceGroups={[
+          {
+            cuid: 'g',
+            name: 'Talk',
+            position: 0,
+            created_at: now,
+            updated_at: now,
+            spaces: spaces.map((item) => ({ ...item, visibility: 'public' as const })),
+          },
+        ]}
+        getSpaceHref={(item) => `/spaces/${item.slug}`}
+      />,
+    );
+
+  it('shows a dot for a space with new content, and "New content" is part of the name of the link', () => {
+    renderSpaces([
+      space({ cuid: 'a', name: 'News', slug: 'news', has_new: true, notification_level: 'mine' }),
+      space({ cuid: 'b', name: 'Quiet', slug: 'quiet', has_new: false, notification_level: 'mine' }),
+    ]);
+
+    expect(screen.getByRole('link', { name: 'News, New content' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Quiet' })).toBeInTheDocument();
+  });
+
+  it('draws the dot with a border in the color of the text, so that forced colors keep it, and hides the shape from assistive technology', () => {
+    renderSpaces([space({ cuid: 'a', name: 'News', slug: 'news', has_new: true, notification_level: 'all' })]);
+
+    const dot = screen.getByRole('link', { name: 'News, New content' }).querySelector('span[aria-hidden="true"].rounded-full');
+    expect(dot).not.toBeNull();
+    expect(dot?.className).toContain('border-current');
+    expect(dot?.className).toContain('border-2');
+  });
+
+  it('shows no dot for a visitor or an outsider (the fields are absent)', () => {
+    renderSpaces([space({ cuid: 'a', name: 'News', slug: 'news' })]);
+
+    expect(screen.getByRole('link', { name: 'News' })).toBeInTheDocument();
+    expect(screen.queryByText(/New content/)).toBeNull();
+  });
+
+  it('shows the number of a chat space only at the level Everything', () => {
+    renderSpaces([
+      space({ cuid: 'a', name: 'Lounge', slug: 'lounge', type: 'chat', unread_count: 4, notification_level: 'all' }),
+      space({ cuid: 'b', name: 'Help', slug: 'help', type: 'chat', unread_count: 6, notification_level: 'mine' }),
+    ]);
+
+    expect(screen.getByRole('link', { name: /Lounge.*4.*unread/ })).toBeInTheDocument();
+    // Only what is for me: no number, and no dot (a chat space has no dot)
+    expect(screen.getByRole('link', { name: 'Help' })).toBeInTheDocument();
+    expect(screen.queryByText('6')).toBeNull();
+  });
+
+  it('shows nothing for a muted space: no dot and no number', () => {
+    renderSpaces([
+      space({ cuid: 'a', name: 'Muted talk', slug: 'muted', has_new: true, notification_level: 'none' }),
+      space({ cuid: 'b', name: 'Muted chat', slug: 'muted-chat', type: 'chat', unread_count: 3, notification_level: 'none' }),
+    ]);
+
+    expect(screen.getByRole('link', { name: 'Muted talk' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Muted chat' })).toBeInTheDocument();
+    expect(screen.queryByText(/New content|unread/)).toBeNull();
+  });
+
+  it('shows no dot for a link space', () => {
+    renderSpaces([space({ cuid: 'a', name: 'Shop', slug: 'shop', type: 'link', url: 'https://example.com', has_new: false })]);
+
+    expect(screen.queryByText(/New content/)).toBeNull();
+  });
+});

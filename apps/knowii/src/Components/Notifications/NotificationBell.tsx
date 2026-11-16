@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { notificationBadge, notificationBellName } from '@knowii/common';
+import { notificationBadge, notificationBellName, useTypedPage } from '@knowii/common';
 import { FaBell } from 'react-icons/fa';
 import { Button, Drawer } from '@/Components/ui';
 import { NotificationsPanel } from './NotificationsPanel';
@@ -27,12 +27,26 @@ const isNarrow = () => window.matchMedia?.(NARROW_QUERY).matches ?? false;
  * the heading "Notifications"; on closing, it goes back to the bell.
  */
 export function NotificationBell() {
-  const { count } = useNotifications();
+  const { count, registerPanel, setPanelOpen } = useNotifications();
+  const page = useTypedPage();
+  // The "Catch up" card of the panel is the one of the community of the page (design 5.5), when the page has one
+  const community = (page.props as { community?: { cuid?: string; slug?: string; name?: string } }).community;
+  const catchUpCommunities =
+    community?.cuid && community.slug && community.name ? [{ cuid: community.cuid, slug: community.slug, name: community.name }] : [];
   const narrow = useSyncExternalStore(subscribeToNarrow, isNarrow, () => false);
   const [open, setOpen] = useState(false);
   const button = useRef<HTMLButtonElement>(null);
   const heading = useRef<HTMLSpanElement>(null);
   const container = useRef<HTMLDivElement>(null);
+
+  // "Show all" of the card of the home opens the panel, and the provider knows when no pop-up may show
+  useEffect(() => {
+    registerPanel(() => setOpen(true));
+    return () => registerPanel(null);
+  }, [registerPanel]);
+  useEffect(() => {
+    setPanelOpen(open);
+  }, [open, setPanelOpen]);
 
   const focusHeading = useCallback(() => heading.current?.focus(), []);
   const close = useCallback(() => setOpen(false), []);
@@ -133,7 +147,7 @@ export function NotificationBell() {
       {narrow ? (
         <Drawer open={open} onClose={close} side="right" title={headingText} closeLabel="Close notifications">
           <div id={PANEL_ID}>
-            <NotificationsPanel onClose={close} focusHeading={focusHeading} />
+            <NotificationsPanel onClose={close} focusHeading={focusHeading} catchUpCommunities={catchUpCommunities} />
           </div>
         </Drawer>
       ) : (
@@ -145,7 +159,7 @@ export function NotificationBell() {
             className="absolute top-full right-0 z-40 mt-2 max-h-[75vh] w-[28rem] max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl border border-border bg-surface-elevated p-4 text-primary shadow-2xl"
           >
             <h2 className="mb-3 text-lg font-extrabold">{headingText}</h2>
-            <NotificationsPanel onClose={close} focusHeading={focusHeading} />
+            <NotificationsPanel onClose={close} focusHeading={focusHeading} catchUpCommunities={catchUpCommunities} />
           </div>
         )
       )}

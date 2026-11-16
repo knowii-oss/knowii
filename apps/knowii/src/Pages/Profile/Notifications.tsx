@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Community } from '@knowii/common';
+import { useTypedPage } from '@knowii/common';
 import AppLayout from '@/Layouts/AppLayout';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
 import ActionSection from '@/Components/ActionSection';
 import Separator from '@/Components/Separator';
 import type { BreadcrumbItem } from '@/Components/ui';
+import { PopupsForm } from '@/Pages/Profile/Partials/PopupsForm';
 import { SpaceLevelsForm } from '@/Pages/Profile/Partials/SpaceLevelsForm';
+import { TimeZoneForm } from '@/Pages/Profile/Partials/TimeZoneForm';
 import { FaBell } from 'react-icons/fa';
 
 interface Props {
@@ -17,10 +20,11 @@ interface Props {
 const STATUS_MS = 4000;
 
 /**
- * The notification settings of the member (#1497, design 5.9, 9.6): "Your spaces", the level of each space of each of their
- * communities. One status region says "Saved" after a change.
+ * The notification settings of the member (#1497, design 5.9, 9.6): "Your time zone" and "Pop-ups" (#1476), then "Your spaces",
+ * the level of each space of each of their communities. One status region says "Saved" after a change.
  */
 export default function NotificationSettings({ communities }: Props) {
+  const user = useTypedPage().props.auth?.user ?? null;
   const [status, setStatus] = useState('');
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -58,6 +62,18 @@ export default function NotificationSettings({ communities }: Props) {
       >
         {status}
       </div>
+
+      <ActionSection
+        title="Your time zone"
+        description="The zone in which Knowii shows the date and the hour of what happens. Only you can see it and change it."
+      >
+        <TimeZoneForm timeZone={user?.time_zone ?? null} onStatus={announce} />
+      </ActionSection>
+      <Separator />
+      <ActionSection title="Pop-ups" description="When something new needs you, a short message can appear at the top of the page.">
+        <PopupsForm popups={user?.notification_popups !== false} onStatus={announce} />
+      </ActionSection>
+      <Separator />
 
       {communities.length === 0 ? (
         <p>You do not belong to a community yet.</p>

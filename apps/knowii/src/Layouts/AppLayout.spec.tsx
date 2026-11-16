@@ -1,9 +1,13 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { AppDataProvider, knowiiApiClient } from '@knowii/common';
 import AppLayout from './AppLayout';
 
-const page = vi.hoisted(() => ({ user: null as { cuid: string; name: string; email: string; avatar_url: string | null } | null }));
+const page = vi.hoisted(() => ({
+  user: null as { cuid: string; name: string; email: string; avatar_url: string | null; time_zone?: string | null } | null,
+  catchUp: null as { since: string } | null,
+}));
 
 vi.mock('@inertiajs/react', () => ({
   Link: ({ children, href, ...props }: { children: React.ReactNode; href: string }) => (
@@ -16,6 +20,7 @@ vi.mock('@inertiajs/react', () => ({
   usePage: () => ({
     props: {
       auth: { user: page.user },
+      catchUp: page.catchUp,
       jetstream: { flash: {}, hasApiFeatures: true },
       newsletter: { enabled: false, turnstileSiteKey: null },
     },
@@ -41,6 +46,20 @@ function renderLayout() {
 describe('AppLayout for a visitor (#1387)', () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    page.catchUp = null;
+  });
+
+  it('gets none of "where I am" (#1476): no question about the time zone, no pop-up, no "Catch up" entry', () => {
+    page.user = null;
+    page.catchUp = { since: '2026-11-01' };
+    const zone = vi.spyOn(knowiiApiClient.users, 'setTimeZone');
+    renderLayout();
+
+    expect(screen.queryByText(/Show times in/)).toBeNull();
+    expect(screen.queryByTestId('notification-popup')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Open the user menu' })).toBeNull();
+    expect(screen.queryByText('Catch up')).toBeNull();
+    expect(zone).not.toHaveBeenCalled();
   });
 
   it('shows "Sign in" and "Sign up" in place of the user menu, and no link to the dashboard', () => {
@@ -85,7 +104,9 @@ describe('AppLayout for a visitor (#1387)', () => {
 
   it('shows the bell, loads the count and listens to the channel of the member (#1484)', async () => {
     page.user = { cuid: 'u1', name: 'Ada', email: 'ada@example.com', avatar_url: null };
-    const count = vi.spyOn(knowiiApiClient.notifications, 'count').mockResolvedValue({ ok: true, message: '', data: { count: 2 } });
+    const count = vi
+      .spyOn(knowiiApiClient.notifications, 'count')
+      .mockResolvedValue({ ok: true, message: '', data: { count: 2, messages: 0 } });
     const subscribe = vi.spyOn(window.Echo, 'private');
     renderLayout();
 
@@ -126,3 +147,35 @@ function renderBreadcrumb() {
     </AppDataProvider>,
   );
 }
+
+describe('AppLayout for a member (#1476)', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    page.catchUp = null;
+  });
+
+  const member = { cuid: 'u1', name: 'Ada', email: 'ada@example.com', avatar_url: null, time_zone: 'UTC' };
+
+  it('adds the entry "Catch up" to the user menu while the prop holds a date, and it opens the page "Notifications"', async () => {
+    page.user = member;
+    page.catchUp = { since: '2026-11-01' };
+    vi.spyOn(knowiiApiClient.notifications, 'count').mockResolvedValue({ ok: true, message: '', data: { count: 0, messages: 0 } });
+    renderLayout();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Open the user menu' }));
+
+    expect(await screen.findByRole('menuitem', { name: 'Catch up' })).toHaveAttribute('href', '/notifications.index');
+  });
+
+  it('has no entry "Catch up" without a date', async () => {
+    page.user = member;
+    page.catchUp = null;
+    vi.spyOn(knowiiApiClient.notifications, 'count').mockResolvedValue({ ok: true, message: '', data: { count: 0, messages: 0 } });
+    renderLayout();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Open the user menu' }));
+
+    expect(await screen.findByRole('menuitem', { name: 'Edit profile' })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Catch up' })).toBeNull();
+  });
+});

@@ -77,7 +77,7 @@ describe('the number is the value of the server (#1484, design 5.2.6)', () => {
 
   it('loads the count on page load, on each event, and keeps the server value: it never adds 1', async () => {
     const api = spyOnNotificationApi();
-    api.count.mockResolvedValue({ ok: true, message: '', data: { count: 3 } });
+    api.count.mockResolvedValue({ ok: true, message: '', data: { count: 3, messages: 0 } });
     renderBell();
     await settle();
     expect(screen.getByRole('button', { name: 'Notifications, 3 new' })).toBeInTheDocument();
@@ -89,7 +89,7 @@ describe('the number is the value of the server (#1484, design 5.2.6)', () => {
     expect(api.count).toHaveBeenCalledTimes(2);
     expect(screen.getByRole('button', { name: 'Notifications, 3 new' })).toBeInTheDocument();
 
-    api.count.mockResolvedValue({ ok: true, message: '', data: { count: 7 } });
+    api.count.mockResolvedValue({ ok: true, message: '', data: { count: 7, messages: 0 } });
     emitSocketEvent(channel, 'notifications.changed', { notification_cuid: null, community_cuid: 'c1' });
     await settle(NOTIFICATION_DEBOUNCE_MS);
     expect(screen.getByRole('button', { name: 'Notifications, 7 new' })).toBeInTheDocument();
@@ -115,7 +115,7 @@ describe('the number is the value of the server (#1484, design 5.2.6)', () => {
     renderBell();
     await settle();
 
-    api.count.mockResolvedValue({ ok: true, message: '', data: { count: 2 } });
+    api.count.mockResolvedValue({ ok: true, message: '', data: { count: 2, messages: 0 } });
     act(() => {
       window.dispatchEvent(new Event('focus'));
     });
@@ -133,7 +133,7 @@ describe('the number is the value of the server (#1484, design 5.2.6)', () => {
     // The connection drops and comes back
     act(() => emitConnectionState('connected', 'unavailable'));
     expect(api.count).toHaveBeenCalledTimes(1);
-    api.count.mockResolvedValue({ ok: true, message: '', data: { count: 4 } });
+    api.count.mockResolvedValue({ ok: true, message: '', data: { count: 4, messages: 0 } });
     act(() => emitConnectionState('unavailable', 'connected'));
     await settle();
 
@@ -143,7 +143,7 @@ describe('the number is the value of the server (#1484, design 5.2.6)', () => {
 
   it('keeps the old number when the request fails', async () => {
     const api = spyOnNotificationApi();
-    api.count.mockResolvedValue({ ok: true, message: '', data: { count: 5 } });
+    api.count.mockResolvedValue({ ok: true, message: '', data: { count: 5, messages: 0 } });
     renderBell();
     await settle();
 
@@ -193,7 +193,7 @@ describe('the live region (#1484, design 9.3)', () => {
 
   it('says nothing for a row that was seen, or for a change of the count', async () => {
     const api = spyOnNotificationApi();
-    api.count.mockResolvedValue({ ok: true, message: '', data: { count: 1 } });
+    api.count.mockResolvedValue({ ok: true, message: '', data: { count: 1, messages: 0 } });
     renderBell();
     await settle();
 
@@ -201,7 +201,7 @@ describe('the live region (#1484, design 9.3)', () => {
     emitSocketEvent(channel, 'notifications.changed', { notification_cuid: 'n1', community_cuid: 'c1' });
     await settle(NOTIFICATION_DEBOUNCE_MS);
     // Several rows changed: no cuid, so nothing to name
-    api.count.mockResolvedValue({ ok: true, message: '', data: { count: 9 } });
+    api.count.mockResolvedValue({ ok: true, message: '', data: { count: 9, messages: 0 } });
     emitSocketEvent(channel, 'notifications.changed', { notification_cuid: null, community_cuid: 'c1' });
     await settle(NOTIFICATION_DEBOUNCE_MS);
 
