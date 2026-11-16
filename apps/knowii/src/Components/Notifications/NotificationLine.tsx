@@ -8,6 +8,7 @@ import {
   notificationReasonSentence,
   notificationSentence,
   notificationSentenceHasTitle,
+  notificationShowsItem,
   notificationSettingsLinkName,
 } from '@knowii/common';
 import {
@@ -60,7 +61,10 @@ export function NotificationLine(props: NotificationLineProps) {
   const zone = useAccountTimeZone();
   const sentence = notificationSentence(notification);
   const where = [notification.space?.name, showCommunity ? notification.community.name : null].filter(Boolean).join(' · ');
-  const label = `${sentence}${notification.title && !notificationSentenceHasTitle(notification) ? `: ${notification.title}` : ''}`;
+  // A line for several new posts or lessons shows no title and no excerpt, and none is in its names (#1509)
+  const showsItem = notificationShowsItem(notification);
+  const showsTitle = showsItem && !!notification.title && !notificationSentenceHasTitle(notification);
+  const label = `${sentence}${showsTitle ? `: ${notification.title}` : ''}`;
   const avatar = notification.actor;
   const isFollowing = notification.level === 2;
   const thread = threadOf(notification);
@@ -126,10 +130,8 @@ export function NotificationLine(props: NotificationLineProps) {
             {sentence}
           </p>
         )}
-        {notification.title && !notificationSentenceHasTitle(notification) && (
-          <p className="truncate text-sm text-primary">{notification.title}</p>
-        )}
-        {notification.excerpt && <p className="line-clamp-2 text-sm break-words text-muted">{notification.excerpt}</p>}
+        {showsTitle && <p className="truncate text-sm text-primary">{notification.title}</p>}
+        {showsItem && notification.excerpt && <p className="line-clamp-2 text-sm break-words text-muted">{notification.excerpt}</p>}
         <p className="flex flex-wrap gap-x-2 text-xs text-muted">
           {where && <span>{where}</span>}
           <span>

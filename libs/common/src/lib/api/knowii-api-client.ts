@@ -1488,8 +1488,8 @@ export const knowiiApiClient = {
       ),
   },
   /**
-   * The follow state of a thread for the current member, and the actions "Follow", "Stop following" and "Mute this thread"
-   * (#1497). A thread is a post or a first-level chat message.
+   * The follow state of a thread for the current member, and the actions "Follow", "Stop following", "Mute this thread" and its undo
+   * (#1497, #1509: the undo gives back the exact state before the mute). A thread is a post or a first-level chat message.
    */
   threads: {
     getPost: (communityCuid: string, spaceCuid: string, postCuid: string): Promise<ApiResult<ThreadFollow>> =>
@@ -1520,6 +1520,13 @@ export const knowiiApiClient = {
         threadFollowSchema,
         FOLLOW_FAILURE,
       ),
+    unmutePost: (communityCuid: string, spaceCuid: string, postCuid: string): Promise<ApiResult<ThreadFollow>> =>
+      apiRequest(
+        'delete',
+        postsPath(communityCuid, spaceCuid, postCuid, COMMUNITY_SPACE_POST_MUTE_API_PATH),
+        threadFollowSchema,
+        FOLLOW_FAILURE,
+      ),
     getMessage: (communityCuid: string, spaceCuid: string, messageCuid: string): Promise<ApiResult<ThreadFollow>> =>
       apiRequest(
         'get',
@@ -1544,6 +1551,13 @@ export const knowiiApiClient = {
     muteMessage: (communityCuid: string, spaceCuid: string, messageCuid: string): Promise<ApiResult<ThreadFollow>> =>
       apiRequest(
         'put',
+        messagesPath(communityCuid, spaceCuid, messageCuid, COMMUNITY_SPACE_MESSAGE_MUTE_API_PATH),
+        threadFollowSchema,
+        FOLLOW_FAILURE,
+      ),
+    unmuteMessage: (communityCuid: string, spaceCuid: string, messageCuid: string): Promise<ApiResult<ThreadFollow>> =>
+      apiRequest(
+        'delete',
         messagesPath(communityCuid, spaceCuid, messageCuid, COMMUNITY_SPACE_MESSAGE_MUTE_API_PATH),
         threadFollowSchema,
         FOLLOW_FAILURE,

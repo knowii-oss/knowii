@@ -68,9 +68,8 @@ function initialValues(space: Space | undefined, defaultSpaceGroupCuid: string |
     space_group_cuid: space?.space_group_cuid ?? defaultSpaceGroupCuid ?? '',
     access_groups: (space?.access_groups ?? []).map((group) => group.cuid),
     url: space?.url ?? '',
-    default_notification_level: space
-      ? (space.default_notification_level ?? builtInDefaultLevel(space.type, space.posting_policy))
-      : 'mine',
+    // Undefined: the manager chose nothing, so the field shows the built-in default of "Who can post" and follows it (#1509)
+    default_notification_level: space?.default_notification_level ?? undefined,
   };
 }
 
@@ -102,7 +101,7 @@ export function SpaceDialog({ open, communityCuid, spaceGroups, space, defaultSp
   const spaceType = useWatch({ control: form.control, name: 'type' });
   const isLink = spaceType === 'link';
   const postingPolicy = useWatch({ control: form.control, name: 'posting_policy' });
-  // Only a change of the manager is sent: an untouched built-in default stays "no choice"
+  // Only a change of the manager is sent: an untouched field stays "no choice", shows the built-in default and follows "Who can post"
   const defaultLevelChanged = !!form.formState.dirtyFields.default_notification_level;
   const spaceGroupCuid = useWatch({ control: form.control, name: 'space_group_cuid' });
   const directGroupCuids = useWatch({ control: form.control, name: 'access_groups' });

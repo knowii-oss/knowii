@@ -10,6 +10,7 @@ import {
   notificationSchema,
   notificationSentence,
   notificationSentenceHasTitle,
+  notificationShowsItem,
   notificationSettingsLinkName,
   tabTitle,
   tabTitleBadge,
@@ -176,6 +177,15 @@ describe('the "Following" kinds (#1497)', () => {
     expect(notificationSentenceHasTitle(level2({ kind: 'space_post', items_count: 1 }))).toBe(true);
     expect(notificationSentenceHasTitle(level2({ kind: 'space_post', items_count: 3 }))).toBe(false);
     expect(notificationSentenceHasTitle(notification())).toBe(false);
+  });
+
+  it('shows no title and no excerpt for a line of several new posts or lessons (#1509)', () => {
+    expect(notificationShowsItem(level2({ kind: 'space_post', items_count: 3 }))).toBe(false);
+    expect(notificationShowsItem(level2({ kind: 'lesson_new', items_count: 2 }))).toBe(false);
+    expect(notificationShowsItem(level2({ kind: 'space_post', items_count: 1 }))).toBe(true);
+    expect(notificationShowsItem(level2({ kind: 'lesson_new', items_count: 1 }))).toBe(true);
+    expect(notificationShowsItem(level2({ kind: 'thread_comment', items_count: 3 }))).toBe(true);
+    expect(notificationShowsItem(notification())).toBe(true);
   });
 
   it('says why in a sentence for each reason, and names the link after its setting', () => {

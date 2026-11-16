@@ -170,7 +170,7 @@ final class ApiRoutes
 
     public const COMMUNITY_SPACE_MESSAGE_REACTIONS = self::COMMUNITY_SPACE_MESSAGE.'/reactions';
 
-    // The follow state of the current member for a chat thread: read, follow, stop following, mute (#1475, ADR 0042)
+    // The follow state of the current member for a chat thread: read, follow, stop following, mute, and the undo of the mute (#1475, #1509, ADR 0042)
     public const COMMUNITY_SPACE_MESSAGE_FOLLOW = self::COMMUNITY_SPACE_MESSAGE.'/follow';
 
     public const COMMUNITY_SPACE_MESSAGE_MUTE = self::COMMUNITY_SPACE_MESSAGE.'/mute';
@@ -196,7 +196,7 @@ final class ApiRoutes
 
     public const COMMUNITY_SPACE_POST_PIN = self::COMMUNITY_SPACE_POST.'/pin';
 
-    // The follow state of the current member for a post thread: read, follow, stop following, mute (#1475, ADR 0042)
+    // The follow state of the current member for a post thread: read, follow, stop following, mute, and the undo of the mute (#1475, #1509, ADR 0042)
     public const COMMUNITY_SPACE_POST_FOLLOW = self::COMMUNITY_SPACE_POST.'/follow';
 
     public const COMMUNITY_SPACE_POST_MUTE = self::COMMUNITY_SPACE_POST.'/mute';

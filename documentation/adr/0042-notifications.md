@@ -113,6 +113,10 @@ A change inside the same decision (#1475, the server part of the second slice; t
 
 45. The follows, the mutes and the levels are new personal data ("the choices of the member"): kept while the member is in the community (no step in `retention:prune`; the notification rows keep their two periods), in the member export (`activity.json`: `notification_follows` and `notification_levels`, with no text and no name of another member), and in the privacy policy (a sentence for the owner to approve, see the issue). The community export holds none: they belong to the member.
 
+### The undo of a mute (#1509)
+
+46. A mute remembers what it replaced: `notification_follows.state_before_mute` and `reason_before_mute` (both null when the thread had no row before). `DELETE` on `.../posts/{post}/mute` and `.../messages/{message}/mute` (`notifications:write`, the access rule of the mute) takes the mute back: a thread that had no row has no row again, a followed thread is followed again with its earlier reason (`wrote`, `replied` or `manual`), a stopped thread is stopped again. A second mute keeps what the first one remembered. Any other change of the state (follow, stop following) forgets it. On a thread that is not muted nothing changes, and the answer is the current state. The notifications that the mute deleted do not come back. The panel calls this route for "Undo" and no longer reads the state before the mute.
+
 ## Consequences
 
 1. The email, the pop-up, the follows and the settings of the next slices add cases to the enum and read the same rows. Nothing in them needs a new rule about who is told.

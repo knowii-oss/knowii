@@ -1,0 +1,19 @@
+meta {
+  name: Follows - Chat - Unmute
+  type: http
+  seq: 181
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a chat space>/messages/<cuid of a first-level message>/mute
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Undo the mute of a chat thread (#1509): the thread gets back the state and the reason that it had before the first mute (no follow at all for a thread that had none). The notifications that the mute deleted do not come back. A thread that is not muted does not change: the answer is its current state. Needs notifications:write.
+}

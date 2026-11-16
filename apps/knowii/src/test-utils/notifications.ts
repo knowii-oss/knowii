@@ -124,6 +124,8 @@ export function spyOnFollowApi() {
     followMessage: vi.spyOn(threads, 'followMessage').mockResolvedValue(follow('following', 'manual')),
     stopMessage: vi.spyOn(threads, 'stopMessage').mockResolvedValue(follow('stopped', 'manual')),
     muteMessage: vi.spyOn(threads, 'muteMessage').mockResolvedValue(follow('muted', 'manual')),
+    unmutePost: vi.spyOn(threads, 'unmutePost').mockResolvedValue(follow(null)),
+    unmuteMessage: vi.spyOn(threads, 'unmuteMessage').mockResolvedValue(follow(null)),
     getLevel: vi.spyOn(levels, 'get').mockResolvedValue(level('mine', false)),
     setLevel: vi.spyOn(levels, 'set').mockImplementation((_community, _space, value) => Promise.resolve(level(value))),
     resetLevel: vi.spyOn(levels, 'reset').mockResolvedValue(level('mine', false)),

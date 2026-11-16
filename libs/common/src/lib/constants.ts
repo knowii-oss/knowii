@@ -304,7 +304,7 @@ export const NOTIFICATIONS_URL = 'notifications.index';
 // The levels of the current member for the spaces of a community, and for one space (#1497)
 export const COMMUNITY_NOTIFICATION_LEVELS_API_PATH = `${COMMUNITY_API_PATH}/notification-levels`;
 export const COMMUNITY_SPACE_NOTIFICATION_LEVEL_API_PATH = `${COMMUNITY_SPACE_API_PATH}/notification-level`;
-// The follow state of a post thread and of a chat thread: read (GET), follow (PUT), stop following (DELETE), mute (PUT /mute)
+// The follow state of a post thread and of a chat thread: read (GET), follow (PUT), stop following (DELETE), mute (PUT /mute) and its undo (DELETE /mute)
 export const COMMUNITY_SPACE_POST_FOLLOW_API_PATH = `${COMMUNITY_SPACE_POST_API_PATH}/follow`;
 export const COMMUNITY_SPACE_POST_MUTE_API_PATH = `${COMMUNITY_SPACE_POST_API_PATH}/mute`;
 export const COMMUNITY_SPACE_MESSAGE_FOLLOW_API_PATH = `${COMMUNITY_SPACE_MESSAGE_API_PATH}/follow`;

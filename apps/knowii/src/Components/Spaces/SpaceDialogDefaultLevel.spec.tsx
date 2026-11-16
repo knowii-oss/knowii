@@ -102,6 +102,55 @@ describe('the default level of a space in the space form (#1497)', () => {
     expect(update.mock.calls[1]?.[2]).toMatchObject({ default_notification_level: 'all' });
   });
 
+  it('follows "Who can post" while the manager did not touch it, and sends nothing (#1509)', async () => {
+    const update = vi.spyOn(knowiiApiClient.communities.spaces, 'update').mockResolvedValue({ ok: true, message: '', data: space() });
+    renderDialog(space());
+    const dialog = await screen.findByRole('dialog', { name: 'Edit Open discussion' });
+    const level = () => within(dialog).getByRole('button', { name: /What members get by default/ });
+    expect(level()).toHaveTextContent('Only what is for me');
+
+    await userEvent.click(within(dialog).getByRole('button', { name: /Who can post/ }));
+    await userEvent.click(await screen.findByRole('option', { name: 'Only moderators can post' }));
+    await waitFor(() => expect(level()).toHaveTextContent('Everything'));
+
+    // And back
+    await userEvent.click(within(dialog).getByRole('button', { name: /Who can post/ }));
+    await userEvent.click(await screen.findByRole('option', { name: 'All members can post' }));
+    await waitFor(() => expect(level()).toHaveTextContent('Only what is for me'));
+
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(1));
+    expect(update.mock.calls[0]?.[2]).not.toHaveProperty('default_notification_level');
+  });
+
+  it('stops following "Who can post" as soon as the manager changes the field, and sends the value', async () => {
+    const update = vi.spyOn(knowiiApiClient.communities.spaces, 'update').mockResolvedValue({ ok: true, message: '', data: space() });
+    renderDialog(space());
+    const dialog = await screen.findByRole('dialog', { name: 'Edit Open discussion' });
+    const level = () => within(dialog).getByRole('button', { name: /What members get by default/ });
+
+    // The manager picks the value that the field already shows: it is a choice now
+    await userEvent.click(level());
+    await userEvent.click(await screen.findByRole('option', { name: 'Only what is for me' }));
+    await userEvent.click(within(dialog).getByRole('button', { name: /Who can post/ }));
+    await userEvent.click(await screen.findByRole('option', { name: 'Only moderators can post' }));
+    expect(level()).toHaveTextContent('Only what is for me');
+
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(1));
+    expect(update.mock.calls[0]?.[2]).toMatchObject({ default_notification_level: 'mine', posting_policy: 'moderators' });
+  });
+
+  it('shows the choice of a manager and never follows "Who can post"', async () => {
+    renderDialog(space({ default_notification_level: 'mine' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Edit Open discussion' });
+
+    await userEvent.click(within(dialog).getByRole('button', { name: /Who can post/ }));
+    await userEvent.click(await screen.findByRole('option', { name: 'Only moderators can post' }));
+
+    expect(within(dialog).getByRole('button', { name: /What members get by default/ })).toHaveTextContent('Only what is for me');
+  });
+
   it('is not in the form of a new space, nor of a link space', async () => {
     renderDialog();
     const dialog = await screen.findByRole('dialog', { name: 'New space' });
