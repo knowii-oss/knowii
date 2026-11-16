@@ -171,3 +171,12 @@ test('without a WebSocket server, nobody is online', function () {
         ->assertOk()
         ->assertJsonCount(0, 'data');
 });
+
+test('an empty list of online members is a JSON list, not a JSON object', function () {
+    $content = $this->actingAs($this->c['member'])
+        ->getJson(ApiRoutes::path(ApiRoutes::COMMUNITY_ONLINE_MEMBERS, [ApiRoutes::PARAM_COMMUNITY => $this->community->cuid]))
+        ->assertOk()
+        ->getContent();
+
+    expect($content)->toContain('"data":[]');
+});

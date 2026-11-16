@@ -45,7 +45,7 @@ class OnlineMemberApiController extends Controller
 
         $members = self::visibleUsers($community, $channels->memberCuids($channel));
 
-        return self::success('Online members', null, $members->map(fn (User $member) => Presence::info($member))->values()->all());
+        return self::successList('Online members', $members->map(fn (User $member) => Presence::info($member))->values()->all());
     }
 
     /**
@@ -75,7 +75,7 @@ class OnlineMemberApiController extends Controller
         $members = self::visibleUsers($community, $channels->memberCuids($channel))
             ->filter(fn (User $member) => $member->can('view', $space));
 
-        return self::success('Members in the space', null, $members->map(fn (User $member) => Presence::info($member))->values()->all());
+        return self::successList('Members in the space', $members->map(fn (User $member) => Presence::info($member))->values()->all());
     }
 
     /**

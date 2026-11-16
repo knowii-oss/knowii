@@ -34,6 +34,8 @@ class KnowiiApiResponse implements JsonSerializable
      */
     private ?array $errors;
 
+    private bool $list = false;
+
     /**
      * @param  array<string, bool|int|string|array<string, int|null>|null>|null  $metadata
      * @param  array<mixed>|JsonResource|null  $data  the JSON payload of the endpoint
@@ -53,6 +55,17 @@ class KnowiiApiResponse implements JsonSerializable
         $this->metadata = $metadata;
         $this->data = $data;
         $this->errors = $errors;
+    }
+
+    /**
+     * The payload is a list: an empty one is the JSON list `[]`, never the JSON object `{}`. PHP cannot tell an empty
+     * list from an empty map, so the endpoint says it.
+     */
+    final public function asList(): static
+    {
+        $this->list = true;
+
+        return $this;
     }
 
     /**
@@ -78,6 +91,9 @@ class KnowiiApiResponse implements JsonSerializable
         if (! is_null($this->data)) {
             if (! empty($this->data)) {
                 $retVal['data'] = $this->data;
+            } elseif ($this->list) {
+                // An empty list stays a JSON list
+                $retVal['data'] = [];
             } else {
                 // We always want a JSON object, even if it's empty.
                 $retVal['data'] = new \stdClass;
