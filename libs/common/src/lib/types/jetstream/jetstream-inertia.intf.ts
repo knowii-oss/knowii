@@ -113,6 +113,7 @@ export interface Role {
 export const API_TOKEN_PERMISSIONS = [
   'user:read',
   'user:write',
+  'account:delete',
   'communities:read',
   'communities:write',
   'posts:read',
@@ -139,6 +140,7 @@ export type Permission = (typeof API_TOKEN_PERMISSIONS)[number];
 export const API_TOKEN_PERMISSION_LABELS: Record<Permission, string> = {
   'user:read': 'Read your account',
   'user:write': 'Change your account (picture)',
+  'account:delete': 'Delete your account',
   'communities:read': 'Read communities, spaces and members',
   'communities:write': 'Manage communities, spaces and members',
   'posts:read': 'Read posts, comments and reactions',
@@ -159,6 +161,13 @@ export const API_TOKEN_PERMISSION_LABELS: Record<Permission, string> = {
   'identities:read': 'Read the provider accounts that you connected',
   'identities:write': 'Disconnect the provider accounts that you connected',
   'entitlements:read': 'Read what your connected account gives access to',
+};
+
+/**
+ * One sentence under the label of an ability that needs a warning (#1492). Shown as its own choice on the token screen.
+ */
+export const API_TOKEN_PERMISSION_DESCRIPTIONS: Partial<Record<Permission, string>> = {
+  'account:delete': 'Lets this token delete your account for good, with your password. It cannot be undone.',
 };
 
 /**

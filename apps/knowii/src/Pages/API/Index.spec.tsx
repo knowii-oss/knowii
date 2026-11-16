@@ -78,6 +78,32 @@ describe('ApiTokensPage', () => {
     expect(post).toHaveBeenLastCalledWith('/api-tokens.store/', { name: 'Script', permissions: ['communities:read'], expires_in: 'never' });
   });
 
+  it('shows the deletion of the account as its own choice, off, with one sentence (#1492)', async () => {
+    render(
+      <AppDataProvider>
+        <ApiTokensPage
+          tokens={tokens}
+          availablePermissions={['communities:read', 'account:delete']}
+          defaultPermissions={['communities:read']}
+        />
+      </AppDataProvider>,
+    );
+
+    const choice = screen.getByRole('checkbox', { name: /Delete your account/ });
+    expect(choice).not.toBeChecked();
+    expect(screen.getByText('Lets this token delete your account for good, with your password. It cannot be undone.')).toBeInTheDocument();
+    expect(screen.getByText('account:delete')).toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText('Name'), 'Cleaner');
+    await userEvent.click(choice);
+    await userEvent.click(screen.getByRole('button', { name: 'Create' }));
+
+    expect(post).toHaveBeenLastCalledWith('/api-tokens.store/', {
+      name: 'Cleaner',
+      permissions: ['communities:read', 'account:delete'],
+      expires_in: '90',
+    });
+  });
+
   it('shows when each token expires (#1267)', () => {
     render(
       <AppDataProvider>

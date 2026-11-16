@@ -14,7 +14,7 @@ The owner decided on 2026-11-15 to give the member the choice in the delete dial
 ## Decision
 
 1. The delete dialog has a box, off by default: "Also delete my posts, comments and messages". The dialog says what stays in any case, and that the member can write to the contact address afterwards to have content removed. The privacy policy (section 5, item 1) says the same.
-2. The option is `delete_content`, a boolean of the input of `DeleteUser` (validated there). The web route `DELETE /user` keeps its address and name (`current-user.destroy`) and is served by `DeleteAccountController`, because the Jetstream controller cannot pass an option to the action. There is no API route for the deletion of an account, so no Bruno request.
+2. The option is `delete_content`, a boolean of the input of `DeleteUser` (validated there). The web route `DELETE /user` keeps its address and name (`current-user.destroy`) and is served by `DeleteAccountController`, because the Jetstream controller cannot pass an option to the action. The API route for it came later (see "The API route" below).
 3. With the box ticked, `DeleteMemberContent` deletes in every community, in the same transaction as the account, in chunks of 500 ids:
    1. The posts of the member. A post that has comments of other members stays as a marker: `deleted_at` is set, the title, the text, the author and the pin are cleared, and the slug is replaced by one that names nothing (`deleted-{cuid}`). The comments of the others stay. A post without comments of others is deleted with its own comments.
    2. The comments of the member. A reply is deleted. A top-level comment that has replies of others stays as a marker (`deleted_at`, no text, no author). Any other comment is deleted. A marker whose last reply goes is deleted too.
@@ -42,4 +42,13 @@ The owner decided on 2026-11-15 to give the member the choice in the delete dial
 2. Delete a post with all its comments: removes the words of other people for a decision of one member.
 3. Hard-delete a comment or a message that has replies: the replies lose their place. The marker keeps the thread readable and holds no content.
 4. A broadcast per item, or one per space: one event carries one item today, so a member with thousands of items would flood the channels. Reloading the page is enough.
-5. A route and a request in the API for the deletion of an account: it does not exist today, and it is not part of this issue.
+5. A route and a request in the API for the deletion of an account: it did not exist when this record was written. #1492 added it (next section).
+
+## The API route (#1492)
+
+1. `DELETE /api/v1/user` deletes the account of the person who calls it, with the body `password`, `delete_content` (the same meaning as above) and `code`. It calls the same contract (`DeletesAccounts`): what is deleted, the markers and the events are the rules of ADR 0024 and of this record, unchanged. No role blocks the deletion, as on the web.
+2. A new token ability, `account:delete`. It is never in the default set of a new token, and the token screen shows it as its own choice with one sentence. A token without it gets the usual 403. A call with a session (the web app) passes the ability check like on every route.
+3. The proof of the intent is the current password, checked with `ConfirmPassword` like the web. A wrong password is a validation error on `password`, with the message of the web.
+4. Two-factor authentication is never skipped: when it is turned on and confirmed, `code` (the code of the authenticator app, or a recovery code) is required, and a wrong one is a validation error on `code`. A recovery code that is used is replaced, as at sign-in (`App\Support\SecondFactor`).
+5. An account without a usable password (ADR 0045) cannot be deleted through the API: the answer is a business error (422) that says to use the web application. No second proof exists. The web does not delete such an account either today (the password check fails): an account that signs in only through a provider first sets a password with "Forgot your password?". Not changed here.
+6. A limiter of 3 tries a minute per account (`account-deletions`), because the route checks a password. After a success the answer is 204 and every token of the account is gone.

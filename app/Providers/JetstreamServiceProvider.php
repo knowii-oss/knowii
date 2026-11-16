@@ -95,6 +95,8 @@ class JetstreamServiceProvider extends ServiceProvider
         $allPermissions = [
             'user:read',
             'user:write',
+            // Deletes the own account (#1492, ADR 0043): never in the default set, it cannot be undone
+            'account:delete',
             'communities:read',
             'communities:write',
             'posts:read',

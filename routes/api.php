@@ -86,6 +86,8 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
     Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         // The current user, as an API resource (#1145)
         Route::get(ApiRoutes::USER, [UserApiController::class, 'me'])->middleware('ability:user:read');
+        // Deletes the own account (#1492, ADR 0043): its own ability, never in the default set, and a limiter because it checks the password
+        Route::delete(ApiRoutes::USER, [UserApiController::class, 'destroy'])->middleware('ability:account:delete')->middleware('throttle:account-deletions');
         Route::post(ApiRoutes::USER_AVATAR, [UserApiController::class, 'updateAvatar'])->middleware('ability:user:write')->middleware('throttle:uploads');
         Route::delete(ApiRoutes::USER_AVATAR, [UserApiController::class, 'deleteAvatar'])->middleware('ability:user:write');
         Route::patch(ApiRoutes::USER_ONLINE_STATUS, [UserApiController::class, 'updateOnlineStatus'])->middleware('ability:user:write');

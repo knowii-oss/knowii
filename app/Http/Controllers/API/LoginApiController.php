@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\SecondFactor;
 use App\Traits\ApiResponses;
 use Dedoc\Scramble\Attributes\BodyParameter;
 use Illuminate\Http\JsonResponse;
@@ -11,8 +12,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Laravel\Fortify\Contracts\TwoFactorAuthenticationProvider;
-use Laravel\Fortify\Fortify;
 
 class LoginApiController extends Controller
 {
@@ -58,7 +57,7 @@ class LoginApiController extends Controller
                 return self::authenticationIssue('Enter the code of your authenticator app or a recovery code.', ['two_factor_required' => true]);
             }
 
-            if (! $this->passesSecondFactor($user, $code, $recoveryCode)) {
+            if (! SecondFactor::passes($user, $code, $recoveryCode)) {
                 Log::warning('API login: wrong two-factor code', ['user' => $user->cuid]);
 
                 return self::authenticationIssue('The two-factor code is not valid.', ['two_factor_required' => true]);
@@ -83,27 +82,5 @@ class LoginApiController extends Controller
         }
 
         return self::success("Welcome to Knowii's API 🎉", null, null);
-    }
-
-    /**
-     * The code of the authenticator app, or a recovery code that is then replaced (the same rules as the web login).
-     */
-    private function passesSecondFactor(User $user, ?string $code, ?string $recoveryCode): bool
-    {
-        if ($code !== null && $code !== '') {
-            $secret = Fortify::currentEncrypter()->decrypt((string) $user->two_factor_secret);
-
-            return is_string($secret) && app(TwoFactorAuthenticationProvider::class)->verify($secret, $code);
-        }
-
-        foreach ($user->recoveryCodes() as $stored) {
-            if (is_string($stored) && hash_equals($stored, (string) $recoveryCode)) {
-                $user->replaceRecoveryCode($stored);
-
-                return true;
-            }
-        }
-
-        return false;
     }
 }

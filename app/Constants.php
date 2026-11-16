@@ -200,6 +200,9 @@ class Constants
     // Ownership transfers (#1339) per minute and per user: each one checks the password of the owner
     public const int OWNERSHIP_TRANSFERS_PER_MINUTE = 5;
 
+    // Deletions of the own account through the API (#1492) per minute and per user: each one checks the password
+    public const int ACCOUNT_DELETIONS_PER_MINUTE = 3;
+
     // Markdown preview requests (editor) per minute and per user
     public const int MARKDOWN_PREVIEWS_PER_MINUTE = 60;
 

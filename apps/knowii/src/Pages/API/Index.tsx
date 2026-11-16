@@ -6,6 +6,7 @@ import {
   API_TOKEN_DEFAULT_EXPIRY,
   API_TOKEN_EXPIRY_CHOICES,
   API_TOKEN_EXPIRY_LABELS,
+  API_TOKEN_PERMISSION_DESCRIPTIONS,
   API_TOKEN_PERMISSION_LABELS,
   API_TOKENS_DESTROY_URL,
   API_TOKENS_STORE_URL,
@@ -45,6 +46,9 @@ function PermissionChoices(props: { idPrefix: string; available: Permission[]; v
           />
           <span>
             <span className="font-bold">{API_TOKEN_PERMISSION_LABELS[permission] ?? permission}</span>
+            {API_TOKEN_PERMISSION_DESCRIPTIONS[permission] && (
+              <span className="block text-xs text-muted">{API_TOKEN_PERMISSION_DESCRIPTIONS[permission]}</span>
+            )}
             <code className="block text-xs text-muted">{permission}</code>
           </span>
         </label>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 namespace App\Http\Controllers\API;
 
+use App\Contracts\Users\DeletesAccounts;
 use App\Contracts\Users\UpdatesAvatars;
 use App\Contracts\Users\UpdatesNotificationSettings;
 use App\Contracts\Users\UpdatesOnlineStatus;
@@ -12,12 +13,18 @@ use App\Contracts\Users\VerifiesUsernameAvailability;
 use App\Http\Controllers\Controller;
 use App\Models\Reaction;
 use App\Support\Emoji;
+use App\Support\SecondFactor;
 use App\Traits\ApiResponses;
 use Dedoc\Scramble\Attributes\BodyParameter;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Contracts\Auth\StatefulGuard;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
+use Laravel\Fortify\Actions\ConfirmPassword;
 
 class UserApiController extends Controller
 {
@@ -123,6 +130,63 @@ class UserApiController extends Controller
         $user = app(UpdatesAvatars::class)->delete($request->user() ?? throw new AuthenticationException);
 
         return self::success('Avatar removed', null, $user->refresh()->load('profile')->toResource());
+    }
+
+    /**
+     * Delete your own account (#1492, ADR 0043). It cannot be undone. The rules of the web deletion apply: your profile, the
+     * communities that you own, your memberships, reactions, tokens and sessions go, and what you wrote in the communities of
+     * others stays under "Deleted member", unless you send `delete_content`. You prove the intent with your current password
+     * and, when two-factor authentication is on, with a code or a recovery code (a recovery code that passes is consumed).
+     * An account that has no password (it signs in only through a provider) cannot be deleted here: use the web application.
+     * Needs the ability `account:delete`, which is never in the default set of a token. A few tries a minute. Answers 204 and
+     * every token of the account is gone.
+     *
+     * @throws AuthenticationException
+     * @throws ValidationException
+     */
+    #[BodyParameter('password', description: 'Your current password', required: true, type: 'string')]
+    #[BodyParameter('delete_content', description: 'Also delete your posts, comments and messages in every community (they stay under "Deleted member" otherwise)', required: false, type: 'bool')]
+    #[BodyParameter('code', description: 'The code of your authenticator app or a recovery code: required when two-factor authentication is turned on', required: false, type: 'string', example: '123456')]
+    final public function destroy(Request $request, StatefulGuard $guard): JsonResponse|Response
+    {
+        $user = $request->user() ?? throw new AuthenticationException;
+
+        if (! $user->hasPassword()) {
+            return self::businessIssue('This account has no password: delete it in the web application.', ['password' => ['This account has no password: delete it in the web application.']]);
+        }
+
+        $input = Validator::make($request->all(), [
+            'password' => ['required', 'string'],
+            'delete_content' => ['sometimes', 'boolean'],
+            'code' => ['nullable', 'string', 'max:64'],
+        ])->validate();
+
+        // The same check as the web (ConfirmPassword) and the same message
+        if (! is_string($input['password']) || ! app(ConfirmPassword::class)($guard, $user, $input['password'])) {
+            throw ValidationException::withMessages(['password' => __('The password is incorrect.')]);
+        }
+
+        // Two-factor authentication is never skipped
+        if ($user->hasEnabledTwoFactorAuthentication()) {
+            $code = $input['code'] ?? null;
+            if (! is_string($code) || $code === '') {
+                throw ValidationException::withMessages(['code' => __('Enter the code of your authenticator app or a recovery code.')]);
+            }
+            if (! SecondFactor::passesEither($user, $code)) {
+                throw ValidationException::withMessages(['code' => __('The provided two factor authentication code was invalid.')]);
+            }
+        }
+
+        app(DeletesAccounts::class)->delete($user->fresh() ?? $user, $request->only(['delete_content']));
+
+        // A call from the web app has a session: it ends with the account
+        if ($request->hasSession()) {
+            $guard->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
+
+        return self::deleted();
     }
 
     /**
