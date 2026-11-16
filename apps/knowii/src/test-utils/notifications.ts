@@ -81,7 +81,7 @@ export function makeFollowing(cuid: string, changes: Partial<Notification> = {})
 export function spyOnNotificationApi() {
   const client = knowiiApiClient.notifications;
   return {
-    count: vi.spyOn(client, 'count').mockResolvedValue({ ok: true, message: '', data: { count: 0 } }),
+    count: vi.spyOn(client, 'count').mockResolvedValue({ ok: true, message: '', data: { count: 0, messages: 0 } }),
     list: vi.spyOn(client, 'list').mockResolvedValue(page([])),
     following: vi.spyOn(client, 'listFollowing').mockResolvedValue(page([])),
     caughtUp: vi.spyOn(client, 'caughtUp').mockResolvedValue({ ok: true, message: '', data: { marked: 0 } }),

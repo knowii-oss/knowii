@@ -126,6 +126,10 @@ export const spaceSchema = baseEntitySchema.extend({
   position: z.number().int(),
   // Chat spaces in the navigation of a member: the messages not read yet (#1185)
   unread_count: z.number().int().optional(),
+  // The dot of the navigation (#1476): something new since the last visit. For a member only (absent for a visitor and an outsider)
+  has_new: z.boolean().optional(),
+  // The level that applies to the member (#1476): none for a link space. For a member only
+  notification_level: z.enum(['all', 'mine', 'none']).optional(),
   space_group_cuid: z.string(),
   // The groups that open a "groups" space (#1241)
   access_groups: z.array(z.object({ cuid: z.string(), name: z.string() })).optional(),

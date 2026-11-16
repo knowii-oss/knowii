@@ -55,7 +55,7 @@ describe('"Following" in the Notifications panel (#1497)', () => {
       await openPanel();
 
       const headings = await within(panel()).findAllByRole('heading', { level: 3 });
-      expect(headings.map((heading) => heading.textContent)).toEqual(['Needs you', 'Following', expect.stringContaining('Older')]);
+      expect(headings.map((heading) => heading.textContent)).toEqual(['Needs you', 'Following', expect.stringContaining('Earlier')]);
       expect(await within(panel()).findByText('Nothing new in what you follow.')).toBeInTheDocument();
       expect(within(panel()).queryByRole('button', { name: 'I am caught up' })).toBeNull();
     });

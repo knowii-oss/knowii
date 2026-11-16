@@ -43,6 +43,43 @@ vi.mock('@/Components/ui', async (importOriginal) => ({
   ),
 }));
 
+describe('RegisterPage and the time zone (#1476)', () => {
+  const realZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const fillIn = async () => {
+    await userEvent.type(screen.getByLabelText('Name'), 'Grace Hopper');
+    await userEvent.type(screen.getByLabelText('Email'), 'grace@example.com');
+    await userEvent.type(screen.getByLabelText('Password', { exact: true }), 'A-strong-password-2026!');
+    await userEvent.type(screen.getByLabelText('Confirm password'), 'A-strong-password-2026!');
+  };
+
+  it('sends the zone of the browser in a hidden field that shows nothing', async () => {
+    render(<RegisterPage turnstileSiteKey={null} />);
+
+    const field = document.querySelector<HTMLInputElement>('input[name="time_zone"]');
+    expect(field).not.toBeNull();
+    expect(field?.type).toBe('hidden');
+    expect(field?.value).toBe(realZone);
+    expect(screen.queryByLabelText(/time zone/i)).toBeNull();
+
+    await fillIn();
+    await userEvent.click(screen.getByRole('button', { name: 'Register' }));
+    expect(posts.at(-1)?.[1]).toMatchObject({ time_zone: realZone });
+  });
+
+  it('sends an empty value and does not fail when the browser gives no zone', async () => {
+    vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(function () {
+      throw new Error('no Intl');
+    } as unknown as typeof Intl.DateTimeFormat);
+    render(<RegisterPage turnstileSiteKey={null} />);
+    vi.restoreAllMocks();
+
+    expect(document.querySelector<HTMLInputElement>('input[name="time_zone"]')?.value).toBe('');
+    await fillIn();
+    await userEvent.click(screen.getByRole('button', { name: 'Register' }));
+    expect(posts.at(-1)?.[1]).toMatchObject({ time_zone: '' });
+  });
+});
+
 describe('RegisterPage', () => {
   it('waits for the bot check, then sends its token (#737)', async () => {
     render(<RegisterPage turnstileSiteKey="site-key" />);

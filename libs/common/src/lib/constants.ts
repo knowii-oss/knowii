@@ -225,6 +225,9 @@ export const USER_AVATAR_API_PATH = `${API_BASE_PATH}/user/avatar`;
 // Show or hide when the current user is online (#1187)
 export const USER_ONLINE_STATUS_API_PATH = `${API_BASE_PATH}/user/online-status`;
 // The members the current user blocked (#1186)
+// The time zone and the pop-up switch of the member (#1476, ADR 0048)
+export const USER_TIME_ZONE_API_PATH = `${API_BASE_PATH}/user/time-zone`;
+export const USER_NOTIFICATION_SETTINGS_API_PATH = `${API_BASE_PATH}/user/notification-settings`;
 export const USER_BLOCKS_API_PATH = `${API_BASE_PATH}/user/blocks`;
 // The provider accounts that the member connected (#1385, ADR 0045)
 export const USER_IDENTITIES_API_PATH = `${API_BASE_PATH}/user/identities`;
@@ -293,6 +296,11 @@ export const NOTIFICATION_READ_API_PATH = `${NOTIFICATION_API_PATH}/read`;
 export const NOTIFICATION_UNREAD_API_PATH = `${NOTIFICATION_API_PATH}/unread`;
 // "I am caught up" (#1497): the open rows of "Following" are read
 export const NOTIFICATIONS_CAUGHT_UP_API_PATH = `${NOTIFICATIONS_API_PATH}/caught-up`;
+// The data of the "Catch up" card, and the visit of a space (#1476, ADR 0048)
+export const COMMUNITY_CATCH_UP_API_PATH = `${COMMUNITY_API_PATH}/catch-up`;
+export const COMMUNITY_SPACE_VISIT_API_PATH = `${COMMUNITY_SPACE_API_PATH}/visit`;
+// The page "Notifications" of the member (#1476)
+export const NOTIFICATIONS_URL = 'notifications.index';
 // The levels of the current member for the spaces of a community, and for one space (#1497)
 export const COMMUNITY_NOTIFICATION_LEVELS_API_PATH = `${COMMUNITY_API_PATH}/notification-levels`;
 export const COMMUNITY_SPACE_NOTIFICATION_LEVEL_API_PATH = `${COMMUNITY_SPACE_API_PATH}/notification-level`;

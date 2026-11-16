@@ -1,6 +1,6 @@
 import { accessChangeOnMove, openingAccessGroups, spaceGroupHasAccessGroups } from './access-group.schema';
 import type { AccessGroup } from './access-group.schema';
-import { createSpaceFormWithGroupsSchema, moveItem, spaceFormSchema, spaceFormWithGroupsSchema } from './space.schema';
+import { createSpaceFormWithGroupsSchema, moveItem, spaceFormSchema, spaceFormWithGroupsSchema, spaceSchema } from './space.schema';
 
 describe('moveItem', () => {
   it('moves an item one step up or down', () => {
@@ -97,5 +97,36 @@ describe('access groups and space groups (#1422)', () => {
 
     const gained = accessChangeOnMove(groups, { directCuids: [], spaceGroupCuid: 'sg3' }, { directCuids: [], spaceGroupCuid: 'sg2' });
     expect(gained.gain.map((item) => item.name)).toEqual(['Paid members']);
+  });
+});
+
+describe('the markers of the navigation (#1476)', () => {
+  const base = {
+    cuid: 's1',
+    name: 'News',
+    slug: 'news',
+    description: '',
+    emoji: '',
+    type: 'discussion',
+    visibility: 'members',
+    posting_policy: 'members',
+    position: 0,
+    space_group_cuid: 'g1',
+    created_at: '2026-11-01T10:00:00Z',
+    updated_at: '2026-11-01T10:00:00Z',
+  };
+
+  it('holds has_new and the level for a member, and neither for a visitor', () => {
+    expect(spaceSchema.parse({ ...base, has_new: true, notification_level: 'all' })).toMatchObject({
+      has_new: true,
+      notification_level: 'all',
+    });
+    const visitor = spaceSchema.parse(base);
+    expect(visitor.has_new).toBeUndefined();
+    expect(visitor.notification_level).toBeUndefined();
+  });
+
+  it('refuses an unknown level', () => {
+    expect(spaceSchema.safeParse({ ...base, notification_level: 'loud' }).success).toBe(false);
   });
 });

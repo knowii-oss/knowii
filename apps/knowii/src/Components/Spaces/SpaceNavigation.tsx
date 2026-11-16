@@ -92,8 +92,17 @@ export function SpaceNavigation({ spaceGroups, activeSpaceCuid, getSpaceHref, on
                         {space.emoji || SPACE_TYPE_LABELS[space.type].emoji}
                       </span>
                       <span className="min-w-0 grow truncate">{space.name}</span>
-                      {/* Chat spaces (#1185): the messages that the member did not read */}
-                      {!active && (space.unread_count ?? 0) > 0 && (
+                      {/* A muted space shows nothing: no dot and no number (#1476, design 5.2) */}
+                      {space.notification_level !== 'none' && space.has_new === true && (
+                        // The dot has a border in the color of the text: it keeps its shape in forced colors and has a contrast of
+                        // 3:1 or more in both themes. The text alternative is part of the name of the link
+                        <span className="shrink-0">
+                          <span aria-hidden="true" className="block size-2.5 rounded-full border-2 border-current bg-secondary" />
+                          <span className="sr-only">, New content</span>
+                        </span>
+                      )}
+                      {/* Chat spaces (#1185): the messages that the member did not read, only at the level Everything (#1476) */}
+                      {!active && space.notification_level === 'all' && (space.unread_count ?? 0) > 0 && (
                         <span className="shrink-0 rounded-full bg-secondary px-1.5 text-xs font-bold text-white">
                           {space.unread_count}
                           <span className="sr-only"> unread</span>

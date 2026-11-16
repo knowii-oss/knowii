@@ -27,6 +27,10 @@ export type InertiaSharedProps<T = NonNullable<unknown>> = T & {
    * The communities of the signed-in member (#1484): the bell names the community of a notification when there are several
    */
   communityCount?: number;
+  /**
+   * The "Catch up" card (#1476): the date of the last visit when it was 7 days old or more, else null
+   */
+  catchUp?: { since: string } | null;
   // FIXME improve types
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   errorBags: any;

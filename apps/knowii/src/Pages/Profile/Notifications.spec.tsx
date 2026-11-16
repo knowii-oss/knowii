@@ -3,8 +3,23 @@ import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
 import type { Community, CommunitySpaceLevel } from '@knowii/common';
+import { knowiiApiClient } from '@knowii/common';
 import { spyOnFollowApi } from '@/test-utils/notifications';
 import NotificationSettings from './Notifications';
+
+const shared = vi.hoisted(() => ({
+  user: { cuid: 'u1', time_zone: 'Europe/Brussels', notification_popups: true } as {
+    cuid: string;
+    time_zone: string | null | undefined;
+    notification_popups?: boolean;
+  },
+  reload: vi.fn(),
+}));
+
+vi.mock('@inertiajs/react', () => ({
+  router: { reload: shared.reload },
+  usePage: () => ({ props: { auth: { user: shared.user } }, url: '/user/notifications' }),
+}));
 
 vi.mock('@/Layouts/AppLayout', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
@@ -53,6 +68,8 @@ describe('the notification settings page (#1497)', () => {
   let api: ReturnType<typeof spyOnFollowApi>;
 
   beforeEach(() => {
+    shared.user = { cuid: 'u1', time_zone: 'Europe/Brussels', notification_popups: true };
+    shared.reload.mockClear();
     api = spyOnFollowApi();
     api.forCommunity.mockResolvedValue({ ok: true, message: '', data: levels });
   });
@@ -230,5 +247,124 @@ describe('the notification settings page (#1497)', () => {
     const results = await axe.run(document.body, { rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
 
     expect(results.violations.map((violation) => `${violation.id}: ${violation.nodes.map((node) => node.html).join(' | ')}`)).toEqual([]);
+  });
+});
+
+describe('the time zone and the pop-ups of the settings page (#1476)', () => {
+  beforeEach(() => {
+    shared.user = { cuid: 'u1', time_zone: 'Europe/Brussels', notification_popups: true };
+    shared.reload.mockClear();
+    spyOnFollowApi().forCommunity.mockResolvedValue({ ok: true, message: '', data: levels });
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  const setTimeZone = () =>
+    vi
+      .spyOn(knowiiApiClient.users, 'setTimeZone')
+      .mockImplementation((zone) => Promise.resolve({ ok: true, message: '', data: { time_zone: zone } }));
+
+  it('shows "Your time zone": the zone of the account in words, and a choice of every zone with UTC', async () => {
+    renderPage();
+    const user = userEvent.setup();
+
+    expect(screen.getByRole('heading', { name: 'Your time zone' })).toBeInTheDocument();
+    expect(screen.getByText(/Times show in Central European (Standard )?Time \(Europe\/Brussels\)/)).toBeInTheDocument();
+    const control = screen.getByLabelText('Time zone');
+    expect(control).toHaveTextContent('Europe/Brussels');
+
+    await user.click(control);
+    const options = within(await screen.findByRole('listbox')).getAllByRole('option');
+    expect(options.length).toBeGreaterThan(100);
+    expect(options.map((option) => option.textContent)).toContain('UTC');
+    expect(options.map((option) => option.textContent)).toContain('Asia/Tokyo');
+  });
+
+  it('says "Set your time zone" and names the zone that applies until then, when the account has none', () => {
+    shared.user = { cuid: 'u1', time_zone: null };
+    renderPage();
+
+    expect(screen.getByText('Set your time zone.')).toBeInTheDocument();
+    expect(screen.getByText(/Until you do, times show in/)).toBeInTheDocument();
+    expect(screen.getByLabelText('Time zone')).toHaveTextContent('Choose a time zone');
+  });
+
+  it('saves a new zone at once, says "Saved", and loads the account again', async () => {
+    const save = setTimeZone();
+    renderPage();
+    const user = userEvent.setup();
+
+    await user.click(screen.getByLabelText('Time zone'));
+    await user.click(await screen.findByRole('option', { name: 'Asia/Tokyo' }));
+
+    expect(save).toHaveBeenCalledWith('Asia/Tokyo');
+    await waitFor(() => expect(screen.getAllByRole('status')[0]).toHaveTextContent('Saved'));
+    expect(screen.getByLabelText('Time zone')).toHaveTextContent('Asia/Tokyo');
+    expect(shared.reload).toHaveBeenCalledWith({ only: ['auth'] });
+  });
+
+  it('keeps the old zone on an error, with "Not saved. Retry." and the focus on the control', async () => {
+    vi.spyOn(knowiiApiClient.users, 'setTimeZone').mockResolvedValue({ ok: false, status: 422, message: 'Failed', errors: {} });
+    renderPage();
+    const user = userEvent.setup();
+
+    await user.click(screen.getByLabelText('Time zone'));
+    await user.click(await screen.findByRole('option', { name: 'Asia/Tokyo' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Not saved. Retry.');
+    const control = screen.getByLabelText('Time zone');
+    expect(control).toHaveTextContent('Europe/Brussels');
+    await waitFor(() => expect(control).toHaveFocus());
+    expect(shared.reload).not.toHaveBeenCalled();
+  });
+
+  it('shows the switch "Show pop-ups", on by default, and saves a change at once', async () => {
+    const save = vi
+      .spyOn(knowiiApiClient.users, 'setNotificationPopups')
+      .mockResolvedValue({ ok: true, message: '', data: { notification_popups: false } });
+    shared.user = { cuid: 'u1', time_zone: 'UTC' };
+    renderPage();
+    const user = userEvent.setup();
+
+    const toggle = screen.getByRole('switch', { name: /Show pop-ups/ });
+    expect(toggle).toBeChecked();
+    await user.click(toggle);
+
+    expect(save).toHaveBeenCalledWith(false);
+    await waitFor(() => expect(screen.getAllByRole('status')[0]).toHaveTextContent('Saved'));
+    expect(toggle).not.toBeChecked();
+  });
+
+  it('puts the switch back and says "Not saved. Retry." when the server refuses, and the switch keeps the focus', async () => {
+    vi.spyOn(knowiiApiClient.users, 'setNotificationPopups').mockResolvedValue({ ok: false, status: 500, message: 'Failed', errors: {} });
+    shared.user = { cuid: 'u1', time_zone: 'UTC', notification_popups: true };
+    renderPage();
+    const user = userEvent.setup();
+
+    const toggle = screen.getByRole('switch', { name: /Show pop-ups/ });
+    await user.click(toggle);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Not saved. Retry.');
+    expect(toggle).toBeChecked();
+    expect(toggle).not.toBeDisabled();
+    expect(toggle).toHaveFocus();
+  });
+
+  it('shows the switch off when the account turned the pop-ups off', () => {
+    shared.user = { cuid: 'u1', time_zone: 'UTC', notification_popups: false };
+    renderPage();
+
+    expect(screen.getByRole('switch', { name: /Show pop-ups/ })).not.toBeChecked();
+  });
+
+  it('has controls of 44 px and no automated violation (axe) with the new parts', async () => {
+    const { container } = renderPage();
+    await screen.findByRole('group', { name: 'Talk' });
+
+    expect(screen.getByLabelText('Time zone').className).toContain('h-11');
+    expect(screen.getByRole('switch', { name: /Show pop-ups/ }).closest('label')?.className).toContain('min-h-11');
+    const results = await axe.run(container, { rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
+    expect(results.violations.map((violation) => violation.id)).toEqual([]);
   });
 });

@@ -4,6 +4,8 @@ import { afterEach } from 'vitest';
 // Only this module: importing all of @knowii/common here would load Inertia before the specs mock it
 import { leaveAllPresenceChannels } from '../../../libs/common/src/lib/hooks/use-presence';
 import { fakeEcho, resetFakeEcho } from './test-utils/fake-echo';
+// No Inertia in this module either: it only holds the dates that the member cleared on the "Catch up" card (#1476)
+import { resetCatchUpState } from './Components/Notifications/catch-up-state';
 
 // The whole suite runs in parallel: a slow worker must not turn a late answer into a failure (the default is 1 second)
 configure({ asyncUtilTimeout: 3000 });
@@ -39,4 +41,5 @@ afterEach(() => {
   // The presence channels stay joined a little after a page leaves them (#1187): never between two tests
   leaveAllPresenceChannels();
   resetFakeEcho();
+  resetCatchUpState();
 });

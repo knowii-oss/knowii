@@ -1,10 +1,14 @@
 import type { MouseEvent, ReactNode } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Notification } from '@knowii/common';
-import { knowiiApiClient, NOTIFICATIONS_PER_PAGE, USER_NOTIFICATIONS_URL, useTypedPage } from '@knowii/common';
+import { knowiiApiClient, NOTIFICATIONS_PER_PAGE, NOTIFICATIONS_URL, USER_NOTIFICATIONS_URL, useTypedPage } from '@knowii/common';
+import { Link } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
 import { FaChevronDown, FaChevronRight } from 'react-icons/fa6';
 import { Button, EmptyState } from '@/Components/ui';
+import { clearCatchUp, useActiveCatchUp } from './catch-up-state';
+import type { CatchUpCommunity } from './CatchUpCard';
+import { CatchUpCard } from './CatchUpCard';
 import { NotificationLine } from './NotificationLine';
 import { notificationHref } from './notification-link';
 import { threadOf } from './notification-thread';
@@ -26,8 +30,19 @@ const FOLLOWING_SKELETON_LINES = 2;
 export interface NotificationsPanelProps {
   // Close the panel (a line was opened)
   onClose: () => void;
-  // Give the focus to the heading "Notifications" of the panel
+  // Give the focus to the heading "Notifications" of the panel (or the main heading of the page)
   focusHeading: () => void;
+  /**
+   * The communities whose "Catch up" card shows above the lists (#1476): the community of the page for the panel, every
+   * community of the member for the page "Notifications". The card shows only when `catchUp` holds a date and the community
+   * has lines.
+   */
+  catchUpCommunities?: CatchUpCommunity[];
+  /**
+   * panel (default): in the bell, the heading levels start at 3 and the link "Open the Notifications page" ends the list.
+   * page: the page "Notifications" (#1476), the headings start at 2.
+   */
+  variant?: 'panel' | 'page';
 }
 
 interface UndoState {
@@ -46,17 +61,19 @@ function markOwnChange(changes: Map<string, number>, cuid: string): void {
   changes.set(cuid, Date.now());
 }
 
-type FocusRequest = { cuid: string } | 'heading' | 'following-heading';
+type FocusRequest = { cuid: string } | 'heading' | 'following-heading' | 'needs-you-heading';
 
 /**
  * The content of the Notifications panel: "Needs you" with its lines, "Older" and the status text (#1484, design 5.1, 9.1).
  * It mounts when the panel opens, so each opening loads the list again.
  */
-export function NotificationsPanel({ onClose, focusHeading }: NotificationsPanelProps) {
+export function NotificationsPanel({ onClose, focusHeading, catchUpCommunities = [], variant = 'panel' }: NotificationsPanelProps) {
+  const Heading = variant === 'page' ? 'h2' : 'h3';
   const route = useRoute();
   const page = useTypedPage();
   const { refreshCount, subscribe } = useNotifications();
   const showCommunity = (page.props.communityCount ?? 1) > 1;
+  const catchUpSince = useActiveCatchUp(page.props.catchUp?.since);
 
   const main = useNotificationFeed();
   const [olderOpen, setOlderOpen] = useState(false);
@@ -79,6 +96,7 @@ export function NotificationsPanel({ onClose, focusHeading }: NotificationsPanel
   const undoButton = useRef<HTMLButtonElement>(null);
   const muteUndoButton = useRef<HTMLButtonElement>(null);
   const followingHeading = useRef<HTMLHeadingElement>(null);
+  const needsYouHeading = useRef<HTMLHeadingElement>(null);
   const focusRequest = useRef<FocusRequest | null>(null);
   const busyRef = useRef(new Set<string>());
   const ownChanges = useRef(new Map<string, number>());
@@ -122,6 +140,8 @@ export function NotificationsPanel({ onClose, focusHeading }: NotificationsPanel
       focusHeading();
     } else if (request === 'following-heading') {
       followingHeading.current?.focus();
+    } else if (request === 'needs-you-heading') {
+      needsYouHeading.current?.focus();
     } else {
       linkElements.current.get(request.cuid)?.focus();
     }
@@ -562,6 +582,10 @@ export function NotificationsPanel({ onClose, focusHeading }: NotificationsPanel
       setActionError('We could not clear Following. Try again.');
       return;
     }
+    // The server forgot the date of the "Catch up" card with the lines: the card goes everywhere (#1476)
+    if (catchUpSince) {
+      clearCatchUp(catchUpSince);
+    }
     following.items.forEach((item) => ownChange(item.cuid));
     focusRequest.current = 'following-heading';
     following.setItems([]);
@@ -642,10 +666,34 @@ export function NotificationsPanel({ onClose, focusHeading }: NotificationsPanel
         </p>
       )}
 
+      {/* "Catch up" (#1476, design 5.5): above the lists, for the community of the page (or every community on the page) */}
+      {catchUpCommunities.map((community) => (
+        <CatchUpCard
+          key={community.cuid}
+          community={community}
+          headingLevel={variant === 'page' ? 2 : 3}
+          showCommunity={catchUpCommunities.length > 1}
+          onShowAll={() => needsYouHeading.current?.focus()}
+          onCaughtUp={() => {
+            following.items.forEach((item) => ownChange(item.cuid));
+            following.setItems([]);
+            clearUndoTimer();
+            setUndo(null);
+            setMuted(null);
+            needsYouHeading.current?.focus();
+          }}
+        />
+      ))}
+
       <section aria-labelledby="notifications-needs-you" className="flex flex-col gap-2">
-        <h3 id="notifications-needs-you" className="text-sm font-extrabold">
+        <Heading
+          id="notifications-needs-you"
+          ref={needsYouHeading}
+          tabIndex={-1}
+          className="rounded text-sm font-extrabold outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        >
           Needs you
-        </h3>
+        </Heading>
 
         {incoming && (
           <Button variant="secondary" size="sm" onClick={showIncoming} className="self-start">
@@ -702,14 +750,14 @@ export function NotificationsPanel({ onClose, focusHeading }: NotificationsPanel
       {/* "Following": level 2, the last 14 days. Never counted by the bell, never announced (design 5.1, 9.3) */}
       <section aria-labelledby="notifications-following" className="flex flex-col gap-2 border-t border-border pt-3">
         <div className="flex items-center justify-between gap-2">
-          <h3
+          <Heading
             id="notifications-following"
             ref={followingHeading}
             tabIndex={-1}
             className="rounded text-sm font-extrabold outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             Following
-          </h3>
+          </Heading>
           {following.status === 'ready' && following.items.length > 0 && (
             <Button
               variant="secondary"
@@ -769,32 +817,32 @@ export function NotificationsPanel({ onClose, focusHeading }: NotificationsPanel
         )}
       </section>
 
-      {/* "Older": more than 14 days, never counted. Loaded when the member opens it the first time. */}
+      {/* "Earlier": more than 14 days, never counted. Loaded when the member opens it the first time. */}
       <section className="flex flex-col gap-2 border-t border-border pt-3">
-        <h3 className="text-sm font-extrabold">
+        <Heading className="text-sm font-extrabold">
           <button
             type="button"
             aria-expanded={olderOpen}
-            aria-controls="notifications-older"
+            aria-controls="notifications-earlier"
             onClick={() => setOlderOpen((open) => !open)}
             className="flex cursor-pointer items-center gap-2 rounded focus-visible:outline-2 focus-visible:outline-primary"
           >
             {olderOpen ? <FaChevronDown aria-hidden="true" className="size-3" /> : <FaChevronRight aria-hidden="true" className="size-3" />}
-            Older
+            Earlier
           </button>
-        </h3>
-        <div id="notifications-older" hidden={!olderOpen}>
-          {olderOpen && older.status === 'loading' && <p className="px-2 text-sm text-muted">Loading older notifications.</p>}
+        </Heading>
+        <div id="notifications-earlier" hidden={!olderOpen}>
+          {olderOpen && older.status === 'loading' && <p className="px-2 text-sm text-muted">Loading earlier notifications.</p>}
           {olderOpen && older.status === 'error' && (
             <div className="flex flex-col items-start gap-2 px-2 text-sm">
-              <p>We could not load the older notifications.</p>
+              <p>We could not load the earlier notifications.</p>
               <Button variant="secondary" size="sm" onClick={older.retry}>
                 Retry
               </Button>
             </div>
           )}
           {olderOpen && older.status === 'ready' && older.items.length === 0 && (
-            <p className="px-2 text-sm text-muted">No older notifications.</p>
+            <p className="px-2 text-sm text-muted">No earlier notifications.</p>
           )}
           {olderOpen && older.status === 'ready' && older.items.length > 0 && (
             <ul aria-busy={older.loadingMore || undefined} className="flex flex-col">
@@ -815,6 +863,16 @@ export function NotificationsPanel({ onClose, focusHeading }: NotificationsPanel
           )}
         </div>
       </section>
+
+      {variant === 'panel' && (
+        <Link
+          href={route(NOTIFICATIONS_URL, {})}
+          onClick={onClose}
+          className="self-start rounded text-sm font-bold underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-primary"
+        >
+          Open the Notifications page
+        </Link>
+      )}
     </div>
   );
 }

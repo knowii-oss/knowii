@@ -1,5 +1,8 @@
 import type { Notification } from './notification.schema';
 import {
+  catchUpLineDetail,
+  catchUpLineHeadline,
+  catchUpSchema,
   notificationActorNames,
   notificationBadge,
   notificationBellName,
@@ -8,6 +11,8 @@ import {
   notificationSentence,
   notificationSentenceHasTitle,
   notificationSettingsLinkName,
+  tabTitle,
+  tabTitleBadge,
 } from './notification.schema';
 import { SPACE_NOTIFICATION_LEVEL_LABELS, spaceNotificationLevelsFor, threadFollowLabel } from './notification-follow.schema';
 
@@ -213,5 +218,38 @@ describe('the words of a thread and of a space level (#1497)', () => {
     expect(SPACE_NOTIFICATION_LEVEL_LABELS.none.description).toBe('You will get nothing from this space, also when someone mentions you.');
     expect(SPACE_NOTIFICATION_LEVEL_LABELS.all.name).toBe('Everything');
     expect(SPACE_NOTIFICATION_LEVEL_LABELS.mine.name).toBe('Only what is for me');
+  });
+});
+
+describe('the catch-up and the tab title (#1476)', () => {
+  const line = { title: 'A title', excerpt: 'An excerpt' };
+
+  it('shows the title first and the excerpt under it, else the excerpt first', () => {
+    expect(catchUpLineHeadline(line)).toBe('A title');
+    expect(catchUpLineDetail(line)).toBe('An excerpt');
+    expect(catchUpLineHeadline({ title: null, excerpt: 'Only text' })).toBe('Only text');
+    expect(catchUpLineDetail({ title: null, excerpt: 'Only text' })).toBeNull();
+    expect(catchUpLineDetail({ title: 'A title', excerpt: '' })).toBeNull();
+  });
+
+  it('adds the bell number and the messages in the tab title, with "9+" above 9 and nothing at zero', () => {
+    expect(tabTitle('Home', 0, 0)).toBe('Home');
+    expect(tabTitle('Home', 2, 1)).toBe('(3) Home');
+    expect(tabTitle('Home', 0, 4)).toBe('(4) Home');
+    expect(tabTitle('Home', 9, 0)).toBe('(9) Home');
+    expect(tabTitle('Home', 6, 4)).toBe('(9+) Home');
+    expect(tabTitleBadge(-1, 0)).toBeNull();
+  });
+
+  it('knows the three kinds of lines and no count', () => {
+    const parsed = catchUpSchema.safeParse({
+      lines: [{ ...resource, author: null, kind: 'needs_you', date: '2026-11-15T10:00:00Z' }],
+      has_more: false,
+    });
+    expect(parsed.success).toBe(true);
+    expect(
+      catchUpSchema.safeParse({ lines: [{ ...resource, author: null, kind: 'other', date: '2026-11-15T10:00:00Z' }], has_more: false })
+        .success,
+    ).toBe(false);
   });
 });

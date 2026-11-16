@@ -92,6 +92,10 @@ import {
   NOTIFICATIONS_COUNT_API_PATH,
   NOTIFICATIONS_SEEN_API_PATH,
   NOTIFICATIONS_CAUGHT_UP_API_PATH,
+  COMMUNITY_CATCH_UP_API_PATH,
+  COMMUNITY_SPACE_VISIT_API_PATH,
+  USER_TIME_ZONE_API_PATH,
+  USER_NOTIFICATION_SETTINGS_API_PATH,
   COMMUNITY_NOTIFICATION_LEVELS_API_PATH,
   COMMUNITY_SPACE_NOTIFICATION_LEVEL_API_PATH,
   COMMUNITY_SPACE_POST_FOLLOW_API_PATH,
@@ -131,8 +135,8 @@ import type { Comment, CommentForm } from '../types/comment.schema';
 import { commentSchema } from '../types/comment.schema';
 import type { Conversation, NewConversationForm } from '../types/conversation.schema';
 import { conversationSchema } from '../types/conversation.schema';
-import type { Notification } from '../types/notification.schema';
-import { notificationSchema } from '../types/notification.schema';
+import type { CatchUp, Notification } from '../types/notification.schema';
+import { catchUpSchema, notificationSchema } from '../types/notification.schema';
 import type { CommunitySpaceLevel, SpaceLevel, SpaceNotificationLevel, ThreadFollow } from '../types/notification-follow.schema';
 import { communitySpaceLevelSchema, spaceLevelSchema, threadFollowSchema } from '../types/notification-follow.schema';
 import type { PresenceMember } from '../types/presence.schema';
@@ -240,6 +244,12 @@ async function listNotifications(
     return { ok: false, status: 0, message: failureMessage, errors: {} };
   }
 }
+
+const ownAccountSettingsSchema = z.object({
+  time_zone: z.string().nullable().optional(),
+  notification_popups: z.boolean().optional(),
+});
+type OwnAccountSettings = z.infer<typeof ownAccountSettingsSchema>;
 
 const postListSchema = z.array(postSchema);
 const pagesPath = (communityCuid: string, spaceCuid: string, pageCuid = '', path = COMMUNITY_SPACE_PAGES_API_PATH) =>
@@ -1356,6 +1366,17 @@ export const knowiiApiClient = {
       remove: (identityCuid: string): Promise<ApiResult<unknown>> =>
         apiRequest('delete', `${USER_IDENTITIES_API_PATH}/${encodeURIComponent(identityCuid)}`, null, 'Failed to disconnect the account.'),
     },
+    /**
+     * Set the time zone of the current member (#1476, ADR 0048): an IANA name like `Europe/Brussels`, or `UTC`. Only the member
+     * sets it: the app calls this after a click, or one time when the account has no zone. Answers with the own account.
+     */
+    setTimeZone: (timeZone: string): Promise<ApiResult<OwnAccountSettings>> =>
+      apiRequest('put', USER_TIME_ZONE_API_PATH, ownAccountSettingsSchema, 'Failed to save your time zone.', { time_zone: timeZone }),
+    /**
+     * Show or hide the pop-ups of the app for the current member (#1476). Answers with the own account.
+     */
+    setNotificationPopups: (popups: boolean): Promise<ApiResult<OwnAccountSettings>> =>
+      apiRequest('put', USER_NOTIFICATION_SETTINGS_API_PATH, ownAccountSettingsSchema, 'Failed to save the pop-up choice.', { popups }),
     updateOnlineStatus: (show: boolean): Promise<ApiResult<unknown>> =>
       apiRequest('patch', USER_ONLINE_STATUS_API_PATH, null, 'Failed to change your online status.', { show_online_status: show }),
     isUsernameAvailable: async (input: IsUsernameAvailableRequest, signal?: AbortSignal): Promise<IsUsernameAvailableResponse> => {
@@ -1408,8 +1429,38 @@ export const knowiiApiClient = {
     /**
      * The number of the bell: the notifications that the member did not see, 14 days old at most
      */
-    count: (): Promise<ApiResult<{ count: number }>> =>
-      apiRequest('get', NOTIFICATIONS_COUNT_API_PATH, z.object({ count: z.number().int() }), 'Failed to load the notification count.'),
+    count: (): Promise<ApiResult<{ count: number; messages: number }>> =>
+      apiRequest(
+        'get',
+        NOTIFICATIONS_COUNT_API_PATH,
+        // `messages`: the conversations with new messages, in every community (#1476). The tab title adds it to the bell number
+        z.object({ count: z.number().int(), messages: z.number().int().default(0) }),
+        'Failed to load the notification count.',
+      ),
+    /**
+     * What the member missed in a community since a date, for the "Catch up" card (#1476): at most 5 lines and whether more
+     * exists. Members of the community only. There is no count of missed things.
+     */
+    catchUp: (communityCuid: string, since: string, signal?: AbortSignal): Promise<ApiResult<CatchUp>> =>
+      apiRequest(
+        'get',
+        `${communityPath(COMMUNITY_CATCH_UP_API_PATH, communityCuid)}?${new URLSearchParams({ since }).toString()}`,
+        catchUpSchema,
+        'Failed to load the catch-up.',
+        undefined,
+        signal,
+      ),
+    /**
+     * The member visited a space (#1476): the dot of the navigation goes. The web app does not need it: the server writes the
+     * visit when a page of the space opens.
+     */
+    visitSpace: (communityCuid: string, spaceCuid: string): Promise<ApiResult<undefined>> =>
+      apiRequest(
+        'put',
+        apiPath(COMMUNITY_SPACE_VISIT_API_PATH, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE]: spaceCuid }),
+        null,
+        'Failed to save the visit.',
+      ),
     /**
      * The lines were on screen
      */

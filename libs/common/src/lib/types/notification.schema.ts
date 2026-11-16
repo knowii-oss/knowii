@@ -34,6 +34,24 @@ export type NotificationReason = z.infer<typeof notificationReasonSchema>;
 const namedSchema = z.object({ cuid: z.string(), slug: z.string(), name: z.string() });
 
 /**
+ * What the client needs to open the exact item of a notification or of a line of the "Catch up" card.
+ * WARNING: aligned with NotificationResource::targetOf
+ */
+export const notificationTargetSchema = z.object({
+  post_slug: z.string().nullable(),
+  // The thread to follow or to mute (a post). A chat thread is `thread_cuid`, or the message itself
+  post_cuid: z.string().nullable(),
+  comment_cuid: z.string().nullable(),
+  chat_message_cuid: z.string().nullable(),
+  thread_cuid: z.string().nullable(),
+  resource_cuid: z.string().nullable(),
+  resource_slug: z.string().nullable(),
+  // A new lesson of a course
+  page_slug: z.string().nullable(),
+});
+export type NotificationTarget = z.infer<typeof notificationTargetSchema>;
+
+/**
  * A notification of the current member. WARNING: aligned with NotificationResource.php. The row holds no text: the title
  * and the excerpt come from the live content.
  */
@@ -59,18 +77,7 @@ export const notificationSchema = z.object({
   title: z.string().nullable(),
   excerpt: z.string(),
   // What the client needs to open the exact item
-  target: z.object({
-    post_slug: z.string().nullable(),
-    // The thread to follow or to mute (a post). A chat thread is `thread_cuid`, or the message itself
-    post_cuid: z.string().nullable(),
-    comment_cuid: z.string().nullable(),
-    chat_message_cuid: z.string().nullable(),
-    thread_cuid: z.string().nullable(),
-    resource_cuid: z.string().nullable(),
-    resource_slug: z.string().nullable(),
-    // A new lesson of a course
-    page_slug: z.string().nullable(),
-  }),
+  target: notificationTargetSchema,
   seen_at: z.coerce.date().nullable(),
   read_at: z.coerce.date().nullable(),
   created_at: z.coerce.date(),
@@ -213,4 +220,70 @@ export function notificationReasonSentence(notification: Pick<Notification, 'rea
  */
 export function notificationSettingsLinkName(notification: Pick<Notification, 'space' | 'community'>): string {
   return `Notification settings for ${notification.space?.name ?? notification.community.name}`;
+}
+
+/**
+ * The kinds of lines of the "Catch up" card (#1476, ADR 0048). WARNING: aligned with BuildsCatchUp.php
+ */
+export const catchUpLineKindSchema = z.enum(['needs_you', 'announcement', 'thread']);
+export type CatchUpLineKind = z.infer<typeof catchUpLineKindSchema>;
+
+/**
+ * One line of the "Catch up" card: no count, no stored text. WARNING: aligned with BuildsCatchUp.php
+ */
+export const catchUpLineSchema = z.object({
+  kind: catchUpLineKindSchema,
+  title: z.string().nullable(),
+  excerpt: z.string(),
+  space: namedSchema.nullable(),
+  author: authorSchema.nullable(),
+  date: z.coerce.date(),
+  target: notificationTargetSchema,
+});
+export type CatchUpLine = z.infer<typeof catchUpLineSchema>;
+
+/**
+ * The answer of the catch-up route: at most 5 lines, and whether more exists
+ */
+export const catchUpSchema = z.object({ lines: z.array(catchUpLineSchema), has_more: z.boolean() });
+export type CatchUp = z.infer<typeof catchUpSchema>;
+
+/**
+ * The shared Inertia prop `catchUp`: the date of the last visit when it was 7 days old or more, else null
+ */
+export const catchUpPropSchema = z.object({ since: z.string() }).nullable();
+export type CatchUpProp = z.infer<typeof catchUpPropSchema>;
+
+/**
+ * The first line of a line of the card: the title, else the excerpt
+ */
+export function catchUpLineHeadline(line: Pick<CatchUpLine, 'title' | 'excerpt'>): string {
+  return line.title !== null && line.title !== '' ? line.title : line.excerpt;
+}
+
+/**
+ * The text under the headline: the excerpt, when the headline is the title and there is an excerpt. Else null (the card then
+ * shows the space and the date).
+ */
+export function catchUpLineDetail(line: Pick<CatchUpLine, 'title' | 'excerpt'>): string | null {
+  return line.title !== null && line.title !== '' && line.excerpt !== '' ? line.excerpt : null;
+}
+
+/**
+ * The number of the tab title: the bell number plus the number of "Messages" (design 5.4). "9+" above 9, nothing at zero.
+ */
+export function tabTitleBadge(count: number, messages: number): string | null {
+  const total = Math.max(0, count) + Math.max(0, messages);
+  if (total <= 0) {
+    return null;
+  }
+  return total > 9 ? '9+' : String(total);
+}
+
+/**
+ * The title of the browser tab: "(3) Title". No number at zero.
+ */
+export function tabTitle(title: string, count: number, messages: number): string {
+  const badge = tabTitleBadge(count, messages);
+  return badge === null ? title : `(${badge}) ${title}`;
 }

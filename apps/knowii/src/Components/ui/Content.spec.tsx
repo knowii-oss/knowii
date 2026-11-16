@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MarkdownContent } from './MarkdownContent';
+import { AccountTimeZoneProvider } from './AccountTimeZone';
 import { RelativeTime } from './RelativeTime';
 
 describe('MarkdownContent', () => {
@@ -26,5 +27,37 @@ describe('RelativeTime', () => {
     expect(container.querySelector('time')).toHaveAttribute('datetime', '2020-01-01T10:00:00.000Z');
     rerender(<RelativeTime date="not a date" />);
     expect(container.querySelector('time')).toBeNull();
+  });
+});
+
+describe('RelativeTime and the time zone of the account (#1476, design 9.9)', () => {
+  const date = new Date('2026-11-15T10:00:00Z');
+
+  it('shows the full date and hour in the zone of the account, and names the zone, without changing the relative text', () => {
+    render(
+      <AccountTimeZoneProvider value="Asia/Tokyo">
+        <RelativeTime date={date} />
+      </AccountTimeZoneProvider>,
+    );
+
+    const time = screen.getByRole('time', { hidden: true }) as HTMLElement;
+    expect(time).toHaveAttribute('title', 'Nov 15, 2026, 7:00:00 PM GMT+9');
+    expect(time.textContent).toMatch(/ago$/);
+  });
+
+  it('uses the zone of the browser, and names it, when the account has none', () => {
+    render(<RelativeTime date={date} />);
+
+    expect(screen.getByRole('time', { hidden: true })).toHaveAttribute('title', expect.stringMatching(/2026, \d+:\d\d:00 (AM|PM) \S+$/));
+  });
+
+  it('shows UTC for an account in UTC', () => {
+    render(
+      <AccountTimeZoneProvider value="UTC">
+        <RelativeTime date={date} />
+      </AccountTimeZoneProvider>,
+    );
+
+    expect(screen.getByRole('time', { hidden: true })).toHaveAttribute('title', 'Nov 15, 2026, 10:00:00 AM UTC');
   });
 });

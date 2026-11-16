@@ -27,9 +27,9 @@ export const THREAD_QUERY_PARAM = 'thread';
  * 3. a chat message: the chat space with `#message-{cuid}`, and `?thread={parent}` when the message is a reply
  * 4. a mention in a post: the post page
  *
- * Null when the notification has no space (it cannot be opened).
+ * Null when the notification has no space (it cannot be opened). A line of the "Catch up" card (#1476) has the same target.
  */
-export function notificationHref(notification: Notification, route: RouteFn): string | null {
+export function notificationHref(notification: Pick<Notification, 'community' | 'space' | 'target'>, route: RouteFn): string | null {
   const { community, space, target } = notification;
   if (!space) {
     return null;

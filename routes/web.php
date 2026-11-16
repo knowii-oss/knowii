@@ -9,6 +9,7 @@ use App\Http\Controllers\Inertia\DeleteAccountController;
 use App\Http\Controllers\Inertia\MagicLinkController;
 use App\Http\Controllers\Inertia\MemberController;
 use App\Http\Controllers\Inertia\NotificationSettingsController;
+use App\Http\Controllers\Inertia\NotificationsPageController;
 use App\Http\Controllers\Inertia\OpenIdConnectController;
 use App\Http\Controllers\Inertia\PageController;
 use App\Http\Controllers\Inertia\PostController;
@@ -52,6 +53,9 @@ Route::middleware([
     'verified',
 ])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'show'])->name('dashboard');
+
+    // The page "Notifications": Needs you, Following, Earlier, and the "Catch up" cards (#1476)
+    Route::get('/notifications', [NotificationsPageController::class, 'index'])->name('notifications.index');
 
     // The notification settings of the member: the level of each space (#1497)
     Route::get('/user/notifications', [NotificationSettingsController::class, 'show'])->name('profile.notifications');

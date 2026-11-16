@@ -326,10 +326,19 @@ test('the privacy policy says that a member can delete their content with the ac
 
 test('the privacy policy names the identifier of the provider account and the date it was connected (#1385)', function () {
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
-        ->where('html', fn (string $html) => str_contains($html, 'and, when you sign in with a Knowii account, the identifier of that account and the date you connected it.')));
+        ->where('html', fn (string $html) => str_contains($html, 'and, when you sign in with a Knowii account, the identifier of that account and the date you connected it;')));
 });
 
 test('the privacy policy says what Knowii keeps when a manager removes a member, and when it goes away (#1501, approved 2026-11-15)', function () {
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
         ->where('html', fn (string $html) => str_contains($html, 'If a manager of a community removes you from it, Knowii keeps a record of that community, your account and the date, so that you cannot join it again by yourself; the record is deleted when you accept a new invitation, when a manager lets you join again, when the community is deleted or when you delete your account.')));
+});
+
+test('the privacy policy tells about the time zone, the last visit and the visits of spaces (#1476, approved 2026-11-16)', function () {
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('updated', '2026-11-16')
+        ->where('html', fn (string $html) => str_contains($html, 'your time zone, which your browser gives when you sign up or which you set yourself, to show times in your zone; the date of your last visit (a date without an hour, replaced at each visit, that nobody else can see), to show you what is new since then; and your choice to show or hide pop-ups.')
+            && str_contains($html, 'and when you saw it), and the date and hour of your last visit of each space, to mark the spaces that have something new for you, and, when you sign in with a Knowii account')
+            && str_contains($html, 'Time zone and pop-up choice: while your account exists. Last visit date: replaced at each visit. Last visit of each space: replaced at each visit, and deleted when you leave the community.'))
+    );
 });

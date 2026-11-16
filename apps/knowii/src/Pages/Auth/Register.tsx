@@ -5,7 +5,15 @@ import AuthenticationCard from '@/Components/AuthenticationCard';
 import { Head, Link, useForm } from '@inertiajs/react';
 import type { FormEventHandler } from 'react';
 import { useState } from 'react';
-import { LOGIN_URL, PRIVACY_POLICY_URL, REGISTER_URL, SIGNUP_HONEYPOT_FIELD, TERMS_OF_SERVICE_URL, useTypedPage } from '@knowii/common';
+import {
+  browserTimeZone,
+  LOGIN_URL,
+  PRIVACY_POLICY_URL,
+  REGISTER_URL,
+  SIGNUP_HONEYPOT_FIELD,
+  TERMS_OF_SERVICE_URL,
+  useTypedPage,
+} from '@knowii/common';
 import { useRoute } from 'ziggy-js';
 import InputLabel from '@/Components/InputLabel';
 import { FaAt, FaLock, FaUser } from 'react-icons/fa';
@@ -19,6 +27,8 @@ interface RegisterFormData {
   terms: boolean;
   turnstile_token: string;
   website: string;
+  // The zone of the browser (#1476): the sign-up never fails when the browser gives none
+  time_zone: string;
 }
 
 interface Props {
@@ -38,6 +48,7 @@ export default function RegisterPage({ turnstileSiteKey = null }: Props) {
     terms: false,
     turnstile_token: '',
     website: '',
+    time_zone: browserTimeZone() ?? '',
   });
   // A Turnstile token works once: a new key mounts a new widget after each attempt
   const [turnstileKey, setTurnstileKey] = useState(0);
@@ -160,6 +171,9 @@ export default function RegisterPage({ turnstileSiteKey = null }: Props) {
               <InputError className="mt-2" message={form.errors.terms} />
             </div>
           )}
+
+          {/* The zone of the browser, in a hidden field (#1476): nothing is shown, and nothing fails when it is empty */}
+          <input type="hidden" name="time_zone" value={form.data.time_zone} />
 
           {/* Honeypot (#737): hidden from people and from screen readers, bots fill it in */}
           <div aria-hidden="true" className="absolute -left-[10000px] h-px w-px overflow-hidden">
