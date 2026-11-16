@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Constants;
 use App\Support\Newsletter;
 use App\Support\OpenIdConnect;
 use Illuminate\Http\Request;
@@ -48,6 +49,17 @@ class HandleInertiaRequests extends Middleware
                 return OpenIdConnect::pageProp(is_string($error) ? $error : null, is_string($status) ? $status : null);
             },
         ];
+
+        // The "Catch up" card (#1476): the date of the last visit when it was 7 days old or more, else null. Read when the
+        // response is built, after the middleware that records the visit
+        $retVal['catchUp'] = function () use ($request): ?array {
+            if ($request->user() === null || ! $request->hasSession()) {
+                return null;
+            }
+            $since = $request->session()->get(Constants::SESSION_CATCH_UP_SINCE);
+
+            return is_string($since) ? ['since' => $since] : null;
+        };
 
         // If the user is authenticated, load their communities
         $user = $request->user();

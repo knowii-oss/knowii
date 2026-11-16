@@ -5,6 +5,7 @@ namespace App\Actions\Posts;
 use App\Constants;
 use App\Contracts\Notifications\FollowsThreads;
 use App\Contracts\Notifications\Notifies;
+use App\Contracts\Notifications\TracksSpaceVisits;
 use App\Contracts\Posts\CreatesPosts;
 use App\Enums\KnowiiFollowReason;
 use App\Enums\KnowiiSpaceType;
@@ -61,6 +62,8 @@ class CreatePost implements CreatesPosts
         });
 
         Log::info('Post created', ['post' => $post->cuid]);
+        // The space has new content (#1476): the dot of the navigation
+        app(TracksSpaceVisits::class)->wroteIn($user, $space);
         // The author follows the thread of their post (#1475)
         app(FollowsThreads::class)->followByWriting($user, $post, KnowiiFollowReason::Wrote);
         // The members mentioned in the post are told (#1474), and after 5 minutes the members at "Everything" (#1475):

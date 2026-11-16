@@ -32,6 +32,9 @@ class UserResource extends AbstractKnowiiJsonResource
             'two_factor_enabled' => $this->when($isSelf, fn () => $this->two_factor_confirmed_at !== null),
             // #1187: whether the other members see when this member is online
             'show_online_status' => $this->when($isSelf, fn () => $this->showsOnlineStatus()),
+            // #1476: the time zone and the pop-up switch are for the member only. The date of the last visit is in no resource
+            'time_zone' => $this->when($isSelf, fn () => $this->timeZone()),
+            'notification_popups' => $this->when($isSelf, fn () => $this->showsNotificationPopups()),
             'profile' => $this->when($isSelf && $this->relationLoaded('profile'), fn () => $this->profile->toResource()),
             'created_at' => $this->created_at,
         ];

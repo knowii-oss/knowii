@@ -247,6 +247,16 @@ class Constants
     // The list folds a row into "Older" and the count forgets it after this many days without news
     public const int NOTIFICATIONS_FOLD_DAYS = 14;
 
+    // "Catch up" (#1476, ADR 0048): the card shows after this many days away, holds this many lines at most, and looks back
+    // this many days at most. The old date waits in the session under this key
+    public const int CATCH_UP_AWAY_DAYS = 7;
+
+    public const int CATCH_UP_MAX_LINES = 5;
+
+    public const int CATCH_UP_MAX_DAYS_BACK = 366;
+
+    public const string SESSION_CATCH_UP_SINCE = 'catch_up_since';
+
     // Storm cap: a member gets at most this many unread mention rows from the same author in the window
     public const int NOTIFICATIONS_MENTION_CAP = 3;
 

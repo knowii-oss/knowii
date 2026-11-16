@@ -8,6 +8,7 @@ use App\Http\Middleware\AddViteContentSecurityPolicyNonce;
 use App\Http\Middleware\AuthenticateIfPresent;
 use App\Http\Middleware\EnsureRequestIsJson;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\RecordLastVisit;
 use App\Http\Middleware\RequireTokenAbility;
 use App\Traits\ApiResponses;
 use Bepsvpt\SecureHeaders\SecureHeadersMiddleware;
@@ -43,6 +44,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->web(append: [
             HandleInertiaRequests::class,
+            // The last visit of a member, one date at most once a day (#1476)
+            RecordLastVisit::class,
             AddLinkHeadersForPreloadedAssets::class,
             SecureHeadersMiddleware::class,
             AddViteContentSecurityPolicyNonce::class,

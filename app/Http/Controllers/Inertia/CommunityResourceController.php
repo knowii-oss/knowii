@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Inertia;
 
+use App\Contracts\Notifications\TracksSpaceVisits;
 use App\Enums\KnowiiResourceType;
 use App\Enums\KnowiiSpaceType;
 use App\Models\Community;
@@ -27,6 +28,11 @@ class CommunityResourceController extends Controller
         $space = $community->spaces()->where('slug', $spaceSlug)->where('type', KnowiiSpaceType::Resources)->firstOrFail();
 
         Gate::authorize('view', $space);
+
+        // A member who opens the space has visited it: the dot of the navigation goes (#1476). Before the navigation is built
+        if ($request->user() !== null) {
+            app(TracksSpaceVisits::class)->visit($request->user(), $space);
+        }
 
         $resource = $space->resources()->where('slug', $resourceSlug)->with(['curator', 'resource', 'capture', 'space'])->firstOrFail();
 

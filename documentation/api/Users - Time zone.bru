@@ -1,0 +1,26 @@
+meta {
+  name: Users - Time zone
+  type: http
+  seq: 176
+}
+
+put {
+  url: {{BASE_URL}}/api/v1/user/time-zone
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "time_zone": "Europe/Brussels"
+  }
+}
+
+docs {
+  Set the time zone of the current user (#1476, ADR 0048): an IANA name that PHP knows, like Europe/Brussels or UTC. An unknown name gives 400. Only the member sets it (the platform never changes it) and only the member reads it: it is in the current user (GET /api/v1/user and this answer), never in a resource that another person gets. Without a zone, the zone of the instance applies. Needs user:write.
+}

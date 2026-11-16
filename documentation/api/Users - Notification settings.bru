@@ -1,0 +1,26 @@
+meta {
+  name: Users - Notification settings
+  type: http
+  seq: 177
+}
+
+put {
+  url: {{BASE_URL}}/api/v1/user/notification-settings
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "popups": false
+  }
+}
+
+docs {
+  The account choices about notifications (#1476): popups turns the pop-ups of the app on (true, the default) or off (false). Returns the current user with notification_popups, which only the member reads. Needs notifications:write.
+}

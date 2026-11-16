@@ -2,6 +2,7 @@
 
 use App\ApiRoutes;
 use App\Http\Controllers\API\AccessGroupApiController;
+use App\Http\Controllers\API\CatchUpApiController;
 use App\Http\Controllers\API\ChatMessageApiController;
 use App\Http\Controllers\API\CommentApiController;
 use App\Http\Controllers\API\CommunityApiController;
@@ -29,6 +30,7 @@ use App\Http\Controllers\API\QuizApiController;
 use App\Http\Controllers\API\ReactionApiController;
 use App\Http\Controllers\API\SpaceApiController;
 use App\Http\Controllers\API\SpaceGroupApiController;
+use App\Http\Controllers\API\SpaceVisitApiController;
 use App\Http\Controllers\API\ThreadFollowApiController;
 use App\Http\Controllers\API\UploadApiController;
 use App\Http\Controllers\API\UserApiController;
@@ -87,6 +89,9 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
         Route::post(ApiRoutes::USER_AVATAR, [UserApiController::class, 'updateAvatar'])->middleware('ability:user:write')->middleware('throttle:uploads');
         Route::delete(ApiRoutes::USER_AVATAR, [UserApiController::class, 'deleteAvatar'])->middleware('ability:user:write');
         Route::patch(ApiRoutes::USER_ONLINE_STATUS, [UserApiController::class, 'updateOnlineStatus'])->middleware('ability:user:write');
+        // The time zone is set by the member only, and read by the member only (#1476, ADR 0048)
+        Route::put(ApiRoutes::USER_TIME_ZONE, [UserApiController::class, 'updateTimeZone'])->middleware('ability:user:write');
+        Route::put(ApiRoutes::USER_NOTIFICATION_SETTINGS, [UserApiController::class, 'updateNotificationSettings'])->middleware('ability:notifications:write');
         // The emoji of "Frequently used" in the reaction picker (#1204)
         Route::get(ApiRoutes::USER_FREQUENT_EMOJI, [UserApiController::class, 'frequentEmoji'])->middleware('ability:user:read');
         // Blocked members (#1186)
@@ -147,6 +152,8 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::get(ApiRoutes::COMMUNITY_SPACE_NOTIFICATION_LEVEL, [NotificationLevelApiController::class, 'show'])->middleware('ability:notifications:read');
             Route::put(ApiRoutes::COMMUNITY_SPACE_NOTIFICATION_LEVEL, [NotificationLevelApiController::class, 'update'])->middleware('ability:notifications:write');
             Route::delete(ApiRoutes::COMMUNITY_SPACE_NOTIFICATION_LEVEL, [NotificationLevelApiController::class, 'destroy'])->middleware('ability:notifications:write');
+            // The visit of a space: the read marker behind the dots of the navigation (#1476)
+            Route::put(ApiRoutes::COMMUNITY_SPACE_VISIT, [SpaceVisitApiController::class, 'update'])->middleware('ability:notifications:write');
 
             // Messages of chat spaces (#1185)
             Route::get(ApiRoutes::COMMUNITY_SPACE_MESSAGES, [ChatMessageApiController::class, 'index'])->middleware('ability:chat:read');
@@ -236,6 +243,8 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
         Route::post(ApiRoutes::NOTIFICATIONS_CAUGHT_UP, [NotificationApiController::class, 'caughtUp'])->middleware('ability:notifications:write');
         // What the member chose for each space of a community, in one call (#1475)
         Route::get(ApiRoutes::COMMUNITY_NOTIFICATION_LEVELS, [NotificationLevelApiController::class, 'index'])->middleware('ability:notifications:read');
+        // The data of the "Catch up" card (#1476)
+        Route::get(ApiRoutes::COMMUNITY_CATCH_UP, [CatchUpApiController::class, 'show'])->middleware('ability:notifications:read');
         Route::put(ApiRoutes::NOTIFICATION_READ, [NotificationApiController::class, 'read'])->middleware('ability:notifications:write');
         Route::post(ApiRoutes::NOTIFICATION_UNREAD, [NotificationApiController::class, 'unread'])->middleware('ability:notifications:write');
 

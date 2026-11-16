@@ -5,7 +5,9 @@ namespace App\Http\Controllers\API;
 namespace App\Http\Controllers\API;
 
 use App\Contracts\Users\UpdatesAvatars;
+use App\Contracts\Users\UpdatesNotificationSettings;
 use App\Contracts\Users\UpdatesOnlineStatus;
+use App\Contracts\Users\UpdatesTimeZones;
 use App\Contracts\Users\VerifiesUsernameAvailability;
 use App\Http\Controllers\Controller;
 use App\Models\Reaction;
@@ -81,6 +83,34 @@ class UserApiController extends Controller
         $user = app(UpdatesOnlineStatus::class)->update($request->user() ?? throw new AuthenticationException, $request->only(['show_online_status']));
 
         return self::success('Online status updated', null, $user->refresh()->load('profile')->toResource());
+    }
+
+    /**
+     * Set the time zone of the current user (#1476, ADR 0048): an IANA name that PHP knows, like `Europe/Brussels` or `UTC`.
+     * Only the member sets it, and only the member reads it. Returns the current user with `time_zone`.
+     *
+     * @throws AuthenticationException
+     */
+    #[BodyParameter('time_zone', description: 'An IANA time zone name', required: true, type: 'string', example: 'Europe/Brussels')]
+    final public function updateTimeZone(Request $request): JsonResponse
+    {
+        $user = app(UpdatesTimeZones::class)->update($request->user() ?? throw new AuthenticationException, $request->only(['time_zone']));
+
+        return self::success('Time zone updated', null, $user->refresh()->load('profile')->toResource());
+    }
+
+    /**
+     * The account choices about notifications (#1476): `popups` turns the pop-ups of the app on or off. Returns the current
+     * user with `notification_popups`.
+     *
+     * @throws AuthenticationException
+     */
+    #[BodyParameter('popups', description: 'true: the app shows pop-ups for the lines that need you. false: it does not', required: true, type: 'boolean', example: false)]
+    final public function updateNotificationSettings(Request $request): JsonResponse
+    {
+        $user = app(UpdatesNotificationSettings::class)->update($request->user() ?? throw new AuthenticationException, $request->only(['popups']));
+
+        return self::success('Notification settings updated', null, $user->refresh()->load('profile')->toResource());
     }
 
     /**

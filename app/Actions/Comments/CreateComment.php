@@ -6,6 +6,7 @@ use App\Constants;
 use App\Contracts\Comments\CreatesComments;
 use App\Contracts\Notifications\FollowsThreads;
 use App\Contracts\Notifications\Notifies;
+use App\Contracts\Notifications\TracksSpaceVisits;
 use App\Enums\KnowiiFollowReason;
 use App\Events\Spaces\SpaceContentChanged;
 use App\Models\Comment;
@@ -63,6 +64,8 @@ class CreateComment implements CreatesComments
             return $comment;
         });
 
+        // The comment of a post is new content of its space, the one of a resource only a visit (#1476)
+        app(TracksSpaceVisits::class)->wroteIn($user, $subject->space, $subject instanceof Post);
         // A member who comments a post follows its thread, unless they stopped following it or muted it (#1475)
         if ($subject instanceof Post) {
             app(FollowsThreads::class)->followByWriting($user, $subject, KnowiiFollowReason::Replied);

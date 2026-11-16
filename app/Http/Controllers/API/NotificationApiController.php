@@ -8,6 +8,7 @@ use App\Contracts\Notifications\MarksNotificationsRead;
 use App\Contracts\Notifications\MarksNotificationsSeen;
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
+use App\Support\Conversations;
 use App\Support\Pagination;
 use App\Traits\ApiResponses;
 use Dedoc\Scramble\Attributes\BodyParameter;
@@ -95,7 +96,9 @@ class NotificationApiController extends Controller
 
     /**
      * The number that the bell shows: the "Needs you" notifications that the member did not see, 14 days old at most,
-     * after the access check. The client shows 1 to 9, then "9+", and nothing at zero.
+     * after the access check. The client shows 1 to 9, then "9+", and nothing at zero. `messages` is the number of
+     * conversations with new messages for the member (the same cursor as the unread counts of the direct messages), for the
+     * title of the browser tab (#1476).
      *
      * @throws AuthenticationException
      */
@@ -103,7 +106,10 @@ class NotificationApiController extends Controller
     {
         $user = $request->user() ?? throw new AuthenticationException;
 
-        return self::success('Unseen notifications', null, ['count' => app(ListsNotifications::class)->unseenCount($user)]);
+        return self::success('Unseen notifications', null, [
+            'count' => app(ListsNotifications::class)->unseenCount($user),
+            'messages' => Conversations::unreadConversations($user),
+        ]);
     }
 
     /**
@@ -122,7 +128,7 @@ class NotificationApiController extends Controller
     /**
      * "I am caught up": every open notification of level 2 ("Following") of the member is marked as read, in every
      * community or in the one that `community` names. It never touches "Needs you". It answers with the number of
-     * notifications that it marked.
+     * notifications that it marked. When the request has a session, it also forgets the date of the "Catch up" card (#1476).
      *
      * @throws AuthenticationException
      */
@@ -135,7 +141,12 @@ class NotificationApiController extends Controller
             throw ValidationException::withMessages(['community' => 'The community is a cuid']);
         }
 
-        return self::success('Caught up', null, ['marked' => app(MarksNotificationsRead::class)->caughtUp($user, $community)]);
+        $marked = app(MarksNotificationsRead::class)->caughtUp($user, $community);
+        if ($request->hasSession()) {
+            $request->session()->forget(Constants::SESSION_CATCH_UP_SINCE);
+        }
+
+        return self::success('Caught up', null, ['marked' => $marked]);
     }
 
     /**

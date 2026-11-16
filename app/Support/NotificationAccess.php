@@ -45,6 +45,24 @@ final class NotificationAccess
     }
 
     /**
+     * The spaces of the community that the member can view, by id (#1476): the reading rule of SpacePolicy::view for each
+     * space, with the spaces, their access groups and their space groups loaded at once and the role of the member read once
+     * (no query per space).
+     *
+     * @return Collection<int, Space>
+     */
+    public static function viewableSpaces(User $user, Community $community): Collection
+    {
+        $spaces = Space::query()->with(['accessGroups', 'spaceGroup.accessGroups'])->where('community_id', $community->id)->get();
+
+        return CommunityRoles::withKnownAdmins(
+            $community,
+            [$user->id],
+            static fn (): Collection => $spaces->filter(static fn (Space $space): bool => self::canView($user, $community, $space))->keyBy('id'),
+        );
+    }
+
+    /**
      * The members, among the given ones, who can view what happens in the space of the community. The members need their
      * communities and their access groups loaded, and the space its access groups and its space group: the check then
      * runs no query per member (one query for the roles of all the members of a "groups" space).

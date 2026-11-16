@@ -34,6 +34,10 @@ return [
     'notifications_read_days' => (int) env('RETENTION_NOTIFICATIONS_READ_DAYS', 60),
     'notifications_unread_days' => (int) env('RETENTION_NOTIFICATIONS_UNREAD_DAYS', 90),
 
+    // Where I am (#1476, ADR 0048) has no period of its own: `users.time_zone` lives with the account, `users.last_visit_on` is one
+    // date that each visit replaces, and the rows of `space_visits` are replaced at each visit and go with the membership (a member
+    // who leaves or is removed) and with the account. Nothing accumulates, so `retention:prune` has no step for them.
+
     // The ids (`jti`) of the change calls of the sign-in provider (#1386, ADR 0047) are kept 24 hours in the cache
     // (ReceiveEntitlementEvent::JTI_HOURS) against a replay, and forgotten with it: the `cache` step of retention:prune
     // deletes the expired entries when the cache is the database. The stored entitlement keys follow the link to the
