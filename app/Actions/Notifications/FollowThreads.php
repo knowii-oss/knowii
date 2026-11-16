@@ -54,8 +54,40 @@ final class FollowThreads implements FollowsThreads
     {
         $this->authorize($user, $thread);
 
-        $follow = $this->set($user, $thread, KnowiiFollowState::Muted, KnowiiFollowReason::Manual);
+        $before = $this->find($user, $thread);
+        if ($before?->state === KnowiiFollowState::Muted) {
+            // A second mute keeps what the first one remembered
+            $follow = $before;
+        } else {
+            $follow = $this->set($user, $thread, KnowiiFollowState::Muted, KnowiiFollowReason::Manual, [
+                'state_before_mute' => $before?->state,
+                'reason_before_mute' => $before?->reason,
+            ]);
+        }
         app(PrunesNotifications::class)->forMutedThread($user, $thread);
+
+        return $follow;
+    }
+
+    final public function unmute(User $user, Post|ChatMessage $thread): ?NotificationFollow
+    {
+        $this->authorize($user, $thread);
+
+        $follow = $this->find($user, $thread);
+        if ($follow === null || $follow->state !== KnowiiFollowState::Muted) {
+            return $follow;
+        }
+
+        $stateBefore = $follow->state_before_mute;
+        $reasonBefore = $follow->reason_before_mute;
+        if ($stateBefore === null || $reasonBefore === null) {
+            // There was no row before the mute (or a mute from before this column existed): no row again
+            $follow->delete();
+
+            return null;
+        }
+
+        $follow->update(['state' => $stateBefore, 'reason' => $reasonBefore, 'state_before_mute' => null, 'reason_before_mute' => null]);
 
         return $follow;
     }
@@ -122,26 +154,35 @@ final class FollowThreads implements FollowsThreads
         return NotificationFollow::query()->where('user_id', $user->id)->where($this->column($thread), $thread->id)->first();
     }
 
-    private function set(User $user, Post|ChatMessage $thread, KnowiiFollowState $state, KnowiiFollowReason $reason): NotificationFollow
+    /**
+     * Any change of the state forgets what a mute remembered, unless the caller gives it (the mute itself)
+     *
+     * @param  array<string, KnowiiFollowState|KnowiiFollowReason|null>  $remembered
+     */
+    private function set(User $user, Post|ChatMessage $thread, KnowiiFollowState $state, KnowiiFollowReason $reason, array $remembered = []): NotificationFollow
     {
+        $remembered += ['state_before_mute' => null, 'reason_before_mute' => null];
         $follow = $this->find($user, $thread);
         if ($follow === null) {
             try {
-                return $this->create($user, $thread, $state, $reason);
+                return $this->create($user, $thread, $state, $reason, $remembered);
             } catch (UniqueConstraintViolationException) {
                 // Another request wrote the row first: the choice of this one wins
                 $follow = $this->find($user, $thread) ?? throw new BusinessException('The follow could not be saved');
             }
         }
 
-        $follow->update(['state' => $state, 'reason' => $reason]);
+        $follow->update(['state' => $state, 'reason' => $reason] + $remembered);
 
         return $follow;
     }
 
-    private function create(User $user, Post|ChatMessage $thread, KnowiiFollowState $state, KnowiiFollowReason $reason): NotificationFollow
+    /**
+     * @param  array<string, KnowiiFollowState|KnowiiFollowReason|null>  $remembered
+     */
+    private function create(User $user, Post|ChatMessage $thread, KnowiiFollowState $state, KnowiiFollowReason $reason, array $remembered = []): NotificationFollow
     {
-        return NotificationFollow::create([
+        return NotificationFollow::create($remembered + [
             'user_id' => $user->id,
             'community_id' => $thread->community_id,
             $this->column($thread) => $thread->id,

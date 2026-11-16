@@ -99,6 +99,54 @@ describe('"Following" in the Notifications panel (#1497)', () => {
       ]);
     });
 
+    it('shows no title and no excerpt on a line of several new posts or lessons, nor in its names (#1509)', async () => {
+      api.following.mockResolvedValue(
+        page([
+          makeFollowing('many', {
+            kind: 'space_post',
+            reason: 'space_everything',
+            items_count: 3,
+            title: 'Only one of them',
+            excerpt: 'Excerpt of one',
+          }),
+          makeFollowing('lessons', {
+            kind: 'lesson_new',
+            reason: 'started_course',
+            items_count: 2,
+            title: 'Lesson two',
+            excerpt: 'Excerpt of two',
+          }),
+          makeFollowing('one', {
+            kind: 'space_post',
+            reason: 'space_everything',
+            items_count: 1,
+            title: 'Single post',
+            excerpt: 'Excerpt of single',
+          }),
+          makeFollowing('thread', { items_count: 3, title: 'Thread title', excerpt: 'Excerpt of thread' }),
+        ]),
+      );
+      renderBell();
+      await openPanel();
+
+      const many = lineOf(/3 new posts in Open discussion/);
+      expect(within(many).queryByText(/Only one of them/)).toBeNull();
+      expect(within(many).queryByText(/Excerpt of one/)).toBeNull();
+      expect(within(many).getByText('Open discussion')).toBeInTheDocument();
+      expect(within(many).getByRole('button', { name: 'More for: 3 new posts in Open discussion' })).toBeInTheDocument();
+
+      const lessons = lineOf(/2 new lessons in/);
+      expect(within(lessons).queryByText(/Lesson two/)).toBeNull();
+      expect(within(lessons).queryByText(/Excerpt of two/)).toBeNull();
+
+      // A line of one item is unchanged
+      const one = lineOf(/Single post/);
+      expect(within(one).getByText(/Excerpt of single/)).toBeInTheDocument();
+      expect(within(one).getByRole('button', { name: /^More for: .*Single post/ })).toBeInTheDocument();
+      // A thread with several new replies is unchanged
+      expect(within(lineOf(/3 new replies in Thread title/)).getByText(/Excerpt of thread/)).toBeInTheDocument();
+    });
+
     it('marks a line that was not seen with the word "New" and bold text, and shows the space and the time', async () => {
       api.following.mockResolvedValue(
         page([makeFollowing('a', { title: 'Fresh' }), makeFollowing('b', { title: 'Old news', seen_at: new Date() })]),
@@ -394,7 +442,6 @@ describe('"Following" in the Notifications panel (#1497)', () => {
     });
 
     it('"Mute this thread" applies at once, removes the line and says "Muted. Undo"', async () => {
-      follow.getPost.mockResolvedValue(follow.follow('following', 'replied'));
       renderBell();
       const { user, menu } = await openMenu(/First thread/);
 
@@ -409,15 +456,17 @@ describe('"Following" in the Notifications panel (#1497)', () => {
       expect(screen.queryByRole('dialog')).toBeNull();
     });
 
-    it('"Undo" follows the thread again, because the member followed it before', async () => {
-      follow.getPost.mockResolvedValue(follow.follow('following', 'replied'));
+    it('"Undo" calls the route that gives back the exact earlier state, and reads no state before the mute', async () => {
       renderBell();
       const { user, menu } = await openMenu(/First thread/);
       await user.click(within(menu).getByRole('menuitem', { name: 'Mute this thread' }));
 
       await user.click(await screen.findByRole('button', { name: 'Undo' }));
 
-      expect(follow.followPost).toHaveBeenCalledWith('c1', 's1', 'post-cuid-a');
+      expect(follow.unmutePost).toHaveBeenCalledWith('c1', 's1', 'post-cuid-a');
+      expect(follow.getPost).not.toHaveBeenCalled();
+      expect(follow.followPost).not.toHaveBeenCalled();
+      expect(follow.stopPost).not.toHaveBeenCalled();
       await waitFor(() => expect(within(panel()).getAllByRole('status')[0]).toHaveTextContent('Mute undone'));
     });
 

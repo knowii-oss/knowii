@@ -1221,6 +1221,93 @@ test('the follow routes of a post: state, follow, stop following, mute', functio
     $this->actingAs($this->author)->getJson($follow)->assertOk()->assertJsonPath('data.state', 'following')->assertJsonPath('data.reason', 'wrote');
 });
 
+// The undo of a mute (#1509)
+
+test('the undo of a mute gives back the exact earlier state: no row, each reason, stopped', function () {
+    $post = flwPost($this->author, $this->space);
+    $mute = flwThreadPath(ApiRoutes::COMMUNITY_SPACE_POST_MUTE, $this->community, $this->space, $post);
+
+    // No row before: no row after
+    $this->actingAs($this->plain);
+    $this->putJson($mute)->assertOk()->assertJsonPath('data.state', 'muted');
+    $this->deleteJson($mute)->assertOk()->assertJsonPath('data.state', null)->assertJsonPath('data.reason', null);
+    expect(flwFollow($this->plain, $post))->toBeNull();
+
+    // Followed with each reason: followed again with the same reason
+    foreach ([KnowiiFollowReason::Wrote, KnowiiFollowReason::Replied, KnowiiFollowReason::Manual] as $reason) {
+        NotificationFollow::query()->where('user_id', $this->plain->id)->where('post_id', $post->id)->delete();
+        NotificationFollow::create(['user_id' => $this->plain->id, 'community_id' => $this->community->id, 'post_id' => $post->id, 'state' => KnowiiFollowState::Following, 'reason' => $reason]);
+        $this->putJson($mute)->assertOk()->assertJsonPath('data.state', 'muted');
+        $this->deleteJson($mute)->assertOk()->assertJsonPath('data.state', 'following')->assertJsonPath('data.reason', $reason->value);
+        $row = flwFollow($this->plain, $post);
+        expect($row->state_before_mute)->toBeNull()->and($row->reason_before_mute)->toBeNull();
+    }
+
+    // Stopped: stopped again
+    app(FollowsThreads::class)->stopFollowing($this->plain, $post);
+    $this->putJson($mute)->assertOk();
+    $this->deleteJson($mute)->assertOk()->assertJsonPath('data.state', 'stopped')->assertJsonPath('data.reason', 'manual');
+});
+
+test('a second mute keeps what the first one remembered', function () {
+    $post = flwPost($this->author, $this->space);
+    $mute = flwThreadPath(ApiRoutes::COMMUNITY_SPACE_POST_MUTE, $this->community, $this->space, $post);
+
+    // The author wrote the post: followed with the reason "wrote"
+    $this->actingAs($this->author);
+    $this->putJson($mute)->assertOk();
+    $this->putJson($mute)->assertOk()->assertJsonPath('data.state', 'muted');
+    $this->deleteJson($mute)->assertOk()->assertJsonPath('data.state', 'following')->assertJsonPath('data.reason', 'wrote');
+});
+
+test('a mute, then a follow, then an unmute: the follow stays and the memory is gone', function () {
+    $post = flwPost($this->author, $this->space);
+    $mute = flwThreadPath(ApiRoutes::COMMUNITY_SPACE_POST_MUTE, $this->community, $this->space, $post);
+    $follow = flwThreadPath(ApiRoutes::COMMUNITY_SPACE_POST_FOLLOW, $this->community, $this->space, $post);
+    $this->actingAs($this->author);
+
+    $this->putJson($mute)->assertOk();
+    $this->putJson($follow)->assertOk()->assertJsonPath('data.state', 'following')->assertJsonPath('data.reason', 'manual');
+    expect(flwFollow($this->author, $post)->state_before_mute)->toBeNull();
+    $this->deleteJson($mute)->assertOk()->assertJsonPath('data.state', 'following')->assertJsonPath('data.reason', 'manual');
+
+    // The same after "Stop following"
+    $this->putJson($mute)->assertOk();
+    $this->deleteJson($follow)->assertOk()->assertJsonPath('data.state', 'stopped');
+    expect(flwFollow($this->author, $post)->reason_before_mute)->toBeNull();
+    $this->deleteJson($mute)->assertOk()->assertJsonPath('data.state', 'stopped');
+});
+
+test('the undo of a thread that is not muted changes nothing', function () {
+    $post = flwPost($this->author, $this->space);
+    $mute = flwThreadPath(ApiRoutes::COMMUNITY_SPACE_POST_MUTE, $this->community, $this->space, $post);
+    $this->actingAs($this->plain);
+
+    $this->deleteJson($mute)->assertOk()->assertJsonPath('data.state', null);
+    expect(flwFollow($this->plain, $post))->toBeNull();
+
+    $this->putJson(flwThreadPath(ApiRoutes::COMMUNITY_SPACE_POST_FOLLOW, $this->community, $this->space, $post))->assertOk();
+    $this->deleteJson($mute)->assertOk()->assertJsonPath('data.state', 'following')->assertJsonPath('data.reason', 'manual');
+});
+
+test('the undo of a mute does not bring the deleted notifications back, and works for a chat thread', function () {
+    $post = flwPost($this->author, $this->space);
+    flwComment($this->replier, $post, 'A comment');
+    expect(flwRows($this->author))->toHaveCount(1);
+
+    $this->actingAs($this->author);
+    $this->putJson(flwThreadPath(ApiRoutes::COMMUNITY_SPACE_POST_MUTE, $this->community, $this->space, $post))->assertOk();
+    expect(flwRows($this->author))->toHaveCount(0);
+    $this->deleteJson(flwThreadPath(ApiRoutes::COMMUNITY_SPACE_POST_MUTE, $this->community, $this->space, $post))->assertOk();
+    expect(flwRows($this->author))->toHaveCount(0);
+
+    $root = flwMessage($this->author, $this->chat, 'Root');
+    $mute = flwThreadPath(ApiRoutes::COMMUNITY_SPACE_MESSAGE_MUTE, $this->community, $this->chat, $root);
+    $this->actingAs($this->plain);
+    $this->putJson($mute)->assertOk()->assertJsonPath('data.state', 'muted');
+    $this->deleteJson($mute)->assertOk()->assertJsonPath('data.state', null);
+});
+
 test('the follow routes of a chat thread: state, follow, stop following, mute, first-level messages only', function () {
     $root = flwMessage($this->author, $this->chat, 'Root');
     $reply = flwMessage($this->replier, $this->chat, 'Reply', $root);
@@ -1253,6 +1340,7 @@ test('the follow routes refuse a person who is not a member, a member who cannot
         $this->actingAs($this->c['outsider'])->deleteJson($path)->assertForbidden();
     }
     $this->actingAs($this->c['outsider'])->putJson(flwThreadPath(ApiRoutes::COMMUNITY_SPACE_POST_MUTE, $this->community, $public, $publicPost))->assertForbidden();
+    $this->actingAs($this->c['outsider'])->deleteJson(flwThreadPath(ApiRoutes::COMMUNITY_SPACE_POST_MUTE, $this->community, $public, $publicPost))->assertForbidden();
     $this->app['auth']->forgetGuards();
     $this->putJson($follow)->assertUnauthorized();
 
@@ -1260,6 +1348,7 @@ test('the follow routes refuse a person who is not a member, a member who cannot
     $groups = Space::factory()->inGroup($this->group)->create(['visibility' => KnowiiSpaceVisibility::Groups]);
     $groupPost = Post::factory()->inSpace($groups)->create(['author_id' => $this->owner->id]);
     $this->actingAs($this->plain)->putJson(flwThreadPath(ApiRoutes::COMMUNITY_SPACE_POST_FOLLOW, $this->community, $groups, $groupPost))->assertForbidden();
+    $this->actingAs($this->plain)->deleteJson(flwThreadPath(ApiRoutes::COMMUNITY_SPACE_POST_MUTE, $this->community, $groups, $groupPost))->assertForbidden();
 
     // A marker has no follow (ADR 0043), a post of another space is a 404 (scoped bindings)
     $marker = Post::factory()->inSpace($this->space)->create(['author_id' => null, 'deleted_at' => now()]);
@@ -1278,10 +1367,12 @@ test('the routes of the follows and the levels need the abilities of the notific
         ['put', flwThreadPath(ApiRoutes::COMMUNITY_SPACE_POST_FOLLOW, $this->community, $this->space, $post), 'write'],
         ['delete', flwThreadPath(ApiRoutes::COMMUNITY_SPACE_POST_FOLLOW, $this->community, $this->space, $post), 'write'],
         ['put', flwThreadPath(ApiRoutes::COMMUNITY_SPACE_POST_MUTE, $this->community, $this->space, $post), 'write'],
+        ['delete', flwThreadPath(ApiRoutes::COMMUNITY_SPACE_POST_MUTE, $this->community, $this->space, $post), 'write'],
         ['get', flwThreadPath(ApiRoutes::COMMUNITY_SPACE_MESSAGE_FOLLOW, $this->community, $this->chat, $root), 'read'],
         ['put', flwThreadPath(ApiRoutes::COMMUNITY_SPACE_MESSAGE_FOLLOW, $this->community, $this->chat, $root), 'write'],
         ['delete', flwThreadPath(ApiRoutes::COMMUNITY_SPACE_MESSAGE_FOLLOW, $this->community, $this->chat, $root), 'write'],
         ['put', flwThreadPath(ApiRoutes::COMMUNITY_SPACE_MESSAGE_MUTE, $this->community, $this->chat, $root), 'write'],
+        ['delete', flwThreadPath(ApiRoutes::COMMUNITY_SPACE_MESSAGE_MUTE, $this->community, $this->chat, $root), 'write'],
         ['get', flwSpacePath(ApiRoutes::COMMUNITY_SPACE_NOTIFICATION_LEVEL, $this->community, $this->space), 'read'],
         ['put', flwSpacePath(ApiRoutes::COMMUNITY_SPACE_NOTIFICATION_LEVEL, $this->community, $this->space), 'write'],
         ['delete', flwSpacePath(ApiRoutes::COMMUNITY_SPACE_NOTIFICATION_LEVEL, $this->community, $this->space), 'write'],

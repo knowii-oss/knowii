@@ -20,6 +20,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property ?int $chat_message_id
  * @property KnowiiFollowState $state
  * @property KnowiiFollowReason $reason
+ * @property ?KnowiiFollowState $state_before_mute what the row held before a mute (null: there was no row), so that "Undo" gives it back
+ * @property ?KnowiiFollowReason $reason_before_mute
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read User $user
@@ -39,6 +41,8 @@ class NotificationFollow extends Model
         'chat_message_id',
         'state',
         'reason',
+        'state_before_mute',
+        'reason_before_mute',
     ];
 
     /**
@@ -50,6 +54,8 @@ class NotificationFollow extends Model
         'community_id',
         'post_id',
         'chat_message_id',
+        'state_before_mute',
+        'reason_before_mute',
     ];
 
     /**
@@ -60,6 +66,8 @@ class NotificationFollow extends Model
         return [
             'state' => KnowiiFollowState::class,
             'reason' => KnowiiFollowReason::class,
+            'state_before_mute' => KnowiiFollowState::class,
+            'reason_before_mute' => KnowiiFollowReason::class,
         ];
     }
 

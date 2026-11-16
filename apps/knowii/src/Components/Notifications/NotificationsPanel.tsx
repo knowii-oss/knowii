@@ -505,10 +505,6 @@ export function NotificationsPanel({ onClose, focusHeading, catchUpCommunities =
     setBusy(new Set(busyRef.current));
     setActionError(null);
     const { community, space } = notification;
-    const before =
-      thread.kind === 'post'
-        ? await knowiiApiClient.threads.getPost(community.cuid, space.cuid, thread.postCuid)
-        : await knowiiApiClient.threads.getMessage(community.cuid, space.cuid, thread.messageCuid);
     const result =
       thread.kind === 'post'
         ? await knowiiApiClient.threads.mutePost(community.cuid, space.cuid, thread.postCuid)
@@ -522,16 +518,12 @@ export function NotificationsPanel({ onClose, focusHeading, catchUpCommunities =
     const ids = dropLines(feed, notification, (other) => sameThread(notification, other));
     ids.forEach(ownChange);
     refreshCount();
-    const was = before.ok ? before.data.state : null;
+    // "Undo" takes the mute back on the server, which remembers the exact state before it (#1509)
     showMuted(async () => {
       const back =
         thread.kind === 'post'
-          ? await (was === 'following'
-              ? knowiiApiClient.threads.followPost(community.cuid, space.cuid, thread.postCuid)
-              : knowiiApiClient.threads.stopPost(community.cuid, space.cuid, thread.postCuid))
-          : await (was === 'following'
-              ? knowiiApiClient.threads.followMessage(community.cuid, space.cuid, thread.messageCuid)
-              : knowiiApiClient.threads.stopMessage(community.cuid, space.cuid, thread.messageCuid));
+          ? await knowiiApiClient.threads.unmutePost(community.cuid, space.cuid, thread.postCuid)
+          : await knowiiApiClient.threads.unmuteMessage(community.cuid, space.cuid, thread.messageCuid);
       return back.ok;
     });
   };

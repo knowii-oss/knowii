@@ -68,6 +68,18 @@ class ThreadFollowApiController extends Controller
     }
 
     /**
+     * "Undo" of the mute (#1509): the state and the reason of the thread come back as they were before the first mute (no
+     * row again for a thread that had none). The notifications that the mute deleted do not come back. A post that is not
+     * muted does not change: the answer is its current state.
+     *
+     * @throws AuthenticationException
+     */
+    final public function unmutePost(Request $request, Community $community, Space $space, Post $post): JsonResponse
+    {
+        return self::success('Unmuted', null, self::present(app(FollowsThreads::class)->unmute(self::user($request), $post)));
+    }
+
+    /**
      * The follow state of the current member for the thread of a first-level chat message: `state` and `reason`, both
      * null without a row.
      *
@@ -107,6 +119,18 @@ class ThreadFollowApiController extends Controller
     final public function muteMessage(Request $request, Community $community, Space $space, ChatMessage $message): JsonResponse
     {
         return self::success('Muted', null, self::present(app(FollowsThreads::class)->mute(self::user($request), $message)));
+    }
+
+    /**
+     * "Undo" of the mute (#1509): the state and the reason of the thread come back as they were before the first mute (no
+     * row again for a thread that had none). The notifications that the mute deleted do not come back. A thread that is
+     * not muted does not change: the answer is its current state.
+     *
+     * @throws AuthenticationException
+     */
+    final public function unmuteMessage(Request $request, Community $community, Space $space, ChatMessage $message): JsonResponse
+    {
+        return self::success('Unmuted', null, self::present(app(FollowsThreads::class)->unmute(self::user($request), $message)));
     }
 
     /**

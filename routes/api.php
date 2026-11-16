@@ -145,10 +145,12 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::put(ApiRoutes::COMMUNITY_SPACE_POST_FOLLOW, [ThreadFollowApiController::class, 'followPost'])->middleware('ability:notifications:write');
             Route::delete(ApiRoutes::COMMUNITY_SPACE_POST_FOLLOW, [ThreadFollowApiController::class, 'stopPost'])->middleware('ability:notifications:write');
             Route::put(ApiRoutes::COMMUNITY_SPACE_POST_MUTE, [ThreadFollowApiController::class, 'mutePost'])->middleware('ability:notifications:write');
+            Route::delete(ApiRoutes::COMMUNITY_SPACE_POST_MUTE, [ThreadFollowApiController::class, 'unmutePost'])->middleware('ability:notifications:write');
             Route::get(ApiRoutes::COMMUNITY_SPACE_MESSAGE_FOLLOW, [ThreadFollowApiController::class, 'showMessage'])->middleware('ability:notifications:read');
             Route::put(ApiRoutes::COMMUNITY_SPACE_MESSAGE_FOLLOW, [ThreadFollowApiController::class, 'followMessage'])->middleware('ability:notifications:write');
             Route::delete(ApiRoutes::COMMUNITY_SPACE_MESSAGE_FOLLOW, [ThreadFollowApiController::class, 'stopMessage'])->middleware('ability:notifications:write');
             Route::put(ApiRoutes::COMMUNITY_SPACE_MESSAGE_MUTE, [ThreadFollowApiController::class, 'muteMessage'])->middleware('ability:notifications:write');
+            Route::delete(ApiRoutes::COMMUNITY_SPACE_MESSAGE_MUTE, [ThreadFollowApiController::class, 'unmuteMessage'])->middleware('ability:notifications:write');
             Route::get(ApiRoutes::COMMUNITY_SPACE_NOTIFICATION_LEVEL, [NotificationLevelApiController::class, 'show'])->middleware('ability:notifications:read');
             Route::put(ApiRoutes::COMMUNITY_SPACE_NOTIFICATION_LEVEL, [NotificationLevelApiController::class, 'update'])->middleware('ability:notifications:write');
             Route::delete(ApiRoutes::COMMUNITY_SPACE_NOTIFICATION_LEVEL, [NotificationLevelApiController::class, 'destroy'])->middleware('ability:notifications:write');

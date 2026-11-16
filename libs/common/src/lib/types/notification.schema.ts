@@ -190,6 +190,14 @@ export function notificationSentenceHasTitle(notification: Notification): boolea
 }
 
 /**
+ * Whether the line shows the title and the excerpt of an item under its sentence (#1509). A line that bundles several new
+ * posts or lessons of a space ("3 new posts in <space>") shows none: they belong to one item only.
+ */
+export function notificationShowsItem(notification: Pick<Notification, 'kind' | 'items_count'>): boolean {
+  return !((notification.kind === 'space_post' || notification.kind === 'lesson_new') && notification.items_count > 1);
+}
+
+/**
  * The sentence of "Why did I get this?", from the code of the reason (design 8.1)
  */
 export function notificationReasonSentence(notification: Pick<Notification, 'reason' | 'follow_reason' | 'space'>): string {

@@ -138,9 +138,9 @@ test('the follows, the levels and "I am caught up" are documented (#1475)', func
     $space = '/v1/communities/{community}/spaces/{space}';
 
     expect($paths[$space.'/posts/{post}/follow'])->toHaveKeys(['get', 'put', 'delete'])
-        ->and($paths[$space.'/posts/{post}/mute'])->toHaveKey('put')
+        ->and($paths[$space.'/posts/{post}/mute'])->toHaveKeys(['put', 'delete'])
         ->and($paths[$space.'/messages/{message}/follow'])->toHaveKeys(['get', 'put', 'delete'])
-        ->and($paths[$space.'/messages/{message}/mute'])->toHaveKey('put')
+        ->and($paths[$space.'/messages/{message}/mute'])->toHaveKeys(['put', 'delete'])
         ->and($paths[$space.'/notification-level'])->toHaveKeys(['get', 'put', 'delete'])
         ->and($paths['/v1/communities/{community}/notification-levels'])->toHaveKey('get')
         ->and($paths['/v1/notifications/caught-up'])->toHaveKey('post');

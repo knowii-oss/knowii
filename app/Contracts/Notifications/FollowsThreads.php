@@ -49,6 +49,16 @@ interface FollowsThreads
     public function mute(User $user, Post|ChatMessage $thread): NotificationFollow;
 
     /**
+     * "Undo" of a mute (#1509): the row is back to what it held before the first mute. A thread that had no row has no row
+     * again (null), a thread that was followed is followed again with its earlier reason, a thread that was stopped is
+     * stopped again. The notifications that the mute deleted do not come back. A thread that is not muted does not change:
+     * its current row (or null) is returned.
+     *
+     * @throws AuthorizationException
+     */
+    public function unmute(User $user, Post|ChatMessage $thread): ?NotificationFollow;
+
+    /**
      * The member wrote in the thread: they follow it, unless they have a row already (following, stopped or muted). It
      * does nothing inside Notify::silenced(), for a member who left the community, or for a marker.
      */

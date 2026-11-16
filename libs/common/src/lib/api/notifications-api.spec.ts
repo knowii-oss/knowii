@@ -145,6 +145,7 @@ describe('"Following", thread follows and levels of the API client (#1497)', () 
       [() => knowiiApiClient.threads.followPost('c1', 's1', 'p1'), 'PUT', '/api/v1/communities/c1/spaces/s1/posts/p1/follow'],
       [() => knowiiApiClient.threads.stopPost('c1', 's1', 'p1'), 'DELETE', '/api/v1/communities/c1/spaces/s1/posts/p1/follow'],
       [() => knowiiApiClient.threads.mutePost('c1', 's1', 'p1'), 'PUT', '/api/v1/communities/c1/spaces/s1/posts/p1/mute'],
+      [() => knowiiApiClient.threads.unmutePost('c1', 's1', 'p1'), 'DELETE', '/api/v1/communities/c1/spaces/s1/posts/p1/mute'],
     ];
     for (const [call, method, url] of calls) {
       const fetchMock = answer(state);
@@ -160,6 +161,7 @@ describe('"Following", thread follows and levels of the API client (#1497)', () 
       [() => knowiiApiClient.threads.followMessage('c1', 's1', 'm1'), 'PUT', '/api/v1/communities/c1/spaces/s1/messages/m1/follow'],
       [() => knowiiApiClient.threads.stopMessage('c1', 's1', 'm1'), 'DELETE', '/api/v1/communities/c1/spaces/s1/messages/m1/follow'],
       [() => knowiiApiClient.threads.muteMessage('c1', 's1', 'm1'), 'PUT', '/api/v1/communities/c1/spaces/s1/messages/m1/mute'],
+      [() => knowiiApiClient.threads.unmuteMessage('c1', 's1', 'm1'), 'DELETE', '/api/v1/communities/c1/spaces/s1/messages/m1/mute'],
     ];
     for (const [call, method, url] of calls) {
       const fetchMock = answer({ data: { state: null, reason: null } });
