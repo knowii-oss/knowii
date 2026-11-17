@@ -55,7 +55,7 @@ export default function ConnectedAccountsForm({ accounts, hasPassword }: Props) 
   return (
     <ActionSection title="Connected accounts" description="Sign in with an account of another service, instead of a password.">
       {oidc.error && (
-        <p role="alert" className="mb-4 text-sm font-medium text-danger">
+        <p role="alert" className="mb-4 text-sm font-medium text-danger-text">
           {oidc.error}
         </p>
       )}
