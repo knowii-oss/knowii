@@ -36,8 +36,18 @@ jobs:
           cache: 'npm'
       - name: Install front-end dependencies
         run: npm ci
-      - name: Audit front-end dependencies security
-        run: npm audit --audit-level=moderate
+      # The dependencies that ship with the application fail the build.
+      - name: Audit front-end dependencies security (production)
+        run: npm audit --omit=dev --audit-level=moderate
+      # The development dependencies are reported and do not fail the build:
+      # an advisory in a development tool with no fixed version must not stop
+      # every pull request (#1608). The warning stays on the run until the
+      # advisory is solved.
+      - name: Report front-end dependencies security (development)
+        run: |
+          if ! npm audit --audit-level=moderate; then
+            echo "::warning title=npm audit (development dependencies)::Open advisories in the development dependencies. Read the log of this step."
+          fi
 
       - uses: nrwl/nx-set-shas@e602fada7ad5987b0f7b1905e7a99ea1c661514c # v5.1.0
 
