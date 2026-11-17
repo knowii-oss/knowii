@@ -173,3 +173,35 @@ describe('Course spaces (#1188)', () => {
     expect(screen.queryByText(/done/)).toBeNull();
   });
 });
+
+describe('the lesson editor asks before it loses the text (#1563)', () => {
+  function renderLessonEditor(onClose: () => void) {
+    render(
+      <AppDataProvider>
+        <PageEditor open communityCuid="c1" spaceCuid="s1" spaceName="OSC" mode="lesson" onClose={onClose} onSaved={vi.fn()} />
+      </AppDataProvider>,
+    );
+    return screen.getByRole('dialog', { name: 'New lesson in OSC' });
+  }
+
+  it('asks on "Cancel" after the manager typed', async () => {
+    const onClose = vi.fn();
+    const dialog = renderLessonEditor(onClose);
+    await userEvent.type(within(dialog).getByLabelText('Title'), 'Install Obsidian');
+
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+
+    expect(await screen.findByRole('dialog', { name: 'Discard your text?' })).toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('closes at once on Escape when nothing was typed', async () => {
+    const onClose = vi.fn();
+    renderLessonEditor(onClose);
+
+    await userEvent.keyboard('{Escape}');
+
+    expect(onClose).toHaveBeenCalledOnce();
+    expect(screen.queryByRole('dialog', { name: 'Discard your text?' })).not.toBeInTheDocument();
+  });
+});

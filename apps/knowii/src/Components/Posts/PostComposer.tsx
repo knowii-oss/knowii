@@ -7,7 +7,7 @@ import { useMentionSource } from '@/Components/Members/use-mention-source';
 import { useImageUploader } from '@/Components/Uploads/use-image-uploader';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
-import { Button, Checkbox, Dialog, MarkdownEditor, TextInput } from '@/Components/ui';
+import { Button, Checkbox, Dialog, DialogCloseButton, MarkdownEditor, TextInput } from '@/Components/ui';
 
 export interface PostComposerProps {
   open: boolean;
@@ -95,11 +95,11 @@ export function PostComposer({
       onClose={close}
       size="lg"
       title={post ? 'Edit the post' : `New post in ${spaceName}`}
+      // Escape, a click outside and "Cancel" ask before they lose the text (#1563). A save closes without a question.
+      hasUnsavedChanges={form.formState.isDirty && !form.formState.isSubmitting}
       footer={
         <>
-          <Button variant="secondary" onClick={close}>
-            Cancel
-          </Button>
+          <DialogCloseButton>Cancel</DialogCloseButton>
           <Button type="submit" form="post-form" disabled={!form.formState.isValid} loading={form.formState.isSubmitting}>
             {post ? 'Save' : 'Publish'}
           </Button>

@@ -23,7 +23,7 @@ import { useEffect, useMemo, useState } from 'react';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import { PUBLIC_CHAT_SPACE_FORM_NOTE, PUBLIC_SPACE_FORM_WARNING } from './PublicSpaceNotice';
-import { Button, Checkbox, Dialog, Select, Textarea, TextInput } from '@/Components/ui';
+import { Button, Checkbox, Dialog, DialogCloseButton, Select, Textarea, TextInput } from '@/Components/ui';
 
 export interface SpaceDialogProps {
   open: boolean;
@@ -195,11 +195,11 @@ export function SpaceDialog({ open, communityCuid, spaceGroups, space, defaultSp
       description={
         space ? 'The type of a space cannot change.' : 'A space holds one kind of content. Choose its type with care: it cannot change.'
       }
+      // Escape, a click outside and "Cancel" ask before they lose the changes (#1563). A save closes without a question.
+      hasUnsavedChanges={form.formState.isDirty && !form.formState.isSubmitting}
       footer={
         <>
-          <Button variant="secondary" onClick={close}>
-            Cancel
-          </Button>
+          <DialogCloseButton>Cancel</DialogCloseButton>
           <Button type="submit" form="space-form" disabled={!form.formState.isValid || moveBlocked} loading={form.formState.isSubmitting}>
             {space ? 'Save' : 'Create'}
           </Button>

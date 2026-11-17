@@ -200,6 +200,45 @@ describe('QuizEditor', () => {
   });
 });
 
+describe('the quiz editor asks before it loses the questions (#1563)', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('asks on Escape after a change, and calls onClose after "Discard"', async () => {
+    const { onClose } = renderEditor(stored);
+    await userEvent.type(within(question(1)).getByLabelText('Question'), ' And 3?');
+
+    await userEvent.keyboard('{Escape}');
+
+    const ask = await screen.findByRole('dialog', { name: 'Discard your text?' });
+    expect(onClose).not.toHaveBeenCalled();
+    await userEvent.click(within(ask).getByRole('button', { name: 'Discard' }));
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it('closes at once on Escape and on "Cancel" when nothing changed', async () => {
+    const { onClose } = renderEditor(stored);
+    await screen.findByRole('dialog', { name: 'Edit the quiz' });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(onClose).toHaveBeenCalledOnce();
+
+    await userEvent.keyboard('{Escape}');
+    expect(onClose).toHaveBeenCalledTimes(2);
+    expect(screen.queryByRole('dialog', { name: 'Discard your text?' })).not.toBeInTheDocument();
+  });
+
+  it('closes at once on Escape when a new quiz was not touched', async () => {
+    const { onClose } = renderEditor(null);
+    await screen.findByRole('dialog', { name: 'Add a quiz' });
+
+    await userEvent.keyboard('{Escape}');
+
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+});
+
 describe('quizFormSchema', () => {
   const valid = quizFormValues(stored);
 

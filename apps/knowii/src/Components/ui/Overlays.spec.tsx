@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Dialog } from './Dialog';
+import { Dialog, DialogCloseButton } from './Dialog';
 import { Drawer } from './Drawer';
 import { DropdownMenu, DropdownMenuItem, dropdownMenuItemClasses } from './DropdownMenu';
 import { Select } from './Select';
@@ -75,6 +75,149 @@ describe('Dialog', () => {
     );
     await userEvent.click(await screen.findByRole('button', { name: 'Close' }));
     expect(onClose).toHaveBeenCalled();
+  });
+});
+
+/**
+ * A dialog with a text field: it has unsaved changes once the text is not empty (#1563)
+ */
+function UnsavedHarness({ onClose, guard = true }: { onClose: () => void; guard?: boolean }) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState('');
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Open</Button>
+      <Dialog
+        open={open}
+        onClose={() => {
+          setOpen(false);
+          onClose();
+        }}
+        title="New post"
+        hasUnsavedChanges={guard && text !== ''}
+        footer={<DialogCloseButton>Cancel</DialogCloseButton>}
+      >
+        <input aria-label="Title" autoFocus />
+        <textarea aria-label="Text" value={text} onChange={(event) => setText(event.target.value)} />
+      </Dialog>
+    </>
+  );
+}
+
+async function openAndType(onClose: () => void, guard = true) {
+  render(<UnsavedHarness onClose={onClose} guard={guard} />);
+  await userEvent.click(screen.getByRole('button', { name: 'Open' }));
+  const dialog = await screen.findByRole('dialog', { name: 'New post' });
+  const text = within(dialog).getByRole('textbox', { name: 'Text' });
+  await userEvent.type(text, 'A long post');
+  return { dialog, text };
+}
+
+describe('Dialog with unsaved changes (#1563)', () => {
+  it('asks on Escape and does not close', async () => {
+    const onClose = vi.fn();
+    await openAndType(onClose);
+
+    await userEvent.keyboard('{Escape}');
+
+    const question = await screen.findByRole('dialog', { name: 'Discard your text?' });
+    expect(question).toHaveAccessibleDescription('You have changes that are not saved. If you close now, they are lost.');
+    await waitFor(() => expect(within(question).getByRole('button', { name: 'Keep writing' })).toHaveFocus());
+    // The dialog stays, hidden from assistive technology while the question is open
+    expect(screen.getByRole('dialog', { name: 'New post', hidden: true }).closest('[aria-hidden="true"]')).not.toBeNull();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('keeps the dialog and gives the focus back to the form after "Keep writing"', async () => {
+    const onClose = vi.fn();
+    const { text } = await openAndType(onClose);
+    await userEvent.keyboard('{Escape}');
+    const question = await screen.findByRole('dialog', { name: 'Discard your text?' });
+
+    await userEvent.click(within(question).getByRole('button', { name: 'Keep writing' }));
+
+    // At once, while the question fades out: the next key goes to the text
+    expect(text).toHaveFocus();
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Discard your text?' })).not.toBeInTheDocument());
+    expect(text).toHaveFocus();
+    expect(text).toHaveValue('A long post');
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('means "Keep writing" with Escape on the question', async () => {
+    const onClose = vi.fn();
+    const { text } = await openAndType(onClose);
+    await userEvent.keyboard('{Escape}');
+    const question = await screen.findByRole('dialog', { name: 'Discard your text?' });
+    await waitFor(() => expect(within(question).getByRole('button', { name: 'Keep writing' })).toHaveFocus());
+
+    await userEvent.keyboard('{Escape}');
+
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Discard your text?' })).not.toBeInTheDocument());
+    await waitFor(() => expect(text).toHaveFocus());
+    expect(screen.getByRole('dialog', { name: 'New post' })).toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('calls onClose once after "Discard"', async () => {
+    const onClose = vi.fn();
+    await openAndType(onClose);
+    await userEvent.keyboard('{Escape}');
+    const question = await screen.findByRole('dialog', { name: 'Discard your text?' });
+
+    await userEvent.click(within(question).getByRole('button', { name: 'Discard' }));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it('asks on a click outside the panel, like Escape', async () => {
+    const onClose = vi.fn();
+    await openAndType(onClose);
+
+    // The backdrop is outside the panel
+    const backdrop = document.querySelector('[class*="bg-black/70"]');
+    expect(backdrop).not.toBeNull();
+    await userEvent.click(backdrop as HTMLElement);
+
+    expect(await screen.findByRole('dialog', { name: 'Discard your text?' })).toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('asks on the close button and on a DialogCloseButton', async () => {
+    const onClose = vi.fn();
+    const { dialog } = await openAndType(onClose);
+
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Close' }));
+    let question = await screen.findByRole('dialog', { name: 'Discard your text?' });
+    await userEvent.click(within(question).getByRole('button', { name: 'Keep writing' }));
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Discard your text?' })).not.toBeInTheDocument());
+
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+    question = await screen.findByRole('dialog', { name: 'Discard your text?' });
+    expect(onClose).not.toHaveBeenCalled();
+    await userEvent.click(within(question).getByRole('button', { name: 'Discard' }));
+    await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
+  });
+
+  it('closes at once with Escape when there are no unsaved changes, as before', async () => {
+    const onClose = vi.fn();
+    await openAndType(onClose, false);
+
+    await userEvent.keyboard('{Escape}');
+
+    expect(onClose).toHaveBeenCalledOnce();
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(screen.queryByRole('dialog', { name: 'Discard your text?' })).not.toBeInTheDocument();
+  });
+
+  it('closes at once on a click outside the panel when there are no unsaved changes', async () => {
+    const onClose = vi.fn();
+    await openAndType(onClose, false);
+
+    await userEvent.click(document.querySelector('[class*="bg-black/70"]') as HTMLElement);
+
+    expect(onClose).toHaveBeenCalledOnce();
   });
 });
 

@@ -15,7 +15,7 @@ import {
 import ResourceIcon from '@/Components/Resources/ResourceIcon';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
-import { Button, Checkbox, Dialog, Select, Textarea, TextInput } from '@/Components/ui';
+import { Button, Checkbox, Dialog, DialogCloseButton, Select, Textarea, TextInput } from '@/Components/ui';
 
 const levelOptions = resourceLevelSchemaOptions.map((option) => ({ value: option.level, label: option.name, icon: option.icon }));
 
@@ -85,6 +85,8 @@ export function CreateResourceDialog({ open, communityCuid, space, onClose, onRe
     <Dialog
       open={open}
       onClose={submitting ? () => undefined : onClose}
+      // Escape, a click outside and "Cancel" ask before they lose the text (#1563). The dialog does not close while it sends.
+      hasUnsavedChanges={form.formState.isDirty && !submitting}
       size="lg"
       title={
         <>
@@ -102,9 +104,7 @@ export function CreateResourceDialog({ open, communityCuid, space, onClose, onRe
           <Button variant="ghost" onClick={() => form.reset(EMPTY_FORM)} disabled={submitting}>
             Reset
           </Button>
-          <Button variant="secondary" onClick={onClose} disabled={submitting}>
-            Cancel
-          </Button>
+          <DialogCloseButton disabled={submitting}>Cancel</DialogCloseButton>
           <Button type="submit" form="resource-form" loading={submitting}>
             {submitting && capture ? 'Reading the page…' : 'Add'}
           </Button>
