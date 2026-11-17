@@ -42,6 +42,7 @@ These rules keep the code structurally sound as it grows. Each rule has a reason
 9. Touch targets are at least 24 px (WCAG 2.5.8). Links outside running text get 44 px of height on small screens (`touch-target`).
 10. Navigation marks the open page (#686): `aria-current="page"` on its link (`isCurrentUrl()` in the ui components) and a marker that is not only a color (a bar or bold text).
 11. Modal windows use the `Dialog` and `Drawer` ui components, never a raw Headless UI dialog: they trap the focus, close with Escape, and give the focus back to the element that opened them (`useReturnFocus`, #1301). Check it with the keyboard in a real browser: jsdom does not show the problem.
+12. A busy control keeps the focus (WCAG 2.4.3, #1564): it uses `aria-disabled` and `aria-busy`, never `disabled`, because the browser takes the focus away from a disabled element. `Button` does it with `loading`: the button stays in the tab order, and a click, Enter or Space does nothing and does not submit the form. Another control needs a guard in its click handler. Use `disabled` only when the action is not possible and the focus is not on the control. A list item that moves loses the focus in Chrome: focus its button again after the move (`data-move` in `PageList` and `SpaceTreeEditor`).
 
 ## Definition of done
 

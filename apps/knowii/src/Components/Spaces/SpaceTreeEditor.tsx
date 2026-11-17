@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Space, SpaceGroup } from '@knowii/common';
 import { knowiiApiClient, moveItem, SPACE_TYPE_LABELS, SPACE_VISIBILITY_LABELS, useAppData } from '@knowii/common';
 import { FaArrowDown, FaArrowUp, FaPen, FaPlus, FaTrash } from 'react-icons/fa6';
@@ -29,13 +29,26 @@ export function SpaceTreeEditor({ communityCuid, spaceGroups, onChanged }: Space
   });
   const [pendingDeletion, setPendingDeletion] = useState<PendingDeletion | null>(null);
   const [busy, setBusy] = useState(false);
+  // The move button to focus again after the tree reloads: React moves its DOM node, and the browser drops the focus
+  const movedButton = useRef<string | null>(null);
+  const container = useRef<HTMLElement>(null);
 
-  const run = async (operation: () => Promise<{ ok: boolean; message: string }>, success: string) => {
+  useEffect(() => {
+    if (movedButton.current !== null) {
+      container.current?.querySelector<HTMLButtonElement>(`[data-move="${movedButton.current}"]`)?.focus();
+      movedButton.current = null;
+    }
+  }, [spaceGroups]);
+
+  const run = async (operation: () => Promise<{ ok: boolean; message: string }>, success: string, moved?: string) => {
     setBusy(true);
     const result = await operation();
     setBusy(false);
     if (result.ok) {
       showToast({ severity: 'success', summary: success });
+      if (moved !== undefined) {
+        movedButton.current = moved;
+      }
       onChanged();
     } else {
       showToast({ severity: 'error', summary: result.message });
@@ -43,26 +56,40 @@ export function SpaceTreeEditor({ communityCuid, spaceGroups, onChanged }: Space
     return result.ok;
   };
 
-  const moveGroup = (index: number, direction: -1 | 1) =>
-    run(
+  // The move buttons stay enabled (aria-disabled, #1564): nothing happens at the ends of a list, and while a change runs
+  const canMove = (index: number, direction: -1 | 1, count: number) => !busy && index + direction >= 0 && index + direction < count;
+
+  const moveGroup = (group: SpaceGroup, index: number, direction: -1 | 1) => {
+    if (!canMove(index, direction, spaceGroups.length)) {
+      return;
+    }
+    void run(
       () =>
         knowiiApiClient.communities.spaceGroups.reorder(
           communityCuid,
-          moveItem(spaceGroups, index, direction).map((group) => group.cuid),
+          moveItem(spaceGroups, index, direction).map((item) => item.cuid),
         ),
       'Space groups reordered',
+      `group:${group.cuid}:${direction}`,
     );
+  };
 
-  const moveSpace = (group: SpaceGroup, index: number, direction: -1 | 1) =>
-    run(
+  const moveSpace = (group: SpaceGroup, space: Space, index: number, direction: -1 | 1) => {
+    const spaces = group.spaces ?? [];
+    if (!canMove(index, direction, spaces.length)) {
+      return;
+    }
+    void run(
       () =>
         knowiiApiClient.communities.spaces.reorder(
           communityCuid,
           group.cuid,
-          moveItem(group.spaces ?? [], index, direction).map((space) => space.cuid),
+          moveItem(spaces, index, direction).map((item) => item.cuid),
         ),
       'Spaces reordered',
+      `space:${space.cuid}:${direction}`,
     );
+  };
 
   const confirmDeletion = async () => {
     if (!pendingDeletion) {
@@ -81,7 +108,7 @@ export function SpaceTreeEditor({ communityCuid, spaceGroups, onChanged }: Space
   };
 
   return (
-    <section aria-labelledby="space-tree-title" className="flex flex-col gap-4">
+    <section ref={container} aria-labelledby="space-tree-title" className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 id="space-tree-title" className="text-xl font-extrabold">
@@ -116,9 +143,11 @@ export function SpaceTreeEditor({ communityCuid, spaceGroups, onChanged }: Space
                     size="sm"
                     variant="ghost"
                     iconOnly
+                    data-move={`group:${group.cuid}:-1`}
                     aria-label={`Move ${group.name} up`}
-                    disabled={busy || groupIndex === 0}
-                    onClick={() => moveGroup(groupIndex, -1)}
+                    // aria-disabled, not disabled: a disabled button loses the focus (#1564)
+                    aria-disabled={busy || groupIndex === 0 || undefined}
+                    onClick={() => moveGroup(group, groupIndex, -1)}
                   >
                     <FaArrowUp aria-hidden="true" />
                   </Button>
@@ -126,9 +155,10 @@ export function SpaceTreeEditor({ communityCuid, spaceGroups, onChanged }: Space
                     size="sm"
                     variant="ghost"
                     iconOnly
+                    data-move={`group:${group.cuid}:1`}
                     aria-label={`Move ${group.name} down`}
-                    disabled={busy || groupIndex === spaceGroups.length - 1}
-                    onClick={() => moveGroup(groupIndex, 1)}
+                    aria-disabled={busy || groupIndex === spaceGroups.length - 1 || undefined}
+                    onClick={() => moveGroup(group, groupIndex, 1)}
                   >
                     <FaArrowDown aria-hidden="true" />
                   </Button>
@@ -179,9 +209,10 @@ export function SpaceTreeEditor({ communityCuid, spaceGroups, onChanged }: Space
                           size="sm"
                           variant="ghost"
                           iconOnly
+                          data-move={`space:${space.cuid}:-1`}
                           aria-label={`Move ${space.name} up`}
-                          disabled={busy || spaceIndex === 0}
-                          onClick={() => moveSpace(group, spaceIndex, -1)}
+                          aria-disabled={busy || spaceIndex === 0 || undefined}
+                          onClick={() => moveSpace(group, space, spaceIndex, -1)}
                         >
                           <FaArrowUp aria-hidden="true" />
                         </Button>
@@ -189,9 +220,10 @@ export function SpaceTreeEditor({ communityCuid, spaceGroups, onChanged }: Space
                           size="sm"
                           variant="ghost"
                           iconOnly
+                          data-move={`space:${space.cuid}:1`}
                           aria-label={`Move ${space.name} down`}
-                          disabled={busy || spaceIndex === spaces.length - 1}
-                          onClick={() => moveSpace(group, spaceIndex, 1)}
+                          aria-disabled={busy || spaceIndex === spaces.length - 1 || undefined}
+                          onClick={() => moveSpace(group, space, spaceIndex, 1)}
                         >
                           <FaArrowDown aria-hidden="true" />
                         </Button>
