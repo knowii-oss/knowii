@@ -1,4 +1,4 @@
-import type { KeyboardEvent } from 'react';
+import type { KeyboardEvent, RefObject } from 'react';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { knowiiApiClient, QUICK_REACTIONS } from '@knowii/common';
 import { cn, Spinner } from '@/Components/ui';
@@ -12,15 +12,26 @@ export interface EmojiData {
   groups: { key: string; name: string; emoji: EmojiEntry[] }[];
 }
 
+/**
+ * Why the picker closes: Escape, a click outside, or the focus that left it (Tab, Shift+Tab)
+ */
+export type EmojiPickerCloseReason = 'escape' | 'outside' | 'focus';
+
 export interface EmojiPickerProps {
   /**
    * Called with the chosen emoji (skin tone applied)
    */
   onPick: (emoji: string) => void;
   /**
-   * Called on Escape and on a click outside the picker
+   * Called on Escape, on a click outside the picker and when the focus leaves it. With the reason `focus`, the
+   * focus is already on another control: do not move it back
    */
-  onClose: () => void;
+  onClose: (reason: EmojiPickerCloseReason) => void;
+  /**
+   * The button that opened the picker. The focus on it and a click on it do not close the picker: the button
+   * toggles the picker itself
+   */
+  opener?: RefObject<HTMLElement | null>;
   /**
    * The emoji that the member already used on the item: the picker marks them (picking one removes it)
    */
@@ -69,9 +80,10 @@ const withTone = (entry: EmojiEntry, tone: number): string => (tone > 0 && entry
 /**
  * Picks any emoji for a reaction (#1204, ADR 0032). Keyboard first: the focus stays in the search field, the arrows
  * move in the grid (8 columns), Enter picks, Escape closes. Quick reactions and the member's frequently used emoji come
- * first, then the Unicode groups. The skin tone choice stays in the browser.
+ * first, then the Unicode groups. The skin tone choice stays in the browser. Escape closes it from any control inside it,
+ * and it closes when the focus leaves it (#1567): it is not modal, and on a phone the sheet covers the next controls.
  */
-export function EmojiPicker({ onPick, onClose, reacted, loadData = defaultLoadData }: EmojiPickerProps) {
+export function EmojiPicker({ onPick, onClose, opener, reacted, loadData = defaultLoadData }: EmojiPickerProps) {
   const baseId = useId();
   const searchRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -99,16 +111,33 @@ export function EmojiPicker({ onPick, onClose, reacted, loadData = defaultLoadDa
     };
   }, [loadData]);
 
-  // A click outside closes the picker
+  // A click outside closes the picker, and so does the focus when it leaves the picker (#1567). The opener is not
+  // outside: its own click toggles the picker, and Shift+Tab from the search field goes to it
   useEffect(() => {
+    const container = containerRef.current;
+    const openerElement = opener?.current ?? null;
+    const isOutside = (node: Node) => !container?.contains(node) && !openerElement?.contains(node);
     const onPointerDown = (event: PointerEvent) => {
-      if (containerRef.current && event.target instanceof Node && !containerRef.current.contains(event.target)) {
-        onClose();
+      if (container && event.target instanceof Node && isOutside(event.target)) {
+        onClose('outside');
+      }
+    };
+    // Without a new target, the focus did not go to another control: the window lost the focus (a switch to another
+    // application), or a click hit a place that takes no focus (the pointer listener handles it). The picker stays open
+    const onFocusOut = (event: FocusEvent) => {
+      if (event.relatedTarget instanceof Node && isOutside(event.relatedTarget)) {
+        onClose('focus');
       }
     };
     document.addEventListener('pointerdown', onPointerDown);
-    return () => document.removeEventListener('pointerdown', onPointerDown);
-  }, [onClose]);
+    container?.addEventListener('focusout', onFocusOut);
+    openerElement?.addEventListener('focusout', onFocusOut);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      container?.removeEventListener('focusout', onFocusOut);
+      openerElement?.removeEventListener('focusout', onFocusOut);
+    };
+  }, [onClose, opener]);
 
   const names = useMemo(() => {
     const map = new Map<string, string>();
@@ -208,14 +237,17 @@ export function EmojiPicker({ onPick, onClose, reacted, loadData = defaultLoadDa
       if (option) {
         onPick(option.emoji);
       }
-      return;
     }
+  };
+
+  // Escape anywhere in the picker (the search field, an emoji, a group button, a skin tone): close the picker, not the
+  // dialog or the panel around it
+  const onContainerKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Escape') {
-      // Close the picker, not the dialog around it
       event.preventDefault();
       event.stopPropagation();
       event.nativeEvent.stopImmediatePropagation();
-      onClose();
+      onClose('escape');
     }
   };
 
@@ -227,6 +259,7 @@ export function EmojiPicker({ onPick, onClose, reacted, loadData = defaultLoadDa
       ref={containerRef}
       role="dialog"
       aria-label="Choose a reaction"
+      onKeyDown={onContainerKeyDown}
       className={cn(
         'z-40 flex flex-col gap-2 rounded-xl border border-border bg-surface-elevated p-2 shadow-xl',
         // A sheet at the bottom of a phone, a popover under the button elsewhere
@@ -335,11 +368,6 @@ export function EmojiPicker({ onPick, onClose, reacted, loadData = defaultLoadDa
               const next = (tone + step + SKIN_TONES.length) % SKIN_TONES.length;
               chooseTone(next);
               containerRef.current?.querySelectorAll<HTMLButtonElement>('[role="radio"]')[next]?.focus();
-            }
-            if (event.key === 'Escape') {
-              event.preventDefault();
-              event.stopPropagation();
-              onClose();
             }
           }}
         >

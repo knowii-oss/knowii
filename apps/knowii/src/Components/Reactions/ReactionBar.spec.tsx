@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AppDataProvider, knowiiApiClient } from '@knowii/common';
+import { Dialog } from '@/Components/ui';
 import { ReactionBar } from './ReactionBar';
 import type { EmojiData } from './EmojiPicker';
 
@@ -142,6 +143,118 @@ describe('ReactionBar', () => {
 
     expect(screen.queryByRole('dialog', { name: 'Choose a reaction' })).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
+  });
+
+  it('closes the picker when Tab leaves it, and keeps the focus on the next control (#1567)', async () => {
+    renderBar();
+    const trigger = screen.getByRole('button', { name: 'Add a reaction to this post' });
+
+    await userEvent.click(trigger);
+    const picker = await screen.findByRole('dialog', { name: 'Choose a reaction' });
+    // The search field, then the chosen skin tone, then the next control of the bar
+    await userEvent.tab();
+    expect(within(picker).getByRole('radio', { name: 'Default skin tone' })).toHaveFocus();
+    await userEvent.tab();
+
+    expect(screen.queryByRole('dialog', { name: 'Choose a reaction' })).not.toBeInTheDocument();
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByRole('button', { name: 'See who reacted to this post' })).toHaveFocus();
+  });
+
+  it('stays open when Shift+Tab goes to its button, and closes when the focus goes on before it (#1567)', async () => {
+    renderBar();
+    const trigger = screen.getByRole('button', { name: 'Add a reaction to this post' });
+
+    await userEvent.click(trigger);
+    await screen.findByRole('dialog', { name: 'Choose a reaction' });
+    await userEvent.tab({ shift: true });
+
+    expect(trigger).toHaveFocus();
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('dialog', { name: 'Choose a reaction' })).toBeInTheDocument();
+
+    await userEvent.tab({ shift: true });
+
+    expect(screen.queryByRole('dialog', { name: 'Choose a reaction' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^👍/ })).toHaveFocus();
+  });
+
+  it('closes with Enter or a click on its button, without opening again (#1567)', async () => {
+    renderBar();
+    const trigger = screen.getByRole('button', { name: 'Add a reaction to this post' });
+
+    await userEvent.click(trigger);
+    await screen.findByRole('dialog', { name: 'Choose a reaction' });
+    await userEvent.tab({ shift: true });
+    await userEvent.keyboard('{Enter}');
+    expect(screen.queryByRole('dialog', { name: 'Choose a reaction' })).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+
+    await userEvent.click(trigger);
+    await screen.findByRole('dialog', { name: 'Choose a reaction' });
+    await userEvent.click(trigger);
+    expect(screen.queryByRole('dialog', { name: 'Choose a reaction' })).not.toBeInTheDocument();
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('closes with Escape on an emoji or a group button, and gives the focus back (#1567)', async () => {
+    renderBar([]);
+    const trigger = screen.getByRole('button', { name: 'Add a reaction to this post' });
+
+    await userEvent.click(trigger);
+    let picker = await screen.findByRole('dialog', { name: 'Choose a reaction' });
+    within(picker).getByRole('option', { name: 'Like' }).focus();
+    await userEvent.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog', { name: 'Choose a reaction' })).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+
+    await userEvent.click(trigger);
+    picker = await screen.findByRole('dialog', { name: 'Choose a reaction' });
+    (await within(picker).findByRole('button', { name: 'Smileys and emotion' })).focus();
+    await userEvent.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog', { name: 'Choose a reaction' })).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+  });
+
+  it('closes only the picker on Escape in a dialog (#1567)', async () => {
+    const onDialogClose = vi.fn();
+    const onDocumentKeyDown = vi.fn();
+    render(
+      <AppDataProvider>
+        <Dialog open onClose={onDialogClose} title="The post">
+          <ReactionBar target={target} initialReactions={[]} canReact itemLabel="this post" loadEmojiData={loadEmojiData} />
+        </Dialog>
+      </AppDataProvider>,
+    );
+    const dialog = await screen.findByRole('dialog', { name: 'The post' });
+    const trigger = within(dialog).getByRole('button', { name: 'Add a reaction to this post' });
+
+    await userEvent.click(trigger);
+    const picker = await within(dialog).findByRole('dialog', { name: 'Choose a reaction' });
+    within(picker).getByRole('option', { name: 'Like' }).focus();
+    document.addEventListener('keydown', onDocumentKeyDown);
+    await userEvent.keyboard('{Escape}');
+    document.removeEventListener('keydown', onDocumentKeyDown);
+
+    expect(within(dialog).queryByRole('dialog', { name: 'Choose a reaction' })).not.toBeInTheDocument();
+    expect(onDocumentKeyDown).not.toHaveBeenCalled();
+    expect(onDialogClose).not.toHaveBeenCalled();
+    expect(trigger).toHaveFocus();
+  });
+
+  it('stays open with its search text when the window loses the focus (#1567)', async () => {
+    renderBar([]);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Add a reaction to this post' }));
+    const picker = await screen.findByRole('dialog', { name: 'Choose a reaction' });
+    const search = within(picker).getByRole('combobox', { name: 'Search an emoji' });
+    await userEvent.keyboard('horse');
+    // A switch to another application: the focus goes nowhere in the page (no new target)
+    fireEvent.focusOut(search, { relatedTarget: null });
+    fireEvent.blur(window);
+
+    expect(screen.getByRole('dialog', { name: 'Choose a reaction' })).toBeInTheDocument();
+    expect(search).toHaveValue('horse');
   });
 
   it('refuses a 21st different emoji without calling the server (#1204)', async () => {
