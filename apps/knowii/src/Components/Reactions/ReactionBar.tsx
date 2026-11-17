@@ -4,7 +4,7 @@ import { knowiiApiClient, MAX_REACTION_EMOJI_PER_ITEM, reactionEmojiSchema, useA
 import { FaFaceSmile, FaPlus } from 'react-icons/fa6';
 import { useIsVisitor } from '@/Components/Reader/Reader';
 import { Button, cn, Dialog, Spinner } from '@/Components/ui';
-import type { EmojiPickerProps } from './EmojiPicker';
+import type { EmojiPickerCloseReason, EmojiPickerProps } from './EmojiPicker';
 import { EmojiPicker } from './EmojiPicker';
 
 export interface ReactionBarProps {
@@ -84,9 +84,12 @@ export function ReactionBar({ target, initialReactions, canReact, itemLabel, loa
     }
   };
 
-  const closePicker = useCallback(() => {
+  const closePicker = useCallback((reason?: EmojiPickerCloseReason) => {
     setPickerOpen(false);
-    pickerTrigger.current?.focus();
+    // The focus left the picker with Tab or Shift+Tab: it stays where the member put it (#1567)
+    if (reason !== 'focus') {
+      pickerTrigger.current?.focus();
+    }
   }, []);
 
   const pick = (emoji: string) => {
@@ -168,7 +171,13 @@ export function ReactionBar({ target, initialReactions, canReact, itemLabel, loa
             <FaPlus aria-hidden="true" className="size-2.5" />
           </button>
           {pickerOpen && (
-            <EmojiPicker onPick={pick} onClose={closePicker} reacted={reacted} {...(loadEmojiData ? { loadData: loadEmojiData } : {})} />
+            <EmojiPicker
+              onPick={pick}
+              onClose={closePicker}
+              opener={pickerTrigger}
+              reacted={reacted}
+              {...(loadEmojiData ? { loadData: loadEmojiData } : {})}
+            />
           )}
         </div>
       )}
