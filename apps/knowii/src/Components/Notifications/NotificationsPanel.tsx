@@ -653,7 +653,7 @@ export function NotificationsPanel({ onClose, focusHeading, catchUpCommunities =
         )}
       </div>
       {actionError && (
-        <p role="alert" className="rounded-lg border border-danger px-3 py-2 text-sm text-danger">
+        <p role="alert" className="rounded-lg border border-danger-text px-3 py-2 text-sm text-danger-text">
           {actionError}
         </p>
       )}
