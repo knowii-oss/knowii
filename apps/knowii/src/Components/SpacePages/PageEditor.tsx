@@ -15,7 +15,7 @@ import {
 import { useImageUploader } from '@/Components/Uploads/use-image-uploader';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
-import { Button, Dialog, MarkdownEditor, TextInput } from '@/Components/ui';
+import { Button, Dialog, DialogCloseButton, MarkdownEditor, TextInput } from '@/Components/ui';
 
 /**
  * page: a page of a page space (#1179). lesson: a lesson of a course space, with an optional video (#1188). section:
@@ -104,11 +104,11 @@ export function PageEditor({ open, communityCuid, spaceCuid, spaceName, mode = '
       size={mode === 'section' ? 'md' : 'lg'}
       title={page ? `Edit the ${noun}` : `New ${noun} in ${spaceName}`}
       description={mode === 'section' ? 'A section is a heading for the lessons or pages that follow it.' : undefined}
+      // Escape, a click outside and "Cancel" ask before they lose the text (#1563). A save closes without a question.
+      hasUnsavedChanges={form.formState.isDirty && !form.formState.isSubmitting}
       footer={
         <>
-          <Button variant="secondary" onClick={onClose}>
-            Cancel
-          </Button>
+          <DialogCloseButton>Cancel</DialogCloseButton>
           <Button type="submit" form="page-form" disabled={!form.formState.isValid} loading={form.formState.isSubmitting}>
             {page ? 'Save' : 'Create'}
           </Button>

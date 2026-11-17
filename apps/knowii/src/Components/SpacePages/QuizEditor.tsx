@@ -19,7 +19,7 @@ import {
 } from '@knowii/common';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
-import { Button, Checkbox, Dialog, Radio, SegmentedControl, Textarea, TextInput } from '@/Components/ui';
+import { Button, Checkbox, Dialog, DialogCloseButton, Radio, SegmentedControl, Textarea, TextInput } from '@/Components/ui';
 
 export interface QuizEditorProps {
   open: boolean;
@@ -149,6 +149,9 @@ export function QuizEditor({ open, communityCuid, spaceCuid, pageCuid, quiz, onC
         setKeptQuiz(false);
       }}
       size="lg"
+      // Escape, a click outside and "Cancel" ask before they lose the questions (#1563). A save or a deletion closes
+      // without a question.
+      hasUnsavedChanges={form.formState.isDirty && !form.formState.isSubmitting && !deleting}
       title={quiz ? 'Edit the quiz' : 'Add a quiz'}
       description="Members answer after the lesson. The server grades their answers, and they can try again."
       footer={
@@ -183,9 +186,7 @@ export function QuizEditor({ open, communityCuid, spaceCuid, pageCuid, quiz, onC
                 Delete
               </Button>
             )}
-            <Button variant="secondary" onClick={onClose}>
-              Cancel
-            </Button>
+            <DialogCloseButton>Cancel</DialogCloseButton>
             <Button type="submit" form={formId} aria-busy={form.formState.isSubmitting || undefined}>
               Save
             </Button>

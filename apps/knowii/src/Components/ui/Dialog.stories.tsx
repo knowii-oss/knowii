@@ -4,7 +4,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 import { Button } from './Button';
 import type { DialogProps } from './Dialog';
-import { Dialog } from './Dialog';
+import { Dialog, DialogCloseButton } from './Dialog';
 import { TextInput } from './TextInput';
 
 const TRIGGER_NAME = 'Edit the space';
@@ -51,10 +51,40 @@ function FooterButtons() {
   const close = useClose();
   return (
     <>
-      <Button variant="secondary" onClick={close}>
-        Cancel
-      </Button>
+      {/* Closes the dialog like Escape: with unsaved changes, it asks first */}
+      <DialogCloseButton>Cancel</DialogCloseButton>
       <Button onClick={close}>Save</Button>
+    </>
+  );
+}
+
+/**
+ * The dialog of a form with text: it has unsaved changes once the text is not the one at the start (#1563)
+ */
+function DialogWithText({ open: openAtStart, onClose, ...args }: DialogProps) {
+  const [open, setOpen] = useState(openAtStart);
+  const id = useId();
+  const [text, setText] = useState('');
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>{TRIGGER_NAME}</Button>
+      <Dialog
+        {...args}
+        open={open}
+        onClose={() => {
+          setOpen(false);
+          setText('');
+          onClose();
+        }}
+        hasUnsavedChanges={text !== ''}
+      >
+        <div className="flex flex-col gap-1">
+          <label htmlFor={id} className="text-sm font-bold">
+            Description
+          </label>
+          <TextInput id={id} value={text} onChange={(event) => setText(event.target.value)} autoFocus />
+        </div>
+      </Dialog>
     </>
   );
 }
@@ -129,6 +159,64 @@ export const KeyboardPath: Story = {
     await step('The focus goes back to the button', async () => {
       await waitFor(() => expect(trigger).toHaveFocus());
     });
+  },
+};
+
+/**
+ * A form with text that is not saved (#1563): Escape, a click outside the panel, the close button and "Cancel" ask
+ * "Discard your text?" first. "Keep writing" has the focus, Escape on the question means "Keep writing", and the focus
+ * goes back to the field. "Discard" closes the dialog.
+ */
+export const AsksBeforeItLosesText: Story = {
+  args: { open: false },
+  render: (args) => <DialogWithText {...args} />,
+  play: async ({ args, canvasElement, step }) => {
+    const trigger = within(canvasElement).getByRole('button', { name: TRIGGER_NAME });
+    const page = within(canvasElement.ownerDocument.body);
+    await userEvent.click(trigger);
+    const dialog = await page.findByRole('dialog', { name: 'Edit the space' });
+    const field = within(dialog).getByRole('textbox', { name: 'Description' });
+
+    await step('Escape with text asks first, and "Keep writing" has the focus', async () => {
+      await waitFor(() => expect(field).toHaveFocus());
+      await userEvent.keyboard('A space for the readers');
+      await userEvent.keyboard('{Escape}');
+      const question = await page.findByRole('dialog', { name: 'Discard your text?' });
+      await waitFor(() => expect(within(question).getByRole('button', { name: 'Keep writing' })).toHaveFocus());
+      await expect(args.onClose).not.toHaveBeenCalled();
+    });
+
+    await step('Escape on the question keeps the text and gives the focus back to the field', async () => {
+      await userEvent.keyboard('{Escape}');
+      await waitFor(() => expect(page.queryByRole('dialog', { name: 'Discard your text?' })).not.toBeInTheDocument());
+      await waitFor(() => expect(field).toHaveFocus());
+      await expect(field).toHaveValue('A space for the readers');
+    });
+
+    await step('"Cancel" asks too, and "Discard" closes the dialog', async () => {
+      await userEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+      const question = await page.findByRole('dialog', { name: 'Discard your text?' });
+      await userEvent.click(within(question).getByRole('button', { name: 'Discard' }));
+      await waitFor(() => expect(page.queryByRole('dialog')).not.toBeInTheDocument());
+      await expect(args.onClose).toHaveBeenCalledOnce();
+    });
+  },
+};
+
+/**
+ * The question on top of the dialog, as it shows after Escape
+ */
+export const DiscardQuestion: Story = {
+  args: { open: false },
+  render: (args) => <DialogWithText {...args} />,
+  play: async ({ canvasElement }) => {
+    const page = within(canvasElement.ownerDocument.body);
+    await userEvent.click(within(canvasElement).getByRole('button', { name: TRIGGER_NAME }));
+    const dialog = await page.findByRole('dialog', { name: 'Edit the space' });
+    await userEvent.type(within(dialog).getByRole('textbox', { name: 'Description' }), 'A space for the readers');
+    await userEvent.keyboard('{Escape}');
+    const question = await page.findByRole('dialog', { name: 'Discard your text?' });
+    await expect(question).toHaveAccessibleDescription('You have changes that are not saved. If you close now, they are lost.');
   },
 };
 
