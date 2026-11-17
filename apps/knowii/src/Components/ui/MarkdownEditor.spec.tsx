@@ -115,6 +115,33 @@ describe('MarkdownEditor', () => {
     expect(textarea).toHaveValue('@a');
   });
 
+  it('clears the timer of the mention list when the editor goes away (#1554)', () => {
+    vi.useFakeTimers();
+    try {
+      const { unmount } = render(<Harness renderPreview={vi.fn()} />);
+      fireEvent.blur(screen.getByLabelText('Body'));
+      expect(vi.getTimerCount()).toBe(1);
+
+      unmount();
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('starts one timer for two blurs in a row', () => {
+    vi.useFakeTimers();
+    try {
+      render(<Harness renderPreview={vi.fn()} />);
+      const textarea = screen.getByLabelText('Body');
+      fireEvent.blur(textarea);
+      fireEvent.blur(textarea);
+      expect(vi.getTimerCount()).toBe(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('asks for the alt text, uploads the image and inserts it', async () => {
     URL.createObjectURL = vi.fn(() => 'blob:preview');
     URL.revokeObjectURL = vi.fn();

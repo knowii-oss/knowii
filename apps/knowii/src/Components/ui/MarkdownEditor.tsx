@@ -172,6 +172,18 @@ export function MarkdownEditor({
 
   useEffect(() => () => latestPendingImages.current?.items.forEach((item) => URL.revokeObjectURL(item.previewUrl)), []);
 
+  // The timer that closes the mention list after a blur. It is cleared when the editor goes away: a timer that fires
+  // later would set state on a component that is gone (#1554)
+  const mentionCloseTimer = useRef<number | null>(null);
+  useEffect(
+    () => () => {
+      if (mentionCloseTimer.current !== null) {
+        window.clearTimeout(mentionCloseTimer.current);
+      }
+    },
+    [],
+  );
+
   const writeTabId = `${baseId}-write-tab`;
   const previewTabId = `${baseId}-preview-tab`;
   const writePanelId = `${baseId}-write-panel`;
@@ -586,7 +598,13 @@ export function MarkdownEditor({
           onSelect={(event) => updateMention(event.currentTarget.value, event.currentTarget.selectionStart)}
           onBlur={() => {
             // Let a click on a suggestion land before closing the list
-            window.setTimeout(() => setMention(null), 150);
+            if (mentionCloseTimer.current !== null) {
+              window.clearTimeout(mentionCloseTimer.current);
+            }
+            mentionCloseTimer.current = window.setTimeout(() => {
+              mentionCloseTimer.current = null;
+              setMention(null);
+            }, 150);
             onBlur?.();
           }}
           onKeyDown={onTextareaKeyDown}

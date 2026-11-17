@@ -58,6 +58,17 @@ export function ImageInsertPanel({ baseId, items, busy, message, onChange, onIns
     }
   }, [items]);
 
+  // The timer that moves the focus after a removal. It is cleared when the panel goes away (#1554)
+  const focusTimer = useRef<number | null>(null);
+  useEffect(
+    () => () => {
+      if (focusTimer.current !== null) {
+        window.clearTimeout(focusTimer.current);
+      }
+    },
+    [],
+  );
+
   const update = (id: string, changes: Partial<PendingImageItem>) =>
     onChange(items.map((item) => (item.id === id ? { ...item, ...changes } : item)));
 
@@ -92,7 +103,13 @@ export function ImageInsertPanel({ baseId, items, busy, message, onChange, onIns
     // The description of the image that took its place, or of the last one
     const neighbour = next[Math.min(index, next.length - 1)];
     if (neighbour) {
-      window.setTimeout(() => document.getElementById(imageAltId(baseId, neighbour.id))?.focus(), 0);
+      if (focusTimer.current !== null) {
+        window.clearTimeout(focusTimer.current);
+      }
+      focusTimer.current = window.setTimeout(() => {
+        focusTimer.current = null;
+        document.getElementById(imageAltId(baseId, neighbour.id))?.focus();
+      }, 0);
     }
   };
 
