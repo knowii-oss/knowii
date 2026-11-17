@@ -1,0 +1,7 @@
+# The output of the tools: made again on each run
+node_modules/
+atlas-out/
+a11y-out/
+failures/
+last-run.json
+last-probe.json

@@ -49,7 +49,7 @@ Other accounts of the seed: `atlas-tomas@example.com` and `atlas-lena@example.co
    node atlas.mjs
    ```
 
-   One part only: `node atlas.mjs --only '^settings/' --widths 1920 --themes light`. The options are at the top of `atlas.mjs`.
+   One part only: `node atlas.mjs --only settings/ --widths 1920 --themes light`. The options are at the top of `atlas.mjs`.
    The screens are in `screens.json`: one entry per screen and state.
 
 4. To remove the data of the seed (not run): `php artisan tinker tools/screen-atlas/atlas-unseed.php` in the container.

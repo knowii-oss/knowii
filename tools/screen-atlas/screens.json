@@ -1,0 +1,2282 @@
+{
+  "areas": {
+    "public": "Public pages",
+    "auth": "Sign-up, sign-in, password and two-factor",
+    "dashboard": "Dashboard",
+    "community": "Community: home, about, member profiles",
+    "settings": "Community settings",
+    "discussion": "Discussion spaces and posts",
+    "chat": "Chat spaces",
+    "messages": "Direct messages",
+    "course": "Course spaces",
+    "pages": "Pages spaces",
+    "resources": "Resources spaces",
+    "link": "Link spaces",
+    "notifications": "Notifications",
+    "account": "Account settings",
+    "errors": "Error pages"
+  },
+  "notes": [
+    "The application ran in the `local` environment. There, a 403, a 404 and a 500 show the error page of the framework, not `Pages/Error.tsx`: `bootstrap/app.php` renders that page only outside `local` and `testing`. The pictures of the area \"errors\" and every \"forbidden\" state show what the local environment shows.",
+    "Requests to hosts outside this machine are refused by the tool. The bot check widget (sign-up page, waitlist form of the home page) comes from an outside service: its place is empty in the pictures, and the \"Subscribe\" button of the waitlist form stays disabled.",
+    "The forms of the sign-in pages and of the account settings use the validation bubbles of the browser for empty required fields. A page screenshot does not hold these bubbles. For the state \"errors\" of these forms the tool sends the form without the check of the browser: the pictures show the messages of the server.",
+    "The dialogs with a disabled submit button (new community, space, space group, post, page) cannot be sent empty. Their state \"errors\" shows the messages of a field that was filled and emptied.",
+    "The states \"loading\" and \"error\" exist only where the screen asks for its data after the page loads (the tool holds that request, or answers it with a 500). The screens that get their data with the page have no such state.",
+    "A \"collection\" of resources is a resources space (ADR 0015 of the repository): \"Reading list\" (members add) and \"Tools\" (the team curates).",
+    "The list \"Online now\" and the counts \"here\" depend on which roles the tool had open at the same time: they are not the same on each run. Relative times (\"3 minutes ago\") change too.",
+    "Every picture is a full-page screenshot. A layer that is fixed to the viewport (dialog, drawer, menu, image viewer, toast) covers the first 1080 px (800 px at the width 360) only: below that line the page shows without the backdrop. This comes from the screenshot, not from the product.",
+    "The account of a new member has no time zone. The application saves the zone of the browser at the first page load, without a question. The question \"Show times in ...?\" shows when the zone of the browser is not the zone of the account: see `account/time-zone-question--open--member`.",
+    "The tool asks for reduced motion and stops the animations before each picture.",
+    "The role \"admin\" is in the atlas for the screens where it differs from the owner and the moderator (settings, community home, dashboard).",
+    "What a visit changes (read notifications, read chat, the dot \"New content\", the \"Catch up\" card) is put back by the seed, which the tool runs before each width and theme. The order of the screens of one role is the order of `screens.json`, so the counts in the header change from one picture to the next in the same way on each run."
+  ],
+  "screens": [
+    {
+      "area": "public",
+      "screen": "home",
+      "state": "full",
+      "name": "Home page",
+      "path": "/",
+      "roles": ["visitor", "member"],
+      "component": "Pages/Welcome.tsx"
+    },
+    {
+      "area": "public",
+      "screen": "contact",
+      "state": "full",
+      "name": "Contact page",
+      "path": "/contact",
+      "roles": ["visitor"],
+      "component": "Pages/Contact.tsx"
+    },
+    {
+      "area": "public",
+      "screen": "legal-terms-of-service",
+      "state": "full",
+      "name": "Terms of service",
+      "path": "/terms-of-service",
+      "roles": ["visitor"],
+      "component": "Pages/Legal/Show.tsx"
+    },
+    {
+      "area": "public",
+      "screen": "legal-privacy-policy",
+      "state": "full",
+      "name": "Privacy policy",
+      "path": "/privacy-policy",
+      "roles": ["visitor"],
+      "component": "Pages/Legal/Show.tsx"
+    },
+    {
+      "area": "public",
+      "screen": "legal-dpa",
+      "state": "full",
+      "name": "Data processing agreement",
+      "path": "/dpa",
+      "roles": ["visitor"],
+      "component": "Pages/Legal/Show.tsx"
+    },
+    {
+      "area": "public",
+      "screen": "legal-content-policy",
+      "state": "full",
+      "name": "Content policy",
+      "path": "/content-policy",
+      "roles": ["visitor"],
+      "component": "Pages/Legal/Show.tsx"
+    },
+    {
+      "area": "public",
+      "screen": "legal-imprint",
+      "state": "full",
+      "name": "Imprint",
+      "path": "/imprint",
+      "roles": ["visitor"],
+      "component": "Pages/Legal/Show.tsx"
+    },
+    {
+      "area": "public",
+      "screen": "legal-security",
+      "state": "full",
+      "name": "Security page",
+      "path": "/security",
+      "roles": ["visitor"],
+      "component": "Pages/Legal/Show.tsx"
+    },
+    {
+      "area": "public",
+      "screen": "community",
+      "state": "full",
+      "name": "Public page of a community",
+      "path": "/community/{garden}",
+      "roles": ["visitor", "new-member"],
+      "component": "Pages/Communities/Public.tsx"
+    },
+    {
+      "area": "public",
+      "screen": "space-pages",
+      "state": "full",
+      "name": "Public pages space",
+      "path": "/community/{garden}/space/{spaces.welcome}",
+      "roles": ["visitor", "new-member"],
+      "component": "Pages/Spaces/Show.tsx"
+    },
+    {
+      "area": "public",
+      "screen": "page",
+      "state": "full",
+      "name": "Page of a public pages space",
+      "path": "/community/{garden}/space/{spaces.welcome}/page/{pages.first}",
+      "roles": ["visitor", "new-member"],
+      "component": "Pages/SpacePages/Show.tsx"
+    },
+    {
+      "area": "public",
+      "screen": "space-discussion",
+      "state": "full",
+      "name": "Public discussion space",
+      "path": "/community/{garden}/space/{spaces.announcements}",
+      "roles": ["visitor", "new-member"],
+      "component": "Pages/Spaces/Show.tsx"
+    },
+    {
+      "area": "public",
+      "screen": "post",
+      "state": "full",
+      "name": "Post of a public space",
+      "path": "/community/{garden}/space/{spaces.announcements}/post/{posts.announcement}",
+      "roles": ["visitor", "new-member"],
+      "component": "Pages/Posts/Show.tsx"
+    },
+    {
+      "area": "public",
+      "screen": "space-members-only",
+      "state": "sign-in",
+      "name": "Space for members only, as a visitor",
+      "path": "/community/{garden}/space/{spaces.discussion}",
+      "roles": ["visitor"],
+      "component": "Pages/Spaces/Show.tsx",
+      "expect": { "component": "Auth/Login", "url": "^/login" }
+    },
+    {
+      "area": "public",
+      "screen": "community-private",
+      "state": "sign-in",
+      "name": "Private community, as a visitor",
+      "path": "/community/{empty}",
+      "roles": ["visitor"],
+      "component": "Pages/Communities/Show.tsx",
+      "expect": { "component": "Auth/Login", "url": "^/login" }
+    },
+    {
+      "area": "auth",
+      "screen": "login",
+      "state": "empty",
+      "name": "Sign-in page",
+      "path": "/login",
+      "roles": ["visitor"],
+      "component": "Pages/Auth/Login.tsx"
+    },
+    {
+      "area": "auth",
+      "screen": "login",
+      "state": "errors",
+      "name": "Sign-in page, sent empty",
+      "path": "/login",
+      "roles": ["visitor"],
+      "component": "Pages/Auth/Login.tsx",
+      "steps": [["submit", "form"]]
+    },
+    {
+      "area": "auth",
+      "screen": "login",
+      "state": "wrong-password",
+      "name": "Sign-in page, wrong email address or password",
+      "path": "/login",
+      "roles": ["visitor"],
+      "component": "Pages/Auth/Login.tsx",
+      "steps": [
+        ["fill", "#email", "atlas-nobody@example.com"],
+        ["fill", "#password", "not-the-password"],
+        ["click", "role=button[name=\"Log in\"]"]
+      ]
+    },
+    {
+      "area": "auth",
+      "screen": "login-link",
+      "state": "empty",
+      "name": "Sign-in page, link by email",
+      "path": "/login",
+      "roles": ["visitor"],
+      "component": "Pages/Auth/Login.tsx",
+      "steps": [["click", "role=button[name=\"Email me a sign-in link instead\"]"]]
+    },
+    {
+      "area": "auth",
+      "screen": "login-link",
+      "state": "errors",
+      "name": "Sign-in page, link by email, sent empty",
+      "path": "/login",
+      "roles": ["visitor"],
+      "component": "Pages/Auth/Login.tsx",
+      "steps": [
+        ["click", "role=button[name=\"Email me a sign-in link instead\"]"],
+        ["submit", "form"]
+      ]
+    },
+    {
+      "area": "auth",
+      "screen": "login-link",
+      "state": "sent",
+      "name": "Sign-in page, link by email, sent",
+      "path": "/login",
+      "roles": ["visitor"],
+      "component": "Pages/Auth/Login.tsx",
+      "steps": [
+        ["click", "role=button[name=\"Email me a sign-in link instead\"]"],
+        ["fill", "#link-email", "atlas-nobody@example.com"],
+        ["click", "form button[type=submit]"]
+      ],
+      "note": "The address has no account: no email is written."
+    },
+    {
+      "area": "auth",
+      "screen": "register",
+      "state": "empty",
+      "name": "Sign-up page",
+      "path": "/register",
+      "roles": ["visitor"],
+      "component": "Pages/Auth/Register.tsx"
+    },
+    {
+      "area": "auth",
+      "screen": "register",
+      "state": "errors",
+      "name": "Sign-up page, sent empty",
+      "path": "/register",
+      "roles": ["visitor"],
+      "component": "Pages/Auth/Register.tsx",
+      "steps": [["submit", "form"]]
+    },
+    {
+      "area": "auth",
+      "screen": "forgot-password",
+      "state": "empty",
+      "name": "Forgot password page",
+      "path": "/forgot-password",
+      "roles": ["visitor"],
+      "component": "Pages/Auth/ForgotPassword.tsx"
+    },
+    {
+      "area": "auth",
+      "screen": "forgot-password",
+      "state": "errors",
+      "name": "Forgot password page, sent empty",
+      "path": "/forgot-password",
+      "roles": ["visitor"],
+      "component": "Pages/Auth/ForgotPassword.tsx",
+      "steps": [["submit", "form"]]
+    },
+    {
+      "area": "auth",
+      "screen": "forgot-password",
+      "state": "unknown-address",
+      "name": "Forgot password page, address without an account",
+      "path": "/forgot-password",
+      "roles": ["visitor"],
+      "component": "Pages/Auth/ForgotPassword.tsx",
+      "steps": [
+        ["fill", "#email", "atlas-nobody@example.com"],
+        ["click", "form button[type=submit]"]
+      ]
+    },
+    {
+      "area": "auth",
+      "screen": "reset-password",
+      "state": "empty",
+      "name": "Reset password page",
+      "path": "/reset-password/atlas-token?email={accounts.member}",
+      "roles": ["visitor"],
+      "component": "Pages/Auth/ResetPassword.tsx"
+    },
+    {
+      "area": "auth",
+      "screen": "reset-password",
+      "state": "errors",
+      "name": "Reset password page, sent empty",
+      "path": "/reset-password/atlas-token?email={accounts.member}",
+      "roles": ["visitor"],
+      "component": "Pages/Auth/ResetPassword.tsx",
+      "steps": [["submit", "form"]]
+    },
+    {
+      "area": "auth",
+      "screen": "two-factor-challenge",
+      "state": "empty",
+      "name": "Two-factor challenge",
+      "path": "/login",
+      "roles": ["visitor"],
+      "component": "Pages/Auth/TwoFactorChallenge.tsx",
+      "fresh": true,
+      "steps": [
+        ["fill", "#email", "{accounts.two-factor}"],
+        ["fill", "#password", "{password}"],
+        ["click", "role=button[name=\"Log in\"]"],
+        ["waitUrl", "^/two-factor-challenge"]
+      ],
+      "expect": { "component": "Auth/Login", "url": "^/two-factor-challenge" },
+      "note": "Opens after the sign-in form, with the account atlas-2fa@example.com."
+    },
+    {
+      "area": "auth",
+      "screen": "two-factor-challenge",
+      "state": "errors",
+      "name": "Two-factor challenge, sent empty",
+      "path": "/login",
+      "roles": ["visitor"],
+      "component": "Pages/Auth/TwoFactorChallenge.tsx",
+      "fresh": true,
+      "steps": [
+        ["fill", "#email", "{accounts.two-factor}"],
+        ["fill", "#password", "{password}"],
+        ["click", "role=button[name=\"Log in\"]"],
+        ["waitUrl", "^/two-factor-challenge"],
+        ["settle"],
+        ["submit", "form"]
+      ],
+      "expect": { "component": "Auth/Login", "url": "^/two-factor-challenge" }
+    },
+    {
+      "area": "auth",
+      "screen": "two-factor-challenge",
+      "state": "recovery-code",
+      "name": "Two-factor challenge, with a recovery code",
+      "path": "/login",
+      "roles": ["visitor"],
+      "component": "Pages/Auth/TwoFactorChallenge.tsx",
+      "fresh": true,
+      "steps": [
+        ["fill", "#email", "{accounts.two-factor}"],
+        ["fill", "#password", "{password}"],
+        ["click", "role=button[name=\"Log in\"]"],
+        ["waitUrl", "^/two-factor-challenge"],
+        ["settle"],
+        ["click", "role=button[name=/recovery code/]"]
+      ],
+      "expect": { "component": "Auth/Login", "url": "^/two-factor-challenge" }
+    },
+    {
+      "area": "auth",
+      "screen": "magic-link",
+      "state": "invalid",
+      "name": "Sign-in link that is not valid",
+      "path": "/login/link/atlas-token",
+      "roles": ["visitor"],
+      "component": "Pages/Auth/MagicLink.tsx"
+    },
+    {
+      "area": "auth",
+      "screen": "confirm-password",
+      "state": "empty",
+      "name": "Confirm password page",
+      "path": "/user/confirm-password",
+      "roles": ["member"],
+      "component": "Pages/Auth/ConfirmPassword.tsx"
+    },
+    {
+      "area": "auth",
+      "screen": "confirm-password",
+      "state": "errors",
+      "name": "Confirm password page, sent empty",
+      "path": "/user/confirm-password",
+      "roles": ["member"],
+      "component": "Pages/Auth/ConfirmPassword.tsx",
+      "steps": [["submit", "form"]]
+    },
+    {
+      "area": "auth",
+      "screen": "verify-email",
+      "state": "full",
+      "name": "Verify your email address",
+      "path": "/email/verify",
+      "roles": ["new-member"],
+      "component": "Pages/Auth/VerifyEmail.tsx",
+      "account": "unverified",
+      "note": "Account atlas-unverified@example.com (address not verified)."
+    },
+    {
+      "area": "dashboard",
+      "screen": "home",
+      "state": "full",
+      "name": "Dashboard",
+      "path": "/dashboard",
+      "roles": ["new-member", "member", "moderator", "admin", "owner"],
+      "component": "Pages/Dashboard.tsx"
+    },
+    {
+      "area": "dashboard",
+      "screen": "home",
+      "state": "sign-in",
+      "name": "Dashboard, as a visitor",
+      "path": "/dashboard",
+      "roles": ["visitor"],
+      "component": "Pages/Dashboard.tsx",
+      "expect": { "component": "Auth/Login", "url": "^/login" }
+    },
+    {
+      "area": "dashboard",
+      "screen": "home",
+      "state": "no-match",
+      "name": "Dashboard, search without a result",
+      "path": "/dashboard",
+      "roles": ["member"],
+      "component": "Pages/Dashboard.tsx",
+      "steps": [["fill", "input[placeholder^=\"Search communities\"]", "zzzz"]]
+    },
+    {
+      "area": "dashboard",
+      "screen": "new-community",
+      "state": "dialog",
+      "name": "New community dialog",
+      "path": "/dashboard",
+      "roles": ["new-member", "member"],
+      "component": "Pages/Dashboard.tsx",
+      "steps": [["click", "role=button[name=\"New community\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "dashboard",
+      "screen": "new-community",
+      "state": "errors",
+      "name": "New community dialog with errors",
+      "path": "/dashboard",
+      "roles": ["member"],
+      "component": "Pages/Dashboard.tsx",
+      "steps": [
+        ["click", "role=button[name=\"New community\"]"],
+        ["waitDialog"],
+        ["fill", "role=dialog >> input >> nth=0", "A!"],
+        ["press", "Tab"],
+        ["wait", 1200]
+      ]
+    },
+    {
+      "area": "dashboard",
+      "screen": "main-menu",
+      "state": "open",
+      "name": "Main menu open",
+      "path": "/dashboard",
+      "roles": ["member"],
+      "component": "Pages/Dashboard.tsx",
+      "steps": [
+        ["click", "role=button[name=\"Open the main menu\"]"],
+        ["wait", 500]
+      ]
+    },
+    {
+      "area": "dashboard",
+      "screen": "user-menu",
+      "state": "open",
+      "name": "User menu open",
+      "path": "/dashboard",
+      "roles": ["member", "new-member"],
+      "component": "Pages/Dashboard.tsx",
+      "steps": [
+        ["click", "role=button[name=\"Open the user menu\"]"],
+        ["waitFor", "role=menu"]
+      ]
+    },
+    {
+      "area": "community",
+      "screen": "home",
+      "state": "full",
+      "name": "Community home",
+      "path": "/community/{garden}",
+      "roles": ["member", "moderator", "admin", "owner"],
+      "component": "Pages/Communities/Show.tsx",
+      "note": "The member was away for nine days: the \"Catch up\" card is at the top."
+    },
+    {
+      "area": "community",
+      "screen": "home-catch-up",
+      "state": "loading",
+      "name": "Community home, \"Catch up\" card, while the data loads",
+      "path": "/community/{garden}",
+      "roles": ["member"],
+      "component": "Pages/Communities/Show.tsx",
+      "mocks": [{ "url": "^/api/v1/communities/[^/]+/catch-up", "mode": "delay" }]
+    },
+    {
+      "area": "community",
+      "screen": "home-catch-up",
+      "state": "error",
+      "name": "Community home, \"Catch up\" card, when the data request fails",
+      "path": "/community/{garden}",
+      "roles": ["member"],
+      "component": "Pages/Communities/Show.tsx",
+      "mocks": [{ "url": "^/api/v1/communities/[^/]+/catch-up", "mode": "error" }]
+    },
+    {
+      "area": "community",
+      "screen": "home",
+      "state": "empty",
+      "name": "Community home without content",
+      "path": "/community/{empty}",
+      "roles": ["member", "owner"],
+      "component": "Pages/Communities/Show.tsx"
+    },
+    {
+      "area": "community",
+      "screen": "personal",
+      "state": "empty",
+      "name": "Personal community of a new member",
+      "path": "/community/{personal.new-member}",
+      "roles": ["new-member"],
+      "component": "Pages/Communities/Show.tsx"
+    },
+    {
+      "area": "community",
+      "screen": "personal",
+      "state": "member",
+      "name": "Personal community of a member",
+      "path": "/community/{personal.member}",
+      "roles": ["member"],
+      "component": "Pages/Communities/Show.tsx"
+    },
+    {
+      "area": "community",
+      "screen": "navigation",
+      "state": "drawer",
+      "name": "Navigation drawer of a community",
+      "path": "/community/{garden}",
+      "roles": ["member", "owner"],
+      "component": "Pages/Communities/Show.tsx",
+      "widths": [360],
+      "steps": [["click", "role=button[name=\"Spaces\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "community",
+      "screen": "about",
+      "state": "full",
+      "name": "About the community",
+      "path": "/community/{garden}/about",
+      "roles": ["member", "moderator", "owner"],
+      "component": "Pages/Communities/About.tsx"
+    },
+    {
+      "area": "community",
+      "screen": "about",
+      "state": "leave-dialog",
+      "name": "Leave the community, dialog",
+      "path": "/community/{garden}/about",
+      "roles": ["member"],
+      "component": "Pages/Communities/About.tsx",
+      "steps": [["click", "role=button[name=/Leave/]"], ["waitDialog"]]
+    },
+    {
+      "area": "community",
+      "screen": "member-profile",
+      "state": "own",
+      "name": "Member profile, the own one",
+      "path": "/community/{garden}/member/{usernames.member}",
+      "roles": ["member"],
+      "component": "Pages/Members/Show.tsx"
+    },
+    {
+      "area": "community",
+      "screen": "member-profile",
+      "state": "other",
+      "name": "Member profile of another member",
+      "path": "/community/{garden}/member/{usernames.tomas}",
+      "roles": ["member", "moderator", "owner"],
+      "component": "Pages/Members/Show.tsx"
+    },
+    {
+      "area": "community",
+      "screen": "member-profile",
+      "state": "not-found",
+      "name": "Member profile that does not exist",
+      "path": "/community/{garden}/member/nobody-here",
+      "roles": ["member"],
+      "component": "Pages/Members/Show.tsx",
+      "expect": { "status": 404 }
+    },
+    {
+      "area": "settings",
+      "screen": "community",
+      "state": "full",
+      "name": "Community settings, every section",
+      "path": "/community/{garden}/settings",
+      "roles": ["admin", "owner"],
+      "component": "Pages/Communities/Settings.tsx"
+    },
+    {
+      "area": "settings",
+      "screen": "community",
+      "state": "forbidden",
+      "name": "Community settings, not allowed",
+      "path": "/community/{garden}/settings",
+      "roles": ["new-member", "member", "moderator"],
+      "component": "Pages/Communities/Settings.tsx",
+      "expect": { "status": 403 }
+    },
+    {
+      "area": "settings",
+      "screen": "community",
+      "state": "sign-in",
+      "name": "Community settings, as a visitor",
+      "path": "/community/{garden}/settings",
+      "roles": ["visitor"],
+      "component": "Pages/Communities/Settings.tsx",
+      "expect": { "component": "Auth/Login", "url": "^/login" }
+    },
+    {
+      "area": "settings",
+      "screen": "community-empty",
+      "state": "full",
+      "name": "Settings of a community without content",
+      "path": "/community/{empty}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx"
+    },
+    {
+      "area": "settings",
+      "screen": "personal",
+      "state": "full",
+      "name": "Settings of a personal community",
+      "path": "/community/{personal.member}/settings",
+      "roles": ["member"],
+      "component": "Pages/Communities/Settings.tsx"
+    },
+    {
+      "area": "settings",
+      "screen": "personal",
+      "state": "new",
+      "name": "Settings of the personal community of a new member",
+      "path": "/community/{personal.new-member}/settings",
+      "roles": ["new-member"],
+      "component": "Pages/Communities/Settings.tsx"
+    },
+    {
+      "area": "settings",
+      "screen": "details",
+      "state": "errors",
+      "name": "Community details with errors",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "steps": [
+        ["fill", "#community-name", ""],
+        ["press", "Tab"],
+        ["click", "form:has(#community-name) button[type=submit]", { "force": true }],
+        ["wait", 800]
+      ]
+    },
+    {
+      "area": "settings",
+      "screen": "space-group",
+      "state": "add-dialog",
+      "name": "Add a space group, dialog",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "steps": [["click", "role=button[name=\"Add a space group\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "settings",
+      "screen": "space-group",
+      "state": "errors",
+      "name": "Add a space group, dialog with errors",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "steps": [
+        ["click", "role=button[name=\"Add a space group\"]"],
+        ["waitDialog"],
+        ["fill", "role=dialog >> input >> nth=0", "A"],
+        ["fill", "role=dialog >> input >> nth=0", ""],
+        ["press", "Tab"],
+        ["wait", 500]
+      ]
+    },
+    {
+      "area": "settings",
+      "screen": "space-group",
+      "state": "rename-dialog",
+      "name": "Rename a space group, dialog",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "steps": [["click", "role=button[name=\"Rename Learn\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "settings",
+      "screen": "space-group",
+      "state": "delete-dialog",
+      "name": "Delete a space group, dialog",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "steps": [["click", "role=button[name=\"Delete Patrons\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "settings",
+      "screen": "space-form-discussion",
+      "state": "new",
+      "name": "New space, type discussion",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "steps": [
+        ["click", "role=button[name=\"Add a space\"]"],
+        ["waitDialog"],
+        ["click", "#space-type"],
+        ["wait", 300],
+        ["click", "role=option[name=/Discussion:/]"],
+        ["wait", 500]
+      ]
+    },
+    {
+      "area": "settings",
+      "screen": "space-form-chat",
+      "state": "new",
+      "name": "New space, type chat",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "steps": [
+        ["click", "role=button[name=\"Add a space\"]"],
+        ["waitDialog"],
+        ["click", "#space-type"],
+        ["wait", 300],
+        ["click", "role=option[name=/Chat:/]"],
+        ["wait", 500]
+      ]
+    },
+    {
+      "area": "settings",
+      "screen": "space-form-pages",
+      "state": "new",
+      "name": "New space, type pages",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "steps": [
+        ["click", "role=button[name=\"Add a space\"]"],
+        ["waitDialog"],
+        ["click", "#space-type"],
+        ["wait", 300],
+        ["click", "role=option[name=/Pages:/]"],
+        ["wait", 500]
+      ]
+    },
+    {
+      "area": "settings",
+      "screen": "space-form-course",
+      "state": "new",
+      "name": "New space, type course",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "steps": [
+        ["click", "role=button[name=\"Add a space\"]"],
+        ["waitDialog"],
+        ["click", "#space-type"],
+        ["wait", 300],
+        ["click", "role=option[name=/Course:/]"],
+        ["wait", 500]
+      ]
+    },
+    {
+      "area": "settings",
+      "screen": "space-form-resources",
+      "state": "new",
+      "name": "New space, type resources",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "steps": [
+        ["click", "role=button[name=\"Add a space\"]"],
+        ["waitDialog"],
+        ["click", "#space-type"],
+        ["wait", 300],
+        ["click", "role=option[name=/Resources:/]"],
+        ["wait", 500]
+      ]
+    },
+    {
+      "area": "settings",
+      "screen": "space-form-link",
+      "state": "new",
+      "name": "New space, type link",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "steps": [
+        ["click", "role=button[name=\"Add a space\"]"],
+        ["waitDialog"],
+        ["click", "#space-type"],
+        ["wait", 300],
+        ["click", "role=option[name=/Link:/]"],
+        ["wait", 500]
+      ]
+    },
+    {
+      "area": "settings",
+      "screen": "space-form",
+      "state": "errors",
+      "name": "New space, dialog with errors",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "steps": [
+        ["click", "role=button[name=\"Add a space\"]"],
+        ["waitDialog"],
+        ["fill", "#space-name", "A"],
+        ["fill", "#space-name", ""],
+        ["press", "Tab"],
+        ["wait", 500]
+      ]
+    },
+    {
+      "area": "settings",
+      "screen": "space-form",
+      "state": "edit",
+      "name": "Edit a space, dialog",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner", "admin"],
+      "component": "Pages/Communities/Settings.tsx",
+      "steps": [["click", "role=button[name=\"Edit Garden talk\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "settings",
+      "screen": "space-form",
+      "state": "edit-access-groups",
+      "name": "Edit a space of an access group, dialog",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "steps": [["click", "role=button[name=\"Edit Patrons lounge\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "settings",
+      "screen": "space-form",
+      "state": "edit-link",
+      "name": "Edit a link space, dialog",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "steps": [["click", "role=button[name=\"Edit Seed catalogue\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "settings",
+      "screen": "space",
+      "state": "delete-dialog",
+      "name": "Delete a space, dialog",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "steps": [["click", "role=button[name=\"Delete Off topic\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "settings",
+      "screen": "members",
+      "state": "role-menu",
+      "name": "Role of a member, menu open",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner", "admin"],
+      "component": "Pages/Communities/Settings.tsx",
+      "steps": [
+        ["click", "role=button[name=\"Role of Marc Member\"]"],
+        ["wait", 500]
+      ]
+    },
+    {
+      "area": "settings",
+      "screen": "members",
+      "state": "remove-dialog",
+      "name": "Remove a member, dialog",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "steps": [["click", "role=button[name=\"Remove Marc Member\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "settings",
+      "screen": "members",
+      "state": "search-no-match",
+      "name": "Members, search without a result",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "steps": [
+        ["fill", "input[aria-label=\"Search the members\"]", "zzzz"],
+        ["wait", 1500]
+      ]
+    },
+    {
+      "area": "settings",
+      "screen": "members",
+      "state": "loading",
+      "name": "Members list, while the data loads",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "mocks": [{ "url": "^/api/v1/communities/[^/]+/members(\\?|$)", "mode": "delay" }]
+    },
+    {
+      "area": "settings",
+      "screen": "members",
+      "state": "error",
+      "name": "Members list, when the data request fails",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "mocks": [{ "url": "^/api/v1/communities/[^/]+/members(\\?|$)", "mode": "error" }]
+    },
+    {
+      "area": "settings",
+      "screen": "invitation",
+      "state": "errors",
+      "name": "Invite a member, sent empty",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "steps": [
+        ["click", "role=button[name=\"Invite\"]"],
+        ["wait", 800]
+      ]
+    },
+    {
+      "area": "settings",
+      "screen": "invitation",
+      "state": "role-menu",
+      "name": "Invite a member, role menu open",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "steps": [
+        ["click", "form[aria-label=\"Invite a member\"] >> role=button >> nth=0"],
+        ["wait", 500]
+      ]
+    },
+    {
+      "area": "settings",
+      "screen": "access-groups",
+      "state": "loading",
+      "name": "Access groups, while the data loads",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "mocks": [{ "url": "/access-groups(\\?|$)", "mode": "delay" }]
+    },
+    {
+      "area": "settings",
+      "screen": "access-groups",
+      "state": "error",
+      "name": "Access groups, when the data request fails",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "mocks": [{ "url": "/access-groups(\\?|$)", "mode": "error" }]
+    },
+    {
+      "area": "settings",
+      "screen": "access-group",
+      "state": "members-dialog",
+      "name": "Members of an access group, dialog",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "steps": [["click", "role=button[name=\"Members of Patrons\"]"], ["waitDialog"], ["settle"]]
+    },
+    {
+      "area": "settings",
+      "screen": "access-group",
+      "state": "space-groups-dialog",
+      "name": "Space groups of an access group, dialog",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "steps": [["click", "role=button[name=\"Space groups of Patrons\"]"], ["waitDialog"], ["settle"]]
+    },
+    {
+      "area": "settings",
+      "screen": "access-group",
+      "state": "edit-dialog",
+      "name": "Edit an access group, dialog",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "steps": [["click", "role=button[name=\"Edit Course alumni\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "settings",
+      "screen": "access-group",
+      "state": "delete-dialog",
+      "name": "Delete an access group, dialog",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "steps": [["click", "role=button[name=\"Delete Course alumni\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "settings",
+      "screen": "access-group",
+      "state": "errors",
+      "name": "Create an access group, sent empty",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "steps": [
+        ["click", "form[aria-label=\"Create an access group\"] button[type=submit]", { "force": true }],
+        ["wait", 800]
+      ]
+    },
+    {
+      "area": "settings",
+      "screen": "transfer-ownership",
+      "state": "dialog",
+      "name": "Transfer the ownership, dialog",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "steps": [["click", "role=button[name=/^Transfer/]"], ["waitDialog"]]
+    },
+    {
+      "area": "settings",
+      "screen": "delete-community",
+      "state": "dialog",
+      "name": "Delete the community, dialog",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "steps": [["click", "role=button[name=/^Delete (the )?[Cc]ommunity/]"], ["waitDialog"]]
+    },
+    {
+      "area": "discussion",
+      "screen": "space",
+      "state": "full",
+      "name": "Discussion space",
+      "path": "/community/{garden}/space/{spaces.discussion}",
+      "roles": ["member", "moderator", "owner"],
+      "component": "Pages/Spaces/Show.tsx"
+    },
+    {
+      "area": "discussion",
+      "screen": "space",
+      "state": "empty",
+      "name": "Discussion space without posts",
+      "path": "/community/{empty}/space/{emptySpaces.discussion}",
+      "roles": ["member", "owner"],
+      "component": "Pages/Spaces/Show.tsx"
+    },
+    {
+      "area": "discussion",
+      "screen": "space",
+      "state": "read-only",
+      "name": "Discussion space where only the team writes",
+      "path": "/community/{garden}/space/{spaces.announcements}",
+      "roles": ["member"],
+      "component": "Pages/Spaces/Show.tsx"
+    },
+    {
+      "area": "discussion",
+      "screen": "space",
+      "state": "muted",
+      "name": "Discussion space that the member muted",
+      "path": "/community/{garden}/space/{spaces.off-topic}",
+      "roles": ["member"],
+      "component": "Pages/Spaces/Show.tsx"
+    },
+    {
+      "area": "discussion",
+      "screen": "space",
+      "state": "forbidden",
+      "name": "Space of a community, not a member",
+      "path": "/community/{garden}/space/{spaces.discussion}",
+      "roles": ["new-member"],
+      "component": "Pages/Spaces/Show.tsx",
+      "expect": { "status": 403 }
+    },
+    {
+      "area": "discussion",
+      "screen": "space-access-group",
+      "state": "full",
+      "name": "Space of an access group",
+      "path": "/community/{garden}/space/{spaces.patrons}",
+      "roles": ["moderator", "owner"],
+      "component": "Pages/Spaces/Show.tsx"
+    },
+    {
+      "area": "discussion",
+      "screen": "space-access-group",
+      "state": "forbidden",
+      "name": "Space of an access group, not in the group",
+      "path": "/community/{garden}/space/{spaces.patrons}",
+      "roles": ["member"],
+      "component": "Pages/Spaces/Show.tsx",
+      "expect": { "status": 403 }
+    },
+    {
+      "area": "discussion",
+      "screen": "space-level",
+      "state": "menu",
+      "name": "Notification level of a space, menu open",
+      "path": "/community/{garden}/space/{spaces.discussion}",
+      "roles": ["member"],
+      "component": "Pages/Spaces/Show.tsx",
+      "steps": [
+        ["click", "role=button[name=/^Notifications: /]"],
+        ["wait", 600]
+      ]
+    },
+    {
+      "area": "discussion",
+      "screen": "composer",
+      "state": "open",
+      "name": "New post, composer open",
+      "path": "/community/{garden}/space/{spaces.discussion}",
+      "roles": ["member", "moderator"],
+      "component": "Pages/Spaces/Show.tsx",
+      "steps": [["click", "role=button[name=\"New post\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "discussion",
+      "screen": "composer",
+      "state": "errors",
+      "name": "New post, composer with errors",
+      "path": "/community/{garden}/space/{spaces.discussion}",
+      "roles": ["member"],
+      "component": "Pages/Spaces/Show.tsx",
+      "steps": [
+        ["click", "role=button[name=\"New post\"]"],
+        ["waitDialog"],
+        ["fill", "role=dialog >> input[type=text] >> nth=0", "ab"],
+        ["fill", "role=dialog >> textarea >> nth=0", "x"],
+        ["fill", "role=dialog >> textarea >> nth=0", ""],
+        ["press", "Tab"],
+        ["wait", 500]
+      ]
+    },
+    {
+      "area": "discussion",
+      "screen": "composer",
+      "state": "preview",
+      "name": "New post, preview",
+      "path": "/community/{garden}/space/{spaces.discussion}",
+      "roles": ["member"],
+      "component": "Pages/Spaces/Show.tsx",
+      "steps": [
+        ["click", "role=button[name=\"New post\"]"],
+        ["waitDialog"],
+        ["fill", "role=dialog >> input[type=text] >> nth=0", "A post that is not sent"],
+        [
+          "fill",
+          "role=dialog >> textarea >> nth=0",
+          "## A heading\n\nSome **bold** text, a [link](https://example.com/atlas/preview) and a list:\n\n- one\n- two\n\n> A quote."
+        ],
+        ["click", "role=dialog >> role=tab[name=\"Preview\"]"],
+        ["wait", 1500]
+      ]
+    },
+    {
+      "area": "discussion",
+      "screen": "composer",
+      "state": "video-panel",
+      "name": "New post, add a video",
+      "path": "/community/{garden}/space/{spaces.discussion}",
+      "roles": ["member"],
+      "component": "Pages/Spaces/Show.tsx",
+      "steps": [
+        ["click", "role=button[name=\"New post\"]"],
+        ["waitDialog"],
+        ["click", "role=dialog >> role=button[name=\"Add a video\"]"],
+        ["wait", 500]
+      ]
+    },
+    {
+      "area": "discussion",
+      "screen": "composer",
+      "state": "mention-list",
+      "name": "New post, list of members to mention",
+      "path": "/community/{garden}/space/{spaces.discussion}",
+      "roles": ["member"],
+      "component": "Pages/Spaces/Show.tsx",
+      "steps": [
+        ["click", "role=button[name=\"New post\"]"],
+        ["waitDialog"],
+        ["type", "role=dialog >> textarea >> nth=0", "Hello @atlas"],
+        ["wait", 1500]
+      ]
+    },
+    {
+      "area": "discussion",
+      "screen": "post",
+      "state": "full",
+      "name": "Post with comments, replies and reactions",
+      "path": "/community/{garden}/space/{spaces.discussion}/post/{posts.mine}",
+      "roles": ["member", "moderator", "owner"],
+      "component": "Pages/Posts/Show.tsx"
+    },
+    {
+      "area": "discussion",
+      "screen": "post",
+      "state": "collapsed",
+      "name": "Post, comment threads collapsed",
+      "path": "/community/{garden}/space/{spaces.discussion}/post/{posts.mine}",
+      "roles": ["member"],
+      "component": "Pages/Posts/Show.tsx",
+      "steps": [
+        ["click", "role=button[name=\"Collapse all\"]"],
+        ["wait", 400]
+      ]
+    },
+    {
+      "area": "discussion",
+      "screen": "post",
+      "state": "reply-open",
+      "name": "Post, reply form open",
+      "path": "/community/{garden}/space/{spaces.discussion}/post/{posts.mine}",
+      "roles": ["member"],
+      "component": "Pages/Posts/Show.tsx",
+      "steps": [
+        ["click", "role=button[name=\"Reply to Tomas Silva\"]"],
+        ["wait", 600]
+      ]
+    },
+    {
+      "area": "discussion",
+      "screen": "post",
+      "state": "comment-edit",
+      "name": "Post, own comment in edit mode",
+      "path": "/community/{garden}/space/{spaces.discussion}/post/{posts.mine}",
+      "roles": ["member"],
+      "component": "Pages/Posts/Show.tsx",
+      "steps": [
+        ["click", "role=button[name=\"Edit your comment\"]"],
+        ["wait", 600]
+      ]
+    },
+    {
+      "area": "discussion",
+      "screen": "post",
+      "state": "comment-delete-dialog",
+      "name": "Delete a comment, dialog",
+      "path": "/community/{garden}/space/{spaces.discussion}/post/{posts.mine}",
+      "roles": ["member"],
+      "component": "Pages/Posts/Show.tsx",
+      "steps": [["click", "role=button[name=\"Delete the comment by Marc Member\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "discussion",
+      "screen": "post",
+      "state": "edit",
+      "name": "Post in edit mode",
+      "path": "/community/{garden}/space/{spaces.discussion}/post/{posts.mine}",
+      "roles": ["member"],
+      "component": "Pages/Posts/Show.tsx",
+      "steps": [["click", "role=button[name=\"Edit\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "discussion",
+      "screen": "post",
+      "state": "delete-dialog",
+      "name": "Delete a post, dialog",
+      "path": "/community/{garden}/space/{spaces.discussion}/post/{posts.mine}",
+      "roles": ["member"],
+      "component": "Pages/Posts/Show.tsx",
+      "steps": [["click", "role=button[name=\"Delete\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "discussion",
+      "screen": "post",
+      "state": "emoji-picker",
+      "name": "Post, emoji picker open",
+      "path": "/community/{garden}/space/{spaces.discussion}/post/{posts.mine}",
+      "roles": ["member"],
+      "component": "Pages/Posts/Show.tsx",
+      "steps": [
+        ["click", "role=button[name=\"Add a reaction to this post\"]"],
+        ["wait", 1200]
+      ]
+    },
+    {
+      "area": "discussion",
+      "screen": "post",
+      "state": "who-reacted",
+      "name": "Post, who reacted",
+      "path": "/community/{garden}/space/{spaces.discussion}/post/{posts.mine}",
+      "roles": ["member"],
+      "component": "Pages/Posts/Show.tsx",
+      "steps": [["click", "role=button[name=\"See who reacted to this post\"]"], ["waitDialog"], ["settle"]]
+    },
+    {
+      "area": "discussion",
+      "screen": "post",
+      "state": "toast",
+      "name": "Post, toast after \"Copy the link\" of a comment",
+      "path": "/community/{garden}/space/{spaces.discussion}/post/{posts.mine}",
+      "roles": ["member"],
+      "component": "Pages/Posts/Show.tsx",
+      "steps": [
+        ["click", "role=button[name=\"Copy the link to the comment by Tomas Silva\"]"],
+        ["wait", 500]
+      ],
+      "settle": false
+    },
+    {
+      "area": "discussion",
+      "screen": "post-long",
+      "state": "full",
+      "name": "Long post",
+      "path": "/community/{garden}/space/{spaces.discussion}/post/{posts.long}",
+      "roles": ["member"],
+      "component": "Pages/Posts/Show.tsx"
+    },
+    {
+      "area": "discussion",
+      "screen": "post-short",
+      "state": "full",
+      "name": "Short post without comments",
+      "path": "/community/{garden}/space/{spaces.discussion}/post/{posts.short}",
+      "roles": ["member"],
+      "component": "Pages/Posts/Show.tsx"
+    },
+    {
+      "area": "discussion",
+      "screen": "post-gallery",
+      "state": "full",
+      "name": "Post with a gallery",
+      "path": "/community/{garden}/space/{spaces.discussion}/post/{posts.gallery}",
+      "roles": ["member"],
+      "component": "Pages/Posts/Show.tsx"
+    },
+    {
+      "area": "discussion",
+      "screen": "post-gallery",
+      "state": "image-viewer",
+      "name": "Image viewer open",
+      "path": "/community/{garden}/space/{spaces.discussion}/post/{posts.gallery}",
+      "roles": ["member"],
+      "component": "Pages/Posts/Show.tsx",
+      "steps": [["click", "a.image-gallery-item >> nth=1"], ["waitFor", "role=button[name=\"Close the viewer\"]"], ["settle"]]
+    },
+    {
+      "area": "discussion",
+      "screen": "post-video",
+      "state": "full",
+      "name": "Post with a video",
+      "path": "/community/{garden}/space/{spaces.discussion}/post/{posts.video}",
+      "roles": ["member"],
+      "component": "Pages/Posts/Show.tsx"
+    },
+    {
+      "area": "discussion",
+      "screen": "post-pinned",
+      "state": "full",
+      "name": "Pinned post",
+      "path": "/community/{garden}/space/{spaces.discussion}/post/{posts.pinned}",
+      "roles": ["member", "moderator"],
+      "component": "Pages/Posts/Show.tsx"
+    },
+    {
+      "area": "discussion",
+      "screen": "post",
+      "state": "not-found",
+      "name": "Post that does not exist",
+      "path": "/community/{garden}/space/{spaces.discussion}/post/no-such-post",
+      "roles": ["member"],
+      "component": "Pages/Posts/Show.tsx",
+      "expect": { "status": 404 }
+    },
+    {
+      "area": "chat",
+      "screen": "space",
+      "state": "full",
+      "name": "Chat space",
+      "path": "/community/{garden}/space/{spaces.chat}",
+      "roles": ["member", "moderator", "owner"],
+      "component": "Pages/Spaces/Show.tsx"
+    },
+    {
+      "area": "chat",
+      "screen": "space",
+      "state": "empty",
+      "name": "Chat space without messages",
+      "path": "/community/{empty}/space/{emptySpaces.chat}",
+      "roles": ["member", "owner"],
+      "component": "Pages/Spaces/Show.tsx"
+    },
+    {
+      "area": "chat",
+      "screen": "thread",
+      "state": "open",
+      "name": "Chat with a thread panel open",
+      "path": "/community/{garden}/space/{spaces.chat}",
+      "roles": ["member", "moderator"],
+      "component": "Pages/Spaces/Show.tsx",
+      "steps": [["click", "role=button[name=/^5 replies/]"], ["waitDialog"], ["settle"]]
+    },
+    {
+      "area": "chat",
+      "screen": "thread",
+      "state": "loading",
+      "name": "Thread panel, while the data loads",
+      "path": "/community/{garden}/space/{spaces.chat}",
+      "roles": ["member"],
+      "component": "Pages/Spaces/Show.tsx",
+      "mocks": [{ "url": "/messages/[^/]+/thread", "mode": "delay" }],
+      "steps": [
+        ["click", "role=button[name=/^5 replies/]"],
+        ["wait", 1500]
+      ]
+    },
+    {
+      "area": "chat",
+      "screen": "thread",
+      "state": "error",
+      "name": "Thread panel, when the data request fails",
+      "path": "/community/{garden}/space/{spaces.chat}",
+      "roles": ["member"],
+      "component": "Pages/Spaces/Show.tsx",
+      "mocks": [{ "url": "/messages/[^/]+/thread", "mode": "error" }],
+      "steps": [
+        ["click", "role=button[name=/^5 replies/]"],
+        ["wait", 1500]
+      ]
+    },
+    {
+      "area": "chat",
+      "screen": "members-here",
+      "state": "open",
+      "name": "Chat, members who are here",
+      "path": "/community/{garden}/space/{spaces.chat}",
+      "roles": ["member"],
+      "component": "Pages/Spaces/Show.tsx",
+      "steps": [
+        ["click", "role=button[name=/here/]"],
+        ["wait", 800]
+      ]
+    },
+    {
+      "area": "chat",
+      "screen": "emoji-picker",
+      "state": "open",
+      "name": "Chat, emoji picker open",
+      "path": "/community/{garden}/space/{spaces.chat}",
+      "roles": ["member"],
+      "component": "Pages/Spaces/Show.tsx",
+      "steps": [
+        ["click", "role=button[name=\"Add a reaction to the message by Olivia Owner\"]"],
+        ["wait", 1200]
+      ]
+    },
+    {
+      "area": "chat",
+      "screen": "message",
+      "state": "edit",
+      "name": "Chat, own message in edit mode",
+      "path": "/community/{garden}/space/{spaces.chat}",
+      "roles": ["member"],
+      "component": "Pages/Spaces/Show.tsx",
+      "steps": [
+        ["click", "role=button[name=\"Edit the message by Marc Member\"]"],
+        ["wait", 600]
+      ]
+    },
+    {
+      "area": "chat",
+      "screen": "message",
+      "state": "delete-dialog",
+      "name": "Delete a message, dialog",
+      "path": "/community/{garden}/space/{spaces.chat}",
+      "roles": ["member"],
+      "component": "Pages/Spaces/Show.tsx",
+      "steps": [["click", "role=button[name=\"Delete the message by Marc Member\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "chat",
+      "screen": "composer",
+      "state": "mention-list",
+      "name": "Chat, list of members to mention",
+      "path": "/community/{garden}/space/{spaces.chat}",
+      "roles": ["member"],
+      "component": "Pages/Spaces/Show.tsx",
+      "steps": [
+        ["type", "#chat-composer", "Hello @atlas"],
+        ["wait", 1500]
+      ]
+    },
+    {
+      "area": "chat",
+      "screen": "composer",
+      "state": "preview",
+      "name": "Chat, preview of a message",
+      "path": "/community/{garden}/space/{spaces.chat}",
+      "roles": ["member"],
+      "component": "Pages/Spaces/Show.tsx",
+      "steps": [
+        ["fill", "#chat-composer", "A message that is **not sent**, with `code`."],
+        ["click", "role=tab[name=\"Preview\"]"],
+        ["wait", 1500]
+      ]
+    },
+    {
+      "area": "messages",
+      "screen": "index",
+      "state": "full",
+      "name": "Direct messages, list",
+      "path": "/community/{garden}/messages",
+      "roles": ["member", "moderator", "owner"],
+      "component": "Pages/Messages/Index.tsx"
+    },
+    {
+      "area": "messages",
+      "screen": "index",
+      "state": "empty",
+      "name": "Direct messages, no conversation",
+      "path": "/community/{empty}/messages",
+      "roles": ["member"],
+      "component": "Pages/Messages/Index.tsx"
+    },
+    {
+      "area": "messages",
+      "screen": "conversation",
+      "state": "direct",
+      "name": "Conversation of two",
+      "path": "/community/{garden}/messages/{conversations.direct}",
+      "roles": ["member"],
+      "component": "Pages/Messages/Index.tsx"
+    },
+    {
+      "area": "messages",
+      "screen": "conversation",
+      "state": "group",
+      "name": "Conversation of a small group",
+      "path": "/community/{garden}/messages/{conversations.group}",
+      "roles": ["member", "moderator"],
+      "component": "Pages/Messages/Index.tsx"
+    },
+    {
+      "area": "messages",
+      "screen": "conversation",
+      "state": "forbidden",
+      "name": "Conversation of other members",
+      "path": "/community/{garden}/messages/{conversations.direct}",
+      "roles": ["owner"],
+      "component": "Pages/Messages/Index.tsx",
+      "expect": { "status": 403 }
+    },
+    {
+      "area": "messages",
+      "screen": "new-message",
+      "state": "dialog",
+      "name": "New message, dialog",
+      "path": "/community/{garden}/messages",
+      "roles": ["member"],
+      "component": "Pages/Messages/Index.tsx",
+      "steps": [["click", "role=button[name=\"New message\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "messages",
+      "screen": "new-message",
+      "state": "member-list",
+      "name": "New message, list of members",
+      "path": "/community/{garden}/messages",
+      "roles": ["member"],
+      "component": "Pages/Messages/Index.tsx",
+      "steps": [
+        ["click", "role=button[name=\"New message\"]"],
+        ["waitDialog"],
+        ["type", "role=dialog >> input >> nth=0", "a"],
+        ["wait", 1500]
+      ]
+    },
+    {
+      "area": "course",
+      "screen": "outline",
+      "state": "full",
+      "name": "Course outline",
+      "path": "/community/{garden}/space/{spaces.course}",
+      "roles": ["member", "moderator", "owner"],
+      "component": "Pages/Spaces/Show.tsx",
+      "note": "The member finished two lessons and passed the first quiz."
+    },
+    {
+      "area": "course",
+      "screen": "outline",
+      "state": "empty",
+      "name": "Course without lessons",
+      "path": "/community/{empty}/space/{emptySpaces.course}",
+      "roles": ["member", "owner"],
+      "component": "Pages/Spaces/Show.tsx"
+    },
+    {
+      "area": "course",
+      "screen": "outline",
+      "state": "new-lesson",
+      "name": "Course, new lesson form",
+      "path": "/community/{garden}/space/{spaces.course}",
+      "roles": ["owner"],
+      "component": "Pages/Spaces/Show.tsx",
+      "steps": [["click", "role=button[name=/^(Add|New) (a )?lesson/]"], ["waitDialog"]]
+    },
+    {
+      "area": "course",
+      "screen": "outline",
+      "state": "new-section",
+      "name": "Course, new section form",
+      "path": "/community/{garden}/space/{spaces.course}",
+      "roles": ["owner"],
+      "component": "Pages/Spaces/Show.tsx",
+      "steps": [
+        ["click", "role=button[name=\"Add a section\"]"],
+        ["wait", 800]
+      ]
+    },
+    {
+      "area": "course",
+      "screen": "outline",
+      "state": "add-material",
+      "name": "Course, add a material",
+      "path": "/community/{garden}/space/{spaces.course}",
+      "roles": ["owner"],
+      "component": "Pages/Spaces/Show.tsx",
+      "steps": [
+        ["click", "role=button[name=/^Add a material/]"],
+        ["wait", 800]
+      ]
+    },
+    {
+      "area": "course",
+      "screen": "lesson",
+      "state": "done",
+      "name": "Lesson that is done",
+      "path": "/community/{garden}/space/{spaces.course}/page/{pages.lesson}",
+      "roles": ["member"],
+      "component": "Pages/SpacePages/Show.tsx"
+    },
+    {
+      "area": "course",
+      "screen": "lesson",
+      "state": "not-done",
+      "name": "Lesson that is not done",
+      "path": "/community/{garden}/space/{spaces.course}/page/{pages.lesson-open}",
+      "roles": ["member", "owner"],
+      "component": "Pages/SpacePages/Show.tsx"
+    },
+    {
+      "area": "course",
+      "screen": "lesson",
+      "state": "edit",
+      "name": "Lesson in edit mode",
+      "path": "/community/{garden}/space/{spaces.course}/page/{pages.lesson-open}",
+      "roles": ["owner"],
+      "component": "Pages/SpacePages/Show.tsx",
+      "steps": [["click", "role=button[name=\"Edit\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "course",
+      "screen": "lesson",
+      "state": "delete-dialog",
+      "name": "Delete a lesson, dialog",
+      "path": "/community/{garden}/space/{spaces.course}/page/{pages.lesson-open}",
+      "roles": ["owner"],
+      "component": "Pages/SpacePages/Show.tsx",
+      "steps": [["click", "role=button[name=\"Delete\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "course",
+      "screen": "lesson-video",
+      "state": "full",
+      "name": "Video lesson with a material",
+      "path": "/community/{garden}/space/{spaces.course}/page/{pages.video-lesson}",
+      "roles": ["member"],
+      "component": "Pages/SpacePages/Show.tsx"
+    },
+    {
+      "area": "course",
+      "screen": "lesson-materials",
+      "state": "full",
+      "name": "Lesson with supplementary materials",
+      "path": "/community/{garden}/space/{spaces.course}/page/{pages.materials-lesson}",
+      "roles": ["member", "moderator"],
+      "component": "Pages/SpacePages/Show.tsx"
+    },
+    {
+      "area": "course",
+      "screen": "quiz",
+      "state": "before",
+      "name": "Quiz before the first attempt",
+      "path": "/community/{garden}/space/{spaces.course}/page/{pages.quiz-before}",
+      "roles": ["member"],
+      "component": "Pages/SpacePages/Show.tsx"
+    },
+    {
+      "area": "course",
+      "screen": "quiz",
+      "state": "errors",
+      "name": "Quiz sent without answers",
+      "path": "/community/{garden}/space/{spaces.course}/page/{pages.quiz-before}",
+      "roles": ["member"],
+      "component": "Pages/SpacePages/Show.tsx",
+      "steps": [
+        ["click", "role=button[name=\"Check my answers\"]"],
+        ["wait", 800]
+      ]
+    },
+    {
+      "area": "course",
+      "screen": "quiz",
+      "state": "after",
+      "name": "Quiz after an attempt",
+      "path": "/community/{garden}/space/{spaces.course}/page/{pages.quiz-after}",
+      "roles": ["member"],
+      "component": "Pages/SpacePages/Show.tsx",
+      "note": "Passed with one wrong answer."
+    },
+    {
+      "area": "course",
+      "screen": "quiz",
+      "state": "manage",
+      "name": "Quiz as the team sees it",
+      "path": "/community/{garden}/space/{spaces.course}/page/{pages.quiz-after}",
+      "roles": ["moderator"],
+      "component": "Pages/SpacePages/Show.tsx"
+    },
+    {
+      "area": "course",
+      "screen": "quiz",
+      "state": "editor",
+      "name": "Quiz editor",
+      "path": "/community/{garden}/space/{spaces.course}/page/{pages.quiz-after}",
+      "roles": ["moderator"],
+      "component": "Pages/SpacePages/Show.tsx",
+      "steps": [["click", "role=button[name=\"Edit the quiz\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "pages",
+      "screen": "space",
+      "state": "full",
+      "name": "Pages space",
+      "path": "/community/{garden}/space/{spaces.welcome}",
+      "roles": ["member", "moderator", "owner"],
+      "component": "Pages/Spaces/Show.tsx"
+    },
+    {
+      "area": "pages",
+      "screen": "space",
+      "state": "empty",
+      "name": "Pages space without pages",
+      "path": "/community/{empty}/space/{emptySpaces.pages}",
+      "roles": ["member", "owner"],
+      "component": "Pages/Spaces/Show.tsx"
+    },
+    {
+      "area": "pages",
+      "screen": "space",
+      "state": "new-page",
+      "name": "Pages space, new page form",
+      "path": "/community/{garden}/space/{spaces.welcome}",
+      "roles": ["owner"],
+      "component": "Pages/Spaces/Show.tsx",
+      "steps": [["click", "role=button[name=/^(Add|New) (a )?page/]"], ["waitDialog"]]
+    },
+    {
+      "area": "pages",
+      "screen": "space",
+      "state": "new-page-errors",
+      "name": "Pages space, new page form with errors",
+      "path": "/community/{garden}/space/{spaces.welcome}",
+      "roles": ["owner"],
+      "component": "Pages/Spaces/Show.tsx",
+      "steps": [
+        ["click", "role=button[name=/^(Add|New) (a )?page/]"],
+        ["waitDialog"],
+        ["fill", "role=dialog >> input[type=text] >> nth=0", "ab"],
+        ["fill", "role=dialog >> input[type=text] >> nth=0", ""],
+        ["press", "Tab"],
+        ["wait", 500]
+      ]
+    },
+    {
+      "area": "pages",
+      "screen": "page",
+      "state": "full",
+      "name": "Page",
+      "path": "/community/{garden}/space/{spaces.welcome}/page/{pages.guidelines}",
+      "roles": ["member", "owner"],
+      "component": "Pages/SpacePages/Show.tsx"
+    },
+    {
+      "area": "pages",
+      "screen": "page",
+      "state": "edit",
+      "name": "Page in edit mode",
+      "path": "/community/{garden}/space/{spaces.welcome}/page/{pages.guidelines}",
+      "roles": ["owner"],
+      "component": "Pages/SpacePages/Show.tsx",
+      "steps": [["click", "role=button[name=\"Edit\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "pages",
+      "screen": "page-long",
+      "state": "full",
+      "name": "Long page",
+      "path": "/community/{garden}/space/{spaces.welcome}/page/{pages.faq}",
+      "roles": ["member"],
+      "component": "Pages/SpacePages/Show.tsx"
+    },
+    {
+      "area": "resources",
+      "screen": "space",
+      "state": "full",
+      "name": "Resources space",
+      "path": "/community/{garden}/space/{spaces.resources}",
+      "roles": ["member", "moderator", "owner"],
+      "component": "Pages/Spaces/Show.tsx"
+    },
+    {
+      "area": "resources",
+      "screen": "collection",
+      "state": "full",
+      "name": "Resources space that the team curates (a collection)",
+      "path": "/community/{garden}/space/{spaces.tools}",
+      "roles": ["member", "moderator"],
+      "component": "Pages/Spaces/Show.tsx"
+    },
+    {
+      "area": "resources",
+      "screen": "space",
+      "state": "empty",
+      "name": "Resources space without resources",
+      "path": "/community/{empty}/space/{emptySpaces.resources}",
+      "roles": ["member", "owner"],
+      "component": "Pages/Spaces/Show.tsx"
+    },
+    {
+      "area": "resources",
+      "screen": "add-resource",
+      "state": "dialog",
+      "name": "Add a resource, dialog",
+      "path": "/community/{garden}/space/{spaces.resources}",
+      "roles": ["member"],
+      "component": "Pages/Spaces/Show.tsx",
+      "steps": [["click", "role=button[name=\"Add a resource\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "resources",
+      "screen": "add-resource",
+      "state": "errors",
+      "name": "Add a resource, dialog with errors",
+      "path": "/community/{garden}/space/{spaces.resources}",
+      "roles": ["member"],
+      "component": "Pages/Spaces/Show.tsx",
+      "steps": [
+        ["click", "role=button[name=\"Add a resource\"]"],
+        ["waitDialog"],
+        ["fill", "role=dialog >> input >> nth=0", "not an address"],
+        ["press", "Tab"],
+        ["click", "role=dialog >> button[type=submit]", { "force": true }],
+        ["wait", 800]
+      ]
+    },
+    {
+      "area": "resources",
+      "screen": "resource",
+      "state": "full",
+      "name": "Resource",
+      "path": "/community/{garden}/space/{spaces.resources}/resource/{resources.guide}",
+      "roles": ["member", "moderator", "owner"],
+      "component": "Pages/Resources/Show.tsx"
+    },
+    {
+      "area": "resources",
+      "screen": "resource",
+      "state": "toast",
+      "name": "Resource, toast after \"Copy the link\"",
+      "path": "/community/{garden}/space/{spaces.resources}/resource/{resources.guide}",
+      "roles": ["member"],
+      "component": "Pages/Resources/Show.tsx",
+      "steps": [
+        ["click", "role=button[name=\"Copy the link\"]"],
+        ["wait", 500]
+      ],
+      "settle": false
+    },
+    {
+      "area": "resources",
+      "screen": "resource",
+      "state": "type-menu",
+      "name": "Resource, type menu open",
+      "path": "/community/{garden}/space/{spaces.resources}/resource/{resources.guide}",
+      "roles": ["member"],
+      "component": "Pages/Resources/Show.tsx",
+      "steps": [
+        ["click", "#resource-change-type"],
+        ["wait", 500]
+      ]
+    },
+    {
+      "area": "resources",
+      "screen": "resource",
+      "state": "delete-dialog",
+      "name": "Delete a resource, dialog",
+      "path": "/community/{garden}/space/{spaces.resources}/resource/{resources.guide}",
+      "roles": ["member"],
+      "component": "Pages/Resources/Show.tsx",
+      "steps": [["click", "role=button[name=\"Delete the resource\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "link",
+      "screen": "space",
+      "state": "full",
+      "name": "Link space",
+      "path": "/community/{garden}/space/{spaces.link}",
+      "roles": ["member", "owner"],
+      "component": "Pages/Spaces/Show.tsx"
+    },
+    {
+      "area": "notifications",
+      "screen": "bell-panel",
+      "state": "open",
+      "name": "Notification bell panel open",
+      "path": "/dashboard",
+      "roles": ["member", "owner"],
+      "component": "Pages/Dashboard.tsx",
+      "steps": [["click", "role=button[name=/^Notifications(, \\d+ new)?$/]"], ["waitFor", "#notifications-panel"], ["settle"]]
+    },
+    {
+      "area": "notifications",
+      "screen": "bell-panel",
+      "state": "empty",
+      "name": "Notification bell panel without notifications",
+      "path": "/dashboard",
+      "roles": ["new-member"],
+      "component": "Pages/Dashboard.tsx",
+      "steps": [["click", "role=button[name=/^Notifications(, \\d+ new)?$/]"], ["waitFor", "#notifications-panel"], ["settle"]]
+    },
+    {
+      "area": "notifications",
+      "screen": "bell-panel",
+      "state": "loading",
+      "name": "Notification bell panel, while the data loads",
+      "path": "/dashboard",
+      "roles": ["member"],
+      "component": "Pages/Dashboard.tsx",
+      "mocks": [{ "url": "^/api/v1/notifications(\\?|$)", "mode": "delay" }],
+      "steps": [
+        ["click", "role=button[name=/^Notifications(, \\d+ new)?$/]"],
+        ["wait", 1500]
+      ]
+    },
+    {
+      "area": "notifications",
+      "screen": "bell-panel",
+      "state": "error",
+      "name": "Notification bell panel, when the data request fails",
+      "path": "/dashboard",
+      "roles": ["member"],
+      "component": "Pages/Dashboard.tsx",
+      "mocks": [{ "url": "^/api/v1/notifications(\\?|$)", "mode": "error" }],
+      "steps": [
+        ["click", "role=button[name=/^Notifications(, \\d+ new)?$/]"],
+        ["wait", 1500]
+      ]
+    },
+    {
+      "area": "notifications",
+      "screen": "page",
+      "state": "full",
+      "name": "Notifications page",
+      "path": "/notifications",
+      "roles": ["member", "moderator", "owner"],
+      "component": "Pages/Notifications/Index.tsx",
+      "note": "The member sees the \"Catch up\" card at the top."
+    },
+    {
+      "area": "notifications",
+      "screen": "page",
+      "state": "empty",
+      "name": "Notifications page without notifications",
+      "path": "/notifications",
+      "roles": ["new-member"],
+      "component": "Pages/Notifications/Index.tsx"
+    },
+    {
+      "area": "notifications",
+      "screen": "page",
+      "state": "earlier-open",
+      "name": "Notifications page, \"Earlier\" open",
+      "path": "/notifications",
+      "roles": ["member"],
+      "component": "Pages/Notifications/Index.tsx",
+      "steps": [["click", "role=button[name=\"Earlier\"]"], ["settle"]]
+    },
+    {
+      "area": "notifications",
+      "screen": "page",
+      "state": "line-menu",
+      "name": "Notifications page, menu of a line open",
+      "path": "/notifications",
+      "roles": ["member"],
+      "component": "Pages/Notifications/Index.tsx",
+      "steps": [
+        ["click", "role=button[name=/^More for/]"],
+        ["wait", 600]
+      ]
+    },
+    {
+      "area": "notifications",
+      "screen": "page",
+      "state": "loading",
+      "name": "Notifications page, while the data loads",
+      "path": "/notifications",
+      "roles": ["member"],
+      "component": "Pages/Notifications/Index.tsx",
+      "mocks": [{ "url": "^/api/v1/notifications(\\?|$)", "mode": "delay" }]
+    },
+    {
+      "area": "notifications",
+      "screen": "page",
+      "state": "error",
+      "name": "Notifications page, when the data request fails",
+      "path": "/notifications",
+      "roles": ["member"],
+      "component": "Pages/Notifications/Index.tsx",
+      "mocks": [{ "url": "^/api/v1/notifications(\\?|$)", "mode": "error" }]
+    },
+    {
+      "area": "notifications",
+      "screen": "settings",
+      "state": "full",
+      "name": "Notification settings",
+      "path": "/user/notifications",
+      "roles": ["member", "owner"],
+      "component": "Pages/Profile/Notifications.tsx"
+    },
+    {
+      "area": "notifications",
+      "screen": "settings",
+      "state": "new",
+      "name": "Notification settings of a new member (no time zone chosen)",
+      "path": "/user/notifications",
+      "roles": ["new-member"],
+      "component": "Pages/Profile/Notifications.tsx"
+    },
+    {
+      "area": "notifications",
+      "screen": "settings",
+      "state": "level-menu",
+      "name": "Notification settings, level menu open",
+      "path": "/user/notifications",
+      "roles": ["member"],
+      "component": "Pages/Profile/Notifications.tsx",
+      "steps": [
+        ["click", "main button:has-text(\"Everything\")"],
+        ["wait", 600]
+      ]
+    },
+    {
+      "area": "notifications",
+      "screen": "settings",
+      "state": "time-zone-menu",
+      "name": "Notification settings, time zone list open",
+      "path": "/user/notifications",
+      "roles": ["member"],
+      "component": "Pages/Profile/Notifications.tsx",
+      "steps": [
+        ["click", "main button:has-text(\"Europe/Brussels\")"],
+        ["wait", 800]
+      ]
+    },
+    {
+      "area": "account",
+      "screen": "profile",
+      "state": "full",
+      "name": "Account settings, every section",
+      "path": "/user/profile",
+      "roles": ["new-member", "member", "owner"],
+      "component": "Pages/Profile/Show.tsx"
+    },
+    {
+      "area": "account",
+      "screen": "profile",
+      "state": "two-factor-on",
+      "name": "Account settings with two-factor authentication on",
+      "path": "/user/profile",
+      "roles": ["member"],
+      "component": "Pages/Profile/Show.tsx",
+      "account": "two-factor",
+      "note": "Account atlas-2fa@example.com."
+    },
+    {
+      "area": "account",
+      "screen": "profile-information",
+      "state": "errors",
+      "name": "Profile information, user name that is too short",
+      "path": "/user/profile",
+      "roles": ["member"],
+      "component": "Pages/Profile/Show.tsx",
+      "steps": [
+        ["fill", "#username", "x"],
+        ["press", "Tab"],
+        ["wait", 1200],
+        ["scroll", "#username"]
+      ],
+      "note": "The message comes from the check in the browser, before the form is sent."
+    },
+    {
+      "area": "account",
+      "screen": "profile-information",
+      "state": "refused",
+      "name": "Profile information, sent with a user name that the server refuses",
+      "path": "/user/profile",
+      "roles": ["member"],
+      "component": "Pages/Profile/Show.tsx",
+      "steps": [["fill", "#username", "x"], ["submit", "form:has(#name)"], ["settle"], ["scroll", "#username"]],
+      "note": "The server refuses the user name. The page shows no message (see the defects of the report)."
+    },
+    {
+      "area": "account",
+      "screen": "password",
+      "state": "refused",
+      "name": "Update password with a wrong current password",
+      "path": "/user/profile",
+      "roles": ["member"],
+      "component": "Pages/Profile/Show.tsx",
+      "steps": [
+        ["fill", "#current_password", "not-the-current-password"],
+        ["fill", "#password", "a-new-password-2026"],
+        ["fill", "#password_confirmation", "a-new-password-2026"],
+        ["click", "form:has(#current_password) button[type=submit]"],
+        ["settle"],
+        ["scroll", "#current_password"]
+      ],
+      "note": "The server refuses the current password (nothing changes). The page shows no message (see the defects of the report)."
+    },
+    {
+      "area": "account",
+      "screen": "two-factor",
+      "state": "confirm-password-dialog",
+      "name": "Turn on two-factor authentication: confirm the password",
+      "path": "/user/profile",
+      "roles": ["member"],
+      "component": "Pages/Profile/Show.tsx",
+      "steps": [["click", "role=button[name=\"Turn on\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "account",
+      "screen": "sessions",
+      "state": "dialog",
+      "name": "Log out other browser sessions, dialog",
+      "path": "/user/profile",
+      "roles": ["member"],
+      "component": "Pages/Profile/Show.tsx",
+      "steps": [["click", "role=button[name=\"Log out other browser sessions\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "account",
+      "screen": "delete-account",
+      "state": "dialog",
+      "name": "Delete account, dialog",
+      "path": "/user/profile",
+      "roles": ["member", "owner"],
+      "component": "Pages/Profile/Show.tsx",
+      "steps": [["click", "role=button[name=\"Delete Account\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "account",
+      "screen": "delete-account",
+      "state": "errors",
+      "name": "Delete account, dialog sent without the password",
+      "path": "/user/profile",
+      "roles": ["member"],
+      "component": "Pages/Profile/Show.tsx",
+      "steps": [["click", "role=button[name=\"Delete Account\"]"], ["waitDialog"], ["submit", "role=dialog >> form"], ["settle"]]
+    },
+    {
+      "area": "account",
+      "screen": "api-tokens",
+      "state": "full",
+      "name": "API tokens, with one token",
+      "path": "/user/api-tokens",
+      "roles": ["member"],
+      "component": "Pages/API/Index.tsx",
+      "note": "Taken with the Vite dev server (npm run dev): with the production build this address answers 500."
+    },
+    {
+      "area": "account",
+      "screen": "api-tokens",
+      "state": "empty",
+      "name": "API tokens, no token",
+      "path": "/user/api-tokens",
+      "roles": ["new-member", "owner"],
+      "component": "Pages/API/Index.tsx",
+      "note": "Taken with the Vite dev server (npm run dev): with the production build this address answers 500."
+    },
+    {
+      "area": "account",
+      "screen": "api-tokens",
+      "state": "permissions-dialog",
+      "name": "API tokens, permissions of a token",
+      "path": "/user/api-tokens",
+      "roles": ["member"],
+      "component": "Pages/API/Index.tsx",
+      "note": "Taken with the Vite dev server (npm run dev): with the production build this address answers 500.",
+      "steps": [["click", "role=button[name=\"Permissions of Atlas reading script\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "account",
+      "screen": "api-tokens",
+      "state": "delete-dialog",
+      "name": "API tokens, delete a token",
+      "path": "/user/api-tokens",
+      "roles": ["member"],
+      "component": "Pages/API/Index.tsx",
+      "note": "Taken with the Vite dev server (npm run dev): with the production build this address answers 500.",
+      "steps": [["click", "role=button[name=\"Delete Atlas reading script\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "account",
+      "screen": "time-zone-question",
+      "state": "open",
+      "name": "Time zone question at the top of the page",
+      "path": "/dashboard",
+      "roles": ["member"],
+      "component": "Pages/Dashboard.tsx",
+      "timezone": "America/New_York",
+      "note": "The browser of this picture is in the zone America/New_York, the account in Europe/Brussels."
+    },
+    {
+      "area": "errors",
+      "screen": "not-found",
+      "state": "full",
+      "name": "Page that does not exist",
+      "path": "/this-page-does-not-exist",
+      "roles": ["visitor", "member"],
+      "component": "Pages/Error.tsx",
+      "expect": { "status": 404 }
+    },
+    {
+      "area": "errors",
+      "screen": "not-found-space",
+      "state": "full",
+      "name": "Space that does not exist",
+      "path": "/community/{garden}/space/no-such-space",
+      "roles": ["member"],
+      "component": "Pages/Error.tsx",
+      "expect": { "status": 404 }
+    },
+    {
+      "area": "errors",
+      "screen": "forbidden",
+      "state": "full",
+      "name": "Community of other people",
+      "path": "/community/{empty}",
+      "roles": ["new-member"],
+      "component": "Pages/Error.tsx",
+      "expect": { "status": 403 }
+    }
+  ]
+}
