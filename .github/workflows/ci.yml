@@ -71,6 +71,11 @@ jobs:
           NX_NO_CLOUD: true
       - name: Type-check the whole front-end (app, library, and configuration files)
         run: npm run tsc
+      # The static site of the component toolkit (#657), in dist/storybook. The stories run as tests with the other Vitest tests.
+      - name: Build Storybook
+        run: npm run storybook:build
+        env:
+          NX_NO_CLOUD: true
       - name: Check the formatting (Prettier and Pint)
         run: |
           npx nx format:check --all

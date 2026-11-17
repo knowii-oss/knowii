@@ -5,5 +5,22 @@
   "projectType": "application",
   "tags": [],
   "// targets": "to see all targets run: nx show project knowii --web",
-  "targets": {}
+  "targets": {
+    "storybook": {
+      "executor": "nx:run-commands",
+      "continuous": true,
+      "options": {
+        "command": "npx storybook dev --config-dir apps/knowii/.storybook --host 0.0.0.0 --port 6006 --exact-port --ci"
+      }
+    },
+    "build-storybook": {
+      "executor": "nx:run-commands",
+      "cache": true,
+      "inputs": ["production", "^production"],
+      "outputs": ["{workspaceRoot}/dist/storybook"],
+      "options": {
+        "command": "npx storybook build --config-dir apps/knowii/.storybook --output-dir dist/storybook"
+      }
+    }
+  }
 }

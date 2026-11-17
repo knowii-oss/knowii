@@ -6,6 +6,8 @@
   "include": [
     "apps/knowii/src/**/*.ts",
     "apps/knowii/src/**/*.tsx",
+    "apps/knowii/.storybook/*.ts",
+    "apps/knowii/.storybook/*.tsx",
     "libs/common/src/**/*.ts",
     "libs/common/src/**/*.tsx",
     "apps/*/vite.config.mts",
