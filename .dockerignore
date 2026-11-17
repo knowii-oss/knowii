@@ -21,6 +21,9 @@ vendor
 .phpunit.cache
 .phpunit.result.cache
 
+# Helper scripts for the people who work on the code (not part of the application)
+tools
+
 # Build output (built in the image)
 dist
 tmp

@@ -1,0 +1,14 @@
+{
+  "name": "knowii-screen-atlas",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Screenshots of every screen of the Knowii Platform for the UI review (knowii-oss/knowii#1523)",
+  "type": "module",
+  "scripts": {
+    "atlas": "node atlas.mjs",
+    "index": "node atlas.mjs --index-only"
+  },
+  "dependencies": {
+    "playwright": "1.63.0"
+  }
+}
