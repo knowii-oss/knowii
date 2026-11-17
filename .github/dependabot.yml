@@ -9,3 +9,12 @@ updates:
     directory: '/' # Location of package manifests
     schedule:
       interval: 'daily'
+  # The workflows pin every action to a full commit (#1559). Dependabot moves the commit and the version in the comment.
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    groups:
+      actions:
+        patterns:
+          - '*'
