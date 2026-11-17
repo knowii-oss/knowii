@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ComponentProps, ReactNode, Ref } from 'react';
+import type { ButtonHTMLAttributes, ComponentProps, MouseEvent, ReactNode, Ref } from 'react';
 import { Link } from '@inertiajs/react';
 import { cn } from './cn';
 import { Spinner } from './Spinner';
@@ -54,7 +54,8 @@ export function buttonClasses({ variant = 'primary', size = 'md', fullWidth = fa
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>, ButtonStyleOptions {
   ref?: Ref<HTMLButtonElement>;
   /**
-   * Shows a spinner and disables the button
+   * Shows a spinner and makes the button busy. The button keeps the focus (it is not disabled): it gets
+   * aria-disabled and aria-busy, and a click (also Enter and Space) does nothing and does not submit the form.
    */
   loading?: boolean | undefined;
   leftIcon?: ReactNode;
@@ -63,6 +64,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>, Bu
 
 /**
  * Button. The default type is "button": set type="submit" to submit a form.
+ * `disabled` takes the button out of the tab order. `loading` does not: a disabled button loses the focus (#1564).
  */
 export function Button({
   variant,
@@ -77,15 +79,32 @@ export function Button({
   disabled,
   type = 'button',
   ref,
+  onClick,
+  'aria-busy': ariaBusy,
+  'aria-disabled': ariaDisabled,
   ...props
 }: ButtonProps) {
+  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+    if (loading) {
+      // The button is busy: the click does nothing. Prevent the default action, so that a submit button does not
+      // submit its form (a click, Enter or Space on the button, or Enter in a field of the form)
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    onClick?.(event);
+  };
+
   return (
     <button
       ref={ref}
       type={type}
-      disabled={disabled || loading}
-      aria-busy={loading || undefined}
+      // aria-disabled, not disabled, while loading: a disabled button loses the focus (#1564)
+      disabled={disabled}
+      aria-disabled={loading || ariaDisabled}
+      aria-busy={loading || ariaBusy}
       className={cn(buttonClasses({ variant, size, fullWidth, iconOnly }), className)}
+      onClick={handleClick}
       {...props}
     >
       {loading ? <Spinner size="sm" label="Loading" /> : leftIcon}

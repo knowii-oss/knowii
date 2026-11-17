@@ -1,16 +1,19 @@
 import type { MouseEvent } from 'react';
+import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent, within } from 'storybook/test';
 import { FaArrowRight, FaPlus } from 'react-icons/fa6';
+import type { ButtonProps } from './Button';
 import { Button, LinkButton } from './Button';
 
 /**
  * Use a button for an action on the page. For navigation, use `LinkButton` (a link that looks like a button), never a
  * button inside a link. The default type is "button": set `type="submit"` to submit a form.
  *
- * Accessibility: the name is the text, or `aria-label` for a button with only an icon. A button with `disabled` or
- * `loading` loses the focus: when the focus must stay (a button that works and then works again), use `aria-busy`
- * or `aria-disabled` and a guard in the click handler.
+ * Accessibility: the name is the text, or `aria-label` for a button with only an icon. A button with `disabled` loses
+ * the focus. A busy button keeps it: use `loading` (it sets `aria-busy` and `aria-disabled`, and ignores a click and
+ * the submit of a form). For a button that does nothing for another reason, use `aria-disabled` and a guard in the
+ * click handler.
  */
 const meta = {
   component: Button,
@@ -110,41 +113,57 @@ export const AriaDisabled: Story = {
 };
 
 /**
- * `loading` shows a spinner, sets `aria-busy` and disables the button.
+ * `loading` shows a spinner and sets `aria-busy` and `aria-disabled`. The button stays in the tab order, and a click,
+ * Enter or Space does nothing.
  */
 export const Busy: Story = {
   args: { loading: true },
-  play: async ({ canvasElement }) => {
+  play: async ({ args, canvasElement }) => {
     const canvas = within(canvasElement);
     const button = canvas.getByRole('button', { name: /Save/ });
-    await expect(button).toBeDisabled();
+    await expect(button).toBeEnabled();
     await expect(button).toHaveAttribute('aria-busy', 'true');
+    await expect(button).toHaveAttribute('aria-disabled', 'true');
     await expect(canvas.getByRole('status')).toHaveTextContent('Loading');
-  },
-};
-
-/**
- * Busy without losing the focus: `aria-busy` and `aria-disabled`, and a guard in the click handler.
- */
-export const BusyKeepsFocus: Story = {
-  args: { 'aria-busy': true, 'aria-disabled': true, children: 'Saving' },
-  render: ({ onClick, ...args }) => (
-    <Button
-      {...args}
-      onClick={(event) => {
-        if (event.currentTarget.getAttribute('aria-busy') === 'true') {
-          return;
-        }
-        onClick?.(event);
-      }}
-    />
-  ),
-  play: async ({ args, canvasElement }) => {
-    const button = within(canvasElement).getByRole('button', { name: 'Saving' });
     await userEvent.tab();
     await expect(button).toHaveFocus();
     await userEvent.keyboard('{Enter}');
     await expect(args.onClick).not.toHaveBeenCalled();
+    await expect(button).toHaveFocus();
+  },
+};
+
+function SaveThenBusy({ onClick, ...props }: ButtonProps) {
+  const [loading, setLoading] = useState(false);
+  return (
+    <Button
+      {...props}
+      loading={loading}
+      onClick={(event) => {
+        setLoading(true);
+        onClick?.(event);
+      }}
+    />
+  );
+}
+
+/**
+ * The button becomes busy when it is pressed, and keeps the focus (#1564): the next Tab goes on from it.
+ */
+export const BusyKeepsFocus: Story = {
+  render: (args) => <SaveThenBusy {...args} />,
+  play: async ({ args, canvasElement }) => {
+    const button = within(canvasElement).getByRole('button', { name: 'Save' });
+    await userEvent.tab();
+    await expect(button).toHaveFocus();
+    await userEvent.keyboard('{Enter}');
+    await expect(args.onClick).toHaveBeenCalledOnce();
+    await expect(button).toHaveAttribute('aria-busy', 'true');
+    await expect(button).toHaveFocus();
+    // While busy, the button does nothing
+    await userEvent.keyboard('{Enter}');
+    await expect(args.onClick).toHaveBeenCalledOnce();
+    await expect(button).toHaveFocus();
   },
 };
 

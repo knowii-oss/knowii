@@ -63,14 +63,17 @@ describe('SpaceTreeEditor', () => {
     vi.restoreAllMocks();
   });
 
-  it('shows the groups and spaces in order, and disables the moves that are not possible', () => {
+  it('shows the groups and spaces in order, and marks the moves that are not possible', () => {
     renderEditor();
 
     expect(screen.getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent)).toEqual(['Start Here', 'Learn']);
-    expect(screen.getByRole('button', { name: 'Move Start Here up' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Move Learn down' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Move Welcome up' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Move Introductions down' })).toBeDisabled();
+    // aria-disabled, not disabled: the buttons at the ends of a list can keep the focus (#1564)
+    for (const name of ['Move Start Here up', 'Move Learn down', 'Move Welcome up', 'Move Introductions down']) {
+      const button = screen.getByRole('button', { name });
+      expect(button).toHaveAttribute('aria-disabled', 'true');
+      expect(button).toBeEnabled();
+    }
+    expect(screen.getByRole('button', { name: 'Move Welcome down' })).not.toHaveAttribute('aria-disabled');
     expect(within(screen.getByRole('list', { name: 'Spaces of Start Here' })).getAllByRole('listitem')).toHaveLength(2);
     expect(screen.getByText('No spaces in this group yet.')).toBeInTheDocument();
   });
@@ -84,6 +87,61 @@ describe('SpaceTreeEditor', () => {
 
     expect(reorder).toHaveBeenCalledWith('community', 'start', ['intros', 'welcome']);
     await waitFor(() => expect(onChanged).toHaveBeenCalled());
+  });
+
+  it('keeps the focus on the pressed move button while the move runs and after the tree reloads (#1564)', async () => {
+    let finish: (value: { ok: true; message: string; data: [] }) => void = () => undefined;
+    const reorder = vi.spyOn(knowiiApiClient.communities.spaces, 'reorder').mockReturnValue(
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+    );
+    const onChanged = vi.fn();
+    const { rerender } = render(
+      <AppDataProvider>
+        <SpaceTreeEditor communityCuid="community" spaceGroups={groups} onChanged={onChanged} />
+      </AppDataProvider>,
+    );
+
+    const down = screen.getByRole('button', { name: 'Move Welcome down' });
+    down.focus();
+    await userEvent.keyboard('{Enter}');
+
+    // While busy: every move button is aria-disabled, the pressed one keeps the focus, and a second press does nothing
+    expect(down).toHaveFocus();
+    expect(down).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByRole('button', { name: 'Move Learn up' })).toHaveAttribute('aria-disabled', 'true');
+    await userEvent.keyboard('{Enter}');
+    await userEvent.click(screen.getByRole('button', { name: 'Move Learn up' }));
+    expect(reorder).toHaveBeenCalledTimes(1);
+    down.focus();
+
+    finish({ ok: true, message: '', data: [] });
+    await waitFor(() => expect(onChanged).toHaveBeenCalled());
+    expect(down).toHaveFocus();
+
+    // The tree reloads in the new order: React moves the list items, and the focus goes back to the pressed button
+    const [start, learn] = groups;
+    if (!start || !learn) {
+      throw new Error('Missing test data');
+    }
+    const reordered: SpaceGroup[] = [{ ...start, spaces: [...(start.spaces ?? [])].reverse() }, learn];
+    // Chrome drops the focus of a node that React moves; jsdom keeps it, so the test drops it
+    down.blur();
+    rerender(
+      <AppDataProvider>
+        <SpaceTreeEditor communityCuid="community" spaceGroups={reordered} onChanged={onChanged} />
+      </AppDataProvider>,
+    );
+    expect(within(screen.getByRole('list', { name: 'Spaces of Start Here' })).getAllByRole('listitem')[1]).toHaveTextContent('Welcome');
+    const atBottom = screen.getByRole('button', { name: 'Move Welcome down' });
+    expect(atBottom).toHaveFocus();
+    expect(atBottom).toHaveAttribute('aria-disabled', 'true');
+
+    // At the bottom, the button does nothing
+    await userEvent.keyboard('{Enter}');
+    expect(reorder).toHaveBeenCalledTimes(1);
+    expect(atBottom).toHaveFocus();
   });
 
   it('moves a space group and saves the new order', async () => {
