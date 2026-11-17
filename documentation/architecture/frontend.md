@@ -4,7 +4,7 @@ The front-end is a React 19 application rendered through Inertia.js 3. Laravel d
 
 ## Pages
 
-1. A page is a component in `apps/knowii/src/Pages/<Area>/<Name>.tsx`, rendered by an Inertia controller (`app/Http/Controllers/Inertia`) or by `Route::inertia(...)` in `routes/web.php` for static pages.
+1. A page is a component in `apps/knowii/src/Pages/<Area>/<Name>.tsx`, rendered by an Inertia controller (`app/Http/Controllers/Inertia`) or by `Route::inertia(...)` in `routes/web.php` for static pages. The list of pages is `pageComponents` (`apps/knowii/src/page-components.ts`): it leaves the spec files out, so the production build never ships a spec file as a page (#1552).
 2. The controller passes the initial data as props. The props interface of the page and the array in the controller must stay aligned (both carry a `WARNING` comment).
 3. Every page renders inside `<AppLayout>`, which gives the header, the breadcrumb, the page actions and the footer. Community pages also render `<CommunityShell>` (`Components/Spaces`): the space navigation in a sidebar on desktop and in a drawer on mobile, reloaded when the space tree changes.
 4. Further data and every change go through the Knowii API client, never through Inertia form posts. The API stays complete.
