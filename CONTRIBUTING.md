@@ -316,7 +316,7 @@ That script runs `git config --local --replace-all include.path ../.gitconfig` �
 
 - **`pre-commit` → `scripts/git-hooks/format-staged.sh`**: formats only the staged files (Prettier, and Pint for `.php` files) and stages them again, in a few seconds. A file that also has unstaged changes is skipped with a message, because staging it again would stage those changes too: format it with `npm run format`. The hook never leaves new changes in the working tree.
 
-Lint (ESLint, PHPStan), the formatting check, the tests and the dependency audits run in CI. Run them before you open a pull request (see `AGENTS.md`).
+Lint (ESLint, PHPStan), the formatting check, the tests and the dependency audits run in CI. Run them before you open a pull request (see `AGENTS.md`). The audit of the front-end dependencies fails the build for the dependencies that ship with the application (`npm audit --omit=dev`); an advisory in a development dependency is reported as a warning on the run.
 
 - **`commit-msg` → `npx --no -- commitlint --edit`** — validates the commit message against `commitlint.config.js`.
 
