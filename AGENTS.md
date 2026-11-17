@@ -62,7 +62,8 @@ Nothing that a later session needs lives in a folder outside the repository.
 
 - A design, a specification or a review report is a file in `documentation/`,
   added by a pull request. An issue links to the file; a long design does not
-  live in an issue comment.
+  live in an issue comment. Designs are in `documentation/design/`, one folder
+  per feature: read its `README.md` for the rules.
 - A helper script that stays useful is a file in `tools/`.
 - Ongoing or unreviewed work is on a pushed branch (of this repository or of a
   fork), or in a git worktree of this repository.

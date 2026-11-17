@@ -14,6 +14,7 @@ This folder is the technical reference of the Knowii Platform. It describes how 
 | [Naming conventions](conventions/naming.md)                    | Names of classes, files, routes, tables, events, channels, branches and commits             |
 | [Rules](conventions/rules.md)                                  | The rules that every change must follow, and the definition of done                         |
 | [Architecture decision records](adr/README.md)                 | The decisions that shape the code, one file per decision                                    |
+| [Designs](design/README.md)                                    | What a feature does for the people who use it, as the owner approved it, one folder each    |
 | [Community export runbook](runbooks/community-export.md)       | The steps for the operator to export the data of a community on the request of its owner    |
 | [Member data export runbook](runbooks/member-data-export.md)   | The steps for the operator to answer a member who asks for a copy of their data             |
 | [API requests (Bruno)](api/README.md)                          | The Bruno collection that documents and exercises the REST API                              |
@@ -34,5 +35,6 @@ The documentation changes in the same pull request as the code:
 2. A change to the domain model, a flow, or a runtime process updates the architecture documents.
 3. A new or changed API endpoint updates the Bruno collection and the Pest tests, and the generated OpenAPI document must still describe it correctly. Two tests fail when this is forgotten: `OpenApiDocumentTest` (every route documented, with its success response and its request body) and `BrunoCollectionTest` (every route has a Bruno request).
 4. A new convention updates [naming](conventions/naming.md) or [rules](conventions/rules.md), and `AGENTS.md` when agents must know it.
+5. A new feature that needs a design adds it to [designs](design/README.md) before the build, and a change of the behaviour updates the design.
 
 A pull request that leaves the documentation wrong is not done.
