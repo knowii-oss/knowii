@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-11-16
 - Issue: #1476
-- Pull request: not yet opened
+- Pull request: #1517
 
 ## Context
 

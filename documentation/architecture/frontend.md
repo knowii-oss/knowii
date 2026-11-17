@@ -31,6 +31,16 @@ A component that throws while rendering does not blank the page. `<ErrorBoundary
 3. Headless UI is used only for the accessible interactive parts (dialog, listbox, menu). Everything else is plain React and Tailwind CSS.
 4. Feature components (a post card, a space navigation) live in `apps/knowii/src/Components/<Feature>/` and compose the building blocks.
 
+### Toolkit
+
+The building blocks have stories in Storybook ([ADR 0049](../adr/0049-component-toolkit-storybook-stories-as-tests.md), #657). The configuration is in `apps/knowii/.storybook/`.
+
+1. Run it in the container: `npm run storybook` (the dev server on port 6006, open `http://localhost:6006` on the host; the port is `STORYBOOK_PORT` in `docker-compose.yml`) or `npm run storybook:build` (the static site in `dist/storybook`). The toolbar switches the theme (dark first) and the width (360 px, 1920 px). The accessibility panel checks the contrast, which the tests cannot do.
+2. Add a story: create `Components/ui/<Name>.stories.tsx` next to the component, in the CSF 3 format with types (`satisfies Meta<typeof Name>`). Write one story per variant and state: kinds, sizes, with and without an icon, disabled and `aria-disabled`, busy, error, long text, as the component has them. The comment of the meta says when to use the component and its accessibility contract. A keyboard path is a `play` function that uses `storybook/test`, with `within(canvasElement)`, or `within(dialog)` for a dialog (it renders in a portal on the body, and jsdom does not make the page behind it inert).
+3. The stories are tests: `stories.spec.tsx` renders every story, runs its `play` function and runs `axe-core` on the page, with the other Vitest tests. Only `color-contrast` is off, because jsdom computes no colors.
+4. The guard, `stories-guard.spec.ts`, fails when a component file has no story file or a story file has no story. The components without a story yet are in its sorted allow-list: when you add the story file of one, remove its name from the list (the guard fails until you do).
+5. A story renders without the application around it. The link stories of `Button` stop the Inertia visit in their `onClick`; do the same for another component that needs the application, without changing the component.
+
 Member content: `MarkdownContent` shows the HTML that the server renders. It replaces each `div.video-embed` block (a YouTube or Vimeo link alone on its line, [ADR 0031](../adr/0031-videos-in-member-content.md)) with the click-to-load `VideoPlayer`. The `MarkdownEditor` has an "Add a video" button that checks the address with `parseVideoUrl` (`libs/common`).
 
 Images in the editor (#1207): the image button, a paste or a drop takes up to 10 images at a time. `ImageInsertPanel` lists them with a preview, a required description (the alt text), the state of each upload, and buttons to reorder and remove. "Insert the images" uploads them one after the other and writes them one per line; nothing goes in the text before every upload worked, and a second try uploads only the images that failed.
