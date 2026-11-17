@@ -55,6 +55,23 @@ react-hook-form.
 - `documentation/` — technical documentation, ADRs, Bruno API collection
 - `tools/` — build helper scripts
 
+## Where designs and working files go
+
+A person must be able to go on with the work on another machine after a push.
+Nothing that a later session needs lives in a folder outside the repository.
+
+- A design, a specification or a review report is a file in `documentation/`,
+  added by a pull request. An issue links to the file; a long design does not
+  live in an issue comment.
+- A helper script that stays useful is a file in `tools/`.
+- Ongoing or unreviewed work is on a pushed branch (of this repository or of a
+  fork), or in a git worktree of this repository.
+- A file that is only needed during one task goes in a temporary folder
+  (`/tmp`), never in a folder beside the repository.
+- Not in this repository, because it is public: the findings of a security
+  review before the fixes are merged, the details of an instance (server
+  addresses, accounts, keys), and personal data. See `SECURITY.md`.
+
 ## Commands
 
 Front-end / monorepo (npm + Nx):
