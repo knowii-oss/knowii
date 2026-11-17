@@ -39,10 +39,13 @@ jobs:
       # The dependencies that ship with the application fail the build.
       - name: Audit front-end dependencies security (production)
         run: npm audit --omit=dev --audit-level=moderate
-      # The development dependencies are reported and do not fail the build:
-      # an advisory in a development tool with no fixed version must not stop
-      # every pull request (#1608). The warning stays on the run until the
-      # advisory is solved.
+      # The development dependencies build the front-end that ships, so a
+      # critical advisory there fails the build too. A lower advisory in a
+      # development tool is reported and does not fail the build: one with no
+      # fixed version must not stop every pull request (#1608). The warning
+      # stays on the run until the advisory is solved.
+      - name: Audit front-end dependencies security (development, critical)
+        run: npm audit --audit-level=critical
       - name: Report front-end dependencies security (development)
         run: |
           if ! npm audit --audit-level=moderate; then
