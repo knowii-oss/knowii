@@ -7,10 +7,10 @@ import './styles.css';
 import { StrictMode } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { createInertiaApp } from '@inertiajs/react';
-import type { ResolvedComponent } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { AppDataProvider } from '@knowii/common';
 import { ErrorBoundary, Toaster } from '@/Components/ui';
+import { pageComponents } from './page-components';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -20,11 +20,7 @@ const styleNonce = document.querySelector<HTMLMetaElement>('meta[property="csp-n
 createInertiaApp({
   ...(styleNonce ? { nonce: styleNonce } : {}),
   title: (title) => `${title} - ${appName}`,
-  resolve: (name) =>
-    resolvePageComponent<ResolvedComponent>(
-      `./Pages/${name}.tsx`,
-      import.meta.glob<ResolvedComponent>('./Pages/**/*.tsx', { import: 'default' }),
-    ),
+  resolve: (name) => resolvePageComponent(`./Pages/${name}.tsx`, pageComponents),
   setup({ el, App, props }) {
     const root = ReactDOM.createRoot(el);
 
