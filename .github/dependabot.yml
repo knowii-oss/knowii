@@ -23,6 +23,12 @@ updates:
       interval: 'weekly'
     open-pull-requests-limit: 5
     groups:
+      # Nx and its packages always move together, also for a major version: one pull request for all of them.
+      # The platform packages (@nx/nx-linux-x64-gnu and the others) are in this group too.
+      nx:
+        patterns:
+          - 'nx'
+          - '@nx/*'
       npm-minor-and-patch:
         update-types:
           - 'minor'
