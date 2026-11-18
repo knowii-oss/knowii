@@ -1,8 +1,9 @@
-import type { ButtonHTMLAttributes, ComponentProps, FocusEvent, MouseEvent, ReactNode, Ref } from 'react';
+import type { ButtonHTMLAttributes, ComponentType, FocusEvent, MouseEvent, ReactNode, Ref } from 'react';
 import { useState } from 'react';
-import { Link } from '@inertiajs/react';
 import { cn } from './cn';
 import { Spinner } from './Spinner';
+import type { ToolkitLinkProps } from './ToolkitContext';
+import { useToolkit } from './ToolkitContext';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost';
 export type ButtonSize = 'sm' | 'md' | 'lg';
@@ -143,14 +144,23 @@ export function Button({
   );
 }
 
-export type LinkButtonProps = Omit<ComponentProps<typeof Link>, keyof ButtonStyleOptions> & ButtonStyleOptions;
+export type LinkButtonProps = Omit<ToolkitLinkProps, keyof ButtonStyleOptions> &
+  ButtonStyleOptions & {
+    /**
+     * The link component for this button only. Default: the link of the ToolkitProvider (the Inertia link in the
+     * application)
+     */
+    linkComponent?: ComponentType<ToolkitLinkProps>;
+  };
 
 /**
- * Inertia link that looks like a button. Use it for navigation instead of a <Button> inside a <Link>
- * (a button inside a link is invalid HTML and confuses screen readers).
- * With method="post" (or another non-GET method), Inertia renders a <button> element.
+ * A link that looks like a button: the link of the toolkit (the Inertia link in the application, a plain <a> without a
+ * ToolkitProvider). Use it for navigation instead of a <Button> inside a link (a button inside a link is invalid HTML
+ * and confuses screen readers). With method="post" (or another non-GET method), it renders a <button> element.
  */
-export function LinkButton({ variant, size, fullWidth, iconOnly, className, ...props }: LinkButtonProps) {
+export function LinkButton({ variant, size, fullWidth, iconOnly, className, linkComponent, ...props }: LinkButtonProps) {
+  const toolkit = useToolkit();
+  const Link = linkComponent ?? toolkit.linkComponent;
   const isGet = props.method === undefined || props.method === 'get';
   return <Link as={isGet ? 'a' : 'button'} {...props} className={cn(buttonClasses({ variant, size, fullWidth, iconOnly }), className)} />;
 }

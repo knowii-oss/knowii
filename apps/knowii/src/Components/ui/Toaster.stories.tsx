@@ -7,8 +7,9 @@ import { AppDataProvider, MAX_VISIBLE_TOASTS, useAppData } from '@knowii/common'
 import { Button } from './Button';
 import { Toaster } from './Toaster';
 
-// Outside the application, there is no Inertia page to visit: a click on the link of a toast stops the visit (Inertia
-// does not visit when the default action of the click is prevented, see the Breadcrumb stories). The toast still goes.
+// Outside the application, there is no page to visit: a click on the link of a toast stops the visit (the link is a plain
+// <a> without a ToolkitProvider; Inertia does not visit either when the default action is prevented, see the Breadcrumb
+// stories). The toast still goes.
 function stopVisit(event: MouseEvent): void {
   event.preventDefault();
 }

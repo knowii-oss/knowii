@@ -1,8 +1,9 @@
-import type { ReactNode } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
-import { Link } from '@inertiajs/react';
 import { FaChevronRight, FaEllipsis } from 'react-icons/fa6';
 import { cn } from './cn';
+import type { ToolkitLinkProps } from './ToolkitContext';
+import { useToolkit } from './ToolkitContext';
 
 export interface BreadcrumbItem {
   label: string;
@@ -16,13 +17,19 @@ export interface BreadcrumbItem {
 interface BreadcrumbProps {
   items: readonly BreadcrumbItem[];
   className?: string;
+  /**
+   * The link component of this path only. Default: the link of the ToolkitProvider (the Inertia link in the application)
+   */
+  linkComponent?: ComponentType<ToolkitLinkProps>;
 }
 
 /**
  * The path to the open page. On a phone (#909), a long path shows its first item, a "show the full path" button, the
  * parent and the open page; the button shows the hidden items. Links are 44 px high on small screens (`touch-target`).
  */
-export function Breadcrumb({ items, className }: BreadcrumbProps) {
+export function Breadcrumb({ items, className, linkComponent }: BreadcrumbProps) {
+  const toolkit = useToolkit();
+  const Link = linkComponent ?? toolkit.linkComponent;
   const [expanded, setExpanded] = useState(false);
   const listRef = useRef<HTMLOListElement>(null);
   // The button goes away with the focus (#1651): the focus moves to the link of the first item that it showed, else to

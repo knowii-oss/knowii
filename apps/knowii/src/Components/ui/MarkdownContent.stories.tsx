@@ -1,6 +1,7 @@
 import type { MouseEvent } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, userEvent, waitFor, within } from 'storybook/test';
+import { ApplicationToolkitProvider } from '@/Components/ApplicationToolkit';
 import { MarkdownContent } from './MarkdownContent';
 
 // Outside the application, a link of the content must not leave the story: a click on it stops the visit. It runs after
@@ -160,10 +161,17 @@ export const OneImage: Story = {
 };
 
 /**
- * A video link alone on its line becomes the player. Nothing loads from the provider before Play: the stories do not
- * press it.
+ * A video link alone on its line becomes the player of the application, which the ToolkitProvider of `main.tsx` gives
+ * (here a decorator). Nothing loads from the provider before Play: the stories do not press it.
  */
 export const Video: Story = {
+  decorators: [
+    (Story) => (
+      <ApplicationToolkitProvider>
+        <Story />
+      </ApplicationToolkitProvider>
+    ),
+  ],
   args: {
     html: `<p>How to prune the tomatoes:</p>${videoBlock('youtube', 'https://youtu.be/v1', 'https://www.youtube-nocookie.com/embed/v1')}`,
   },
@@ -172,6 +180,21 @@ export const Video: Story = {
     await expect(await canvas.findByRole('button', { name: 'Play the video: YouTube video' })).toBeInTheDocument();
     await expect(canvasElement.querySelector('iframe')).toBeNull();
     await expect(canvas.getByRole('link', { name: /Watch on YouTube/ })).toHaveAttribute('href', 'https://youtu.be/v1');
+  },
+};
+
+/**
+ * Without the application (no ToolkitProvider), a video is a plain link to it: the toolkit imports nothing of the
+ * application (#657)
+ */
+export const VideoWithoutApplication: Story = {
+  args: {
+    html: `<p>How to prune the tomatoes:</p>${videoBlock('youtube', 'https://youtu.be/v1', 'https://www.youtube-nocookie.com/embed/v1')}`,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await waitFor(() => expect(canvas.getByRole('link', { name: 'https://youtu.be/v1' })).toHaveAttribute('href', 'https://youtu.be/v1'));
+    await expect(canvas.queryByRole('button', { name: /Play the video/ })).toBeNull();
   },
 };
 

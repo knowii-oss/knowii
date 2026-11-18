@@ -29,6 +29,7 @@ The owner decided on 2026-11-17 (comments of #657): Storybook in the application
 3. The specs that exist stay. A case moves to a story only when the story covers it.
 4. The strict Content Security Policy of the application does not apply to Storybook, which is a development tool. Nothing in the application changes for it.
 5. jsdom does not make the page behind a dialog inert: `play` functions look for the elements inside the dialog (`within(dialog)`).
+6. The boundary of point 2.5 of the proposal is a lint rule since slice 3: `Components/ui` imports nothing of the application, which gives its parts through the toolkit context (`ToolkitProvider`, see `architecture/frontend.md`).
 
 ## Alternatives considered
 

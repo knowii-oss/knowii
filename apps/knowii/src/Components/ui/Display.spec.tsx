@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { router } from '@inertiajs/react';
 import { AppDataProvider, DEFAULT_TOAST_LIFE, useAppData } from '@knowii/common';
 import type { ToastMessage } from '@knowii/common';
+import { ApplicationToolkitProvider } from '@/Components/ApplicationToolkit';
 import { Avatar, getInitials } from './Avatar';
 import { Breadcrumb } from './Breadcrumb';
 import { Card, CardBody, CardHeader } from './Card';
@@ -126,12 +127,15 @@ describe('Toaster', () => {
     return null;
   }
 
+  // As in main.tsx: the link of a toast is the Inertia link of the application
   function renderToaster() {
     render(
-      <AppDataProvider>
-        <Toaster />
-        <CaptureShowToast />
-      </AppDataProvider>,
+      <ApplicationToolkitProvider>
+        <AppDataProvider>
+          <Toaster />
+          <CaptureShowToast />
+        </AppDataProvider>
+      </ApplicationToolkitProvider>,
     );
   }
 

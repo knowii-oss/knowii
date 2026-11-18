@@ -1,10 +1,11 @@
-import type { FocusEvent, ReactNode } from 'react';
+import type { ComponentType, FocusEvent, ReactNode } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link } from '@inertiajs/react';
 import { FaCircleCheck, FaCircleInfo, FaCircleXmark, FaTriangleExclamation, FaXmark } from 'react-icons/fa6';
 import type { Toast, ToastSeverity } from '@knowii/common';
 import { DEFAULT_TOAST_LIFE, useToasts } from '@knowii/common';
 import { cn } from './cn';
+import type { ToolkitLinkProps } from './ToolkitContext';
+import { useToolkit } from './ToolkitContext';
 
 const severityIcons: Record<ToastSeverity, ReactNode> = {
   success: <FaCircleCheck className="text-success" />,
@@ -27,9 +28,10 @@ const severityBarClasses: Record<ToastSeverity, string> = {
 interface ToastItemProps {
   toast: Toast;
   onDismiss: (id: string) => void;
+  linkComponent: ComponentType<ToolkitLinkProps>;
 }
 
-function ToastItem({ toast, onDismiss }: ToastItemProps) {
+function ToastItem({ toast, onDismiss, linkComponent: Link }: ToastItemProps) {
   const [paused, setPaused] = useState(false);
   const remaining = useRef(toast.life ?? DEFAULT_TOAST_LIFE);
   // A toast with a link waits for the user: a few seconds are not enough to reach it with the keyboard (WCAG 2.2.1)
@@ -107,10 +109,12 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
 
 /**
  * Shows the toasts of the AppDataProvider (showToast). Render it once, inside the AppDataProvider and outside the pages,
- * so that toasts survive Inertia page visits.
+ * so that toasts survive Inertia page visits. The link of a toast is the link of the ToolkitProvider (the Inertia link
+ * in the application): the toasts come from every page, so no page gives another one.
  */
 export function Toaster() {
   const { toasts, dismissToast } = useToasts();
+  const { linkComponent } = useToolkit();
   const region = useRef<HTMLElement>(null);
   // The element that had the focus before it came to the toasts
   const focusBefore = useRef<HTMLElement | null>(null);
@@ -147,7 +151,7 @@ export function Toaster() {
       {/* Not a live region: each toast announces itself, an error as an alert, so that no toast is read twice */}
       <ol className="flex flex-col items-center gap-2">
         {toasts.map((toast) => (
-          <ToastItem key={toast.id} toast={toast} onDismiss={dismiss} />
+          <ToastItem key={toast.id} toast={toast} onDismiss={dismiss} linkComponent={linkComponent} />
         ))}
       </ol>
     </section>

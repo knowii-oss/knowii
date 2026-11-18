@@ -5,8 +5,8 @@ import { FaHouse } from 'react-icons/fa6';
 import type { BreadcrumbItem } from './Breadcrumb';
 import { Breadcrumb } from './Breadcrumb';
 
-// Outside the application, there is no Inertia page to visit: a click on a link of the path stops the visit
-// (Inertia does not visit when the default action of the click is prevented, see the link stories of Button)
+// Outside the application, there is no page to visit: a click on a link of the path stops the visit (the link is a plain
+// <a> without a ToolkitProvider; Inertia does not visit either when the default action is prevented, see Button)
 function stopVisit(event: MouseEvent): void {
   event.preventDefault();
 }
