@@ -116,7 +116,8 @@ export const MAX_LENGTH_USER_LOCATION = 128;
 export const MAX_LENGTH_USER_BIO = 512;
 export const MAX_LENGTH_USER_PHONE = 48;
 
-// Waitlist. WARNING: aligned with Constants.php
+// The email field and the hidden field of the newsletter form (the names come from the waitlist, removed in #1574).
+// WARNING: aligned with Constants.php
 export const MAX_LENGTH_WAITLIST_EMAIL = 255;
 export const WAITLIST_HONEYPOT_FIELD = 'website';
 // The hidden field of the sign-up form (#737). WARNING: aligned with SIGNUP_HONEYPOT_FIELD (Constants.php)
@@ -211,8 +212,6 @@ export const RESOURCES_PER_PAGE = 24;
 export const API_BASE_PATH = '/api/v1';
 export const PING_API_PATH = `${API_BASE_PATH}/ping`;
 
-// Waitlist
-export const WAITLIST_API_PATH = `${API_BASE_PATH}/waitlist`;
 // Newsletter of the footer (#938)
 export const NEWSLETTER_API_PATH = `${API_BASE_PATH}/newsletter`;
 

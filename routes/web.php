@@ -38,18 +38,10 @@ Route::get(SecurityTxt::PATH, [SecurityTxtController::class, 'show'])->name('sec
 Route::get('/security.txt', [SecurityTxtController::class, 'legacy']);
 
 Route::get('/', function () {
-    // Render the homepage
+    // The home page (#1574): what a person can do, and the way in. Registration is open while the Fortify feature is on
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
-        'waitlist' => [
-            // The form is only shown when the EmailOctopus list and the Turnstile bot check are configured
-            'enabled' => filled(config('services.emailoctopus.api_key'))
-                && filled(config('services.emailoctopus.waitlist_list_id'))
-                && filled(config('services.turnstile.site_key'))
-                && filled(config('services.turnstile.secret_key')),
-            'turnstileSiteKey' => config('services.turnstile.site_key'),
-        ],
     ]);
 });
 
@@ -142,3 +134,11 @@ Route::inertia('/contact', 'Contact');
 foreach (array_keys(LegalPages::PAGES) as $legalPage) {
     Route::get('/'.$legalPage, [LegalPageController::class, 'show'])->defaults('page', $legalPage)->name($legalPage.'.show');
 }
+
+// An address that matches no route (#1574): the answer is still a 404, but it goes through the web middleware, so that the
+// error page knows who is signed in and shows the header of a member. Every method answers 404 (a GET-only fallback would
+// make the other methods answer 405), without the CSRF check, because nothing changes here. The API keeps its JSON 404
+Route::any('{fallbackPlaceholder}', static fn () => abort(404))
+    ->where('fallbackPlaceholder', '(?!api(?:/|$)).*')
+    ->withoutMiddleware([PreventRequestForgery::class])
+    ->fallback();

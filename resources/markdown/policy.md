@@ -23,7 +23,7 @@ DeveloPassion SRL is the controller of the data of your Knowii account. For the 
 3. Communities: your memberships, your role, your access groups, the lessons of a course that you marked as done, your answers and scores in the quizzes of lessons, the members you blocked, the invitations sent to your email address, what you read in chat spaces and conversations, to show what is new, the threads that you follow or muted and the level that you chose for each space (Everything, Only what is for me, or Muted), which Knowii keeps while you are a member of the community and which you can change at any time, and the notifications that tell you when a member replies to you or mentions you, or when something new happens in a thread that you follow, in a space where you chose Everything, or in a course that you started (who wrote, about which post, comment, message or lesson, and when you saw it), and the date and hour of your last visit of each space, to mark the spaces that have something new for you, and, when you sign in with a Knowii account, the list of what that account gives access to, which Knowii reads when you sign in, when it changes, and once a night, to open or close the spaces of a community. If a manager of a community removes you from it, Knowii keeps a record of that community, your account and the date, so that you cannot join it again by yourself; the record is deleted when you accept a new invitation, when a manager lets you join again, when the community is deleted or when you delete your account.
 4. Your content: posts, comments, reactions, mentions, resources and their captured content, chat messages, direct messages, pages, lessons, and uploaded images and their alternative text. Uploaded images are re-encoded on our server, which removes their metadata (location, camera).
 5. Technical data: the IP address and the browser of each session, the API tokens you create and the date of their last use, the token of the 'Remember me' option, your password reset requests until they expire, and counters by IP address that limit the number of requests (rate limits).
-6. Waitlist and newsletter: your email address, if you join them.
+6. Waitlist and newsletter: your email address, if you join the newsletter, or if you joined the waitlist before it closed.
 7. Data that we get from other people: when a manager of a community invites you, they give us your email address. When a member mentions you, that mention is content of the community.
 8. Audience statistics: page views, counted by Plausible without cookies and without a stored identifier. Our proxy at Cloudflare and Plausible see your IP address to count the view and do not keep it.
 
@@ -35,7 +35,7 @@ We do not use advertising or tracking cookies, and we do not sell personal data.
 
 1. To run your account and the communities you join: the contract between you and us (GDPR art. 6(1)(b)).
 2. To protect the platform (sign-in protection, rate limits, bot checks, logs, backups): our legitimate interest in a secure service (art. 6(1)(f)).
-3. To send the waitlist and newsletter emails: your consent (art. 6(1)(a)). You can unsubscribe in every email.
+3. To send the newsletter emails, and the waitlist emails to the addresses given before it closed: your consent (art. 6(1)(a)). You can unsubscribe in every email.
 4. To send the emails that the service needs (sign-in links, address verification, invitations): the contract.
 5. To know how many people visit the pages: our legitimate interest in improving the service (art. 6(1)(f)).
 
@@ -64,7 +64,7 @@ When a member adds a link to a resources space, our server fetches the page to c
 5. API tokens: until they expire ({{retention.api_token_default}} by default) or you revoke them. Expired tokens are deleted {{retention.expired_api_tokens}} after their expiry date.
 6. Uploaded images that no content uses: {{retention.unused_uploads}}.
 7. Server logs: {{retention.logs}}. Failed background tasks: {{retention.failed_jobs}}.
-8. Waitlist: until the waitlist closes, at most {{retention.waitlist}} after you join it. Unconfirmed and unsubscribed addresses of the waitlist and the newsletter: {{retention.inactive_contacts}} after their last change.
+8. Waitlist: it takes no new address. The addresses given before are deleted after the launch invitation, at most {{retention.waitlist}} after you joined it. Unconfirmed and unsubscribed addresses of the waitlist and the newsletter: {{retention.inactive_contacts}} after their last change.
 9. Backups: we keep {{retention.backups_daily}} daily, {{retention.backups_weekly}} weekly and {{retention.backups_monthly}} monthly encrypted backups. Deleted data can stay in a backup for up to {{retention.backups_longest}}, until that backup is deleted.
 10. Online status: never stored. Other members see it only while you are connected, and only if you allow it in your profile settings.
 11. Notifications: {{retention.notifications_read}} after you read them, {{retention.notifications_unread}} when you never read them.
@@ -83,7 +83,7 @@ Knowii uses only the cookies and the browser storage that the service needs, so 
 | The theme, the comment threads that you collapsed, the skin tone of the emoji picker | Browser storage | It never leaves your browser                                                                                                                      | It stays until you clear it                                                           |
 | The text of a post, a page or a lesson that you wrote and did not send               | Browser storage | Gives your text back after a closed tab, a reload or a crash. It stays only in your browser and is never sent to the server before you publish it | Until you publish or discard it, until you sign out, or 7 days after your last change |
 
-The sign-up, waitlist and newsletter forms use Cloudflare Turnstile to block bots. Cloudflare processes your IP address and data about your browser for this check.
+The sign-up and newsletter forms use Cloudflare Turnstile to block bots. Cloudflare processes your IP address and data about your browser for this check.
 
 ## 7. Security
 

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Adds an email address to an EmailOctopus list: the waitlist and the newsletter (#938) share this code.
+ * Adds an email address to an EmailOctopus list: the newsletter (#938). The waitlist used it too, until #1574.
  *
  * Protection against bots and abuse:
  * - Cloudflare Turnstile token, verified server-side (required: without Turnstile keys, nothing is accepted)
@@ -26,12 +26,12 @@ abstract class AddsEmailOctopusContact
     private const int HTTP_TIMEOUT_SECONDS = 10;
 
     /**
-     * The name of the list in messages and logs ("waitlist", "newsletter")
+     * The name of the list in messages and logs ("newsletter")
      */
     abstract protected function listName(): string;
 
     /**
-     * The key of the list ID in config/services.php (for example "services.emailoctopus.waitlist_list_id")
+     * The key of the list ID in config/services.php (for example "services.emailoctopus.newsletter_list_id")
      */
     abstract protected function listIdConfigKey(): string;
 
@@ -50,7 +50,7 @@ abstract class AddsEmailOctopusContact
         Log::info('Processing a '.$this->listName().' request');
 
         $validator = Validator::make($input, [
-            // WARNING: Those rules must remain aligned with the client-side waitlistEmailSchema
+            // WARNING: Those rules must remain aligned with the client-side waitlistEmailSchema (libs/common, used by the newsletter form)
             'email' => ['required', 'string', 'email:rfc', 'max:'.Constants::MAX_LENGTH_WAITLIST_EMAIL],
             'turnstileToken' => ['required', 'string', 'max:'.Constants::MAX_LENGTH_TURNSTILE_TOKEN],
             // Honeypot: must stay empty

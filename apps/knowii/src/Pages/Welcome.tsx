@@ -1,64 +1,86 @@
 import { Head } from '@inertiajs/react';
-import { useTypedPage } from '@knowii/common';
+import { useRoute } from 'ziggy-js';
+import { DASHBOARD_URL, LOGIN_URL, REGISTER_URL, useTypedPage } from '@knowii/common';
 import PageHeader from '@/Components/PageHeader';
 import PageContentWrapper from '@/Components/PageContentWrapper';
 import Footer from '@/Components/Footer';
 import PageWrapper from '@/Components/PageWrapper';
-import WaitlistForm from '@/Components/Waitlist/WaitlistForm';
+import { LinkButton } from '@/Components/ui';
+import {
+  HOME_HEADING,
+  HOME_LINES,
+  HOME_OPEN_DASHBOARD,
+  HOME_SIGN_IN,
+  HOME_SIGN_UP,
+  HOME_SIGN_UP_CLOSED,
+  HOME_TITLE,
+} from '@/Components/Home/home-texts';
 
 interface Props {
   canLogin: boolean;
+  /**
+   * False when the instance does not take new accounts (the Fortify registration feature is off)
+   */
   canRegister: boolean;
-  waitlist: {
-    enabled: boolean;
-    turnstileSiteKey: string | null;
-  };
 }
 
-export default function WelcomePage(props: Props) {
+/**
+ * The home page (#1574): what Knowii is, what a person can do, and the way in. A visitor gets "Sign up" and "Sign in", a
+ * signed-in person gets the dashboard.
+ */
+export default function WelcomePage({ canLogin, canRegister }: Props) {
   const page = useTypedPage();
-
-  const showLogout = props.canLogin && page.props.auth.user !== null;
-  const showDashboard = props.canLogin && page.props.auth.user !== null;
-  const showLogin = props.canLogin && !page.props.auth.user;
-  const showRegister = props.canLogin && !page.props.auth.user;
+  const route = useRoute();
+  const signedIn = page.props.auth.user !== null;
 
   return (
     <>
-      <Head title="Welcome" />
+      <Head title={HOME_TITLE} />
 
       <PageWrapper>
         <PageHeader
           compact={false}
           addLinkOnLogo={false}
-          showDashboardButton={showDashboard}
-          showLogoutButton={showLogout}
+          showDashboardButton={false}
+          showLogoutButton={signedIn}
           accountCuid={page.props.auth.user?.cuid}
-          showLoginButton={showLogin}
-          showRegisterButton={showRegister}
+          showLoginButton={false}
+          showRegisterButton={false}
         />
 
         <PageContentWrapper>
-          <div className="flex flex-col items-center">
-            <h1 className="text-center">
-              <span className="text-gradient-brand">Coming soon</span>&nbsp;
-              <span role={'img'} aria-label="waving hand">
-                👋
-              </span>
+          <div className="readable-width mx-auto flex flex-col items-center gap-6 py-8 text-center md:py-16">
+            <h1 className="text-3xl leading-tight break-words sm:text-4xl lg:text-5xl">
+              <span className="text-gradient-brand">{HOME_HEADING}</span>
             </h1>
-            <h2 className="mt-6 text-center">
-              Know<span className="text-secondary-text">ii</span> is a place for your community's Knowledge, Ideas and Inspiration.
-            </h2>
-            <div className="mt-8 text-center text-xl text-muted">
-              Get ready for a <i>revolutionary</i> knowledge-sharing experience!
+            <div className="flex flex-col gap-2 text-lg text-muted">
+              {HOME_LINES.map((line) => (
+                <p key={line}>{line}</p>
+              ))}
             </div>
-          </div>
 
-          {props.waitlist.enabled && props.waitlist.turnstileSiteKey && (
-            <div className="mt-16 flex flex-col items-center">
-              <WaitlistForm turnstileSiteKey={props.waitlist.turnstileSiteKey} />
-            </div>
-          )}
+            {signedIn ? (
+              <LinkButton href={route(DASHBOARD_URL)} size="lg" className="mt-2">
+                {HOME_OPEN_DASHBOARD}
+              </LinkButton>
+            ) : (
+              <div className="mt-2 flex flex-col items-center gap-4">
+                {!canRegister && <p className="text-base">{HOME_SIGN_UP_CLOSED}</p>}
+                <div className="flex flex-col items-center gap-3 sm:flex-row">
+                  {canRegister && (
+                    <LinkButton href={route(REGISTER_URL)} size="lg" className="min-w-48">
+                      {HOME_SIGN_UP}
+                    </LinkButton>
+                  )}
+                  {canLogin && (
+                    <LinkButton href={route(LOGIN_URL)} variant="secondary" size="lg" className="min-w-48">
+                      {HOME_SIGN_IN}
+                    </LinkButton>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </PageContentWrapper>
         <Footer />
       </PageWrapper>

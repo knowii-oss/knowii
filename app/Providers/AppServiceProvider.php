@@ -101,7 +101,6 @@ use App\Actions\Users\UpdateNotificationSettings;
 use App\Actions\Users\UpdateOnlineStatus;
 use App\Actions\Users\UpdateTimeZone;
 use App\Actions\Users\VerifyUsernameAvailability;
-use App\Actions\Waitlist\JoinWaitlist;
 use App\Constants;
 use App\Contracts\AccessGroups\AddsAccessGroupMembers;
 use App\Contracts\AccessGroups\CreatesAccessGroups;
@@ -204,7 +203,6 @@ use App\Contracts\Users\UpdatesNotificationSettings;
 use App\Contracts\Users\UpdatesOnlineStatus;
 use App\Contracts\Users\UpdatesTimeZones;
 use App\Contracts\Users\VerifiesUsernameAvailability;
-use App\Contracts\Waitlist\JoinsWaitlist;
 use App\Models\User;
 use App\Support\ReverbPresenceChannels;
 use Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider;
@@ -280,7 +278,6 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(SetsAccessGroupSpaceGroups::class, SetAccessGroupSpaceGroups::class);
         app()->singleton(SetsSpaceGroupAccessGroups::class, SetSpaceGroupAccessGroups::class);
         app()->singleton(AcceptsCommunityInvitations::class, AcceptCommunityInvitation::class);
-        app()->singleton(JoinsWaitlist::class, JoinWaitlist::class);
         app()->singleton(SubscribesToNewsletter::class, SubscribeToNewsletter::class);
         app()->singleton(CreatesSpaceGroups::class, CreateSpaceGroup::class);
         app()->singleton(UpdatesSpaceGroups::class, UpdateSpaceGroup::class);
@@ -348,12 +345,7 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(ReceivesEntitlementEvents::class, ReceiveEntitlementEvent::class);
         app()->singleton(SetsAccessGroupRules::class, SetAccessGroupRules::class);
 
-        // Public waitlist endpoint: a few requests per minute and per IP address
-        RateLimiter::for('waitlist', static function (Request $request) {
-            return Limit::perMinute(Constants::WAITLIST_MAX_REQUESTS_PER_MINUTE)->by($request->ip());
-        });
-
-        // Public newsletter endpoint (#938): the same limit as the waitlist
+        // Public newsletter endpoint (#938): a few requests per minute and per IP address
         RateLimiter::for('newsletter', static function (Request $request) {
             return Limit::perMinute(Constants::WAITLIST_MAX_REQUESTS_PER_MINUTE)->by($request->ip());
         });

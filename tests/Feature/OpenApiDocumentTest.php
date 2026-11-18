@@ -113,7 +113,7 @@ test('the older endpoints document their required body fields', function (string
     'communities' => ['/v1/communities', ['name', 'visibility']],
     'resources' => ['/v1/communities/{community}/spaces/{space}/resources', ['url', 'level']],
     'username availability' => ['/v1/users/is-username-available', ['usernameToCheck']],
-    'waitlist' => ['/v1/waitlist', ['email', 'turnstileToken']],
+    'newsletter' => ['/v1/newsletter', ['email', 'turnstileToken']],
 ]);
 
 test('the join routes are documented (#1486)', function () {

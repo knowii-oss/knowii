@@ -18,7 +18,7 @@
   },
   "notes": [
     "The application ran in the `local` environment. There, a 403, a 404 and a 500 show the error page of the framework, not `Pages/Error.tsx`: `bootstrap/app.php` renders that page only outside `local` and `testing`. The pictures of the area \"errors\" and every \"forbidden\" state show what the local environment shows.",
-    "Requests to hosts outside this machine are refused by the tool. The bot check widget (sign-up page, waitlist form of the home page) comes from an outside service: its place is empty in the pictures, and the \"Subscribe\" button of the waitlist form stays disabled.",
+    "Requests to hosts outside this machine are refused by the tool. The bot check widget (sign-up page, newsletter form of the footer) comes from an outside service: its place is empty in the pictures, and the \"Subscribe\" button of the newsletter form stays disabled.",
     "The forms of the sign-in pages and of the account settings use the validation bubbles of the browser for empty required fields. A page screenshot does not hold these bubbles. For the state \"errors\" of these forms the tool sends the form without the check of the browser: the pictures show the messages of the server.",
     "The dialogs with a disabled submit button (new community, space, space group, post, page) cannot be sent empty. Their state \"errors\" shows the messages of a field that was filled and emptied.",
     "The states \"loading\" and \"error\" exist only where the screen asks for its data after the page loads (the tool holds that request, or answers it with a 500). The screens that get their data with the page have no such state.",

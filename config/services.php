@@ -21,19 +21,19 @@ return [
         'proxy_url' => env('PLAUSIBLE_PROXY_URL'),
     ],
 
-    // Waitlist on the welcome page (https://emailoctopus.com/api-documentation/v2)
+    // The mailing lists (https://emailoctopus.com/api-documentation/v2)
     'emailoctopus' => [
         'base_url' => env('EMAILOCTOPUS_BASE_URL', 'https://api.emailoctopus.com'),
         'api_key' => env('EMAILOCTOPUS_API_KEY'),
+        // The list of the waitlist: it takes no new address (#1574). Only the prune of its old contacts reads it (ADR 0030)
         'waitlist_list_id' => env('EMAILOCTOPUS_WAITLIST_LIST_ID'),
-        // 'pending': EmailOctopus waits for the confirmation of the address (double opt-in) before the contact is subscribed
-        'waitlist_contact_status' => env('EMAILOCTOPUS_WAITLIST_CONTACT_STATUS', 'pending'),
-        // Newsletter form of the footer (#938): hidden while no list ID is configured
+        // Newsletter form of the footer (#938): hidden while no list ID is configured. 'pending': EmailOctopus waits for the
+        // confirmation of the address (double opt-in) before the contact is subscribed
         'newsletter_list_id' => env('EMAILOCTOPUS_NEWSLETTER_LIST_ID'),
         'newsletter_contact_status' => env('EMAILOCTOPUS_NEWSLETTER_CONTACT_STATUS', 'pending'),
     ],
 
-    // Cloudflare Turnstile: bot check of the public forms (waitlist). https://developers.cloudflare.com/turnstile/
+    // Cloudflare Turnstile: bot check of the public forms (sign-up, newsletter). https://developers.cloudflare.com/turnstile/
     // Without keys, the forms that need it refuse submissions.
     'turnstile' => [
         'site_key' => env('TURNSTILE_SITE_KEY'),

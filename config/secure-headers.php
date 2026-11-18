@@ -585,7 +585,7 @@ return [
         'frame-src' => [
             'self' => true,
             'allow' => Sources::unique([
-                // Cloudflare Turnstile (bot check of the waitlist form)
+                // Cloudflare Turnstile (bot check of the sign-up and newsletter forms)
                 'https://challenges.cloudflare.com',
                 // Video players of course lessons (#1188, App\Support\VideoEmbed::PLAYER_HOSTS)
                 'https://www.youtube-nocookie.com',
@@ -679,7 +679,7 @@ return [
             'strict-dynamic' => true,
 
             // Nonces are generated per request (csp_nonce('script')): values listed here are replaced by the package.
-            // Scripts added by a trusted script (for example the waitlist form on the welcome page) are allowed by 'strict-dynamic'.
+            // Scripts added by a trusted script (for example the bot check of the newsletter form) are allowed by 'strict-dynamic'.
             'nonces' => [],
 
             'hashes' => [

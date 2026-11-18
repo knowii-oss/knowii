@@ -37,7 +37,6 @@ use App\Http\Controllers\API\UserApiController;
 use App\Http\Controllers\API\UserBlockApiController;
 use App\Http\Controllers\API\UserEntitlementApiController;
 use App\Http\Controllers\API\UserIdentityApiController;
-use App\Http\Controllers\API\WaitlistApiController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix(ApiRoutes::VERSION)->group(function () {
@@ -47,9 +46,6 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
 
     // Utils
     Route::get(ApiRoutes::PING, [PingApiController::class, 'ping']);
-
-    // Waitlist (public, rate limited: see AppServiceProvider)
-    Route::post(ApiRoutes::WAITLIST, [WaitlistApiController::class, 'join'])->middleware('throttle:waitlist');
 
     // Newsletter of the footer (public, rate limited, #938)
     Route::post(ApiRoutes::NEWSLETTER, [NewsletterApiController::class, 'subscribe'])->middleware('throttle:newsletter');
