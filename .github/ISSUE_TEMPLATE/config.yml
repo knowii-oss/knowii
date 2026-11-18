@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security problem
+    url: https://github.com/knowii-oss/knowii/security/advisories/new
+    about: Never write a security problem in a public issue. This form sends a private report to the maintainers.

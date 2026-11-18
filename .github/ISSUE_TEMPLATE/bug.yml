@@ -1,0 +1,43 @@
+name: Bug
+description: Something does not work as it should
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for the report. Search the issues first: the problem is possibly known.
+
+        **A security problem does not go here.** Use "Report a security problem" on the page before this form.
+  - type: textarea
+    id: what
+    attributes:
+      label: What is wrong
+      description: What you did, what you saw, and what you expected.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The smallest list of steps that shows the problem. Do not paste personal data, keys or passwords.
+      placeholder: |
+        1. Sign in as a member
+        2. Open ...
+        3. Press ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The version or the commit of Knowii, and whether you host it yourself.
+  - type: input
+    id: environment
+    attributes:
+      label: Browser and device
+      placeholder: Firefox 142 on Linux, Safari on iOS 19
+  - type: textarea
+    id: more
+    attributes:
+      label: Anything else
+      description: Pictures, the text of an error, the log lines (without personal data).
