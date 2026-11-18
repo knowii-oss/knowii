@@ -148,8 +148,16 @@ final class OpenIdConnectClient implements ReadsOpenIdConnectIdentities
     }
 
     /**
+     * The endpoints come from the provider that the operator of the instance configured (OIDC_ISSUER), which the platform
+     * trusts for every sign-in: the document must name that issuer, it comes over https with a checked certificate and
+     * without a redirect, and every endpoint must be an https address (ADR 0045). The security scan (ADR 0051) therefore
+     * treats the checked endpoints as safe for a request and for a redirect.
+     *
      * @param  Json  $document
      * @return array{authorization_endpoint: string, token_endpoint: string, jwks_uri: string, token_auth: 'basic'|'post'}|null
+     *
+     * @psalm-taint-escape ssrf
+     * @psalm-taint-escape header
      */
     private function endpointsOf(array $document, bool $isDocument): ?array
     {

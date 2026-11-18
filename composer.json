@@ -42,7 +42,9 @@
     "nunomaduro/collision": "^8.9",
     "pestphp/pest": "^5.0",
     "pestphp/pest-plugin-laravel": "^5.0",
-    "roave/security-advisories": "dev-latest"
+    "psalm/plugin-laravel": "^4.22",
+    "roave/security-advisories": "dev-latest",
+    "vimeo/psalm": "^7.10"
   },
   "autoload": {
     "psr-4": {
@@ -57,6 +59,9 @@
     }
   },
   "scripts": {
+    "security:php": [
+      "bash tools/security/psalm-taint.sh"
+    ],
     "db:clean": [
       "sail php artisan migrate:fresh --seed --force"
     ],

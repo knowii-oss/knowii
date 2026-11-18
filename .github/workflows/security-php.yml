@@ -1,0 +1,50 @@
+name: Security scan (PHP)
+
+# The taint analysis of Psalm on the PHP code (ADR 0051). CodeQL covers JavaScript, TypeScript and the workflows, not PHP.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    # Every Monday: a new version of the rules can find something in code that did not change
+    - cron: '17 5 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  psalm-taint:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Only to send the report to code scanning
+      security-events: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Cache composer dependencies
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            composer-
+
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.5'
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, pgsql, pdo_pgsql, bcmath, soap, intl, gd, exif, iconv
+      - name: Install back-end dependencies
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+      - name: Taint analysis
+        run: bash tools/security/psalm-taint.sh psalm-taint.sarif
+
+      # The report goes to code scanning, where only the maintainers read it. A pull request from a fork has no right to
+      # send it: there the step is skipped and the failed scan is the signal.
+      - name: Send the report to code scanning
+        if: always() && hashFiles('psalm-taint.sarif') != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          sarif_file: psalm-taint.sarif
+          category: psalm-taint
