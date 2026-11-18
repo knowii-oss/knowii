@@ -51,6 +51,7 @@
     "test:knowii": "npx nx test knowii",
     "test:watch": "npm run test -- --watch",
     "tsc": "npx tsc --noEmit --project ./tsconfig.app.json",
+    "tsc:spec": "npx tsc --noEmit --project ./apps/knowii/tsconfig.spec.json && npx tsc --noEmit --project ./libs/common/tsconfig.spec.json",
     "tsc:watch": "npm run tsc -- --watch",
     "tscw": "npm run tsc:watch",
     "update": "npx nx migrate latest"

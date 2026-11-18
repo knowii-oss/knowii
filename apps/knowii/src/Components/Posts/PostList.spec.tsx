@@ -79,6 +79,7 @@ function renderList(canContribute = true) {
         space={space}
         initialPosts={{ items: [post('p1', 'Pinned', true), post('p2', 'Second')], pagination: pagination(20, 3) }}
         canContribute={canContribute}
+        canReact={canContribute}
       />
     </AppDataProvider>,
   );
@@ -133,6 +134,7 @@ describe('PostList live updates (#1180)', () => {
           space={space}
           initialPosts={{ items: [post('p1', 'Pinned', true), post('p2', 'Second')], pagination: pagination(null, 2) }}
           canContribute
+          canReact
           currentUserCuid={currentUserCuid}
         />
       </AppDataProvider>,

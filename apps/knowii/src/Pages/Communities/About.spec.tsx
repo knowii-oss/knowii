@@ -66,6 +66,9 @@ const none: CommunityPermissions = {
   canAddCommunityMembers: false,
   canUpdateCommunityMembers: false,
   canRemoveCommunityMembers: false,
+  canManageAccessGroups: false,
+  canManageAccessGroupMembers: false,
+  canViewAccessGroups: false,
 };
 
 function renderPage(currentRole: CommunityRole, permissions: Partial<CommunityPermissions> = {}) {

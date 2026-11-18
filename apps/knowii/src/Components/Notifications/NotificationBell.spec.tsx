@@ -42,7 +42,7 @@ describe('NotificationBell, the name and the badge (#1484)', () => {
     [12, 'Notifications, 9 or more new', '9+'],
   ])('with a count of %i the name is "%s" and the badge %s', async (count, name, badge) => {
     const api = spyOnNotificationApi();
-    api.count.mockResolvedValue({ ok: true, message: '', data: { count } });
+    api.count.mockResolvedValue({ ok: true, message: '', data: { count, messages: 0 } });
     renderBell();
 
     const bell = await screen.findByRole('button', { name });

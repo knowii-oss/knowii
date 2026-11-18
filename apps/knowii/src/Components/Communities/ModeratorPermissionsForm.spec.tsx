@@ -1,20 +1,21 @@
 import { describe, expect, it, vi } from 'vitest';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { Community } from '@knowii/common';
+import type { Community, ModeratorPermissions } from '@knowii/common';
 import { AppDataProvider, knowiiApiClient } from '@knowii/common';
 import { ModeratorPermissionsForm } from './ModeratorPermissionsForm';
 
-const community = {
+const permissions: ModeratorPermissions = { manage_spaces: false, manage_members: false, pin_posts: true, delete_content: true };
+const community: Community = {
   cuid: 'c1',
   name: 'Tests',
   slug: 'tests',
   description: '',
   visibility: 'public',
-  moderator_permissions: { manage_spaces: false, manage_members: false, pin_posts: true, delete_content: true },
+  moderator_permissions: permissions,
   created_at: new Date(),
   updated_at: new Date(),
-} as Community;
+};
 
 function renderForm() {
   render(
@@ -37,7 +38,7 @@ describe('ModeratorPermissionsForm', () => {
   });
 
   it('saves the switched rights with the keyboard (#1240)', async () => {
-    const saved = { ...community, moderator_permissions: { ...community.moderator_permissions, manage_spaces: true } };
+    const saved = { ...community, moderator_permissions: { ...permissions, manage_spaces: true } };
     const update = vi
       .spyOn(knowiiApiClient.communities, 'updateModeratorPermissions')
       .mockResolvedValue({ ok: true, message: '', data: saved });

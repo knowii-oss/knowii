@@ -30,7 +30,7 @@ const community = { cuid: 'c1', name: 'Tests', slug: 'tests' } as Community;
 function renderShell(contentWidth?: 'wide' | 'readable') {
   render(
     <AppDataProvider>
-      <CommunityShell community={community} spaceGroups={[]} contentWidth={contentWidth}>
+      <CommunityShell community={community} spaceGroups={[]} {...(contentWidth === undefined ? {} : { contentWidth })}>
         <p>Content</p>
       </CommunityShell>
     </AppDataProvider>,

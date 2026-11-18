@@ -46,6 +46,7 @@ const extension: ApiToken = {
   abilities: ['resources:create'],
   last_used_ago: null,
   created_at: '2026-11-09T10:00:00Z',
+  updated_at: '2026-11-09T10:00:00Z',
   expires_at: null,
 };
 const tokens: ApiToken[] = [extension];
