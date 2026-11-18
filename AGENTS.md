@@ -71,7 +71,42 @@ Nothing that a later session needs lives in a folder outside the repository.
   (`/tmp`), never in a folder beside the repository.
 - Not in this repository, because it is public: the findings of a security
   review before the fixes are merged, the details of an instance (server
-  addresses, accounts, keys), and personal data. See `SECURITY.md`.
+  addresses, accounts, keys), and personal data. See "Security issues" below.
+
+## Security issues
+
+This repository and its forks are public. A security problem that is written
+in public before its fix is merged helps an attacker. These rules have no
+exception.
+
+- **Never in public before the fix is merged**: a vulnerability, a weakness
+  found in a review, the steps to reproduce it or a proof. "Public" means an
+  issue, a pull request (title, text, comment, review), a commit message, a
+  discussion, and a branch of this repository or of a fork.
+- **Where it goes**: a person from outside reports it in private (the
+  "Security" tab, "Report a vulnerability", or the address in `SECURITY.md`).
+  A maintainer keeps the report of a review, the proofs and the draft of an
+  advisory in the private repository `knowii-oss/knowii-security`, and nowhere
+  else.
+- **When you find a problem during other work**: do not write it in the issue
+  or the pull request that you work on. Tell the maintainer in private, and
+  go on only with what the maintainer decides.
+- **The fix**: its pull request and its commit say what the code now does, in
+  plain words, without the attack and without the steps. The details and the
+  advisory become public after the merge. The link between the fix and the
+  finding is written in the private repository.
+- **Secrets**: no key, token or password in a file, an issue, a log or a
+  commit, also not in the private repository. A finding names where a secret
+  is, never its value. A secret that leaked is replaced first, then removed.
+- **Never weaken a check to make a build pass**: the dependency audits, the
+  code scanning, the secret scanning, the Content Security Policy, the branch
+  protection. Fix the cause in the code. An alert is closed without a fix
+  only when the maintainer decides it, with the reason in writing.
+- **Tests**: test on a local environment, never on a hosted instance, and
+  never with the data of real people.
+- **Approved texts**: `SECURITY.md` and the security page of the application
+  (`resources/markdown/security.md`) change only with the approval of the
+  owner.
 
 ## Commands
 
