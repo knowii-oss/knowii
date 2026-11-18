@@ -42,7 +42,7 @@
 
   /* Text */
   --color-primary: #ffffff; /* text on dark: 11.85 / 9.12 / 7.82 / 14.46 */
-  --color-muted: rgb(255 255 255 / 0.7); /* secondary text: 6.72 / 5.46 / 4.82 / 7.85 */
+  --color-muted: rgb(255 255 255 / 0.8); /* secondary text: 8.23 / 6.55 / 5.72 / 9.78; 4.53 on a hover row of surface-elevated (#1648) */
 
   /* Brand */
   --color-secondary: #e5007d; /* signature magenta: fills and buttons, never text (white text on it: 4.54:1) */
@@ -55,14 +55,14 @@
 
   /* Lines */
   --color-border: rgb(255 255 255 / 0.1);
-  --color-border-strong: rgb(255 255 255 / 0.4); /* form control borders: 3.6:1 on the well */
+  --color-border-strong: rgb(255 255 255 / 0.45); /* control borders: 4.16 on the well, 3.26 on the surface (#1648) */
 
   /* Status */
   --color-success: #4ade80; /* 6.80 / 5.24 / 4.49 / 8.30 */
   --color-warning: #fbbf24; /* accent yellow (icons) */
   --color-danger: #dc2626; /* fills (white text on it: 4.83:1) */
   --color-danger-hover: #b91c1c;
-  --color-danger-text: #fca5a5; /* error text: 6.24 / 4.81 / 4.12 / 7.62 */
+  --color-danger-text: #fdbaba; /* error text: 7.28 / 5.61 / 4.81 / 8.89 (#1648) */
 
   --font-sans:
     'Noto Sans Variable', 'Noto Sans', Inter, 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, Cantarell,
@@ -113,7 +113,7 @@
   --color-border: rgb(0 0 0 / 0.1);
   --color-border-strong: rgb(26 26 46 / 0.5); /* 3.2:1 on the well */
 
-  --color-success: #15803d; /* 5:1 */
+  --color-success: #157a3a; /* 5.42 on white, 4.78 on the well (#1648) */
   --color-warning: #b45309; /* 5:1 */
   --color-danger: #dc2626;
   --color-danger-hover: #b91c1c;
