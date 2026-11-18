@@ -1,6 +1,7 @@
 # 0047. The entitlements of the sign-in provider feed the access groups, in real time
 
 - Status: Accepted
+- See also: [the contract of an external account service](../architecture/external-account-service.md)
 - Date: 2026-11-16
 - Issue: #1386
 - Pull request: #1506

@@ -32,10 +32,10 @@ vi.mock('@knowii/common', async (importOriginal) => ({
 
 describe('LoginPage with an OpenID Connect provider (#1385)', () => {
   it('shows the provider above the password, and keeps the other ways', () => {
-    page.props = { oidc: { label: 'Knowii account', error: null, status: null } };
+    page.props = { oidc: { label: 'Example account', error: null, status: null } };
     render(<LoginPage canResetPassword status="" />);
 
-    const provider = screen.getByRole('link', { name: 'Continue with Knowii account' });
+    const provider = screen.getByRole('link', { name: 'Continue with Example account' });
     const email = screen.getByLabelText('Email');
     // The provider comes first in the page
     expect(provider.compareDocumentPosition(email) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
@@ -44,7 +44,7 @@ describe('LoginPage with an OpenID Connect provider (#1385)', () => {
   });
 
   it('shows the error of a failed provider sign-in, once, as an alert', () => {
-    page.props = { oidc: { label: 'Knowii account', error: 'We could not sign you in with this account.', status: null } };
+    page.props = { oidc: { label: 'Example account', error: 'We could not sign you in with this account.', status: null } };
     render(<LoginPage canResetPassword status="" />);
 
     expect(screen.getAllByRole('alert')).toHaveLength(1);

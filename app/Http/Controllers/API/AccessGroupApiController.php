@@ -29,8 +29,8 @@ use Illuminate\Support\Facades\Gate;
 /**
  * Access groups (#1241, ADR 0025): named groups of members that open the spaces with the "groups" visibility. The
  * owner and the admins manage the groups; moderators with the "manage members" right add and remove their members.
- * Another system (the Knowii account, a payment tool) keeps a group in step with a token that has groups:write.
- * Changes are delegated to the actions (ADR 0006).
+ * Another system (the external account service, a payment tool) keeps a group in step with a token that has
+ * groups:write. Changes are delegated to the actions (ADR 0006).
  */
 class AccessGroupApiController extends Controller
 {

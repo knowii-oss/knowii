@@ -1,6 +1,8 @@
 # 0045. Sign in with an OpenID Connect provider: a generic client, linked by subject
 
 - Status: Accepted, amended by [0052](0052-account-deletion-after-a-new-sign-in.md) (an account without a password confirms the deletion of the account with a new sign-in at the provider: decision 18)
+- Names (2026-11-18, #1643): the provider is any external account service; the Knowii account is one instance of it.
+- See also: [the contract of an external account service](../architecture/external-account-service.md)
 - Date: 2026-11-15
 - Issue: #1385
 - Pull request: #1495

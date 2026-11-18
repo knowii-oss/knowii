@@ -87,3 +87,4 @@ vitest.config.*.timestamp*
 .nx/self-healing
 .nx/migrate-runs
 .vitest
+psalm-taint.sarif

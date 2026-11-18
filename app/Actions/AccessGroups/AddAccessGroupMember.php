@@ -18,8 +18,8 @@ class AddAccessGroupMember implements AddsAccessGroupMembers
 {
     /**
      * Add a member of the community to an access group (#1241, ADR 0025). The member is named by exactly one of
-     * member (user cuid), username or email, so that a sync from another system (the Knowii account) can use the email
-     * address it knows. Adding a member twice changes nothing. The membership is marked as added by hand
+     * member (user cuid), username or email, so that a sync from another system (the external account service) can
+     * use the email address it knows. Adding a member twice changes nothing. The membership is marked as added by hand
      * (`manual`): it stays when a rule of the group stops giving it (#1386).
      */
     final public function add(User $user, AccessGroup $group, array $input): User

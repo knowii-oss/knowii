@@ -1,6 +1,7 @@
 # 0025. Access groups open spaces to some members, managed by hand or by a sync through the API
 
 - Status: Accepted
+- Names (2026-11-18, #1643): the provider is any external account service; the Knowii account is one instance of it.
 - Date: 2026-11-09
 - Issue: #1241
 

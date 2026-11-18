@@ -26,16 +26,16 @@ describe('OpenIdConnectButton', () => {
   });
 
   it('is a link to the redirect of the provider, named after it', () => {
-    page.props = { oidc: { label: 'Knowii account', error: null, status: null } };
+    page.props = { oidc: { label: 'Example account', error: null, status: null } };
     render(<OpenIdConnectButton />);
 
-    const link = screen.getByRole('link', { name: 'Continue with Knowii account' });
+    const link = screen.getByRole('link', { name: 'Continue with Example account' });
     expect(link).toHaveAttribute('href', '/route/oidc.redirect');
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('says that a new account is created, with the terms and the minimum age', () => {
-    page.props = { oidc: { label: 'Knowii account', error: null, status: null } };
+    page.props = { oidc: { label: 'Example account', error: null, status: null } };
     render(<OpenIdConnectButton />);
 
     expect(screen.getByText(/this creates one/)).toHaveTextContent('you are 16 or older');
@@ -44,7 +44,7 @@ describe('OpenIdConnectButton', () => {
   });
 
   it('shows the error of a failed sign-in as an alert, above the button', () => {
-    page.props = { oidc: { label: 'Knowii account', error: 'We could not sign you in with this account.', status: null } };
+    page.props = { oidc: { label: 'Example account', error: 'We could not sign you in with this account.', status: null } };
     render(<OpenIdConnectButton />);
 
     expect(screen.getByRole('alert')).toHaveTextContent('We could not sign you in with this account.');
