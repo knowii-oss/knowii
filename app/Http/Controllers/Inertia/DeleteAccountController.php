@@ -25,7 +25,8 @@ use Symfony\Component\HttpFoundation\Response;
  * too (#1344, ADR 0043). It takes the place of the Jetstream controller on the same route (`current-user.destroy`),
  * which cannot pass an option to the action. The action validates the option and does the work.
  *
- * The proof of the intent (#1521, ADR 0052): the password for an account that has one. An account without a password
+ * The proof of the intent (#1521, ADR 0052): the password for an account that has one, with the code of two-factor
+ * authentication when it is on, as on the API. An account without a password
  * uses the proof of a new sign-in at the provider (made a moment ago from the same screen, recorded on the account),
  * and the two-factor code when two-factor authentication is on. An account without a password and without a way to make
  * the proof is refused.
@@ -42,11 +43,28 @@ class DeleteAccountController extends Controller
         } else {
             $password = $request->input('password');
 
+            // A few tries a minute, as on the API: a session that someone else holds cannot guess the password
+            $key = 'account-deletion-password:'.($user->cuid ?? $request->ip());
+            if (RateLimiter::tooManyAttempts($key, Constants::ACCOUNT_DELETIONS_PER_MINUTE)) {
+                throw ValidationException::withMessages(['password' => __('Too many tries. Please wait a minute, then try again.')]);
+            }
+
             if ($user === null || ! is_string($password) || ! app(ConfirmPassword::class)($guard, $user, $password)) {
+                RateLimiter::hit($key, 60);
+                if ($user !== null) {
+                    Log::warning('Account deletion refused', ['reason' => 'wrong_password', 'user' => $user->cuid]);
+                }
                 throw ValidationException::withMessages([
                     'password' => __('The password is incorrect.'),
                 ]);
             }
+
+            // The option is valid before a recovery code can be used up
+            Validator::make($request->only(['delete_content', 'code']), [
+                'delete_content' => ['sometimes', 'boolean'],
+                'code' => ['nullable', 'string', 'max:64'],
+            ])->validate();
+            $this->checkSecondFactor($request, $user);
 
             app(DeletesAccounts::class)->delete($user->fresh() ?? $user, $request->only(['delete_content']));
         }
@@ -82,7 +100,24 @@ class DeleteAccountController extends Controller
             'code' => ['nullable', 'string', 'max:64'],
         ])->validate();
 
-        // Two-factor authentication is never skipped. A few tries a minute, as on the API
+        $this->checkSecondFactor($request, $user);
+
+        try {
+            app(DeletesAccounts::class)->deleteAfterSignIn($user->fresh() ?? $user, $request->only(['delete_content']));
+        } catch (BusinessException) {
+            // The proof expired or was used in the meantime
+            throw ValidationException::withMessages(['sign_in' => AccountDeletion::webSignInNeededMessage()]);
+        }
+    }
+
+    /**
+     * The code of two-factor authentication, when it is on, for every account: with a password or with the proof of a
+     * new sign-in. A few tries a minute, as on the API.
+     *
+     * @throws ValidationException
+     */
+    private function checkSecondFactor(Request $request, User $user): void
+    {
         if ($user->hasEnabledTwoFactorAuthentication()) {
             $key = 'account-deletion-code:'.$user->cuid;
             if (RateLimiter::tooManyAttempts($key, Constants::ACCOUNT_DELETIONS_PER_MINUTE)) {
@@ -97,13 +132,6 @@ class DeleteAccountController extends Controller
                 Log::warning('Account deletion refused', ['reason' => 'wrong_code', 'user' => $user->cuid]);
                 throw ValidationException::withMessages(['code' => __('The provided two factor authentication code was invalid.')]);
             }
-        }
-
-        try {
-            app(DeletesAccounts::class)->deleteAfterSignIn($user->fresh() ?? $user, $request->only(['delete_content']));
-        } catch (BusinessException) {
-            // The proof expired or was used in the meantime
-            throw ValidationException::withMessages(['sign_in' => AccountDeletion::webSignInNeededMessage()]);
         }
     }
 }
