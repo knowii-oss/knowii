@@ -1,15 +1,50 @@
-# To get started with Dependabot version updates, you'll need to specify which
-# package ecosystems to update and where the package manifests are located.
-# Please see the documentation for all configuration options:
-# https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+# Version updates by Dependabot (#1559). Security updates do not wait for the weekly day: Dependabot opens them at once.
+# https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference
 
 version: 2
 updates:
-  - package-ecosystem: 'composer' # See documentation for possible values
-    directory: '/' # Location of package manifests
+  # PHP packages
+  - package-ecosystem: 'composer'
+    directory: '/'
     schedule:
-      interval: 'daily'
-  # The workflows pin every action to a full commit (#1559). Dependabot moves the commit and the version in the comment.
+      interval: 'weekly'
+    open-pull-requests-limit: 5
+    groups:
+      # One pull request for the minor and patch versions; a major version gets its own pull request
+      php-minor-and-patch:
+        update-types:
+          - 'minor'
+          - 'patch'
+
+  # Front-end and build packages of the workspace
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    open-pull-requests-limit: 5
+    groups:
+      npm-minor-and-patch:
+        update-types:
+          - 'minor'
+          - 'patch'
+
+  # The helper tools have their own lock file
+  - package-ecosystem: 'npm'
+    directory: '/tools/screen-atlas'
+    schedule:
+      interval: 'weekly'
+    groups:
+      tools:
+        patterns:
+          - '*'
+
+  # The base images of the production image
+  - package-ecosystem: 'docker'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+
+  # The workflows pin every action to a full commit. Dependabot moves the commit and the version in the comment.
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:

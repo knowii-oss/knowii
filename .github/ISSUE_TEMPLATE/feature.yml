@@ -1,0 +1,21 @@
+name: Feature or improvement
+description: An idea for something new, or for something that can be better
+labels: ['enhancement']
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: The need
+      description: Who needs it, and what they cannot do today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: The proposal
+      description: What the platform does for that person. A picture or a list of steps helps.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Other ways
+      description: What you do today in place of it, and other solutions that you looked at.

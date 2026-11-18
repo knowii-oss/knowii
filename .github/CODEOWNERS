@@ -1,0 +1,25 @@
+# The owner of the paths where a mistake costs the most (#1559). A change to one of them asks for the look of this person.
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# The build, the release and the settings of the repository
+/.github/ @dsebastien
+/Dockerfile @dsebastien
+/docker/ @dsebastien
+/compose.production.yaml @dsebastien
+
+# Who is a person, and what a person may do
+/app/Actions/Auth/ @dsebastien
+/app/Actions/Fortify/ @dsebastien
+/app/Policies/ @dsebastien
+/app/Http/Middleware/ @dsebastien
+/config/auth.php @dsebastien
+/config/sanctum.php @dsebastien
+/config/secure-headers.php @dsebastien
+/config/cors.php @dsebastien
+/routes/ @dsebastien
+
+# The texts that the owner approves
+/SECURITY.md @dsebastien
+/resources/markdown/ @dsebastien
+/config/legal.php @dsebastien
+/config/retention.php @dsebastien
