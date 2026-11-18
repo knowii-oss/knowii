@@ -1,4 +1,5 @@
-ARG BASE_IMAGE=ubuntu:24.04
+# Pinned by digest (#1661); docker-compose.yml passes the same default
+ARG BASE_IMAGE=ubuntu:24.04@sha256:73b999393d07f2bf65a40373778a44dc9a6d54ad7718d29247d8ff9413c4d6a8
 FROM ${BASE_IMAGE}
 
 LABEL maintainer="Taylor Otwell"

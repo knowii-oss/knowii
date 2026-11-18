@@ -45,9 +45,6 @@ storage/logs/*
 # Tests and test data, documentation, development images
 tests
 documentation
-docker/8.0
-docker/8.1
-docker/8.2
 docker/8.5
 docker/mariadb
 docker/mysql
