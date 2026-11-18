@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, within } from 'storybook/test';
+import { expect, fireEvent, waitFor, within } from 'storybook/test';
 import { Avatar } from './Avatar';
 
 // A picture in the story itself (a data URL): the story loads nothing from the network
@@ -14,8 +14,8 @@ const PICTURE =
 const BROKEN_PICTURE = 'data:image/png;base64,AAAA';
 
 /**
- * The round picture of a person, with the initials of the name when there is no picture. Use it next to the name of the
- * person (a post, a member list, the account menu), never alone.
+ * The round picture of a person, with the initials of the name when there is no picture or when the picture cannot
+ * load. Use it next to the name of the person (a post, a member list, the account menu), never alone.
  *
  * Accessibility: decorative (`aria-hidden`, the picture has an empty `alt`). The name must be in the text next to it, or
  * in the accessible name of the control that holds it.
@@ -48,10 +48,20 @@ export const WithPicture: Story = {
 };
 
 /**
- * The picture cannot be loaded: the avatar does not show the initials in its place
+ * The picture cannot be loaded: the avatar shows the initials in its place
  */
 export const WithBrokenPicture: Story = {
   args: { imageUrl: BROKEN_PICTURE },
+  play: async ({ canvasElement }) => {
+    const avatar = canvasElement.querySelector('span');
+    // A browser fails to decode the picture and sends the error event; jsdom loads no picture, so the story sends it
+    const picture = avatar?.querySelector('img');
+    if (picture) {
+      fireEvent.error(picture);
+    }
+    await waitFor(() => expect(avatar?.querySelector('img')).toBeNull());
+    await expect(avatar).toHaveTextContent('RG');
+  },
 };
 
 export const Small: Story = {

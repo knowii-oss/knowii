@@ -87,7 +87,9 @@ describe('PasswordInput', () => {
     await userEvent.click(toggle);
 
     expect(input).toHaveAttribute('type', 'text');
-    expect(screen.getByRole('button', { name: 'Hide password' })).toHaveAttribute('aria-pressed', 'true');
+    // One name, and the state in aria-pressed only (#1651)
+    expect(toggle).toHaveAccessibleName('Show password');
+    expect(toggle).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('shows a strength hint linked to the field', async () => {

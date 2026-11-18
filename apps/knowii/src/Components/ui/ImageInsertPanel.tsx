@@ -136,6 +136,7 @@ export function ImageInsertPanel({ baseId, items, busy, message, onChange, onIns
       <ol ref={list} className="-m-1 flex flex-col gap-3 p-1 sm:max-h-[40vh] sm:overflow-y-auto">
         {items.map((item, index) => {
           const altId = imageAltId(baseId, item.id);
+          const errorId = `${altId}-error`;
           const number = index + 1;
           return (
             <li key={item.id} className="flex gap-2">
@@ -158,14 +159,18 @@ export function ImageInsertPanel({ baseId, items, busy, message, onChange, onIns
                     value={item.alt}
                     maxLength={MAX_LENGTH_UPLOAD_ALT}
                     placeholder="What does the image show?"
-                    aria-describedby={`${baseId}-image-alt-hint`}
+                    // The error of the description, then the hint (#1651)
+                    aria-describedby={item.error ? `${errorId} ${baseId}-image-alt-hint` : `${baseId}-image-alt-hint`}
                     invalid={item.error !== null}
                     readOnly={busy || item.status === 'uploaded'}
                     onChange={(event) => update(item.id, { alt: event.target.value, error: null })}
                     onKeyDown={(event) => {
                       if (event.key === 'Enter') {
                         event.preventDefault();
-                        onInsert();
+                        // The uploads run: Enter does nothing, as a click on "Insert" (#1651)
+                        if (!busy) {
+                          onInsert();
+                        }
                       }
                     }}
                   />
@@ -219,7 +224,7 @@ export function ImageInsertPanel({ baseId, items, busy, message, onChange, onIns
                   </p>
                 )}
                 {item.error && (
-                  <p role="alert" className="text-sm text-danger-text">
+                  <p id={errorId} role="alert" className="text-sm text-danger-text">
                     {item.error}
                   </p>
                 )}

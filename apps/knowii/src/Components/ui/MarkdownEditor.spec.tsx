@@ -86,13 +86,15 @@ describe('MarkdownEditor', () => {
       { username: 'adam', name: 'Adam Smith' },
     ]);
     render(<Harness renderPreview={vi.fn()} mentions={{ search }} />);
-    const textarea = screen.getByRole('combobox', { name: 'Body' });
-    expect(textarea).toHaveAttribute('aria-expanded', 'false');
+    // The textarea keeps its role (#1651)
+    const textarea = screen.getByRole('textbox', { name: 'Body' });
+    expect(textarea).toHaveAttribute('aria-autocomplete', 'list');
+    expect(textarea).not.toHaveAttribute('aria-controls');
 
     await userEvent.type(textarea, 'Thanks @ad');
     const listbox = await screen.findByRole('listbox', { name: 'Members to mention' });
     expect(search).toHaveBeenCalledWith('ad', expect.any(AbortSignal));
-    expect(textarea).toHaveAttribute('aria-expanded', 'true');
+    expect(textarea).toHaveAttribute('aria-controls', listbox.id);
     expect(screen.getByRole('option', { name: /@ada Ada Lovelace/ })).toHaveAttribute('aria-selected', 'true');
 
     await userEvent.keyboard('{ArrowDown}');
@@ -106,12 +108,13 @@ describe('MarkdownEditor', () => {
 
   it('closes the suggestions with Escape', async () => {
     render(<Harness renderPreview={vi.fn()} mentions={{ search: vi.fn().mockResolvedValue([{ username: 'ada', name: 'Ada' }]) }} />);
-    const textarea = screen.getByRole('combobox', { name: 'Body' });
+    const textarea = screen.getByRole('textbox', { name: 'Body' });
     await userEvent.type(textarea, '@a');
     await screen.findByRole('option');
 
     await userEvent.keyboard('{Escape}');
-    expect(textarea).toHaveAttribute('aria-expanded', 'false');
+    expect(textarea).not.toHaveAttribute('aria-controls');
+    expect(textarea).not.toHaveAttribute('aria-activedescendant');
     expect(textarea).toHaveValue('@a');
   });
 

@@ -1,5 +1,5 @@
-import type { KeyboardEvent, ReactNode, Ref } from 'react';
-import { useEffect, useId, useRef, useState } from 'react';
+import type { FocusEvent, KeyboardEvent, ReactNode, Ref } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { FaBold, FaCode, FaImage, FaItalic, FaLink, FaListOl, FaListUl, FaQuoteRight, FaVideo } from 'react-icons/fa6';
 import { countMarkdownImages, markdownImage, MAX_IMAGES_PER_CONTENT, MAX_IMAGES_PER_INSERT, parseVideoUrl } from '@knowii/common';
 import { cn } from './cn';
@@ -35,7 +35,8 @@ export interface MarkdownEditorProps {
    */
   toolbarExtra?: ReactNode;
   /**
-   * Suggests members after "@" (combobox pattern). Absent: no suggestions.
+   * Suggests members after "@": the text field keeps its role, with aria-autocomplete, aria-controls and
+   * aria-activedescendant. Absent: no suggestions.
    */
   mentions?: MentionSource | undefined;
   /**
@@ -157,6 +158,9 @@ export function MarkdownEditor({
   const visibleSuggestions = mention !== null && suggestions.query === mention.query ? suggestions.items : [];
   const suggestionsOpen = visibleSuggestions.length > 0;
   const previewTabRef = useRef<HTMLButtonElement>(null);
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  // The button of the toolbar that is its tab stop: the last one that had the focus (toolbar pattern, #1651)
+  const toolbarStop = useRef(0);
   // The text as it is now: the uploads take time, and the member can write (or send a chat message) meanwhile
   const latestValue = useRef(value);
   // The previews to release when the editor goes away with images that still wait
@@ -471,6 +475,48 @@ export function MarkdownEditor({
     }
   };
 
+  // The toolbar is one tab stop (#1651): every button but one gets tabIndex -1, also the ones of toolbarExtra. After
+  // every render, as a button can come or go
+  const toolbarButtons = () => Array.from(toolbarRef.current?.querySelectorAll<HTMLButtonElement>('button') ?? []);
+  useLayoutEffect(() => {
+    const buttons = toolbarButtons();
+    const remembered = buttons[toolbarStop.current];
+    const stop = remembered && !remembered.disabled ? remembered : buttons.find((button) => !button.disabled);
+    buttons.forEach((button) => {
+      button.tabIndex = button === stop ? 0 : -1;
+    });
+  });
+
+  const onToolbarFocus = (event: FocusEvent<HTMLDivElement>) => {
+    const buttons = toolbarButtons();
+    const index = event.target instanceof HTMLButtonElement ? buttons.indexOf(event.target) : -1;
+    if (index !== -1) {
+      toolbarStop.current = index;
+      buttons.forEach((button, position) => {
+        button.tabIndex = position === index ? 0 : -1;
+      });
+    }
+  };
+
+  const onToolbarKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
+      return;
+    }
+    const enabled = toolbarButtons().filter((button) => !button.disabled);
+    const current = event.target instanceof HTMLButtonElement ? enabled.indexOf(event.target) : -1;
+    if (current === -1) {
+      return;
+    }
+    event.preventDefault();
+    const next =
+      event.key === 'Home'
+        ? 0
+        : event.key === 'End'
+          ? enabled.length - 1
+          : (current + (event.key === 'ArrowRight' ? 1 : -1) + enabled.length) % enabled.length;
+    enabled[next]?.focus();
+  };
+
   const selectTab = (next: Tab) => {
     setTab(next);
     (next === 'write' ? writeTabRef : previewTabRef).current?.focus();
@@ -530,7 +576,15 @@ export function MarkdownEditor({
           </button>
         </div>
         {tab === 'write' && (
-          <div role="toolbar" aria-label="Formatting" aria-controls={id} className="flex flex-wrap gap-0.5 pb-1">
+          <div
+            ref={toolbarRef}
+            role="toolbar"
+            aria-label="Formatting"
+            aria-controls={id}
+            onFocus={onToolbarFocus}
+            onKeyDown={onToolbarKeyDown}
+            className="flex flex-wrap gap-0.5 pb-1"
+          >
             {TOOLBAR.map((item) => (
               <button
                 key={item.format}
@@ -632,13 +686,12 @@ export function MarkdownEditor({
               addImages(files);
             }
           }}
+          // The textarea keeps its role (a combobox role is not allowed on a textarea, #1651): it says that it suggests
+          // a list, which list while it is open, and the member that Enter inserts
           {...(mentions
             ? {
-                role: 'combobox',
                 'aria-autocomplete': 'list' as const,
-                'aria-expanded': suggestionsOpen,
-                'aria-controls': listboxId,
-                ...(suggestionsOpen ? { 'aria-activedescendant': `${listboxId}-${activeSuggestion}` } : {}),
+                ...(suggestionsOpen ? { 'aria-controls': listboxId, 'aria-activedescendant': `${listboxId}-${activeSuggestion}` } : {}),
               }
             : {})}
           rows={rows}
@@ -681,7 +734,10 @@ export function MarkdownEditor({
               value={pendingVideo.url}
               maxLength={500}
               placeholder="https://www.youtube.com/watch?v=..."
-              aria-describedby={`${baseId}-video-url-hint`}
+              // The error of the address, then the hint (#1651)
+              aria-describedby={
+                pendingVideo.error !== null ? `${baseId}-video-url-error ${baseId}-video-url-hint` : `${baseId}-video-url-hint`
+              }
               invalid={pendingVideo.error !== null}
               onChange={(event) => setPendingVideo({ ...pendingVideo, url: event.target.value, error: null })}
               onKeyDown={(event) => {
@@ -702,7 +758,7 @@ export function MarkdownEditor({
               The video plays in the text. Nothing loads from YouTube or Vimeo before a reader presses Play.
             </p>
             {pendingVideo.error && (
-              <p role="alert" className="text-sm text-danger-text">
+              <p id={`${baseId}-video-url-error`} role="alert" className="text-sm text-danger-text">
                 {pendingVideo.error}
               </p>
             )}
@@ -756,13 +812,17 @@ export function MarkdownEditor({
         {tab === 'preview' &&
           (preview?.markdown !== value ? (
             <Spinner label="Loading the preview" />
-          ) : preview.html === null ? (
-            <p className="text-sm text-danger-text">The preview is not available. Try again in a moment.</p>
-          ) : value.trim() === '' ? (
+          ) : preview.html === null ? null : value.trim() === '' ? (
             <p className="text-sm text-muted">Nothing to preview yet.</p>
           ) : (
             <MarkdownContent html={preview.html} />
           ))}
+        {/* In the page, empty, while the preview loads: a screen reader announces the failure (#1651) */}
+        <p role="status" className="text-sm text-danger-text">
+          {tab === 'preview' && preview?.markdown === value && preview.html === null
+            ? 'The preview is not available. Try again in a moment.'
+            : null}
+        </p>
       </div>
     </div>
   );

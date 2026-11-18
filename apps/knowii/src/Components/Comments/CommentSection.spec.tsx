@@ -79,7 +79,7 @@ describe('CommentSection', () => {
 
     const thread = screen.getByRole('list', { name: 'Replies to the comment by Ada' });
     await userEvent.click(within(thread).getByRole('button', { name: 'Reply to Bob' }));
-    const editor = screen.getByRole('combobox', { name: 'Reply to Ada' });
+    const editor = screen.getByRole('textbox', { name: 'Reply to Ada' });
     expect(editor).toHaveFocus();
     await userEvent.type(editor, 'Me too');
     await userEvent.click(screen.getByRole('button', { name: 'Reply' }));
@@ -133,7 +133,7 @@ describe('CommentSection', () => {
     renderSection();
 
     const form = screen.getByRole('form', { name: 'Write a comment' });
-    const editor = within(form).getByRole('combobox', { name: 'Write a comment' });
+    const editor = within(form).getByRole('textbox', { name: 'Write a comment' });
     await userEvent.type(editor, 'Hello');
     const send = within(form).getByRole('button', { name: 'Comment' });
     act(() => send.focus());
@@ -156,7 +156,7 @@ describe('CommentSection', () => {
     renderSection();
 
     const form = screen.getByRole('form', { name: 'Write a comment' });
-    const editor = within(form).getByRole('combobox', { name: 'Write a comment' });
+    const editor = within(form).getByRole('textbox', { name: 'Write a comment' });
     await userEvent.type(editor, 'Hello');
     const send = within(form).getByRole('button', { name: 'Comment' });
     act(() => send.focus());
@@ -175,7 +175,7 @@ describe('CommentSection', () => {
       .mockResolvedValue({ ok: true, message: '', data: comment('n1', ada, 'Useful') });
     renderSection({ subject: { communityCuid: 'community', spaceCuid: 'space', resourceCuid: 'resource' } });
 
-    await userEvent.type(screen.getByRole('combobox', { name: 'Write a comment' }), 'Useful');
+    await userEvent.type(screen.getByRole('textbox', { name: 'Write a comment' }), 'Useful');
     await userEvent.click(screen.getByRole('button', { name: 'Comment' }));
 
     expect(create).toHaveBeenCalledWith(
@@ -191,7 +191,7 @@ describe('CommentSection focus after a reply or an edit (#1624)', () => {
 
   async function writeReply(opener: HTMLElement, text: string) {
     await userEvent.click(opener);
-    const editor = screen.getByRole('combobox', { name: 'Reply to Ada' });
+    const editor = screen.getByRole('textbox', { name: 'Reply to Ada' });
     await userEvent.type(editor, text);
     return editor;
   }
@@ -231,7 +231,7 @@ describe('CommentSection focus after a reply or an edit (#1624)', () => {
     renderSection();
 
     await userEvent.click(screen.getByRole('button', { name: 'Edit your comment' }));
-    await userEvent.type(screen.getByRole('combobox', { name: 'Edit your comment' }), ', edited');
+    await userEvent.type(screen.getByRole('textbox', { name: 'Edit your comment' }), ', edited');
     await sendWithKeyboard('Save');
 
     const edited = document.getElementById('comment-c1');
@@ -263,7 +263,7 @@ describe('CommentSection focus after a reply or an edit (#1624)', () => {
     await writeReply(screen.getByRole('button', { name: 'Reply to Ada' }), 'A long answer');
     await userEvent.keyboard('{Escape}');
     expect(screen.getByRole('form', { name: 'Reply to Ada' })).toBeInTheDocument();
-    expect(screen.getByRole('combobox', { name: 'Reply to Ada' })).toHaveValue('A long answer');
+    expect(screen.getByRole('textbox', { name: 'Reply to Ada' })).toHaveValue('A long answer');
 
     // "Cancel" is the explicit way out
     await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
@@ -280,7 +280,7 @@ describe('CommentSection focus after a reply or an edit (#1624)', () => {
     expect(screen.getByRole('button', { name: 'Edit your comment' })).toHaveFocus();
 
     await userEvent.click(screen.getByRole('button', { name: 'Edit your comment' }));
-    expect(screen.getByRole('combobox', { name: 'Edit your comment' })).toHaveFocus();
+    expect(screen.getByRole('textbox', { name: 'Edit your comment' })).toHaveFocus();
     await userEvent.keyboard('{Escape}');
     expect(screen.queryByRole('form', { name: 'Edit your comment' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Edit your comment' })).toHaveFocus();
@@ -362,7 +362,7 @@ describe('CommentSection live updates (#1180)', () => {
     const onCountChange = renderSection();
 
     await userEvent.click(screen.getByRole('button', { name: 'Reply to Ada' }));
-    const reply = screen.getByRole('combobox', { name: 'Reply to Ada' });
+    const reply = screen.getByRole('textbox', { name: 'Reply to Ada' });
     await userEvent.type(reply, 'Half-written');
 
     act(() => emitSocketEvent(channel, 'space.comment.created', { space_cuid: 'space', post_cuid: 'post', comment_cuid: 'c3' }));
@@ -370,7 +370,7 @@ describe('CommentSection live updates (#1180)', () => {
     expect(await screen.findByText('Live one')).toBeInTheDocument();
     expect(list).toHaveBeenCalledWith({ communityCuid: 'community', spaceCuid: 'space', postCuid: 'post' });
     expect(onCountChange).toHaveBeenLastCalledWith(4);
-    expect(screen.getByRole('combobox', { name: 'Reply to Ada' })).toHaveValue('Half-written');
+    expect(screen.getByRole('textbox', { name: 'Reply to Ada' })).toHaveValue('Half-written');
   });
 
   it('ignores the comments of other posts and the reactions of the post itself', () => {

@@ -41,6 +41,7 @@ The building blocks have stories in Storybook ([ADR 0049](../adr/0049-component-
 3. The stories are tests: `stories.spec.tsx` renders every story, runs its `play` function and runs `axe-core` on the page, with the other Vitest tests. Only `color-contrast` is off, because jsdom computes no colors.
 4. The guard, `stories-guard.spec.ts`, fails when a component file has no story file or a story file has no story. Every component has its story file (#657): a new component comes with its stories in the same pull request.
 5. A story renders without the application around it. The link stories of `Button` stop the Inertia visit in their `onClick`; do the same for another component that needs the application, without changing the component.
+6. A list that opens (the list of `Select`, the menu of `DropdownMenu`) renders in a portal inside the landmark of its button, or inside its dialog, never on the body (#1651): `useLandmarkPortalTarget` (`landmark-portal.ts`) gives the target of a Headless UI `Portal.Group`. The page and the stories then pass the axe rule `region` with the list open, without a workaround.
 
 Member content: `MarkdownContent` shows the HTML that the server renders. It replaces each `div.video-embed` block (a YouTube or Vimeo link alone on its line, [ADR 0031](../adr/0031-videos-in-member-content.md)) with the click-to-load `VideoPlayer`. The `MarkdownEditor` has an "Add a video" button that checks the address with `parseVideoUrl` (`libs/common`).
 

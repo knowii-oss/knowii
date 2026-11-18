@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { cn } from './cn';
 
 export type AvatarSize = 'sm' | 'md' | 'lg' | 'xl';
@@ -30,10 +31,13 @@ interface AvatarProps {
 }
 
 /**
- * Round picture of a person, with initials when there is no image. Decorative: the name must be given in text nearby
- * or through the accessible name of the parent control.
+ * Round picture of a person, with initials when there is no image or when the image cannot load. Decorative: the name
+ * must be given in text nearby or through the accessible name of the parent control.
  */
 export function Avatar({ name, imageUrl, size = 'md', className }: AvatarProps) {
+  // The address of the picture that could not load (#1651): the initials show in its place, until the address changes
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+
   return (
     <span
       aria-hidden="true"
@@ -43,7 +47,11 @@ export function Avatar({ name, imageUrl, size = 'md', className }: AvatarProps) 
         className,
       )}
     >
-      {imageUrl ? <img src={imageUrl} alt="" className="size-full object-cover" /> : getInitials(name)}
+      {imageUrl && imageUrl !== failedUrl ? (
+        <img src={imageUrl} alt="" className="size-full object-cover" onError={() => setFailedUrl(imageUrl)} />
+      ) : (
+        getInitials(name)
+      )}
     </span>
   );
 }

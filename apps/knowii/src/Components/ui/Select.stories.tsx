@@ -35,6 +35,7 @@ interface StoryArgs extends SelectProps<Season> {
  */
 function LabelledSelect({ value: valueAtStart, onChange, withLabel = true, ...args }: StoryArgs) {
   const id = useId();
+  const errorId = `${id}-error`;
   const [value, setValue] = useState<Season | null>(valueAtStart);
   return (
     <div className="flex max-w-md flex-col gap-1">
@@ -51,9 +52,13 @@ function LabelledSelect({ value: valueAtStart, onChange, withLabel = true, ...ar
           setValue(next);
           onChange(next);
         }}
+        {...(args.invalid ? { 'aria-describedby': errorId } : {})}
       />
-      {/* Select takes no aria-describedby: the error text cannot be linked to it */}
-      {args.invalid && <p className="text-sm text-danger-text">{ERROR_TEXT}</p>}
+      {args.invalid && (
+        <p id={errorId} className="text-sm text-danger-text">
+          {ERROR_TEXT}
+        </p>
+      )}
     </div>
   );
 }
@@ -64,8 +69,9 @@ function LabelledSelect({ value: valueAtStart, onChange, withLabel = true, ...ar
  * (`<label htmlFor={id}>`) or `aria-label`. A value that matches no option shows the placeholder.
  *
  * Accessibility: a button that opens a listbox (Headless UI). The arrow keys, Home, End and the first letters move in
- * the list, Enter chooses, Escape closes, and the focus goes back to the button. `invalid` sets `aria-invalid`. The
- * icons are hidden from screen readers.
+ * the list, Enter chooses, Escape closes, and the focus goes back to the button. `invalid` sets `aria-invalid`, and
+ * `aria-describedby` links the error text. The open list renders in the landmark of the button (or in its dialog), not
+ * on the body. The icons are hidden from screen readers.
  */
 const meta = {
   component: Select<Season>,
@@ -92,7 +98,7 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   play: async ({ args, canvasElement, step }) => {
     const button = within(canvasElement).getByRole('button', { name: new RegExp(LABEL) });
-    // The list renders outside the canvas (a portal on the body)
+    // The list renders outside the canvas (a portal in the landmark of the button)
     const page = within(canvasElement.ownerDocument.body);
     await expect(button).toHaveTextContent('Choose a season');
 
@@ -100,7 +106,8 @@ export const Default: Story = {
       await userEvent.tab();
       await expect(button).toHaveFocus();
       await userEvent.keyboard('{ArrowDown}');
-      await expect(await page.findByRole('listbox')).toBeInTheDocument();
+      const listbox = await page.findByRole('listbox');
+      await expect(listbox.closest('main')).toBe(button.closest('main'));
       await userEvent.keyboard('{ArrowDown}');
       await userEvent.keyboard('{Enter}');
       await waitFor(() => expect(page.queryByRole('listbox')).not.toBeInTheDocument());
@@ -123,16 +130,19 @@ export const Default: Story = {
   },
 };
 
+/**
+ * The list opens on the chosen value, and stays open: it is in the landmark of the button (the main landmark of the
+ * page in the tests), so the check of the page passes with it
+ */
 export const WithValue: Story = {
   args: { value: 'autumn' },
   play: async ({ canvasElement }) => {
     const button = within(canvasElement).getByRole('button', { name: new RegExp(LABEL) });
     await expect(button).toHaveTextContent('Autumn');
     await userEvent.click(button);
-    const option = await within(canvasElement.ownerDocument.body).findByRole('option', { name: 'Autumn' });
-    await expect(option).toHaveAttribute('aria-selected', 'true');
-    await userEvent.keyboard('{Escape}');
-    await waitFor(() => expect(within(canvasElement.ownerDocument.body).queryByRole('listbox')).not.toBeInTheDocument());
+    const listbox = await within(canvasElement.ownerDocument.body).findByRole('listbox');
+    await expect(within(listbox).getByRole('option', { name: 'Autumn' })).toHaveAttribute('aria-selected', 'true');
+    await expect(listbox.closest('main')).toBe(button.closest('main'));
   },
 };
 
@@ -148,13 +158,14 @@ export const WithoutVisibleLabel: Story = {
 };
 
 /**
- * The value is refused: the button gets `aria-invalid`. The error text shows under it, but it is not linked to the
- * button (Select has no `aria-describedby`)
+ * The value is refused: the button gets `aria-invalid`, and the error text under it is its description
  */
 export const WithError: Story = {
   args: { invalid: true },
   play: async ({ canvasElement }) => {
-    await expect(within(canvasElement).getByRole('button', { name: new RegExp(LABEL) })).toHaveAttribute('aria-invalid', 'true');
+    const button = within(canvasElement).getByRole('button', { name: new RegExp(LABEL) });
+    await expect(button).toHaveAttribute('aria-invalid', 'true');
+    await expect(button).toHaveAccessibleDescription(ERROR_TEXT);
   },
 };
 

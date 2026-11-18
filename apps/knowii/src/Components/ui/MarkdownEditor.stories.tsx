@@ -3,7 +3,7 @@ import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fireEvent, fn, userEvent, waitFor, within } from 'storybook/test';
 import { ACCEPTED_IMAGE_TYPES, MAX_UPLOAD_SIZE_BYTES } from '@knowii/common';
-import type { ImageUploader, MarkdownEditorProps } from './MarkdownEditor';
+import type { ImageUploader, MarkdownEditorProps, MentionSource, MentionSuggestion } from './MarkdownEditor';
 import { MarkdownEditor } from './MarkdownEditor';
 
 const LABEL = 'Your post';
@@ -76,6 +76,20 @@ const storeImageButDuskOnce: ImageUploader['upload'] = (file, alt) => {
   return storeImage(file, alt);
 };
 
+// The members of the community of the stories: neutral names
+const MEMBERS: MentionSuggestion[] = [
+  { username: 'rose', name: 'Rose Gardener' },
+  { username: 'rosemary', name: 'Rosemary Field' },
+  { username: 'basil', name: 'Basil Grower' },
+];
+
+/**
+ * A local stand-in of the search of the members: the usernames that start with the words typed after "@"
+ */
+const members: MentionSource = {
+  search: fn((query: string) => Promise.resolve(MEMBERS.filter((member) => member.username.startsWith(query.toLowerCase())))),
+};
+
 interface StoryArgs extends MarkdownEditorProps {
   /**
    * Show the error text under the editor, linked with aria-describedby
@@ -137,14 +151,16 @@ function fileInput(canvasElement: HTMLElement): HTMLInputElement {
  * members; with `images`, the toolbar, a paste and a drop add images with their descriptions; a video address goes alone
  * on its line. For a short text without formatting, use a `Textarea`.
  *
- * In these stories the preview and the upload are local stand-ins. The mentions have no story yet: with them the text
- * field is a textarea with `role="combobox"`, which HTML does not allow (#1651); their stories come with the fix.
+ * In these stories the preview, the upload and the search of the members are local stand-ins.
  *
  * Accessibility: the tabs follow the tabs pattern (the arrows, Home and End move between them, and the tab of the open
- * panel is the only tab stop). The text field takes the label of the form, `aria-describedby` and `aria-invalid`. With
- * mentions it is a combobox: the arrows move in the list, Enter or Tab inserts, Escape closes the list (not the dialog
- * around the editor). The panels of the images and of the video take the focus when they open, close with Escape, and
- * give the focus back to the text.
+ * panel is the only tab stop). The toolbar follows the toolbar pattern: one tab stop, the arrows, Home and End move
+ * between its buttons, and the tab stop stays on the last button used. The text field takes the label of the form,
+ * `aria-describedby` and `aria-invalid`. With mentions it stays a text field, with `aria-autocomplete="list"`,
+ * `aria-controls` while the list is open and `aria-activedescendant` on the active member: the arrows move in the list,
+ * Enter or Tab inserts, Escape closes the list (not the dialog around the editor). The panels of the images and of the
+ * video take the focus when they open, close with Escape, and give the focus back to the text; their errors are in the
+ * description of their field. A preview that fails is announced (`role="status"`).
  */
 const meta = {
   component: MarkdownEditor,
@@ -215,6 +231,54 @@ export const KeyboardPath: Story = {
 };
 
 /**
+ * The keyboard path of the toolbar: one tab stop. The arrows move between the buttons, Home and End go to the first and
+ * the last one, and Tab leaves the toolbar. The tab stop stays on the last button used.
+ */
+export const ToolbarKeyboardPath: Story = {
+  args: { images: uploader(fn(storeImage)) },
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    const toolbar = within(canvas.getByRole('toolbar', { name: 'Formatting' }));
+    const bold = toolbar.getByRole('button', { name: 'Bold (Ctrl+B)' });
+    const italic = toolbar.getByRole('button', { name: 'Italic (Ctrl+I)' });
+    const video = toolbar.getByRole('button', { name: 'Add a video' });
+    const field = canvas.getByRole('textbox', { name: LABEL });
+
+    await step('Tab reaches the first button, and the next Tab goes to the text', async () => {
+      await expect(toolbar.getAllByRole('button').filter((button) => button.tabIndex === 0)).toEqual([bold]);
+      canvas.getByRole('tab', { name: 'Write' }).focus();
+      await userEvent.tab();
+      await expect(bold).toHaveFocus();
+      await userEvent.tab();
+      await expect(field).toHaveFocus();
+    });
+
+    await step('The arrows, Home and End move between the buttons', async () => {
+      bold.focus();
+      await userEvent.keyboard('{ArrowRight}');
+      await expect(italic).toHaveFocus();
+      await userEvent.keyboard('{End}');
+      await expect(video).toHaveFocus();
+      await userEvent.keyboard('{ArrowRight}');
+      await expect(bold).toHaveFocus();
+      await userEvent.keyboard('{ArrowLeft}');
+      await expect(video).toHaveFocus();
+      await userEvent.keyboard('{Home}');
+      await expect(bold).toHaveFocus();
+      await userEvent.keyboard('{ArrowRight}');
+    });
+
+    await step('The tab stop stays on the last button used', async () => {
+      await userEvent.tab();
+      await expect(field).toHaveFocus();
+      await userEvent.tab({ shift: true });
+      await expect(italic).toHaveFocus();
+      await expect(bold).toHaveAttribute('tabindex', '-1');
+    });
+  },
+};
+
+/**
  * A shortcut and a button of the toolbar format the selected words, and the selection stays on them
  */
 export const Formatting: Story = {
@@ -250,18 +314,23 @@ export const PreviewLoading: Story = {
   args: { renderPreview: () => new Promise<string | null>(() => undefined) },
   play: async ({ canvasElement }) => {
     await userEvent.click(within(canvasElement).getByRole('tab', { name: 'Preview' }));
-    await expect(within(canvasElement).getByRole('status')).toHaveTextContent('Loading the preview');
+    const panel = within(within(canvasElement).getByRole('tabpanel', { name: 'Preview' }));
+    const [spinner, failure] = panel.getAllByRole('status');
+    await expect(spinner).toHaveTextContent('Loading the preview');
+    // The region that announces a failure is in the page, empty, before the answer of the server
+    await expect(failure).toBeEmptyDOMElement();
   },
 };
 
 /**
- * The server did not render the preview
+ * The server did not render the preview: a status says it, so a screen reader announces it
  */
 export const PreviewFails: Story = {
   args: { renderPreview: () => Promise.resolve(null) },
   play: async ({ canvasElement }) => {
     await userEvent.click(within(canvasElement).getByRole('tab', { name: 'Preview' }));
-    await expect(await within(canvasElement).findByText('The preview is not available. Try again in a moment.')).toBeInTheDocument();
+    const message = await within(canvasElement).findByText('The preview is not available. Try again in a moment.');
+    await expect(message).toHaveAttribute('role', 'status');
   },
 };
 
@@ -446,16 +515,96 @@ export const AddAVideo: Story = {
 };
 
 /**
- * The address of a video is refused: the error shows under the field. It is not in the description of the field
- * (`aria-describedby` holds only the hint).
+ * The address of a video is refused: the error shows under the field, and it is in the description of the field,
+ * before the hint
  */
 export const VideoAddressRefused: Story = {
   args: { value: '' },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole('button', { name: 'Add a video' }));
-    await userEvent.type(canvas.getByRole('textbox', { name: 'Video address (YouTube or Vimeo)' }), 'https://example.com/pruning{Enter}');
+    const address = canvas.getByRole('textbox', { name: 'Video address (YouTube or Vimeo)' });
+    await userEvent.type(address, 'https://example.com/pruning{Enter}');
     await expect(canvas.getByRole('alert')).toHaveTextContent('Enter the address of a YouTube or Vimeo video.');
+    await expect(address).toHaveAccessibleDescription(
+      'Enter the address of a YouTube or Vimeo video. The video plays in the text. Nothing loads from YouTube or Vimeo before a reader presses Play.',
+    );
+  },
+};
+
+/**
+ * The keyboard path of a mention: "@" and the first letters open the list of the members, the arrows move, Enter
+ * inserts the active member. The text field keeps its role: it points to the list while it is open.
+ */
+export const Mention: Story = {
+  args: { value: '', mentions: members },
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    const field = canvas.getByRole('textbox', { name: LABEL });
+    await expect(field).toHaveAttribute('aria-autocomplete', 'list');
+    await expect(field).not.toHaveAttribute('aria-controls');
+
+    await step('"@" and the first letters open the list', async () => {
+      await userEvent.type(field, 'Thanks @ro');
+      const listbox = await canvas.findByRole('listbox', { name: 'Members to mention' });
+      await expect(within(listbox).getAllByRole('option')).toHaveLength(2);
+      await expect(field).toHaveAttribute('aria-controls', listbox.id);
+      const rose = within(listbox).getByRole('option', { name: /@rose Rose Gardener/ });
+      await expect(rose).toHaveAttribute('aria-selected', 'true');
+      await expect(field).toHaveAttribute('aria-activedescendant', rose.id);
+    });
+
+    await step('The arrows move, and Enter inserts the active member', async () => {
+      const listbox = canvas.getByRole('listbox', { name: 'Members to mention' });
+      await userEvent.keyboard('{ArrowDown}');
+      const rosemary = within(listbox).getByRole('option', { name: /@rosemary/ });
+      await expect(rosemary).toHaveAttribute('aria-selected', 'true');
+      await expect(field).toHaveAttribute('aria-activedescendant', rosemary.id);
+      await userEvent.keyboard('{ArrowUp}{ArrowUp}');
+      await expect(field).toHaveAttribute('aria-activedescendant', rosemary.id);
+      await userEvent.keyboard('{ArrowDown}');
+      await userEvent.keyboard('{Enter}');
+      await expect(field).toHaveValue('Thanks @rose ');
+      await expect(field).toHaveFocus();
+      await expect(listbox).not.toBeVisible();
+      await expect(field).not.toHaveAttribute('aria-controls');
+      await expect(field).not.toHaveAttribute('aria-activedescendant');
+    });
+  },
+};
+
+/**
+ * Escape closes the list of the members and keeps the text (and a dialog around the editor stays open)
+ */
+export const MentionClosedWithEscape: Story = {
+  args: { value: '', mentions: members },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const field = canvas.getByRole('textbox', { name: LABEL });
+    await userEvent.type(field, '@ba');
+    const listbox = await canvas.findByRole('listbox', { name: 'Members to mention' });
+    await expect(within(listbox).getByRole('option', { name: /@basil Basil Grower/ })).toBeInTheDocument();
+    await userEvent.keyboard('{Escape}');
+    await expect(listbox).not.toBeVisible();
+    await expect(field).toHaveValue('@ba');
+    await expect(field).not.toHaveAttribute('aria-controls');
+  },
+};
+
+/**
+ * A search that finds no member: the list stays closed, and Enter writes a new line as usual
+ */
+export const MentionWithoutResult: Story = {
+  args: { value: '', mentions: members },
+  play: async ({ args, canvasElement }) => {
+    const canvas = within(canvasElement);
+    const field = canvas.getByRole('textbox', { name: LABEL });
+    await userEvent.type(field, '@zucchini');
+    await waitFor(() => expect(args.mentions?.search).toHaveBeenCalledWith('zucchini', expect.any(AbortSignal)));
+    await expect(canvas.queryByRole('listbox')).toBeNull();
+    await expect(field).not.toHaveAttribute('aria-controls');
+    await userEvent.keyboard('{Enter}');
+    await expect(field).toHaveValue('@zucchini\n');
   },
 };
 
