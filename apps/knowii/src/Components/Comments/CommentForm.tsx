@@ -25,6 +25,10 @@ export interface CommentFormProps {
    * focus back in the field).
    */
   onSubmit: (values: CommentFormValues) => Promise<string | null>;
+  /**
+   * Closes the form: "Cancel", and Escape while the text is not changed (#1624). The parent puts the focus back on the
+   * button that opened the form.
+   */
   onCancel?: () => void;
 }
 
@@ -74,7 +78,21 @@ export function CommentForm({
   const error = form.formState.errors.body?.message;
 
   return (
-    <form onSubmit={submit} noValidate className="flex flex-col gap-2" aria-label={label}>
+    <form
+      onSubmit={submit}
+      // Escape closes a reply or an edit form, like "Cancel" (#1624), but only while the text is not changed: one key
+      // must not lose what a person wrote (#1563). The editor keeps Escape while its suggestions or one of its panels
+      // are open (they prevent the default).
+      onKeyDown={(event) => {
+        if (event.key === 'Escape' && onCancel && !event.defaultPrevented && form.getValues('body') === initialBody) {
+          event.preventDefault();
+          onCancel();
+        }
+      }}
+      noValidate
+      className="flex flex-col gap-2"
+      aria-label={label}
+    >
       <label htmlFor={`${id}-body`} className="sr-only">
         {label}
       </label>

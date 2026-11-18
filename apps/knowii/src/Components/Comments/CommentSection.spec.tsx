@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest';
-import { act, render, screen, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { Comment } from '@knowii/common';
 import { AppDataProvider, knowiiApiClient } from '@knowii/common';
@@ -44,6 +44,11 @@ function renderSection(overrides: Partial<Parameters<typeof CommentSection>[0]> 
   );
   return onCountChange;
 }
+
+// jsdom has no scrollIntoView: the saved comment and the permalinks scroll into view (#1205, #1624)
+beforeEach(() => {
+  Element.prototype.scrollIntoView = vi.fn();
+});
 
 describe('CommentSection', () => {
   afterEach(() => vi.restoreAllMocks());
@@ -177,6 +182,173 @@ describe('CommentSection', () => {
       { communityCuid: 'community', spaceCuid: 'space', resourceCuid: 'resource' },
       { body: 'Useful', parent_cuid: null },
     );
+  });
+});
+
+describe('CommentSection focus after a reply or an edit (#1624)', () => {
+  const channel = 'community.community.space.space';
+  afterEach(() => vi.restoreAllMocks());
+
+  async function writeReply(opener: HTMLElement, text: string) {
+    await userEvent.click(opener);
+    const editor = screen.getByRole('combobox', { name: 'Reply to Ada' });
+    await userEvent.type(editor, text);
+    return editor;
+  }
+
+  async function sendWithKeyboard(name: string) {
+    const send = screen.getByRole('button', { name });
+    act(() => send.focus());
+    await userEvent.keyboard('{Enter}');
+  }
+
+  it('puts the focus on the new reply once the reply form is gone', async () => {
+    vi.spyOn(knowiiApiClient.communities.comments, 'create').mockResolvedValue({
+      ok: true,
+      message: '',
+      data: comment('r2', ada, 'Me too', 'c1'),
+    });
+    renderSection();
+
+    await writeReply(screen.getByRole('button', { name: 'Reply to Ada' }), 'Me too');
+    await sendWithKeyboard('Reply');
+
+    expect(await screen.findByText('Me too', { selector: 'p' })).toBeInTheDocument();
+    const saved = document.getElementById('comment-r2');
+    await waitFor(() => expect(saved).toHaveFocus());
+    expect(saved).toHaveAttribute('tabindex', '-1');
+    expect(saved).toHaveTextContent('Me too');
+    expect(screen.queryByRole('form', { name: 'Reply to Ada' })).not.toBeInTheDocument();
+    expect(saved?.scrollIntoView).toHaveBeenCalledWith({ block: 'nearest' });
+  });
+
+  it('puts the focus on the edited comment once the edit form is gone', async () => {
+    vi.spyOn(knowiiApiClient.communities.comments, 'update').mockResolvedValue({
+      ok: true,
+      message: '',
+      data: { ...comment('c1', ada, 'First, edited'), edited_at: now },
+    });
+    renderSection();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Edit your comment' }));
+    await userEvent.type(screen.getByRole('combobox', { name: 'Edit your comment' }), ', edited');
+    await sendWithKeyboard('Save');
+
+    const edited = document.getElementById('comment-c1');
+    await waitFor(() => expect(edited).toHaveFocus());
+    expect(edited).toHaveTextContent('First, edited');
+    expect(screen.queryByRole('form', { name: 'Edit your comment' })).not.toBeInTheDocument();
+  });
+
+  it('puts the focus back on the "Reply" button that opened the form, after Cancel and after Escape', async () => {
+    renderSection();
+    const thread = screen.getByRole('list', { name: 'Replies to the comment by Ada' });
+
+    // A reply to a reply opens the form of its thread: the focus goes back to the button of the reply
+    await writeReply(within(thread).getByRole('button', { name: 'Reply to Bob' }), 'Never mind');
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.queryByRole('form', { name: 'Reply to Ada' })).not.toBeInTheDocument();
+    expect(within(thread).getByRole('button', { name: 'Reply to Bob' })).toHaveFocus();
+
+    // Escape closes a form whose text is not changed
+    await userEvent.click(screen.getByRole('button', { name: 'Reply to Ada' }));
+    await userEvent.keyboard('{Escape}');
+    expect(screen.queryByRole('form', { name: 'Reply to Ada' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Reply to Ada' })).toHaveFocus();
+  });
+
+  it('keeps a reply form and its text when Escape is pressed after the person wrote something', async () => {
+    renderSection();
+
+    await writeReply(screen.getByRole('button', { name: 'Reply to Ada' }), 'A long answer');
+    await userEvent.keyboard('{Escape}');
+    expect(screen.getByRole('form', { name: 'Reply to Ada' })).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: 'Reply to Ada' })).toHaveValue('A long answer');
+
+    // "Cancel" is the explicit way out
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.queryByRole('form', { name: 'Reply to Ada' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Reply to Ada' })).toHaveFocus();
+  });
+
+  it('puts the focus back on the "Edit" button after Cancel and after Escape', async () => {
+    renderSection();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Edit your comment' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.queryByRole('form', { name: 'Edit your comment' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Edit your comment' })).toHaveFocus();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Edit your comment' }));
+    expect(screen.getByRole('combobox', { name: 'Edit your comment' })).toHaveFocus();
+    await userEvent.keyboard('{Escape}');
+    expect(screen.queryByRole('form', { name: 'Edit your comment' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Edit your comment' })).toHaveFocus();
+  });
+
+  it('puts the focus on the new reply once when the live update comes before the response, never on the comment of another person', async () => {
+    let respond: (value: Awaited<ReturnType<typeof knowiiApiClient.communities.comments.create>>) => void = () => undefined;
+    vi.spyOn(knowiiApiClient.communities.comments, 'create').mockReturnValue(
+      new Promise((resolve) => {
+        respond = resolve;
+      }),
+    );
+    const live = [
+      comment('c1', ada, 'First', null, [comment('r1', bob, 'A reply', 'c1'), comment('r2', ada, 'Me too', 'c1')]),
+      comment('c2', bob, 'Second'),
+      comment('c3', bob, 'Live one'),
+    ];
+    vi.spyOn(knowiiApiClient.communities.comments, 'list').mockResolvedValue({ ok: true, message: '', data: live });
+    renderSection();
+
+    const editor = await writeReply(screen.getByRole('button', { name: 'Reply to Ada' }), 'Me too');
+    await sendWithKeyboard('Reply');
+    act(() => emitSocketEvent(channel, 'space.comment.created', { space_cuid: 'space', post_cuid: 'post', comment_cuid: 'r2' }));
+    act(() => emitSocketEvent(channel, 'space.comment.created', { space_cuid: 'space', post_cuid: 'post', comment_cuid: 'c3' }));
+
+    // The live update shows the reply and the comment of Bob; the focus stays in the form until the response
+    expect(await screen.findByText('Live one')).toBeInTheDocument();
+    expect(document.getElementById('comment-r2')).toBeInTheDocument();
+    expect(screen.getByRole('form', { name: 'Reply to Ada' })).toBeInTheDocument();
+    expect(editor).toHaveValue('Me too');
+
+    await act(async () => respond({ ok: true, message: '', data: comment('r2', ada, 'Me too', 'c1') }));
+
+    const saved = document.getElementById('comment-r2');
+    await waitFor(() => expect(saved).toHaveFocus());
+    // One reply in the list, not two
+    expect(screen.getAllByText('Me too', { selector: 'p' })).toHaveLength(1);
+    expect(screen.getByRole('heading', { name: '5 comments' })).toBeInTheDocument();
+  });
+
+  it('keeps the focus on the new reply when the live update comes after the response', async () => {
+    vi.spyOn(knowiiApiClient.communities.comments, 'create').mockResolvedValue({
+      ok: true,
+      message: '',
+      data: comment('r2', ada, 'Me too', 'c1'),
+    });
+    const list = vi.spyOn(knowiiApiClient.communities.comments, 'list').mockResolvedValue({
+      ok: true,
+      message: '',
+      data: [
+        comment('c1', ada, 'First', null, [comment('r1', bob, 'A reply', 'c1'), comment('r2', ada, 'Me too', 'c1')]),
+        comment('c2', bob, 'Second'),
+        comment('c3', bob, 'Live one'),
+      ],
+    });
+    renderSection();
+
+    await writeReply(screen.getByRole('button', { name: 'Reply to Ada' }), 'Me too');
+    await sendWithKeyboard('Reply');
+    const saved = document.getElementById('comment-r2');
+    await waitFor(() => expect(saved).toHaveFocus());
+
+    act(() => emitSocketEvent(channel, 'space.comment.created', { space_cuid: 'space', post_cuid: 'post', comment_cuid: 'c3' }));
+
+    expect(await screen.findByText('Live one')).toBeInTheDocument();
+    expect(list).toHaveBeenCalled();
+    expect(saved).toHaveFocus();
+    expect(screen.getAllByText('Me too', { selector: 'p' })).toHaveLength(1);
   });
 });
 

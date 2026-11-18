@@ -132,6 +132,79 @@ describe('ChatSpace', () => {
 
     expect(create).toHaveBeenCalledWith('c1', 's1', { body: 'Thanks', parent_cuid: 'm1' });
     expect(await within(panel).findByText('Thanks')).toBeInTheDocument();
+    // The field of the thread stays: it keeps the focus for the next reply (#1624)
+    const field = within(panel).getByLabelText('Reply in the thread');
+    expect(field).toHaveValue('');
+    expect(field).toHaveFocus();
+  });
+
+  it('puts the focus back in the message field after an edit with the Up arrow (#1185)', async () => {
+    Element.prototype.scrollIntoView = vi.fn();
+    vi.spyOn(knowiiApiClient.communities.chat, 'update').mockResolvedValue({ ok: true, message: '', data: message('m1', 'Mine!', 'me') });
+    renderChat([message('m1', 'Mine', 'me'), message('m2', 'From Ada')]);
+
+    const field = screen.getByLabelText('Message General');
+    await userEvent.click(field);
+    await userEvent.keyboard('{ArrowUp}!{Enter}');
+
+    await waitFor(() => expect(screen.queryByLabelText('Edit the message')).not.toBeInTheDocument());
+    expect(field).toHaveFocus();
+  });
+
+  describe('an edit in the thread panel (#1624)', () => {
+    const parent = message('m1', 'Question?', 'ada', { reply_count: 1 });
+    const answer = message('r1', 'My answer', 'me', { parent_cuid: 'm1' });
+
+    beforeEach(() => {
+      Element.prototype.scrollIntoView = vi.fn();
+      vi.spyOn(knowiiApiClient.communities.chat, 'thread').mockResolvedValue({
+        ok: true,
+        message: '',
+        data: { message: parent, replies: [answer] },
+      });
+    });
+
+    async function openThread() {
+      renderChat([parent]);
+      await userEvent.click(screen.getByRole('button', { name: /1 reply/ }));
+      const panel = await screen.findByRole('dialog', { name: 'Thread' });
+      await within(panel).findByText('My answer');
+      return panel;
+    }
+
+    it('puts the focus on the edited message once the edit field is gone', async () => {
+      const update = vi.spyOn(knowiiApiClient.communities.chat, 'update').mockResolvedValue({
+        ok: true,
+        message: '',
+        data: { ...answer, body: 'My answer, better', body_html: '<p>My answer, better</p>' },
+      });
+      const panel = await openThread();
+
+      await userEvent.click(within(panel).getByRole('button', { name: 'Edit the message by Me' }));
+      await userEvent.type(within(panel).getByLabelText('Edit the message'), ', better{Enter}');
+
+      expect(update).toHaveBeenCalledWith('c1', 's1', 'r1', { body: 'My answer, better' });
+      const edited = document.getElementById('thread-message-r1');
+      await waitFor(() => expect(edited).toHaveFocus());
+      expect(edited).toHaveTextContent('My answer, better');
+      expect(within(panel).queryByLabelText('Edit the message')).not.toBeInTheDocument();
+    });
+
+    it('puts the focus back on the "Edit" button after Cancel and after Escape, and the panel stays open', async () => {
+      const panel = await openThread();
+
+      await userEvent.click(within(panel).getByRole('button', { name: 'Edit the message by Me' }));
+      await userEvent.click(within(panel).getByRole('button', { name: 'Cancel' }));
+      expect(within(panel).queryByLabelText('Edit the message')).not.toBeInTheDocument();
+      await waitFor(() => expect(within(panel).getByRole('button', { name: 'Edit the message by Me' })).toHaveFocus());
+
+      await userEvent.click(within(panel).getByRole('button', { name: 'Edit the message by Me' }));
+      expect(within(panel).getByLabelText('Edit the message')).toHaveFocus();
+      await userEvent.keyboard('{Escape}');
+      expect(within(panel).queryByLabelText('Edit the message')).not.toBeInTheDocument();
+      await waitFor(() => expect(within(panel).getByRole('button', { name: 'Edit the message by Me' })).toHaveFocus());
+      expect(screen.getByRole('dialog', { name: 'Thread' })).toBeInTheDocument();
+    });
   });
 
   describe('a link from a notification (#1484)', () => {

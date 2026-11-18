@@ -14,7 +14,7 @@ export interface ChatMessageItemProps {
   canModerate: boolean;
   editing: boolean;
   onEdit: (message: ChatMessage) => void;
-  onCancelEdit: () => void;
+  onCancelEdit: (message: ChatMessage) => void;
   onSave: (message: ChatMessage, body: string) => Promise<boolean>;
   onDelete: (message: ChatMessage) => void;
   /**
@@ -74,7 +74,7 @@ export function ChatMessageItem(props: ChatMessageItemProps) {
             submitLabel="Save"
             autoFocus
             onSend={(body) => props.onSave(message, body)}
-            onCancel={props.onCancelEdit}
+            onCancel={() => props.onCancelEdit(message)}
           />
         ) : (
           <MarkdownContent html={message.body_html ?? ''} className="break-words prose-p:my-1" />
@@ -94,7 +94,14 @@ export function ChatMessageItem(props: ChatMessageItemProps) {
             </Button>
           )}
           {own && !props.editing && (
-            <Button variant="ghost" size="sm" onClick={() => props.onEdit(message)} aria-label={`Edit the message by ${authorName}`}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => props.onEdit(message)}
+              aria-label={`Edit the message by ${authorName}`}
+              // Found again after a cancel in the thread panel (#1624)
+              data-opens="edit"
+            >
               <FaPen aria-hidden="true" />
               Edit
             </Button>
