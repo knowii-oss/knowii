@@ -1,6 +1,6 @@
 import AppLayout from '@/Layouts/AppLayout';
-import type { Community, CommunityPermissions, CommunityRole, SpaceGroup } from '@knowii/common';
-import { COMMUNITY_URL, DASHBOARD_URL, useSocket } from '@knowii/common';
+import type { Community, CommunityPermissions, CommunityRole, Space, SpaceGroup } from '@knowii/common';
+import { COMMUNITY_URL, DASHBOARD_URL, SPACE_URL, useSocket } from '@knowii/common';
 import { breadcrumbHome } from '../../Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
 import { AccessGroupsManager } from '@/Components/Communities/AccessGroupsManager';
@@ -44,6 +44,9 @@ export default function CommunitySettingsPage(props: Props) {
   const reloadSpaceTree = useCallback(() => {
     router.reload({ only: ['spaceGroups'] });
   }, []);
+
+  // The toast after a new space opens it (#1576)
+  const spaceHref = (space: Space) => route(SPACE_URL, { communitySlug: props.community.slug, spaceSlug: space.slug });
 
   useSocket({
     channel: {
@@ -121,7 +124,12 @@ export default function CommunitySettingsPage(props: Props) {
       )}
 
       {props.permissions.canManageSpaces && (
-        <SpaceTreeEditor communityCuid={props.community.cuid} spaceGroups={props.spaceGroups} onChanged={reloadSpaceTree} />
+        <SpaceTreeEditor
+          communityCuid={props.community.cuid}
+          spaceGroups={props.spaceGroups}
+          onChanged={reloadSpaceTree}
+          spaceHref={spaceHref}
+        />
       )}
 
       {props.permissions.canManageModeratorPermissions && (

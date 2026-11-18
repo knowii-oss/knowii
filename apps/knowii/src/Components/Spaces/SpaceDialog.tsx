@@ -36,6 +36,10 @@ export interface SpaceDialogProps {
   defaultSpaceGroupCuid?: string | undefined;
   onClose: () => void;
   onSaved: (space: Space) => void;
+  /**
+   * The address of the page of a space. Given: the toast after a create offers "Open the space" (#1576).
+   */
+  spaceHref?: ((space: Space) => string) | undefined;
 }
 
 const typeOptions = SPACE_TYPES.map((type) => ({
@@ -73,7 +77,16 @@ function initialValues(space: Space | undefined, defaultSpaceGroupCuid: string |
   };
 }
 
-export function SpaceDialog({ open, communityCuid, spaceGroups, space, defaultSpaceGroupCuid, onClose, onSaved }: SpaceDialogProps) {
+export function SpaceDialog({
+  open,
+  communityCuid,
+  spaceGroups,
+  space,
+  defaultSpaceGroupCuid,
+  onClose,
+  onSaved,
+  spaceHref,
+}: SpaceDialogProps) {
   const { showToast } = useAppData();
   // The access groups of the community, for a "groups" space (#1241)
   const [accessGroups, setAccessGroups] = useState<AccessGroup[] | null>(null);
@@ -170,7 +183,16 @@ export function SpaceDialog({ open, communityCuid, spaceGroups, space, defaultSp
       : await knowiiApiClient.communities.spaces.create(communityCuid, link ? { ...fields, url } : fields);
 
     if (result.ok) {
-      showToast({ severity: 'success', summary: space ? 'Space updated' : 'Space created' });
+      if (space) {
+        showToast({ severity: 'success', summary: 'Space updated' });
+      } else {
+        // The next step of a new space is in the space (#1576)
+        showToast({
+          severity: 'success',
+          summary: 'Space created',
+          ...(spaceHref ? { action: { label: 'Open the space', href: spaceHref(result.data) } } : {}),
+        });
+      }
       onSaved(result.data);
       close();
     } else {

@@ -133,18 +133,16 @@ export function UpdateCommunityForm({ community, onSaved }: UpdateCommunityFormP
                 name="visibility"
                 control={form.control}
                 render={({ field }) => (
-                  <>
-                    <SegmentedControl<CommunityVisibility>
-                      aria-labelledby="community-visibility-label"
-                      className="mt-1"
-                      name={field.name}
-                      options={sharedVisibilityOptions}
-                      value={field.value}
-                      onChange={field.onChange}
-                      onBlur={field.onBlur}
-                    />
-                    <p className="mt-1 text-xs text-muted">{COMMUNITY_VISIBILITY_DESCRIPTIONS[field.value]}</p>
-                  </>
+                  <SegmentedControl<CommunityVisibility>
+                    aria-labelledby="community-visibility-label"
+                    className="mt-1"
+                    name={field.name}
+                    options={sharedVisibilityOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    description={COMMUNITY_VISIBILITY_DESCRIPTIONS[field.value]}
+                  />
                 )}
               />
             )}

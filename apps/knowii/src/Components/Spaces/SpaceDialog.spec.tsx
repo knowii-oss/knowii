@@ -3,6 +3,7 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { Space, SpaceGroup } from '@knowii/common';
 import { AppDataProvider, knowiiApiClient } from '@knowii/common';
+import { Toaster } from '@/Components/ui';
 import { SpaceDialog } from './SpaceDialog';
 
 // Built at run time: a literal script URL is a lint error
@@ -274,5 +275,73 @@ describe('SpaceDialog public spaces (#1387)', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: /^Type/ }));
     await userEvent.click(await screen.findByRole('option', { name: /^Chat/ }));
     expect(within(dialog).getByRole('note')).toHaveTextContent('A chat space stays for signed-in people.');
+  });
+});
+
+describe('SpaceDialog after a create (#1576)', () => {
+  function renderWithToaster(space?: Space) {
+    const onClose = vi.fn();
+    render(
+      <AppDataProvider>
+        <Toaster />
+        <SpaceDialog
+          open
+          communityCuid="c1"
+          spaceGroups={spaceGroups}
+          space={space}
+          defaultSpaceGroupCuid="sg1"
+          onClose={onClose}
+          onSaved={vi.fn()}
+          spaceHref={(saved) => `/community/gardeners/space/${saved.slug}`}
+        />
+      </AppDataProvider>,
+    );
+    return onClose;
+  }
+
+  it('offers "Open the space" in the toast of a new space', async () => {
+    vi.spyOn(knowiiApiClient.communities.spaces, 'create').mockResolvedValue({
+      ok: true,
+      message: '',
+      data: { cuid: 's1', name: 'Lounge', slug: 'lounge' } as Space,
+    });
+    const onClose = renderWithToaster();
+    const dialog = await screen.findByRole('dialog', { name: 'New space' });
+
+    await userEvent.type(within(dialog).getByLabelText('Name'), 'Lounge');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Create' }));
+
+    await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
+    const region = screen.getByRole('region', { name: 'Notifications' });
+    expect(within(region).getByText('Space created')).toBeInTheDocument();
+    expect(within(region).getByRole('link', { name: 'Open the space' })).toHaveAttribute('href', '/community/gardeners/space/lounge');
+  });
+
+  it('offers no link after an edit', async () => {
+    vi.spyOn(knowiiApiClient.communities.spaces, 'update').mockResolvedValue({
+      ok: true,
+      message: '',
+      data: { cuid: 's1', name: 'Lounge 2', slug: 'lounge' } as Space,
+    });
+    renderWithToaster({
+      cuid: 's1',
+      name: 'Lounge',
+      slug: 'lounge',
+      description: '',
+      emoji: '',
+      type: 'discussion',
+      visibility: 'members',
+      posting_policy: 'members',
+      space_group_cuid: 'sg1',
+      position: 1,
+    } as Space);
+    const dialog = await screen.findByRole('dialog', { name: 'Edit Lounge' });
+
+    await userEvent.type(within(dialog).getByLabelText('Name'), ' 2');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
+
+    const region = screen.getByRole('region', { name: 'Notifications' });
+    expect(await within(region).findByText('Space updated')).toBeInTheDocument();
+    expect(within(region).queryByRole('link')).not.toBeInTheDocument();
   });
 });
