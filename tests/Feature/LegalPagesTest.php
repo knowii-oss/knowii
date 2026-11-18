@@ -351,3 +351,11 @@ test('the privacy policy tells about the time zone, the last visit and the visit
             && str_contains($html, 'Time zone and pop-up choice: while your account exists. Last visit date: replaced at each visit. Last visit of each space: replaced at each visit, and deleted when you leave the community.'))
     );
 });
+
+test('the privacy policy says that a deleted message, post or comment with answers leaves an empty marker (#1565)', function () {
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('updated', '2026-11-18')
+        ->where('html', fn (string $html) => str_contains($html, 'A deleted message, and a deleted post or comment that other people answered, leave an empty marker without their text.')
+            && ! str_contains($html, 'This message was deleted'))
+    );
+});
