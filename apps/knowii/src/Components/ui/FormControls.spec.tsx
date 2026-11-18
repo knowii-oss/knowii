@@ -185,4 +185,44 @@ describe('SegmentedControl', () => {
     await userEvent.keyboard('{ArrowRight}');
     expect(screen.getByRole('radio', { name: 'Personal' })).toBeChecked();
   });
+
+  it('has no description by default', () => {
+    render(<ControlledSegmentedControl />);
+    expect(screen.getByRole('radiogroup', { name: 'Visibility' })).not.toHaveAttribute('aria-describedby');
+  });
+
+  it('describes the group with its description, and the description follows the choice (#1576)', async () => {
+    const descriptions = { public: 'Everyone can find it.', private: 'Not in a list.', personal: 'Only you.' };
+    function DescribedSegmentedControl() {
+      const [value, setValue] = useState<'public' | 'private' | 'personal'>('public');
+      return (
+        <SegmentedControl aria-label="Visibility" options={options} value={value} onChange={setValue} description={descriptions[value]} />
+      );
+    }
+    render(<DescribedSegmentedControl />);
+
+    const group = screen.getByRole('radiogroup', { name: 'Visibility' });
+    const description = screen.getByText('Everyone can find it.');
+    expect(group).toHaveAttribute('aria-describedby', description.id);
+    expect(group).toHaveAccessibleDescription('Everyone can find it.');
+    // Announced once, by the live region: the radios do not point to it
+    expect(description).toHaveAttribute('aria-live', 'polite');
+    for (const radio of screen.getAllByRole('radio')) {
+      expect(radio).not.toHaveAttribute('aria-describedby');
+    }
+
+    await userEvent.click(screen.getByText('Private'));
+    expect(description).toHaveTextContent('Not in a list.');
+    expect(group).toHaveAccessibleDescription('Not in a list.');
+  });
+
+  it('puts the class on the element that holds the group and its description', () => {
+    render(
+      <SegmentedControl aria-label="Visibility" options={options} value="public" onChange={vi.fn()} description="Text" className="mt-1" />,
+    );
+    const group = screen.getByRole('radiogroup', { name: 'Visibility' });
+    expect(group).not.toHaveClass('mt-1');
+    expect(group.parentElement).toHaveClass('mt-1');
+    expect(group.parentElement).toContainElement(screen.getByText('Text'));
+  });
 });

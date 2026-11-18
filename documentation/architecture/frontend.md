@@ -22,7 +22,7 @@ A component that throws while rendering does not blank the page. `<ErrorBoundary
 ## Global data
 
 1. Data that every page needs (the current user, the communities of the user) comes from `HandleInertiaRequests`.
-2. Client-side state that every page needs lives in the React context of `libs/common/src/lib/contexts/app-context.tsx`. Example: `showToast()`. The provider keeps the toasts, and the `<Toaster>` (mounted once in `main.tsx`) shows them.
+2. Client-side state that every page needs lives in the React context of `libs/common/src/lib/contexts/app-context.tsx`. Example: `showToast()`. The provider keeps the toasts, and the `<Toaster>` (mounted once in `main.tsx`) shows them. A toast survives an Inertia visit. A toast can offer one link to the next step (`action`, for example "Open the space" after a new space, #1576): it stays until the person follows the link or closes the toast, and when a toast that has the focus goes away, the focus goes back to the element that had it before.
 
 ## UI components
 

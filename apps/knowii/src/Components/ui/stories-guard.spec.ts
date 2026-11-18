@@ -24,7 +24,6 @@ const COMPONENTS_WITHOUT_STORIES: readonly string[] = [
   'PasswordInput',
   'Radio',
   'RelativeTime',
-  'SegmentedControl',
   'Select',
   'Spinner',
   'Stepper',

@@ -13,6 +13,10 @@ export interface SpaceTreeEditorProps {
    * Called after each change, to reload the tree from the server
    */
   onChanged: () => void;
+  /**
+   * The address of the page of a space, for the link of the toast after a create (#1576)
+   */
+  spaceHref?: ((space: Space) => string) | undefined;
 }
 
 type PendingDeletion = { kind: 'group'; spaceGroup: SpaceGroup } | { kind: 'space'; space: Space };
@@ -21,7 +25,7 @@ type PendingDeletion = { kind: 'group'; spaceGroup: SpaceGroup } | { kind: 'spac
  * Lets community admins build the navigation: space groups and spaces, created, edited, moved and deleted.
  * Reordering uses buttons (keyboard and screen reader friendly), not drag and drop.
  */
-export function SpaceTreeEditor({ communityCuid, spaceGroups, onChanged }: SpaceTreeEditorProps) {
+export function SpaceTreeEditor({ communityCuid, spaceGroups, onChanged, spaceHref }: SpaceTreeEditorProps) {
   const { showToast } = useAppData();
   const [groupDialog, setGroupDialog] = useState<{ open: boolean; spaceGroup?: SpaceGroup | undefined }>({ open: false });
   const [spaceDialog, setSpaceDialog] = useState<{ open: boolean; space?: Space | undefined; spaceGroupCuid?: string | undefined }>({
@@ -271,6 +275,7 @@ export function SpaceTreeEditor({ communityCuid, spaceGroups, onChanged }: Space
         defaultSpaceGroupCuid={spaceDialog.spaceGroupCuid}
         onClose={() => setSpaceDialog({ open: false })}
         onSaved={onChanged}
+        spaceHref={spaceHref}
       />
 
       <Dialog

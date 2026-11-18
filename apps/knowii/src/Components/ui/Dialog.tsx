@@ -165,7 +165,10 @@ export function Dialog({
               </div>
               {children !== undefined && children !== null && <div className="px-5 py-4">{children}</div>}
               {footer && (
-                <div className="flex flex-col-reverse gap-2 border-t border-border px-5 py-4 sm:flex-row sm:justify-end">{footer}</div>
+                // Sticky: on a small screen, a long form scrolls under the actions, and the actions stay in view
+                <div className="sticky bottom-0 flex flex-col-reverse gap-2 border-t border-border bg-surface px-5 py-4 sm:flex-row sm:justify-end sm:rounded-b-xl">
+                  {footer}
+                </div>
               )}
             </DialogPanel>
           </div>

@@ -1,4 +1,5 @@
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
+import { router } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -6,6 +7,8 @@ import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import type { NewCommunity, Community, CommunityVisibility } from '@knowii/common';
 import {
+  COMMUNITY_URL,
+  COMMUNITY_VISIBILITY_DESCRIPTIONS,
   communityVisibilityOptions,
   newCommunitySchema,
   knowiiApiClient,
@@ -15,11 +18,11 @@ import {
   DEFAULT_TEXTAREA_ROWS,
   DPA_URL,
 } from '@knowii/common';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import CommunityIcon from './CommunityIcon';
 import { CommunityNameStatus } from './CommunityNameStatus';
 import { useCommunityNameAvailability } from './use-community-name-availability';
-import { Button, Dialog, SegmentedControl, Spinner, Textarea, TextInput } from '@/Components/ui';
+import { Button, Dialog, DialogCloseButton, SegmentedControl, Spinner, Textarea, TextInput } from '@/Components/ui';
 
 interface CreateCommunityDialogProps {
   visible: boolean;
@@ -43,15 +46,24 @@ export default function CreateCommunityDialog(props: CreateCommunityDialogProps)
     defaultValues: {
       name: '',
       description: '',
-      visibility: 'public',
+      // Decision of the owner (#1576): "Public" only marks a community for a list that does not exist yet
+      visibility: 'private',
     },
     mode: 'onChange',
     reValidateMode: 'onChange',
   });
 
+  const name = useWatch({ control: form.control, name: 'name' });
+  const description = useWatch({ control: form.control, name: 'description' });
+  const visibility = useWatch({ control: form.control, name: 'visibility' });
+
   // Personal communities never take a name (ADR 0033): no check for them
-  const nameStatus = useCommunityNameAvailability(form.watch('name'), form.watch('visibility') !== 'personal');
+  const nameStatus = useCommunityNameAvailability(name, visibility !== 'personal');
   const nameBlocked = nameStatus === 'checking' || nameStatus === 'taken';
+  // Only the text counts (#1563): a change of the visibility alone closes the dialog without a question
+  const hasText = name !== '' || description !== '';
+
+  const submitRef = useRef<HTMLButtonElement>(null);
 
   const handleSubmit = form.handleSubmit(async (data: NewCommunity) => {
     setLoading(true);
@@ -61,25 +73,34 @@ export default function CreateCommunityDialog(props: CreateCommunityDialogProps)
     const response = await knowiiApiClient.communities.create(data);
 
     if ('success' === response.type && !response.errors) {
-      showToast({
-        severity: 'success',
-        summary: 'Community created successfully',
-      });
+      const done = () => {
+        showToast({
+          severity: 'success',
+          summary: 'Community created successfully',
+        });
+        form.reset();
+        setLoading(false);
+        props.onHide();
+      };
 
-      if (response.data) {
-        const createdCommunity = response.data;
-        props.onCommunityCreated(createdCommunity);
+      if (!response.data) {
+        done();
+        return;
       }
-      form.reset();
-      props.onHide();
-    } else {
-      showToast({
-        severity: 'error',
-        summary: response.message ? response.message : 'Failed to create the community',
-        detail: response.message ? response.message : 'Please try again later.',
-      });
+
+      const createdCommunity = response.data;
+      props.onCommunityCreated(createdCommunity);
+      // The next step is in the new community (#1576). The dialog stays busy until the page is there: the focus stays on
+      // the busy button, and the toast shows on the new page (the Toaster lives outside the pages)
+      router.visit(route(COMMUNITY_URL, { communitySlug: createdCommunity.slug }), { onFinish: done });
+      return;
     }
 
+    showToast({
+      severity: 'error',
+      summary: response.message ? response.message : 'Failed to create the community',
+      detail: response.message ? response.message : 'Please try again later.',
+    });
     setLoading(false);
   });
 
@@ -87,6 +108,8 @@ export default function CreateCommunityDialog(props: CreateCommunityDialogProps)
     <Dialog
       open={props.visible}
       onClose={props.onHide}
+      // A closed dialog keeps no text: "Discard" really discards it
+      onAfterClose={() => form.reset()}
       title={
         <>
           <CommunityIcon visibility={null} />
@@ -94,12 +117,18 @@ export default function CreateCommunityDialog(props: CreateCommunityDialogProps)
         </>
       }
       description="Provide the details of your new community."
+      // Escape, a click outside and "Cancel" ask before they lose the text (#1563). A create closes without a question.
+      hasUnsavedChanges={hasText && !loading}
       footer={
         <>
-          <Button variant="secondary" onClick={props.onHide}>
-            Cancel
-          </Button>
-          <Button type="submit" form="create-community-form" disabled={!form.formState.isValid || nameBlocked} loading={loading}>
+          <DialogCloseButton>Cancel</DialogCloseButton>
+          <Button
+            ref={submitRef}
+            type="submit"
+            form="create-community-form"
+            disabled={!form.formState.isValid || nameBlocked}
+            loading={loading}
+          >
             Go ahead!
           </Button>
         </>
@@ -110,7 +139,18 @@ export default function CreateCommunityDialog(props: CreateCommunityDialogProps)
           <Spinner size="lg" label="Creating the community" />
         </div>
       ) : (
-        <form id="create-community-form" onSubmit={handleSubmit} noValidate>
+        <form
+          id="create-community-form"
+          onSubmit={(event) => {
+            // The spinner takes the place of the form: a field that has the focus (Enter in the name) would lose it. The
+            // busy button keeps it instead (#1564).
+            if (event.currentTarget.contains(document.activeElement)) {
+              submitRef.current?.focus();
+            }
+            void handleSubmit(event);
+          }}
+          noValidate
+        >
           {/* Name */}
           <div>
             <InputLabel htmlFor="name">Name</InputLabel>
@@ -172,21 +212,27 @@ export default function CreateCommunityDialog(props: CreateCommunityDialogProps)
                   onChange={field.onChange}
                   onBlur={field.onBlur}
                   disabled={loading}
+                  // The approved texts (#1512), not new ones
+                  description={COMMUNITY_VISIBILITY_DESCRIPTIONS[field.value]}
                 />
               )}
             />
             <InputError className="mt-2" message={form.formState.errors.visibility?.message} />
           </div>
 
-          {/* A shared community holds the data of other people: the owner accepts the DPA (GDPR art. 28, #1353). Approved text */}
-          {form.watch('visibility') !== 'personal' && (
-            <p id="create-community-dpa" className="mt-4 text-xs text-muted">
-              By creating a community, you accept the{' '}
-              <a href={route(DPA_URL)} target="_blank" rel="noreferrer" className="simple-link">
-                data processing agreement
-              </a>
-              .
-            </p>
+          {/* A shared community holds the data of other people: the owner accepts the DPA (GDPR art. 28, #1353). Approved
+              texts: the first line is the decision of the owner of #1576 */}
+          {visibility !== 'personal' && (
+            <>
+              <p className="mt-4 text-xs text-muted">You will hold the data of your members; this agreement says how.</p>
+              <p id="create-community-dpa" className="mt-1 text-xs text-muted">
+                By creating a community, you accept the{' '}
+                <a href={route(DPA_URL)} target="_blank" rel="noreferrer" className="simple-link">
+                  data processing agreement
+                </a>
+                .
+              </p>
+            </>
           )}
         </form>
       )}

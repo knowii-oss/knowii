@@ -1,7 +1,8 @@
 import { describe, expect, it, vi, afterEach } from 'vitest';
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { AppDataProvider, useAppData } from '@knowii/common';
+import { router } from '@inertiajs/react';
+import { AppDataProvider, DEFAULT_TOAST_LIFE, useAppData } from '@knowii/common';
 import type { ToastMessage } from '@knowii/common';
 import { Avatar, getInitials } from './Avatar';
 import { Breadcrumb } from './Breadcrumb';
@@ -178,5 +179,45 @@ describe('Toaster', () => {
     });
     act(() => vi.advanceTimersByTime(1001));
     expect(screen.queryByText('Hello')).not.toBeInTheDocument();
+  });
+
+  it('keeps a toast with a link until the user follows it or dismisses it (#1576)', async () => {
+    const visit = vi.spyOn(router, 'visit').mockImplementation(() => undefined);
+    vi.useFakeTimers();
+    renderToaster();
+    act(() => showToast({ severity: 'success', summary: 'Space created', action: { label: 'Open the space', href: '/space/lounge' } }));
+
+    // Far more than the life of a toast: a link needs time to be reached with the keyboard (WCAG 2.2.1)
+    act(() => vi.advanceTimersByTime(DEFAULT_TOAST_LIFE * 20));
+    vi.useRealTimers();
+    const region = screen.getByRole('region', { name: 'Notifications' });
+    const link = within(region).getByRole('link', { name: 'Open the space' });
+    expect(link).toHaveAttribute('href', '/space/lounge');
+
+    await userEvent.click(link);
+    expect(visit).toHaveBeenCalledOnce();
+    expect(within(region).queryByText('Space created')).not.toBeInTheDocument();
+    visit.mockRestore();
+  });
+
+  it('gives the focus back to the page when a toast that holds it is dismissed', async () => {
+    render(
+      <AppDataProvider>
+        <Toaster />
+        <CaptureShowToast />
+        <button type="button">Add a space</button>
+      </AppDataProvider>,
+    );
+    act(() => showToast({ severity: 'success', summary: 'Space created', action: { label: 'Open the space', href: '/space/lounge' } }));
+
+    const trigger = screen.getByRole('button', { name: 'Add a space' });
+    trigger.focus();
+    // Shift+Tab from the page reaches the toast: the toaster is before the page
+    await userEvent.tab({ shift: true });
+    expect(screen.getByRole('button', { name: 'Dismiss notification' })).toHaveFocus();
+
+    await userEvent.keyboard('{Enter}');
+    expect(screen.queryByText('Space created')).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
   });
 });
