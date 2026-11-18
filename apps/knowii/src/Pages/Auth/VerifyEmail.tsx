@@ -2,7 +2,14 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import type { FormEventHandler } from 'react';
 import AuthenticationCard from '@/Components/AuthenticationCard';
 import { useRoute } from 'ziggy-js';
-import { EMAIL_VERIFICATION_STATUS_LINK_SENT, EMAIL_VERIFICATION_URL, LOGOUT_URL, USER_PROFILE_URL } from '@knowii/common';
+import {
+  EMAIL_VERIFICATION_STATUS_LINK_SENT,
+  EMAIL_VERIFICATION_URL,
+  LOGOUT_URL,
+  removeKeptTextsOfAccount,
+  USER_PROFILE_URL,
+  useTypedPage,
+} from '@knowii/common';
 import Footer from '@/Components/Footer';
 import { Button } from '@/Components/ui';
 
@@ -12,6 +19,7 @@ interface Props {
 
 export default function VerifyEmailPage(props: Props) {
   const route = useRoute();
+  const account = useTypedPage().props.auth.user;
 
   const verificationLinkSent = props.status === EMAIL_VERIFICATION_STATUS_LINK_SENT;
 
@@ -46,7 +54,18 @@ export default function VerifyEmailPage(props: Props) {
               <Link href={route(USER_PROFILE_URL)} className="simple-link touch-target mb-2 sm:mb-0 sm:mr-4">
                 Edit profile
               </Link>
-              <Link href={route(LOGOUT_URL)} method="post" className="simple-link touch-target" as="button">
+              <Link
+                href={route(LOGOUT_URL)}
+                method="post"
+                className="simple-link touch-target"
+                as="button"
+                // The texts that the account did not send leave the browser with it (#1622)
+                onClick={() => {
+                  if (account) {
+                    removeKeptTextsOfAccount(account.cuid);
+                  }
+                }}
+              >
                 Log out
               </Link>
             </div>

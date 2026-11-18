@@ -6,6 +6,8 @@ import { AppDataProvider, knowiiApiClient } from '@knowii/common';
 import { PageList } from './PageList';
 
 vi.mock('@inertiajs/react', () => ({
+  // Nobody is signed in: the editors keep no text in the browser (#1622)
+  usePage: () => ({ props: { auth: { user: null } } }),
   Link: ({ children, href, ...props }: { children: React.ReactNode; href: string }) => (
     <a href={href} {...props}>
       {children}

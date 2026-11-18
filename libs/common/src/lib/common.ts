@@ -53,5 +53,6 @@ export * from './utils/safe-url.fn';
 export * from './utils/time-zone.fn';
 export * from './utils/video-url.fn';
 export * from './utils/markdown-images.fn';
+export * from './utils/kept-text.fn';
 
 export { default as metadata } from './metadata.json';

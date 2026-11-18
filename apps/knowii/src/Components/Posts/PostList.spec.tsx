@@ -7,6 +7,8 @@ import { PostList } from './PostList';
 import { emitSocketEvent } from '@/test-utils/fake-echo';
 
 vi.mock('@inertiajs/react', () => ({
+  // Nobody is signed in: the editors keep no text in the browser (#1622)
+  usePage: () => ({ props: { auth: { user: null } } }),
   Link: ({
     children,
     href,

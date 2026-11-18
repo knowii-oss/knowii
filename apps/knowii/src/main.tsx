@@ -8,11 +8,14 @@ import { StrictMode } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
-import { AppDataProvider } from '@knowii/common';
+import { AppDataProvider, removeExpiredKeptTexts } from '@knowii/common';
 import { ErrorBoundary, Toaster } from '@/Components/ui';
 import { pageComponents } from './page-components';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+
+// The texts that were not sent and whose last change is more than 7 days ago leave the browser, for every account (#1622)
+removeExpiredKeptTexts();
 
 // Per-request CSP nonce for the <style> elements that Inertia injects (progress bar, error dialog), see app.blade.php
 const styleNonce = document.querySelector<HTMLMetaElement>('meta[property="csp-nonce"]')?.nonce;

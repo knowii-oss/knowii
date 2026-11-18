@@ -177,6 +177,15 @@ test('the privacy policy lists the cookies and the browser storage, with the ses
     );
 });
 
+test('the privacy policy names the text that was not sent, kept in the browser (#1622)', function () {
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('updated', '2026-11-18')
+        ->where('html', fn (string $html) => str_contains($html, '<td>The text of a post, a page or a lesson that you wrote and did not send</td>')
+            && str_contains($html, '<td>Gives your text back after a closed tab, a reload or a crash. It stays only in your browser and is never sent to the server before you publish it</td>')
+            && str_contains($html, '<td>Until you publish or discard it, until you sign out, or 7 days after your last change</td>'))
+    );
+});
+
 test('the "Remember me" cookie lasts as long as the privacy policy says (#1342)', function () {
     $guard = auth()->guard('web');
     $minutes = (fn (): int => $this->getRememberDuration())->call($guard);
@@ -313,7 +322,7 @@ test('the privacy policy tells about the follows, the space levels and the entit
 
 test('the privacy policy says that a public space is read by anyone, with the name and the picture (#1387)', function () {
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
-        ->where('updated', '2026-11-16')
+        ->where('updated', '2026-11-18')
         ->where('html', fn (string $html) => str_contains($html, 'What you post in a public space of a community can be read by anyone on the internet, with your name and your picture.')
             && ! str_contains($html, 'The space tells you so before you post.')));
 });
@@ -336,7 +345,7 @@ test('the privacy policy says what Knowii keeps when a manager removes a member,
 
 test('the privacy policy tells about the time zone, the last visit and the visits of spaces (#1476, approved 2026-11-16)', function () {
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
-        ->where('updated', '2026-11-16')
+        ->where('updated', '2026-11-18')
         ->where('html', fn (string $html) => str_contains($html, 'your time zone, which your browser gives when you sign up or which you set yourself, to show times in your zone; the date of your last visit (a date without an hour, replaced at each visit, that nobody else can see), to show you what is new since then; and your choice to show or hide pop-ups.')
             && str_contains($html, 'and when you saw it), and the date and hour of your last visit of each space, to mark the spaces that have something new for you, and, when you sign in with a Knowii account')
             && str_contains($html, 'Time zone and pop-up choice: while your account exists. Last visit date: replaced at each visit. Last visit of each space: replaced at each visit, and deleted when you leave the community.'))
