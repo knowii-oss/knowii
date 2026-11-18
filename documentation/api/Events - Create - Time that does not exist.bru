@@ -1,0 +1,29 @@
+meta {
+  name: Events - Create - Time that does not exist
+  type: http
+  seq: 189
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of an events space>/events
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Night session",
+    "starts_at": "2027-03-28T02:30:00+01:00",
+    "ends_at": "2027-03-28T04:00:00+02:00",
+    "time_zone": "Europe/Brussels"
+  }
+}
+
+docs {
+  Error case: on 28 March 2027 the clocks of Brussels go from 02:00 to 03:00, so 02:30 does not exist: 400 on starts_at, "This time does not exist in this zone. Choose 01:59 or earlier, or 03:00 or later." A time that exists twice (31 October 2027, 02:30) is accepted with +02:00 or +01:00: the offset decides the instant.
+}

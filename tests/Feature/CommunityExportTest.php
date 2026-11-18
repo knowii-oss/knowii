@@ -3,10 +3,12 @@
 use App\Actions\Communities\ExportCommunity;
 use App\Contracts\Communities\ExportsCommunities;
 use App\Enums\KnowiiCommunityMemberRole;
+use App\Enums\KnowiiSpaceType;
 use App\Models\ChatMessage;
 use App\Models\Comment;
 use App\Models\Community;
 use App\Models\Conversation;
+use App\Models\Event;
 use App\Models\Post;
 use App\Models\Reaction;
 use App\Models\Space;
@@ -203,4 +205,35 @@ test('the command says when no community has the slug', function () {
 
 test('the export action is behind its contract', function () {
     expect(app(ExportsCommunities::class))->toBeInstanceOf(ExportCommunity::class);
+});
+
+test('the export holds the events with their Markdown, never their HTML or their internal id (#1513)', function () {
+    $f = communityExportFixture();
+    $events = Space::factory()->inGroup(SpaceGroup::query()->where('community_id', $f['community']->id)->firstOrFail())->create(['type' => KnowiiSpaceType::Events]);
+    $event = Event::factory()->inSpace($events)->hostedBy($f['member'])->create([
+        'title' => 'Weekly review office hour',
+        'body' => 'Bring **your** questions',
+        'body_html' => '<p>Bring <strong>your</strong> questions</p>',
+        'starts_at' => '2027-03-23 16:00:00',
+        'ends_at' => '2027-03-23 17:00:00',
+        'place' => 'Room 2',
+        'cover_upload_id' => $f['upload']->id,
+    ]);
+
+    $files = runCommunityExport($f['community']);
+    $rows = json_decode($files['events.json'], true)['events'];
+
+    expect($rows)->toHaveCount(1)
+        ->and($rows[0]['cuid'])->toBe($event->cuid)
+        ->and($rows[0]['space'])->toBe($events->cuid)
+        ->and($rows[0]['host'])->toBe($f['member']->cuid)
+        ->and($rows[0]['body'])->toBe('Bring **your** questions')
+        ->and($rows[0]['starts_at'])->toBe('2027-03-23T16:00:00+00:00')
+        ->and($rows[0]['time_zone'])->toBe('Europe/Brussels')
+        ->and($rows[0]['place'])->toBe('Room 2')
+        ->and($rows[0]['state'])->toBe('published')
+        ->and($rows[0]['cover_upload'])->toBe($f['upload']->cuid)
+        ->and($rows[0])->not->toHaveKey('body_html')
+        ->and($rows[0])->not->toHaveKey('id')
+        ->and($files['README.txt'])->toContain('events.json');
 });

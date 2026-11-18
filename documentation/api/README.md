@@ -37,6 +37,8 @@ A personal API token (created on the "API tokens" page of the user menu) has abi
 | `resources:read`    | Read resources, their comments and reactions                          |
 | `resources:write`   | Add resources, comment and react on them                              |
 | `resources:create`  | Add resources, nothing else (the browser extension, ADR 0018)         |
+| `events:read`       | Read the events of events spaces, and the upcoming events of a community (ADR 0053) |
+| `events:write`      | Create, change, publish, cancel, duplicate and delete events (not in the default set) |
 | `groups:read`       | Read access groups and their members                                  |
 | `groups:write`      | Manage access groups and their members (a sync from another system)   |
 | `identities:read`   | Read the provider accounts that you connected to sign in: the issuer, a label and the dates, never the identifier at the provider (not in the default set) |
@@ -76,12 +78,36 @@ A public space (`visibility` public) can be read by anyone on the internet, with
 | `GET /v1/communities/{community}/spaces/{space}/resources`             | The resources of a resources space           |
 | `GET /v1/communities/{community}/spaces/{space}/resources/{resource}`  | One resource                                 |
 | `GET /v1/communities/{community}/spaces/{space}/resources/{resource}/comments` | The comments of a resource           |
+| `GET /v1/communities/{community}/events`                               | The upcoming events of the public events spaces (#1513) |
+| `GET /v1/communities/{community}/spaces/{space}/events`                | The events of an events space, never a draft |
+| `GET /v1/communities/{community}/spaces/{space}/events/{event}`        | One event, never a draft                     |
 
 The first three routes are the public page of a community (#1485). They answer a visitor and a signed-in person who is not a member when the community has at least one public space that is not a chat space. Otherwise a visitor gets 404 (the same answer as for a community that does not exist) and a signed-in person who is not a member gets 403. The community has the public shape only: `cuid`, `name`, `slug`, `description`, `visibility`, `join_policy` (`invitation` or `open`, #1486) and `is_member` (false). The navigation holds the public spaces without any chat space. `newest-posts` has, for each post: `cuid`, `title`, `slug`, `excerpt`, `author` (`cuid`, `name`, `username`, `avatar_url`, or null for a deleted account), `space` (`cuid`, `slug`, `name`, `emoji`) and `created_at`. It never lists a deleted post, a post of a space that is not public, or one of a chat space. A member gets their full community and their own navigation, and the same newest posts.
 
-Without an account, these answers hold the name, the username and the avatar of the authors, and the counts of the reactions. They never hold: a member list, the team, the online members, profile fields, the member count, who reacted, the names of access groups, the moderator rights, the direct message setting, the captured article of a resource, the progress in a course, or the results of a quiz. Everything else needs an account: who reacted, chat messages, online members, member search, quizzes, the download of a course material (the list is public, the download is not), the navigation of the community beyond its public spaces, and every write.
+Without an account, these answers hold the name, the username and the avatar of the authors, and the counts of the reactions. They never hold: a member list, the team, the online members, profile fields, the member count, who reacted, the names of access groups, the moderator rights, the direct message setting, the captured article of a resource, the progress in a course, the results of a quiz, or the meeting address and the place of an event (`meeting_url` and `place` are null, `can_view_location` is false). Everything else needs an account: who reacted, chat messages, online members, member search, quizzes, the download of a course material (the list is public, the download is not), the navigation of the community beyond its public spaces, and every write.
 
-A request with a token still needs the ability of the route (`posts:read`, `pages:read`, `resources:read`, `communities:read`). A token that is not accepted (unknown, revoked or expired) gets a 401: it is never treated as no token.
+A request with a token still needs the ability of the route (`posts:read`, `pages:read`, `resources:read`, `events:read`, `communities:read`). A token that is not accepted (unknown, revoked or expired) gets a 401: it is never treated as no token.
+
+## Events
+
+An events space (`type` events, [ADR 0053](../adr/0053-events-a-space-type-with-its-own-table.md), #1513) holds dated events. The posting policy of the space decides who creates one; the owner, the admins and the host change it; the moderators of the space also cancel and delete it.
+
+| Method and path | What it does |
+|---|---|
+| `GET .../spaces/{space}/events` | The list: `scope` `upcoming` (default: the events that end now or later, the next start first) or `past` (the newest start first), `limit`, `offset`. A draft only for its host, the owner and the admins |
+| `POST .../spaces/{space}/events` | Create (201): a draft by default, or `state` `published` |
+| `GET .../spaces/{space}/events/{event}` | One event with `body` and `body_html` |
+| `PATCH .../spaces/{space}/events/{event}` | Change any field but the state |
+| `PUT .../spaces/{space}/events/{event}/state` | `state` (`draft`, `published`, `cancelled`) and `notify_now` |
+| `POST .../spaces/{space}/events/{event}/duplicate` | A draft copy 7 days later at the same wall-clock time in the zone of the event (201) |
+| `DELETE .../spaces/{space}/events/{event}` | Delete (204) |
+| `GET /communities/{community}/events` | The upcoming events of every events space that you can read, never a draft |
+
+Times: `starts_at` and `ends_at` are sent in ISO 8601 with the offset of `time_zone` at that time (`2026-11-18T17:00:00+01:00`) and come back as UTC instants (`2026-11-18T16:00:00.000000Z`) with `time_zone` as stored. A value without an offset, a wrong offset and a time that the zone skips (the hour when the clocks go forward) are field errors (400); a time that exists twice is accepted with either real offset. The end is after the start and at most 24 hours later. A start in the past is for the owner and the admins only. `is_past` is true when the end is before now; it is never stored.
+
+The meeting address and the place: `location_visibility` `members` gives them to every member who can see the event, `going` to the host, the owner and the admins. A visitor and a person who is not a member never get them. The server cuts them; the client never hides them.
+
+The first publication of an event with a start in the future tells the members of the space at "Everything" (the built-in default of an events space) with one `event_new` line each, after 5 minutes (`notify_now: true` skips the wait, for the moderators of the space). Going back to draft deletes these lines; a second publication writes none. Live updates on the space channel: `space.event.created` (at the first publication), `space.event.updated` (a change of a published or cancelled event) and `space.event.deleted` (a delete, or a return to draft), with `event_cuid` and `author_cuid` only. A draft sends nothing. A person who may not see an event gets 404 from every route of the event. Create and duplicate are limited per member (the `events` limiter, 5 a minute).
 
 ## Who can join
 

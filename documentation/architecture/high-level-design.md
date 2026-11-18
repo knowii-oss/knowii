@@ -6,35 +6,37 @@ Everything a member writes or reads belongs to one community. The community is t
 
 ```
 User ──< CommunityMember >── Community ──< SpaceGroup ──< Space
- │        (role: admin,          │                         │ type: discussion | chat | pages | course | resources
+ │        (role: admin,          │                         │ type: discussion | chat | pages | course | resources | link | events
  │         moderator, member)    │                         │ visibility, posting policy, position
  │                               │                         ├──< Post ──< Comment (one level of replies)
  │                               │                         ├──< ChatMessage (thread replies: parent)
  │                               │                         ├──< Page (ordered; lessons in course spaces)
- │                               │                         └──< CommunityResource ──> Resource (resources spaces; comments as on posts, #1034)
+ │                               │                         ├──< CommunityResource ──> Resource (resources spaces; comments as on posts, #1034)
+ │                               │                         └──< Event ──> host (User), cover (Upload) (events spaces, #1513)
  │                               ├──< Conversation ──< ConversationParticipant (direct messages)
  │                               │         └──< DirectMessage
  │                               └──< CommunityInvitation
  ├── UserProfile
- └── Reactions, Mentions, Uploads (one nullable foreign key per kind of item: post, comment, message, page; ADR 0014)
+ └── Reactions, Mentions, Uploads (one nullable foreign key per kind of item: post, comment, message, page, event; ADR 0014)
 ```
 
 State on 2026-11-09: users, profiles, communities, members, invitations, space groups and spaces ([ADR 0012](../adr/0012-space-groups-and-typed-spaces.md)), resources spaces ([ADR 0015](../adr/0015-resources-space-type.md)), posts, comments (one level of replies), reactions, mentions, member pages and image uploads exist. The rest of the content of the spaces (chat messages, pages, conversations) is built for the MVP (milestones M1 to M4, see the GitHub milestones). This diagram shows the target of the MVP. Each feature updates this paragraph when it ships.
 
 ### Concepts
 
-| Concept          | Meaning                                                                                                                           |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Community        | A group of members with its own spaces. Visibility: `public`, `private` or `personal` (one member)                                |
-| Community member | The link between a user and a community, with a role. The owner of a community has all the rights                                 |
-| Space group      | An ordered, named group of spaces in the navigation of a community                                                                |
-| Space            | A place in a community where members do one kind of thing. Its type decides what it holds                                         |
-| Discussion space | Holds posts. Posts have comments, reactions and mentions                                                                          |
-| Chat space       | Holds chat messages, in real time. A reply to a message starts a thread                                                           |
-| Pages space      | Holds ordered Markdown pages (Start Here, guides, resource libraries)                                                             |
-| Course space     | Holds ordered lessons. A lesson is a page with an optional video                                                                  |
-| Conversation     | Direct messages between 2 to 10 members of the same community                                                                     |
-| Resources space  | Holds curated resources (web articles today). Replaces the resource collections ([ADR 0015](../adr/0015-resources-space-type.md)) |
+| Concept          | Meaning                                                                                                                                                                                                                                                                |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Community        | A group of members with its own spaces. Visibility: `public`, `private` or `personal` (one member)                                                                                                                                                                     |
+| Community member | The link between a user and a community, with a role. The owner of a community has all the rights                                                                                                                                                                      |
+| Space group      | An ordered, named group of spaces in the navigation of a community                                                                                                                                                                                                     |
+| Space            | A place in a community where members do one kind of thing. Its type decides what it holds                                                                                                                                                                              |
+| Discussion space | Holds posts. Posts have comments, reactions and mentions                                                                                                                                                                                                               |
+| Chat space       | Holds chat messages, in real time. A reply to a message starts a thread                                                                                                                                                                                                |
+| Pages space      | Holds ordered Markdown pages (Start Here, guides, resource libraries)                                                                                                                                                                                                  |
+| Course space     | Holds ordered lessons. A lesson is a page with an optional video                                                                                                                                                                                                       |
+| Conversation     | Direct messages between 2 to 10 members of the same community                                                                                                                                                                                                          |
+| Resources space  | Holds curated resources (web articles today). Replaces the resource collections ([ADR 0015](../adr/0015-resources-space-type.md))                                                                                                                                      |
+| Events space     | Holds dated events with one host, a start and an end (UTC, with the zone of the host), a meeting address or a place, and the states draft, published and cancelled. "Past" is derived from the end ([ADR 0053](../adr/0053-events-a-space-type-with-its-own-table.md)) |
 
 ## Request flow
 

@@ -5,6 +5,7 @@ namespace App\Actions\Content;
 use App\Contracts\Content\RendersContentAgain;
 use App\Models\ChatMessage;
 use App\Models\Comment;
+use App\Models\Event;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\QuizQuestion;
@@ -52,6 +53,13 @@ final class RenderContentAgain implements RendersContentAgain
                 Page::query(),
                 [['body', 'body_html']],
                 static fn (Page $page, string $body): string => Markdown::render($body),
+                $dryRun,
+            ),
+            // The descriptions of the events (#1513), without mentions like pages
+            'events' => $this->renderAll(
+                Event::query(),
+                [['body', 'body_html']],
+                static fn (Event $event, string $body): string => $body === '' ? '' : Markdown::render($body),
                 $dryRun,
             ),
             'quiz_questions' => $this->renderAll(

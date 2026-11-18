@@ -12,6 +12,7 @@ use App\Models\CommunityMember;
 use App\Models\CommunityResource;
 use App\Models\Conversation;
 use App\Models\CourseMaterial;
+use App\Models\Event;
 use App\Models\LessonProgress;
 use App\Models\Page;
 use App\Models\Post;
@@ -89,6 +90,7 @@ final class ExportCommunity implements ExportsCommunities
                 'posts.json' => [[], ['posts' => $this->posts($community)]],
                 'comments.json' => [[], ['comments' => $this->comments($community)]],
                 'pages.json' => [[], ['pages' => $this->pages($community)]],
+                'events.json' => [[], ['events' => $this->events($community)]],
                 'chat-messages.json' => [[], ['chat_messages' => $this->chatMessages($community)]],
                 'reactions.json' => [[], ['reactions' => $this->reactions($community, $withDirectMessages)]],
                 'resources.json' => [[], ['resources' => $this->resources($community)]],
@@ -334,6 +336,38 @@ final class ExportCommunity implements ExportsCommunities
                 'position' => $page->position,
                 'created_at' => $this->date($page->created_at),
                 'updated_at' => $this->date($page->updated_at),
+            ];
+        }
+    }
+
+    /**
+     * The events of the events spaces (#1513): the description in Markdown (no HTML), the UTC instants and the zone of
+     * the host, the meeting address and the place. The cover is an upload of uploads.json.
+     *
+     * @return Generator<int, Row>
+     */
+    private function events(Community $community): Generator
+    {
+        foreach (Event::query()->where('community_id', $community->id)->with(['space', 'host', 'cover'])->lazyById(self::CHUNK) as $event) {
+            yield [
+                'cuid' => $event->cuid,
+                'space' => $event->space->cuid,
+                ...$this->person('host', $event->host),
+                'title' => $event->title,
+                'slug' => $event->slug,
+                'body' => $event->body,
+                'state' => $event->state->value,
+                'starts_at' => $this->date($event->starts_at->toImmutable()->utc()),
+                'ends_at' => $this->date($event->ends_at->toImmutable()->utc()),
+                'time_zone' => $event->time_zone,
+                'meeting_url' => $event->meeting_url,
+                'place' => $event->place,
+                'location_visibility' => $event->location_visibility->value,
+                'cover_upload' => $event->cover?->cuid,
+                'cover_alt' => $event->cover_alt,
+                'sequence' => $event->sequence,
+                'created_at' => $this->date($event->created_at),
+                'updated_at' => $this->date($event->updated_at),
             ];
         }
     }
@@ -664,6 +698,7 @@ final class ExportCommunity implements ExportsCommunities
             'posts.json' => 'the posts (Markdown)',
             'comments.json' => 'the comments on posts and on resources (Markdown)',
             'pages.json' => 'the pages and the lessons (Markdown)',
+            'events.json' => 'the events of the events spaces, with their description (Markdown), times, zone, meeting address and place',
             'chat-messages.json' => 'the messages of the chat spaces',
             'reactions.json' => 'the reactions to posts, comments and messages',
             'resources.json' => 'the resources with their address and the captured text (Markdown)',

@@ -1,0 +1,19 @@
+meta {
+  name: Events - Duplicate
+  type: http
+  seq: 193
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of an events space>/events/<cuid of an event>/duplicate
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  A draft copy of the event (#1513), 7 days later at the same wall-clock time in the zone of the event (over a change of summer time the instant moves by one hour). The owner, the admins and the host. 201. Ability events:write.
+}

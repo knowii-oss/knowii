@@ -1,0 +1,19 @@
+meta {
+  name: Events - List past
+  type: http
+  seq: 184
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of an events space>/events?scope=past
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The events of an events space that ended, the newest start first (#1513). Ability events:read.
+}

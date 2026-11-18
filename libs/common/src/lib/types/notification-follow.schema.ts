@@ -52,7 +52,7 @@ export const SPACE_NOTIFICATION_LEVELS_ORDER: readonly SpaceNotificationLevel[] 
 export const SPACE_NOTIFICATION_LEVEL_LABELS: Record<SpaceNotificationLevel, { name: string; description: string }> = {
   all: {
     name: 'Everything',
-    description: 'You get a line for every new post here. In a chat space the lines are bundled, one per space.',
+    description: 'You get a line for every new post or event here. In a chat space the lines are bundled, one per space.',
   },
   mine: {
     name: 'Only what is for me',
@@ -62,14 +62,14 @@ export const SPACE_NOTIFICATION_LEVEL_LABELS: Record<SpaceNotificationLevel, { n
 };
 
 /**
- * The levels that a member can choose for a space type. "Everything" exists for discussion spaces and chat spaces only; a
- * link space has no level (WARNING: aligned with ChooseSpaceLevels.php).
+ * The levels that a member can choose for a space type. "Everything" exists for discussion spaces, chat spaces and events
+ * spaces (#1513) only; a link space has no level (WARNING: aligned with ChooseSpaceLevels.php).
  */
 export function spaceNotificationLevelsFor(spaceType: string): SpaceNotificationLevel[] {
   if (spaceType === 'link') {
     return [];
   }
-  return spaceType === 'discussion' || spaceType === 'chat' ? ['all', 'mine', 'none'] : ['mine', 'none'];
+  return spaceType === 'discussion' || spaceType === 'chat' || spaceType === 'events' ? ['all', 'mine', 'none'] : ['mine', 'none'];
 }
 
 /**

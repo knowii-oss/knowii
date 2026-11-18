@@ -8,6 +8,7 @@ use App\Enums\KnowiiSpaceVisibility;
 use App\Models\ChatMessage;
 use App\Models\Comment;
 use App\Models\Community;
+use App\Models\Event;
 use App\Models\Notification;
 use App\Models\NotificationFollow;
 use App\Models\NotificationSpaceLevel;
@@ -59,7 +60,9 @@ final class PruneNotifications implements PrunesNotifications
                 ->orWhereIn('post_id', Post::query()->where('author_id', $blocked->id)->select('id'))
                 ->orWhereIn('comment_id', Comment::query()->where('author_id', $blocked->id)->select('id'))
                 ->orWhereIn('chat_message_id', ChatMessage::query()->where('author_id', $blocked->id)->select('id'))
-                ->orWhereIn('page_id', Page::query()->where('author_id', $blocked->id)->select('id'));
+                ->orWhereIn('page_id', Page::query()->where('author_id', $blocked->id)->select('id'))
+                // The events that the blocked member hosts (#1513)
+                ->orWhereIn('event_id', Event::query()->where('host_id', $blocked->id)->select('id'));
         }));
     }
 
@@ -98,6 +101,11 @@ final class PruneNotifications implements PrunesNotifications
         return $this->delete(Notification::query()->whereIn('chat_message_id', $chatMessageIds));
     }
 
+    final public function forDraftEvent(Event $event): int
+    {
+        return $this->delete(Notification::query()->where('event_id', $event->id)->where('kind', KnowiiNotificationKind::EventNew->value));
+    }
+
     final public function forMutedSpace(User $member, Space $space): int
     {
         return $this->delete(Notification::query()->where('user_id', $member->id)->where('space_id', $space->id)->whereNull('read_at'));
@@ -109,7 +117,7 @@ final class PruneNotifications implements PrunesNotifications
         $rows = Notification::query()
             ->where('user_id', $member->id)
             ->whereNull('read_at')
-            ->whereNotIn('kind', [KnowiiNotificationKind::SpacePost->value, KnowiiNotificationKind::SpaceChat->value, KnowiiNotificationKind::LessonNew->value]);
+            ->whereNotIn('kind', [KnowiiNotificationKind::SpacePost->value, KnowiiNotificationKind::SpaceChat->value, KnowiiNotificationKind::LessonNew->value, KnowiiNotificationKind::EventNew->value]);
 
         return $this->delete($thread instanceof Post
             ? $rows->where(function (Builder $query) use ($thread): void {

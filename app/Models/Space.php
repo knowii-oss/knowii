@@ -47,6 +47,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read ?int $posts_count
  * @property-read Collection<int, CommunityResource> $resources
  * @property-read ?int $resources_count
+ * @property-read Collection<int, Event> $events
  *
  * @method static \Database\Factories\SpaceFactory factory($count = null, $state = [])
  * @method static Builder<static>|Space findSimilarSlugs(string $attribute, array<mixed> $config, string $slug)
@@ -70,6 +71,20 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static Builder<static>|Space whereVisibility($value)
  * @method static Builder<static>|Space withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array<mixed> $config, string $slug)
  * @method TResource toResource<TResource of \Illuminate\Http\Resources\Json\JsonResource = \App\Http\Resources\SpaceResource>(class-string<TResource>|null $resourceClass = null)
+ *
+ * @property-read ?int $access_groups_count
+ * @property-read Collection<int, ChatMessage> $chatMessages
+ * @property-read ?int $chat_messages_count
+ * @property-read ?int $events_count
+ * @property-read Collection<int, CourseMaterial> $materials
+ * @property-read ?int $materials_count
+ * @property-read Collection<int, ChatMessage> $messages
+ * @property-read ?int $messages_count
+ * @property-read Collection<int, Page> $pages
+ * @property-read ?int $pages_count
+ *
+ * @method static Builder<static>|Space whereDefaultNotificationLevel($value)
+ * @method static Builder<static>|Space whereLastContentAt($value)
  *
  * @mixin \Eloquent
  */
@@ -227,6 +242,16 @@ class Space extends Model
     final public function resources(): HasMany
     {
         return $this->hasMany(CommunityResource::class);
+    }
+
+    /**
+     * The events of an events space (#1513, ADR 0053). Named after the route parameter {event}, for scoped bindings.
+     *
+     * @return HasMany<Event, covariant $this>
+     */
+    final public function events(): HasMany
+    {
+        return $this->hasMany(Event::class);
     }
 
     /**

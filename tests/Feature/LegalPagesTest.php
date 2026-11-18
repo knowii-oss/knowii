@@ -377,3 +377,10 @@ test('the privacy policy names the time of a new sign-in that confirms a deletio
         ->where('updated', '2026-11-18')
         ->where('html', fn (string $html) => str_contains($html, 'the identifier of that account and the date you connected it, and the time of a new sign-in with it when you confirm the deletion of an account that has no password;')));
 });
+
+test('the privacy policy names the events and what they hold in the content of a member (#1513, approved 2026-11-17)', function () {
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('updated', '2026-11-18')
+        ->where('html', fn (string $html) => str_contains($html, 'chat messages, direct messages, pages, lessons, events (their title, description, date, place and meeting address), and uploaded images and their alternative text.'))
+    );
+});

@@ -54,6 +54,8 @@ const lines = (title: string): CatchUp => ({
         resource_cuid: null,
         resource_slug: null,
         page_slug: null,
+        event_cuid: null,
+        event_slug: null,
       },
     },
   ],

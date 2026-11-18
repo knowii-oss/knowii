@@ -3,6 +3,7 @@ import type { NotificationTarget } from '@knowii/common';
 import { commentAnchor } from '@/Components/Comments/CommentSection';
 import { makeNotification } from '@/test-utils/notifications';
 import { commentHash, messageAnchor, notificationHref } from './notification-link';
+import { threadOf } from './notification-thread';
 
 const route = (name: string, params: Record<string, string>) => `/${name}/${Object.values(params).join('/')}`;
 
@@ -27,6 +28,8 @@ describe('notificationHref (#1484)', () => {
         resource_cuid: null,
         resource_slug: null,
         page_slug: null,
+        event_cuid: null,
+        event_slug: null,
       },
     });
 
@@ -43,6 +46,8 @@ describe('notificationHref (#1484)', () => {
       resource_cuid: null,
       resource_slug: null,
       page_slug: null,
+      event_cuid: null,
+      event_slug: null,
     };
 
     expect(notificationHref(makeNotification('a', { kind: 'mention', target }), route)).toBe(
@@ -63,9 +68,29 @@ describe('notificationHref (#1484)', () => {
       resource_cuid: 'r1',
       resource_slug: 'a-resource',
       page_slug: null,
+      event_cuid: null,
+      event_slug: null,
     };
 
     expect(notificationHref(makeNotification('a', { target }), route)).toBe('/resources.show/knowii/open/a-resource#comment-k1');
+  });
+
+  it('opens the space of a new event (#1513)', () => {
+    const target: NotificationTarget = {
+      post_slug: null,
+      post_cuid: null,
+      comment_cuid: null,
+      chat_message_cuid: null,
+      thread_cuid: null,
+      resource_cuid: null,
+      resource_slug: null,
+      page_slug: null,
+      event_cuid: 'e1',
+      event_slug: 'weekly-review',
+    };
+
+    expect(notificationHref(makeNotification('a', { kind: 'event_new', level: 2, target }), route)).toBe('/spaces.show/knowii/open');
+    expect(threadOf(makeNotification('a', { kind: 'event_new', level: 2, target }))).toBeNull();
   });
 
   it('has no address without a space, or without a target', () => {
@@ -79,6 +104,8 @@ describe('notificationHref (#1484)', () => {
       resource_cuid: null,
       resource_slug: null,
       page_slug: null,
+      event_cuid: null,
+      event_slug: null,
     };
     expect(notificationHref(makeNotification('a', { target: empty }), route)).toBeNull();
   });

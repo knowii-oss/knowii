@@ -7,10 +7,16 @@ import type { Notification } from '@knowii/common';
 export type ThreadRef = { kind: 'post'; postCuid: string } | { kind: 'message'; messageCuid: string };
 
 /**
- * The lines of a space or of a course (new posts, new messages, new lessons) belong to no thread: only the space can be muted.
+ * The lines of a space or of a course (new posts, new messages, new lessons, new events) belong to no thread: only the space
+ * can be muted.
  */
 export function threadOf(notification: Notification): ThreadRef | null {
-  if (notification.kind === 'space_post' || notification.kind === 'space_chat' || notification.kind === 'lesson_new') {
+  if (
+    notification.kind === 'space_post' ||
+    notification.kind === 'space_chat' ||
+    notification.kind === 'lesson_new' ||
+    notification.kind === 'event_new'
+  ) {
     return null;
   }
   const { target } = notification;

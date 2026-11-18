@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { formatEventStart } from '../utils/time-zone.fn';
 import { followReasonSchema } from './notification-follow.schema';
 import { authorSchema } from './post.schema';
 
@@ -15,6 +16,8 @@ export const notificationKindSchema = z.enum([
   'space_post',
   'space_chat',
   'lesson_new',
+  // A new event in an events space (#1513)
+  'event_new',
 ]);
 export type NotificationKind = z.infer<typeof notificationKindSchema>;
 
@@ -48,6 +51,9 @@ export const notificationTargetSchema = z.object({
   resource_slug: z.string().nullable(),
   // A new lesson of a course
   page_slug: z.string().nullable(),
+  // A new event (#1513): the line opens the space of the event in this slice
+  event_cuid: z.string().nullable(),
+  event_slug: z.string().nullable(),
 });
 export type NotificationTarget = z.infer<typeof notificationTargetSchema>;
 
@@ -78,6 +84,8 @@ export const notificationSchema = z.object({
   excerpt: z.string(),
   // What the client needs to open the exact item
   target: notificationTargetSchema,
+  // The start of the event of an `event_new` row (#1513); null for the other kinds
+  event_starts_at: z.coerce.date().nullable(),
   seen_at: z.coerce.date().nullable(),
   read_at: z.coerce.date().nullable(),
   created_at: z.coerce.date(),
@@ -138,7 +146,14 @@ export function notificationActorNames(notification: Pick<Notification, 'actor' 
 /**
  * The kinds of level 2, "Following": never counted by the bell, never announced (design 2.1, 9.3)
  */
-export const FOLLOWING_KINDS: readonly NotificationKind[] = ['thread_comment', 'thread_reply', 'space_post', 'space_chat', 'lesson_new'];
+export const FOLLOWING_KINDS: readonly NotificationKind[] = [
+  'thread_comment',
+  'thread_reply',
+  'space_post',
+  'space_chat',
+  'lesson_new',
+  'event_new',
+];
 
 /**
  * One sentence from the kind, the authors and the live counts (#1484, #1497, design 2.5):
@@ -146,8 +161,10 @@ export const FOLLOWING_KINDS: readonly NotificationKind[] = ['thread_comment', '
  * 1. "Anna replied to your post", "Marc mentioned you in Open discussion"
  * 2. "3 new replies in <title>", "Ben posted in <space>: <title>", "4 new posts in <space>", "New messages in <space>",
  *    "Lesson <title> of <course> is out"
+ * 3. "Tue 18 Nov, 17:00 Central European Standard Time: <title>" for a new event (#1513), in the zone of the account (else
+ *    of the browser)
  */
-export function notificationSentence(notification: Notification): string {
+export function notificationSentence(notification: Notification, zone?: string | null): string {
   const who = notificationActorNames(notification);
   const space = notification.space?.name ?? notification.community.name;
   const count = Math.max(1, notification.items_count);
@@ -175,6 +192,11 @@ export function notificationSentence(notification: Notification): string {
         return `${count} new lessons in ${space}`;
       }
       return title ? `Lesson ${title} of ${space} is out` : `A new lesson of ${space} is out`;
+    case 'event_new':
+      if (notification.event_starts_at && title) {
+        return `${formatEventStart(notification.event_starts_at, zone)}: ${title}`;
+      }
+      return `New event in ${space}`;
   }
 }
 
@@ -186,7 +208,11 @@ export function notificationSentenceHasTitle(notification: Notification): boolea
     return false;
   }
   const single = notification.items_count <= 1;
-  return notification.kind === 'thread_comment' || ((notification.kind === 'space_post' || notification.kind === 'lesson_new') && single);
+  return (
+    notification.kind === 'thread_comment' ||
+    (notification.kind === 'event_new' && notification.event_starts_at !== null) ||
+    ((notification.kind === 'space_post' || notification.kind === 'lesson_new') && single)
+  );
 }
 
 /**

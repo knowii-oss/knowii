@@ -29,6 +29,7 @@ use Illuminate\Support\Facades\DB;
  * - `space_post`: the posts of its space since its subject.
  * - `space_chat`: the first-level messages of its chat space since its subject.
  * - `lesson_new`: the lessons of its course since its subject.
+ * - `event_new`: one event, never bundled (#1513): its host, unless blocked, and a count of 1 while the event exists.
  * - `mention`: one author, one item.
  *
  * The rows of a thread also get the reason why the member follows it.
@@ -42,7 +43,7 @@ final class NotificationBundles
      */
     public static function attach(User $user, Collection $rows): void
     {
-        $rows->loadMissing(['community', 'space', 'actor', 'post', 'page', 'comment.post', 'comment.communityResource', 'chatMessage.parent']);
+        $rows->loadMissing(['community', 'space', 'actor', 'post', 'page', 'event', 'comment.post', 'comment.communityResource', 'chatMessage.parent']);
 
         $blocked = array_values(DB::table('user_blocks')->where('blocker_id', $user->id)->pluck('blocked_id')->map(static fn ($id): int => is_numeric($id) ? (int) $id : 0)->all());
         $bundles = self::bundles($user, $rows, $blocked);
@@ -107,6 +108,14 @@ final class NotificationBundles
         }
 
         $bundles = [];
+
+        // An event is one item: its host, unless the host is blocked or the member (#1513)
+        foreach ($rows as $row) {
+            $host = $row->event?->host_id;
+            if ($row->kind === KnowiiNotificationKind::EventNew && $row->event !== null) {
+                $bundles[$row->id] = ['authors' => $host === null || $host === $user->id || in_array($host, $blocked, true) ? [] : [$host], 'count' => 1];
+            }
+        }
 
         if ($postTop !== [] || $postAll !== [] || $replies !== []) {
             $comments = Comment::query()

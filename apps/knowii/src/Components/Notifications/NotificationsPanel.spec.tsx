@@ -217,6 +217,8 @@ describe('the Notifications panel (#1484)', () => {
           resource_cuid: null,
           resource_slug: null,
           page_slug: null,
+          event_cuid: null,
+          event_slug: null,
         },
       });
       const resource = makeNotification('res', {
@@ -231,6 +233,8 @@ describe('the Notifications panel (#1484)', () => {
           resource_cuid: 'r1',
           resource_slug: 'the-resource',
           page_slug: null,
+          event_cuid: null,
+          event_slug: null,
         },
       });
       api.list.mockResolvedValue(page([chat, resource]));

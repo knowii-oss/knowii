@@ -59,7 +59,8 @@ export interface NotificationLineProps {
 export function NotificationLine(props: NotificationLineProps) {
   const { notification, href, isNew, showCommunity, busy, doneElsewhere, registerLine, registerLink } = props;
   const zone = useAccountTimeZone();
-  const sentence = notificationSentence(notification);
+  // The time of a new event is written in the zone of the account, else of the browser (#1513)
+  const sentence = notificationSentence(notification, zone);
   const where = [notification.space?.name, showCommunity ? notification.community.name : null].filter(Boolean).join(' · ');
   // A line for several new posts or lessons shows no title and no excerpt, and none is in its names (#1509)
   const showsItem = notificationShowsItem(notification);

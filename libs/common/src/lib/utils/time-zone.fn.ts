@@ -70,6 +70,31 @@ export function timeZoneInWords(zone: string, at: Date = new Date()): string {
 }
 
 /**
+ * The start of an event in a short line (#1513): "Tue 18 Nov, 17:00 Central European Standard Time", in the zone of the
+ * account when there is one (else in the zone of the browser). The weekday comes from the date, and the zone in words is
+ * what `Intl` gives with `timeZoneName: 'long'`.
+ */
+export function formatEventStart(date: Date, zone: string | null | undefined): string {
+  const timeZone = isKnownTimeZone(zone) ? zone : undefined;
+  try {
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+      timeZoneName: 'long',
+      ...(timeZone ? { timeZone } : {}),
+    }).formatToParts(date);
+    const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((item) => item.type === type)?.value ?? '';
+    return `${part('weekday')} ${part('day')} ${part('month')}, ${part('hour')}:${part('minute')} ${part('timeZoneName')}`;
+  } catch {
+    return date.toISOString();
+  }
+}
+
+/**
  * A date and an hour in full, in the zone of the account when there is one (else in the zone of the browser), with the name
  * of the zone: "Nov 15, 2026, 10:00:00 AM CET"
  */

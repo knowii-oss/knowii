@@ -295,6 +295,8 @@ describe('"Following" in the Notifications panel (#1497)', () => {
             resource_cuid: null,
             resource_slug: null,
             page_slug: null,
+            event_cuid: null,
+            event_slug: null,
           },
         }),
       ]);

@@ -52,14 +52,18 @@ const postingPolicyOptions = SPACE_POSTING_POLICIES.map((policy) => ({ value: po
 
 type DefaultLevel = 'all' | 'mine';
 
+// "Everything" as a default: a discussion space, and an events space (#1513). WARNING: aligned with UpdateSpace.php
+const canDefaultToEverything = (type: SpaceType) => type === 'discussion' || type === 'events';
+
 const defaultLevelOptions = (type: SpaceType) => [
-  ...(type === 'discussion' ? [{ value: 'all' as const, label: SPACE_NOTIFICATION_LEVEL_LABELS.all.name }] : []),
+  ...(canDefaultToEverything(type) ? [{ value: 'all' as const, label: SPACE_NOTIFICATION_LEVEL_LABELS.all.name }] : []),
   { value: 'mine' as const, label: SPACE_NOTIFICATION_LEVEL_LABELS.mine.name },
 ];
 
-// What members get when the manager chose nothing: Everything where only moderators post in a discussion space (#1475)
+// What members get when the manager chose nothing: Everything where only moderators post in a discussion space (#1475),
+// and Everything in an events space (#1513). WARNING: aligned with SpaceNotificationLevels::builtInDefault
 const builtInDefaultLevel = (type: SpaceType, postingPolicy: SpacePostingPolicy): DefaultLevel =>
-  type === 'discussion' && postingPolicy === 'moderators' ? 'all' : 'mine';
+  (type === 'discussion' && postingPolicy === 'moderators') || type === 'events' ? 'all' : 'mine';
 
 function initialValues(space: Space | undefined, defaultSpaceGroupCuid: string | undefined): SpaceForm {
   return {
@@ -300,6 +304,10 @@ export function SpaceDialog({
                 value={field.value}
                 onChange={(value) => {
                   field.onChange(value);
+                  // A new events space starts with "Only moderators can post" (#1513): the team plans the events
+                  if (value === 'events' && !space) {
+                    form.setValue('posting_policy', 'moderators', { shouldDirty: true });
+                  }
                   void form.trigger('url');
                 }}
                 disabled={!!space}
@@ -500,7 +508,7 @@ export function SpaceDialog({
             />
             <p className="mt-1 text-xs text-muted">
               This applies to the members who did not choose for this space. The choice of a member always wins.
-              {space.type !== 'discussion' && ' Everything is only for a discussion space.'}
+              {!canDefaultToEverything(space.type) && ' Everything is only for a discussion space or an events space.'}
             </p>
           </div>
         )}

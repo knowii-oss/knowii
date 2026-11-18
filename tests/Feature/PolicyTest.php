@@ -1,12 +1,14 @@
 <?php
 
 use App\Enums\KnowiiCommunityMemberRole;
+use App\Enums\KnowiiEventLocationVisibility;
 use App\Enums\KnowiiModeratorPermission;
 use App\Enums\KnowiiSpacePostingPolicy;
 use App\Enums\KnowiiSpaceType;
 use App\Enums\KnowiiSpaceVisibility;
 use App\Models\Comment;
 use App\Models\Community;
+use App\Models\Event;
 use App\Models\Post;
 use App\Models\Space;
 use App\Models\SpaceGroup;
@@ -108,6 +110,59 @@ test('post abilities per role', function (string $ability, string $post, array $
     'react' => ['react', 'post', POLICY_MEMBERS],
     'pin' => ['pin', 'post', POLICY_MODERATORS],
 ]);
+
+/**
+ * Events (#1513, ADR 0053): an events space open to members, with a published event and a draft that the member hosts;
+ * a public events space where only moderators post, with an event of the admin, and one whose address is for the people
+ * who go.
+ */
+function policyEvents(array $c): array
+{
+    $group = SpaceGroup::factory()->create(['community_id' => $c['community']->id]);
+    $members = Space::factory()->inGroup($group)->create(['type' => KnowiiSpaceType::Events, 'visibility' => KnowiiSpaceVisibility::Members, 'posting_policy' => KnowiiSpacePostingPolicy::Members]);
+    $public = Space::factory()->inGroup($group)->create(['type' => KnowiiSpaceType::Events, 'visibility' => KnowiiSpaceVisibility::Public, 'posting_policy' => KnowiiSpacePostingPolicy::Moderators]);
+
+    return [
+        'membersEvents' => $members,
+        'publicEvents' => $public,
+        'event' => Event::factory()->inSpace($members)->hostedBy($c['member'])->create(),
+        'draftEvent' => Event::factory()->inSpace($members)->hostedBy($c['member'])->draft()->create(),
+        'publicEvent' => Event::factory()->inSpace($public)->hostedBy($c['admin'])->create(),
+        'goingEvent' => Event::factory()->inSpace($public)->hostedBy($c['moderator'])->create(['location_visibility' => KnowiiEventLocationVisibility::Going]),
+    ];
+}
+
+test('event abilities per role', function (string $ability, string $item, array $allowed) {
+    $events = policyEvents($this->c);
+    expectAllowedRoles($this->c, $ability, [$events[$item]], $allowed);
+})->with([
+    'create in an events space open to members' => ['contribute', 'membersEvents', POLICY_MEMBERS],
+    'create in a moderators-only events space' => ['contribute', 'publicEvents', POLICY_MODERATORS],
+    'view a published event of a members-only space' => ['view', 'event', POLICY_MEMBERS],
+    'view a published event of a public space' => ['view', 'publicEvent', POLICY_ALL_ROLES],
+    'view a draft: the host, the owner and the admins' => ['view', 'draftEvent', ['owner', 'admin', 'member']],
+    'edit, publish, back to draft, duplicate: the host, the owner and the admins' => ['update', 'event', ['owner', 'admin', 'member']],
+    'edit the event of the admin: not a moderator' => ['update', 'publicEvent', ['owner', 'admin']],
+    'cancel: the host, the owner, the admins and the moderators' => ['cancel', 'event', POLICY_MEMBERS],
+    'cancel the event of the admin: the moderators too' => ['cancel', 'publicEvent', POLICY_MODERATORS],
+    'cancel a draft: never a moderator who may not see it' => ['cancel', 'draftEvent', ['owner', 'admin', 'member']],
+    'delete a draft: never a moderator who may not see it' => ['delete', 'draftEvent', ['owner', 'admin', 'member']],
+    'delete: the host, the owner, the admins and the moderators' => ['delete', 'event', POLICY_MEMBERS],
+    'delete the event of the admin: the moderators too' => ['delete', 'publicEvent', POLICY_MODERATORS],
+    'the address with members: every member, never an outsider or a visitor' => ['viewLocation', 'publicEvent', POLICY_MEMBERS],
+    'the address with going: the host, the owner and the admins' => ['viewLocation', 'goingEvent', ['owner', 'admin', 'moderator']],
+    'the address of a draft: who may view it' => ['viewLocation', 'draftEvent', ['owner', 'admin', 'member']],
+]);
+
+test('a moderator without the right to delete content cancels and deletes only their own events', function () {
+    $events = policyEvents($this->c);
+    $this->c['community']->update(['moderator_permissions' => ['delete_content' => false]]);
+    $moderator = User::findOrFail($this->c['moderator']->id);
+    $event = Event::query()->findOrFail($events['publicEvent']->id);
+
+    expect(Gate::forUser($moderator)->allows('cancel', $event))->toBeFalse()
+        ->and(Gate::forUser($moderator)->allows('delete', $event))->toBeFalse();
+});
 
 test('comment abilities per role', function (string $ability, array $allowed) {
     expectAllowedRoles($this->c, $ability, [$this->comment], $allowed);

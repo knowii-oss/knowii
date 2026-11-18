@@ -11,6 +11,7 @@ use App\Jobs\WriteNotifications;
 use App\Models\ChatMessage;
 use App\Models\Comment;
 use App\Models\Community;
+use App\Models\Event;
 use App\Models\Notification;
 use App\Models\Page;
 use App\Models\Post;
@@ -37,7 +38,7 @@ use LogicException;
  * a new comment bundles into it (the row says "New" again) instead of adding a row. Mentions do not bundle, and three
  * unread mention rows from one author in an hour are the most a member gets from them.
  *
- * Level 2, "Following" (#1475), has five kinds, all written by fanOut() in chunks of 500 members, one queued job per chunk
+ * Level 2, "Following" (#1475), has six kinds, all written by fanOut() in chunks of 500 members, one queued job per chunk
  * (LevelTwoFanOut holds the audience, LevelTwoWriter the bulk writes):
  *
  * - `thread_comment`: a new comment in a post thread tells the members who follow the thread.
@@ -45,6 +46,8 @@ use LogicException;
  * - `space_post`: a new post in a discussion space tells the members whose level for the space is "Everything", after 5 minutes.
  * - `space_chat`: a new first-level message in a chat space tells the members who chose "Everything" for it.
  * - `lesson_new`: a new lesson in a course tells the members who started the course.
+ * - `event_new`: the first publication of an event tells the members whose level for the events space is "Everything",
+ *   after 5 minutes (#1513, ADR 0053). One row per member and event: they do not bundle.
  *
  * A member who gets a level 1 row for the item gets no level 2 row for it. A muted space or thread gives the member nothing
  * at any level: the level 1 kinds respect it too. Reactions give nothing.
@@ -83,13 +86,23 @@ final class Notify implements Notifies
         return self::$silencedDepth > 0;
     }
 
-    final public function notify(Post|Comment|ChatMessage|Page $item, bool $now = false): void
+    final public function notify(Post|Comment|ChatMessage|Page|Event $item, bool $now = false): void
     {
         if (self::isSilenced()) {
             return;
         }
         // No notifications for direct messages (a later slice)
         if ($item instanceof ChatMessage && $item->isDirectMessage()) {
+            return;
+        }
+        // An event is told at its first publication (#1513): a draft can be old, so the age guard does not apply. No level 1
+        // row (no reply, no mention); the job reads the event again after the wait (still published, not started)
+        if ($item instanceof Event) {
+            $fanOut = FanOutNotifications::dispatch($item);
+            if (! $now) {
+                $fanOut->delay(now()->addMinutes(Constants::NOTIFICATIONS_POST_FANOUT_DELAY_MINUTES));
+            }
+
             return;
         }
         // The second guard: an item that is old at the moment of the event is history, not news
@@ -114,7 +127,7 @@ final class Notify implements Notifies
         }
     }
 
-    final public function fanOut(Post|Comment|ChatMessage|Page $item, ?array $excluded = null, int $after = 0, ?int $size = null): void
+    final public function fanOut(Post|Comment|ChatMessage|Page|Event $item, ?array $excluded = null, int $after = 0, ?int $size = null): void
     {
         $fanOut = app(LevelTwoFanOut::class);
         $kind = $fanOut->kindOf($item);
@@ -123,7 +136,7 @@ final class Notify implements Notifies
         }
 
         $size ??= Constants::NOTIFICATIONS_FANOUT_CHUNK;
-        $excluded ??= $item instanceof Page ? [] : array_keys($this->reasons($item));
+        $excluded ??= $item instanceof Page || $item instanceof Event ? [] : array_keys($this->reasons($item));
 
         $next = $fanOut->chunk($item, $kind, $excluded, $after, $size);
         if ($next !== null) {

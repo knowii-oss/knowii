@@ -7,6 +7,7 @@ use App\Enums\KnowiiSpaceType;
 use App\Models\ChatMessage;
 use App\Models\Comment;
 use App\Models\Conversation;
+use App\Models\Event as EventModel;
 use App\Models\Mention;
 use App\Models\Page;
 use App\Models\Post;
@@ -68,12 +69,15 @@ function renderAgainRows(): array
         'prompt' => 'Which one?', 'prompt_html' => STALE_HTML, 'explanation' => "This one:\n\n![A photo](".test()->upload->url().')', 'explanation_html' => STALE_HTML,
     ]);
 
+    $event = EventModel::factory()->inSpace(test()->space)->create(['host_id' => $c['member']->id, 'body' => '![A photo]('.test()->upload->url().')', 'body_html' => STALE_HTML]);
+
     // Fixed dates, and an edit date, to see that they stay
     DB::table('posts')->where('id', $post->id)->update(['updated_at' => '2026-01-01 10:00:00', 'edited_at' => '2026-01-02 10:00:00']);
     DB::table('comments')->where('id', $comment->id)->update(['updated_at' => '2026-01-01 10:00:00', 'edited_at' => '2026-01-02 10:00:00']);
     DB::table('chat_messages')->whereIn('id', [$chat->id, $direct->id])->update(['updated_at' => '2026-01-01 10:00:00', 'edited_at' => '2026-01-02 10:00:00']);
     DB::table('pages')->where('id', test()->page->id)->update(['updated_at' => '2026-01-01 10:00:00']);
     DB::table('quiz_questions')->where('id', $question->id)->update(['updated_at' => '2026-01-01 10:00:00']);
+    DB::table('events')->where('id', $event->id)->update(['updated_at' => '2026-01-01 10:00:00']);
 
     return [
         'post' => ['posts', $post->id, 'body_html'],
@@ -83,6 +87,8 @@ function renderAgainRows(): array
         'page' => ['pages', test()->page->id, 'body_html'],
         'quiz prompt' => ['quiz_questions', $question->id, 'prompt_html'],
         'quiz explanation' => ['quiz_questions', $question->id, 'explanation_html'],
+        // The description of an event (#1513)
+        'event' => ['events', $event->id, 'body_html'],
     ];
 }
 
@@ -125,7 +131,8 @@ test('every stored HTML is rendered again from its Markdown, with the srcset of 
         ->and($counts['posts'])->toBe(['checked' => 1, 'changed' => 1])
         ->and($counts['chat_messages'])->toBe(['checked' => 2, 'changed' => 2])
         ->and($counts['pages'])->toBe(['checked' => 1, 'changed' => 1])
-        ->and($counts['quiz_questions'])->toBe(['checked' => 1, 'changed' => 1]);
+        ->and($counts['quiz_questions'])->toBe(['checked' => 1, 'changed' => 1])
+        ->and($counts['events'])->toBe(['checked' => 1, 'changed' => 1]);
     // The prompt has no image: the HTML is a paragraph
     expect(renderAgainHtml('quiz_questions', $rows['quiz prompt'][1], 'prompt_html'))->toBe('<p>Which one?</p>');
 });

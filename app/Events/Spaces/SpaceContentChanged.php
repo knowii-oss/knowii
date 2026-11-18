@@ -6,6 +6,7 @@ use App\Constants;
 use App\Models\ChatMessage;
 use App\Models\Comment;
 use App\Models\CommunityResource;
+use App\Models\Event;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\Space;
@@ -17,7 +18,7 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Support\Str;
 
 /**
- * A post, a comment or the reactions of a space changed (#1180). The event goes to the channel of the space only,
+ * A post, a comment, a page, a message, an event or the reactions of a space changed (#1180). The event goes to the channel of the space only,
  * which checks SpacePolicy::view (members-only and access group spaces never leak).
  *
  * The payload holds identifiers only: the open pages load the item again through the API, which checks the access and
@@ -58,6 +59,13 @@ class SpaceContentChanged implements ShouldBroadcast, ShouldDispatchAfterCommit
 
     public const string MESSAGE_DELETED = 'space.message.deleted';
 
+    // Events of an events space (#1513, ADR 0053). A change of state is an update
+    public const string EVENT_CREATED = 'space.event.created';
+
+    public const string EVENT_UPDATED = 'space.event.updated';
+
+    public const string EVENT_DELETED = 'space.event.deleted';
+
     /**
      * @param  array<string, string|null>  $payload
      */
@@ -76,6 +84,14 @@ class SpaceContentChanged implements ShouldBroadcast, ShouldDispatchAfterCommit
     public static function forPage(string $name, Page $page, ?string $authorCuid = null): self
     {
         return self::in($page->space, $name, ['page_cuid' => $page->cuid, 'author_cuid' => $authorCuid]);
+    }
+
+    /**
+     * The identifiers only: never a title, a meeting address or a place
+     */
+    public static function forEvent(string $name, Event $event, ?string $authorCuid = null): self
+    {
+        return self::in($event->space, $name, ['event_cuid' => $event->cuid, 'author_cuid' => $authorCuid]);
     }
 
     public static function forMessage(string $name, ChatMessage $message, ?string $authorCuid = null): self

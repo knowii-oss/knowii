@@ -1,0 +1,51 @@
+import { z } from 'zod';
+import { authorSchema } from './post.schema';
+import { uploadSchema } from './upload.schema';
+
+/**
+ * The state of an event (#1513, ADR 0053). "Past" is not a state: `is_past` says it, from the end.
+ * WARNING: aligned with KnowiiEventState.php
+ */
+export const EVENT_STATES = ['draft', 'published', 'cancelled'] as const;
+export const eventStateSchema = z.enum(EVENT_STATES);
+export type EventState = z.infer<typeof eventStateSchema>;
+
+/**
+ * Who gets the meeting address and the place. WARNING: aligned with KnowiiEventLocationVisibility.php
+ */
+export const EVENT_LOCATION_VISIBILITIES = ['members', 'going'] as const;
+export const eventLocationVisibilitySchema = z.enum(EVENT_LOCATION_VISIBILITIES);
+export type EventLocationVisibility = z.infer<typeof eventLocationVisibilitySchema>;
+
+/**
+ * An event of an events space (#1513, ADR 0053). The start and the end are UTC instants; `time_zone` is the zone in which
+ * the host entered them. The server cuts the meeting address and the place for the readers who may not see them: they are
+ * null and `can_view_location` is false. Lists carry no description: get one event for its Markdown and its HTML.
+ * WARNING: aligned with EventResource.php
+ */
+export const eventSchema = z.object({
+  cuid: z.string(),
+  title: z.string(),
+  slug: z.string(),
+  state: eventStateSchema,
+  starts_at: z.coerce.date(),
+  ends_at: z.coerce.date(),
+  time_zone: z.string(),
+  is_past: z.boolean(),
+  location_visibility: eventLocationVisibilitySchema,
+  can_view_location: z.boolean(),
+  meeting_url: z.string().nullable(),
+  place: z.string().nullable(),
+  cover: uploadSchema.nullable(),
+  // Empty: a decorative image
+  cover_alt: z.string().nullable(),
+  // Null when the account of the host was deleted ("Deleted member")
+  host: authorSchema.nullable(),
+  space: z.object({ cuid: z.string(), slug: z.string(), name: z.string() }).optional(),
+  body: z.string().nullable(),
+  body_html: z.string().nullable(),
+  created_at: z.coerce.date(),
+  updated_at: z.coerce.date(),
+});
+// Not `Event`: the name of the DOM events
+export type SpaceEvent = z.infer<typeof eventSchema>;

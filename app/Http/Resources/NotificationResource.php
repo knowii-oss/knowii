@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use App\Constants;
 use App\Models\ChatMessage;
 use App\Models\Comment;
+use App\Models\Event;
 use App\Models\Notification;
 use App\Models\Page;
 use App\Models\Post;
@@ -52,6 +53,9 @@ class NotificationResource extends AbstractKnowiiJsonResource
             'excerpt' => self::excerptOf($notification),
             // What the client needs to open the exact item
             'target' => self::targetOf($notification),
+            // The start of the event of an `event_new` row (#1513): the client writes it in the zone of the reader. Null
+            // for the other kinds
+            'event_starts_at' => $notification->event?->starts_at,
             'seen_at' => $notification->seen_at,
             'read_at' => $notification->read_at,
             'created_at' => $notification->created_at,
@@ -66,6 +70,10 @@ class NotificationResource extends AbstractKnowiiJsonResource
     {
         $post = $notification->post ?? $notification->comment?->post;
 
+        if ($notification->event !== null) {
+            return $notification->event->title;
+        }
+
         return $notification->page->title ?? ($post === null || $post->isDeleted() ? null : $post->title);
     }
 
@@ -77,13 +85,13 @@ class NotificationResource extends AbstractKnowiiJsonResource
         $comment = $notification->comment;
         $post = $notification->post ?? $comment?->post;
 
-        return self::excerpt($notification->page ?? ($post !== null && $comment === null ? $post : ($comment ?? $notification->chatMessage)));
+        return self::excerpt($notification->event ?? $notification->page ?? ($post !== null && $comment === null ? $post : ($comment ?? $notification->chatMessage)));
     }
 
     /**
      * What the client needs to open the exact item (also used by the "Catch up" lines, #1476)
      *
-     * @return array{post_slug: ?string, post_cuid: ?string, comment_cuid: ?string, chat_message_cuid: ?string, thread_cuid: ?string, resource_cuid: ?string, resource_slug: ?string, page_slug: ?string}
+     * @return array{post_slug: ?string, post_cuid: ?string, comment_cuid: ?string, chat_message_cuid: ?string, thread_cuid: ?string, resource_cuid: ?string, resource_slug: ?string, page_slug: ?string, event_cuid: ?string, event_slug: ?string}
      */
     public static function targetOf(Notification $notification): array
     {
@@ -103,13 +111,16 @@ class NotificationResource extends AbstractKnowiiJsonResource
             'resource_slug' => $comment?->communityResource?->slug,
             // A new lesson of a course (#1475): the lesson is addressed by its slug
             'page_slug' => $notification->page?->slug,
+            // A new event (#1513): its space opens it in this slice; the event page comes with the screens
+            'event_cuid' => $notification->event?->cuid,
+            'event_slug' => $notification->event?->slug,
         ];
     }
 
     /**
      * Plain text of the item, 300 characters at most: no HTML, no Markdown signs, one line
      */
-    private static function excerpt(Post|Comment|ChatMessage|Page|null $item): string
+    private static function excerpt(Post|Comment|ChatMessage|Page|Event|null $item): string
     {
         if ($item === null) {
             return '';
