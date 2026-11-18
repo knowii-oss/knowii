@@ -1,5 +1,7 @@
 <?php
 
+use App\Support\MailWorkerActivity;
+use Carbon\Carbon;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +18,7 @@ test('every check passes on a healthy installation', function () {
         ->expectsOutputToContain('OK   migrations')
         ->expectsOutputToContain('OK   cache')
         ->expectsOutputToContain('OK   queue')
+        ->expectsOutputToContain('OK   mail-queue')
         ->expectsOutputToContain('OK   reverb')
         ->assertSuccessful();
 });
@@ -110,6 +113,92 @@ test('Reverb is not called when the broadcast connection is not Reverb', functio
     $this->artisan('app:health', ['--only' => 'reverb'])->assertSuccessful();
 
     Http::assertNothingSent();
+});
+
+/**
+ * A job of the mail queue that could run since this many minutes (negative: released, it waits for a later time)
+ */
+function healthMailJobAvailableSince(int $minutes, string $queue = 'mail'): void
+{
+    DB::table('jobs')->insert([
+        'queue' => $queue,
+        'payload' => '{}',
+        'attempts' => 0,
+        'reserved_at' => null,
+        'available_at' => now()->subMinutes($minutes)->getTimestamp(),
+        'created_at' => now()->subMinutes(max($minutes, 30))->getTimestamp(),
+    ]);
+}
+
+test('the mail queue passes when it is empty (#1477)', function () {
+    config(['queue.default' => 'database']);
+
+    $this->artisan('app:health', ['--only' => 'mail-queue'])
+        ->expectsOutputToContain('OK   mail-queue')
+        ->assertSuccessful();
+});
+
+test('the mail queue fails when a job waits for more than 10 minutes: the mail worker does not run (#1477)', function () {
+    config(['queue.default' => 'database', 'mail.queue' => 'mail']);
+    healthMailJobAvailableSince(11);
+    // Another queue is not the mail queue
+    healthMailJobAvailableSince(60, 'default');
+
+    $this->artisan('app:health', ['--only' => 'mail-queue'])
+        ->expectsOutputToContain('FAIL mail-queue: 1 job(s) of the queue mail wait for more than 10 minutes: is the mail worker running?')
+        ->assertFailed();
+});
+
+test('the mail queue passes with a long backlog while the mail worker ends jobs (#1477)', function () {
+    config(['queue.default' => 'database', 'mail.queue' => 'mail']);
+    healthMailJobAvailableSince(45);
+    Carbon::setTestNow(now()->subMinutes(9));
+    MailWorkerActivity::record();
+    Carbon::setTestNow();
+
+    $this->artisan('app:health', ['--only' => 'mail-queue'])
+        ->expectsOutputToContain('OK   mail-queue')
+        ->assertSuccessful();
+});
+
+test('the mail queue fails when the last job of the mail worker ended more than 10 minutes ago (#1477)', function () {
+    config(['queue.default' => 'database', 'mail.queue' => 'mail']);
+    healthMailJobAvailableSince(45);
+    Carbon::setTestNow(now()->subMinutes(11));
+    MailWorkerActivity::record();
+    Carbon::setTestNow();
+
+    $this->artisan('app:health', ['--only' => 'mail-queue'])
+        ->expectsOutputToContain('FAIL mail-queue: 1 job(s) of the queue mail wait for more than 10 minutes: is the mail worker running?')
+        ->assertFailed();
+});
+
+test('the mail queue passes with a fresh job and with a job that the rate limiter released (#1477)', function () {
+    config(['queue.default' => 'database']);
+    healthMailJobAvailableSince(2);
+    healthMailJobAvailableSince(-1);
+
+    $this->artisan('app:health', ['--only' => 'mail-queue'])
+        ->expectsOutputToContain('OK   mail-queue')
+        ->assertSuccessful();
+});
+
+test('the mail queue follows MAIL_QUEUE (#1477)', function () {
+    config(['queue.default' => 'database', 'mail.queue' => 'default']);
+    healthMailJobAvailableSince(11, 'default');
+
+    $this->artisan('app:health', ['--only' => 'mail-queue'])
+        ->expectsOutputToContain('FAIL mail-queue: 1 job(s) of the queue default wait for more than 10 minutes')
+        ->assertFailed();
+});
+
+test('the mail queue is not checked with another driver than database (#1477)', function () {
+    config(['queue.default' => 'sync']);
+    healthMailJobAvailableSince(60);
+
+    $this->artisan('app:health', ['--only' => 'mail-queue'])
+        ->expectsOutputToContain('OK   mail-queue')
+        ->assertSuccessful();
 });
 
 test('an unknown check is refused', function () {

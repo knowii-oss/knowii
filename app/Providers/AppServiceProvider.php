@@ -59,6 +59,9 @@ use App\Actions\Events\DeleteEvent;
 use App\Actions\Events\DuplicateEvent;
 use App\Actions\Events\SetEventState;
 use App\Actions\Events\UpdateEvent;
+use App\Actions\Mail\CheckMailBudget;
+use App\Actions\Mail\RecordSentEmails;
+use App\Actions\Mail\ResendMailUsage;
 use App\Actions\Newsletter\SubscribeToNewsletter;
 use App\Actions\Notifications\BuildCatchUp;
 use App\Actions\Notifications\ChooseSpaceLevels;
@@ -164,6 +167,9 @@ use App\Contracts\Events\DeletesEvents;
 use App\Contracts\Events\DuplicatesEvents;
 use App\Contracts\Events\SetsEventStates;
 use App\Contracts\Events\UpdatesEvents;
+use App\Contracts\Mail\ChecksMailBudgets;
+use App\Contracts\Mail\ReadsMailUsage;
+use App\Contracts\Mail\RecordsSentEmails;
 use App\Contracts\Newsletter\SubscribesToNewsletter;
 use App\Contracts\Notifications\BuildsCatchUp;
 use App\Contracts\Notifications\ChoosesSpaceLevels;
@@ -216,6 +222,7 @@ use App\Contracts\Users\UpdatesOnlineStatus;
 use App\Contracts\Users\UpdatesTimeZones;
 use App\Contracts\Users\VerifiesUsernameAvailability;
 use App\Models\User;
+use App\Support\MailSettings;
 use App\Support\ReverbPresenceChannels;
 use Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -364,6 +371,10 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(SyncsEntitlementRules::class, SyncEntitlementRules::class);
         app()->singleton(ReceivesEntitlementEvents::class, ReceiveEntitlementEvent::class);
         app()->singleton(SetsAccessGroupRules::class, SetAccessGroupRules::class);
+        // Email delivery (#1477, ADR 0054): the count of sent mail, the usage of the provider and the budget of the month
+        app()->singleton(RecordsSentEmails::class, RecordSentEmails::class);
+        app()->singleton(ReadsMailUsage::class, ResendMailUsage::class);
+        app()->singleton(ChecksMailBudgets::class, CheckMailBudget::class);
 
         // Public newsletter endpoint (#938): a few requests per minute and per IP address
         RateLimiter::for('newsletter', static function (Request $request) {
@@ -451,6 +462,14 @@ class AppServiceProvider extends ServiceProvider
             return $request->user() instanceof User
                 ? Limit::none()
                 : Limit::perMinute(Constants::PUBLIC_READS_PER_MINUTE)->by('ip:'.$request->ip());
+        });
+
+        // Notification mail (#1477, ADR 0054): job middleware of App\Mail\NotificationMail. One key for every mail worker, so
+        // that two workers share the count. The closure gets the job, not a request
+        RateLimiter::for('mail', static function (object $job) {
+            $perSecond = MailSettings::ratePerSecond();
+
+            return $perSecond === 0 ? Limit::none() : Limit::perSecond($perSecond)->by('mail');
         });
 
         RateLimiter::for('markdown-preview', static function (Request $request) {

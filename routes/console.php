@@ -18,3 +18,8 @@ Schedule::command('mailing-lists:prune')->dailyAt('03:50')->withoutOverlapping()
 // and the rule memberships that no rule can give any more are cleared. The change calls of the provider are best effort:
 // this is the safety net
 Schedule::command('entitlements:sync')->dailyAt('02:30')->withoutOverlapping()->onOneServer();
+
+// The mail budget (#1477, ADR 0054): the alert to the operator at 80% of the monthly quota, the hold of the notification
+// mail at MAIL_NOTIFICATION_HOLD_PERCENT, and the end of the hold when the numbers are below it again. The run is short
+// (the read of the provider has a timeout), so its lock ends after 10 minutes: a killed run never stops the check for a day
+Schedule::command('mail:check-budget')->hourly()->withoutOverlapping(10)->onOneServer();

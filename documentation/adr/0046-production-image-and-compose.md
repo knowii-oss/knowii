@@ -1,6 +1,6 @@
 # 0046. One production image, one Compose project with five services
 
-- Status: Accepted
+- Status: Accepted, amended by [0054](0054-email-delivery-the-mail-queue-the-budget-bounces-and-the-one-click-stop.md) (point 6: the service `queue-mail`, the worker of the notification mail)
 - Date: 2026-11-15
 - Issue: #1172
 - Pull request: #1490
