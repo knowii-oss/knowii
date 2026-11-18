@@ -1,6 +1,6 @@
 # 0042. Notifications: one table, one action, four levels
 
-- Status: Accepted, amended by [0053](0053-events-a-space-type-with-its-own-table.md) (point 34: events spaces, the kind `event_new`)
+- Status: Accepted, amended by [0053](0053-events-a-space-type-with-its-own-table.md) (point 34: events spaces, the kind `event_new`), and by [0054](0054-email-delivery-the-mail-queue-the-budget-bounces-and-the-one-click-stop.md) (point 26: the queue `mail` with its own worker)
 - Date: 2026-11-15
 - Issue: #1474
 - Pull request: #1488

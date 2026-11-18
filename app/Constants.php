@@ -263,6 +263,22 @@ class Constants
 
     public const string QUEUE_NOTIFICATIONS = 'notifications';
 
+    // Email delivery (#1477, ADR 0054): the queue of the notification mail, read by a worker of its own. Code reads
+    // config('mail.queue'), which defaults to this name (MAIL_QUEUE=default puts the mail on the first worker)
+    public const string QUEUE_MAIL = 'mail';
+
+    // A notification mail is tried for this many hours after it was due (queued, or the end of its delay), whatever the
+    // tries of the worker: in that time a release by the rate limiter never fails it. After it, the mail is not sent late:
+    // the worker fails the job
+    public const int MAIL_NOTIFICATION_RETRY_HOURS = 2;
+
+    // mail:check-budget warns the operator once a month when this share of the monthly quota is used (design 6.14.12)
+    public const int MAIL_BUDGET_ALERT_PERCENT = 80;
+
+    // app:health fails when a job of the mail queue waits for longer than this and no job of that queue ended in the same
+    // time: the mail worker does not run
+    public const int MAIL_QUEUE_STALE_MINUTES = 10;
+
     // A page of the list of notifications
     public const int NOTIFICATIONS_PER_PAGE = 20;
 

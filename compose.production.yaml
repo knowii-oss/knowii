@@ -1,5 +1,6 @@
-# Knowii production stack (#1172, ADR 0046): one Compose project with five services. The four application services run
-# the same image with another command. The image is built by GitHub Actions and pulled, never built on the server.
+# Knowii production stack (#1172, ADR 0046): one Compose project with the services app, queue, queue-mail, reverb,
+# scheduler and postgres. The application services run the same image with another command. The image is built by
+# GitHub Actions and pulled, never built on the server.
 #
 # Start: cp .env.production.example .env, edit it, then: docker compose -f compose.production.yaml up -d
 # The project name (COMPOSE_PROJECT_NAME in .env) is mandatory: two environments on one server must never share one.
@@ -41,6 +42,22 @@ services:
   queue:
     <<: *knowii
     command: ['php', 'artisan', 'queue:work', '--queue=broadcasts,notifications,default', '--sleep=3', '--tries=3']
+    stop_grace_period: 60s
+    depends_on:
+      app:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'knowii-healthcheck-process', 'queue:work']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # The worker of the notification mail (#1477, ADR 0054): a slow or blocked send never holds up the live updates. The
+  # health check reads the processes of this container only, so it sees this worker and not the other one.
+  queue-mail:
+    <<: *knowii
+    command: ['php', 'artisan', 'queue:work', '--queue=mail', '--sleep=3', '--tries=3']
     stop_grace_period: 60s
     depends_on:
       app:

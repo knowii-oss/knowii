@@ -2,6 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Constants;
+use App\Support\MailSettings;
+use App\Support\MailWorkerActivity;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -16,13 +19,14 @@ use Throwable;
  * The deep health check of a deployment (#1172): the database answers, every migration ran, the cache works, the queue
  * connection works and Reverb answers. It runs on the command line only, so the details never reach the internet: the
  * public /up route stays cheap for the proxy and for Docker. The exit code is 0 when every check passes, 1 otherwise.
+ * `mail-queue` (#1477, ADR 0054) finds notification mail that waits because no worker reads the mail queue.
  */
-#[Signature('app:health {--only= : Run only these checks, separated by commas (database, migrations, cache, queue, reverb)}')]
-#[Description('Check that the database, the migrations, the cache, the queue and Reverb work (exit code 1 on failure)')]
+#[Signature('app:health {--only= : Run only these checks, separated by commas (database, migrations, cache, queue, mail-queue, reverb)}')]
+#[Description('Check that the database, the migrations, the cache, the queue, the mail worker and Reverb work (exit code 1 on failure)')]
 class HealthCheckCommand extends Command
 {
     /** @var list<string> */
-    private const array CHECKS = ['database', 'migrations', 'cache', 'queue', 'reverb'];
+    private const array CHECKS = ['database', 'migrations', 'cache', 'queue', 'mail-queue', 'reverb'];
 
     public function handle(): int
     {
@@ -50,6 +54,7 @@ class HealthCheckCommand extends Command
                     'migrations' => $this->checkMigrations(),
                     'cache' => $this->checkCache(),
                     'queue' => $this->checkQueue(),
+                    'mail-queue' => $this->checkMailQueue(),
                     default => $this->checkReverb(),
                 };
             } catch (Throwable $exception) {
@@ -111,6 +116,43 @@ class HealthCheckCommand extends Command
         Queue::connection()->size();
 
         return null;
+    }
+
+    /**
+     * With the database driver: a job of the mail queue that is not reserved and could run for longer than
+     * Constants::MAIL_QUEUE_STALE_MINUTES, while no worker ended a job of that queue in the same time, means that no worker
+     * reads the queue. A job that the rate limiter released waits for a time in the future, so it does not count. A long
+     * backlog behind the rate limit is not a failure: the worker ends jobs all the time (`MailWorkerActivity`). Another
+     * driver passes: it is not checked
+     */
+    private function checkMailQueue(): ?string
+    {
+        $connection = config()->string('queue.default');
+        if (config('queue.connections.'.$connection.'.driver') !== 'database') {
+            return null;
+        }
+
+        $table = config('queue.connections.'.$connection.'.table');
+        $database = config('queue.connections.'.$connection.'.connection');
+        $queue = MailSettings::queue();
+
+        $waiting = DB::connection(is_string($database) && $database !== '' ? $database : null)
+            ->table(is_string($table) && $table !== '' ? $table : 'jobs')
+            ->where('queue', $queue)
+            ->whereNull('reserved_at')
+            ->where('available_at', '<', now()->subMinutes(Constants::MAIL_QUEUE_STALE_MINUTES)->getTimestamp())
+            ->count();
+
+        if ($waiting === 0) {
+            return null;
+        }
+
+        $lastJobEndedAt = MailWorkerActivity::lastAt();
+        if ($lastJobEndedAt !== null && $lastJobEndedAt->greaterThan(now()->subMinutes(Constants::MAIL_QUEUE_STALE_MINUTES))) {
+            return null;
+        }
+
+        return $waiting.' job(s) of the queue '.$queue.' wait for more than '.Constants::MAIL_QUEUE_STALE_MINUTES.' minutes: is the mail worker running?';
     }
 
     private function checkReverb(): ?string

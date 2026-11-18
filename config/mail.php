@@ -1,5 +1,10 @@
 <?php
 
+use App\Constants;
+
+// A list of email addresses separated by commas
+$list = static fn (string $value): array => array_values(array_filter(array_map('trim', explode(',', $value)), static fn (string $item): bool => $item !== ''));
+
 return [
 
     /*
@@ -111,6 +116,37 @@ return [
     'from' => [
         'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
         'name' => env('MAIL_FROM_NAME', 'Example'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Email delivery (#1477, ADR 0054)
+    |--------------------------------------------------------------------------
+    |
+    | The notification mail (App\Mail\NotificationMail) goes on its own queue, read by a worker of its own, behind the
+    | rate limiter "mail". The sign-in links, the invitations and the other account mail stay on "default" and are never
+    | held. MAIL_QUEUE=default puts the notification mail on the first worker (an instance with one worker): the limit
+    | and the hold still apply. App\Support\MailSettings reads and checks these values.
+    |
+    */
+
+    'queue' => env('MAIL_QUEUE', Constants::QUEUE_MAIL),
+
+    // Notification mail sent per second, for all mail workers together. 0: no limit (a value below 0 counts as 0). The
+    // values below are not cast here: an empty value ("KEY=") would become 0. MailSettings narrows them and gives the
+    // default for an empty or a wrong value
+    'rate_limit_per_second' => env('MAIL_RATE_LIMIT_PER_SECOND', 5),
+
+    // mail:check-budget: the alert at 80% of the monthly quota and the hold of the notification mail
+    'budget' => [
+        // The mail that the plan of the provider allows each month. Empty or 0: the limit that the provider gives, or none
+        'monthly_quota' => env('MAIL_MONTHLY_QUOTA', 0),
+
+        // Notification mail stops at this share of the quota, so that the account mail keeps a reserve (1 to 100)
+        'hold_percent' => env('MAIL_NOTIFICATION_HOLD_PERCENT', 95),
+
+        // Who gets the alert, separated by commas. Empty: the log line is the alert
+        'alert_to' => $list((string) env('MAIL_ALERT_TO', '')),
     ],
 
 ];
