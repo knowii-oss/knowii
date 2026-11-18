@@ -30,23 +30,26 @@ interface Pair {
 
 const ALL_SURFACES = ['background', 'surface', 'surface-elevated', 'well'] as const;
 
-// Left out, because they fail today: danger-text on surface-elevated in the dark theme (4.12:1, the alerts of the
-// emoji picker and of the notifications panel) and success on the well in the light theme (4.43:1, the quiz results).
 const PAIRS: Record<Theme, readonly Pair[]> = {
   dark: [
     { token: 'primary', surfaces: ALL_SURFACES, min: TEXT, usedBy: 'all text' },
     { token: 'muted', surfaces: ALL_SURFACES, min: TEXT, usedBy: 'secondary text, the lines of the bell panel (#1568)' },
     { token: 'secondary-text', surfaces: ALL_SURFACES, min: TEXT, usedBy: 'links, mentions, "Pinned", the chat (#1562)' },
-    { token: 'danger-text', surfaces: ['background', 'surface', 'well'], min: TEXT, usedBy: 'error messages' },
+    { token: 'danger-text', surfaces: ALL_SURFACES, min: TEXT, usedBy: 'error messages, the alerts of raised panels (#1648)' },
     { token: 'success', surfaces: ['background', 'surface', 'well'], min: TEXT, usedBy: 'status messages, quiz results' },
-    { token: 'border-strong', surfaces: ['well'], min: CONTROL_BORDER, usedBy: 'fields, check boxes, radio buttons' },
+    {
+      token: 'border-strong',
+      surfaces: ['surface', 'well'],
+      min: CONTROL_BORDER,
+      usedBy: 'fields, check boxes, the stepper, dashed boxes (#1648)',
+    },
   ],
   light: [
     { token: 'primary', surfaces: ALL_SURFACES, min: TEXT, usedBy: 'all text' },
     { token: 'muted', surfaces: ALL_SURFACES, min: TEXT, usedBy: 'secondary text' },
     { token: 'secondary-text', surfaces: ALL_SURFACES, min: TEXT, usedBy: 'links, mentions, "Pinned", the chat' },
     { token: 'danger-text', surfaces: ALL_SURFACES, min: TEXT, usedBy: 'error messages' },
-    { token: 'success', surfaces: ['background', 'surface'], min: TEXT, usedBy: 'status messages' },
+    { token: 'success', surfaces: ALL_SURFACES, min: TEXT, usedBy: 'status messages, quiz results on the well (#1648)' },
     { token: 'border-strong', surfaces: ['well'], min: CONTROL_BORDER, usedBy: 'fields, check boxes, radio buttons' },
   ],
 };
@@ -100,11 +103,15 @@ function luminance([r, g, b]: Rgb): number {
   return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
 }
 
+/** A color with an alpha, blended on an opaque surface */
+function blendOn(color: Color, surface: Color): Rgb {
+  const [r = 0, g = 0, b = 0] = color.rgb.map((value, i) => value * color.alpha + (surface.rgb[i] ?? 0) * (1 - color.alpha));
+  return [r, g, b];
+}
+
 /** WCAG 2 contrast of a color (blended on the surface when it has an alpha) on an opaque surface */
 function contrast(color: Color, surface: Color): number {
-  const blended = color.rgb.map((value, i) => value * color.alpha + (surface.rgb[i] ?? 0) * (1 - color.alpha));
-  const [r = 0, g = 0, b = 0] = blended;
-  const a = luminance([r, g, b]);
+  const a = luminance(blendOn(color, surface));
   const s = luminance(surface.rgb);
   return (Math.max(a, s) + 0.05) / (Math.min(a, s) + 0.05);
 }
@@ -129,6 +136,15 @@ describe.each<Theme>(['dark', 'light'])('the contrast of the %s theme', (theme) 
     it.each(surfaces)(`reaches ${min}:1 on %s`, (surface) => {
       expect(contrast(token(theme, name), token(theme, surface))).toBeGreaterThanOrEqual(min);
     });
+  });
+
+  // A row of a raised panel under the pointer or with the focus (the lines of the bell panel, the entries of a menu):
+  // the overlay at 5 % or 10 % on surface-elevated (#1648)
+  it.each([5, 10])(`gives muted text ${TEXT}:1 on a row of surface-elevated with the overlay at %i %%`, (percent) => {
+    const elevated = token(theme, 'surface-elevated');
+    const overlay = token(theme, 'overlay');
+    const fill: Color = { rgb: blendOn({ rgb: overlay.rgb, alpha: percent / 100 }, elevated), alpha: 1 };
+    expect(contrast(token(theme, 'muted'), fill)).toBeGreaterThanOrEqual(TEXT);
   });
 
   it(`gives the gradient word of the home headline ${LARGE_TEXT}:1 on the background at each stop`, () => {
