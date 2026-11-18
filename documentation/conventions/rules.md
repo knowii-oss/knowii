@@ -57,3 +57,4 @@ A pull request is done when all of these are true:
 7. `SELF_HOSTING.md` and `.env.example` list each new configuration value.
 8. The commits follow Conventional Commits with an allowed scope.
 9. A new third-party service that receives personal data is in `config/legal.php` (data rule 9), and a new kind of data with a limited life has its retention period (data rule 8).
+10. `composer security:php` (the taint analysis of Psalm, [ADR 0051](../adr/0051-security-scan-of-the-php-code-with-psalm-taint-analysis.md)) finds nothing. A path that is safe by design gets `@psalm-taint-escape <kind>` at the place of the check, with the reason in the same docblock. A result is handled as `SECURITY.md` says, never in a public issue or pull request.

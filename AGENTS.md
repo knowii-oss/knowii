@@ -125,6 +125,8 @@ Front-end / monorepo (npm + Nx):
 Back-end (Composer / Laravel):
 
 - `composer lint` — PHPStan/Larastan static analysis
+- `composer security:php` — the taint analysis of Psalm (security scan, ADR 0051); a result is
+  a possible security problem: see "Security issues"
 - `php artisan test` — run the Pest suite
 - `composer format` — Laravel Pint
 

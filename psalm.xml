@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!--
+  Psalm runs only for its security analysis (taint analysis, ADR 0051): PHPStan stays the type checker of the project.
+  CI keeps only the results whose rule starts with "Tainted" (tools/security/psalm-taint.sh).
+-->
+<psalm
+    errorLevel="8"
+    resolveFromConfigFile="true"
+    findUnusedCode="false"
+    findUnusedBaselineEntry="false"
+    runTaintAnalysis="true"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="https://getpsalm.org/schema/config"
+    xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
+>
+    <projectFiles>
+        <directory name="app"/>
+        <directory name="routes"/>
+        <directory name="config"/>
+        <directory name="bootstrap"/>
+        <ignoreFiles>
+            <directory name="vendor"/>
+            <directory name="bootstrap/cache"/>
+        </ignoreFiles>
+    </projectFiles>
+    <plugins>
+        <pluginClass class="Psalm\LaravelPlugin\Plugin"/>
+    </plugins>
+</psalm>
