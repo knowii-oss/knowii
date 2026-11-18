@@ -4,6 +4,7 @@ namespace App\Contracts\Notifications;
 
 use App\Models\ChatMessage;
 use App\Models\Community;
+use App\Models\Event;
 use App\Models\Post;
 use App\Models\Space;
 use App\Models\User;
@@ -50,6 +51,12 @@ interface PrunesNotifications
      * @param  list<int>  $chatMessageIds
      */
     public function forChatMessages(array $chatMessageIds): int;
+
+    /**
+     * An event went back to draft (#1513): its "new event" lines go, for every member. A draft is for its host, the
+     * owner and the admins.
+     */
+    public function forDraftEvent(Event $event): int;
 
     /**
      * The member muted the space (#1475): their open rows of that space go, at every level. The next ones are never written.

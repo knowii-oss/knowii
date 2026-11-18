@@ -1,0 +1,19 @@
+meta {
+  name: Events - Delete
+  type: http
+  seq: 194
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of an events space>/events/<cuid of an event>
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Deletes an event (#1513): the owner, the admins, the host and the moderators of the space. 204. Ability events:write.
+}

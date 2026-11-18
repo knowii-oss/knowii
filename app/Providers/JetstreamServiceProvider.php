@@ -159,6 +159,9 @@ class JetstreamServiceProvider extends ServiceProvider
             'resources:read',
             'resources:write',
             'resources:create',
+            // Events of events spaces (#1513, ADR 0053): reading is in the default set, writing is not
+            'events:read',
+            'events:write',
             // Access groups (#1241, ADR 0025): a sync token from another system needs groups:write only
             'groups:read',
             'groups:write',
@@ -167,7 +170,7 @@ class JetstreamServiceProvider extends ServiceProvider
         Jetstream::permissions($allPermissions);
 
         // A new token can read, nothing more, until the member chooses more (least privilege)
-        Jetstream::defaultApiTokenPermissions(['user:read', 'communities:read', 'posts:read', 'chat:read', 'pages:read', 'resources:read']);
+        Jetstream::defaultApiTokenPermissions(['user:read', 'communities:read', 'posts:read', 'chat:read', 'pages:read', 'resources:read', 'events:read']);
 
         // TODO define the exact admin permissions
         Jetstream::role('admin', 'Administrator', $allPermissions)->description('Administrator users can perform any action.');

@@ -84,6 +84,22 @@ class Constants
 
     public const int MAX_LENGTH_POST_BODY = 50000;
 
+    // Events of an events space (#1513, ADR 0053). WARNING: aligned with constants.ts (libs/common)
+    public const int MIN_LENGTH_EVENT_TITLE = 3;
+
+    public const int MAX_LENGTH_EVENT_TITLE = 200;
+
+    public const int MAX_LENGTH_EVENT_BODY = 20000;
+
+    public const int MAX_LENGTH_EVENT_MEETING_URL = 2048;
+
+    public const int MAX_LENGTH_EVENT_PLACE = 255;
+
+    public const int MAX_LENGTH_EVENT_COVER_ALT = 125;
+
+    // An event ends at most this many hours after its start
+    public const int MAX_EVENT_DURATION_HOURS = 24;
+
     // Chat messages (#1185). WARNING: aligned with constants.ts
     public const int MAX_LENGTH_CHAT_MESSAGE = 10000;
 
@@ -208,6 +224,9 @@ class Constants
 
     // Posts created per minute and per user
     public const int POSTS_PER_MINUTE = 5;
+
+    // New events and copies of events per member (#1513)
+    public const int EVENTS_PER_MINUTE = 5;
 
     // Starts and ends of a sign-in with the OpenID Connect provider per minute and per IP address (#1385)
     public const int OIDC_REQUESTS_PER_MINUTE = 10;

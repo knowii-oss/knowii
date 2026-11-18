@@ -59,6 +59,8 @@ const EMPTY_STATES: Record<Space['type'], { title: string; description: string }
   course: { title: 'No lessons yet', description: 'The lessons of this course will show here, in order.' },
   resources: { title: 'No resources yet', description: 'Curated articles will show here.' },
   link: { title: 'No address', description: 'This link has no valid address. A member who manages the spaces can fix it.' },
+  // #1513: the list of the events comes with the screens (#1514)
+  events: { title: 'No events yet', description: 'The events of this space will show here.' },
 };
 
 /**

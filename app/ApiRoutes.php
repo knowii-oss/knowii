@@ -55,6 +55,9 @@ final class ApiRoutes
     // Course materials (#1336): named after Space::materials() for the scoped binding
     public const PARAM_MATERIAL = 'material';
 
+    // Events of an events space (#1513): named after Space::events() for the scoped binding
+    public const PARAM_EVENT = 'event';
+
     // The user cuid of a member (#1242)
     public const PARAM_MEMBER = 'member';
 
@@ -156,6 +159,18 @@ final class ApiRoutes
     public const COMMUNITY_SPACE_RESOURCE_COMMENT_REACTIONS = self::COMMUNITY_SPACE_RESOURCE_COMMENT.'/reactions';
 
     public const COMMUNITY_SPACE_POSTS = self::COMMUNITY_SPACE.'/posts';
+
+    // Events of events spaces (#1513, ADR 0053)
+    public const COMMUNITY_SPACE_EVENTS = self::COMMUNITY_SPACE.'/events';
+
+    public const COMMUNITY_SPACE_EVENT = self::COMMUNITY_SPACE_EVENTS.'/{'.self::PARAM_EVENT.'}';
+
+    public const COMMUNITY_SPACE_EVENT_STATE = self::COMMUNITY_SPACE_EVENT.'/state';
+
+    public const COMMUNITY_SPACE_EVENT_DUPLICATE = self::COMMUNITY_SPACE_EVENT.'/duplicate';
+
+    // The upcoming events of every events space that the reader can read (#1513)
+    public const COMMUNITY_EVENTS = self::COMMUNITY.'/events';
 
     // Messages of chat spaces (#1185)
     public const COMMUNITY_SPACE_MESSAGES = self::COMMUNITY_SPACE.'/messages';

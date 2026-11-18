@@ -1,0 +1,26 @@
+meta {
+  name: Events - Set state - Refused change
+  type: http
+  seq: 192
+}
+
+put {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of an events space>/events/<cuid of an event>/state
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "state": "draft"
+  }
+}
+
+docs {
+  Error case: a published event that started cannot go back to draft: 422, "An event that started cannot go back to draft. Cancel it instead." A draft cannot be cancelled (422) and a cancelled event cannot go back to draft (422).
+}

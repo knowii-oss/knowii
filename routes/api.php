@@ -12,6 +12,7 @@ use App\Http\Controllers\API\CommunityResourceApiController;
 use App\Http\Controllers\API\CommunityResourceCommentApiController;
 use App\Http\Controllers\API\ConversationApiController;
 use App\Http\Controllers\API\CourseMaterialApiController;
+use App\Http\Controllers\API\EventApiController;
 use App\Http\Controllers\API\IndexingApiController;
 use App\Http\Controllers\API\JoinPolicyApiController;
 use App\Http\Controllers\API\LessonProgressApiController;
@@ -75,6 +76,10 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
         Route::get(ApiRoutes::COMMUNITY_SPACE_RESOURCES, [CommunityResourceApiController::class, 'index'])->middleware('ability:resources:read');
         Route::get(ApiRoutes::COMMUNITY_SPACE_RESOURCE, [CommunityResourceApiController::class, 'show'])->middleware('ability:resources:read');
         Route::get(ApiRoutes::COMMUNITY_SPACE_RESOURCE_COMMENTS, [CommunityResourceCommentApiController::class, 'index'])->middleware('ability:resources:read');
+        // Events (#1513, ADR 0053): never a draft, never the meeting address or the place for a visitor
+        Route::get(ApiRoutes::COMMUNITY_EVENTS, [EventApiController::class, 'community'])->middleware('ability:events:read');
+        Route::get(ApiRoutes::COMMUNITY_SPACE_EVENTS, [EventApiController::class, 'index'])->middleware('ability:events:read');
+        Route::get(ApiRoutes::COMMUNITY_SPACE_EVENT, [EventApiController::class, 'show'])->middleware('ability:events:read');
     });
 
     // Every route names the token abilities that it needs (ADR 0022, #689). Session users pass every check
@@ -195,6 +200,13 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::patch(ApiRoutes::COMMUNITY_SPACE_RESOURCE, [CommunityResourceApiController::class, 'update'])->middleware('ability:resources:write');
             Route::delete(ApiRoutes::COMMUNITY_SPACE_RESOURCE, [CommunityResourceApiController::class, 'destroy'])->middleware('ability:resources:write');
             Route::post(ApiRoutes::COMMUNITY_SPACE_RESOURCE_CAPTURE, [CommunityResourceApiController::class, 'capture'])->middleware('ability:resources:write')->middleware('throttle:captures');
+
+            // Events of events spaces (#1513, ADR 0053)
+            Route::post(ApiRoutes::COMMUNITY_SPACE_EVENTS, [EventApiController::class, 'store'])->middleware('ability:events:write')->middleware('throttle:events');
+            Route::patch(ApiRoutes::COMMUNITY_SPACE_EVENT, [EventApiController::class, 'update'])->middleware('ability:events:write');
+            Route::delete(ApiRoutes::COMMUNITY_SPACE_EVENT, [EventApiController::class, 'destroy'])->middleware('ability:events:write');
+            Route::put(ApiRoutes::COMMUNITY_SPACE_EVENT_STATE, [EventApiController::class, 'state'])->middleware('ability:events:write');
+            Route::post(ApiRoutes::COMMUNITY_SPACE_EVENT_DUPLICATE, [EventApiController::class, 'duplicate'])->middleware('ability:events:write')->middleware('throttle:events');
 
             // Comments on resources (#1034)
             Route::post(ApiRoutes::COMMUNITY_SPACE_RESOURCE_COMMENTS, [CommunityResourceCommentApiController::class, 'store'])->middleware('ability:resources:write')->middleware('throttle:comments');

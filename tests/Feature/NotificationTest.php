@@ -126,7 +126,7 @@ test('every kind has a level: the three kinds of the first slice are level 1, th
         expect($kind->level())->toBe(1);
     }
     expect(KnowiiNotificationKind::valuesOfLevel(1))->toBe(['post_comment', 'comment_reply', 'mention'])
-        ->and(KnowiiNotificationKind::valuesOfLevel(2))->toBe(['thread_comment', 'thread_reply', 'space_post', 'space_chat', 'lesson_new'])
+        ->and(KnowiiNotificationKind::valuesOfLevel(2))->toBe(['thread_comment', 'thread_reply', 'space_post', 'space_chat', 'lesson_new', 'event_new'])
         ->and(KnowiiNotificationKind::valuesOfLevel(0))->toBe([])
         ->and(KnowiiNotificationKind::valuesOfLevel(3))->toBe([]);
 });
@@ -608,7 +608,8 @@ test('the list has the documented shape, built from the live content', function 
         ->and($item['actors'])->toHaveCount(1)
         ->and($item['others_count'])->toBe(0)
         ->and($item['title'])->toBe('My title')
-        ->and($item['target'])->toBe(['post_slug' => $post->slug, 'post_cuid' => $post->cuid, 'comment_cuid' => $comment->cuid, 'chat_message_cuid' => null, 'thread_cuid' => null, 'resource_cuid' => null, 'resource_slug' => null, 'page_slug' => null])
+        ->and($item['target'])->toBe(['post_slug' => $post->slug, 'post_cuid' => $post->cuid, 'comment_cuid' => $comment->cuid, 'chat_message_cuid' => null, 'thread_cuid' => null, 'resource_cuid' => null, 'resource_slug' => null, 'page_slug' => null, 'event_cuid' => null, 'event_slug' => null])
+        ->and($item['event_starts_at'])->toBeNull()
         ->and($item['seen_at'])->toBeNull()
         ->and($item['read_at'])->toBeNull()
         ->and($item)->toHaveKeys(['created_at', 'updated_at'])

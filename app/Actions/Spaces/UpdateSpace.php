@@ -42,9 +42,10 @@ class UpdateSpace implements UpdatesSpaces
             'default_notification_level' => ['sometimes', 'nullable', Rule::in([KnowiiSpaceNotificationLevel::All->value, KnowiiSpaceNotificationLevel::Mine->value])],
         ])->validate();
 
-        // "Everything" is a stream of new posts: only a discussion space has one, and a chat space is never at "Everything" by default
-        if (($validated['default_notification_level'] ?? null) === KnowiiSpaceNotificationLevel::All->value && $space->type !== KnowiiSpaceType::Discussion) {
-            throw ValidationException::withMessages(['default_notification_level' => 'Everything is the default of a discussion space only. A chat space is never at Everything by default']);
+        // "Everything" is a stream of new posts or events: only a discussion space and an events space (#1513) have one as a
+        // default, and a chat space is never at "Everything" by default
+        if (($validated['default_notification_level'] ?? null) === KnowiiSpaceNotificationLevel::All->value && ! in_array($space->type, [KnowiiSpaceType::Discussion, KnowiiSpaceType::Events], true)) {
+            throw ValidationException::withMessages(['default_notification_level' => 'Everything is the default of a discussion space or an events space only. A chat space is never at Everything by default']);
         }
 
         // Only a link space has a URL (#1294, ADR 0026)

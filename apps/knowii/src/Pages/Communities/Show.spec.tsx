@@ -63,6 +63,8 @@ describe('the home of a community and the "Catch up" card (#1476)', () => {
               resource_cuid: null,
               resource_slug: null,
               page_slug: null,
+              event_cuid: null,
+              event_slug: null,
             },
           },
         ],

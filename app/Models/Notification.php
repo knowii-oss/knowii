@@ -16,8 +16,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * A notification (#1474, ADR 0042): one row per recipient, about one item (a post, a comment, a chat message or a
- * lesson, exactly one, ADR 0014). It holds no text of content: the list builds titles and excerpts from the live content.
+ * A notification (#1474, ADR 0042): one row per recipient, about one item (a post, a comment, a chat message, a
+ * lesson or an event, exactly one, ADR 0014). It holds no text of content: the list builds titles and excerpts from the live content.
  *
  * Seen means the line was on screen, read means it was opened or marked done (design 6.1). An open row (not read)
  * bundles the next comments on the same thing; a read row is never opened again.
@@ -33,6 +33,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property ?int $comment_id
  * @property ?int $chat_message_id
  * @property ?int $page_id
+ * @property ?int $event_id
  * @property string $dedupe_key
  * @property ?Carbon $seen_at
  * @property ?Carbon $read_at
@@ -46,6 +47,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read ?Comment $comment
  * @property-read ?ChatMessage $chatMessage
  * @property-read ?Page $page
+ * @property-read ?Event $event
  * @property-read Collection<int, User> $bundledActors The authors that a bundled row names (set by the list, not stored)
  * @property-read int $others_count The authors that a bundled row does not name (set by the list, not stored)
  * @property-read int $items_count The live posts, comments, replies or lessons that a bundled row holds (set by the list, not stored)
@@ -56,6 +58,25 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification query()
  * @method TResource toResource<TResource of \Illuminate\Http\Resources\Json\JsonResource = \App\Http\Resources\NotificationResource>(class-string<TResource>|null $resourceClass = null)
+ * @method static Builder<static>|Notification following()
+ * @method static Builder<static>|Notification needingYou()
+ * @method static Builder<static>|Notification whereActorId($value)
+ * @method static Builder<static>|Notification whereChatMessageId($value)
+ * @method static Builder<static>|Notification whereCommentId($value)
+ * @method static Builder<static>|Notification whereCommunityId($value)
+ * @method static Builder<static>|Notification whereCreatedAt($value)
+ * @method static Builder<static>|Notification whereCuid($value)
+ * @method static Builder<static>|Notification whereDedupeKey($value)
+ * @method static Builder<static>|Notification whereEventId($value)
+ * @method static Builder<static>|Notification whereId($value)
+ * @method static Builder<static>|Notification whereKind($value)
+ * @method static Builder<static>|Notification wherePageId($value)
+ * @method static Builder<static>|Notification wherePostId($value)
+ * @method static Builder<static>|Notification whereReadAt($value)
+ * @method static Builder<static>|Notification whereSeenAt($value)
+ * @method static Builder<static>|Notification whereSpaceId($value)
+ * @method static Builder<static>|Notification whereUpdatedAt($value)
+ * @method static Builder<static>|Notification whereUserId($value)
  *
  * @mixin \Eloquent
  */
@@ -82,6 +103,7 @@ class Notification extends Model
         'comment_id',
         'chat_message_id',
         'page_id',
+        'event_id',
         'dedupe_key',
         'seen_at',
         'read_at',
@@ -100,6 +122,7 @@ class Notification extends Model
         'comment_id',
         'chat_message_id',
         'page_id',
+        'event_id',
         'dedupe_key',
     ];
 
@@ -181,6 +204,16 @@ class Notification extends Model
     final public function page(): BelongsTo
     {
         return $this->belongsTo(Page::class);
+    }
+
+    /**
+     * The item of an `event_new` row (#1513)
+     *
+     * @return BelongsTo<Event, covariant $this>
+     */
+    final public function event(): BelongsTo
+    {
+        return $this->belongsTo(Event::class);
     }
 
     /**

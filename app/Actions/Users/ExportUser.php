@@ -12,6 +12,7 @@ use App\Models\CommunityInvitation;
 use App\Models\CommunityJoinBlock;
 use App\Models\CommunityMember;
 use App\Models\CommunityResource;
+use App\Models\Event;
 use App\Models\LessonProgress;
 use App\Models\Mention;
 use App\Models\Notification;
@@ -118,6 +119,7 @@ final class ExportUser implements ExportsUsers
                 'posts.json' => [[], ['posts' => $this->posts($user)]],
                 'comments.json' => [[], ['comments' => $this->comments($user)]],
                 'pages.json' => [[], ['pages' => $this->pages($user)]],
+                'events.json' => [[], ['events' => $this->events($user)]],
                 'chat-messages.json' => [[], ['chat_messages' => $this->chatMessages($user)]],
                 'direct-messages.json' => [[], ['direct_messages' => $this->directMessages($user)]],
                 'reactions.json' => [[], ['reactions' => $this->reactions($user)]],
@@ -422,7 +424,7 @@ final class ExportUser implements ExportsUsers
      */
     private function notifications(User $user): Generator
     {
-        foreach (Notification::query()->where('user_id', $user->id)->with(['post:id,cuid', 'comment:id,cuid', 'chatMessage:id,cuid'])->lazyById(self::CHUNK) as $notification) {
+        foreach (Notification::query()->where('user_id', $user->id)->with(['post:id,cuid', 'comment:id,cuid', 'chatMessage:id,cuid', 'event:id,cuid'])->lazyById(self::CHUNK) as $notification) {
             yield [
                 'cuid' => $notification->cuid,
                 'kind' => $notification->kind->value,
@@ -430,6 +432,7 @@ final class ExportUser implements ExportsUsers
                 'post' => $notification->post?->cuid,
                 'comment' => $notification->comment?->cuid,
                 'chat_message' => $notification->chatMessage?->cuid,
+                'event' => $notification->event?->cuid,
                 'seen_at' => $this->date($notification->seen_at),
                 'read_at' => $this->date($notification->read_at),
                 'created_at' => $this->date($notification->created_at),
@@ -608,6 +611,28 @@ final class ExportUser implements ExportsUsers
                 'position' => $page->position,
                 'created_at' => $this->date($page->created_at),
                 'updated_at' => $this->date($page->updated_at),
+            ];
+        }
+    }
+
+    /**
+     * The events that the member hosts (#1513): the title, the space, the times (UTC) and the zone, the state
+     *
+     * @return Generator<int, Row>
+     */
+    private function events(User $user): Generator
+    {
+        foreach (Event::query()->where('host_id', $user->id)->with('space')->lazyById(self::CHUNK) as $event) {
+            yield [
+                'cuid' => $event->cuid,
+                ...$this->place($event->community_id, $event->space),
+                'title' => $event->title,
+                'starts_at' => $this->date($event->starts_at->toImmutable()->utc()),
+                'ends_at' => $this->date($event->ends_at->toImmutable()->utc()),
+                'time_zone' => $event->time_zone,
+                'state' => $event->state->value,
+                'created_at' => $this->date($event->created_at),
+                'updated_at' => $this->date($event->updated_at),
             ];
         }
     }
@@ -882,6 +907,7 @@ final class ExportUser implements ExportsUsers
             'posts.json' => 'your posts (Markdown)',
             'comments.json' => 'your comments (Markdown), with the cuid and the title of what they answer',
             'pages.json' => 'the pages and lessons you wrote (Markdown)',
+            'events.json' => 'the events that you host, with their title, times, zone and state',
             'chat-messages.json' => 'your messages in chat spaces',
             'direct-messages.json' => 'your direct messages, with the cuid of their conversation',
             'reactions.json' => 'your reactions to posts, comments and messages',

@@ -77,9 +77,9 @@ final class ChooseSpaceLevels implements ChoosesSpaceLevels
         $validated = Validator::make($input, ['level' => ['required', 'string', Rule::enum(KnowiiSpaceNotificationLevel::class)]])->validate();
         $level = KnowiiSpaceNotificationLevel::from($validated['level']);
 
-        // "Everything" is a stream of new items: only a discussion space and a chat space have one
-        if ($level === KnowiiSpaceNotificationLevel::All && ! in_array($space->type, [KnowiiSpaceType::Discussion, KnowiiSpaceType::Chat], true)) {
-            throw new BusinessException('Everything only exists for discussion spaces and chat spaces');
+        // "Everything" is a stream of new items: only a discussion space, a chat space and an events space (#1513) have one
+        if ($level === KnowiiSpaceNotificationLevel::All && ! in_array($space->type, [KnowiiSpaceType::Discussion, KnowiiSpaceType::Chat, KnowiiSpaceType::Events], true)) {
+            throw new BusinessException('Everything only exists for discussion spaces, chat spaces and events spaces');
         }
 
         NotificationSpaceLevel::query()->updateOrCreate(['user_id' => $user->id, 'space_id' => $space->id], ['level' => $level]);

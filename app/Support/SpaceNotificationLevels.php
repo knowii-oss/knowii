@@ -23,12 +23,13 @@ final class SpaceNotificationLevels
 {
     /**
      * The built-in default: "Everything" for a discussion space where only the moderators post (the place where the
-     * team speaks to everyone), "Only what is for me" for every other space. A chat space is never at "Everything" by
-     * default: a member chooses it.
+     * team speaks to everyone) and for an events space (a new event is news for every member, #1513, ADR 0053), "Only
+     * what is for me" for every other space. A chat space is never at "Everything" by default: a member chooses it.
      */
     public static function builtInDefault(Space $space): KnowiiSpaceNotificationLevel
     {
-        return $space->type === KnowiiSpaceType::Discussion && $space->posting_policy === KnowiiSpacePostingPolicy::Moderators
+        return ($space->type === KnowiiSpaceType::Discussion && $space->posting_policy === KnowiiSpacePostingPolicy::Moderators)
+            || $space->type === KnowiiSpaceType::Events
             ? KnowiiSpaceNotificationLevel::All
             : KnowiiSpaceNotificationLevel::Mine;
     }

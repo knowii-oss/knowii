@@ -24,6 +24,8 @@ enum KnowiiNotificationKind: string
     case SpaceChat = 'space_chat';
     // A new lesson in a course that the member started (#1475)
     case LessonNew = 'lesson_new';
+    // A new event in an events space where the member is at "Everything" (#1513, ADR 0053)
+    case EventNew = 'event_new';
 
     /**
      * 0 Account, 1 Needs you, 2 Following, 3 Around you (design 2.1).
@@ -32,7 +34,7 @@ enum KnowiiNotificationKind: string
     {
         return match ($this) {
             self::PostComment, self::CommentReply, self::Mention => 1,
-            self::ThreadComment, self::ThreadReply, self::SpacePost, self::SpaceChat, self::LessonNew => 2,
+            self::ThreadComment, self::ThreadReply, self::SpacePost, self::SpaceChat, self::LessonNew, self::EventNew => 2,
         };
     }
 
@@ -46,7 +48,7 @@ enum KnowiiNotificationKind: string
             self::CommentReply => KnowiiNotificationReason::WroteComment,
             self::Mention => KnowiiNotificationReason::Mentioned,
             self::ThreadComment, self::ThreadReply => KnowiiNotificationReason::FollowsThread,
-            self::SpacePost, self::SpaceChat => KnowiiNotificationReason::SpaceEverything,
+            self::SpacePost, self::SpaceChat, self::EventNew => KnowiiNotificationReason::SpaceEverything,
             self::LessonNew => KnowiiNotificationReason::StartedCourse,
         };
     }

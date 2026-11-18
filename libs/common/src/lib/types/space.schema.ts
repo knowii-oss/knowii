@@ -15,7 +15,7 @@ import { safeHttpUrl } from '../utils/safe-url.fn';
  * Space groups and spaces (#1173, ADR 0012).
  * WARNING: the enums are aligned with KnowiiSpaceType, KnowiiSpaceVisibility and KnowiiSpacePostingPolicy (back-end)
  */
-export const SPACE_TYPES = ['discussion', 'chat', 'pages', 'course', 'resources', 'link'] as const;
+export const SPACE_TYPES = ['discussion', 'chat', 'pages', 'course', 'resources', 'link', 'events'] as const;
 export const spaceTypeSchema = z.enum(SPACE_TYPES);
 export type SpaceType = z.infer<typeof spaceTypeSchema>;
 
@@ -35,6 +35,8 @@ export const SPACE_TYPE_LABELS: Record<SpaceType, { name: string; description: s
   resources: { name: 'Resources', description: 'Curated links to articles', emoji: '🔗' },
   // #1294, ADR 0026: a navigation item that opens a page outside Knowii
   link: { name: 'Link', description: 'Opens a page outside Knowii: website, shop, booking page', emoji: '↗️' },
+  // #1513, ADR 0053: dated events with a host, a time zone and a meeting address
+  events: { name: 'Events', description: 'Dated events with a host and a meeting address', emoji: '📅' },
 };
 
 export const SPACE_VISIBILITY_LABELS: Record<SpaceVisibility, string> = {

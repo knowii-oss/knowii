@@ -1,0 +1,29 @@
+meta {
+  name: Events - Create - Wrong offset
+  type: http
+  seq: 188
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of an events space>/events
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Weekly review office hour",
+    "starts_at": "2026-11-18T17:00:00+02:00",
+    "ends_at": "2026-11-18T18:00:00+01:00",
+    "time_zone": "Europe/Brussels"
+  }
+}
+
+docs {
+  Error case: Brussels is at UTC+1 in November, so +02:00 is refused with 400 on starts_at: "This offset is not the offset of the time zone at this time". A value without an offset is refused the same way.
+}

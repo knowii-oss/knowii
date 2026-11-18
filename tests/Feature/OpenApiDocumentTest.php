@@ -91,6 +91,8 @@ test('every write operation documents its request body', function () {
         'PUT /v1/communities/{community}/spaces/{space}/messages/{message}/mute',
         // Visit a space (#1476): the space is in the path
         'PUT /v1/communities/{community}/spaces/{space}/visit',
+        // Duplicate an event (#1513): the event is in the path
+        'POST /v1/communities/{community}/spaces/{space}/events/{event}/duplicate',
     ];
     $withoutBody = [];
     foreach (openApiDocument()['paths'] as $path => $operations) {
@@ -170,4 +172,16 @@ test('the deletes of a comment and of a post document their option and both answ
         expect(array_column($operation['parameters'] ?? [], 'name'))->toContain($option)
             ->and(array_keys($operation['responses'] ?? []))->toContain(200)->toContain(204);
     }
+});
+
+test('the events routes are documented with their required fields and their query parameters (#1513)', function () {
+    $paths = openApiDocument()['paths'];
+    $events = '/v1/communities/{community}/spaces/{space}/events';
+
+    expect($paths[$events]['post']['requestBody']['content']['application/json']['schema']['required'] ?? [])->toEqualCanonicalizing(['title', 'starts_at', 'ends_at', 'time_zone'])
+        ->and($paths[$events.'/{event}/state']['put']['requestBody']['content']['application/json']['schema']['required'] ?? [])->toBe(['state'])
+        ->and(array_column($paths[$events]['get']['parameters'] ?? [], 'name'))->toContain('scope', 'limit', 'offset')
+        ->and($paths[$events.'/{event}'])->toHaveKeys(['get', 'patch', 'delete'])
+        ->and($paths[$events.'/{event}/duplicate'])->toHaveKey('post')
+        ->and($paths['/v1/communities/{community}/events'])->toHaveKey('get');
 });

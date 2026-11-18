@@ -1,0 +1,27 @@
+meta {
+  name: Events - Set state
+  type: http
+  seq: 191
+}
+
+put {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of an events space>/events/<cuid of an event>/state
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "state": "published",
+    "notify_now": false
+  }
+}
+
+docs {
+  Changes the state (#1513): draft to published, published to draft (not once it started), published to cancelled, cancelled to published. The same state again changes nothing (200). A cancel is for the owner, the admins, the host and the moderators of the space. The first publication of an event in the future tells the members at Everything. Ability events:write.
+}

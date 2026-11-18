@@ -20,7 +20,7 @@ use Illuminate\Validation\ValidationException;
  * `has_more` is true when a source holds more than what is shown. The answer never holds a count of missed things. Every
  * line passes the reading rule of the member, and nothing of an author whom the member blocked shows. No text is stored.
  *
- * @phpstan-type Target array{post_slug: ?string, post_cuid: ?string, comment_cuid: ?string, chat_message_cuid: ?string, thread_cuid: ?string, resource_cuid: ?string, resource_slug: ?string, page_slug: ?string}
+ * @phpstan-type Target array{post_slug: ?string, post_cuid: ?string, comment_cuid: ?string, chat_message_cuid: ?string, thread_cuid: ?string, resource_cuid: ?string, resource_slug: ?string, page_slug: ?string, event_cuid: ?string, event_slug: ?string}
  * @phpstan-type Line array{kind: 'needs_you'|'announcement'|'thread', title: ?string, excerpt: string, space: array{cuid: string, slug: string, name: string}|null, author: array{cuid: string, name: string, username: string, avatar_url: string|null}|null, date: CarbonInterface, target: Target}
  */
 interface BuildsCatchUp

@@ -54,6 +54,11 @@ use App\Actions\EmailOctopus\PruneEmailOctopusContacts;
 use App\Actions\Entitlements\ReceiveEntitlementEvent;
 use App\Actions\Entitlements\RefreshEntitlements;
 use App\Actions\Entitlements\SyncEntitlementRules;
+use App\Actions\Events\CreateEvent;
+use App\Actions\Events\DeleteEvent;
+use App\Actions\Events\DuplicateEvent;
+use App\Actions\Events\SetEventState;
+use App\Actions\Events\UpdateEvent;
 use App\Actions\Newsletter\SubscribeToNewsletter;
 use App\Actions\Notifications\BuildCatchUp;
 use App\Actions\Notifications\ChooseSpaceLevels;
@@ -154,6 +159,11 @@ use App\Contracts\CourseMaterials\UpdatesCourseMaterials;
 use App\Contracts\Entitlements\ReceivesEntitlementEvents;
 use App\Contracts\Entitlements\RefreshesEntitlements;
 use App\Contracts\Entitlements\SyncsEntitlementRules;
+use App\Contracts\Events\CreatesEvents;
+use App\Contracts\Events\DeletesEvents;
+use App\Contracts\Events\DuplicatesEvents;
+use App\Contracts\Events\SetsEventStates;
+use App\Contracts\Events\UpdatesEvents;
 use App\Contracts\Newsletter\SubscribesToNewsletter;
 use App\Contracts\Notifications\BuildsCatchUp;
 use App\Contracts\Notifications\ChoosesSpaceLevels;
@@ -299,6 +309,12 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(DeletesPages::class, DeletePage::class);
         app()->singleton(ReordersPages::class, ReorderPages::class);
         app()->singleton(TracksLessonProgress::class, TrackLessonProgress::class);
+        // Events of events spaces (#1513, ADR 0053)
+        app()->singleton(CreatesEvents::class, CreateEvent::class);
+        app()->singleton(UpdatesEvents::class, UpdateEvent::class);
+        app()->singleton(SetsEventStates::class, SetEventState::class);
+        app()->singleton(DeletesEvents::class, DeleteEvent::class);
+        app()->singleton(DuplicatesEvents::class, DuplicateEvent::class);
         app()->singleton(UpdatesPosts::class, UpdatePost::class);
         app()->singleton(DeletesPosts::class, DeletePost::class);
         app()->singleton(PinsPosts::class, PinPost::class);
@@ -366,6 +382,10 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('posts', static function (Request $request) {
             return Limit::perMinute(Constants::POSTS_PER_MINUTE)->by(self::rateLimitKey($request));
+        });
+
+        RateLimiter::for('events', static function (Request $request) {
+            return Limit::perMinute(Constants::EVENTS_PER_MINUTE)->by(self::rateLimitKey($request));
         });
 
         RateLimiter::for('comments', static function (Request $request) {

@@ -167,8 +167,8 @@ function flwList(User $user, string $query = 'level=2'): array
 
 // The kinds
 
-test('the level 2 kinds are the five of "Following", with the reason that the client turns into a sentence', function () {
-    expect(KnowiiNotificationKind::valuesOfLevel(2))->toBe(['thread_comment', 'thread_reply', 'space_post', 'space_chat', 'lesson_new'])
+test('the level 2 kinds are the six of "Following", with the reason that the client turns into a sentence', function () {
+    expect(KnowiiNotificationKind::valuesOfLevel(2))->toBe(['thread_comment', 'thread_reply', 'space_post', 'space_chat', 'lesson_new', 'event_new'])
         ->and(KnowiiNotificationKind::valuesOfLevel(1))->toBe(['post_comment', 'comment_reply', 'mention'])
         ->and(KnowiiNotificationKind::PostComment->reason())->toBe(KnowiiNotificationReason::WrotePost)
         ->and(KnowiiNotificationKind::CommentReply->reason())->toBe(KnowiiNotificationReason::WroteComment)
@@ -177,7 +177,8 @@ test('the level 2 kinds are the five of "Following", with the reason that the cl
         ->and(KnowiiNotificationKind::ThreadReply->reason())->toBe(KnowiiNotificationReason::FollowsThread)
         ->and(KnowiiNotificationKind::SpacePost->reason())->toBe(KnowiiNotificationReason::SpaceEverything)
         ->and(KnowiiNotificationKind::SpaceChat->reason())->toBe(KnowiiNotificationReason::SpaceEverything)
-        ->and(KnowiiNotificationKind::LessonNew->reason())->toBe(KnowiiNotificationReason::StartedCourse);
+        ->and(KnowiiNotificationKind::LessonNew->reason())->toBe(KnowiiNotificationReason::StartedCourse)
+        ->and(KnowiiNotificationKind::EventNew->reason())->toBe(KnowiiNotificationReason::SpaceEverything);
 });
 
 test('the contracts of the follows and the levels are bound to their actions', function () {

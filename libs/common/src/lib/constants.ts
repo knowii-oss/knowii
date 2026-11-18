@@ -146,6 +146,14 @@ export const MAX_LENGTH_SPACE_URL = 2048;
 export const MIN_LENGTH_POST_TITLE = 3;
 export const MAX_LENGTH_POST_TITLE = 200;
 export const MAX_LENGTH_POST_BODY = 50000;
+// Events of an events space (#1513, ADR 0053). WARNING: aligned with Constants.php
+export const MIN_LENGTH_EVENT_TITLE = 3;
+export const MAX_LENGTH_EVENT_TITLE = 200;
+export const MAX_LENGTH_EVENT_BODY = 20000;
+export const MAX_LENGTH_EVENT_MEETING_URL = 2048;
+export const MAX_LENGTH_EVENT_PLACE = 255;
+export const MAX_LENGTH_EVENT_COVER_ALT = 125;
+export const MAX_EVENT_DURATION_HOURS = 24;
 // Chat messages (#1185). WARNING: aligned with Constants.php
 export const MAX_LENGTH_CHAT_MESSAGE = 10000;
 // The members of a conversation, the author included (#1186). WARNING: aligned with Conversation::MAX_PARTICIPANTS
@@ -272,6 +280,13 @@ export const COMMUNITY_SPACE_RESOURCE_COMMENT_API_PATH = `${COMMUNITY_SPACE_RESO
 export const SPACE_API_PARAM_POST = '{postCuid}';
 export const COMMUNITY_SPACE_POSTS_API_PATH = `${COMMUNITY_SPACE_API_PATH}/posts`;
 export const COMMUNITY_SPACE_POST_API_PATH = `${COMMUNITY_SPACE_POSTS_API_PATH}/${SPACE_API_PARAM_POST}`;
+// Events of events spaces (#1513, ADR 0053). WARNING: aligned with ApiRoutes.php
+export const SPACE_API_PARAM_EVENT = '{eventCuid}';
+export const COMMUNITY_SPACE_EVENTS_API_PATH = `${COMMUNITY_SPACE_API_PATH}/events`;
+export const COMMUNITY_SPACE_EVENT_API_PATH = `${COMMUNITY_SPACE_EVENTS_API_PATH}/${SPACE_API_PARAM_EVENT}`;
+export const COMMUNITY_SPACE_EVENT_STATE_API_PATH = `${COMMUNITY_SPACE_EVENT_API_PATH}/state`;
+export const COMMUNITY_SPACE_EVENT_DUPLICATE_API_PATH = `${COMMUNITY_SPACE_EVENT_API_PATH}/duplicate`;
+export const COMMUNITY_EVENTS_API_PATH = `${COMMUNITY_API_PATH}/events`;
 // Messages of chat spaces (#1185)
 export const SPACE_API_PARAM_MESSAGE = '{messageCuid}';
 export const COMMUNITY_SPACE_MESSAGES_API_PATH = `${COMMUNITY_SPACE_API_PATH}/messages`;

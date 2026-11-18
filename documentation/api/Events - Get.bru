@@ -1,0 +1,20 @@
+meta {
+  name: Events - Get
+  type: http
+  seq: 186
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of an events space>/events/<cuid of an event>
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  One event with its description in Markdown and HTML (#1513). A draft is for its host, the owner and the admins. meeting_url and place are null (and can_view_location false) for a reader who may not see them. Ability events:read.
+  Public: in a public space this request works without a session and without a token, without the meeting address and the place.
+}

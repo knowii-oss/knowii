@@ -1,6 +1,6 @@
 # 0012. Space groups and typed spaces structure a community
 
-- Status: Accepted, amended by [0015](0015-resources-space-type.md) (the `resources` type replaces the resource collections)
+- Status: Accepted, amended by [0015](0015-resources-space-type.md) (the `resources` type replaces the resource collections) and [0053](0053-events-a-space-type-with-its-own-table.md) (the `events` type)
 - Date: 2026-11-09
 - Issue: #1173
 

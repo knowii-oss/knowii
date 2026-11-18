@@ -151,6 +151,33 @@ describe('the default level of a space in the space form (#1497)', () => {
     expect(within(dialog).getByRole('button', { name: /What members get by default/ })).toHaveTextContent('Only what is for me');
   });
 
+  it('offers Everything for an events space, and shows it as the built-in default whoever posts (#1513)', async () => {
+    renderDialog(space({ type: 'events', name: 'Office hours' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Edit Office hours' });
+    const level = within(dialog).getByRole('button', { name: /What members get by default/ });
+
+    expect(level).toHaveTextContent('Everything');
+    expect(within(dialog).queryByText(/Everything is only for/)).toBeNull();
+    await userEvent.click(level);
+    expect(
+      within(await screen.findByRole('listbox'))
+        .getAllByRole('option')
+        .map((option) => option.textContent),
+    ).toEqual(['Everything', 'Only what is for me']);
+  });
+
+  it('starts a new events space with "Only moderators can post" (#1513)', async () => {
+    renderDialog();
+    const dialog = await screen.findByRole('dialog', { name: 'New space' });
+    const policy = () => within(dialog).getByRole('button', { name: /Who can post/ });
+    expect(policy()).toHaveTextContent('All members can post');
+
+    await userEvent.click(within(dialog).getByRole('button', { name: /^Type/ }));
+    await userEvent.click(await screen.findByRole('option', { name: /Events: Dated events/ }));
+
+    await waitFor(() => expect(policy()).toHaveTextContent('Only moderators can post'));
+  });
+
   it('is not in the form of a new space, nor of a link space', async () => {
     renderDialog();
     const dialog = await screen.findByRole('dialog', { name: 'New space' });

@@ -1,6 +1,6 @@
 # 0042. Notifications: one table, one action, four levels
 
-- Status: Accepted
+- Status: Accepted, amended by [0053](0053-events-a-space-type-with-its-own-table.md) (point 34: events spaces, the kind `event_new`)
 - Date: 2026-11-15
 - Issue: #1474
 - Pull request: #1488

@@ -1,0 +1,20 @@
+meta {
+  name: Events - Upcoming in the community
+  type: http
+  seq: 185
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/events?limit=10&offset=0
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The upcoming events of every events space that you can read (#1513), the next start first. Never a draft. Ability events:read.
+  Public: without an account, the events of the public events spaces, when the community has a public page (404 otherwise; 403 to a signed-in person who is not a member).
+}

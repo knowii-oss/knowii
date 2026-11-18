@@ -3,6 +3,7 @@ import {
   catchUpLineDetail,
   catchUpLineHeadline,
   catchUpSchema,
+  FOLLOWING_KINDS,
   notificationActorNames,
   notificationBadge,
   notificationBellName,
@@ -16,6 +17,7 @@ import {
   tabTitleBadge,
 } from './notification.schema';
 import { SPACE_NOTIFICATION_LEVEL_LABELS, spaceNotificationLevelsFor, threadFollowLabel } from './notification-follow.schema';
+import { formatEventStart } from '../utils/time-zone.fn';
 
 const person = (name: string) => ({ cuid: name.toLowerCase(), name, username: name.toLowerCase(), avatar_url: null });
 
@@ -41,7 +43,10 @@ const resource = {
     resource_cuid: null,
     resource_slug: null,
     page_slug: null,
+    event_cuid: null,
+    event_slug: null,
   },
+  event_starts_at: null,
   seen_at: null,
   read_at: null,
   created_at: '2026-11-15T10:00:00.000000Z',
@@ -172,6 +177,38 @@ describe('the "Following" kinds (#1497)', () => {
     );
   });
 
+  it('writes the line of a new event with its start in the zone of the reader, and the title (#1513)', () => {
+    const event = level2({
+      kind: 'event_new',
+      reason: 'space_everything',
+      title: 'Weekly review office hour',
+      event_starts_at: new Date('2026-11-18T16:00:00Z'),
+      space: { cuid: 's3', slug: 'office-hours', name: 'Office hours' },
+    });
+
+    expect(notificationSentence(event, 'Europe/Brussels')).toBe(
+      `${formatEventStart(new Date('2026-11-18T16:00:00Z'), 'Europe/Brussels')}: Weekly review office hour`,
+    );
+    expect(notificationSentence(event, 'Europe/Brussels')).toContain('18 Nov, 17:00');
+    expect(notificationSentence(event, 'Asia/Singapore')).toContain('19 Nov, 00:00');
+    expect(notificationSentenceHasTitle(event)).toBe(true);
+    expect(notificationShowsItem(event)).toBe(true);
+    expect(FOLLOWING_KINDS).toContain('event_new');
+    expect(notificationSentence({ ...event, event_starts_at: null })).toBe('New event in Office hours');
+    expect(
+      notificationSchema
+        .parse({
+          ...resource,
+          kind: 'event_new',
+          level: 2,
+          reason: 'space_everything',
+          event_starts_at: '2026-11-18T16:00:00.000000Z',
+          target: { ...resource.target, comment_cuid: null, event_cuid: 'e1', event_slug: 'weekly-review' },
+        })
+        .event_starts_at?.toISOString(),
+    ).toBe('2026-11-18T16:00:00.000Z');
+  });
+
   it('shows the title once: in the sentence, or under it', () => {
     expect(notificationSentenceHasTitle(level2({ kind: 'thread_comment' }))).toBe(true);
     expect(notificationSentenceHasTitle(level2({ kind: 'space_post', items_count: 1 }))).toBe(true);
@@ -223,6 +260,8 @@ describe('the words of a thread and of a space level (#1497)', () => {
   it('offers Everything to a discussion space and a chat space only, and nothing to a link space', () => {
     expect(spaceNotificationLevelsFor('discussion')).toEqual(['all', 'mine', 'none']);
     expect(spaceNotificationLevelsFor('chat')).toEqual(['all', 'mine', 'none']);
+    // An events space has Everything (#1513)
+    expect(spaceNotificationLevelsFor('events')).toEqual(['all', 'mine', 'none']);
     expect(spaceNotificationLevelsFor('course')).toEqual(['mine', 'none']);
     expect(spaceNotificationLevelsFor('link')).toEqual([]);
     expect(SPACE_NOTIFICATION_LEVEL_LABELS.none.description).toBe('You will get nothing from this space, also when someone mentions you.');

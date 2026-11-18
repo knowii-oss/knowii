@@ -31,7 +31,7 @@ describe('the level of a space for the member (#1497)', () => {
         .getAllByRole('radio')
         .map((radio) => radio.closest('label')?.textContent),
     ).toEqual([
-      'EverythingYou get a line for every new post here. In a chat space the lines are bundled, one per space.',
+      'EverythingYou get a line for every new post or event here. In a chat space the lines are bundled, one per space.',
       'Only what is for meYou are told when someone replies to you, mentions you, or writes in a thread that you follow.',
       'MutedYou will get nothing from this space, also when someone mentions you.',
     ]);
