@@ -2,6 +2,7 @@
 
 use App\Exceptions\AlreadyAuthenticatedException;
 use App\Exceptions\BusinessException;
+use App\Exceptions\NoAccessException;
 use App\Exceptions\TechnicalException;
 use App\Http\Middleware\AddRobotsHeader;
 use App\Http\Middleware\AddViteContentSecurityPolicyNonce;
@@ -302,6 +303,11 @@ return Application::configure(basePath: dirname(__DIR__))
                     $response->setJson('{ "message": "You are already logged in" }');
                     $response->setStatusCode(200);
                 }
+            }
+
+            // The page without access (#1561) is its own answer, a 403, in every environment
+            if ($exception instanceof NoAccessException) {
+                return $response;
             }
 
             if (! app()->environment(['local', 'testing']) && in_array($response->getStatusCode(), [500, 503, 404, 403])) {

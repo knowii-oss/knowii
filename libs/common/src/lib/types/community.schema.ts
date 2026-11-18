@@ -105,6 +105,26 @@ export const communitySchema = baseEntitySchema
 
 export type Community = z.infer<typeof communitySchema>;
 
+/**
+ * The kind of page that a signed-in person who is not a member may not read (#1561): a space (or a post, a page, a
+ * resource of it), or a page of the community itself (its home, its details, the page of a member).
+ * WARNING: aligned with KnowiiNoAccessKind (back-end)
+ */
+export type NoAccessKind = 'space' | 'community';
+
+/**
+ * The props of the page without access (Pages/Communities/NoAccess.tsx, #1561).
+ * WARNING: aligned with NoAccessException.php
+ */
+export interface NoAccessPageProps {
+  kind: NoAccessKind;
+  /**
+   * The public shape of the community, only when this person may see its public page. Null otherwise: the page then
+   * names nothing of the community.
+   */
+  community: Community | null;
+}
+
 export interface CommunityPermissions {
   // WARNING: The props defined here must remain aligned with the props defined in CommunityController.php
   canManageCommunity: boolean;

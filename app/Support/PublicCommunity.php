@@ -42,6 +42,15 @@ final class PublicCommunity
     }
 
     /**
+     * Whether the reader gets the public page of the community: they are not a member, and it has one. The page without
+     * access (#1561) names the community only then.
+     */
+    public static function showsPublicPage(?User $user, Community $community): bool
+    {
+        return ! self::isMember($user, $community) && self::exists($community);
+    }
+
+    /**
      * Refuse the request for a community without a public page. A visitor gets 404 (the web app sends them to the
      * sign-in page, the API answers 404: nothing tells a community without a public space from one that does not
      * exist), a signed-in person who is not a member gets 403, as before.

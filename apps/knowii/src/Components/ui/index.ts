@@ -18,6 +18,7 @@ export * from './ImageViewer';
 export * from './MarkdownContent';
 export * from './MarkdownEditor';
 export * from './markdown-format';
+export * from './NoAccessPanel';
 export * from './DropdownMenu';
 export * from './PasswordInput';
 export * from './Radio';

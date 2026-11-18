@@ -1,8 +1,9 @@
 import PageHeader from '@/Components/PageHeader';
 import PageContentWrapper from '@/Components/PageContentWrapper';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import Footer from '@/Components/Footer';
-import { HOME_URL, metadata } from '@knowii/common';
+import type { Auth } from '@knowii/common';
+import { DASHBOARD_URL, HOME_URL, metadata } from '@knowii/common';
 import { buttonClasses } from '@/Components/ui';
 import { FaHome } from 'react-icons/fa';
 import PageWrapper from '@/Components/PageWrapper';
@@ -14,6 +15,11 @@ interface Props {
 // Generic error page
 // Reference: // https://inertiajs.com/error-handling
 export default function ErrorPage(props: Props) {
+  // A signed-in person goes to the dashboard, where they see their communities (#1561). The shared props are missing when
+  // the request never reached the web middleware (an address that matches no route)
+  const auth = usePage<{ auth?: Auth }>().props.auth;
+  const homeUrl = auth?.user ? route(DASHBOARD_URL) : HOME_URL;
+
   const errorTitle = {
     503: '503: Service Unavailable',
     500: '500: Server Error',
@@ -48,7 +54,7 @@ export default function ErrorPage(props: Props) {
               <h1>{errorTitle}</h1>
               <h2>{errorDescription}</h2>
               <div className="mt-12 flex flex-row justify-center">
-                <a href={HOME_URL} className={buttonClasses({ size: 'lg' }) + ' no-underline'}>
+                <a href={homeUrl} className={buttonClasses({ size: 'lg' }) + ' no-underline'}>
                   <FaHome aria-hidden="true" />
                   Go back to the homepage
                 </a>
