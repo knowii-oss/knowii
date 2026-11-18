@@ -315,7 +315,7 @@ test('the privacy policy tells about notifications and how long they stay (#1474
 test('the privacy policy tells about the follows, the space levels and the entitlements of a sign-in account (#1505, approved 2026-11-16)', function () {
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
         ->where('html', fn (string $html) => str_contains($html, 'the threads that you follow or muted and the level that you chose for each space (Everything, Only what is for me, or Muted), which Knowii keeps while you are a member of the community and which you can change at any time,')
-            && str_contains($html, 'and, when you sign in with a Knowii account, the list of what that account gives access to, which Knowii reads when you sign in, when it changes, and once a night, to open or close the spaces of a community.')
+            && str_contains($html, 'and, when you sign in with the sign-in provider of this site, the list of what your account there gives access to, which this site reads when you sign in, when it changes, and once a night, to open or close the spaces of a community.')
             && str_contains($html, 'Follows, mutes and space levels: while you are a member of the community.'))
     );
 });
@@ -335,7 +335,7 @@ test('the privacy policy says that a member can delete their content with the ac
 
 test('the privacy policy names the identifier of the provider account and the date it was connected (#1385)', function () {
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
-        ->where('html', fn (string $html) => str_contains($html, 'and, when you sign in with a Knowii account, the identifier of that account and the date you connected it,')));
+        ->where('html', fn (string $html) => str_contains($html, 'and, when you sign in with the sign-in provider of this site (none on this site), the identifier of that account and the date you connected it,')));
 });
 
 test('the privacy policy says what Knowii keeps when a manager removes a member, and when it goes away (#1501, approved 2026-11-15)', function () {
@@ -347,7 +347,7 @@ test('the privacy policy tells about the time zone, the last visit and the visit
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
         ->where('updated', '2026-11-18')
         ->where('html', fn (string $html) => str_contains($html, 'your time zone, which your browser gives when you sign up or which you set yourself, to show times in your zone; the date of your last visit (a date without an hour, replaced at each visit, that nobody else can see), to show you what is new since then; and your choice to show or hide pop-ups.')
-            && str_contains($html, 'and when you saw it), and the date and hour of your last visit of each space, to mark the spaces that have something new for you, and, when you sign in with a Knowii account')
+            && str_contains($html, 'and when you saw it), and the date and hour of your last visit of each space, to mark the spaces that have something new for you, and, when you sign in with the sign-in provider of this site')
             && str_contains($html, 'Time zone and pop-up choice: while your account exists. Last visit date: replaced at each visit. Last visit of each space: replaced at each visit, and deleted when you leave the community.'))
     );
 });
@@ -383,4 +383,17 @@ test('the privacy policy names the events and what they hold in the content of a
         ->where('updated', '2026-11-18')
         ->where('html', fn (string $html) => str_contains($html, 'chat messages, direct messages, pages, lessons, events (their title, description, date, place and meeting address), and uploaded images and their alternative text.'))
     );
+});
+
+test('the legal texts name the sign-in provider of the instance, and no product name (#1643)', function () {
+    config(['services.oidc.issuer' => 'https://accounts.example.com', 'services.oidc.client_id' => 'client', 'services.oidc.client_secret' => 'secret', 'services.oidc.label' => 'Example account']);
+
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, 'DeveloPassion SRL is the controller of the data of your account on this site.')
+            && str_contains($html, 'when you sign in with the sign-in provider of this site (Example account), the identifier of that account')
+            && ! str_contains($html, 'Knowii'.' account')));
+    $this->get('/dpa')->assertInertia(fn ($page) => $page
+        ->where('updated', '2026-11-18')
+        ->where('html', fn (string $html) => str_contains($html, 'For the accounts on this site themselves, DeveloPassion SRL is the controller')
+            && ! str_contains($html, 'Knowii'.' account')));
 });
