@@ -139,7 +139,7 @@ function entConfigure(array $slugs = [], array $override = []): void
             'client_id' => ENT_CLIENT_ID,
             'client_secret' => ENT_CLIENT_SECRET,
             'scopes' => 'openid profile email',
-            'label' => 'Knowii account',
+            'label' => 'Example account',
             'entitlements_url' => ENT_ISSUER.'/v1/subjects/{subject}/entitlements',
             'entitlements_scope' => 'entitlements:read:subjects',
             'entitlements_resource' => ENT_ISSUER.'/v1',

@@ -53,7 +53,7 @@ function oidcConfigure(): void
             'client_id' => OIDC_CLIENT_ID,
             'client_secret' => OIDC_CLIENT_SECRET,
             'scopes' => 'openid profile email',
-            'label' => 'Knowii account',
+            'label' => 'Example account',
         ],
     ]);
 }
@@ -302,11 +302,11 @@ test('without the configuration the routes answer 404, the pages have no button 
 test('with the configuration the sign-in and registration pages get the provider, and the other ways stay', function () {
     $this->get('/login')->assertOk()->assertInertia(fn ($page) => $page
         ->component('Auth/Login')
-        ->where('oidc.label', 'Knowii account')
+        ->where('oidc.label', 'Example account')
         ->where('oidc.error', null)
         ->where('canResetPassword', true));
-    $this->get('/register')->assertInertia(fn ($page) => $page->component('Auth/Register')->where('oidc.label', 'Knowii account'));
-    $this->getJson('/api/v1/ping')->assertOk()->assertJsonPath('data.oidc.label', 'Knowii account');
+    $this->get('/register')->assertInertia(fn ($page) => $page->component('Auth/Register')->where('oidc.label', 'Example account'));
+    $this->getJson('/api/v1/ping')->assertOk()->assertJsonPath('data.oidc.label', 'Example account');
 
     // The password sign-in still works
     $user = User::factory()->create();
@@ -314,7 +314,7 @@ test('with the configuration the sign-in and registration pages get the provider
 });
 
 test('the label is the configured text, else the host name of the issuer, cleaned and short', function () {
-    expect(OpenIdConnect::label())->toBe('Knowii account');
+    expect(OpenIdConnect::label())->toBe('Example account');
 
     config(['services.oidc.label' => null]);
     expect(OpenIdConnect::label())->toBe('auth.example.test');
@@ -1101,7 +1101,7 @@ test('the profile settings give the card its data: the connected accounts, witho
         ->component('Profile/Show')
         ->where('hasPassword', true)
         ->has('connectedAccounts', 1)
-        ->where('connectedAccounts.0.label', 'Knowii account')
+        ->where('connectedAccounts.0.label', 'Example account')
         ->where('connectedAccounts.0.issuer', OIDC_ISSUER)
         ->where('connectedAccounts.0.current', true)
         ->has('connectedAccounts.0.cuid')
@@ -1126,7 +1126,7 @@ test('the API lists the connected accounts of the member: the issuer, a label an
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.cuid', $identity->cuid)
         ->assertJsonPath('data.0.issuer', OIDC_ISSUER)
-        ->assertJsonPath('data.0.label', 'Knowii account');
+        ->assertJsonPath('data.0.label', 'Example account');
 
     expect($response->json('data.0'))->toHaveKeys(['linked_at', 'last_used_at'])
         ->and($response->getContent())->not->toContain('sub-secret-subject')->not->toContain('sub-of-somebody-else');

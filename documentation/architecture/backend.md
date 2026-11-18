@@ -455,6 +455,8 @@ Notifications (#1474, [ADR 0042](../adr/0042-notifications.md)) tell a member wh
 
 ### Sign in with an OpenID Connect provider
 
+The provider is an external account service: what it must implement (the sign-in, the new sign-in, the entitlements, the change calls) is in [the external account service](external-account-service.md).
+
 Sign-in with a provider (#1385, [ADR 0045](../adr/0045-openid-connect-sign-in.md)) is a generic OpenID Connect client, on only when `OIDC_ISSUER`, `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET` are set (`App\Support\OpenIdConnect` reads `config/services.php`). Without them the two web routes answer 404 and the shared prop `oidc` is null.
 
 1. `GET /auth/oidc/redirect` and `GET /auth/oidc/callback` (`OpenIdConnectController`, limiter `oidc`) keep `state`, `nonce`, the PKCE verifier and the start time in the session (`oidc.flow`), used once. The callback checks the flow, asks the client for the identity, asks `SignsInWithOpenIdConnect` which account it signs in, then signs in (or goes to the two-factor challenge of Fortify with `login.id`), or sends the member back with `oidc_error` in the flash (shared with the pages as `oidc.error`).

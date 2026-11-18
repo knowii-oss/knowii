@@ -1,6 +1,7 @@
 # 0010. Own accounts, the Knowii account as an optional OpenID Connect provider
 
 - Status: Accepted
+- Names (2026-11-18, #1643): the provider is any external account service; the Knowii account is one instance of it.
 - Date: 2026-11-09
 
 ## Context

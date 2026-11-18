@@ -162,4 +162,4 @@ Access groups on space groups ([ADR 0041](../adr/0041-access-groups-open-space-g
 
 1. Moderators of one space (a group that moderates a space).
 2. Show a restricted space as locked to the members outside its groups (#869, #1241).
-3. Add the buyers of a product to a group automatically (Knowii account entitlements, ADR 0010).
+3. Add the buyers of a product to a group automatically: done by the entitlement rules of the external account service (#1386, [ADR 0047](../adr/0047-entitlement-rules-feed-access-groups.md)), see above.
