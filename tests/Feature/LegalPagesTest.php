@@ -76,7 +76,7 @@ test('the privacy policy shows the retention periods of the configuration (ADR 0
 
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
         ->where('html', fn (string $html) => str_contains($html, 'Sessions: 45 minutes after your last activity')
-            && str_contains($html, 'at most 6 months after you join it'))
+            && str_contains($html, 'Waitlist: it takes no new address. The addresses given before are deleted after the launch invitation, at most 6 months after you joined it.'))
     );
 });
 
@@ -224,7 +224,7 @@ test('the privacy policy and the DPA list the stored data that the review found 
 
 test('the privacy policy names Turnstile on the sign-up form and describes the audience statistics (#1349)', function () {
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
-        ->where('html', fn (string $html) => str_contains($html, 'The sign-up, waitlist and newsletter forms use Cloudflare Turnstile to block bots.')
+        ->where('html', fn (string $html) => str_contains($html, 'The sign-up and newsletter forms use Cloudflare Turnstile to block bots.')
             && str_contains($html, 'Audience statistics: page views, counted by Plausible without cookies and without a stored identifier. Our proxy at Cloudflare and Plausible see your IP address to count the view and do not keep it.')
             && str_contains($html, 'To know how many people visit the pages: our legitimate interest in improving the service (art. 6(1)(f)).'))
     );
@@ -357,5 +357,17 @@ test('the privacy policy says that a deleted message, post or comment with answe
         ->where('updated', '2026-11-18')
         ->where('html', fn (string $html) => str_contains($html, 'A deleted message, and a deleted post or comment that other people answered, leave an empty marker without their text.')
             && ! str_contains($html, 'This message was deleted'))
+    );
+});
+
+test('the privacy policy says that the waitlist takes no new address, and how long the old ones stay (#1574)', function () {
+    config(['retention.waitlist_months' => 12]);
+
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('updated', '2026-11-18')
+        ->where('html', fn (string $html) => str_contains($html, 'Waitlist and newsletter: your email address, if you join the newsletter, or if you joined the waitlist before it closed.')
+            && str_contains($html, 'To send the newsletter emails, and the waitlist emails to the addresses given before it closed: your consent (art. 6(1)(a)).')
+            && str_contains($html, 'Waitlist: it takes no new address. The addresses given before are deleted after the launch invitation, at most 12 months after you joined it.')
+            && ! str_contains($html, 'waitlist forms'))
     );
 });

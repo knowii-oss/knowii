@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Cloudflare Turnstile, the bot check of public forms (waitlist #1171, sign-up #737). The server verifies every token:
+ * Cloudflare Turnstile, the bot check of public forms (sign-up #737, newsletter #938). The server verifies every token:
  * the widget alone protects nothing.
  */
 final class Turnstile

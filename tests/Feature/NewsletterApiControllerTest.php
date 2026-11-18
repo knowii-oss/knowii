@@ -83,6 +83,59 @@ test('the endpoint refuses subscriptions while no newsletter list is configured'
     Http::assertNothingSent();
 });
 
+// The cases below test the code that the newsletter shares with the former waitlist (AddsEmailOctopusContact, #1574)
+test('an address already on the newsletter list gets the same answer as a new one', function () {
+    Http::fake([
+        NEWSLETTER_TURNSTILE_URL => Http::response(['success' => true]),
+        NEWSLETTER_CONTACTS_URL => Http::response(['title' => 'Conflict', 'detail' => 'Resource already exists.', 'status' => 409], 409),
+    ]);
+
+    subscribeToNewsletter(['email' => 'ada@example.com', 'turnstileToken' => 'token-1'])->assertOk();
+});
+
+test('an invalid email address or a missing token is refused before any external call', function () {
+    Http::fake();
+
+    $response = subscribeToNewsletter(['email' => 'not-an-email', 'turnstileToken' => 'token-1']);
+    $response->assertBadRequest();
+    expect($response->json('type'))->toBe('validationIssue');
+    expect($response->json('errors'))->toHaveKey('email');
+
+    subscribeToNewsletter(['email' => 'ada@example.com'])->assertBadRequest()->assertJsonStructure(['errors' => ['turnstileToken']]);
+
+    Http::assertNothingSent();
+});
+
+test('the newsletter refuses subscriptions when the bot check or EmailOctopus is not configured', function () {
+    Http::fake();
+
+    config(['services.turnstile.secret_key' => null]);
+    subscribeToNewsletter(['email' => 'ada@example.com', 'turnstileToken' => 'token-1'])->assertServerError();
+
+    config(['services.turnstile.secret_key' => 'turnstile-secret', 'services.emailoctopus.api_key' => null]);
+    subscribeToNewsletter(['email' => 'ada@example.com', 'turnstileToken' => 'token-1'])->assertServerError();
+
+    Http::assertNothingSent();
+});
+
+test('an address refused by EmailOctopus is a validation issue, another failure a technical issue without details', function () {
+    Http::fake([
+        NEWSLETTER_TURNSTILE_URL => Http::response(['success' => true]),
+        NEWSLETTER_CONTACTS_URL => Http::sequence()
+            ->push(['errors' => [['detail' => 'This value is not a valid email address.', 'pointer' => '/email_address']]], 422)
+            ->push(['title' => 'Unauthorized', 'detail' => 'Bad key', 'status' => 401], 401),
+    ]);
+
+    $refused = subscribeToNewsletter(['email' => 'ada@example.com', 'turnstileToken' => 'token-1']);
+    $refused->assertBadRequest();
+    expect($refused->json('errors'))->toHaveKey('email');
+
+    $failed = subscribeToNewsletter(['email' => 'ada@example.com', 'turnstileToken' => 'token-2']);
+    $failed->assertServerError();
+    expect($failed->json('type'))->toBe('internalError');
+    expect((string) $failed->getContent())->not->toContain('Bad key');
+});
+
 test('the newsletter endpoint is rate limited per IP address', function () {
     fakeNewsletterServices();
 

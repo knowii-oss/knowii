@@ -24,7 +24,7 @@ class Constants
     // The sign-up form has the same kind of hidden field (#737)
     public const string SIGNUP_HONEYPOT_FIELD = 'website';
 
-    // Waitlist requests allowed per minute and per IP address
+    // Requests of the newsletter form allowed per minute and per IP address (the waitlist form that also used it is gone, #1574)
     public const int WAITLIST_MAX_REQUESTS_PER_MINUTE = 5;
 
     // Cloudflare documents a maximum length of 2048 characters for Turnstile tokens

@@ -104,8 +104,6 @@ final class ApiRoutes
 
     public const PING = 'ping';
 
-    public const WAITLIST = 'waitlist';
-
     public const NEWSLETTER = 'newsletter';
 
     public const USERS_IS_USERNAME_AVAILABLE = 'users/is-username-available';

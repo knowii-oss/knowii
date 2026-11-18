@@ -83,7 +83,6 @@ import {
   SPACE_API_PARAM_SPACE_GROUP,
   USERS_API_IS_USERNAME_AVAILABLE_PATH,
   NEWSLETTER_API_PATH,
-  WAITLIST_API_PATH,
   NOTIFICATIONS_PER_PAGE,
   NOTIFICATION_API_PARAM_NOTIFICATION,
   NOTIFICATION_READ_API_PATH,
@@ -296,7 +295,7 @@ const defaultHeaders: Headers = new Headers({
 });
 
 /**
- * Adds an address to an EmailOctopus list through a public endpoint (the waitlist, the newsletter of the footer #938)
+ * Adds an address to an EmailOctopus list through a public endpoint (the newsletter of the footer #938)
  */
 const subscribeToList = async (path: string, input: JoinWaitlistRequest, failureMessage: string): Promise<JoinWaitlistResponse> => {
   const failure: JoinWaitlistResponse = { message: failureMessage, errors: [], type: 'internalError', category: 'technical' };
@@ -317,13 +316,9 @@ const subscribeToList = async (path: string, input: JoinWaitlistRequest, failure
 };
 
 export const knowiiApiClient = {
-  waitlist: {
-    join: (input: JoinWaitlistRequest): Promise<JoinWaitlistResponse> =>
-      subscribeToList(WAITLIST_API_PATH, input, 'Failed to join the waitlist. Please try again later.'),
-  },
   newsletter: {
     /**
-     * Subscribe to the newsletter (#938). The same input and answer as the waitlist.
+     * Subscribe to the newsletter (#938). The input and the answer keep the names of the waitlist, removed in #1574.
      */
     subscribe: (input: JoinWaitlistRequest): Promise<JoinWaitlistResponse> =>
       subscribeToList(NEWSLETTER_API_PATH, input, 'Failed to subscribe to the newsletter. Please try again later.'),

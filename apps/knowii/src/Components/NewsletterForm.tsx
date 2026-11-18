@@ -23,8 +23,8 @@ interface NewsletterFormProps {
 }
 
 /**
- * The newsletter form of the footer (#938): the waitlist pattern (Turnstile, honeypot, rate limit, double opt-in) on
- * another EmailOctopus list. The Turnstile widget loads only when the member starts to use the form, so pages do not
+ * The newsletter form of the footer (#938): an EmailOctopus list behind Turnstile, a honeypot, a rate limit and a double
+ * opt-in. The Turnstile widget loads only when the member starts to use the form, so pages do not
  * call Cloudflare for a form that nobody uses.
  */
 export default function NewsletterForm({ turnstileSiteKey, defaultEmail }: NewsletterFormProps) {

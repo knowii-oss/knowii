@@ -16,7 +16,7 @@ Knowii is a community platform: members of a community share posts, chat, pages,
     └──WSS───────▶ nginx ──▶ Reverb (Pusher protocol, WebSockets)            │
                  │   queue worker (php artisan queue:work)                    │
                  └────────────────────────────────────────────────────────────┘
- External services: Resend (email), EmailOctopus (waitlist), Cloudflare Turnstile (bot check),
+ External services: Resend (email), EmailOctopus (newsletter), Cloudflare Turnstile (bot check),
  Plausible-compatible analytics. Resources are captured by a queued job with a plain HTTP fetch (ADR 0018).
 ```
 
