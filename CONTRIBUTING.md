@@ -13,6 +13,24 @@ First, make sure to read the [general guidelines](https://github.com/knowii-oss/
 Take a look at the project's open [issues](https://github.com/DeveloPassion/knowii/issues).
 This contains tons of ideas to help us out.
 
+## Security
+
+This repository and its forks are public. A security problem that is written in public before its fix is merged helps an attacker.
+
+1. To report a vulnerability, read [`SECURITY.md`](SECURITY.md): use the "Security" tab ("Report a vulnerability") or the address that it gives. Never a public issue, pull request, discussion or comment.
+2. If you find a security problem while you work on something else, do not write it in that issue or pull request: report it in private, as above.
+3. The rules that every contributor follows (a person and a coding agent alike) are in the section "Security issues" of [`AGENTS.md`](AGENTS.md): what never goes in public, how a fix is described, secrets, checks that must not be weakened, where to test.
+
+What a pull request must respect (the template of a pull request asks for each point):
+
+1. A new route checks its policy, and an API route names its token ability (`documentation/architecture/roles-and-permissions.md`).
+2. New personal data has a retention period, a line in the member export and a line in the privacy policy (data rules 8 and 10 of `documentation/conventions/rules.md`).
+3. A new third-party service that receives personal data is in `config/legal.php` (data rule 9).
+4. No secret in a file, a test, a log or a commit: use obviously fake values in tests (`example.com` addresses, `test-` prefixes).
+5. Member content is rendered by the server (`App\Support\Markdown`, raw HTML escaped and unsafe links removed, ADR 0013) and shown with `MarkdownContent`: no other `dangerouslySetInnerHTML`. No inline script or style: the Content Security Policy refuses them.
+
+What runs on each pull request, and must stay green without a weaker setting: the dependency audits (`npm audit`, `composer audit`), the code scanning of JavaScript, TypeScript and the workflows (CodeQL), the security scan of the PHP code (`composer security:php`, ADR 0051), and the secret scanning with push protection. When a scan reports something in your pull request, do not discuss the details in the pull request: tell the maintainer in private.
+
 ## Development
 
 ### Pre-requisites
