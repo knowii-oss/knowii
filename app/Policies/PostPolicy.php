@@ -31,11 +31,21 @@ class PostPolicy
     }
 
     /**
-     * The author, or a moderator of the space.
+     * The author, or a moderator of the space. A marker is never deleted again this way, like a chat message (#1185):
+     * only with its comments (deleteWithComments).
      */
     final public function delete(User $user, Post $post): bool
     {
-        return $this->update($user, $post) || Gate::forUser($user)->check('moderate', $post->space);
+        return ! $post->isDeleted() && ($this->update($user, $post) || Gate::forUser($user)->check('moderate', $post->space));
+    }
+
+    /**
+     * Delete the post with its whole discussion, the comments of other people too (#1565, ADR 0050): a moderator of the
+     * space only, a marker included. The author alone leaves a marker for the comments of other people.
+     */
+    final public function deleteWithComments(User $user, Post $post): bool
+    {
+        return Gate::forUser($user)->check('moderate', $post->space);
     }
 
     /**

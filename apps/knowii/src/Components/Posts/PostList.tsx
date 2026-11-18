@@ -52,7 +52,12 @@ export function PostList({
     async (postCuid: string) => {
       const result = await knowiiApiClient.communities.posts.get(community.cuid, space.cuid, postCuid);
       if (result.ok) {
-        setPosts((current) => current.map((post) => (post.cuid === postCuid ? result.data : post)));
+        // A post that became a marker (#1565) leaves the list: a marker shows only on its own page
+        setPosts((current) =>
+          result.data.deleted_at === null
+            ? current.map((post) => (post.cuid === postCuid ? result.data : post))
+            : current.filter((post) => post.cuid !== postCuid),
+        );
       }
     },
     [community.cuid, space.cuid],

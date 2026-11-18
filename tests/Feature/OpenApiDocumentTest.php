@@ -155,3 +155,19 @@ test('the follows, the levels and "I am caught up" are documented (#1475)', func
     $update = $paths[$space]['patch']['requestBody']['content']['application/json']['schema']['properties'] ?? [];
     expect($update)->toHaveKey('default_notification_level');
 });
+
+test('the deletes of a comment and of a post document their option and both answers (#1565)', function () {
+    $paths = openApiDocument()['paths'];
+    $post = '/v1/communities/{community}/spaces/{space}/posts/{post}';
+
+    foreach ([
+        $post.'/comments/{comment}' => 'delete_replies',
+        '/v1/communities/{community}/spaces/{space}/resources/{resource}/comments/{comment}' => 'delete_replies',
+        $post => 'delete_comments',
+    ] as $path => $option) {
+        $operation = $paths[$path]['delete'] ?? [];
+        // Scramble lists the body fields of a DELETE as parameters, like the ones of DELETE /v1/user
+        expect(array_column($operation['parameters'] ?? [], 'name'))->toContain($option)
+            ->and(array_keys($operation['responses'] ?? []))->toContain(200)->toContain(204);
+    }
+});

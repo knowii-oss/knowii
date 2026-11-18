@@ -88,6 +88,8 @@ export interface PostPermissions {
   canModerate: boolean;
   canUpdatePost: boolean;
   canDeletePost: boolean;
+  // Delete the post with its whole discussion, a marker too (#1565): the moderators of the space
+  canDeletePostWithComments: boolean;
   canPinPost: boolean;
   canComment: boolean;
 }

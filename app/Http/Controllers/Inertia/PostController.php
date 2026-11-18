@@ -55,6 +55,8 @@ class PostController extends Controller
                 'canModerate' => Gate::check('moderate', $space),
                 'canUpdatePost' => Gate::check('update', $post),
                 'canDeletePost' => Gate::check('delete', $post),
+                // A moderator deletes the whole discussion, a marker too (#1565)
+                'canDeletePostWithComments' => Gate::check('deleteWithComments', $post),
                 'canPinPost' => Gate::check('pin', $post),
                 'canComment' => Gate::check('comment', $post),
             ],

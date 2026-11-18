@@ -6,14 +6,29 @@ meta {
 
 delete {
   url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a discussion space>/posts/<post cuid>
-  body: none
+  body: json
   auth: none
 }
 
 headers {
   Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "delete_comments": false
+  }
 }
 
 docs {
-  The author or a moderator deletes a post. Returns 204.
+  The author or a moderator deletes a post (#1565, ADR 0050). Token ability: `posts:write`.
+
+  A post that has comments of other people (a comment that is not a marker and that the person who deletes did not write; a comment of a deleted account counts) stays as a marker: no title, no text, no author, a slug that names nothing (`deleted-<cuid>`), not pinned, no reactions, mentions or notifications. Every comment stays. The answer is 200: the post page (at its new slug) shows "This post was deleted" with the discussion, and the lists skip it. Any other post goes with its comments: the answer is 204.
+
+  `delete_comments` (a boolean, optional, false by default): with true, the post and its whole discussion go, the comments of other people too (204). Only for the people who moderate the space: 403 for the others.
+
+  A marker cannot be deleted again without `delete_comments` (403).
+
+  Errors: 400 for a `delete_comments` that is not a boolean, 403 for a person who is not the author and does not moderate the space.
 }

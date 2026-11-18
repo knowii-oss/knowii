@@ -3,8 +3,9 @@ import { flushSync } from 'react-dom';
 import type { Comment, CommentSubject, SpaceContentPayload } from '@knowii/common';
 import { knowiiApiClient, useAppData, useSocket } from '@knowii/common';
 import { FaChevronDown, FaChevronRight, FaLink, FaPen, FaReply, FaTrash } from 'react-icons/fa6';
-import { Button, Dialog, ErrorBoundary, MarkdownContent, RelativeTime, useFocusAfterRender } from '@/Components/ui';
+import { Button, Checkbox, Dialog, ErrorBoundary, MarkdownContent, RelativeTime, useFocusAfterRender } from '@/Components/ui';
 import { CommentForm } from './CommentForm';
+import { commentBecomesMarker, commentDeletionLine, commentsAfterDeletion } from './delete-rules';
 import { ReactionBar } from '@/Components/Reactions/ReactionBar';
 import { SignInPrompt, useIsVisitor } from '@/Components/Reader/Reader';
 
@@ -19,6 +20,10 @@ export interface CommentSectionProps {
    * Called when the number of comments (top-level and replies) changes
    */
   onCountChange?: (count: number) => void;
+  /**
+   * Called when the comments change: the delete dialog of the post says what happens to them (#1565)
+   */
+  onCommentsChange?: (comments: Comment[]) => void;
 }
 
 const countAll = (comments: Comment[]) => comments.reduce((total, comment) => total + 1 + (comment.replies?.length ?? 0), 0);
@@ -40,6 +45,28 @@ const commentElement = (cuid: string) => document.getElementById(commentAnchor(c
 
 const openerButton = (cuid: string, opener: FormOpener) =>
   commentElement(cuid)?.querySelector<HTMLButtonElement>(`[data-opens="${opener}"]`);
+
+const COMMENTS_TITLE_ID = 'comments-title';
+
+/**
+ * A comment, or the button of its thread when the thread is collapsed
+ */
+const commentOrThread = (cuid: string) => commentElement(cuid) ?? document.querySelector<HTMLElement>(`[aria-controls="thread-${cuid}"]`);
+
+/**
+ * Where the focus goes after a delete (#1565): the marker that stays, else the next comment of the same list, the one
+ * before it, the comment that the reply answered, or the title of the comments. Found after the render.
+ */
+function focusAfterDeletion(before: Comment[], target: Comment, marker: boolean): () => HTMLElement | null {
+  if (marker) {
+    return () => commentElement(target.cuid);
+  }
+  const parent = target.parent_cuid === null ? null : before.find((comment) => comment.cuid === target.parent_cuid);
+  const siblings = parent ? (parent.replies ?? []) : before;
+  const index = siblings.findIndex((comment) => comment.cuid === target.cuid);
+  const neighbour = siblings[index + 1] ?? siblings[index - 1] ?? parent ?? null;
+  return () => (neighbour ? commentOrThread(neighbour.cuid) : null) ?? document.getElementById(COMMENTS_TITLE_ID);
+}
 
 /**
  * A saved comment in the list, once: the live update may have brought it before the response of the API (#1624)
@@ -100,10 +127,10 @@ function showComment(cuid: string) {
 
 /**
  * Comments of a post or a resource, oldest first, with one level of replies. Authors edit their comments; authors and moderators
- * delete them (a deleted comment takes its replies with it).
+ * delete them. A comment with replies of other people stays as a marker; a moderator can delete the replies too (#1565).
  */
 export function CommentSection(props: CommentSectionProps) {
-  const { subject, currentUserCuid, canComment, canModerate, onCountChange } = props;
+  const { subject, currentUserCuid, canComment, canModerate, onCountChange, onCommentsChange } = props;
   const { showToast } = useAppData();
   const isVisitor = useIsVisitor();
   const [comments, setComments] = useState<Comment[]>(props.initialComments);
@@ -112,13 +139,20 @@ export function CommentSection(props: CommentSectionProps) {
   const replyOpener = useRef<string | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [pendingDeletion, setPendingDeletion] = useState<Comment | null>(null);
+  // The comment of the delete dialog, kept while the dialog fades out
+  const [deletionTarget, setDeletionTarget] = useState<Comment | null>(null);
+  // "Also delete the replies (N)": moderators only (#1565)
+  const [deleteReplies, setDeleteReplies] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  // The element that gets the focus once the delete dialog is closed (#1565)
+  const focusAfterClose = useRef<(() => HTMLElement | null) | null>(null);
 
   const focusAfterRender = useFocusAfterRender();
 
   const update = (next: Comment[]) => {
     setComments(next);
     onCountChange?.(countAll(next));
+    onCommentsChange?.(next);
   };
 
   // Live updates (#1180): a comment of this subject changed, or the reactions of one: load the comments again. The
@@ -210,8 +244,7 @@ export function CommentSection(props: CommentSectionProps) {
       }
       void knowiiApiClient.communities.comments.list(subject).then((result) => {
         if (result.ok) {
-          setComments(result.data);
-          onCountChange?.(countAll(result.data));
+          update(result.data);
         }
       });
     },
@@ -271,30 +304,53 @@ export function CommentSection(props: CommentSectionProps) {
     focusAfterRender(() => openerButton(target.cuid, 'edit'));
   };
 
+  const askDeletion = (comment: Comment) => {
+    setDeleteReplies(false);
+    setDeletionTarget(comment);
+    setPendingDeletion(comment);
+  };
+
+  // A marker goes only with its replies: only a moderator sees its "Delete" (#1565)
+  const deletesReplies = (target: Comment) => target.deleted_at !== null || (canModerate && deleteReplies);
+
   const confirmDeletion = async () => {
-    if (!pendingDeletion) {
+    const target = pendingDeletion;
+    if (!target || deleting) {
       return;
     }
+    const withReplies = deletesReplies(target);
     setDeleting(true);
-    const result = await knowiiApiClient.communities.comments.delete(subject, pendingDeletion.cuid);
+    const result = await knowiiApiClient.communities.comments.delete(subject, target.cuid, withReplies ? { delete_replies: true } : {});
     setDeleting(false);
     if (!result.ok) {
       showToast({ severity: 'error', summary: result.message });
       return;
     }
-    update(
-      comments
-        .filter((comment) => comment.cuid !== pendingDeletion.cuid)
-        .map((comment) => ({ ...comment, replies: comment.replies?.filter((reply) => reply.cuid !== pendingDeletion.cuid) })),
-    );
+    // The comments of now: a live update may have changed them during the request
+    const before = latest.current.comments;
+    const marker = commentBecomesMarker(target, currentUserCuid, withReplies);
+    update(commentsAfterDeletion(before, target, currentUserCuid, withReplies));
+    // The dialog gives the focus back once it is closed: the "Delete" button is gone, the marker or a neighbour gets it
+    focusAfterClose.current = focusAfterDeletion(before, target, marker);
     setPendingDeletion(null);
     showToast({ severity: 'success', summary: 'Comment deleted' });
+  };
+
+  const afterDeletionDialog = () => {
+    const find = focusAfterClose.current;
+    focusAfterClose.current = null;
+    setDeletionTarget(null);
+    setDeleteReplies(false);
+    if (find) {
+      // After the unmount of the dialog: Headless UI then gives the focus to the last element it knew, in a microtask
+      window.setTimeout(() => focusAfterRender(find), 0);
+    }
   };
 
   const renderComment = (comment: Comment, topLevel: Comment) => {
     const isAuthor = currentUserCuid !== null && comment.author?.cuid === currentUserCuid;
     const authorName = comment.author ? comment.author.name : 'Deleted member';
-    // The marker of a comment that its author deleted with their account, while it still had replies (#1344)
+    // The marker of a deleted comment that still has replies of other people (#1344, #1565)
     const isMarker = comment.deleted_at !== null;
     return (
       <article
@@ -367,7 +423,7 @@ export function CommentSection(props: CommentSectionProps) {
                 size="sm"
                 variant="ghost"
                 aria-label={isMarker ? 'Delete the deleted comment' : `Delete the comment by ${authorName}`}
-                onClick={() => setPendingDeletion(comment)}
+                onClick={() => askDeletion(comment)}
               >
                 <FaTrash aria-hidden="true" />
                 Delete
@@ -382,9 +438,14 @@ export function CommentSection(props: CommentSectionProps) {
   const total = countAll(comments);
 
   return (
-    <section aria-labelledby="comments-title" className="flex flex-col gap-4 border-t border-border pt-6">
+    <section aria-labelledby={COMMENTS_TITLE_ID} className="flex flex-col gap-4 border-t border-border pt-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 id="comments-title" className="text-lg font-extrabold">
+        {/* The focus goes here after the delete of the last comment (#1565) */}
+        <h2
+          id={COMMENTS_TITLE_ID}
+          tabIndex={-1}
+          className="rounded-sm text-lg font-extrabold outline-none focus:outline-2 focus:outline-offset-2 focus:outline-solid focus:outline-primary"
+        >
           {total === 0 ? 'Comments' : total === 1 ? '1 comment' : `${total} comments`}
         </h2>
         {comments.length > 0 && (
@@ -491,13 +552,15 @@ export function CommentSection(props: CommentSectionProps) {
       <Dialog
         open={pendingDeletion !== null}
         onClose={() => setPendingDeletion(null)}
+        onAfterClose={afterDeletionDialog}
         size="sm"
         title="Delete this comment?"
-        description={
-          pendingDeletion?.parent_cuid === null && (pendingDeletion.replies?.length ?? 0) > 0
-            ? 'Its replies are deleted too. This cannot be undone.'
-            : 'This cannot be undone.'
-        }
+        description={[
+          deletionTarget ? commentDeletionLine(deletionTarget, currentUserCuid, deletesReplies(deletionTarget)) : null,
+          'This cannot be undone.',
+        ]
+          .filter((line) => line !== null)
+          .join(' ')}
         footer={
           <>
             <Button variant="secondary" onClick={() => setPendingDeletion(null)} autoFocus>
@@ -508,7 +571,23 @@ export function CommentSection(props: CommentSectionProps) {
             </Button>
           </>
         }
-      />
+      >
+        {/* A moderator chooses to delete the replies of other people too (#1565). A marker always goes with them. */}
+        {canModerate && deletionTarget && deletionTarget.deleted_at === null && (deletionTarget.replies?.length ?? 0) > 0 ? (
+          <label className="flex cursor-pointer items-start gap-3 text-sm">
+            <Checkbox
+              checked={deleteReplies}
+              onChange={(event) => {
+                // Busy: the choice stays as it was sent
+                if (!deleting) {
+                  setDeleteReplies(event.target.checked);
+                }
+              }}
+            />
+            <span className="pt-0.5">Also delete the replies ({deletionTarget.replies?.length ?? 0})</span>
+          </label>
+        ) : null}
+      </Dialog>
     </section>
   );
 }

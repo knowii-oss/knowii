@@ -76,9 +76,10 @@ test('only the author edits a comment', function () {
     expect($updated->body_html)->toContain('<em>Edited</em>')->and($updated->edited_at)->not->toBeNull();
 });
 
-test('the author or a moderator deletes a comment, its replies go with it and the count stays right', function () {
+test('the author or a moderator deletes a comment, its own replies go with it and the count stays right', function () {
+    // The replies of other people would keep a marker (#1565): DeleteKeepsRepliesTest
     $top = Comment::factory()->onPost($this->post)->create(['author_id' => $this->c['member']->id]);
-    Comment::factory()->replyTo($top)->count(2)->create();
+    Comment::factory()->replyTo($top)->count(2)->create(['author_id' => $this->c['member']->id]);
     $other = Comment::factory()->onPost($this->post)->create();
 
     expect(fn () => app(DeletesComments::class)->delete($this->c['outsider'], $top))->toThrow(AuthorizationException::class);

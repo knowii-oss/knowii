@@ -66,14 +66,18 @@ class CommunityResourceCommentApiController extends Controller
     }
 
     /**
-     * Delete a comment and its replies (author or moderator).
+     * Delete a comment (author or moderator, #1565). A comment that has replies of other people stays as a marker, with
+     * every reply: the answer is 200, and the list shows "This comment was deleted." in its place. Any other comment goes
+     * with its replies: the answer is 204. `delete_replies` (moderators only, 403 for the others) deletes the comment and
+     * every reply under it, a marker too. A marker cannot be deleted again without it (403).
      *
      * @throws AuthenticationException
      */
-    final public function destroy(Request $request, Community $community, Space $space, CommunityResource $resource, Comment $comment): Response
+    #[BodyParameter('delete_replies', description: 'Also delete every reply, the replies of other people too (moderators of the space only). Without it, a comment that has replies of other people stays as a marker', required: false, type: 'bool', example: false)]
+    final public function destroy(Request $request, Community $community, Space $space, CommunityResource $resource, Comment $comment): JsonResponse|Response
     {
-        app(DeletesComments::class)->delete($request->user() ?? throw new AuthenticationException, $comment);
+        $marker = app(DeletesComments::class)->delete($request->user() ?? throw new AuthenticationException, $comment, $request->only(['delete_replies']));
 
-        return self::deleted();
+        return $marker === null ? self::deleted() : self::success('Comment deleted, its replies stay');
     }
 }

@@ -63,4 +63,13 @@ describe('DeleteUserForm (#1344)', () => {
 
     expect(send).toHaveBeenLastCalledWith('/current-user.destroy', { password: 'secret', delete_content: true }, expect.anything());
   });
+
+  it('says under the box what stays, and links the line to the box (#1603)', async () => {
+    await openDialog();
+
+    const box = screen.getByRole('checkbox', { name: 'Also delete my posts, comments and messages' });
+    expect(box).toHaveAccessibleDescription(
+      'Your resources, pages and lessons stay, under the name "Deleted member". A post or a comment that has replies stays as an empty marker.',
+    );
+  });
 });

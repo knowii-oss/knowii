@@ -6,14 +6,29 @@ meta {
 
 delete {
   url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a discussion space>/posts/<post cuid>/comments/<comment cuid>
-  body: none
+  body: json
   auth: none
 }
 
 headers {
   Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "delete_replies": false
+  }
 }
 
 docs {
-  The author or a moderator deletes a comment and its replies. Returns 204.
+  The author or a moderator deletes a comment (#1565, ADR 0050). Token ability: `posts:write`.
+
+  A comment that has replies of other people (a reply that is not a marker and that the person who deletes did not write; a reply of a deleted account counts) stays as a marker: no text, no author, no reactions, mentions or notifications. Every reply stays. The answer is 200, and the list of comments shows "This comment was deleted." in its place. Any other comment goes with its replies: the answer is 204.
+
+  `delete_replies` (a boolean, optional, false by default): with true, the comment and every reply under it go, the replies of other people too (204). Only for the people who moderate the space: 403 for the others. Remove the body, or send false, for the ordinary delete.
+
+  A marker cannot be deleted again without `delete_replies` (403). A marker stays when its last reply goes, like a deleted chat message.
+
+  Errors: 400 for a `delete_replies` that is not a boolean, 403 for a person who is not the author and does not moderate the space, 404 for a comment of another post.
 }

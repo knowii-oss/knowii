@@ -1,7 +1,16 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { router } from '@inertiajs/react';
 import type { Comment, Community, Post, PostPermissions, Space, SpaceGroup, SpaceContentPayload } from '@knowii/common';
-import { COMMUNITY_URL, knowiiApiClient, SPACE_TYPE_LABELS, SPACE_URL, useAppData, useSocket, useTypedPage } from '@knowii/common';
+import {
+  COMMUNITY_URL,
+  POST_URL,
+  knowiiApiClient,
+  SPACE_TYPE_LABELS,
+  SPACE_URL,
+  useAppData,
+  useSocket,
+  useTypedPage,
+} from '@knowii/common';
 import { FaPen, FaThumbtack, FaTrash } from 'react-icons/fa6';
 import AppLayout from '@/Layouts/AppLayout';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
@@ -9,10 +18,11 @@ import CommunityIcon from '@/Components/Communities/CommunityIcon';
 import { CommunityShell } from '@/Components/Spaces/CommunityShell';
 import { PostComposer } from '@/Components/Posts/PostComposer';
 import { CommentSection } from '@/Components/Comments/CommentSection';
+import { countAllComments, postBecomesMarker, postDeletionLine } from '@/Components/Comments/delete-rules';
 import { ReactionBar } from '@/Components/Reactions/ReactionBar';
 import { ThreadFollowControl } from '@/Components/Notifications/ThreadFollowControl';
 import type { BreadcrumbItem } from '@/Components/ui';
-import { Button, Dialog, ErrorBoundary, MarkdownContent, RelativeTime } from '@/Components/ui';
+import { Button, Checkbox, cn, Dialog, ErrorBoundary, MarkdownContent, RelativeTime, useFocusAfterRender } from '@/Components/ui';
 
 interface Props {
   // WARNING: aligned with PostController.php
@@ -31,12 +41,44 @@ export default function PostPage(props: Props) {
   const [post, setPost] = useState<Post>(props.post);
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  // "Also delete the comments (N)": the moderators of the space (#1565)
+  const [deleteComments, setDeleteComments] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [busy, setBusy] = useState(false);
-  // The marker of a post that its author deleted with their account, while it still had comments (#1344)
+  // The comments of the page, for the delete dialog (#1565)
+  const [comments, setComments] = useState<Comment[]>(props.comments);
+  // After a delete that leaves a marker, the focus goes to its title once the dialog is closed (#1565)
+  const focusTitleAfterClose = useRef(false);
+  const focusAfterRender = useFocusAfterRender();
+  const currentUserCuid = page.props.auth.user?.cuid ?? null;
+  // The marker of a deleted post that still has comments of other people (#1344, #1565)
   const isMarker = post.deleted_at !== null;
   const postTitle = isMarker ? 'This post was deleted' : post.title;
+  // Nobody edits, pins or comments a marker; only a moderator deletes it, with its comments. The same rules as the
+  // policies, so that the page is right without a reload after a delete
+  const permissions: PostPermissions = isMarker
+    ? { ...props.permissions, canUpdatePost: false, canDeletePost: false, canPinPost: false, canComment: false }
+    : props.permissions;
+  const canDelete = permissions.canDeletePost || (isMarker && permissions.canDeletePostWithComments);
+  const deletesComments = isMarker || (permissions.canDeletePostWithComments && deleteComments);
+  const commentCount = countAllComments(comments);
 
   const spaceHref = route(SPACE_URL, { communitySlug: community.slug, spaceSlug: space.slug });
+
+  /**
+   * Shows the post as it is now. A marker has a new slug (#1565): the address follows, so that a reload finds it
+   */
+  const showPost = (next: Post) => {
+    setPost(next);
+    if (next.slug !== post.slug) {
+      router.replace({
+        url: route(POST_URL, { communitySlug: community.slug, spaceSlug: space.slug, postSlug: next.slug }),
+        props: (current) => ({ ...current, post: next }),
+        preserveState: true,
+        preserveScroll: true,
+      });
+    }
+  };
 
   // Live updates (#1180): the post changed elsewhere. Not while the member edits it: their save wins.
   const channel = useMemo(
@@ -65,7 +107,8 @@ export default function PostPage(props: Props) {
       }
       void knowiiApiClient.communities.posts.get(community.cuid, space.cuid, post.cuid).then((result) => {
         if (result.ok) {
-          setPost(result.data);
+          // Edited, pinned, or now a marker
+          showPost(result.data);
         }
       });
     },
@@ -93,15 +136,51 @@ export default function PostPage(props: Props) {
     }
   };
 
+  const askDeletion = () => {
+    setDeleteComments(false);
+    setConfirmDelete(true);
+  };
+
   const deletePost = async () => {
-    setBusy(true);
-    const result = await knowiiApiClient.communities.posts.delete(community.cuid, space.cuid, post.cuid);
-    setBusy(false);
-    if (result.ok) {
-      showToast({ severity: 'success', summary: 'Post deleted' });
-      router.visit(spaceHref);
-    } else {
+    if (deleting) {
+      return;
+    }
+    const withComments = deletesComments;
+    setDeleting(true);
+    const result = await knowiiApiClient.communities.posts.delete(
+      community.cuid,
+      space.cuid,
+      post.cuid,
+      withComments ? { delete_comments: true } : {},
+    );
+    if (!result.ok) {
+      setDeleting(false);
       showToast({ severity: 'error', summary: result.message });
+      return;
+    }
+    // A marker stays for the comments of other people (#1565): the person stays here and sees it with the discussion
+    if (postBecomesMarker(post, comments, currentUserCuid, withComments)) {
+      const marker = await knowiiApiClient.communities.posts.get(community.cuid, space.cuid, post.cuid);
+      setDeleting(false);
+      if (marker.ok && marker.data.deleted_at !== null) {
+        showPost(marker.data);
+        focusTitleAfterClose.current = true;
+        setConfirmDelete(false);
+        showToast({ severity: 'success', summary: 'Post deleted' });
+        return;
+      }
+    }
+    setDeleting(false);
+    showToast({ severity: 'success', summary: 'Post deleted' });
+    router.visit(spaceHref);
+  };
+
+  const afterDeletionDialog = () => {
+    setDeleteComments(false);
+    if (focusTitleAfterClose.current) {
+      focusTitleAfterClose.current = false;
+      // After the unmount of the dialog: Headless UI then gives the focus to the last element it knew, in a microtask
+      window.setTimeout(() => focusAfterRender(() => document.getElementById('post-title')), 0);
     }
   };
 
@@ -116,7 +195,15 @@ export default function PostPage(props: Props) {
                 Pinned
               </p>
             )}
-            <h1 id="post-title" className={isMarker ? 'text-2xl font-extrabold text-muted italic' : 'text-2xl font-extrabold'}>
+            {/* The focus goes to the title of the marker after the delete (#1565) */}
+            <h1
+              id="post-title"
+              tabIndex={-1}
+              className={cn(
+                'rounded-sm text-2xl font-extrabold outline-none focus:outline-2 focus:outline-offset-2 focus:outline-solid focus:outline-primary',
+                isMarker && 'text-muted italic',
+              )}
+            >
               {postTitle}
             </h1>
             {!isMarker && (
@@ -134,22 +221,22 @@ export default function PostPage(props: Props) {
             {!isMarker && community.is_member === true && (
               <ThreadFollowControl communityCuid={community.cuid} spaceCuid={space.cuid} kind="post" cuid={post.cuid} />
             )}
-            {(props.permissions.canUpdatePost || props.permissions.canDeletePost || props.permissions.canPinPost) && (
+            {(permissions.canUpdatePost || canDelete || permissions.canPinPost) && (
               <div className="flex flex-wrap gap-2">
-                {props.permissions.canUpdatePost && (
+                {permissions.canUpdatePost && (
                   <Button size="sm" variant="secondary" onClick={() => setEditing(true)}>
                     <FaPen aria-hidden="true" />
                     Edit
                   </Button>
                 )}
-                {props.permissions.canPinPost && (
+                {permissions.canPinPost && (
                   <Button size="sm" variant="secondary" onClick={togglePin} loading={busy} aria-pressed={post.is_pinned}>
                     <FaThumbtack aria-hidden="true" />
                     {post.is_pinned ? 'Unpin' : 'Pin'}
                   </Button>
                 )}
-                {props.permissions.canDeletePost && (
-                  <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(true)}>
+                {canDelete && (
+                  <Button size="sm" variant="ghost" onClick={askDeletion}>
                     <FaTrash aria-hidden="true" />
                     Delete
                   </Button>
@@ -164,7 +251,7 @@ export default function PostPage(props: Props) {
               <ReactionBar
                 target={{ communityCuid: community.cuid, spaceCuid: space.cuid, postCuid: post.cuid }}
                 initialReactions={post.reactions}
-                canReact={props.permissions.canComment}
+                canReact={permissions.canComment}
                 itemLabel="this post"
               />
             </ErrorBoundary>
@@ -174,9 +261,10 @@ export default function PostPage(props: Props) {
         <CommentSection
           subject={{ communityCuid: community.cuid, spaceCuid: space.cuid, postCuid: post.cuid }}
           initialComments={props.comments}
-          currentUserCuid={page.props.auth.user?.cuid ?? null}
-          canComment={props.permissions.canComment}
-          canModerate={props.permissions.canModerate}
+          currentUserCuid={currentUserCuid}
+          canComment={permissions.canComment}
+          canModerate={permissions.canModerate}
+          onCommentsChange={setComments}
         />
       </CommunityShell>
 
@@ -193,20 +281,39 @@ export default function PostPage(props: Props) {
       <Dialog
         open={confirmDelete}
         onClose={() => setConfirmDelete(false)}
+        onAfterClose={afterDeletionDialog}
         size="sm"
         title="Delete this post?"
-        description="The post and its comments are deleted. This cannot be undone."
+        description={[postDeletionLine(post, comments, currentUserCuid, deletesComments), 'This cannot be undone.']
+          .filter((line) => line !== null)
+          .join(' ')}
         footer={
           <>
             <Button variant="secondary" onClick={() => setConfirmDelete(false)} autoFocus>
               Cancel
             </Button>
-            <Button variant="danger" onClick={deletePost} loading={busy}>
+            <Button variant="danger" onClick={deletePost} loading={deleting}>
               Delete
             </Button>
           </>
         }
-      />
+      >
+        {/* A moderator chooses to delete the comments of other people too (#1565). A marker always goes with them. */}
+        {!isMarker && permissions.canDeletePostWithComments && commentCount > 0 ? (
+          <label className="flex cursor-pointer items-start gap-3 text-sm">
+            <Checkbox
+              checked={deleteComments}
+              onChange={(event) => {
+                // Busy: the choice stays as it was sent
+                if (!deleting) {
+                  setDeleteComments(event.target.checked);
+                }
+              }}
+            />
+            <span className="pt-0.5">Also delete the comments ({commentCount})</span>
+          </label>
+        ) : null}
+      </Dialog>
     </AppLayout>
   );
 }
