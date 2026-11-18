@@ -72,10 +72,10 @@ final class OpenIdConnectClient implements ReadsOpenIdConnectIdentities
     /**
      * @throws OpenIdConnectException
      */
-    final public function authorizationUrl(string $state, string $nonce, string $codeChallenge): string
+    final public function authorizationUrl(string $state, string $nonce, string $codeChallenge, bool $freshSignIn = false): string
     {
         $endpoint = $this->discovery()['authorization_endpoint'];
-        $query = http_build_query([
+        $parameters = [
             'response_type' => 'code',
             'client_id' => $this->clientId(),
             'redirect_uri' => OpenIdConnect::redirectUri(),
@@ -84,7 +84,14 @@ final class OpenIdConnectClient implements ReadsOpenIdConnectIdentities
             'nonce' => $nonce,
             'code_challenge' => $codeChallenge,
             'code_challenge_method' => 'S256',
-        ], '', '&', PHP_QUERY_RFC3986);
+        ];
+        if ($freshSignIn) {
+            // The proof of a deletion (#1521, ADR 0052): the provider must ask the person to sign in again, even when they
+            // are signed in there. The browser can remove these, and a provider can ignore them: auth_time is the proof
+            $parameters['max_age'] = '0';
+            $parameters['prompt'] = 'login';
+        }
+        $query = http_build_query($parameters, '', '&', PHP_QUERY_RFC3986);
 
         return $endpoint.(str_contains($endpoint, '?') ? '&' : '?').$query;
     }
@@ -104,6 +111,7 @@ final class OpenIdConnectClient implements ReadsOpenIdConnectIdentities
         }
         $email = $claims['email'] ?? null;
         $name = $claims['name'] ?? null;
+        $authTime = $claims['auth_time'] ?? null;
 
         return new OpenIdIdentity(
             issuer: $this->issuer(),
@@ -112,6 +120,8 @@ final class OpenIdConnectClient implements ReadsOpenIdConnectIdentities
             // Exactly the boolean true: the string "true", 1 and a missing claim are not a verified address
             emailVerified: ($claims['email_verified'] ?? null) === true,
             name: is_string($name) && trim($name) !== '' ? $name : null,
+            // Exactly an integer: a text or a decimal number is not a time of sign-in (#1521)
+            authTime: is_int($authTime) ? $authTime : null,
         );
     }
 

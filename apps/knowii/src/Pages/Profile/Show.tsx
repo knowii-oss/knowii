@@ -1,5 +1,5 @@
 import AppLayout from '@/Layouts/AppLayout';
-import type { AccountEntitlements, ConnectedAccount, Session } from '@knowii/common';
+import type { AccountDeletionState, AccountEntitlements, ConnectedAccount, Session } from '@knowii/common';
 import { useTypedPage } from '@knowii/common';
 import UpdateProfileInformationForm from '@/Pages/Profile/Partials/UpdateProfileInformationForm';
 import UpdateAvatarForm from '@/Pages/Profile/Partials/UpdateAvatarForm';
@@ -23,6 +23,8 @@ interface Props {
   hasPassword?: boolean;
   // Only when the instance reads entitlements and the member connected the provider account (#1386)
   entitlements?: AccountEntitlements;
+  // Which proof the deletion of the account needs, and the result of a new sign-in (#1521)
+  accountDeletion?: AccountDeletionState;
 }
 
 export default function UserProfile(props: Props) {
@@ -78,7 +80,7 @@ export default function UserProfile(props: Props) {
       <LogoutOtherBrowserSessionsForm sessions={props.sessions} />
       <Separator />
 
-      {page.props.jetstream.hasAccountDeletionFeatures && <DeleteUserForm />}
+      {page.props.jetstream.hasAccountDeletionFeatures && <DeleteUserForm deletion={props.accountDeletion} />}
     </AppLayout>
   );
 }

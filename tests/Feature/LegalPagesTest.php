@@ -335,7 +335,7 @@ test('the privacy policy says that a member can delete their content with the ac
 
 test('the privacy policy names the identifier of the provider account and the date it was connected (#1385)', function () {
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
-        ->where('html', fn (string $html) => str_contains($html, 'and, when you sign in with a Knowii account, the identifier of that account and the date you connected it;')));
+        ->where('html', fn (string $html) => str_contains($html, 'and, when you sign in with a Knowii account, the identifier of that account and the date you connected it,')));
 });
 
 test('the privacy policy says what Knowii keeps when a manager removes a member, and when it goes away (#1501, approved 2026-11-15)', function () {
@@ -370,4 +370,10 @@ test('the privacy policy says that the waitlist takes no new address, and how lo
             && str_contains($html, 'Waitlist: it takes no new address. The addresses given before are deleted after the launch invitation, at most 12 months after you joined it.')
             && ! str_contains($html, 'waitlist forms'))
     );
+});
+
+test('the privacy policy names the time of a new sign-in that confirms a deletion (#1521)', function () {
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('updated', '2026-11-18')
+        ->where('html', fn (string $html) => str_contains($html, 'the identifier of that account and the date you connected it, and the time of a new sign-in with it when you confirm the deletion of an account that has no password;')));
 });

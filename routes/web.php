@@ -103,8 +103,9 @@ Route::middleware('guest')->group(function () {
     Route::post('/login/link/{token}', [MagicLinkController::class, 'consume'])->middleware('throttle:magic-link')->name('login.link.consume');
 });
 
-// Sign in with an OpenID Connect provider, or connect it to the account of a signed-in member (#1385, ADR 0045). Both
-// routes answer 404 unless the instance configures a provider. No guest middleware: a member connects an account here
+// Sign in with an OpenID Connect provider, or connect it to the account of a signed-in member (#1385, ADR 0045), or confirm
+// the deletion of an account without a password (#1521, ADR 0052). The routes answer 404 unless the instance configures a
+// provider. No guest middleware: a member connects an account here
 Route::middleware('throttle:oidc')->prefix('auth/oidc')->group(function () {
     Route::get('/redirect', [OpenIdConnectController::class, 'redirect'])->name('oidc.redirect');
     Route::get('/callback', [OpenIdConnectController::class, 'callback'])->name('oidc.callback');
@@ -112,6 +113,11 @@ Route::middleware('throttle:oidc')->prefix('auth/oidc')->group(function () {
     Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])
         ->post('/connect', [OpenIdConnectController::class, 'connect'])
         ->name('oidc.connect');
+    // A signed-in member without a password proves with a new sign-in that they want to delete the account (#1521, ADR 0052):
+    // a POST with the CSRF token, never a link. The callback above records the proof; it never deletes anything
+    Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])
+        ->post('/confirm-deletion', [OpenIdConnectController::class, 'confirmDeletion'])
+        ->name('oidc.confirm-deletion');
 });
 
 // The change call of the sign-in provider (#1386, ADR 0047). Public: no session, no cookie, no CSRF token and no token ability,

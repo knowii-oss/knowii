@@ -6,8 +6,11 @@ use App\Actions\Users\UpdateAvatar;
 use App\Contracts\Communities\DeletesCommunities;
 use App\Contracts\Users\DeletesAccounts;
 use App\Contracts\Users\DeletesMemberContent;
+use App\Enums\KnowiiAccountDeletionProof;
+use App\Exceptions\BusinessException;
 use App\Models\CommunityInvitation;
 use App\Models\User;
+use App\Support\AccountDeletion;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -25,6 +28,9 @@ use Laravel\Jetstream\Contracts\DeletesUsers;
  *
  * With the option `delete_content`, the member also deletes their posts, comments and messages in every community
  * (#1344, ADR 0043, which changes the first point above). Resources, pages and lessons stay in any case.
+ *
+ * An account without a password is deleted with deleteAfterSignIn(), which uses the proof of a new sign-in at the
+ * provider (#1521, ADR 0052).
  */
 class DeleteUser implements DeletesAccounts, DeletesUsers
 {
@@ -43,39 +49,92 @@ class DeleteUser implements DeletesAccounts, DeletesUsers
      */
     final public function delete(User $user, array $input = []): void
     {
-        /** @var array{delete_content?: bool} $validated */
-        $validated = Validator::make($input, ['delete_content' => ['sometimes', 'boolean']])->validate();
-        $deleteContent = $validated['delete_content'] ?? false;
+        $deleteContent = self::deleteContentOf($input);
 
         // Only the cuid: the logs must not keep the personal data of a deleted account
         $cuid = $user->cuid;
-        $email = $user->email;
         Log::info('Deleting user', ['user' => $cuid]);
 
-        DB::transaction(function () use ($user, $email, $deleteContent) {
-            // Remove the user's communities and associated elements
-            $this->deleteCommunities($user);
+        DB::transaction(fn () => $this->remove($user, $deleteContent));
 
-            // What is left of the content of the member, in the communities of others (#1344, ADR 0043)
-            if ($deleteContent) {
-                $this->deletesMemberContent->delete($user);
+        $this->afterRemoval($cuid);
+    }
+
+    /**
+     * Delete an account without a password with the proof of a new sign-in (#1521, ADR 0052). The row of the account is
+     * locked, the proof is checked again and cleared, and the account is deleted, in one transaction: two requests at
+     * the same time cannot both use it. The caller checked the two-factor code first.
+     *
+     * @param  array<mixed>  $input
+     *
+     * @throws BusinessException When the account has a password, or has no valid proof
+     */
+    final public function deleteAfterSignIn(User $user, array $input = []): void
+    {
+        $deleteContent = self::deleteContentOf($input);
+        $cuid = $user->cuid;
+
+        DB::transaction(function () use ($user, $cuid, $deleteContent) {
+            $locked = User::query()->whereKey($user->getKey())->lockForUpdate()->first();
+            if ($locked === null || AccountDeletion::proofOf($locked) !== KnowiiAccountDeletionProof::SignIn || AccountDeletion::confirmedUntil($locked) === null) {
+                Log::warning('Account deletion refused', ['reason' => 'no_valid_proof', 'user' => $cuid]);
+                throw new BusinessException(AccountDeletion::signInNeededMessage(), 0, null, ['sign_in' => [AccountDeletion::signInNeededMessage()]], ['sign_in_url' => AccountDeletion::pageUrl()]);
             }
 
-            // The profile holds the email, the name and every field of the member
-            $user->profile()->delete();
-
-            CommunityInvitation::query()->where('email', $email)->delete();
-            DB::table('password_reset_tokens')->where('email', $email)->delete();
-            DB::table('sessions')->where('user_id', $user->id)->delete();
-
-            // Remove tokens
-            $user->tokens()->delete();
-
-            // Remove the user account
-            $user->delete();
+            // Single use: the proof goes in the same transaction as the account
+            $locked->forceFill(['deletion_signed_in_at' => null])->save();
+            Log::info('Deleting user', ['user' => $cuid]);
+            $this->remove($locked, $deleteContent);
         });
 
-        // Files are not part of the transaction: they go once the account is gone
+        $this->afterRemoval($cuid);
+    }
+
+    /**
+     * @param  array<mixed>  $input
+     */
+    private static function deleteContentOf(array $input): bool
+    {
+        /** @var array{delete_content?: bool} $validated */
+        $validated = Validator::make($input, ['delete_content' => ['sometimes', 'boolean']])->validate();
+
+        return $validated['delete_content'] ?? false;
+    }
+
+    /**
+     * Everything that goes with the account, in the transaction of the caller
+     */
+    private function remove(User $user, bool $deleteContent): void
+    {
+        $email = $user->email;
+
+        // Remove the user's communities and associated elements
+        $this->deleteCommunities($user);
+
+        // What is left of the content of the member, in the communities of others (#1344, ADR 0043)
+        if ($deleteContent) {
+            $this->deletesMemberContent->delete($user);
+        }
+
+        // The profile holds the email, the name and every field of the member
+        $user->profile()->delete();
+
+        CommunityInvitation::query()->where('email', $email)->delete();
+        DB::table('password_reset_tokens')->where('email', $email)->delete();
+        DB::table('sessions')->where('user_id', $user->id)->delete();
+
+        // Remove tokens
+        $user->tokens()->delete();
+
+        // Remove the user account
+        $user->delete();
+    }
+
+    /**
+     * Files are not part of the transaction: they go once the account is gone
+     */
+    private function afterRemoval(string $cuid): void
+    {
         Storage::disk(UpdateAvatar::disk())->deleteDirectory('avatars/'.$cuid);
 
         Log::info('User deleted', ['user' => $cuid]);

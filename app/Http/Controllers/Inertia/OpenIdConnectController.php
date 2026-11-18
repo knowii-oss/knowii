@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\Inertia;
 
+use App\Contracts\Auth\ConfirmsAccountDeletions;
 use App\Contracts\Auth\ReadsOpenIdConnectIdentities;
 use App\Contracts\Auth\SignsInWithOpenIdConnect;
+use App\Enums\KnowiiAccountDeletionProof;
 use App\Exceptions\OpenIdConnectException;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\AccountDeletion;
 use App\Support\EntitlementReads;
 use App\Support\OpenIdConnect;
 use Illuminate\Http\RedirectResponse;
@@ -18,16 +21,37 @@ use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Sign in with an OpenID Connect provider, or connect it to the account of a signed-in member (#1385, ADR 0045).
- * Without the configuration, both routes answer 404.
+ * Sign in with an OpenID Connect provider, or connect it to the account of a signed-in member (#1385, ADR 0045), or
+ * prove with a new sign-in that a member without a password wants to delete the account (#1521, ADR 0052). Without the
+ * configuration, every route answers 404.
  *
- * The flow data (`state`, `nonce`, the PKCE verifier, who started it and when) lives in the session and is used once:
- * the callback reads and deletes it first, so that no failure leaves a reusable flow behind. The intended address of the
- * session (#1387: the page that a visitor was reading) is kept, so that the sign-in brings the member back to it.
+ * The flow data (`state`, `nonce`, the PKCE verifier, its purpose, who started it and when) lives in the session and is
+ * used once: the callback reads and deletes it first, so that no failure leaves a reusable flow behind. The three
+ * purposes share the one callback address that the provider knows: the callback tells them apart by the purpose that the
+ * server stored with the flow, never by a parameter of the browser. The intended address of the session (#1387: the page
+ * that a visitor was reading) is kept, so that the sign-in brings the member back to it.
  */
 class OpenIdConnectController extends Controller
 {
     private const string SESSION_KEY = 'oidc.flow';
+
+    /**
+     * The purpose of a flow. A flow without a purpose (started before #1521) is a sign-in or a connection, as before.
+     */
+    private const string PURPOSE_SIGN_IN = 'sign_in';
+
+    private const string PURPOSE_CONNECT = 'connect';
+
+    private const string PURPOSE_DELETION = 'deletion';
+
+    /**
+     * The flash data of the result of a proof, for the deletion section of the profile page
+     */
+    public const string FLASH_DELETION_STATUS = 'account_deletion_status';
+
+    public const string FLASH_DELETION_ERROR = 'account_deletion_error';
+
+    public const string FLASH_DELETE_CONTENT = 'account_deletion_delete_content';
 
     private const int FLOW_MINUTES = 10;
 
@@ -46,7 +70,7 @@ class OpenIdConnectController extends Controller
             return redirect()->route('dashboard');
         }
 
-        return $this->start($request, $client, null);
+        return $this->start($request, $client, null, self::PURPOSE_SIGN_IN);
     }
 
     /**
@@ -67,7 +91,33 @@ class OpenIdConnectController extends Controller
         }
 
         // The address of the provider is outside the application: Inertia needs a full page visit
-        return Inertia::location($this->start($request, $client, $member));
+        return Inertia::location($this->start($request, $client, $member, self::PURPOSE_CONNECT));
+    }
+
+    /**
+     * A signed-in member without a password starts the proof of a deletion (#1521, ADR 0052), from the deletion section
+     * of the profile settings: a POST with the CSRF token of the member. The provider is asked for a new sign-in. Only an
+     * account without a password and with a connected account of this provider can make it. The choice "also delete my
+     * posts, comments and messages" goes with the flow and comes back with the result.
+     */
+    public function confirmDeletion(Request $request, ReadsOpenIdConnectIdentities $client): Response
+    {
+        abort_unless(OpenIdConnect::enabled(), 404);
+
+        $member = $request->user();
+        abort_unless($member instanceof User, 401);
+
+        $deleteContent = $request->boolean('delete_content');
+        $proof = AccountDeletion::proofOf($member);
+        if ($proof !== KnowiiAccountDeletionProof::SignIn) {
+            $e = $proof === KnowiiAccountDeletionProof::Password
+                ? new OpenIdConnectException('has_password', 'This account has a password: confirm the deletion with your password.')
+                : new OpenIdConnectException('no_identity', AccountDeletion::UNAVAILABLE_MESSAGE);
+
+            return $this->fail($request, $member, $e, self::PURPOSE_DELETION, $deleteContent);
+        }
+
+        return Inertia::location($this->start($request, $client, $member, self::PURPOSE_DELETION, $deleteContent));
     }
 
     private static function passwordConfirmedRecently(Request $request): bool
@@ -79,9 +129,10 @@ class OpenIdConnectController extends Controller
     }
 
     /**
-     * Open a flow: for a guest who signs in (no member), or for the member who connects an account
+     * Open a flow: for a guest who signs in (no member), for the member who connects an account, or for the member who
+     * proves the intent to delete the account. A new flow replaces the one that the session held.
      */
-    private function start(Request $request, ReadsOpenIdConnectIdentities $client, ?User $member): RedirectResponse
+    private function start(Request $request, ReadsOpenIdConnectIdentities $client, ?User $member, string $purpose, bool $deleteContent = false): RedirectResponse
     {
         $state = Str::random(48);
         $nonce = Str::random(48);
@@ -89,34 +140,47 @@ class OpenIdConnectController extends Controller
         $challenge = self::base64Url(hash('sha256', $verifier, true));
 
         try {
-            $url = $client->authorizationUrl($state, $nonce, $challenge);
+            $url = $client->authorizationUrl($state, $nonce, $challenge, $purpose === self::PURPOSE_DELETION);
         } catch (OpenIdConnectException $e) {
-            return $this->fail($request, $member, $e);
+            return $this->fail($request, $member, $e, $purpose, $deleteContent);
         }
 
         $request->session()->put(self::SESSION_KEY, [
             'state' => $state,
             'nonce' => $nonce,
             'verifier' => $verifier,
+            'purpose' => $purpose,
+            // The member who connects an account or makes the proof: the callback must come back to the same account
             'link_user_id' => $member?->id,
+            'delete_content' => $deleteContent,
             'started_at' => now()->getTimestamp(),
         ]);
 
         return redirect()->away($url);
     }
 
-    public function callback(Request $request, ReadsOpenIdConnectIdentities $client, SignsInWithOpenIdConnect $signsIn): RedirectResponse
+    public function callback(Request $request, ReadsOpenIdConnectIdentities $client, SignsInWithOpenIdConnect $signsIn, ConfirmsAccountDeletions $confirmsDeletions): RedirectResponse
     {
         abort_unless(OpenIdConnect::enabled(), 404);
 
         $member = $request->user();
+        // Read and deleted first: the flow is used once, whatever happens next
+        $pulled = $request->session()->pull(self::SESSION_KEY);
+        /** @var array<array-key, scalar|null>|null $stored The flow that start() stored: each value is narrowed where it is read */
+        $stored = is_array($pulled) ? $pulled : null;
+        $purpose = self::purposeOf($stored);
+        $deleteContent = ($stored['delete_content'] ?? false) === true;
+
+        if ($purpose === self::PURPOSE_DELETION) {
+            return $this->confirmDeletionCallback($request, $member, $stored, $deleteContent, $client, $confirmsDeletions);
+        }
 
         try {
-            $flow = $this->checkRequest($request, $member);
+            $flow = $this->checkRequest($request, $stored, $member);
             $identity = $client->identity($flow['code'], $flow['verifier'], $flow['nonce']);
             $user = $signsIn->resolve($identity, $member);
         } catch (OpenIdConnectException $e) {
-            return $this->fail($request, $member, $e);
+            return $this->fail($request, $member, $e, $purpose);
         }
 
         // The link is made: the entitlements of the person are read at the provider, in the background (#1386, ADR 0047)
@@ -142,17 +206,61 @@ class OpenIdConnectController extends Controller
     }
 
     /**
-     * Check the callback against the flow in the session. The flow is read and deleted first, so that it is used once
-     * whatever happens next.
+     * The end of the proof of a deletion (#1521, ADR 0052): the same checks of the request and of the ID token as a
+     * sign-in, then the checks of the proof (ConfirmAccountDeletion). A GET: it records the proof and never deletes
+     * anything. The member goes back to the deletion section, which says the result.
      *
-     * @return array{code: string, verifier: string, nonce: string}
+     * @param  array<array-key, scalar|null>|null  $stored
+     */
+    private function confirmDeletionCallback(Request $request, ?User $member, ?array $stored, bool $deleteContent, ReadsOpenIdConnectIdentities $client, ConfirmsAccountDeletions $confirmsDeletions): RedirectResponse
+    {
+        try {
+            $flow = $this->checkRequest($request, $stored, $member);
+            // checkRequest() refuses a flow that comes back without the member who started it
+            if (! $member instanceof User) {
+                throw new OpenIdConnectException('session_changed', 'You signed in or out while this was going on. Please try again.');
+            }
+            $identity = $client->identity($flow['code'], $flow['verifier'], $flow['nonce']);
+            $until = $confirmsDeletions->confirm($member, $identity, $flow['started_at']);
+        } catch (OpenIdConnectException $e) {
+            return $this->fail($request, $member, $e, self::PURPOSE_DELETION, $deleteContent);
+        }
+
+        return redirect()->to(AccountDeletion::pageUrl())
+            ->with(self::FLASH_DELETION_STATUS, $until->toIso8601String())
+            ->with(self::FLASH_DELETE_CONTENT, $deleteContent);
+    }
+
+    /**
+     * The purpose that the server stored with the flow. A flow of an older version has none: a sign-in or a connection.
+     *
+     * @param  array<array-key, scalar|null>|null  $flow
+     */
+    private static function purposeOf(?array $flow): string
+    {
+        if ($flow === null) {
+            return self::PURPOSE_SIGN_IN;
+        }
+        $purpose = $flow['purpose'] ?? null;
+        if (in_array($purpose, [self::PURPOSE_SIGN_IN, self::PURPOSE_CONNECT, self::PURPOSE_DELETION], true)) {
+            return $purpose;
+        }
+
+        return ($flow['link_user_id'] ?? null) === null ? self::PURPOSE_SIGN_IN : self::PURPOSE_CONNECT;
+    }
+
+    /**
+     * Check the callback against the flow that was in the session. The caller read and deleted it first, so that it is
+     * used once whatever happens next.
+     *
+     * @param  array<array-key, scalar|null>|null  $flow
+     * @return array{code: string, verifier: string, nonce: string, started_at: int}
      *
      * @throws OpenIdConnectException
      */
-    private function checkRequest(Request $request, ?User $member): array
+    private function checkRequest(Request $request, ?array $flow, ?User $member): array
     {
-        $flow = $request->session()->pull(self::SESSION_KEY);
-        if (! is_array($flow)) {
+        if ($flow === null) {
             throw new OpenIdConnectException('no_flow', 'This sign-in expired or was not started here. Please try again.');
         }
 
@@ -186,23 +294,33 @@ class OpenIdConnectController extends Controller
             throw new OpenIdConnectException('no_code');
         }
 
-        return ['code' => $code, 'verifier' => $verifier, 'nonce' => $nonce];
+        return ['code' => $code, 'verifier' => $verifier, 'nonce' => $nonce, 'started_at' => $startedAt];
     }
 
     /**
-     * A plain message on the sign-in page, or on the profile settings for a member. The log holds the reason and the
-     * issuer, never a token, a code, a subject or an address.
+     * A plain message on the sign-in page, or on the profile settings for a member: in the deletion section for a proof
+     * (with the choice of the box). The log holds the reason, the issuer and the account, never a token, a code, a
+     * subject or an address.
      */
-    private function fail(Request $request, ?User $member, OpenIdConnectException $e): RedirectResponse
+    private function fail(Request $request, ?User $member, OpenIdConnectException $e, string $purpose, bool $deleteContent = false): RedirectResponse
     {
-        Log::warning('OpenID Connect sign-in refused', [
+        $deletion = $purpose === self::PURPOSE_DELETION;
+        Log::warning($deletion ? 'Account deletion proof refused' : 'OpenID Connect sign-in refused', [
             'reason' => $e->reason,
             'issuer' => OpenIdConnect::issuer(),
             'user' => $member?->cuid,
         ]);
 
-        return ($member instanceof User ? redirect()->route('profile.show') : redirect()->route('login'))
-            ->with('oidc_error', $e->getMessage());
+        if (! $member instanceof User) {
+            return redirect()->route('login')->with('oidc_error', $e->getMessage());
+        }
+        if ($deletion) {
+            return redirect()->to(AccountDeletion::pageUrl())
+                ->with(self::FLASH_DELETION_ERROR, $e->getMessage())
+                ->with(self::FLASH_DELETE_CONTENT, $deleteContent);
+        }
+
+        return redirect()->route('profile.show')->with('oidc_error', $e->getMessage());
     }
 
     private static function base64Url(string $bytes): string

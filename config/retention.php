@@ -38,6 +38,11 @@ return [
     // date that each visit replaces, and the rows of `space_visits` are replaced at each visit and go with the membership (a member
     // who leaves or is removed) and with the account. Nothing accumulates, so `retention:prune` has no step for them.
 
+    // The proof of a new sign-in for the deletion of an account without a password (#1521, ADR 0052) has no period of its own:
+    // `users.deletion_signed_in_at` is one time per account, replaced by each new proof, cleared by the deletion that uses it and
+    // deleted with the account. It holds only services.oidc.fresh_sign_in_seconds. Nothing accumulates, so `retention:prune` has
+    // no step for it.
+
     // The ids (`jti`) of the change calls of the sign-in provider (#1386, ADR 0047) are kept 24 hours in the cache
     // (ReceiveEntitlementEvent::JTI_HOURS) against a replay, and forgotten with it: the `cache` step of retention:prune
     // deletes the expired entries when the cache is the database. The stored entitlement keys follow the link to the

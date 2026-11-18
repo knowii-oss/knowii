@@ -9,6 +9,7 @@ use App\Actions\AccessGroups\RemoveAccessGroupMember;
 use App\Actions\AccessGroups\SetAccessGroupRules;
 use App\Actions\AccessGroups\SetAccessGroupSpaceGroups;
 use App\Actions\AccessGroups\UpdateAccessGroup;
+use App\Actions\Auth\ConfirmAccountDeletion;
 use App\Actions\Auth\EntitlementsClient;
 use App\Actions\Auth\LinkIdentity;
 use App\Actions\Auth\MagicLinks;
@@ -109,6 +110,7 @@ use App\Contracts\AccessGroups\RemovesAccessGroupMembers;
 use App\Contracts\AccessGroups\SetsAccessGroupRules;
 use App\Contracts\AccessGroups\SetsAccessGroupSpaceGroups;
 use App\Contracts\AccessGroups\UpdatesAccessGroups;
+use App\Contracts\Auth\ConfirmsAccountDeletions;
 use App\Contracts\Auth\ConsumesMagicLinks;
 use App\Contracts\Auth\LinksIdentities;
 use App\Contracts\Auth\ReadsOpenIdConnectIdentities;
@@ -338,6 +340,8 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(SignsInWithOpenIdConnect::class, SignInWithOpenIdConnect::class);
         app()->singleton(LinksIdentities::class, LinkIdentity::class);
         app()->singleton(UnlinksIdentities::class, UnlinkIdentity::class);
+        // An account without a password confirms its deletion with a new sign-in (#1521, ADR 0052)
+        app()->singleton(ConfirmsAccountDeletions::class, ConfirmAccountDeletion::class);
         // The entitlements of the sign-in provider feed the access groups (#1386, ADR 0047)
         app()->singleton(ReadsSubjectEntitlements::class, EntitlementsClient::class);
         app()->singleton(RefreshesEntitlements::class, RefreshEntitlements::class);

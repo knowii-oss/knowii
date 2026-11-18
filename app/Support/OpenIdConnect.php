@@ -16,6 +16,15 @@ final class OpenIdConnect
 
     private const int MAX_LABEL_LENGTH = 40;
 
+    /**
+     * The limits and the default of services.oidc.fresh_sign_in_seconds (#1521, ADR 0052)
+     */
+    public const int FRESH_SIGN_IN_DEFAULT_SECONDS = 300;
+
+    public const int FRESH_SIGN_IN_MIN_SECONDS = 60;
+
+    public const int FRESH_SIGN_IN_MAX_SECONDS = 900;
+
     public static function enabled(): bool
     {
         $issuer = self::issuer();
@@ -64,6 +73,18 @@ final class OpenIdConnect
         }
 
         return $scopes;
+    }
+
+    /**
+     * How old a new sign-in may be to prove the intent to delete an account without a password, and how long the proof
+     * holds after the sign-in (#1521, ADR 0052): OIDC_FRESH_SIGN_IN_SECONDS, default 300, kept between 60 and 900
+     */
+    public static function freshSignInSeconds(): int
+    {
+        $value = config('services.oidc.fresh_sign_in_seconds');
+        $seconds = is_int($value) ? $value : (is_string($value) && ctype_digit($value) ? (int) $value : self::FRESH_SIGN_IN_DEFAULT_SECONDS);
+
+        return max(self::FRESH_SIGN_IN_MIN_SECONDS, min(self::FRESH_SIGN_IN_MAX_SECONDS, $seconds));
     }
 
     /**

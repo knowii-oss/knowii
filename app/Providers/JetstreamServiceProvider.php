@@ -3,9 +3,12 @@
 namespace App\Providers;
 
 use App\Actions\DeleteUser;
+use App\Enums\KnowiiAccountDeletionProof;
 use App\Http\Controllers\ApiTokenController;
+use App\Http\Controllers\Inertia\OpenIdConnectController;
 use App\Models\User;
 use App\Models\UserEntitlement;
+use App\Support\AccountDeletion;
 use App\Support\OidcEntitlements;
 use App\Support\OpenIdConnect;
 use Illuminate\Http\Request;
@@ -35,6 +38,43 @@ class JetstreamServiceProvider extends ServiceProvider
 
         // The "Connected accounts" card of the profile settings (#1385, ADR 0045)
         Jetstream::inertia()->whenRendering('Profile/Show', $this->withConnectedAccounts(...));
+        // The deletion section: which proof the account needs, and the result of a new sign-in (#1521, ADR 0052)
+        Jetstream::inertia()->whenRendering('Profile/Show', $this->withAccountDeletion(...));
+    }
+
+    /**
+     * The prop `accountDeletion` of the profile page (#1521, ADR 0052): the proof that the deletion needs (`password`,
+     * `sign_in` or `unavailable`), the label of the provider, until when a recorded proof holds, whether the account has
+     * two-factor authentication, and for one request the result of a proof (`status`: the time until which it holds, or
+     * `error`) with the choice of the box "Also delete my posts, comments and messages" that went with it.
+     *
+     * @param  array<string, bool|string|array<array-key, scalar|array<array-key, scalar|null>|null>|null>  $data
+     * @return array<string, bool|string|array<array-key, scalar|array<array-key, scalar|null>|null>|null>
+     */
+    final public function withAccountDeletion(Request $request, array $data): array
+    {
+        $user = $request->user();
+        if (! $user instanceof User) {
+            return $data;
+        }
+
+        $session = $request->hasSession() ? $request->session() : null;
+        $status = $session?->get(OpenIdConnectController::FLASH_DELETION_STATUS);
+        $error = $session?->get(OpenIdConnectController::FLASH_DELETION_ERROR);
+        $deleteContent = $session?->get(OpenIdConnectController::FLASH_DELETE_CONTENT);
+        $proof = AccountDeletion::proofOf($user);
+
+        $data['accountDeletion'] = [
+            'proof' => $proof->value,
+            'label' => OpenIdConnect::enabled() ? OpenIdConnect::label() : null,
+            'confirmed_until' => $proof === KnowiiAccountDeletionProof::SignIn ? AccountDeletion::confirmedUntil($user)?->toIso8601String() : null,
+            'two_factor' => $user->hasEnabledTwoFactorAuthentication(),
+            'status' => is_string($status) ? $status : null,
+            'error' => is_string($error) ? $error : null,
+            'delete_content' => is_bool($deleteContent) ? $deleteContent : null,
+        ];
+
+        return $data;
     }
 
     /**
