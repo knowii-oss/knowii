@@ -83,7 +83,7 @@ export default function DeleteUserForm({ deletion }: Props) {
         }
         closeModal();
       },
-      onError: () => (proof === 'password' ? passwordRef.current?.focus() : codeRef.current?.focus()),
+      onError: (errors) => (proof === 'password' && !errors['code'] ? passwordRef.current?.focus() : codeRef.current?.focus()),
       onFinish: () => form.reset('password', 'code'),
     });
   };
@@ -143,6 +143,28 @@ export default function DeleteUserForm({ deletion }: Props) {
   const errors: Partial<Record<string, string>> = form.errors;
   const signInError = deletion?.error ?? errors['sign_in'] ?? null;
 
+  // The code of two-factor authentication, when it is on: for every account, as on the API
+  const codeField = deletion?.two_factor ? (
+    <div className="mt-4">
+      <label htmlFor="delete-user-code" className="text-sm">
+        Enter the code of your authenticator app or a recovery code.
+      </label>
+      <TextInput
+        id="delete-user-code"
+        ref={codeRef}
+        className="mt-2"
+        value={form.data.code}
+        onChange={(e) => form.setData('code', e.target.value)}
+        autoFocus={proof !== 'password'}
+        required
+        inputMode="text"
+        autoComplete="one-time-code"
+        invalid={!!form.errors.code}
+      />
+      <InputError className="mt-2" message={form.errors.code} />
+    </div>
+  ) : null;
+
   let body: ReactNode;
   let finalButton: ReactNode;
   if (proof === 'password') {
@@ -165,6 +187,7 @@ export default function DeleteUserForm({ deletion }: Props) {
           />
           <InputError className="mt-2" message={form.errors.password} />
         </div>
+        {codeField}
       </>
     );
     finalButton = (
@@ -196,26 +219,7 @@ export default function DeleteUserForm({ deletion }: Props) {
         <p role="status" className="text-sm font-medium text-success">
           {`You confirmed with ${label}. You can delete your account until ${formatFullDateTime(new Date(confirmedUntil), zone)}.`}
         </p>
-        {deletion?.two_factor && (
-          <div className="mt-4">
-            <label htmlFor="delete-user-code" className="text-sm">
-              Enter the code of your authenticator app or a recovery code.
-            </label>
-            <TextInput
-              id="delete-user-code"
-              ref={codeRef}
-              className="mt-2"
-              value={form.data.code}
-              onChange={(e) => form.setData('code', e.target.value)}
-              autoFocus
-              required
-              inputMode="text"
-              autoComplete="one-time-code"
-              invalid={!!form.errors.code}
-            />
-            <InputError className="mt-2" message={form.errors.code} />
-          </div>
-        )}
+        {codeField}
       </>
     );
     finalButton = (

@@ -62,6 +62,28 @@ describe('DeleteUserForm (#1344)', () => {
     expect(box).not.toBeChecked();
   });
 
+  it('with a password and two-factor authentication, asks for the code after the password', async () => {
+    await openDialog(deletionState({ proof: 'password', two_factor: true }));
+
+    const password = screen.getByLabelText('Please enter your password to confirm you would like to permanently delete your account.');
+    expect(password).toHaveFocus();
+    await userEvent.type(password, 'secret');
+    await userEvent.type(screen.getByLabelText('Enter the code of your authenticator app or a recovery code.'), '123456');
+    await userEvent.click(screen.getByRole('button', { name: 'Go ahead!' }));
+
+    expect(send).toHaveBeenLastCalledWith(
+      '/current-user.destroy',
+      { password: 'secret', delete_content: false, code: '123456' },
+      expect.anything(),
+    );
+  });
+
+  it('with a password and without two-factor authentication, shows no code field', async () => {
+    await openDialog(deletionState({ proof: 'password' }));
+
+    expect(screen.queryByLabelText('Enter the code of your authenticator app or a recovery code.')).not.toBeInTheDocument();
+  });
+
   it('sends delete_content false when the box stays off', async () => {
     await openDialog();
 
