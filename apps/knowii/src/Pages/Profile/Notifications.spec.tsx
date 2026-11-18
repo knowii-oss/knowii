@@ -363,7 +363,7 @@ describe('the time zone and the pop-ups of the settings page (#1476)', () => {
     await screen.findByRole('group', { name: 'Talk' });
 
     expect(screen.getByLabelText('Time zone').className).toContain('h-11');
-    expect(screen.getByRole('switch', { name: /Show pop-ups/ }).closest('label')?.className).toContain('min-h-11');
+    expect(screen.getByRole('switch', { name: /Show pop-ups/ })).toHaveClass('h-11', 'w-11');
     const results = await axe.run(container, { rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
     expect(results.violations.map((violation) => violation.id)).toEqual([]);
   });

@@ -186,8 +186,8 @@ PHPStan, tests and audits run in CI.
   from `@/Components/ui`. Use them instead of styling raw elements. Build new
   ones there, with tests (`*.spec.tsx`, Vitest + Testing Library), keyboard
   support and visible focus. Headless UI is used only for the accessible
-  interactive parts (dialog, listbox, menu); everything else is plain React and
-  Tailwind CSS.
+  interactive parts (dialog, listbox, menu, switch); everything else is plain
+  React and Tailwind CSS.
 - Colors, fonts and breakpoints are the Knowii brand tokens defined with
   `@theme` in `apps/knowii/src/styles.css` (same names as store-website:
   `background`, `surface`, `surface-elevated`, `well`, `primary` (text),

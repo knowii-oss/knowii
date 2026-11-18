@@ -28,8 +28,9 @@ A component that throws while rendering does not blank the page. `<ErrorBoundary
 
 1. The building blocks live in `apps/knowii/src/Components/ui` and are imported from `@/Components/ui`: buttons, form controls, dialog, drawer, menu, select, cards, avatar, toasts and more ([ADR 0003](../adr/0003-own-ui-components.md)).
 2. Use them instead of styling raw elements. A new building block goes there, with a Vitest test (`*.spec.tsx`), keyboard support and a visible focus ring.
-3. Headless UI is used only for the accessible interactive parts (dialog, listbox, menu). Everything else is plain React and Tailwind CSS.
+3. Headless UI is used only for the accessible interactive parts (dialog, listbox, menu, switch). Everything else is plain React and Tailwind CSS.
 4. Feature components (a post card, a space navigation) live in `apps/knowii/src/Components/<Feature>/` and compose the building blocks.
+5. A setting that saves at once, without a "Save" button, is a `Switch` (#1569), with a `SaveStatus` next to it: "Saving", then "Saved", or the error, and the control shows the old value again (`useInstantSave` holds the value, the busy state and the status). A choice of several values that saves at once (who can join) keeps its radios and gets the same status. A `Checkbox` is only for a form with a "Save" button. A change that widens access (a community open to anyone with an account, indexing on) asks first with a `Dialog`: nothing is saved before the yes, and "Cancel" and Escape leave the control as it was.
 
 ### Toolkit
 
