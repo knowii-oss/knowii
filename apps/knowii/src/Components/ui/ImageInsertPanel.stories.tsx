@@ -75,8 +75,8 @@ function altField(canvasElement: HTMLElement, id: string): HTMLElement {
  * to move it and to remove it.
  *
  * Accessibility: a group named "Add an image" or "Add 3 images". Each description has its label and the hint in
- * `aria-describedby`; a missing description sets `aria-invalid` and shows its error as an alert. Enter in a description
- * inserts, Escape anywhere in the panel cancels the images (not the dialog around the editor). The move buttons use
+ * `aria-describedby`; a missing description sets `aria-invalid`, shows its error as an alert, and puts the error in
+ * `aria-describedby` before the hint. Enter in a description inserts (not while the uploads run), Escape anywhere in the panel cancels the images (not the dialog around the editor). The move buttons use
  * `aria-disabled` at the ends, so they keep the focus; a moved image keeps the focus on its button, and after a removal
  * the focus goes to the description of the next image. While the uploads run, the descriptions are read-only and the
  * buttons do nothing. The previews are decorative.
@@ -172,8 +172,8 @@ export const SeveralImages: Story = {
 };
 
 /**
- * "Insert" with a description that is missing: the field is marked as invalid and its error shows. The error is not in
- * the description of the field (`aria-describedby` holds only the hint).
+ * "Insert" with a description that is missing: the field is marked as invalid, its error shows, and the error is in the
+ * description of the field, before the hint
  */
 export const MissingDescription: Story = {
   args: {
@@ -186,6 +186,15 @@ export const MissingDescription: Story = {
     const field = within(canvasElement).getByRole('textbox', { name: 'Description of image 2 of 2 (alt text)' });
     await expect(field).toHaveAttribute('aria-invalid', 'true');
     await expect(within(canvasElement).getByRole('alert')).toHaveTextContent('Describe the image for people who cannot see it.');
+    await expect(field).toHaveAccessibleDescription(
+      'Describe the image for people who cannot see it. Screen readers read this text, and it is the caption of the image in the gallery. Describe what matters in the image.',
+    );
+    // The field without an error has only the hint
+    await expect(
+      within(canvasElement).getByRole('textbox', { name: 'Description of image 1 of 2 (alt text)' }),
+    ).toHaveAccessibleDescription(
+      'Screen readers read this text, and it is the caption of the image in the gallery. Describe what matters in the image.',
+    );
   },
 };
 
@@ -213,8 +222,9 @@ export const Uploading: Story = {
     await userEvent.click(insert);
     await userEvent.click(canvas.getByRole('button', { name: 'Cancel' }));
     await userEvent.click(canvas.getByRole('button', { name: 'Remove image 1' }));
-    // Enter in a description still calls onInsert while busy: the editor ignores it (its insert checks busy)
+    // Enter in a description does nothing while busy, as a click on "Insert"
     field.focus();
+    await userEvent.keyboard('{Enter}');
     await userEvent.keyboard('{Escape}');
     await expect(args.onInsert).not.toHaveBeenCalled();
     await expect(args.onCancel).not.toHaveBeenCalled();

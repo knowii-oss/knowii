@@ -100,8 +100,9 @@ function region(canvasElement: HTMLElement): HTMLElement {
  * a toast with `sticky` or with a link (`action`) stays until the member closes it or follows the link (WCAG 2.2.1). At
  * most five show at once. Do not use a toast for an error that the member must fix in a form: show it at the field.
  *
- * Accessibility: a region named "Notifications" with a polite live region that exists before the first toast, so a
- * screen reader reads every new toast; an error toast has `role="alert"`. A new toast never takes the focus. The pointer
+ * Accessibility: a region named "Notifications" with a list of the toasts. Each toast is its own live region: a status,
+ * or an alert for an error (inside its list item, so the list stays a list). The region is in the page before its text,
+ * so a screen reader reads every new toast, once. A new toast never takes the focus. The pointer
  * or the focus on a toast pauses its timer. When a toast that holds the focus goes away, the focus goes back to the
  * element that had it before, else to another toast. The icons and the colored bar are hidden from screen readers.
  */
@@ -119,28 +120,50 @@ type Story = StoryObj<typeof meta>;
 export const Severities: Story = {
   play: async ({ canvasElement }) => {
     const notifications = region(canvasElement);
-    await expect(notifications.querySelector('ol')).toHaveAttribute('aria-live', 'polite');
+    // The list is not a live region: each toast is one, so that no toast is read twice
+    await expect(notifications.querySelector('ol')).not.toHaveAttribute('aria-live');
     await waitFor(() => expect(within(notifications).getAllByRole('listitem')).toHaveLength(3));
     await expect(within(notifications).getAllByRole('button', { name: 'Dismiss notification' })).toHaveLength(3);
     await expect(within(notifications).queryByRole('alert')).toBeNull();
+    // The text of each toast goes into its status, once the status is in the page
+    await waitFor(() => expect(within(notifications).getAllByRole('status')).toHaveLength(3));
+    await waitFor(() => expect(within(notifications).getAllByRole('status')[0]).toHaveTextContent('Post published'));
   },
 };
 
 /**
- * An error toast is an alert: a screen reader reads it at once. Its item of the list gets `role="alert"`, so the list
- * loses an item (the axe rules `list` and `aria-allowed-role` fail): the story closes the toast at its end for the
- * check of the page, until the component is fixed.
+ * An error toast is an alert: a screen reader reads it at once. The alert is inside its item of the list, so the list
+ * keeps its items, and the toast stays for the check of the page
  */
 export const ErrorToast: Story = {
   args: { toasts: [SESSION_ENDS, NOT_SAVED] },
   play: async ({ canvasElement }) => {
     const notifications = region(canvasElement);
     const alert = await within(notifications).findByRole('alert');
-    await expect(alert).toHaveTextContent('The post was not saved');
-    await expect(alert.tagName).toBe('LI');
+    await waitFor(() => expect(alert).toHaveTextContent('The post was not saved'));
+    await expect(alert.closest('li')).not.toHaveAttribute('role');
+    await expect(within(notifications).getAllByRole('listitem')).toHaveLength(2);
+    // The other toast is a status: each toast is read once, by its own region
+    await waitFor(() => expect(within(notifications).getByRole('status')).toHaveTextContent('Your session ends in 5 minutes'));
+  },
+};
 
-    // A click on "Dismiss notification" closes its toast, and the other one stays
-    await userEvent.click(within(alert).getByRole('button', { name: 'Dismiss notification' }));
+/**
+ * "Dismiss notification" closes its toast, and the other one stays
+ */
+export const DismissAnError: Story = {
+  args: { toasts: [SESSION_ENDS, NOT_SAVED] },
+  play: async ({ canvasElement }) => {
+    const notifications = region(canvasElement);
+    const alert = await within(notifications).findByRole('alert');
+    await waitFor(() => expect(alert).toHaveTextContent('The post was not saved'));
+    const item = alert.closest('li');
+    await expect(item).not.toHaveAttribute('role');
+    await expect(within(notifications).getAllByRole('listitem')).toHaveLength(2);
+
+    if (item) {
+      await userEvent.click(within(item).getByRole('button', { name: 'Dismiss notification' }));
+    }
     await waitFor(() => expect(within(notifications).queryByRole('alert')).not.toBeInTheDocument());
     await expect(within(notifications).getAllByRole('listitem')).toHaveLength(1);
     await expect(within(notifications).getByText('Your session ends in 5 minutes')).toBeInTheDocument();
@@ -212,13 +235,13 @@ export const AtMostFive: Story = {
 };
 
 /**
- * No toast: the region and its live region are in the page, empty, ready for the first toast
+ * No toast: the region and its list are in the page, empty, ready for the first toast
  */
 export const Empty: Story = {
   args: { toasts: [] },
   play: async ({ canvasElement }) => {
     const notifications = region(canvasElement);
-    await expect(notifications.querySelector('ol[aria-live="polite"]')).toBeEmptyDOMElement();
+    await expect(notifications.querySelector('ol')).toBeEmptyDOMElement();
   },
 };
 

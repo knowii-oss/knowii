@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, afterEach } from 'vitest';
-import { act, render, screen, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { router } from '@inertiajs/react';
 import { AppDataProvider, DEFAULT_TOAST_LIFE, useAppData } from '@knowii/common';
@@ -154,7 +154,9 @@ describe('Toaster', () => {
     renderToaster();
     act(() => showToast([{ severity: 'error', summary: 'Failed', sticky: true }]));
 
-    expect(screen.getByRole('alert')).toHaveTextContent('Failed');
+    // The text moves into the alert once the alert is in the page (#1651)
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Failed'));
+    expect(screen.getByRole('alert').closest('li')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Dismiss notification' }));
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });

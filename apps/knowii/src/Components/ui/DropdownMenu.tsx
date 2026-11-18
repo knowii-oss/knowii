@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
-import { Menu, MenuButton, MenuItems, MenuSeparator } from '@headlessui/react';
+import { useRef } from 'react';
+import { Menu, MenuButton, MenuItems, MenuSeparator, Portal } from '@headlessui/react';
 import { cn } from './cn';
+import { useLandmarkPortalTarget } from './landmark-portal';
 
 export interface DropdownMenuProps {
   /**
@@ -25,26 +27,32 @@ export interface DropdownMenuProps {
 
 /**
  * Menu of actions or links, built on the Headless UI Menu (keyboard: Enter/Space/arrows open it,
- * arrows move, Enter activates, Escape closes).
+ * arrows move, Enter activates, Escape closes). The open menu renders in the landmark of the button (or in its dialog),
+ * not on the body (#1651).
  */
 export function DropdownMenu({ trigger, label, children, header, triggerClassName, align = 'end' }: DropdownMenuProps) {
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuTarget = useLandmarkPortalTarget(buttonRef);
   return (
     <Menu>
-      <MenuButton aria-label={label} className={cn('flex cursor-pointer items-center rounded-full', triggerClassName)}>
+      <MenuButton ref={buttonRef} aria-label={label} className={cn('flex cursor-pointer items-center rounded-full', triggerClassName)}>
         {trigger}
       </MenuButton>
-      <MenuItems
-        anchor={{ to: align === 'end' ? 'bottom end' : 'bottom start', gap: 8 }}
-        transition
-        className={cn(
-          'z-50 min-w-60 rounded-xl border border-border bg-surface-elevated p-1 text-primary shadow-2xl focus:outline-none',
-          'origin-top transition duration-100 ease-out data-closed:scale-95 data-closed:opacity-0 motion-reduce:transition-none',
-        )}
-      >
-        {header && <div className="px-3 pt-2 pb-3">{header}</div>}
-        {header && <MenuSeparator className="mx-1 mb-1 h-px bg-border" />}
-        {children}
-      </MenuItems>
+      {/* Portal.Group is the only export of the PortalGroup of Headless UI */}
+      <Portal.Group target={menuTarget}>
+        <MenuItems
+          anchor={{ to: align === 'end' ? 'bottom end' : 'bottom start', gap: 8 }}
+          transition
+          className={cn(
+            'z-50 min-w-60 rounded-xl border border-border bg-surface-elevated p-1 text-primary shadow-2xl focus:outline-none',
+            'origin-top transition duration-100 ease-out data-closed:scale-95 data-closed:opacity-0 motion-reduce:transition-none',
+          )}
+        >
+          {header && <div className="px-3 pt-2 pb-3">{header}</div>}
+          {header && <MenuSeparator className="mx-1 mb-1 h-px bg-border" />}
+          {children}
+        </MenuItems>
+      </Portal.Group>
     </Menu>
   );
 }

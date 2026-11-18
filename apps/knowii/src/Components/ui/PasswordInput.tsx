@@ -47,6 +47,7 @@ export function PasswordInput({
   strengthLabels = defaultStrengthLabels,
   id,
   value,
+  onChange,
   'aria-describedby': describedBy,
   ...props
 }: PasswordInputProps) {
@@ -54,8 +55,10 @@ export function PasswordInput({
   const generatedId = useId();
   const inputId = id ?? generatedId;
   const strengthId = `${inputId}-strength`;
+  // The text of a field without a value prop (react-hook-form register), for the strength hint (#1651)
+  const [typed, setTyped] = useState(() => (typeof props.defaultValue === 'string' ? props.defaultValue : ''));
 
-  const password = typeof value === 'string' ? value : '';
+  const password = typeof value === 'string' ? value : typed;
   const strength = getPasswordStrength(password);
 
   return (
@@ -64,12 +67,17 @@ export function PasswordInput({
         id={inputId}
         type={visible ? 'text' : 'password'}
         value={value}
+        onChange={(event) => {
+          setTyped(event.target.value);
+          onChange?.(event);
+        }}
         aria-describedby={[describedBy, showStrength && password ? strengthId : null].filter(Boolean).join(' ') || undefined}
         trailing={
           <button
             type="button"
             className="flex size-9 cursor-pointer items-center justify-center rounded-md text-muted transition-colors hover:text-primary disabled:cursor-not-allowed"
-            aria-label={visible ? 'Hide password' : 'Show password'}
+            // One name: the state is in aria-pressed, so a screen reader says "Show password, pressed" (#1651)
+            aria-label="Show password"
             aria-pressed={visible}
             aria-controls={inputId}
             disabled={props.disabled}
@@ -80,12 +88,18 @@ export function PasswordInput({
         }
         {...props}
       />
-      {showStrength && password && (
-        <div id={strengthId} className="mt-2" aria-live="polite">
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-overlay/10">
-            <div className={cn('h-full rounded-full transition-all duration-300', strengthBarClasses[strength])} />
-          </div>
-          <p className="mt-1 text-xs text-muted">{strengthLabels[strength]}</p>
+      {/* The live region is in the page, empty, before its first text: a screen reader announces only the changes of a
+          region that it already knows (#1651) */}
+      {showStrength && (
+        <div id={strengthId} aria-live="polite">
+          {password && (
+            <div className="mt-2">
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-overlay/10">
+                <div className={cn('h-full rounded-full transition-all duration-300', strengthBarClasses[strength])} />
+              </div>
+              <p className="mt-1 text-xs text-muted">{strengthLabels[strength]}</p>
+            </div>
+          )}
         </div>
       )}
     </div>

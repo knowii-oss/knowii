@@ -9,8 +9,8 @@ import { DropdownMenu, DropdownMenuItem, dropdownMenuItemClasses, DropdownMenuSe
 const LABEL = 'Account menu';
 
 // Outside the application, a link of the menu must not leave the story: a click on it stops the visit. The menu renders
-// in a portal, but its events go up the React tree to this handler. It runs after the handlers of the entry: Headless UI
-// skips the handlers of an entry once the default action of the click is prevented.
+// in a portal (in the landmark of the button), but its events go up the React tree to this handler. It runs after the
+// handlers of the entry: Headless UI skips the handlers of an entry once the default action of the click is prevented.
 function stopVisit(event: MouseEvent): void {
   if (event.target instanceof Element && event.target.closest('a')) {
     event.preventDefault();
@@ -60,7 +60,8 @@ function AccountMenu({ onProfile, onLogOut, children: _children, ...args }: Stor
  *
  * Accessibility: a button that opens a menu (Headless UI). Its name is `label`: the trigger often shows only an avatar.
  * Enter, Space and the arrows open the menu, the arrows move, Enter activates, Escape closes, and the focus goes back to
- * the button. The header is not focusable.
+ * the button. The header is not focusable. The open menu renders in the landmark of the button (or in its dialog), not
+ * on the body.
  */
 const meta = {
   component: DropdownMenu,
@@ -89,7 +90,7 @@ type Story = StoryObj<typeof meta>;
 export const KeyboardPath: Story = {
   play: async ({ args, canvasElement, step }) => {
     const button = within(canvasElement).getByRole('button', { name: LABEL });
-    // The menu renders outside the canvas (a portal on the body)
+    // The menu renders outside the canvas (a portal in the landmark of the button)
     const page = within(canvasElement.ownerDocument.body);
 
     await step('Enter opens the menu on the first entry', async () => {
@@ -144,7 +145,9 @@ export const ClickOnALink: Story = {
 };
 
 /**
- * The name and the address of the account above the entries. The header is not an entry: the arrows skip it.
+ * The name and the address of the account above the entries. The header is not an entry: the arrows skip it. The menu
+ * stays open: it is in the landmark of the button (the main landmark of the page in the tests), so the check of the
+ * page passes with it.
  */
 export const WithHeader: Story = {
   args: {
@@ -157,14 +160,13 @@ export const WithHeader: Story = {
   },
   play: async ({ canvasElement }) => {
     const page = within(canvasElement.ownerDocument.body);
-    await userEvent.click(within(canvasElement).getByRole('button', { name: LABEL }));
+    const button = within(canvasElement).getByRole('button', { name: LABEL });
+    await userEvent.click(button);
     const menu = await page.findByRole('menu');
     await expect(within(menu).getByText('rose@example.com')).toBeInTheDocument();
     await expect(within(menu).getAllByRole('menuitem')).toHaveLength(3);
     await expect(within(menu).getAllByRole('separator')).toHaveLength(2);
-    // The open menu renders in a portal outside the landmarks of the page: the story closes it for the check of the page
-    await userEvent.keyboard('{Escape}');
-    await waitFor(() => expect(page.queryByRole('menu')).not.toBeInTheDocument());
+    await expect(menu.closest('main')).toBe(button.closest('main'));
   },
 };
 

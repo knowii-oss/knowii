@@ -25,10 +25,13 @@ interface BreadcrumbProps {
 export function Breadcrumb({ items, className }: BreadcrumbProps) {
   const [expanded, setExpanded] = useState(false);
   const listRef = useRef<HTMLOListElement>(null);
-  // The button goes away: the focus moves to the first item it showed, else it falls back to the page
+  // The button goes away with the focus (#1651): the focus moves to the link of the first item that it showed, else to
+  // the list itself, never to the page
   useEffect(() => {
     if (expanded) {
-      listRef.current?.querySelectorAll<HTMLElement>(':scope > li')[1]?.querySelector<HTMLElement>('a')?.focus();
+      const list = listRef.current;
+      const link = list?.querySelectorAll<HTMLElement>(':scope > li')[1]?.querySelector<HTMLElement>('a');
+      (link ?? list)?.focus();
     }
   }, [expanded]);
   // The items between the first one and the parent of the open page
@@ -37,7 +40,12 @@ export function Breadcrumb({ items, className }: BreadcrumbProps) {
 
   return (
     <nav aria-label="Breadcrumb" className={cn('min-w-0', className)}>
-      <ol ref={listRef} className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-bold sm:text-base">
+      <ol
+        ref={listRef}
+        // The focus target after "Show the full path" when the first item that it shows has no link
+        tabIndex={-1}
+        className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded text-sm font-bold outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:text-base"
+      >
         {items.map((item, index) => {
           const isLast = index === items.length - 1;
           const content = (

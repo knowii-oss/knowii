@@ -8,7 +8,7 @@ const ERROR_TEXT = 'Enter a password of 8 characters or more.';
 
 /**
  * The field with its label and its value, as a form shows it. With `invalid`, the error text is linked with
- * `aria-describedby`. The strength hint needs the value: the field is controlled.
+ * `aria-describedby`. The field is controlled here; `WithStrengthWithoutValue` shows a field without a value prop.
  */
 function LabelledPasswordInput({ label = 'Password', value: valueAtStart, onChange, ...args }: PasswordInputProps & { label?: string }) {
   const id = useId();
@@ -43,9 +43,10 @@ function LabelledPasswordInput({ label = 'Password', value: valueAtStart, onChan
  * field while the member types (the server checks the real rules). Give it a label (`<label htmlFor>`) and the
  * `autoComplete` of the form ("current-password" or "new-password").
  *
- * Accessibility: the name comes from the label; `invalid` sets `aria-invalid`. The button is a toggle button
- * (`aria-pressed`) named "Show password" or "Hide password", and controls the field (`aria-controls`). The strength hint
- * is a polite live region, linked to the field with `aria-describedby`, after the description of the form.
+ * Accessibility: the name comes from the label; `invalid` sets `aria-invalid`. The button is a toggle button named
+ * "Show password": its name stays, and `aria-pressed` carries the state. It controls the field (`aria-controls`). The
+ * strength hint is a polite live region, in the page (empty) before its first text, and linked to the field with
+ * `aria-describedby`, after the description of the form. It works with and without a `value` prop.
  */
 const meta = {
   component: PasswordInput,
@@ -80,11 +81,13 @@ export const Default: Story = {
     await expect(show).toHaveAttribute('aria-controls', input.id);
     await userEvent.keyboard('{Enter}');
     await expect(input).toHaveAttribute('type', 'text');
-    const hide = canvas.getByRole('button', { name: 'Hide password' });
-    await expect(hide).toHaveFocus();
-    await expect(hide).toHaveAttribute('aria-pressed', 'true');
+    // The name stays: the state is in aria-pressed only
+    await expect(show).toHaveFocus();
+    await expect(show).toHaveAccessibleName('Show password');
+    await expect(show).toHaveAttribute('aria-pressed', 'true');
     await userEvent.keyboard('{Enter}');
     await expect(input).toHaveAttribute('type', 'password');
+    await expect(show).toHaveAttribute('aria-pressed', 'false');
   },
 };
 
@@ -108,14 +111,39 @@ export const WithStrength: Story = {
     const input = canvas.getByLabelText('New password');
     await expect(input).not.toHaveAttribute('aria-describedby');
     await expect(canvas.queryByText('Too simple')).toBeNull();
+    // The live region is in the page before its first text
+    const region = canvasElement.querySelector('[aria-live="polite"]');
+    await expect(region).toBeEmptyDOMElement();
 
     await userEvent.type(input, 'basil');
     await expect(input).toHaveAccessibleDescription('Too simple');
-    await expect(canvas.getByText('Too simple').closest('[aria-live]')).toHaveAttribute('aria-live', 'polite');
+    await expect(canvas.getByText('Too simple').closest('[aria-live]')).toBe(region);
     await userEvent.type(input, '26');
     await expect(input).toHaveAccessibleDescription('Average complexity');
     await userEvent.type(input, 'Garden');
     await expect(input).toHaveAccessibleDescription('Complex password');
+  },
+};
+
+/**
+ * A field without a `value` prop, as a form of react-hook-form gives it (`register`): the strength hint works the same
+ */
+export const WithStrengthWithoutValue: Story = {
+  args: { showStrength: true, autoComplete: 'new-password' },
+  render: ({ value: _value, ...args }) => (
+    <div className="flex max-w-md flex-col gap-1">
+      <label htmlFor="garden-password" className="text-sm font-bold">
+        New password
+      </label>
+      <PasswordInput {...args} id="garden-password" />
+    </div>
+  ),
+  play: async ({ args, canvasElement }) => {
+    const input = within(canvasElement).getByLabelText('New password');
+    await userEvent.type(input, 'basil26');
+    await expect(input).toHaveValue('basil26');
+    await expect(args.onChange).toHaveBeenCalledTimes(7);
+    await expect(input).toHaveAccessibleDescription('Average complexity');
   },
 };
 

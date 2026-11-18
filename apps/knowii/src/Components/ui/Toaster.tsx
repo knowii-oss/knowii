@@ -13,6 +13,10 @@ const severityIcons: Record<ToastSeverity, ReactNode> = {
   error: <FaCircleXmark className="text-danger-text" />,
 };
 
+// The time between the empty live region of a new toast and its text: one frame or more, so that a screen reader
+// knows the region before the text (it announces only the changes of a region that it already knows)
+const ANNOUNCE_DELAY = 100;
+
 const severityBarClasses: Record<ToastSeverity, string> = {
   success: 'bg-success',
   info: 'bg-overlay/60',
@@ -30,6 +34,19 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
   const remaining = useRef(toast.life ?? DEFAULT_TOAST_LIFE);
   // A toast with a link waits for the user: a few seconds are not enough to reach it with the keyboard (WCAG 2.2.1)
   const stays = toast.sticky === true || toast.action !== undefined;
+  // Each toast is its own live region (#1651): an alert for an error, a status for the others. Its text shows at once,
+  // next to the region, and moves into it after the delay: the region announces it once
+  const [announced, setAnnounced] = useState(false);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setAnnounced(true), ANNOUNCE_DELAY);
+    return () => window.clearTimeout(timer);
+  }, []);
+  const text = (
+    <>
+      <p className="font-bold">{toast.summary}</p>
+      {toast.detail && <p className="mt-0.5 text-sm text-muted">{toast.detail}</p>}
+    </>
+  );
 
   // Auto-dismiss, paused while the pointer or the focus is on the toast (WCAG 2.2.1: timing adjustable)
   useEffect(() => {
@@ -47,7 +64,6 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
   return (
     <li
       data-toast-id={toast.id}
-      role={toast.severity === 'error' ? 'alert' : undefined}
       className="pointer-events-auto relative flex w-full max-w-md animate-toast-in items-start gap-3 overflow-hidden rounded-xl border border-border bg-surface-elevated py-3 pr-2 pl-5 text-primary shadow-2xl motion-reduce:animate-none"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
@@ -59,8 +75,14 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
         {severityIcons[toast.severity]}
       </span>
       <div className="min-w-0 grow">
-        <p className="font-bold">{toast.summary}</p>
-        {toast.detail && <p className="mt-0.5 text-sm text-muted">{toast.detail}</p>}
+        {toast.severity === 'error' ? (
+          <div role="alert">{announced && text}</div>
+        ) : (
+          <div role="status" aria-live="polite">
+            {announced && text}
+          </div>
+        )}
+        {!announced && text}
         {toast.action && (
           <Link
             href={toast.action.href}
@@ -122,8 +144,8 @@ export function Toaster() {
       className="pointer-events-none fixed inset-x-0 top-4 z-60 px-4"
       onFocus={rememberFocusBefore}
     >
-      {/* The live region exists before the toasts are added, so screen readers announce them */}
-      <ol aria-live="polite" className="flex flex-col items-center gap-2">
+      {/* Not a live region: each toast announces itself, an error as an alert, so that no toast is read twice */}
+      <ol className="flex flex-col items-center gap-2">
         {toasts.map((toast) => (
           <ToastItem key={toast.id} toast={toast} onDismiss={dismiss} />
         ))}

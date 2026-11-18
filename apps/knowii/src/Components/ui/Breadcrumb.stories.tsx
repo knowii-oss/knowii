@@ -32,7 +32,8 @@ const longPath: readonly BreadcrumbItem[] = [
  *
  * Accessibility: a navigation landmark named "Breadcrumb", with an ordered list. The open page has
  * `aria-current="page"` and is not a link. The icons and the separators are hidden from screen readers. The button
- * shows the hidden items and gives the focus to the first of them. On a small screen, the links are 44 px high.
+ * shows the hidden items and gives the focus to the link of the first of them, or to the list when that item has no
+ * link. On a small screen, the links are 44 px high.
  */
 const meta = {
   component: Breadcrumb,
@@ -133,8 +134,8 @@ export const LongPathOnPhone: Story = {
 };
 
 /**
- * A long path on a phone where the first hidden item is not a link: after "Show the full path", no item gets the
- * focus, and the focus goes back to the page
+ * A long path on a phone where the first hidden item is not a link: after "Show the full path", the focus goes to the
+ * list of the path (a screen reader reads it from its start), not to the page
  */
 export const LongPathOnPhoneWithoutLink: Story = {
   args: {
@@ -151,6 +152,8 @@ export const LongPathOnPhoneWithoutLink: Story = {
     const breadcrumb = within(within(canvasElement).getByRole('navigation', { name: 'Breadcrumb' }));
     await userEvent.click(breadcrumb.getByRole('button', { name: 'Show the full path' }));
     await expect(breadcrumb.getByText('Atlas Garden').closest('li')).not.toHaveAttribute('data-collapsed');
+    // The first item that the button showed has no link: the focus goes to the list, not to the page
+    await expect(breadcrumb.getByRole('list')).toHaveFocus();
   },
 };
 

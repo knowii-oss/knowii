@@ -199,13 +199,14 @@ describe('the post composer asks before it loses the text (#1563)', () => {
     const onClose = vi.fn();
     render(<ComposerHarness onClose={onClose} />);
     const dialog = await screen.findByRole('dialog', { name: 'New post in Open discussion' });
-    const body = within(dialog).getByRole('combobox', { name: 'Post' });
+    const body = within(dialog).getByRole('textbox', { name: 'Post' });
     await userEvent.type(body, 'Thanks @a');
     await within(dialog).findByRole('option');
 
     await userEvent.keyboard('{Escape}');
 
-    expect(body).toHaveAttribute('aria-expanded', 'false');
+    // The list is closed: the text field no longer points to it (#1651)
+    expect(body).not.toHaveAttribute('aria-controls');
     expect(screen.queryByRole('dialog', { name: 'Discard your text?' })).not.toBeInTheDocument();
     expect(screen.getByRole('dialog', { name: 'New post in Open discussion' })).toBeInTheDocument();
     expect(onClose).not.toHaveBeenCalled();
@@ -234,7 +235,7 @@ describe('the post composer keeps the text that was not sent (#1622)', () => {
     const dialog = await screen.findByRole('dialog', { name: 'New post in Open discussion' });
 
     await userEvent.type(within(dialog).getByLabelText('Title'), 'Hello');
-    await userEvent.type(within(dialog).getByRole('combobox', { name: 'Post' }), 'A long text');
+    await userEvent.type(within(dialog).getByRole('textbox', { name: 'Post' }), 'A long text');
     await waitFor(() => expect(readKeptText(adaInSpace)?.fields).toEqual({ title: 'Hello', body: 'A long text', notify_now: false }));
 
     const writes = setItem.mock.calls.filter(([key]) => key.startsWith(KEPT_TEXT_KEY_PREFIX));
@@ -270,7 +271,7 @@ describe('the post composer keeps the text that was not sent (#1622)', () => {
     const dialog = await screen.findByRole('dialog', { name: 'New post in Open discussion' });
 
     expect(within(dialog).getByLabelText('Title')).toHaveValue('Kept title');
-    expect(within(dialog).getByRole('combobox', { name: 'Post' })).toHaveValue('Kept body');
+    expect(within(dialog).getByRole('textbox', { name: 'Post' })).toHaveValue('Kept body');
     expect(within(dialog).getByText('We kept the text that you did not send.')).toBeInTheDocument();
     await waitFor(() => expect(dialog).toHaveAccessibleDescription('We kept the text that you did not send.'));
     // Not an alert: the focus stays on the title
@@ -306,7 +307,7 @@ describe('the post composer keeps the text that was not sent (#1622)', () => {
 
     const title = within(dialog).getByLabelText('Title');
     expect(title).toHaveValue('');
-    expect(within(dialog).getByRole('combobox', { name: 'Post' })).toHaveValue('');
+    expect(within(dialog).getByRole('textbox', { name: 'Post' })).toHaveValue('');
     expect(within(dialog).queryByText('We kept the text that you did not send.')).toBeNull();
     expect(title).toHaveFocus();
     expect(readKeptText(adaInSpace)).toBeNull();

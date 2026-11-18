@@ -85,7 +85,8 @@ function TwoPages({ broken: _broken, ...args }: StoryArgs) {
  * stays. The error goes to the console and to `onError`.
  *
  * Accessibility: the message has `role="alert"`, so a screen reader reads it at once. "Try again" renders the children
- * again; "Reload the page" reloads it. The icons are hidden from screen readers.
+ * again and gives the focus to the start of the content that is back, or to the message when it fails again, never to
+ * the page. "Reload the page" reloads it. The icons are hidden from screen readers.
  */
 // No `component`: the boundary is a class, and a class takes no props other than its own (the stories add `broken`)
 const meta = {
@@ -139,7 +140,7 @@ export const PageMessage: Story = {
 
 /**
  * The keyboard path: the part is repaired, and Enter on "Try again" renders it again. The button goes away with the
- * message, and the focus goes to the page (body), not to the content that is back.
+ * message, and the focus goes to the start of the content that is back (the list of the seeds), not to the page.
  */
 export const TryAgain: Story = {
   play: async ({ canvasElement }) => {
@@ -154,11 +155,16 @@ export const TryAgain: Story = {
     await userEvent.keyboard('{Enter}');
     await waitFor(() => expect(canvas.getByText('Tomato, Black Krim')).toBeInTheDocument());
     await expect(canvas.queryByRole('alert')).toBeNull();
+    await expect(canvas.getByRole('list')).toHaveFocus();
+    // The list takes the focus this one time: Tab goes on to the next control
+    await userEvent.tab();
+    await expect(repair).toHaveFocus();
+    await expect(canvas.getByRole('list')).not.toHaveAttribute('tabindex');
   },
 };
 
 /**
- * "Try again" while the part still fails: the message stays
+ * "Try again" while the part still fails: the message stays, and gets the focus
  */
 export const TryAgainStillFails: Story = {
   play: async ({ args, canvasElement }) => {
@@ -166,6 +172,7 @@ export const TryAgainStillFails: Story = {
     await userEvent.click(canvas.getByRole('button', { name: 'Try again' }));
     await expect(canvas.getByRole('alert')).toHaveTextContent('Something went wrong on this page');
     await expect(args.onError).toHaveBeenCalledTimes(2);
+    await waitFor(() => expect(canvas.getByRole('alert')).toHaveFocus());
   },
 };
 
