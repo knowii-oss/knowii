@@ -241,7 +241,8 @@ export function ImageInsertPanel({ baseId, items, busy, message, onChange, onIns
         <Button size="sm" variant="secondary" aria-disabled={busy || undefined} onClick={() => !busy && onCancel()}>
           Cancel
         </Button>
-        {/* aria-busy, not loading: a disabled button loses the focus, and a failed upload keeps the panel open */}
+        {/* aria-busy, not loading: each image shows its own upload spinner and status, and the spinner of loading would
+            add a second one and change the name of the button */}
         <Button size="sm" aria-busy={busy || undefined} onClick={() => !busy && onInsert()}>
           {several ? `Insert the ${items.length} images` : 'Insert the image'}
         </Button>

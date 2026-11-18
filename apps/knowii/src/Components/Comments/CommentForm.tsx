@@ -21,7 +21,8 @@ export interface CommentFormProps {
   initialBody?: string;
   autoFocus?: boolean;
   /**
-   * Saves the comment. Returns the field error to show, or null on success (the form then clears itself).
+   * Saves the comment. Returns the field error to show, or null on success (the form then clears itself and puts the
+   * focus back in the field).
    */
   onSubmit: (values: CommentFormValues) => Promise<string | null>;
   onCancel?: () => void;
@@ -63,6 +64,9 @@ export function CommentForm({
     if (error) {
       form.setError('body', { message: error });
     } else {
+      // The form stays on the page: the focus goes back in the field, so that the member can write again (#1618).
+      // Before the reset: the reset removes the fields until the next render, and setFocus finds no field then.
+      form.setFocus('body');
       form.reset({ body: '' });
     }
   });

@@ -194,8 +194,8 @@ export function LessonQuiz({ communityCuid, spaceCuid, pageCuid, quiz: lessonQui
             <InputError message={error} />
             {canAnswer ? (
               <div className="flex flex-wrap gap-2">
-                {/* aria-busy, not loading: a disabled button loses the focus */}
-                <Button type="submit" aria-busy={busy || undefined}>
+                {/* A busy button keeps the focus (#1564) */}
+                <Button type="submit" loading={busy}>
                   Check my answers
                 </Button>
                 {result !== null && (

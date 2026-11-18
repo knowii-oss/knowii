@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { router, useForm } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
 import type { ApiToken, ApiTokenExpiry, Permission } from '@knowii/common';
@@ -87,6 +87,7 @@ export default function ApiTokensPage({ tokens, availablePermissions, defaultPer
   const [managing, setManaging] = useState<ApiToken | null>(null);
   const [deleting, setDeleting] = useState<ApiToken | null>(null);
   const [newToken, setNewToken] = useState<string | null>(null);
+  const nameField = useRef<HTMLInputElement>(null);
 
   const breadcrumbItems: BreadcrumbItem[] = [{ label: 'API tokens', icon: <FaKey /> }];
 
@@ -95,6 +96,9 @@ export default function ApiTokensPage({ tokens, availablePermissions, defaultPer
       preserveScroll: true,
       onSuccess: (response) => {
         const flash = (response.props as unknown as { jetstream: { flash: { token?: string } } }).jetstream.flash;
+        // The form stays on the page, under the dialog of the token: the focus goes back in the name field. The dialog
+        // gives the focus back to it when it closes. The Create button cannot take it: it is disabled then (#1618).
+        nameField.current?.focus();
         setNewToken(flash.token ?? null);
         createForm.reset();
       },
@@ -159,6 +163,7 @@ export default function ApiTokensPage({ tokens, availablePermissions, defaultPer
         <div className="col-span-6 sm:col-span-4">
           <InputLabel htmlFor="token-name">Name</InputLabel>
           <TextInput
+            ref={nameField}
             id="token-name"
             wrapperClassName="mt-1"
             value={createForm.data.name}

@@ -1,5 +1,5 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { CommunityInvitation, CommunityJoinBlock, CommunityMember, CommunityRole, Paginated } from '@knowii/common';
 import { AppDataProvider, canActOnRole, grantableRoles, knowiiApiClient } from '@knowii/common';
@@ -151,6 +151,24 @@ describe('CommunityMembersManager', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Invite' }));
     await waitFor(() => expect(create).toHaveBeenLastCalledWith('c1', { email: 'ada@example.com', role: 'member' }));
     await waitFor(() => expect(screen.getByLabelText('Invite by email')).toHaveValue(''));
+  });
+
+  it('puts the focus back in the email field after an invitation is sent with the keyboard (#1618)', async () => {
+    vi.spyOn(knowiiApiClient.communities.invitations, 'create').mockResolvedValue({
+      ok: true,
+      message: '',
+      data: { ...invitation, email: 'ada@example.com', role: 'member' },
+    });
+    renderManager('owner');
+
+    const email = await screen.findByLabelText('Invite by email');
+    await userEvent.type(email, 'ada@example.com');
+    const invite = screen.getByRole('button', { name: 'Invite' });
+    act(() => invite.focus());
+    await userEvent.keyboard('{Enter}');
+
+    await waitFor(() => expect(email).toHaveValue(''));
+    expect(email).toHaveFocus();
   });
 
   it('refuses an invalid email address before calling the API (#1242)', async () => {

@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ApiToken, Permission } from '@knowii/common';
 import { AppDataProvider } from '@knowii/common';
@@ -7,6 +7,8 @@ import ApiTokensPage from './Index';
 
 const routerDelete = vi.fn();
 const post = vi.fn();
+// The options of the request (onSuccess): a test calls them to answer the request
+const postOptions = vi.fn();
 
 vi.mock('@inertiajs/react', async () => {
   const React = await import('react');
@@ -17,9 +19,12 @@ vi.mock('@inertiajs/react', async () => {
       return {
         data,
         setData: (key: string, value: unknown) => setState((current) => ({ ...current, [key]: value })),
-        post: (url: string) => post(url, data),
+        post: (url: string, options?: unknown) => {
+          post(url, data);
+          postOptions(options);
+        },
         put: vi.fn(),
-        reset: vi.fn(),
+        reset: () => setState(initial),
         processing: false,
         errors: {},
       };
@@ -64,6 +69,29 @@ describe('ApiTokensPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Create' }));
 
     expect(post).toHaveBeenCalledWith('/api-tokens.store/', { name: 'Extension 2', permissions: ['resources:create'], expires_in: '90' });
+  });
+
+  it('puts the focus back in the name field after a token is created, also after its dialog closes (#1618)', async () => {
+    postOptions.mockImplementationOnce((options: { onSuccess: (response: unknown) => void }) =>
+      options.onSuccess({ props: { jetstream: { flash: { token: 'secret-token' } } } }),
+    );
+    renderPage();
+
+    const name = screen.getByLabelText('Name');
+    await userEvent.type(name, 'Script');
+    const create = screen.getByRole('button', { name: 'Create' });
+    act(() => create.focus());
+    await userEvent.keyboard('{Enter}');
+
+    const dialog = await screen.findByRole('dialog', { name: 'Your new API token' });
+    expect(within(dialog).getByText('secret-token')).toBeInTheDocument();
+    expect(name).toHaveValue('');
+    // The focus left the Create button before it became disabled: the dialog cannot give the focus back to it
+    expect(create).toBeDisabled();
+
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    await waitFor(() => expect(name).toHaveFocus());
   });
 
   it('offers an expiry, 90 days by default, and sends the choice (#1267)', async () => {
