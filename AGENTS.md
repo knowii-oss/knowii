@@ -202,8 +202,10 @@ PHPStan, tests and audits run in CI.
   `text-primary` for text, `outline-primary` for focus. `text-white` is only
   for text on `secondary` or `danger` fills. Check every screen in both
   themes.
-- `secondary-text` (#ff1493) fails WCAG AA for normal text on the dark
-  background: use it for large or decorative text only.
+- Pink text (links, mentions, labels) and a border that marks a state use
+  `secondary-text`, which passes WCAG AA on every surface of both themes.
+  `secondary` is for fills and buttons only. `contrast.spec.ts` checks the
+  text tokens on their surfaces: a new token value must pass it.
 - `<Button>` defaults to `type="button"`: set `type="submit"` explicitly. For
   navigation, use `<LinkButton>` (or `buttonClasses()` on a link), never a
   button inside a link.

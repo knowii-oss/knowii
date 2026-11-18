@@ -17,7 +17,7 @@ export const MAX_VISIBLE_TOASTS = 5;
  */
 export const THEME_STORAGE_KEY = 'knowii-theme';
 export const THEME_BACKGROUND_COLORS = {
-  dark: '#37404c',
+  dark: '#303843',
   light: '#f5f7fa',
 } as const;
 export const DEFAULT_TEXTAREA_ROWS = 3;
