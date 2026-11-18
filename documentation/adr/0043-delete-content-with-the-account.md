@@ -1,6 +1,6 @@
 # 0043. A member can delete their posts, comments and messages with the account
 
-- Status: Accepted
+- Status: Accepted, amended by [0050](0050-a-delete-keeps-the-replies-of-other-people.md) (an ordinary delete also leaves a marker for the replies of other people: consequence 2 and decision 5)
 - Date: 2026-11-15
 - Issue: #1344
 - Pull request: #1491

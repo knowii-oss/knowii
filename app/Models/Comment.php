@@ -19,8 +19,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * A comment on a post (#1175) or on a resource of a resources space (#1034): exactly one of post_id and
  * community_resource_id is set (ADR 0014). A reply has a parent (a top-level comment): one level of nesting only.
- * A comment that a member deleted with their account, while it still had replies, stays as a marker (#1344, ADR 0043):
- * no text, no author, `deleted_at` set.
+ * A comment that is deleted while it still has replies of other people (by its author, or with the account of its
+ * author) stays as a marker (#1344, #1565, ADR 0043, ADR 0050): no text, no author, `deleted_at` set (`LeavesMarkers`).
  *
  * @property-read int $id
  * @property-read string $cuid

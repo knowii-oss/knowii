@@ -129,6 +129,18 @@ The notifications of the current member, in every community ([ADR 0042](../adr/0
 
 The posts and the first-level chat messages carry `follow_state` (`following`, `muted`, `stopped`, or null). The space carries `default_notification_level` (`all`, `mine` or null) for the people who manage the spaces only; they set it with `PATCH /v1/communities/{community}/spaces/{space}` (`all` for a discussion space only, never a chat space; `none` is not allowed). `POST .../posts` takes `notify_now` (a boolean) to skip the 5 minutes before the members at "Everything" are told, for the people who can moderate the space (403 for the others).
 
+## Delete a post or a comment
+
+A delete by the author keeps what other people wrote (#1565, [ADR 0050](../adr/0050-a-delete-keeps-the-replies-of-other-people.md)). "Other people" are the authors other than the person who deletes; a comment of a deleted account counts, a marker does not.
+
+| Route | What it does |
+| ----- | ------------ |
+| `DELETE /v1/communities/{community}/spaces/{space}/posts/{post}/comments/{comment}` | The author or a moderator deletes a comment. With replies of other people, the comment stays as a marker (no text, no author) with every reply: 200 and a message. Otherwise it goes with its replies: 204. Body `delete_replies` (a boolean, optional): true deletes the comment and every reply under it, a marker too, for the moderators of the space only (403 for the others). A marker is not deleted again without it (403). 400 for a value that is not a boolean. Needs `posts:write` |
+| `DELETE /v1/communities/{community}/spaces/{space}/resources/{resource}/comments/{comment}` | The same for a comment of a resource. Needs `resources:write` |
+| `DELETE /v1/communities/{community}/spaces/{space}/posts/{post}` | The author or a moderator deletes a post. With comments of other people, the post stays as a marker (no title, no text, no author, the slug `deleted-{cuid}`, not pinned) with every comment: 200 and a message. The lists skip it; `GET .../posts/{post}` returns it with `deleted_at`. Otherwise it goes with its comments: 204. Body `delete_comments` (a boolean, optional): true deletes the post and its whole discussion, for the moderators of the space only (403 for the others). A marker is not deleted again without it (403). 400 for a value that is not a boolean. Needs `posts:write` |
+
+A marker whose last reply goes stays, like a deleted chat message.
+
 ## Keep it current
 
 Each pull request that adds or changes an endpoint adds or updates the requests here, in the same pull request:

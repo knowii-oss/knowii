@@ -74,3 +74,4 @@ Do not write an ADR for a bug fix, a refactor that keeps the structure, or a fea
 | [0047](0047-entitlement-rules-feed-access-groups.md)                   | The entitlements of the sign-in provider feed the access groups          | Accepted |
 | [0048](0048-where-i-am.md)                                             | Where I am: time zone, last visit, visits of spaces, "Catch up" data     | Accepted |
 | [0049](0049-component-toolkit-storybook-stories-as-tests.md)           | Component toolkit: Storybook, stories as tests                           | Accepted |
+| [0050](0050-a-delete-keeps-the-replies-of-other-people.md)             | A delete by the author keeps the replies of other people                 | Accepted |

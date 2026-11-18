@@ -2,6 +2,7 @@
 
 namespace App\Actions\Users;
 
+use App\Contracts\Content\LeavesMarkers;
 use App\Contracts\Notifications\PrunesNotifications;
 use App\Contracts\Users\DeletesMemberContent;
 use App\Models\ChatMessage;
@@ -26,7 +27,8 @@ use Illuminate\Support\Facades\Log;
  * - Resources, pages and lessons are not touched: they stay under "Deleted member" (ADR 0024).
  *
  * The work runs in chunks of ids, in the transaction of the caller (or its own). A marker loses its author, so the next
- * chunk never meets it again. No event is sent per item: the open pages show the change when they load again.
+ * chunk never meets it again. The markers of posts and comments come from `LeavesMarkers`, the same as an ordinary
+ * delete (#1565, ADR 0050). No event is sent per item: the open pages show the change when they load again.
  */
 final class DeleteMemberContent implements DeletesMemberContent
 {
@@ -46,43 +48,22 @@ final class DeleteMemberContent implements DeletesMemberContent
 
     private function deletePosts(User $user): void
     {
+        $markers = app(LeavesMarkers::class);
         while (($ids = self::nextIds(Post::query()->where('author_id', $user->id))) !== []) {
-            // Posts with comments of other members (a deleted account and the markers do not count)
-            $withOthers = Comment::query()
-                ->whereIn('post_id', $ids)
-                ->whereNull('deleted_at')
-                ->where(static fn (Builder $query) => $query->whereNull('author_id')->orWhere('author_id', '!=', $user->id))
-                ->select('post_id')
-                ->distinct()
-                ->get()
-                ->map(static fn (Comment $comment): int => (int) $comment->post_id)
-                ->all();
-            $removed = array_values(array_diff($ids, $withOthers));
+            // Posts with comments of other members (a deleted account counts, the markers do not)
+            $kept = $markers->postsAnsweredByOthers($ids, $user);
+            $removed = array_values(array_diff($ids, $kept));
 
-            $prunes = app(PrunesNotifications::class);
-            $prunes->forPosts($ids);
             if ($removed !== []) {
+                $prunes = app(PrunesNotifications::class);
+                $prunes->forPosts($removed);
                 // The cascades remove the comments of the member, with their reactions, mentions and usages
                 $prunes->forComments(self::ids(Comment::query()->whereIn('post_id', $removed)));
                 Post::query()->whereIn('id', $removed)->delete();
             }
 
-            $kept = array_values($withOthers);
-            if ($kept !== []) {
-                Post::query()->whereIn('id', $kept)->update([
-                    'title' => '',
-                    // The slug holds the old title: the marker gets one that names nothing
-                    'slug' => DB::raw("'deleted-' || lower(cuid)"),
-                    'body' => '',
-                    'body_html' => '',
-                    'author_id' => null,
-                    'is_pinned' => false,
-                    'pinned_at' => null,
-                    'edited_at' => null,
-                    'deleted_at' => now(),
-                ]);
-                self::clearMarkers('post_id', $kept);
-            }
+            // The same marker as an ordinary delete (#1565)
+            $markers->markPosts($kept);
         }
     }
 
@@ -103,27 +84,19 @@ final class DeleteMemberContent implements DeletesMemberContent
             }
         }
 
+        $markers = app(LeavesMarkers::class);
         while (($ids = self::nextIds(Comment::query()->where('author_id', $user->id))) !== []) {
-            $withReplies = Comment::query()->whereIn('parent_id', $ids)->select('parent_id')->distinct()->get()
-                ->map(static fn (Comment $comment): int => (int) $comment->parent_id)->all();
-            $removed = array_values(array_diff($ids, $withReplies));
+            // The own replies are gone: any reply left is of another member
+            $kept = $markers->commentsAnsweredByOthers($ids, $user);
+            $removed = array_values(array_diff($ids, $kept));
 
-            app(PrunesNotifications::class)->forComments($ids);
             if ($removed !== []) {
+                app(PrunesNotifications::class)->forComments($removed);
                 Comment::query()->whereIn('id', $removed)->delete();
             }
 
-            $kept = array_values($withReplies);
-            if ($kept !== []) {
-                Comment::query()->whereIn('id', $kept)->update([
-                    'body' => '',
-                    'body_html' => '',
-                    'author_id' => null,
-                    'edited_at' => null,
-                    'deleted_at' => now(),
-                ]);
-                self::clearMarkers('comment_id', $kept);
-            }
+            // The same marker as an ordinary delete (#1565)
+            $markers->markComments($kept);
         }
     }
 
@@ -158,7 +131,7 @@ final class DeleteMemberContent implements DeletesMemberContent
             $kept = array_values($withReplies);
             if ($kept !== []) {
                 ChatMessage::query()->whereIn('id', $kept)->update(['body' => '', 'body_html' => '', 'author_id' => null, 'deleted_at' => now()]);
-                self::clearMarkers('chat_message_id', $kept);
+                self::clearMarkers($kept);
             }
         }
     }
@@ -169,7 +142,7 @@ final class DeleteMemberContent implements DeletesMemberContent
         while (($ids = self::nextIds(ChatMessage::query()->where('author_id', $user->id)->whereNotNull('conversation_id'))) !== []) {
             app(PrunesNotifications::class)->forChatMessages($ids);
             ChatMessage::query()->whereIn('id', $ids)->update(['body' => '', 'body_html' => '', 'author_id' => null, 'deleted_at' => now()]);
-            self::clearMarkers('chat_message_id', $ids);
+            self::clearMarkers($ids);
         }
     }
 
@@ -184,16 +157,16 @@ final class DeleteMemberContent implements DeletesMemberContent
     }
 
     /**
-     * The reactions, the mentions and the upload usages of items that became markers (the cascades only cover the rows
-     * that go).
+     * The reactions, the mentions and the upload usages of chat messages that became markers (the cascades only cover
+     * the rows that go). Posts and comments: `LeavesMarkers`.
      *
      * @param  list<int>  $ids
      */
-    private static function clearMarkers(string $column, array $ids): void
+    private static function clearMarkers(array $ids): void
     {
-        Reaction::query()->whereIn($column, $ids)->delete();
-        Mention::query()->whereIn($column, $ids)->delete();
-        UploadUsage::query()->whereIn($column, $ids)->delete();
+        Reaction::query()->whereIn('chat_message_id', $ids)->delete();
+        Mention::query()->whereIn('chat_message_id', $ids)->delete();
+        UploadUsage::query()->whereIn('chat_message_id', $ids)->delete();
     }
 
     /**

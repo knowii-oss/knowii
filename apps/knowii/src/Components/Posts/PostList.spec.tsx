@@ -183,6 +183,21 @@ describe('PostList live updates (#1180)', () => {
     expect(screen.getAllByRole('article')).toHaveLength(1);
   });
 
+  it('removes a post that became a marker: a marker shows only on its own page (#1565)', async () => {
+    vi.spyOn(knowiiApiClient.communities.posts, 'get').mockResolvedValue({
+      ok: true,
+      message: '',
+      data: { ...post('p2', ''), slug: 'deleted-p2', author: null, deleted_at: new Date() },
+    });
+    renderLive();
+    expect(screen.getAllByRole('article')).toHaveLength(2);
+
+    act(() => emitSocketEvent(channel, 'space.post.updated', { space_cuid: 's1', post_cuid: 'p2' }));
+
+    await waitFor(() => expect(screen.getAllByRole('article')).toHaveLength(1));
+    expect(screen.queryByRole('link', { name: 'Second' })).not.toBeInTheDocument();
+  });
+
   it('ignores posts that are not shown and reactions of comments', () => {
     const get = vi.spyOn(knowiiApiClient.communities.posts, 'get');
     renderLive();

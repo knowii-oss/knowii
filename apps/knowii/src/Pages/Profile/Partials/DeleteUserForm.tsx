@@ -103,9 +103,16 @@ export default function DeleteUserForm() {
                 checked={form.data.delete_content}
                 onChange={(e) => form.setData('delete_content', e.target.checked)}
                 aria-invalid={!!form.errors.delete_content}
+                aria-describedby="delete-user-content-help"
               />
               <span className="pt-0.5">Also delete my posts, comments and messages</span>
             </label>
+            {/* What the box keeps (#1603): words approved by the owner */}
+            <p id="delete-user-content-help" className="mt-1 pl-9 text-sm text-muted">
+              {
+                'Your resources, pages and lessons stay, under the name "Deleted member". A post or a comment that has replies stays as an empty marker.'
+              }
+            </p>
             <InputError className="mt-2" message={form.errors.delete_content} />
           </div>
         </form>

@@ -92,16 +92,16 @@ describe('CommentSection', () => {
     expect(onCountChange).toHaveBeenLastCalledWith(4);
   });
 
-  it('asks before it deletes a comment and its replies', async () => {
+  it('asks before it deletes a comment, and a comment without replies goes', async () => {
     const remove = vi.spyOn(knowiiApiClient.communities.comments, 'delete').mockResolvedValue({ ok: true, message: '', data: undefined });
-    const onCountChange = renderSection();
+    const onCountChange = renderSection({ initialComments: [comment('c1', ada, 'First'), comment('c2', bob, 'Second')] });
 
     await userEvent.click(screen.getByRole('button', { name: 'Delete the comment by Ada' }));
     const dialog = await screen.findByRole('dialog', { name: 'Delete this comment?' });
-    expect(dialog).toHaveAccessibleDescription('Its replies are deleted too. This cannot be undone.');
+    expect(dialog).toHaveAccessibleDescription('This cannot be undone.');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));
 
-    expect(remove).toHaveBeenCalledWith({ communityCuid: 'community', spaceCuid: 'space', postCuid: 'post' }, 'c1');
+    expect(remove).toHaveBeenCalledWith({ communityCuid: 'community', spaceCuid: 'space', postCuid: 'post' }, 'c1', {});
     expect(onCountChange).toHaveBeenLastCalledWith(1);
     expect(screen.getByRole('heading', { name: '1 comment' })).toBeInTheDocument();
   });
@@ -485,3 +485,130 @@ function renderSectionWithUnmount() {
     </AppDataProvider>,
   );
 }
+
+describe('CommentSection delete that keeps the replies of other people (#1565)', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  const mockDelete = () =>
+    vi.spyOn(knowiiApiClient.communities.comments, 'delete').mockResolvedValue({ ok: true, message: '', data: undefined });
+
+  // The "Delete" button of one comment (an author can have a comment and a reply in the same thread)
+  async function openDeleteDialog(cuid: string) {
+    const element = document.getElementById(`comment-${cuid}`);
+    if (!element) {
+      throw new Error(`No comment ${cuid}`);
+    }
+    await userEvent.click(within(element).getByRole('button', { name: /^Delete the/ }));
+    return screen.findByRole('dialog', { name: 'Delete this comment?' });
+  }
+
+  it('says that the replies of other people stay and that the own comment becomes a marker', async () => {
+    renderSection();
+
+    const dialog = await openDeleteDialog('c1');
+
+    expect(dialog).toHaveAccessibleDescription(
+      'The replies of other people stay. Your comment is replaced by "This comment was deleted." This cannot be undone.',
+    );
+    expect(within(dialog).queryByRole('checkbox')).not.toBeInTheDocument();
+  });
+
+  it('says that the own replies go too when there are no replies of other people', async () => {
+    renderSection({ initialComments: [comment('c1', ada, 'First', null, [comment('r1', ada, 'Mine', 'c1')])] });
+
+    const dialog = await openDeleteDialog('c1');
+
+    expect(dialog).toHaveAccessibleDescription('Your replies under it are deleted too. This cannot be undone.');
+  });
+
+  it('says nothing more for a comment without replies, and shows no box, also to a moderator', async () => {
+    renderSection({ canModerate: true });
+
+    const dialog = await openDeleteDialog('c2');
+
+    expect(dialog).toHaveAccessibleDescription('This cannot be undone.');
+    expect(within(dialog).queryByRole('checkbox')).not.toBeInTheDocument();
+  });
+
+  it('offers a moderator to delete the replies too, not ticked, and the text follows the box', async () => {
+    const remove = mockDelete();
+    renderSection({ canModerate: true, currentUserCuid: 'mod' });
+
+    const dialog = await openDeleteDialog('c1');
+    const box = within(dialog).getByRole('checkbox', { name: 'Also delete the replies (1)' });
+    expect(box).not.toBeChecked();
+    expect(dialog).toHaveAccessibleDescription(
+      'The replies of other people stay. The comment is replaced by "This comment was deleted." This cannot be undone.',
+    );
+
+    await userEvent.click(box);
+    expect(dialog).toHaveAccessibleDescription('Its replies are deleted too. This cannot be undone.');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));
+
+    expect(remove).toHaveBeenCalledWith({ communityCuid: 'community', spaceCuid: 'space', postCuid: 'post' }, 'c1', {
+      delete_replies: true,
+    });
+    expect(screen.queryByText('A reply')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '1 comment' })).toBeInTheDocument();
+  });
+
+  it('shows the marker in place after the delete, keeps the replies, and puts the focus on the marker', async () => {
+    const remove = mockDelete();
+    const onCountChange = renderSection();
+
+    const dialog = await openDeleteDialog('c1');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));
+
+    expect(remove).toHaveBeenCalledWith({ communityCuid: 'community', spaceCuid: 'space', postCuid: 'post' }, 'c1', {});
+    const marker = await screen.findByRole('article', { name: 'Deleted comment' });
+    expect(marker).toHaveTextContent('This comment was deleted.');
+    expect(screen.queryByText('First')).not.toBeInTheDocument();
+    expect(screen.getByText('A reply')).toBeInTheDocument();
+    expect(onCountChange).toHaveBeenLastCalledWith(3);
+    await waitFor(() => expect(marker).toHaveFocus());
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('puts the focus on the next comment after a comment goes, and on the title after the last one', async () => {
+    mockDelete();
+    renderSection({ initialComments: [comment('c1', ada, 'First'), comment('c2', bob, 'Second')], canModerate: true });
+
+    await userEvent.click(within(await openDeleteDialog('c1')).getByRole('button', { name: 'Delete' }));
+    await waitFor(() => expect(document.getElementById('comment-c2')).toHaveFocus());
+
+    await userEvent.click(within(await openDeleteDialog('c2')).getByRole('button', { name: 'Delete' }));
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Comments' })).toHaveFocus());
+  });
+
+  it('puts the focus on the comment that a deleted reply answered', async () => {
+    mockDelete();
+    renderSection({ initialComments: [comment('c1', bob, 'First', null, [comment('r1', ada, 'Mine', 'c1')])] });
+
+    await userEvent.click(within(await openDeleteDialog('r1')).getByRole('button', { name: 'Delete' }));
+
+    await waitFor(() => expect(document.getElementById('comment-c1')).toHaveFocus());
+    expect(screen.queryByText('Mine')).not.toBeInTheDocument();
+  });
+
+  it('lets only a moderator delete a marker', () => {
+    const marker: Comment = { ...comment('m1', ada, '', null, [comment('r9', bob, 'Still here', 'm1')]), author: null, deleted_at: now };
+    renderSection({ initialComments: [marker] });
+    expect(screen.queryByRole('button', { name: 'Delete the deleted comment' })).not.toBeInTheDocument();
+  });
+
+  it('deletes a marker with its replies when a moderator asks', async () => {
+    const remove = mockDelete();
+    const marker: Comment = { ...comment('m1', ada, '', null, [comment('r9', bob, 'Still here', 'm1')]), author: null, deleted_at: now };
+    renderSection({ initialComments: [marker], canModerate: true });
+
+    const dialog = await openDeleteDialog('m1');
+    expect(dialog).toHaveAccessibleDescription('Its replies are deleted too. This cannot be undone.');
+    expect(within(dialog).queryByRole('checkbox')).not.toBeInTheDocument();
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));
+
+    expect(remove).toHaveBeenCalledWith({ communityCuid: 'community', spaceCuid: 'space', postCuid: 'post' }, 'm1', {
+      delete_replies: true,
+    });
+    expect(screen.queryByText('Still here')).not.toBeInTheDocument();
+  });
+});

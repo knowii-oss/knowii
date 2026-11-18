@@ -19,8 +19,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * A post in a discussion space (#1174). A post that a member deleted with their account, while it still had comments of
- * other members, stays as a marker (#1344, ADR 0043): no title, no text, no author, `deleted_at` set.
+ * A post in a discussion space (#1174). A post that is deleted while it still has comments of other people (by its
+ * author, or with the account of its author) stays as a marker (#1344, #1565, ADR 0043, ADR 0050): no title, no text, no
+ * author, `deleted_at` set (`LeavesMarkers`).
  *
  * @property-read int $id
  * @property-read string $cuid

@@ -39,6 +39,7 @@ use App\Actions\CommunityMembers\LeaveCommunity;
 use App\Actions\CommunityMembers\LiftCommunityJoinBlock;
 use App\Actions\CommunityMembers\RemoveCommunityMember;
 use App\Actions\CommunityMembers\UpdateCommunityMemberRole;
+use App\Actions\Content\LeaveMarkers;
 use App\Actions\Content\RenderContentAgain;
 use App\Actions\Conversations\MarkConversationAsRead;
 use App\Actions\Conversations\SendDirectMessage;
@@ -140,6 +141,7 @@ use App\Contracts\CommunityMembers\LeavesCommunities;
 use App\Contracts\CommunityMembers\LiftsCommunityJoinBlocks;
 use App\Contracts\CommunityMembers\RemovesCommunityMembers;
 use App\Contracts\CommunityMembers\UpdatesCommunityMemberRoles;
+use App\Contracts\Content\LeavesMarkers;
 use App\Contracts\Content\RendersContentAgain;
 use App\Contracts\Conversations\MarksConversationsAsRead;
 use App\Contracts\Conversations\SendsDirectMessages;
@@ -308,6 +310,7 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(UploadsImages::class, UploadImage::class);
         app()->singleton(BuildsUploadSizes::class, BuildUploadSizes::class);
         app()->singleton(RendersContentAgain::class, RenderContentAgain::class);
+        app()->singleton(LeavesMarkers::class, LeaveMarkers::class);
         app()->singleton(PrunesExpiredData::class, PruneExpiredData::class);
         // Course materials (#1336)
         app()->singleton(CreatesCourseMaterials::class, CreateCourseMaterial::class);

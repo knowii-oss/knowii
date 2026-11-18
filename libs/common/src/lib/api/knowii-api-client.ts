@@ -539,12 +539,22 @@ export const knowiiApiClient = {
           'Failed to save the post.',
           input,
         ),
-      delete: (communityCuid: string, spaceCuid: string, postCuid: string): Promise<ApiResult<undefined>> =>
+      /**
+       * Delete a post (#1565): a post with comments of other people stays as a marker (load it again to show it).
+       * `delete_comments` (moderators only) deletes the post and its whole discussion.
+       */
+      delete: (
+        communityCuid: string,
+        spaceCuid: string,
+        postCuid: string,
+        options: { delete_comments?: boolean } = {},
+      ): Promise<ApiResult<undefined>> =>
         apiRequest(
           'delete',
           postsPath(communityCuid, spaceCuid, postCuid, COMMUNITY_SPACE_POST_API_PATH),
           null,
           'Failed to delete the post.',
+          options.delete_comments === undefined ? undefined : { delete_comments: options.delete_comments },
         ),
       pin: (communityCuid: string, spaceCuid: string, postCuid: string, pinned: boolean): Promise<ApiResult<Post>> =>
         apiRequest(
@@ -809,8 +819,18 @@ export const knowiiApiClient = {
         apiRequest('post', commentsPath(subject), commentSchema, 'Failed to publish the comment.', input),
       update: (subject: CommentSubject, commentCuid: string, input: CommentForm): Promise<ApiResult<Comment>> =>
         apiRequest('patch', commentsPath(subject, commentCuid), commentSchema, 'Failed to save the comment.', input),
-      delete: (subject: CommentSubject, commentCuid: string): Promise<ApiResult<undefined>> =>
-        apiRequest('delete', commentsPath(subject, commentCuid), null, 'Failed to delete the comment.'),
+      /**
+       * Delete a comment (#1565): a comment with replies of other people stays as a marker. `delete_replies`
+       * (moderators only) deletes the comment and every reply under it.
+       */
+      delete: (subject: CommentSubject, commentCuid: string, options: { delete_replies?: boolean } = {}): Promise<ApiResult<undefined>> =>
+        apiRequest(
+          'delete',
+          commentsPath(subject, commentCuid),
+          null,
+          'Failed to delete the comment.',
+          options.delete_replies === undefined ? undefined : { delete_replies: options.delete_replies },
+        ),
     },
     /**
      * The quiz of a lesson of a course space (#1335, ADR 0038): managers write it, members answer, the server grades

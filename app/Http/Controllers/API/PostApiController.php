@@ -108,15 +108,19 @@ class PostApiController extends Controller
     }
 
     /**
-     * Delete a post (author or moderator).
+     * Delete a post (author or moderator, #1565). A post that has comments of other people stays as a marker, with every
+     * comment: the answer is 200, and the post page shows "This post was deleted" with the discussion (the lists skip
+     * it). Any other post goes with its comments: the answer is 204. `delete_comments` (moderators only, 403 for the
+     * others) deletes the post and its whole discussion, a marker too. A marker cannot be deleted again without it (403).
      *
      * @throws AuthenticationException
      */
-    final public function destroy(Request $request, Community $community, Space $space, Post $post): Response
+    #[BodyParameter('delete_comments', description: 'Also delete every comment and reply, the ones of other people too (moderators of the space only). Without it, a post that has comments of other people stays as a marker', required: false, type: 'bool', example: false)]
+    final public function destroy(Request $request, Community $community, Space $space, Post $post): JsonResponse|Response
     {
-        app(DeletesPosts::class)->delete($request->user() ?? throw new AuthenticationException, $post);
+        $marker = app(DeletesPosts::class)->delete($request->user() ?? throw new AuthenticationException, $post, $request->only(['delete_comments']));
 
-        return self::deleted();
+        return $marker === null ? self::deleted() : self::success('Post deleted, its comments stay');
     }
 
     /**

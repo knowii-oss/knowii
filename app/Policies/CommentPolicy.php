@@ -34,8 +34,22 @@ class CommentPolicy
             && $comment->author_id === $user->id && $user->belongsToCommunity($comment->community);
     }
 
+    /**
+     * The author, or a moderator of the space. A marker is never deleted again this way, like a chat message (#1185):
+     * only with its replies (deleteWithReplies).
+     */
     final public function delete(User $user, Comment $comment): bool
     {
-        return $this->update($user, $comment) || Gate::forUser($user)->check('moderate', $comment->subject()->space);
+        return ! $comment->isDeleted()
+            && ($this->update($user, $comment) || Gate::forUser($user)->check('moderate', $comment->subject()->space));
+    }
+
+    /**
+     * Delete the comment with every reply under it, the replies of other people too (#1565, ADR 0050): a moderator of
+     * the space only, a marker included. The author alone leaves a marker for the replies of other people.
+     */
+    final public function deleteWithReplies(User $user, Comment $comment): bool
+    {
+        return Gate::forUser($user)->check('moderate', $comment->subject()->space);
     }
 }
