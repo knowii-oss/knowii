@@ -39,7 +39,7 @@ export default function MainMenu({ entries, currentUrl, onNavigate }: Props) {
               aria-current={active ? 'page' : undefined}
               className={cn(
                 'flex items-center gap-3 rounded-lg border-l-4 px-4 py-3 text-lg font-bold transition-colors hover:bg-overlay/10',
-                active ? 'border-secondary bg-overlay/10 text-primary' : 'border-transparent text-muted hover:text-primary',
+                active ? 'border-secondary-text bg-overlay/10 text-primary' : 'border-transparent text-muted hover:text-primary',
               )}
             >
               <span aria-hidden="true" className="text-secondary-text">

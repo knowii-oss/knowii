@@ -493,7 +493,7 @@ export function MarkdownEditor({
     cn(
       'cursor-pointer rounded-t-md border-b-2 px-3 py-1.5 text-sm font-bold transition-colors',
       'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
-      active ? 'border-secondary text-primary' : 'border-transparent text-muted hover:text-primary',
+      active ? 'border-secondary-text text-primary' : 'border-transparent text-muted hover:text-primary',
     );
 
   return (

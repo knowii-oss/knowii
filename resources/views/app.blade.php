@@ -51,10 +51,10 @@
   <link href="/icons/favicon.ico" rel="shortcut icon" />
 
   <!-- Updated to the active theme by the front-end (theme.ts) -->
-  <meta name="theme-color" content="#37404c" />
-  <meta name="msapplication-TileColor" content="#37404c" />
+  <meta name="theme-color" content="#303843" />
+  <meta name="msapplication-TileColor" content="#303843" />
   <!-- Safari Pinned Tab Icon: https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/pinnedTabs/pinnedTabs.html -->
-  <link color="#37404c" href="/icons/favicon.svg" rel="mask-icon" />
+  <link color="#303843" href="/icons/favicon.svg" rel="mask-icon" />
 
   <script id="site-microdata-script" type="application/ld+json" nonce="{{ csp_nonce('script') }}">
     @verbatim

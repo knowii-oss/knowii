@@ -147,7 +147,7 @@ export function ReactionBar({ target, initialReactions, canReact, itemLabel, loa
             className={cn(
               'flex h-7 cursor-pointer items-center gap-1 rounded-full border px-2 text-sm transition-colors',
               'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-default',
-              reaction.reacted ? 'border-secondary bg-secondary/15 font-bold' : 'border-border hover:bg-overlay/10',
+              reaction.reacted ? 'border-secondary-text bg-secondary/15 font-bold' : 'border-border hover:bg-overlay/10',
             )}
           >
             <span aria-hidden="true">{reaction.emoji}</span>

@@ -31,20 +31,23 @@
   --color-white: #ffffff;
   --color-black: #000000;
 
-  /* Surfaces */
-  --color-background: #37404c; /* dark slate */
+  /*
+   * Surfaces. Steps: background to surface 1.3:1 (#1613), surface to surface-elevated 1.17:1, well to background 1.22:1.
+   * The text contrasts below are on background / surface / surface-elevated / well; contrast.spec.ts checks them.
+   */
+  --color-background: #303843; /* dark slate: the page */
   --color-surface: #3f4957; /* cards */
-  --color-surface-elevated: #475363; /* hover / raised */
-  --color-well: #2b323c; /* darker panels inside cards (data, form fields) */
+  --color-surface-elevated: #475363; /* hover / raised: the lightest surface, so the hardest case for text */
+  --color-well: #242a32; /* darker panels (header, footer, chat log, data, form fields) */
 
   /* Text */
-  --color-primary: #ffffff; /* text on dark */
-  --color-muted: rgb(255 255 255 / 0.64); /* secondary text: 4.85:1 on surface */
+  --color-primary: #ffffff; /* text on dark: 11.85 / 9.12 / 7.82 / 14.46 */
+  --color-muted: rgb(255 255 255 / 0.7); /* secondary text: 6.72 / 5.46 / 4.82 / 7.85 */
 
   /* Brand */
-  --color-secondary: #e5007d; /* signature magenta: fills and buttons (white text on it: 4.54:1) */
+  --color-secondary: #e5007d; /* signature magenta: fills and buttons, never text (white text on it: 4.54:1) */
   --color-secondary-hover: #cc006f;
-  --color-secondary-text: #ff1493; /* text accent pink: large or decorative text only (2.89:1 on the background) */
+  --color-secondary-text: #ffafdb; /* text accent pink, hue of the magenta (links, mentions, labels): 7.00 / 5.39 / 4.62 / 8.54 */
   --color-gradient-partner: #a855f7; /* purple companion of the magenta in gradients */
 
   /* Subtle fills and hovers, always used with an opacity */
@@ -52,14 +55,14 @@
 
   /* Lines */
   --color-border: rgb(255 255 255 / 0.1);
-  --color-border-strong: rgb(255 255 255 / 0.4); /* form control borders: 3.4:1 on the well */
+  --color-border-strong: rgb(255 255 255 / 0.4); /* form control borders: 3.6:1 on the well */
 
   /* Status */
-  --color-success: #4ade80;
-  --color-warning: #fbbf24; /* accent yellow */
+  --color-success: #4ade80; /* 6.80 / 5.24 / 4.49 / 8.30 */
+  --color-warning: #fbbf24; /* accent yellow (icons) */
   --color-danger: #dc2626; /* fills (white text on it: 4.83:1) */
   --color-danger-hover: #b91c1c;
-  --color-danger-text: #fca5a5; /* error text: 4.81:1 on surface */
+  --color-danger-text: #fca5a5; /* error text: 6.24 / 4.81 / 4.12 / 7.62 */
 
   --font-sans:
     'Noto Sans Variable', 'Noto Sans', Inter, 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, Cantarell,
@@ -224,6 +227,11 @@
   -webkit-background-clip: text;
   color: transparent;
   filter: drop-shadow(0 0 18px rgba(255, 20, 147, 0.35));
+
+  /* Dark theme: the same hues, lighter, so every point of the gradient reaches 3.2:1 on the background (large text, #1562) */
+  @variant dark {
+    background-image: linear-gradient(90deg, #ff3da7, #ff1f99, #b772f8);
+  }
 }
 
 /*
