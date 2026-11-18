@@ -5,9 +5,11 @@
 # Build:  docker build -t knowii:local .
 # Stages: base (PHP + extensions) -> vendor (Composer, no dev packages) -> frontend (Vite build) -> runtime
 
-ARG PHP_IMAGE=dunglas/frankenphp:1-php8.5-trixie
-ARG NODE_IMAGE=node:24-bookworm-slim
-ARG COMPOSER_IMAGE=composer:2
+# Each base image is pinned by digest (#1661): a tag can point to another image tomorrow. To move to a new image of
+# the same tag, read its digest with `docker buildx imagetools inspect <image:tag>` and change it here, in a pull request.
+ARG PHP_IMAGE=dunglas/frankenphp:1-php8.5-trixie@sha256:667c5fffd348d9c3c260803d75956f1d9aace7e4b7331d8893de6f101d7e0e57
+ARG NODE_IMAGE=node:24-bookworm-slim@sha256:dc26ae92c9fb15cf6b1d63e20f0944b2efe0f115b20e00be48fb23fceb061c54
+ARG COMPOSER_IMAGE=composer:2@sha256:0c8e663f14c94d07b3c45b175c51f5a14718508f21fe4dd7e54f09488dd0ed71
 
 # ---------------------------------------------------------------------------------------------------------------------
 # PHP with the extensions that the application needs (and nothing else)
