@@ -32,10 +32,12 @@ export default function PageHeader(props: PropsWithChildren<Props>) {
     </div>
   );
 
+  // The same proportions as the compact header, larger: the mark matches the height of the letters of the name, on the
+  // same line, and the viewBox of the name is cropped to its letters so that the centers match
   const normalLogoAndMark = (
-    <div className="flex h-full flex-col items-center gap-3 sm:flex-row">
-      <ApplicationMark className="w-14 md:w-18 lg:w-24" />
-      <ApplicationName className="w-40 lg:w-56" />
+    <div className="flex h-full flex-row items-center gap-3">
+      <ApplicationMark className="w-9 md:w-10 lg:w-13" />
+      <ApplicationName viewBox="0 140 1132 268" className="w-40 md:w-44 lg:w-56" />
     </div>
   );
 
@@ -47,7 +49,7 @@ export default function PageHeader(props: PropsWithChildren<Props>) {
       <div
         className={cn(
           'page-container flex flex-col flex-wrap items-center sm:justify-center md:flex-row md:justify-between',
-          props.compact ? 'flex-row justify-between gap-3 py-3 sm:justify-between' : 'py-4 md:py-6 lg:py-12',
+          props.compact ? 'flex-row justify-between gap-3 py-3 sm:justify-between' : 'py-4 md:py-6',
         )}
       >
         {props.addLinkOnLogo ? (
