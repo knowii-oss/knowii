@@ -320,6 +320,13 @@ Both commands accept `--dry-run`, and you can run them again: they only do what 
 
 Read the release notes (`CHANGELOG.md`) before you update. They tell you about new or changed environment values.
 
+### Security fixes
+
+1. A security fix comes in a new release. Only the newest release gets fixes.
+2. Each fix has a security advisory: https://github.com/knowii-oss/knowii/security/advisories. It says which versions are concerned and what to do.
+3. To get a message for each advisory: on the page of the repository, press "Watch", choose "Custom", and select "Security alerts".
+4. If you find a security problem, read [`SECURITY.md`](SECURITY.md). Do not open a public issue.
+
 ## Docker
 
 Instead of steps 1 to 8, you can run Knowii with Docker. The repository has a production image (`Dockerfile`) and one Compose project (`compose.production.yaml`) with five services: `app` (the web server, FrankenPHP), `queue` (the queue worker), `reverb` (WebSockets), `scheduler` (the scheduled tasks) and `postgres` (PostgreSQL 18). The four application services use the same image with another command. You need Docker with the Compose plugin, a reverse proxy that ends the TLS (see below), and nothing else: no PHP, Composer or Node.js on the server. The image never runs development tools. See [ADR 0046](documentation/adr/0046-production-image-and-compose.md).
