@@ -201,8 +201,8 @@ export default function UpdateProfileInformationForm(props: Props) {
       description={
         <>
           <span>
-            Update your account's profile information. Note that Apart from your username, all the information will be publicly visible to
-            other Knowii users.
+            Your name, username and picture show next to what you write. In a public space, visitors see them too. Your email address is
+            never shown to other members. Bio, location and phone: you choose below.
           </span>
           {userEmailNotVerified && (
             <div role="alert" className="mt-2 font-bold text-danger-text">
