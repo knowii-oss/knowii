@@ -1,6 +1,6 @@
 ---
 title: Data processing agreement
-updated: 2026-11-15
+updated: 2026-11-18
 draft: false
 ---
 
@@ -8,7 +8,7 @@ draft: false
 
 This data processing agreement ("DPA") applies between the owner of a community on Knowii (the "Controller") and DeveloPassion SRL, 126 Route de Mons, 7130 Binche, Belgium, company number 0717.561.755 (the "Processor"). It is part of the [terms of service](/terms-of-service) and follows article 28 of the General Data Protection Regulation (GDPR). The Controller accepts it when it creates a community. Knowii records the date.
 
-For the Knowii accounts themselves, DeveloPassion SRL is the controller: see the [privacy policy](/privacy-policy).
+For the accounts on this site themselves, DeveloPassion SRL is the controller: see the [privacy policy](/privacy-policy).
 
 ## 1. Subject and duration
 

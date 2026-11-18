@@ -14,7 +14,7 @@ use InvalidArgumentException;
  *   approved: the page then shows a draft notice).
  * - `{{retention.<period>}}` shows a retention period of App\Support\Retention (ADR 0030) and `{{subprocessors}}`
  *   the table of config/legal.php, so the text never drifts from the code. `{{subprocessors.community}}` shows only
- *   the sub-processors that receive the data of a community: the list of the DPA (#1352). `{{cookies.session}}` shows the name of
+ *   the sub-processors that receive the data of a community: the list of the DPA (#1352). `{{sign_in_provider}}` shows the label of the sign-in provider (#1643). `{{cookies.session}}` shows the name of
  *   the session cookie of the instance (#1342).
  */
 final class LegalPages
@@ -74,6 +74,8 @@ final class LegalPages
             'subprocessors' => self::subprocessorTable(),
             'subprocessors.community' => self::subprocessorTable(self::SCOPE_COMMUNITY),
             'cookies.session' => is_string($sessionCookie) ? $sessionCookie : '',
+            // The name of the sign-in provider of this instance (#1643), or a plain statement when there is none
+            'sign_in_provider' => OpenIdConnect::enabled() ? OpenIdConnect::label() : 'none on this site',
         ];
         foreach (Retention::periods() as $key => $value) {
             $values['retention.'.$key] = $value;

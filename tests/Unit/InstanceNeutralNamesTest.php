@@ -41,12 +41,8 @@ function instanceNeutralFolders(): array
  */
 function instanceValueExceptions(): array
 {
-    return [
-        // It checks the sentences of the privacy policy word for word. The legal texts describe the hosted instance and
-        // change only with the owner: the neutral words wait for the answer of the owner on #1643, and the other values
-        // of one instance in the legal texts are #1653
-        'tests/Feature/LegalPagesTest.php' => '#1643, #1653',
-    ];
+    // None since the legal words became neutral (#1643). Add a file here only with its issue, and remove it with the fix
+    return [];
 }
 
 /**
@@ -113,9 +109,10 @@ test('no name or host of one instance is in the code, the configuration, the rou
 test('every exception of the guard still holds a value of one instance: remove the ones that do not (#1643)', function () {
     ['matches' => $matches] = instanceValueMatches();
 
-    foreach (array_keys(instanceValueExceptions()) as $path) {
-        expect(array_key_exists($path, $matches))->toBeTrue("{$path} holds no value of one instance any more: remove it from the exceptions");
-    }
+    // Every exception must still hold a match (with no exception, the list of stale ones is empty)
+    $stale = array_values(array_filter(array_keys(instanceValueExceptions()), static fn (string $path): bool => ! array_key_exists($path, $matches)));
+
+    expect($stale)->toBe([]);
 });
 
 test('the guard finds each value, in any case (#1643)', function (string $text) {
