@@ -218,14 +218,16 @@ export const BusyKeepsFocus: Story = {
   },
 };
 
-// Outside the application, there is no Inertia page to visit: the click stops the visit
-// (Inertia does not visit when the default action of the click is prevented)
+// Outside the application, there is no page to visit: the click stops the visit. Without a ToolkitProvider, the link is a
+// plain <a> and the browser would leave the story; with the Inertia link of the application, Inertia does not visit
+// either when the default action of the click is prevented (see the stories of ToolkitContext)
 function stopVisit(event: MouseEvent): void {
   event.preventDefault();
 }
 
 /**
- * `LinkButton`: an Inertia link that looks like a button, for navigation.
+ * `LinkButton`: a link that looks like a button, for navigation. It is the link of the ToolkitProvider: the Inertia link
+ * in the application, a plain `<a>` here.
  */
 export const Link: Story = {
   args: { variant: 'secondary', children: 'All communities' },
@@ -244,7 +246,8 @@ export const Link: Story = {
 };
 
 /**
- * `LinkButton` with `method="post"`: Inertia renders a button that sends the request.
+ * `LinkButton` with `method="post"`: a button. In the application, Inertia renders it and the click sends the request;
+ * the plain link of the toolkit renders a button that sends nothing.
  */
 export const LinkWithPost: Story = {
   args: { variant: 'danger', children: 'Log out' },

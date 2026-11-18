@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import type { PageVideo } from '@knowii/common';
-import { VideoPlayer } from '../Video/VideoPlayer';
 import { cn } from './cn';
 import type { ViewerImage } from './ImageViewer';
 import { ImageViewer } from './ImageViewer';
+import type { ToolkitVideoRenderer } from './ToolkitContext';
+import { useToolkit } from './ToolkitContext';
 
 export interface MarkdownContentProps {
   /**
@@ -14,6 +15,11 @@ export interface MarkdownContentProps {
   html: string;
   className?: string;
   id?: string;
+  /**
+   * The player of the videos of this content only. Default: the video renderer of the ToolkitProvider (the
+   * click-to-load VideoPlayer in the application)
+   */
+  videoRenderer?: ToolkitVideoRenderer;
 }
 
 const VIDEO_PROVIDERS: Record<string, PageVideo['provider']> = { youtube: 'youtube', vimeo: 'vimeo' };
@@ -52,12 +58,19 @@ export function galleryOfLink(link: Element | null): { images: ViewerImage[]; in
 
 /**
  * Shows member content (posts, comments, messages) with the typography of the theme. A video link alone on its line
- * becomes the click-to-load video player (#1206): nothing loads from YouTube or Vimeo before the member presses Play.
+ * becomes the video of the toolkit: in the application, the click-to-load player (#1206), which loads nothing from
+ * YouTube or Vimeo before the member presses Play; without a ToolkitProvider, a plain link to the video.
  * An image of a gallery opens in the viewer (#1207): the server writes each image as a link to its file, the grid
  * is CSS only (styles.css), and this component holds the one viewer of its content.
  */
-export function MarkdownContent({ html, className, id }: MarkdownContentProps) {
+export function MarkdownContent({ html, className, id, videoRenderer }: MarkdownContentProps) {
+  const toolkit = useToolkit();
+  const renderVideo = videoRenderer ?? toolkit.videoRenderer;
   const container = useRef<HTMLDivElement>(null);
+  // The players of the videos: each one is a root of its own, which does not see the context of the page, so the
+  // renderer of the toolkit comes from here
+  const renderVideoRef = useRef(renderVideo);
+  const players = useRef<{ root: Root; video: PageVideo; title: string }[]>([]);
   const [viewer, setViewer] = useState<{ images: ViewerImage[]; index: number; open: boolean }>({ images: [], index: 0, open: false });
 
   useEffect(() => {
@@ -82,12 +95,18 @@ export function MarkdownContent({ html, className, id }: MarkdownContentProps) {
     return () => element.removeEventListener('click', onClick);
   }, []);
 
+  // Another renderer renders the players that are there again (before the effect of the HTML, which uses it)
+  useEffect(() => {
+    renderVideoRef.current = renderVideo;
+    players.current.forEach(({ root, video, title }) => root.render(renderVideo(video, title)));
+  }, [renderVideo]);
+
   useEffect(() => {
     const element = container.current;
     if (!element) {
       return;
     }
-    const roots: Root[] = [];
+    const built: { root: Root; video: PageVideo; title: string }[] = [];
     element.querySelectorAll<HTMLElement>('div.video-embed').forEach((block) => {
       const video = videoOfBlock(block);
       if (!video) {
@@ -96,13 +115,15 @@ export function MarkdownContent({ html, className, id }: MarkdownContentProps) {
       // The link inside the block is the fallback without JavaScript: the player replaces it
       block.replaceChildren();
       const root = createRoot(block);
-      root.render(<VideoPlayer video={video} title={`${PROVIDER_NAMES[video.provider]} video`} />);
-      roots.push(root);
+      const title = `${PROVIDER_NAMES[video.provider]} video`;
+      root.render(renderVideoRef.current(video, title));
+      built.push({ root, video, title });
     });
+    players.current = built;
     return () => {
+      players.current = [];
       // Unmount after the current render: React refuses to unmount a root while it renders
-      const done = [...roots];
-      queueMicrotask(() => done.forEach((root) => root.unmount()));
+      queueMicrotask(() => built.forEach(({ root }) => root.unmount()));
     };
   }, [html]);
 

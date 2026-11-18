@@ -34,6 +34,7 @@ export * from './theme';
 export * from './ThemeToggle';
 export * from './TextInput';
 export * from './Toaster';
+export * from './ToolkitContext';
 export * from './Turnstile';
 export * from './use-focus-after-render';
 export * from './use-instant-save';

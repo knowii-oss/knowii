@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { readKeptText, writeKeptText } from '@knowii/common';
+import { ApplicationToolkitProvider } from './ApplicationToolkit';
 import PageHeader from './PageHeader';
 
 vi.mock('@inertiajs/react', () => ({
@@ -28,6 +29,8 @@ describe('PageHeader', () => {
         showRegisterButton={false}
         accountCuid="u1"
       />,
+      // The links of the toolkit are the (mocked) Inertia links, as in main.tsx
+      { wrapper: ApplicationToolkitProvider },
     );
 
     await userEvent.click(screen.getByRole('link', { name: 'Log out' }));

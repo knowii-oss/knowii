@@ -10,6 +10,7 @@ import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { AppDataProvider, removeExpiredKeptTexts } from '@knowii/common';
 import { ErrorBoundary, Toaster } from '@/Components/ui';
+import { ApplicationToolkitProvider } from '@/Components/ApplicationToolkit';
 import { pageComponents } from './page-components';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
@@ -29,14 +30,17 @@ createInertiaApp({
 
     root.render(
       <StrictMode>
-        <AppDataProvider>
-          {/* The single application toaster lives here (not in a page layout), so toasts survive Inertia page visits */}
-          <Toaster />
-          {/* Last resort: a page that fails outside its content area (the layout) shows this instead of a blank screen */}
-          <ErrorBoundary className="mt-10">
-            <App {...props} />
-          </ErrorBoundary>
-        </AppDataProvider>
+        {/* The toolkit imports nothing of the application (#657): its links are Inertia links, its videos the player */}
+        <ApplicationToolkitProvider>
+          <AppDataProvider>
+            {/* The single application toaster lives here (not in a page layout), so toasts survive Inertia page visits */}
+            <Toaster />
+            {/* Last resort: a page that fails outside its content area (the layout) shows this instead of a blank screen */}
+            <ErrorBoundary className="mt-10">
+              <App {...props} />
+            </ErrorBoundary>
+          </AppDataProvider>
+        </ApplicationToolkitProvider>
       </StrictMode>,
     );
   },
