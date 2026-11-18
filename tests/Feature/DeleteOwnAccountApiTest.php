@@ -10,6 +10,7 @@ use App\Models\Post;
 use App\Models\Space;
 use App\Models\SpaceGroup;
 use App\Models\User;
+use App\Support\AccountDeletion;
 use App\Support\SecondFactor;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -206,22 +207,22 @@ test('a session call of the web app follows the same rule as the other routes: n
     expect(accountExists($this->me))->toBeFalse();
 });
 
-test('an account without a usable password cannot be deleted through the API: a business error that names the web application', function () {
+test('an account without a usable password and without a connected sign-in account gets a business error that names the operator (#1521)', function () {
     $this->me->forceFill(['password' => null])->save();
     Sanctum::actingAs($this->me, ['account:delete']);
 
     $this->deleteJson(deleteOwnAccountPath(), ['password' => 'password'])
         ->assertStatus(422)
         ->assertJsonPath('type', KnowiiApiResponseType::BusinessIssue->value)
-        ->assertJsonPath('message', 'This account has no password: delete it in the web application.');
+        ->assertJsonPath('message', AccountDeletion::UNAVAILABLE_MESSAGE);
 
     expect(accountExists($this->me))->toBeTrue();
 });
 
-test('the web cannot delete an account without a usable password either (not changed by #1492)', function () {
+test('the web does not delete such an account either: no password matches, and there is no proof to make (#1521)', function () {
     $this->me->forceFill(['password' => null])->save();
 
-    $this->actingAs($this->me)->delete('/user', ['password' => 'password']);
+    $this->actingAs($this->me)->delete('/user', ['password' => 'password'])->assertSessionHasErrors(['sign_in' => AccountDeletion::UNAVAILABLE_MESSAGE]);
 
     expect(accountExists($this->me))->toBeTrue();
 });

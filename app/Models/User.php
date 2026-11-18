@@ -43,6 +43,7 @@ use TaylorNetwork\UsernameGenerator\GeneratesUsernames;
  * @property bool $notification_popups Whether the app shows pop-ups for the lines that need the member (#1476)
  * @property ?Carbon $email_verified_at
  * @property ?string $password Null for an account without a password (created by an OpenID Connect provider, or its password was removed, #1385)
+ * @property ?Carbon $deletion_signed_in_at The time of the new sign-in at the provider that proves the intent to delete an account without a password (#1521, ADR 0052). Null when none, or when a deletion used it. Hidden from every serialization
  * @property ?string $two_factor_secret
  * @property ?string $two_factor_recovery_codes
  * @property ?Carbon $two_factor_confirmed_at
@@ -156,6 +157,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'remember_token',
         // Nobody reads it, not even the member (#1476, ADR 0048): the own export holds it
         'last_visit_on',
+        // The proof of a deletion (#1521, ADR 0052): only the server reads it
+        'deletion_signed_in_at',
         'two_factor_recovery_codes',
         'two_factor_secret',
     ];
@@ -173,6 +176,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'show_online_status' => 'boolean',
             'notification_popups' => 'boolean',
             'last_visit_on' => 'date',
+            'deletion_signed_in_at' => 'datetime',
         ];
     }
 

@@ -1,6 +1,6 @@
 # 0043. A member can delete their posts, comments and messages with the account
 
-- Status: Accepted, amended by [0050](0050-a-delete-keeps-the-replies-of-other-people.md) (an ordinary delete also leaves a marker for the replies of other people: consequence 2 and decision 5)
+- Status: Accepted, amended by [0050](0050-a-delete-keeps-the-replies-of-other-people.md) (an ordinary delete also leaves a marker for the replies of other people: consequence 2 and decision 5), amended by [0052](0052-account-deletion-after-a-new-sign-in.md) (an account without a password deletes itself, on the web and through the API, after a new sign-in at the provider: "The API route", point 5)
 - Date: 2026-11-15
 - Issue: #1344
 - Pull request: #1491
@@ -50,5 +50,5 @@ The owner decided on 2026-11-15 to give the member the choice in the delete dial
 2. A new token ability, `account:delete`. It is never in the default set of a new token, and the token screen shows it as its own choice with one sentence. A token without it gets the usual 403. A call with a session (the web app) passes the ability check like on every route.
 3. The proof of the intent is the current password, checked with `ConfirmPassword` like the web. A wrong password is a validation error on `password`, with the message of the web.
 4. Two-factor authentication is never skipped: when it is turned on and confirmed, `code` (the code of the authenticator app, or a recovery code) is required, and a wrong one is a validation error on `code`. A recovery code that is used is replaced, as at sign-in (`App\Support\SecondFactor`).
-5. An account without a usable password (ADR 0045) cannot be deleted through the API: the answer is a business error (422) that says to use the web application. No second proof exists. The web does not delete such an account either today (the password check fails): an account that signs in only through a provider first sets a password with "Forgot your password?". Not changed here.
+5. An account without a usable password (ADR 0045) cannot be deleted through the API: the answer is a business error (422) that says to use the web application. No second proof exists. The web does not delete such an account either today (the password check fails): an account that signs in only through a provider first sets a password with "Forgot your password?". Not changed here. Changed by [ADR 0052](0052-account-deletion-after-a-new-sign-in.md): such an account proves the intent with a new sign-in at the provider, made in a browser a short time before, on the web and through the API.
 6. A limiter of 3 tries a minute per account (`account-deletions`), because the route checks a password. After a success the answer is 204 and every token of the account is gone.

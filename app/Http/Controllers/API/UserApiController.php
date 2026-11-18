@@ -10,8 +10,11 @@ use App\Contracts\Users\UpdatesNotificationSettings;
 use App\Contracts\Users\UpdatesOnlineStatus;
 use App\Contracts\Users\UpdatesTimeZones;
 use App\Contracts\Users\VerifiesUsernameAvailability;
+use App\Enums\KnowiiAccountDeletionProof;
+use App\Exceptions\BusinessException;
 use App\Http\Controllers\Controller;
 use App\Models\Reaction;
+use App\Support\AccountDeletion;
 use App\Support\Emoji;
 use App\Support\SecondFactor;
 use App\Traits\ApiResponses;
@@ -137,32 +140,47 @@ class UserApiController extends Controller
      * communities that you own, your memberships, reactions, tokens and sessions go, and what you wrote in the communities of
      * others stays under "Deleted member", unless you send `delete_content`. You prove the intent with your current password
      * and, when two-factor authentication is on, with a code or a recovery code (a recovery code that passes is consumed).
-     * An account that has no password (it signs in only through a provider) cannot be deleted here: use the web application.
+     *
+     * An account without a password (it signs in only through the sign-in provider of the site, #1521, ADR 0052) sends no
+     * password: it first confirms with a new sign-in at the provider in a browser, on the deletion section of the profile
+     * settings, and then sends this request within the time that the page shows (5 minutes by default), with the code when
+     * two-factor authentication is on. The confirmation is used once. Without it the answer is a business error (422) whose
+     * message gives the address of that page (also in `metadata.sign_in_url`). An account without a password and without a
+     * connected sign-in account gets a business error too: the operator of the site deletes it.
+     *
      * Needs the ability `account:delete`, which is never in the default set of a token. A few tries a minute. Answers 204 and
      * every token of the account is gone.
      *
      * @throws AuthenticationException
      * @throws ValidationException
      */
-    #[BodyParameter('password', description: 'Your current password', required: true, type: 'string')]
+    #[BodyParameter('password', description: 'Your current password: required when the account has a password, ignored otherwise', required: false, type: 'string')]
     #[BodyParameter('delete_content', description: 'Also delete your posts, comments and messages in every community (they stay under "Deleted member" otherwise)', required: false, type: 'bool')]
     #[BodyParameter('code', description: 'The code of your authenticator app or a recovery code: required when two-factor authentication is turned on', required: false, type: 'string', example: '123456')]
     final public function destroy(Request $request, StatefulGuard $guard): JsonResponse|Response
     {
         $user = $request->user() ?? throw new AuthenticationException;
 
-        if (! $user->hasPassword()) {
-            return self::businessIssue('This account has no password: delete it in the web application.', ['password' => ['This account has no password: delete it in the web application.']]);
+        $proof = AccountDeletion::proofOf($user);
+        if ($proof === KnowiiAccountDeletionProof::Unavailable) {
+            Log::warning('Account deletion refused', ['reason' => 'no_way_to_prove', 'user' => $user->cuid]);
+
+            return self::businessIssue(AccountDeletion::UNAVAILABLE_MESSAGE, ['sign_in' => [AccountDeletion::UNAVAILABLE_MESSAGE]]);
+        }
+        if ($proof === KnowiiAccountDeletionProof::SignIn && AccountDeletion::confirmedUntil($user) === null) {
+            Log::warning('Account deletion refused', ['reason' => 'no_valid_proof', 'user' => $user->cuid]);
+
+            return self::businessIssue(AccountDeletion::signInNeededMessage(), ['sign_in' => [AccountDeletion::signInNeededMessage()]], ['sign_in_url' => AccountDeletion::pageUrl()]);
         }
 
         $input = Validator::make($request->all(), [
-            'password' => ['required', 'string'],
+            'password' => $proof === KnowiiAccountDeletionProof::Password ? ['required', 'string'] : ['nullable'],
             'delete_content' => ['sometimes', 'boolean'],
             'code' => ['nullable', 'string', 'max:64'],
         ])->validate();
 
         // The same check as the web (ConfirmPassword) and the same message
-        if (! is_string($input['password']) || ! app(ConfirmPassword::class)($guard, $user, $input['password'])) {
+        if ($proof === KnowiiAccountDeletionProof::Password && (! is_string($input['password']) || ! app(ConfirmPassword::class)($guard, $user, $input['password']))) {
             throw ValidationException::withMessages(['password' => __('The password is incorrect.')]);
         }
 
@@ -177,7 +195,16 @@ class UserApiController extends Controller
             }
         }
 
-        app(DeletesAccounts::class)->delete($user->fresh() ?? $user, $request->only(['delete_content']));
+        if ($proof === KnowiiAccountDeletionProof::Password) {
+            app(DeletesAccounts::class)->delete($user->fresh() ?? $user, $request->only(['delete_content']));
+        } else {
+            // The proof is checked again and used up in the transaction of the deletion: a second request cannot use it
+            try {
+                app(DeletesAccounts::class)->deleteAfterSignIn($user->fresh() ?? $user, $request->only(['delete_content']));
+            } catch (BusinessException $e) {
+                return self::businessIssue($e->getMessage(), $e->getErrors(), $e->getMetadata());
+            }
+        }
 
         // A call from the web app has a session: it ends with the account
         if ($request->hasSession()) {

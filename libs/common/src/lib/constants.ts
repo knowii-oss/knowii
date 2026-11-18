@@ -78,6 +78,8 @@ export const LOGIN_URL = 'login';
 export const OIDC_REDIRECT_URL = 'oidc.redirect';
 // A signed-in member connects a provider account: a POST, never a link (#1385)
 export const OIDC_CONNECT_URL = 'oidc.connect';
+// A signed-in member without a password confirms the deletion of the account with a new sign-in: a POST (#1521)
+export const OIDC_CONFIRM_DELETION_URL = 'oidc.confirm-deletion';
 export const REGISTER_URL = 'register';
 export const LOGOUT_URL = 'logout';
 export const PASSWORD_CONFIRM_URL = 'password.confirm';

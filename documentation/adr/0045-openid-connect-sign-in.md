@@ -1,6 +1,6 @@
 # 0045. Sign in with an OpenID Connect provider: a generic client, linked by subject
 
-- Status: Accepted
+- Status: Accepted, amended by [0052](0052-account-deletion-after-a-new-sign-in.md) (an account without a password confirms the deletion of the account with a new sign-in at the provider: decision 18)
 - Date: 2026-11-15
 - Issue: #1385
 - Pull request: #1495
@@ -47,7 +47,7 @@ This is sign-in code: a mistake gives an account to the wrong person. So every r
 15. Never a guess: an address that matches two accounts, or an account that already has another account at this provider, is refused. Two sign-ins at once end in the unique indexes.
 16. The address of the platform account never follows the provider. A new address at the provider changes nothing here.
 17. Two-factor authentication stays. An account that has it is asked for its code after the callback, with the same challenge as after a password (`login.id` in the session). The provider never replaces it. The second factor is the only thing that case 5 removes: it belonged to the person that the provider proved wrong.
-18. An account without a password has `users.password` null (the column accepts null): nothing matches it, on the web or on the API login. The member sets a password with "Forgot your password?". Until then the actions that ask for the password (delete the account, transfer a community) cannot be confirmed.
+18. An account without a password has `users.password` null (the column accepts null): nothing matches it, on the web or on the API login. The member sets a password with "Forgot your password?". Until then the actions that ask for the password (delete the account, transfer a community) cannot be confirmed. Changed by [ADR 0052](0052-account-deletion-after-a-new-sign-in.md): such an account deletes itself after a new sign-in at the provider (`max_age=0`, `prompt=login`, and a checked `auth_time`).
 
 ### The settings and the API
 

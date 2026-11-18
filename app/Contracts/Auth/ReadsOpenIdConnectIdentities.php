@@ -12,15 +12,17 @@ use App\Support\OpenIdIdentity;
 interface ReadsOpenIdConnectIdentities
 {
     /**
-     * The address of the authorization endpoint, with state, nonce and the PKCE challenge (S256)
+     * The address of the authorization endpoint, with state, nonce and the PKCE challenge (S256). With `$freshSignIn`
+     * (the proof of a deletion, #1521) it also asks for a new sign-in: `max_age=0` and `prompt=login`. The request alone
+     * proves nothing: the caller checks `auth_time` of the ID token.
      *
      * @throws OpenIdConnectException When the provider cannot be reached or its discovery document is not acceptable
      */
-    public function authorizationUrl(string $state, string $nonce, string $codeChallenge): string;
+    public function authorizationUrl(string $state, string $nonce, string $codeChallenge, bool $freshSignIn = false): string;
 
     /**
      * Exchange the code for tokens and return the identity of the ID token, after every check: the signature, `iss`,
-     * `aud`, `exp`, `iat` and the nonce
+     * `aud`, `exp`, `iat` and the nonce. The identity holds `auth_time` when the token has it as an integer.
      *
      * @throws OpenIdConnectException When the exchange fails or the ID token is not acceptable
      */

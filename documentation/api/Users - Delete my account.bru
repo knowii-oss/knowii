@@ -28,7 +28,9 @@ docs {
 
   Proof of the intent: `password`, your current password. With two-factor authentication turned on, `code` too: the code of the authenticator app, or a recovery code (a recovery code that is used is consumed). Remove the `code` line without two-factor authentication.
 
+  An account without a password (it signs in only through the sign-in provider of the site, #1521, ADR 0052) removes the `password` line. It first confirms with a new sign-in in a browser: "Confirm with ..." in the deletion section of the profile settings (`/user/profile#delete-account`). Then it sends this request within the time that the page shows (5 minutes by default, `OIDC_FRESH_SIGN_IN_SECONDS`), with `code` when two-factor authentication is on. The confirmation is used once.
+
   Token ability: `account:delete`, never in the default set of a new token (the token screen shows it as its own choice).
 
-  Answers 204 and every token of the account is gone. Errors: 400 for a missing or wrong `password`, a missing or wrong `code`, or an invalid `delete_content` (the field is named in `errors`), 401 without a token, 403 without the ability or with an unverified email address, 422 when the account has no password (it signs in only through a provider: delete it in the web application), 429 after 3 requests in a minute.
+  Answers 204 and every token of the account is gone. Errors: 400 for a missing or wrong `password`, a missing or wrong `code`, or an invalid `delete_content` (the field is named in `errors`), 401 without a token, 403 without the ability or with an unverified email address, 422 when the account has no password and no valid confirmation (the message and `metadata.sign_in_url` give the address of the page where you confirm), or no connected sign-in account (write to the operator of the site), 429 after 3 requests in a minute.
 }

@@ -55,6 +55,41 @@ export interface OpenIdConnectPageProp {
 }
 
 /**
+ * How an account proves that it wants to be deleted (#1521, ADR 0052). WARNING: aligned with KnowiiAccountDeletionProof
+ * (back-end). `password`: the password. `sign_in`: no password, a new sign-in at the provider of the site. `unavailable`:
+ * no password and no way to make the proof (the member writes to the operator of the site).
+ */
+export type AccountDeletionProof = 'password' | 'sign_in' | 'unavailable';
+
+/**
+ * The prop `accountDeletion` of the profile page (#1521)
+ */
+export interface AccountDeletionState {
+  proof: AccountDeletionProof;
+  /**
+   * The label of the provider of the site (the text of its sign-in button), null without a provider
+   */
+  label: string | null;
+  /**
+   * Until when the new sign-in lets the member delete the account (ISO 8601), null without a valid proof
+   */
+  confirmed_until: string | null;
+  /**
+   * Whether the deletion asks for the code of two-factor authentication
+   */
+  two_factor: boolean;
+  /**
+   * For one request, after the return from the provider: the time until which the proof holds, or the reason of a refusal
+   */
+  status: string | null;
+  error: string | null;
+  /**
+   * For one request: the choice of the box "Also delete my posts, comments and messages" that went with the proof
+   */
+  delete_content: boolean | null;
+}
+
+/**
  * A provider account that the member connected (#1385): never the identifier at the provider
  */
 export interface ConnectedAccount {

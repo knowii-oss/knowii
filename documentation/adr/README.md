@@ -76,3 +76,4 @@ Do not write an ADR for a bug fix, a refactor that keeps the structure, or a fea
 | [0049](0049-component-toolkit-storybook-stories-as-tests.md)            | Component toolkit: Storybook, stories as tests                           | Accepted |
 | [0050](0050-a-delete-keeps-the-replies-of-other-people.md)              | A delete by the author keeps the replies of other people                 | Accepted |
 | [0051](0051-security-scan-of-the-php-code-with-psalm-taint-analysis.md) | Scan the PHP code for security problems with the taint analysis of Psalm | Accepted |
+| [0052](0052-account-deletion-after-a-new-sign-in.md)                    | An account without a password deletes itself after a new sign-in         | Accepted |

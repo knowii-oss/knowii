@@ -50,6 +50,9 @@ return [
         'scopes' => env('OIDC_SCOPES', 'openid profile email'),
         // The text of the button. Without it, the host name of the issuer
         'label' => env('OIDC_LABEL'),
+        // An account without a password confirms its deletion with a new sign-in at the provider (#1521, ADR 0052): the sign-in
+        // must be at most this many seconds old, and the proof holds this long after it. Kept between 60 and 900
+        'fresh_sign_in_seconds' => (int) env('OIDC_FRESH_SIGN_IN_SECONDS', 300),
         // Entitlements of the provider feed the access groups (#1386, ADR 0047). Off unless the address template is set. The
         // communities that may use rules are listed by slug: empty means none
         'entitlements_url' => env('OIDC_ENTITLEMENTS_URL'),

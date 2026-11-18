@@ -595,7 +595,7 @@ function entFakeSignIn(string $subject, string $email): void
     {
         public function __construct(private readonly string $subject, private readonly string $email) {}
 
-        public function authorizationUrl(string $state, string $nonce, string $codeChallenge): string
+        public function authorizationUrl(string $state, string $nonce, string $codeChallenge, bool $freshSignIn = false): string
         {
             return ENT_ISSUER.'/authorize?state='.$state;
         }

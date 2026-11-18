@@ -1,10 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { readKeptText, writeKeptText } from '@knowii/common';
+import type { AccountDeletionState } from '@knowii/common';
+import { formatFullDateTime, readKeptText, writeKeptText } from '@knowii/common';
 import DeleteUserForm from './DeleteUserForm';
 
 const send = vi.fn();
+const post = vi.fn();
 
 // A form with real state, to see what the dialog sends
 vi.mock('@inertiajs/react', async () => {
@@ -21,13 +23,29 @@ vi.mock('@inertiajs/react', async () => {
         delete: (url: string, options: unknown) => send(url, data, options),
       };
     },
+    router: { post: (url: string, data: unknown, options: unknown) => post(url, data, options) },
     usePage: () => ({ props: { auth: { user: { cuid: 'ada1' } } } }),
   };
 });
 vi.mock('ziggy-js', () => ({ useRoute: () => (name: string) => `/${name}` }));
 
-async function openDialog() {
-  render(<DeleteUserForm />);
+const UNTIL = '2026-11-18T10:05:00+00:00';
+
+function deletionState(state: Partial<AccountDeletionState> = {}): AccountDeletionState {
+  return {
+    proof: 'sign_in',
+    label: 'Example account',
+    confirmed_until: null,
+    two_factor: false,
+    status: null,
+    error: null,
+    delete_content: null,
+    ...state,
+  };
+}
+
+async function openDialog(deletion?: AccountDeletionState) {
+  render(<DeleteUserForm deletion={deletion} />);
   await userEvent.click(screen.getByRole('button', { name: 'Delete Account' }));
 }
 
@@ -50,7 +68,11 @@ describe('DeleteUserForm (#1344)', () => {
     await userEvent.type(screen.getByLabelText(/Please enter your password/), 'secret');
     await userEvent.click(screen.getByRole('button', { name: 'Go ahead!' }));
 
-    expect(send).toHaveBeenLastCalledWith('/current-user.destroy', { password: 'secret', delete_content: false }, expect.anything());
+    expect(send).toHaveBeenLastCalledWith(
+      '/current-user.destroy',
+      { password: 'secret', delete_content: false, code: '' },
+      expect.anything(),
+    );
   });
 
   it('sends delete_content true when the box is ticked, with the keyboard too', async () => {
@@ -63,7 +85,11 @@ describe('DeleteUserForm (#1344)', () => {
     expect(box).toBeChecked();
     await userEvent.click(screen.getByRole('button', { name: 'Go ahead!' }));
 
-    expect(send).toHaveBeenLastCalledWith('/current-user.destroy', { password: 'secret', delete_content: true }, expect.anything());
+    expect(send).toHaveBeenLastCalledWith(
+      '/current-user.destroy',
+      { password: 'secret', delete_content: true, code: '' },
+      expect.anything(),
+    );
   });
 
   it('says under the box what stays, and links the line to the box (#1603)', async () => {
@@ -89,5 +115,94 @@ describe('DeleteUserForm (#1344)', () => {
 
     expect(readKeptText({ account: 'ada1', kind: 'post', place: 's1' })).toBeNull();
     expect(readKeptText({ account: 'bob1', kind: 'post', place: 's1' })).not.toBeNull();
+  });
+});
+
+describe('DeleteUserForm for an account without a password (#1521)', () => {
+  it('has no password field: it explains the step and offers to confirm with the provider', async () => {
+    await openDialog(deletionState());
+
+    expect(screen.queryByLabelText(/Please enter your password/)).not.toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Your account has no password. To confirm that it is you, sign in again with Example account. You then come back here, and you can delete your account for a few minutes.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Delete my account' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Confirm with Example account' })).toHaveFocus();
+    expect(screen.getByRole('checkbox', { name: 'Also delete my posts, comments and messages' })).not.toBeChecked();
+  });
+
+  it('starts the proof with a POST that carries the choice of the box', async () => {
+    await openDialog(deletionState());
+
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Also delete my posts, comments and messages' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Confirm with Example account' }));
+
+    expect(post).toHaveBeenLastCalledWith('/oidc.confirm-deletion', { delete_content: true }, expect.anything());
+    expect(send).not.toHaveBeenCalledWith('/current-user.destroy', expect.anything(), expect.anything());
+  });
+
+  it('after a valid proof, opens again by itself, says until when it holds, and keeps the box', async () => {
+    send.mockClear();
+    render(<DeleteUserForm deletion={deletionState({ confirmed_until: UNTIL, status: UNTIL, delete_content: true })} />);
+
+    const status = await screen.findByRole('status');
+    expect(status).toHaveTextContent(
+      `You confirmed with Example account. You can delete your account until ${formatFullDateTime(new Date(UNTIL), null)}.`,
+    );
+    expect(screen.queryByRole('button', { name: 'Confirm with Example account' })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/Please enter your password/)).not.toBeInTheDocument();
+    const box = screen.getByRole('checkbox', { name: 'Also delete my posts, comments and messages' });
+    expect(box).toBeChecked();
+    const final = screen.getByRole('button', { name: 'Delete my account' });
+    expect(final).toHaveFocus();
+
+    await userEvent.click(final);
+    expect(send).toHaveBeenLastCalledWith('/current-user.destroy', { password: '', delete_content: true, code: '' }, expect.anything());
+  });
+
+  it('after a valid proof, asks for the code when two-factor authentication is on', async () => {
+    render(<DeleteUserForm deletion={deletionState({ confirmed_until: UNTIL, status: UNTIL, two_factor: true })} />);
+
+    const code = await screen.findByLabelText('Enter the code of your authenticator app or a recovery code.');
+    expect(code).toHaveFocus();
+    await userEvent.type(code, '123456');
+    await userEvent.click(screen.getByRole('button', { name: 'Delete my account' }));
+
+    expect(send).toHaveBeenLastCalledWith(
+      '/current-user.destroy',
+      { password: '', delete_content: false, code: '123456' },
+      expect.anything(),
+    );
+  });
+
+  it('after a refused proof, opens again with the reason as an alert and offers to try again, with the box as it was', async () => {
+    render(
+      <DeleteUserForm deletion={deletionState({ error: 'The sign-in provider did not confirm a new sign-in.', delete_content: true })} />,
+    );
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('The sign-in provider did not confirm a new sign-in.');
+    expect(screen.getByRole('button', { name: 'Confirm with Example account' })).toHaveFocus();
+    expect(screen.getByRole('checkbox', { name: 'Also delete my posts, comments and messages' })).toBeChecked();
+  });
+
+  it('when the dialog that opened by itself closes, the focus goes to the button that opens it', async () => {
+    render(<DeleteUserForm deletion={deletionState({ error: 'The sign-in provider did not confirm a new sign-in.' })} />);
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Cancel' }));
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Delete Account' })).toHaveFocus(), { timeout: 2000 });
+  });
+
+  it('without a way to make the proof, shows no button and tells whom to write to', () => {
+    render(<DeleteUserForm deletion={deletionState({ proof: 'unavailable', label: null })} />);
+
+    expect(screen.queryByRole('button', { name: 'Delete Account' })).not.toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'This account has no password and no connected sign-in account, so it cannot confirm its deletion here. Please write to contact@developassion.be to have it deleted.',
+      ),
+    ).toBeInTheDocument();
   });
 });
