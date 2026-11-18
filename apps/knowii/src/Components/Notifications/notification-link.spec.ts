@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { NotificationTarget } from '@knowii/common';
 import { commentAnchor } from '@/Components/Comments/CommentSection';
 import { makeNotification } from '@/test-utils/notifications';
 import { commentHash, messageAnchor, notificationHref } from './notification-link';
@@ -19,11 +20,13 @@ describe('notificationHref (#1484)', () => {
       kind: 'mention',
       target: {
         post_slug: 'my-post',
+        post_cuid: 'p1',
         comment_cuid: null,
         chat_message_cuid: null,
         thread_cuid: null,
         resource_cuid: null,
         resource_slug: null,
+        page_slug: null,
       },
     });
 
@@ -31,13 +34,15 @@ describe('notificationHref (#1484)', () => {
   });
 
   it('opens the chat space at the message, and at its thread for a reply', () => {
-    const target = {
+    const target: NotificationTarget = {
       post_slug: null,
+      post_cuid: null,
       comment_cuid: null,
       chat_message_cuid: 'm1',
       thread_cuid: null,
       resource_cuid: null,
       resource_slug: null,
+      page_slug: null,
     };
 
     expect(notificationHref(makeNotification('a', { kind: 'mention', target }), route)).toBe(
@@ -49,13 +54,15 @@ describe('notificationHref (#1484)', () => {
   });
 
   it('opens the resource page at the comment', () => {
-    const target = {
+    const target: NotificationTarget = {
       post_slug: null,
+      post_cuid: null,
       comment_cuid: 'k1',
       chat_message_cuid: null,
       thread_cuid: null,
       resource_cuid: 'r1',
       resource_slug: 'a-resource',
+      page_slug: null,
     };
 
     expect(notificationHref(makeNotification('a', { target }), route)).toBe('/resources.show/knowii/open/a-resource#comment-k1');
@@ -63,13 +70,15 @@ describe('notificationHref (#1484)', () => {
 
   it('has no address without a space, or without a target', () => {
     expect(notificationHref(makeNotification('a', { space: null }), route)).toBeNull();
-    const empty = {
+    const empty: NotificationTarget = {
       post_slug: null,
+      post_cuid: null,
       comment_cuid: null,
       chat_message_cuid: null,
       thread_cuid: null,
       resource_cuid: null,
       resource_slug: null,
+      page_slug: null,
     };
     expect(notificationHref(makeNotification('a', { target: empty }), route)).toBeNull();
   });

@@ -84,6 +84,9 @@ jobs:
           NX_NO_CLOUD: true
       - name: Type-check the whole front-end (app, library, and configuration files)
         run: npm run tsc
+      # Vitest runs the specs without a type check, and the check above leaves them out (#1557). The stories are in the check above.
+      - name: Type-check the spec files (app and library)
+        run: npm run tsc:spec
       # The static site of the component toolkit (#657), in dist/storybook. The stories run as tests with the other Vitest tests.
       - name: Build Storybook
         run: npm run storybook:build

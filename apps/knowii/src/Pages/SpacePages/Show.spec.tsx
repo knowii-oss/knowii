@@ -49,6 +49,9 @@ const props = {
   previous: { title: 'Welcome', slug: 'welcome' },
   next: { title: 'Introduce yourself', slug: 'intro' },
   position: { current: 2, total: 3 },
+  section: null,
+  progress: null,
+  quiz: null,
 };
 
 describe('SpacePage', () => {

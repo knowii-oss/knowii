@@ -117,7 +117,10 @@ Front-end / monorepo (npm + Nx):
 - `npm run test` / `npm run test:all` — run tests (Vitest via Nx)
 - `npm run lint` — lint everything (`lint:knowii`, `lint:common`, `lint:php`)
 - `npm run format` — format everything (Nx + `composer format`)
-- `npm run tsc` — type-check (`tsc --noEmit`, strictest config)
+- `npm run tsc` — type-check the app, the library, the stories and the
+  configuration files (`tsc --noEmit`, strictest config)
+- `npm run tsc:spec` — type-check the spec files of the app and the library
+  (Vitest runs them without a type check)
 
 Back-end (Composer / Laravel):
 
@@ -153,7 +156,7 @@ PHPStan, tests and audits run in CI.
   `verbatimModuleSyntax`: never relax them to make code compile.
 - Import types with `import type` (enforced by ESLint and required by
   `verbatimModuleSyntax`).
-- Before opening a pull request, run `npm run tsc`,
+- Before opening a pull request, run `npm run tsc`, `npm run tsc:spec`,
   `npx nx run-many -t lint typecheck test`, `composer lint` and
   `php artisan test` (CI runs them, and the formatting check, and fails on
   any error).

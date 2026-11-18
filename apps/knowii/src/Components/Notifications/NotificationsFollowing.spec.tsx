@@ -449,7 +449,10 @@ describe('"Following" in the Notifications panel (#1497)', () => {
 
       expect(follow.mutePost).toHaveBeenCalledWith('c1', 's1', 'post-cuid-a');
       await waitFor(() => expect(within(followingSection()).queryByText(/First thread/)).toBeNull());
-      const status = within(panel()).getAllByRole('status')[0];
+      const [status] = within(panel()).getAllByRole('status');
+      if (!status) {
+        throw new Error('A status message expected');
+      }
       expect(status).toHaveTextContent('Muted. Undo');
       expect(within(status).getByRole('button', { name: 'Undo' })).toBeInTheDocument();
       // No question is asked

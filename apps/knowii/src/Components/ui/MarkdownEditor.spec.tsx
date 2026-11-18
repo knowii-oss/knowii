@@ -186,7 +186,9 @@ describe('MarkdownEditor', () => {
 
   it('takes several images at a time, each with its description, and writes them one per line (#1207)', async () => {
     mockPreviews();
-    const upload = vi.fn((file: File) => Promise.resolve({ url: `/storage/uploads/${file.name.replace('.png', '.webp')}` }));
+    const upload = vi.fn<ImageUploader['upload']>((file) =>
+      Promise.resolve({ url: `/storage/uploads/${file.name.replace('.png', '.webp')}` }),
+    );
     const { container } = render(<Harness renderPreview={vi.fn()} images={uploader(upload)} />);
     await userEvent.type(screen.getByRole('textbox', { name: 'Body' }), 'Our trip:');
 

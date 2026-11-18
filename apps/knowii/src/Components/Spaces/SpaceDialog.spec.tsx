@@ -98,7 +98,7 @@ describe('SpaceDialog access groups (#1241)', () => {
   });
 });
 
-const groupsSpace = {
+const groupsSpace: Space = {
   cuid: 's1',
   name: 'Lounge',
   slug: 'lounge',
@@ -110,7 +110,9 @@ const groupsSpace = {
   position: 1,
   space_group_cuid: 'sg2',
   access_groups: [],
-} as Space;
+  created_at: new Date('2026-11-01T10:00:00Z'),
+  updated_at: new Date('2026-11-01T10:00:00Z'),
+};
 
 describe('SpaceDialog access groups of the space group (#1422)', () => {
   it('shows which access groups open the space and where each one comes from', async () => {

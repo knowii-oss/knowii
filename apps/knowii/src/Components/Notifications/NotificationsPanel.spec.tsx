@@ -210,11 +210,13 @@ describe('the Notifications panel (#1484)', () => {
         excerpt: 'In the chat',
         target: {
           post_slug: null,
+          post_cuid: null,
           comment_cuid: null,
           chat_message_cuid: 'm1',
           thread_cuid: 'root',
           resource_cuid: null,
           resource_slug: null,
+          page_slug: null,
         },
       });
       const resource = makeNotification('res', {
@@ -222,11 +224,13 @@ describe('the Notifications panel (#1484)', () => {
         excerpt: 'On a resource',
         target: {
           post_slug: null,
+          post_cuid: null,
           comment_cuid: 'k9',
           chat_message_cuid: null,
           thread_cuid: null,
           resource_cuid: 'r1',
           resource_slug: 'the-resource',
+          page_slug: null,
         },
       });
       api.list.mockResolvedValue(page([chat, resource]));

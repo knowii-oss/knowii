@@ -3,6 +3,7 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { CourseMaterial } from '@knowii/common';
 import { AppDataProvider, formatFileSize, isCourseMaterialFileName, knowiiApiClient } from '@knowii/common';
+import type { CourseMaterialTarget } from './CourseMaterials';
 import { CourseMaterials } from './CourseMaterials';
 
 const material = (cuid: string, title: string, overrides: Partial<CourseMaterial> = {}): CourseMaterial => ({
@@ -37,7 +38,7 @@ const outline = [
   { pageCuid: 'sec', label: 'Basics' },
 ];
 
-function renderMaterials(canManage: boolean, targets = outline) {
+function renderMaterials(canManage: boolean, targets: CourseMaterialTarget[] = outline) {
   render(
     <AppDataProvider>
       <CourseMaterials communityCuid="c1" spaceCuid="sp1" targets={targets} canManage={canManage} />
