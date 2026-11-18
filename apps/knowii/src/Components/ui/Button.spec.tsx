@@ -1,6 +1,6 @@
 import type { FormEvent } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Button, buttonClasses } from './Button';
 import { cn } from './cn';
@@ -110,6 +110,104 @@ describe('Button', () => {
     expect(button).toHaveAttribute('aria-disabled', 'true');
   });
 
+  // A form that resets after a send: its submit button becomes disabled while it has the focus (#1618)
+  function SendForm({ disabled, onClick, onSubmit }: { disabled: boolean; onClick: () => void; onSubmit: (event: FormEvent) => void }) {
+    return (
+      <form onSubmit={onSubmit}>
+        <label>
+          Comment
+          <input name="comment" />
+        </label>
+        <Button type="submit" disabled={disabled} onClick={onClick}>
+          Send
+        </Button>
+        <a href="#next">Next</a>
+      </form>
+    );
+  }
+
+  it('keeps the focus when it becomes disabled while it has the focus, and is disabled after the focus leaves (#1618)', async () => {
+    const onClick = vi.fn();
+    const onSubmit = vi.fn((event: FormEvent) => event.preventDefault());
+    const { rerender } = render(<SendForm disabled={false} onClick={onClick} onSubmit={onSubmit} />);
+    const button = screen.getByRole('button', { name: 'Send' });
+    await userEvent.tab();
+    await userEvent.tab();
+    expect(button).toHaveFocus();
+
+    rerender(<SendForm disabled onClick={onClick} onSubmit={onSubmit} />);
+    // jsdom does not always drop the focus of a disabled button, Chrome does: the attributes are the proof
+    expect(button).not.toHaveAttribute('disabled');
+    expect(button).toHaveAttribute('aria-disabled', 'true');
+    expect(button).toHaveFocus();
+
+    await userEvent.keyboard('{Enter}');
+    await userEvent.keyboard(' ');
+    fireEvent.click(button);
+    expect(onClick).not.toHaveBeenCalled();
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(button).toHaveFocus();
+    expect(button).not.toHaveAttribute('disabled');
+
+    // The focus leaves: the button is really disabled, out of the tab order
+    await userEvent.tab();
+    expect(screen.getByRole('link', { name: 'Next' })).toHaveFocus();
+    expect(button).toBeDisabled();
+    expect(button).not.toHaveAttribute('aria-disabled');
+    await userEvent.tab({ shift: true });
+    expect(screen.getByRole('textbox', { name: 'Comment' })).toHaveFocus();
+    await userEvent.click(button);
+    expect(button).not.toHaveFocus();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('stays focusable while the window does not have the focus', async () => {
+    const { rerender } = render(<Button>Save</Button>);
+    await userEvent.tab();
+    const button = screen.getByRole('button', { name: 'Save' });
+    rerender(<Button disabled>Save</Button>);
+    // The window loses the focus: the button gets a blur event, but it stays the active element of the page
+    fireEvent.blur(button);
+    expect(button).not.toHaveAttribute('disabled');
+    expect(button).toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('is enabled again when disabled turns false while it has the focus', async () => {
+    const onClick = vi.fn();
+    const { rerender } = render(<Button onClick={onClick}>Save</Button>);
+    await userEvent.tab();
+    const button = screen.getByRole('button', { name: 'Save' });
+    rerender(
+      <Button disabled onClick={onClick}>
+        Save
+      </Button>,
+    );
+    rerender(<Button onClick={onClick}>Save</Button>);
+    expect(button).toHaveFocus();
+    expect(button).not.toHaveAttribute('aria-disabled');
+    await userEvent.keyboard('{Enter}');
+    expect(onClick).toHaveBeenCalledOnce();
+  });
+
+  it('calls the focus and blur handlers of the caller', async () => {
+    const onFocus = vi.fn();
+    const onBlur = vi.fn();
+    render(
+      <>
+        <Button onFocus={onFocus} onBlur={onBlur}>
+          Save
+        </Button>
+        <Button>Cancel</Button>
+      </>,
+    );
+    await userEvent.tab();
+    expect(onFocus).toHaveBeenCalledOnce();
+    expect(onBlur).not.toHaveBeenCalled();
+    await userEvent.tab();
+    expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus();
+    expect(onBlur).toHaveBeenCalledOnce();
+  });
+
   it('stays a real disabled button with disabled', async () => {
     const onClick = vi.fn();
     const onSubmit = vi.fn((event: FormEvent) => event.preventDefault());
@@ -122,6 +220,7 @@ describe('Button', () => {
     );
     const button = screen.getByRole('button', { name: 'Send' });
     expect(button).toBeDisabled();
+    expect(button).not.toHaveAttribute('aria-disabled');
     await userEvent.click(button);
     await userEvent.tab();
     expect(button).not.toHaveFocus();

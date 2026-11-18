@@ -119,6 +119,51 @@ describe('CommentSection', () => {
     expect(screen.queryByRole('button', { name: /^Reply/ })).not.toBeInTheDocument();
   });
 
+  it('puts the focus back in the field after a comment is sent with the keyboard (#1618)', async () => {
+    vi.spyOn(knowiiApiClient.communities.comments, 'create').mockResolvedValue({
+      ok: true,
+      message: '',
+      data: comment('c3', ada, 'Hello'),
+    });
+    renderSection();
+
+    const form = screen.getByRole('form', { name: 'Write a comment' });
+    const editor = within(form).getByRole('combobox', { name: 'Write a comment' });
+    await userEvent.type(editor, 'Hello');
+    const send = within(form).getByRole('button', { name: 'Comment' });
+    act(() => send.focus());
+    await userEvent.keyboard('{Enter}');
+
+    expect(await screen.findByText('Hello', { selector: 'p' })).toBeInTheDocument();
+    expect(editor).toHaveValue('');
+    expect(editor).toHaveFocus();
+    // The focus left the button before it became disabled
+    expect(send).toBeDisabled();
+  });
+
+  it('keeps the text and the focus when a comment cannot be sent (#1618)', async () => {
+    vi.spyOn(knowiiApiClient.communities.comments, 'create').mockResolvedValue({
+      ok: false,
+      status: 422,
+      message: 'The comment is not valid',
+      errors: { body: ['The comment is too long.'] },
+    });
+    renderSection();
+
+    const form = screen.getByRole('form', { name: 'Write a comment' });
+    const editor = within(form).getByRole('combobox', { name: 'Write a comment' });
+    await userEvent.type(editor, 'Hello');
+    const send = within(form).getByRole('button', { name: 'Comment' });
+    act(() => send.focus());
+    await userEvent.keyboard('{Enter}');
+
+    expect(await within(form).findByText('The comment is too long.')).toBeInTheDocument();
+    expect(editor).toHaveValue('Hello');
+    expect(send).toHaveFocus();
+    // jsdom does not always drop the focus of a disabled button, Chrome does: the button must not be disabled
+    expect(send).not.toHaveAttribute('disabled');
+  });
+
   it('comments a resource through the resource endpoints (#1034)', async () => {
     const create = vi
       .spyOn(knowiiApiClient.communities.comments, 'create')
@@ -214,10 +259,14 @@ describe('CommentSection permalinks and collapsed threads (#1205)', () => {
   it('collapses and expands every thread at once', async () => {
     renderSection();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Collapse all' }));
+    const collapseAll = screen.getByRole('button', { name: 'Collapse all' });
+    await userEvent.click(collapseAll);
     expect(screen.queryByText('First')).not.toBeInTheDocument();
     expect(screen.queryByText('Second')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Collapse all' })).toBeDisabled();
+    // Nothing more to collapse: the button keeps the focus, with aria-disabled, until the focus leaves it (#1618)
+    expect(collapseAll).toHaveFocus();
+    expect(collapseAll).toHaveAttribute('aria-disabled', 'true');
+    expect(collapseAll).not.toHaveAttribute('disabled');
 
     await userEvent.click(screen.getByRole('button', { name: 'Expand all' }));
     expect(screen.getByText('First')).toBeInTheDocument();

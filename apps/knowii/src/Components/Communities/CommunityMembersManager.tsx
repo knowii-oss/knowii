@@ -163,6 +163,9 @@ export function CommunityMembersManager({
       }
       return;
     }
+    // The form stays on the page: the focus goes back in the email field, for the next invitation (#1618). Before the
+    // reset: the reset removes the fields until the next render, and setFocus finds no field then.
+    form.setFocus('email');
     form.reset({ email: '', role: data.role });
     showToast({ severity: 'success', summary: `Invitation sent to ${result.data.email}` });
     void loadInvitations();

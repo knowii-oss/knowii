@@ -157,7 +157,8 @@ export function NotificationLine(props: NotificationLineProps) {
           </div>
         )}
       </div>
-      {/* Above the stretched link; never `disabled` or `loading`: the focus stays on the button */}
+      {/* Above the stretched link. aria-disabled and a guard, not `loading`: `busy` is true for the whole line (also for
+          an action of the menu), and `loading` would show a spinner on a button that was not pressed */}
       <div className="relative z-10 flex shrink-0 flex-col items-end gap-1 self-start">
         {!isFollowing && (
           <Button

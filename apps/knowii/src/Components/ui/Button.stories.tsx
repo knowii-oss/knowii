@@ -5,15 +5,17 @@ import { expect, fn, userEvent, within } from 'storybook/test';
 import { FaArrowRight, FaPlus } from 'react-icons/fa6';
 import type { ButtonProps } from './Button';
 import { Button, LinkButton } from './Button';
+import { TextInput } from './TextInput';
 
 /**
  * Use a button for an action on the page. For navigation, use `LinkButton` (a link that looks like a button), never a
  * button inside a link. The default type is "button": set `type="submit"` to submit a form.
  *
- * Accessibility: the name is the text, or `aria-label` for a button with only an icon. A button with `disabled` loses
- * the focus. A busy button keeps it: use `loading` (it sets `aria-busy` and `aria-disabled`, and ignores a click and
- * the submit of a form). For a button that does nothing for another reason, use `aria-disabled` and a guard in the
- * click handler.
+ * Accessibility: the name is the text, or `aria-label` for a button with only an icon. A button with `disabled` is out
+ * of the tab order. A busy button keeps the focus: use `loading` (it sets `aria-busy` and `aria-disabled`, and ignores a
+ * click and the submit of a form). A button that becomes disabled while it has the focus also keeps it: it gets
+ * `aria-disabled` until the focus leaves it. For a button that does nothing for another reason, use `aria-disabled` and
+ * a guard in the click handler.
  */
 const meta = {
   component: Button,
@@ -78,12 +80,61 @@ export const LongText: Story = {
 };
 
 /**
- * `disabled` takes the button out of the tab order: use it only when the focus is not on the button.
+ * `disabled` takes the button out of the tab order. A pointer click gives it no focus.
  */
 export const Disabled: Story = {
   args: { disabled: true },
   play: async ({ canvasElement }) => {
     await expect(within(canvasElement).getByRole('button', { name: 'Save' })).toBeDisabled();
+  },
+};
+
+function SendAndClear({ onClick, ...props }: ButtonProps) {
+  const [text, setText] = useState('Hello');
+  return (
+    <form
+      className="flex items-end gap-2"
+      onSubmit={(event) => {
+        event.preventDefault();
+        setText('');
+      }}
+    >
+      <div className="flex flex-col gap-1">
+        <label htmlFor="story-comment" className="text-sm font-bold">
+          Comment
+        </label>
+        <TextInput id="story-comment" value={text} onChange={(event) => setText(event.target.value)} />
+      </div>
+      <Button {...props} type="submit" disabled={text.trim() === ''} onClick={onClick} />
+    </form>
+  );
+}
+
+/**
+ * A send clears the field, so the button becomes disabled while it has the focus (#1618). It keeps the focus with
+ * `aria-disabled`, and Enter does nothing. When the focus leaves it, it is really disabled.
+ */
+export const DisabledWhileFocused: Story = {
+  args: { children: 'Send' },
+  render: (args) => <SendAndClear {...args} />,
+  play: async ({ args, canvasElement }) => {
+    const canvas = within(canvasElement);
+    const field = canvas.getByRole('textbox', { name: 'Comment' });
+    const button = canvas.getByRole('button', { name: 'Send' });
+    await userEvent.click(field);
+    await userEvent.tab();
+    await expect(button).toHaveFocus();
+    await userEvent.keyboard('{Enter}');
+    await expect(args.onClick).toHaveBeenCalledOnce();
+    await expect(field).toHaveValue('');
+    await expect(button).toHaveFocus();
+    await expect(button).toBeEnabled();
+    await expect(button).toHaveAttribute('aria-disabled', 'true');
+    await userEvent.keyboard('{Enter}');
+    await expect(args.onClick).toHaveBeenCalledOnce();
+    await userEvent.tab({ shift: true });
+    await expect(field).toHaveFocus();
+    await expect(button).toBeDisabled();
   },
 };
 

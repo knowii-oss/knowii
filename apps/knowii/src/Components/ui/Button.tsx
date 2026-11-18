@@ -1,4 +1,5 @@
-import type { ButtonHTMLAttributes, ComponentProps, MouseEvent, ReactNode, Ref } from 'react';
+import type { ButtonHTMLAttributes, ComponentProps, FocusEvent, MouseEvent, ReactNode, Ref } from 'react';
+import { useState } from 'react';
 import { Link } from '@inertiajs/react';
 import { cn } from './cn';
 import { Spinner } from './Spinner';
@@ -65,6 +66,8 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>, Bu
 /**
  * Button. The default type is "button": set type="submit" to submit a form.
  * `disabled` takes the button out of the tab order. `loading` does not: a disabled button loses the focus (#1564).
+ * A button never becomes disabled while it has the focus (#1618): when `disabled` turns true on the focused button, it
+ * gets aria-disabled and ignores a click until the focus leaves it. Then it is really disabled.
  */
 export function Button({
   variant,
@@ -80,14 +83,37 @@ export function Button({
   type = 'button',
   ref,
   onClick,
+  onFocus,
+  onBlur,
   'aria-busy': ariaBusy,
   'aria-disabled': ariaDisabled,
   ...props
 }: ButtonProps) {
+  // The button has the focus. Set by its focus events, never read from the page during the render.
+  const [focused, setFocused] = useState(false);
+  // Disabled while it has the focus: it stays focusable until the focus leaves it (a disabled button loses the focus)
+  const disabledWithFocus = !!disabled && focused;
+  const inactive = loading || disabledWithFocus;
+
+  const handleFocus = (event: FocusEvent<HTMLButtonElement>) => {
+    setFocused(true);
+    onFocus?.(event);
+  };
+
+  const handleBlur = (event: FocusEvent<HTMLButtonElement>) => {
+    // When the window loses the focus, the button stays the active element of the page and gets the focus again when the
+    // window comes back. It must not become disabled in the meantime.
+    if (event.currentTarget.ownerDocument.activeElement !== event.currentTarget) {
+      setFocused(false);
+    }
+    onBlur?.(event);
+  };
+
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
-    if (loading) {
-      // The button is busy: the click does nothing. Prevent the default action, so that a submit button does not
-      // submit its form (a click, Enter or Space on the button, or Enter in a field of the form)
+    if (inactive) {
+      // The button is busy, or disabled while it has the focus: the click does nothing. Prevent the default action, so
+      // that a submit button does not submit its form (a click, Enter or Space on the button, or Enter in a field of
+      // the form)
       event.preventDefault();
       event.stopPropagation();
       return;
@@ -99,13 +125,16 @@ export function Button({
     <button
       ref={ref}
       type={type}
-      // aria-disabled, not disabled, while loading: a disabled button loses the focus (#1564)
-      disabled={disabled}
-      aria-disabled={loading || ariaDisabled}
+      // aria-disabled, not disabled, while loading and while it has the focus: a disabled button loses the focus
+      // (#1564, #1618). The classes give both states the same look.
+      disabled={disabled && !focused}
+      aria-disabled={inactive || ariaDisabled}
       aria-busy={loading || ariaBusy}
       className={cn(buttonClasses({ variant, size, fullWidth, iconOnly }), className)}
-      onClick={handleClick}
       {...props}
+      onClick={handleClick}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
     >
       {loading ? <Spinner size="sm" label="Loading" /> : leftIcon}
       {children}

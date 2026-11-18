@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { Community } from '@knowii/common';
 import { AppDataProvider, knowiiApiClient } from '@knowii/common';
@@ -45,12 +45,26 @@ describe('ModeratorPermissionsForm', () => {
 
     screen.getByRole('checkbox', { name: /Manage spaces/ }).focus();
     await userEvent.keyboard(' ');
-    expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
-    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+    const save = screen.getByRole('button', { name: 'Save' });
+    expect(save).toBeEnabled();
+    act(() => save.focus());
+    await userEvent.keyboard('{Enter}');
 
     await waitFor(() =>
       expect(update).toHaveBeenCalledWith('c1', { manage_spaces: true, manage_members: false, pin_posts: true, delete_content: true }),
     );
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled());
+    await waitFor(() => expect(save).not.toHaveAttribute('aria-busy'));
+    // Nothing to save any more: Save keeps the focus with aria-disabled (#1618). jsdom does not always drop the focus of
+    // a disabled button, Chrome does: the attributes are the proof.
+    expect(save).toHaveFocus();
+    expect(save).toHaveAttribute('aria-disabled', 'true');
+    expect(save).not.toHaveAttribute('disabled');
+    await userEvent.keyboard('{Enter}');
+    expect(update).toHaveBeenCalledOnce();
+
+    // The focus leaves: Save is really disabled
+    await userEvent.tab({ shift: true });
+    expect(screen.getByRole('checkbox', { name: /Delete content/ })).toHaveFocus();
+    expect(save).toBeDisabled();
   });
 });
