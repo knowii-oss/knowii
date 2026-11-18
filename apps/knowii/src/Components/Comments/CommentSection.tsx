@@ -3,7 +3,7 @@ import { flushSync } from 'react-dom';
 import type { Comment, CommentSubject, SpaceContentPayload } from '@knowii/common';
 import { knowiiApiClient, useAppData, useSocket } from '@knowii/common';
 import { FaChevronDown, FaChevronRight, FaLink, FaPen, FaReply, FaTrash } from 'react-icons/fa6';
-import { Button, Dialog, ErrorBoundary, MarkdownContent, RelativeTime } from '@/Components/ui';
+import { Button, Dialog, ErrorBoundary, MarkdownContent, RelativeTime, useFocusAfterRender } from '@/Components/ui';
 import { CommentForm } from './CommentForm';
 import { ReactionBar } from '@/Components/Reactions/ReactionBar';
 import { SignInPrompt, useIsVisitor } from '@/Components/Reader/Reader';
@@ -29,6 +29,31 @@ const countAll = (comments: Comment[]) => comments.reduce((total, comment) => to
 export const commentAnchor = (cuid: string) => `comment-${cuid}`;
 
 const HIGHLIGHT_MILLISECONDS = 2500;
+
+// The buttons that open a form, found again after the form closes (#1624)
+type FormOpener = 'reply' | 'edit';
+
+/**
+ * The comment element (author, time and text): the target of the focus after a save (#1624)
+ */
+const commentElement = (cuid: string) => document.getElementById(commentAnchor(cuid));
+
+const openerButton = (cuid: string, opener: FormOpener) =>
+  commentElement(cuid)?.querySelector<HTMLButtonElement>(`[data-opens="${opener}"]`);
+
+/**
+ * A saved comment in the list, once: the live update may have brought it before the response of the API (#1624)
+ */
+function withCreated(comments: Comment[], created: Comment): Comment[] {
+  if (created.parent_cuid === null) {
+    return comments.some((comment) => comment.cuid === created.cuid) ? comments : [...comments, { ...created, replies: [] }];
+  }
+  return comments.map((comment) =>
+    comment.cuid === created.parent_cuid && !comment.replies?.some((reply) => reply.cuid === created.cuid)
+      ? { ...comment, replies: [...(comment.replies ?? []), created] }
+      : comment,
+  );
+}
 
 /**
  * The comment that the URL points to (`#comment-{cuid}`), if any
@@ -83,9 +108,13 @@ export function CommentSection(props: CommentSectionProps) {
   const isVisitor = useIsVisitor();
   const [comments, setComments] = useState<Comment[]>(props.initialComments);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  // The comment whose "Reply" button opened the reply form: a reply to a reply opens the form of its thread (#1624)
+  const replyOpener = useRef<string | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [pendingDeletion, setPendingDeletion] = useState<Comment | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  const focusAfterRender = useFocusAfterRender();
 
   const update = (next: Comment[]) => {
     setComments(next);
@@ -195,15 +224,29 @@ export function CommentSection(props: CommentSectionProps) {
       return result.errors['body']?.[0] ?? result.message;
     }
     const created = result.data;
-    update(
-      created.parent_cuid === null
-        ? [...comments, { ...created, replies: [] }]
-        : comments.map((comment) =>
-            comment.cuid === created.parent_cuid ? { ...comment, replies: [...(comment.replies ?? []), created] } : comment,
-          ),
-    );
+    // The comments of now: a live update may have changed them during the request
+    update(withCreated(latest.current.comments, created));
     setReplyingTo(null);
+    replyOpener.current = null;
+    if (created.parent_cuid !== null) {
+      // The reply form goes away: the focus goes to the new reply (#1624). The top-level form stays and keeps it (#1618).
+      focusAfterRender(() => commentElement(created.cuid));
+    }
     return null;
+  };
+
+  const openReply = (comment: Comment, topLevel: Comment) => {
+    replyOpener.current = comment.cuid;
+    setReplyingTo(topLevel.cuid);
+  };
+
+  const cancelReply = () => {
+    const opener = replyOpener.current;
+    replyOpener.current = null;
+    setReplyingTo(null);
+    if (opener) {
+      focusAfterRender(() => openerButton(opener, 'reply'));
+    }
   };
 
   const save = async (target: Comment, body: string): Promise<string | null> => {
@@ -216,9 +259,16 @@ export function CommentSection(props: CommentSectionProps) {
       comment.cuid === target.cuid
         ? { ...comment, body: result.data.body, body_html: result.data.body_html, edited_at: result.data.edited_at }
         : { ...comment, replies: comment.replies?.map(replace) };
-    update(comments.map(replace));
+    update(latest.current.comments.map(replace));
     setEditing(null);
+    // The edit form goes away: the focus goes to the edited comment (#1624)
+    focusAfterRender(() => commentElement(target.cuid));
     return null;
+  };
+
+  const cancelEdit = (target: Comment) => {
+    setEditing(null);
+    focusAfterRender(() => openerButton(target.cuid, 'edit'));
   };
 
   const confirmDeletion = async () => {
@@ -270,7 +320,7 @@ export function CommentSection(props: CommentSectionProps) {
             initialBody={comment.body}
             autoFocus
             onSubmit={(values) => save(comment, values.body)}
-            onCancel={() => setEditing(null)}
+            onCancel={() => cancelEdit(comment)}
           />
         ) : (
           <ErrorBoundary variant="block" label={`the comment by ${authorName}`}>
@@ -290,7 +340,8 @@ export function CommentSection(props: CommentSectionProps) {
                 size="sm"
                 variant="ghost"
                 aria-label={isMarker ? 'Reply in the thread of the deleted comment' : `Reply to ${authorName}`}
-                onClick={() => setReplyingTo(topLevel.cuid)}
+                data-opens="reply"
+                onClick={() => openReply(comment, topLevel)}
               >
                 <FaReply aria-hidden="true" />
                 Reply
@@ -306,7 +357,7 @@ export function CommentSection(props: CommentSectionProps) {
               Copy link
             </Button>
             {isAuthor && (
-              <Button size="sm" variant="ghost" aria-label="Edit your comment" onClick={() => setEditing(comment.cuid)}>
+              <Button size="sm" variant="ghost" aria-label="Edit your comment" data-opens="edit" onClick={() => setEditing(comment.cuid)}>
                 <FaPen aria-hidden="true" />
                 Edit
               </Button>
@@ -413,7 +464,7 @@ export function CommentSection(props: CommentSectionProps) {
                               submitLabel="Reply"
                               autoFocus
                               onSubmit={(values) => create(values.body, comment.cuid)}
-                              onCancel={() => setReplyingTo(null)}
+                              onCancel={cancelReply}
                             />
                           </li>
                         )}

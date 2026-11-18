@@ -3,7 +3,7 @@ import type { ApiResult, ChatMessage, PresenceMember } from '@knowii/common';
 import { CONVERSATION_EVENTS, useAppData, usePresence, useSocket } from '@knowii/common';
 import { HereNowButton } from '@/Components/Presence/HereNowButton';
 import { TypingIndicator } from '@/Components/Presence/TypingIndicator';
-import { Button, Dialog, EmptyState } from '@/Components/ui';
+import { Button, Dialog, EmptyState, useFocusAfterRender } from '@/Components/ui';
 import { ChatComposer } from './ChatComposer';
 import { ChatMessageItem } from './ChatMessageItem';
 import { ThreadPanel } from './ThreadPanel';
@@ -272,19 +272,24 @@ export function ChatRoom(props: ChatRoomProps) {
       return false;
     }
     applyMessage(result.data);
-    stopEditing();
+    stopEditing(message, true);
     return true;
   };
 
-  // Back to the message field after an edit (keyboard flow of #1185), once the edit field is gone
-  const stopEditing = () => setEditingCuid(null);
-  const wasEditing = useRef(false);
-  useEffect(() => {
-    if (editingCuid === null && wasEditing.current) {
-      document.getElementById(threadOf ? 'thread-composer' : 'chat-composer')?.focus();
-    }
-    wasEditing.current = editingCuid !== null;
-  }, [editingCuid, threadOf]);
+  // The focus once the edit field is gone. In the thread panel (#1624): on the saved message, or back on its "Edit"
+  // button after Cancel or Escape. In the room: back in the message field (keyboard flow of #1185, the Up arrow edits).
+  const focusAfterRender = useFocusAfterRender();
+  const stopEditing = (message: ChatMessage, saved: boolean) => {
+    setEditingCuid(null);
+    const inThread = threadOf !== null;
+    focusAfterRender(() => {
+      if (!inThread) {
+        return document.getElementById('chat-composer');
+      }
+      const item = document.getElementById(`thread-message-${message.cuid}`);
+      return saved ? item : item?.querySelector<HTMLElement>('[data-opens="edit"]');
+    });
+  };
 
   const confirmDelete = async () => {
     if (!toDelete) {
@@ -335,7 +340,7 @@ export function ChatRoom(props: ChatRoomProps) {
     canReact: props.canReact,
     canModerate: props.canModerate,
     onEdit: (message: ChatMessage) => setEditingCuid(message.cuid),
-    onCancelEdit: stopEditing,
+    onCancelEdit: (message: ChatMessage) => stopEditing(message, false),
     onSave: save,
     onDelete: (message: ChatMessage) => setToDelete(message),
   };
