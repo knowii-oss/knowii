@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Inertia;
 
+use App\Enums\KnowiiNoAccessKind;
 use App\Enums\KnowiiSpaceType;
 use App\Http\Resources\MemberWithRoleResource;
 use App\Http\Resources\NewestPostResource;
@@ -11,6 +12,7 @@ use App\Models\SpaceGroup;
 use App\Models\User;
 use App\Support\CommunityMemberQuery;
 use App\Support\CommunityRoles;
+use App\Support\NoAccess;
 use App\Support\OidcEntitlements;
 use App\Support\PublicCommunity;
 use App\Support\SpaceTree;
@@ -73,13 +75,13 @@ class CommunityController extends Controller
     /**
      * The public page of a community (#1485, ADR 0044), for a visitor and for a signed-in person who is not a member. It
      * exists only when the community has a public space that is not a chat space: any other community answers 404 to a
-     * visitor (the sign-in page) and 403 to an outsider, as before. Its props are cut here, on the server: the community
-     * without its member count, rights and settings, the public spaces without any chat space, the newest public posts.
-     * No team, no member list, no permission.
+     * visitor (the sign-in page) and 403 to an outsider, as before, now with the page without access (#1561). Its props
+     * are cut here, on the server: the community without its member count, rights and settings, the public spaces without
+     * any chat space, the newest public posts. No team, no member list, no permission.
      */
     private function showPublic(Request $request, Community $community): Response
     {
-        PublicCommunity::ensureExists($community, $request);
+        NoAccess::ensurePublicPage($request, $community);
 
         JsonResource::withoutWrapping();
 
@@ -99,7 +101,7 @@ class CommunityController extends Controller
     {
         $community = Community::where('slug', $slug)->firstOrFail();
 
-        Gate::authorize('view', $community);
+        NoAccess::authorizeView($request, $community, $community, KnowiiNoAccessKind::Community);
 
         JsonResource::withoutWrapping();
 

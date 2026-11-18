@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Inertia;
 
 use App\Constants;
 use App\Contracts\Notifications\TracksSpaceVisits;
+use App\Enums\KnowiiNoAccessKind;
 use App\Enums\KnowiiSpaceType;
 use App\Models\ChatMessage;
 use App\Models\ChatRead;
@@ -11,6 +12,7 @@ use App\Models\Community;
 use App\Models\Space;
 use App\Models\User;
 use App\Support\CourseProgress;
+use App\Support\NoAccess;
 use App\Support\Pagination;
 use App\Support\SpaceTree;
 use Illuminate\Http\Request;
@@ -37,7 +39,7 @@ class SpaceController extends Controller
         $community = Community::where('slug', $communitySlug)->firstOrFail();
         $space = $community->spaces()->where('slug', $spaceSlug)->firstOrFail();
 
-        Gate::authorize('view', $space);
+        NoAccess::authorizeView($request, $community, $space, KnowiiNoAccessKind::Space);
 
         // A member who opens the space has visited it: the dot of the navigation goes (#1476). Before the navigation is built
         if ($request->user() !== null) {
