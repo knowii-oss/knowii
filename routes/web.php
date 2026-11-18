@@ -16,10 +16,12 @@ use App\Http\Controllers\Inertia\PostController;
 use App\Http\Controllers\Inertia\SpaceController;
 use App\Http\Controllers\LegalPageController;
 use App\Http\Controllers\RobotsController;
+use App\Http\Controllers\SecurityTxtController;
 use App\Http\Controllers\Webhooks\OidcEntitlementsWebhookController;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Support\LegalPages;
 use App\Support\OidcEntitlements;
+use App\Support\SecurityTxt;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -30,6 +32,10 @@ use Inertia\Inertia;
 
 // Built from config/robots.php (#104): AI crawlers refused, member areas never crawled
 Route::get('/robots.txt', RobotsController::class)->name('robots');
+
+// Built from config/security_txt.php (#1559, RFC 9116): the security contact of this instance
+Route::get(SecurityTxt::PATH, [SecurityTxtController::class, 'show'])->name('security-txt');
+Route::get('/security.txt', [SecurityTxtController::class, 'legacy']);
 
 Route::get('/', function () {
     // Render the homepage
