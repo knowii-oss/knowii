@@ -1,7 +1,7 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { AppDataProvider, knowiiApiClient } from '@knowii/common';
+import { AppDataProvider, knowiiApiClient, readKeptText, writeKeptText } from '@knowii/common';
 import AppLayout from './AppLayout';
 
 const page = vi.hoisted(() => ({
@@ -177,5 +177,23 @@ describe('AppLayout for a member (#1476)', () => {
 
     expect(await screen.findByRole('menuitem', { name: 'Edit profile' })).toBeInTheDocument();
     expect(screen.queryByRole('menuitem', { name: 'Catch up' })).toBeNull();
+  });
+
+  it('removes every text that the member did not send, and only theirs, on "Log out" (#1622)', async () => {
+    page.user = member;
+    vi.spyOn(knowiiApiClient.notifications, 'count').mockResolvedValue({ ok: true, message: '', data: { count: 0, messages: 0 } });
+    const text = { fields: { title: 'Draft', body: 'Not sent' }, changedAt: Date.now(), base: null };
+    writeKeptText({ account: 'u1', kind: 'post', place: 's1' }, text);
+    writeKeptText({ account: 'u1', kind: 'page', place: 'p1' }, text);
+    writeKeptText({ account: 'u2', kind: 'post', place: 's1' }, text);
+    renderLayout();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Open the user menu' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Log out' }));
+
+    expect(readKeptText({ account: 'u1', kind: 'post', place: 's1' })).toBeNull();
+    expect(readKeptText({ account: 'u1', kind: 'page', place: 'p1' })).toBeNull();
+    expect(readKeptText({ account: 'u2', kind: 'post', place: 's1' })).not.toBeNull();
+    window.localStorage.clear();
   });
 });

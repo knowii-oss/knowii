@@ -16,6 +16,8 @@ import { useImageUploader } from '@/Components/Uploads/use-image-uploader';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import { Button, Dialog, DialogCloseButton, MarkdownEditor, TextInput } from '@/Components/ui';
+import { KeptTextNotice } from '@/Components/KeptText/KeptTextNotice';
+import { useKeptText } from '@/Components/KeptText/use-kept-text';
 
 /**
  * page: a page of a page space (#1179). lesson: a lesson of a course space, with an optional video (#1188). section:
@@ -40,6 +42,10 @@ export interface PageEditorProps {
 const NOUNS: Record<PageEditorMode, string> = { page: 'page', lesson: 'lesson', section: 'section' };
 const SCHEMAS = { page: pageFormSchema, lesson: lessonFormSchema, section: sectionFormSchema };
 
+function text(value: string | boolean | undefined): string {
+  return typeof value === 'string' ? value : '';
+}
+
 /**
  * Write or edit a page, a lesson or a section: a title, a Markdown text with images, a video for a lesson.
  */
@@ -59,12 +65,66 @@ export function PageEditor({ open, communityCuid, spaceCuid, spaceName, mode = '
     mode: 'onChange',
   });
   const noun = NOUNS[mode];
+  // The text of a page or a lesson stays in the browser until it is saved or discarded (#1622): the place is the page
+  // for an edit, the space for a new one. A section is a title only and is not kept.
+  const kept = useKeptText({
+    kind: 'page',
+    place: mode === 'section' ? null : (page?.cuid ?? spaceCuid),
+    start: values,
+    updatedAt: page?.updated_at,
+  });
+  const { load: loadKeptText, change: keepText } = kept;
 
   useEffect(() => {
-    if (open) {
-      form.reset(values);
+    if (!open) {
+      return;
     }
-  }, [open, values, form]);
+    form.reset(values);
+    const fields = loadKeptText();
+    if (fields) {
+      // The start of the form stays the page: the kept text counts as a change, and a close asks first (#1563)
+      form.reset(
+        { title: text(fields['title']), body: text(fields['body']), video_url: text(fields['video_url']) },
+        { keepDefaultValues: true },
+      );
+    }
+  }, [open, values, form, loadKeptText]);
+
+  // Only what the person types is kept (the fields call it after their change): a reset of the form is not a change
+  const keepForm = () => {
+    const { title, body, video_url } = form.getValues();
+    keepText({ title, body, video_url });
+  };
+
+  // Escape, a click outside or "Cancel": after "Discard" when the form had changes (#1563), at once without changes
+  const closeByPerson = () => {
+    if (form.formState.isDirty) {
+      kept.discardForm();
+    } else {
+      kept.flush();
+    }
+    onClose();
+  };
+
+  // "Use my text" (the page changed on the server after the text was written): the kept text goes in the form
+  const putKeptTextInForm = () => {
+    // The focus moves first: the button goes away, and a reset forgets the fields until the next render
+    form.setFocus('title');
+    const fields = kept.use();
+    if (fields) {
+      form.reset(
+        { title: text(fields['title']), body: text(fields['body']), video_url: text(fields['video_url']) },
+        { keepDefaultValues: true },
+      );
+    }
+  };
+
+  // "Discard" of the line above the form: the form opens again as without a kept text, and the focus goes to the title
+  const discardKeptText = () => {
+    form.setFocus('title');
+    kept.remove();
+    form.reset(values);
+  };
 
   const onSubmit = form.handleSubmit(async (data) => {
     const fields =
@@ -80,6 +140,7 @@ export function PageEditor({ open, communityCuid, spaceCuid, spaceName, mode = '
         : await knowiiApiClient.communities.pages.create(communityCuid, spaceCuid, { ...fields, body: data.body });
 
     if (result.ok) {
+      kept.remove();
       const label = noun.charAt(0).toUpperCase() + noun.slice(1);
       showToast({ severity: 'success', summary: page ? `${label} saved` : `${label} created` });
       onSaved(result.data);
@@ -100,7 +161,7 @@ export function PageEditor({ open, communityCuid, spaceCuid, spaceName, mode = '
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={closeByPerson}
       size={mode === 'section' ? 'md' : 'lg'}
       title={page ? `Edit the ${noun}` : `New ${noun} in ${spaceName}`}
       description={mode === 'section' ? 'A section is a heading for the lessons or pages that follow it.' : undefined}
@@ -116,6 +177,7 @@ export function PageEditor({ open, communityCuid, spaceCuid, spaceName, mode = '
       }
     >
       <form id="page-form" onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
+        <KeptTextNotice state={kept.state} changedAt={kept.changedAt} noun={noun} onUse={putKeptTextInForm} onDiscard={discardKeptText} />
         <div>
           <InputLabel htmlFor="page-title">Title</InputLabel>
           <Controller
@@ -126,6 +188,10 @@ export function PageEditor({ open, communityCuid, spaceCuid, spaceName, mode = '
                 id="page-title"
                 wrapperClassName="mt-1"
                 {...field}
+                onChange={(event) => {
+                  field.onChange(event);
+                  keepForm();
+                }}
                 data-autofocus
                 required
                 maxLength={MAX_LENGTH_POST_TITLE}
@@ -150,6 +216,10 @@ export function PageEditor({ open, communityCuid, spaceCuid, spaceName, mode = '
                   inputMode="url"
                   wrapperClassName="mt-1"
                   {...field}
+                  onChange={(event) => {
+                    field.onChange(event);
+                    keepForm();
+                  }}
                   placeholder="https://www.youtube.com/watch?v=…"
                   invalid={!!errors.video_url}
                   aria-describedby={errors.video_url ? 'page-video-hint page-video-error' : 'page-video-hint'}
@@ -174,7 +244,10 @@ export function PageEditor({ open, communityCuid, spaceCuid, spaceName, mode = '
                   <MarkdownEditor
                     id="page-body"
                     value={field.value}
-                    onChange={field.onChange}
+                    onChange={(value) => {
+                      field.onChange(value);
+                      keepForm();
+                    }}
                     onBlur={field.onBlur}
                     ref={field.ref}
                     renderPreview={renderPreview}

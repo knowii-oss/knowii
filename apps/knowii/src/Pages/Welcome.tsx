@@ -33,6 +33,7 @@ export default function WelcomePage(props: Props) {
           addLinkOnLogo={false}
           showDashboardButton={showDashboard}
           showLogoutButton={showLogout}
+          accountCuid={page.props.auth.user?.cuid}
           showLoginButton={showLogin}
           showRegisterButton={showRegister}
         />

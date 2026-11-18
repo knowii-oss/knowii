@@ -9,6 +9,7 @@ import {
   LOGOUT_URL,
   NOTIFICATIONS_URL,
   REGISTER_URL,
+  removeKeptTextsOfAccount,
   USER_NOTIFICATIONS_URL,
   USER_PROFILE_URL,
   useAppData,
@@ -204,7 +205,18 @@ export default function AppLayout(props: Props) {
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem>
-                  <Link href={route(LOGOUT_URL)} method="post" as="button" className={dropdownMenuItemClasses}>
+                  <Link
+                    href={route(LOGOUT_URL)}
+                    method="post"
+                    as="button"
+                    className={dropdownMenuItemClasses}
+                    // The texts that the account did not send leave the browser with it (#1622)
+                    onClick={() => {
+                      if (user) {
+                        removeKeptTextsOfAccount(user.cuid);
+                      }
+                    }}
+                  >
                     <FaSignOutAlt aria-hidden="true" className="text-muted" />
                     Log out
                   </Link>

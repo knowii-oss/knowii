@@ -1,13 +1,22 @@
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useMemo, useState } from 'react';
-import type { Post, PostForm } from '@knowii/common';
+import type { KeptTextFields, Post, PostForm } from '@knowii/common';
 import { knowiiApiClient, MAX_LENGTH_POST_BODY, MAX_LENGTH_POST_TITLE, POST_EDITOR_ROWS, postFormSchema, useAppData } from '@knowii/common';
 import { useMentionSource } from '@/Components/Members/use-mention-source';
 import { useImageUploader } from '@/Components/Uploads/use-image-uploader';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import { Button, Checkbox, Dialog, DialogCloseButton, MarkdownEditor, TextInput } from '@/Components/ui';
+import { KeptTextNotice } from '@/Components/KeptText/KeptTextNotice';
+import { useKeptText } from '@/Components/KeptText/use-kept-text';
+
+// A new post opens empty. An edit of a post opens with the post and keeps nothing in the browser (#1622).
+const EMPTY_POST: KeptTextFields = { title: '', body: '', notify_now: false };
+
+function text(value: string | boolean | undefined): string {
+  return typeof value === 'string' ? value : '';
+}
 
 export interface PostComposerProps {
   open: boolean;
@@ -43,24 +52,65 @@ export function PostComposer({
     () => (markdown: string, signal: AbortSignal) => knowiiApiClient.markdown.preview(markdown, signal, communityCuid),
     [communityCuid],
   );
-  // "Tell the followers of this space now": off by default, the post tells them after 5 minutes
-  const [notifyNow, setNotifyNow] = useState(false);
+  // "Tell the followers of this space now": off by default, the post tells them after 5 minutes. Null: the person did
+  // not choose, the kept text gives the choice (#1622)
+  const [notifyNowChoice, setNotifyNow] = useState<boolean | null>(null);
   const form = useForm<PostForm>({
     resolver: zodResolver(postFormSchema),
     defaultValues: { title: post?.title ?? '', body: post?.body ?? '' },
     mode: 'onChange',
   });
+  // The text of a new post stays in the browser until it is published or discarded (#1622)
+  const kept = useKeptText({ kind: 'post', place: post ? null : spaceCuid, start: EMPTY_POST });
+  const { load: loadKeptText, change: keepText } = kept;
+  const notifyNow = notifyNowChoice ?? kept.restored?.['notify_now'] === true;
 
   useEffect(() => {
-    if (open) {
-      form.reset({ title: post?.title ?? '', body: post?.body ?? '' });
+    if (!open) {
+      return;
     }
-  }, [open, post, form]);
+    form.reset({ title: post?.title ?? '', body: post?.body ?? '' });
+    const fields = loadKeptText();
+    if (fields) {
+      // The start of the form stays the default: the kept text counts as a change, and a close asks first (#1563)
+      form.reset({ title: text(fields['title']), body: text(fields['body']) }, { keepDefaultValues: true });
+    }
+  }, [open, post, form, loadKeptText]);
+
+  // Only what the person types is kept (the fields call it after their change): a reset of the form is not a change
+  const keepForm = (notify = notifyNow) => {
+    const { title, body } = form.getValues();
+    keepText({ title, body, notify_now: notify });
+  };
+
+  const changeNotifyNow = (checked: boolean) => {
+    setNotifyNow(checked);
+    keepForm(checked);
+  };
 
   // The choice does not stay for the next post
   const close = () => {
-    setNotifyNow(false);
+    setNotifyNow(null);
     onClose();
+  };
+
+  // Escape, a click outside or "Cancel": after "Discard" when the form had changes (#1563), at once without changes
+  const closeByPerson = () => {
+    if (form.formState.isDirty) {
+      kept.discardForm();
+    } else {
+      kept.flush();
+    }
+    close();
+  };
+
+  // "Discard" of the line above the form: the form is empty again, and the focus goes to the title. The focus moves
+  // first: the button goes away, and a reset forgets the fields until the next render.
+  const discardKeptText = () => {
+    form.setFocus('title');
+    kept.remove();
+    form.reset({ title: '', body: '' });
+    setNotifyNow(null);
   };
 
   const onSubmit = form.handleSubmit(async (data) => {
@@ -73,6 +123,7 @@ export function PostComposer({
         );
 
     if (result.ok) {
+      kept.remove();
       showToast({ severity: 'success', summary: post ? 'Post saved' : 'Post published' });
       onSaved(result.data);
       close();
@@ -92,7 +143,7 @@ export function PostComposer({
   return (
     <Dialog
       open={open}
-      onClose={close}
+      onClose={closeByPerson}
       size="lg"
       title={post ? 'Edit the post' : `New post in ${spaceName}`}
       // Escape, a click outside and "Cancel" ask before they lose the text (#1563). A save closes without a question.
@@ -107,6 +158,7 @@ export function PostComposer({
       }
     >
       <form id="post-form" onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
+        <KeptTextNotice state={kept.state} changedAt={kept.changedAt} onDiscard={discardKeptText} />
         <div>
           <InputLabel htmlFor="post-title">Title</InputLabel>
           <Controller
@@ -117,6 +169,10 @@ export function PostComposer({
                 id="post-title"
                 wrapperClassName="mt-1"
                 {...field}
+                onChange={(event) => {
+                  field.onChange(event);
+                  keepForm();
+                }}
                 autoFocus
                 required
                 maxLength={MAX_LENGTH_POST_TITLE}
@@ -137,7 +193,10 @@ export function PostComposer({
                 <MarkdownEditor
                   id="post-body"
                   value={field.value}
-                  onChange={field.onChange}
+                  onChange={(value) => {
+                    field.onChange(value);
+                    keepForm();
+                  }}
                   onBlur={field.onBlur}
                   ref={field.ref}
                   renderPreview={renderPreview}
@@ -158,7 +217,7 @@ export function PostComposer({
             <Checkbox
               name="notify_now"
               checked={notifyNow}
-              onChange={(event) => setNotifyNow(event.target.checked)}
+              onChange={(event) => changeNotifyNow(event.target.checked)}
               aria-describedby="post-notify-now-hint"
             />
             <span>

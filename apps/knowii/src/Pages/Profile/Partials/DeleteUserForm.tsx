@@ -2,7 +2,7 @@ import { useRoute } from 'ziggy-js';
 import type { FormEventHandler } from 'react';
 import { useRef, useState } from 'react';
 import { useForm } from '@inertiajs/react';
-import { DELETE_USER_URL, metadata } from '@knowii/common';
+import { DELETE_USER_URL, metadata, removeKeptTextsOfAccount, useTypedPage } from '@knowii/common';
 import { FaLock } from 'react-icons/fa';
 import InputError from '@/Components/InputError';
 import ActionSection from '@/Components/ActionSection';
@@ -16,6 +16,7 @@ interface DeleteUserFormProps {
 
 export default function DeleteUserForm() {
   const route = useRoute();
+  const account = useTypedPage().props.auth.user;
 
   const [confirmingUserDeletion, setConfirmingUserDeletion] = useState(false);
 
@@ -35,7 +36,13 @@ export default function DeleteUserForm() {
 
     form.delete(route(DELETE_USER_URL), {
       preserveScroll: true,
-      onSuccess: () => closeModal(),
+      onSuccess: () => {
+        // The account is gone and signed out: the texts that it did not send leave the browser too (#1622)
+        if (account) {
+          removeKeptTextsOfAccount(account.cuid);
+        }
+        closeModal();
+      },
       onError: () => passwordRef.current?.focus(),
       onFinish: () => form.reset(),
     });

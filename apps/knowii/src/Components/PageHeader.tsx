@@ -1,6 +1,6 @@
 import type { PropsWithChildren } from 'react';
 import { useRoute } from 'ziggy-js';
-import { DASHBOARD_URL, HOME_URL, LOGIN_URL, LOGOUT_URL, REGISTER_URL } from '@knowii/common';
+import { DASHBOARD_URL, HOME_URL, LOGIN_URL, LOGOUT_URL, REGISTER_URL, removeKeptTextsOfAccount } from '@knowii/common';
 import { FaSignOutAlt } from 'react-icons/fa';
 import ApplicationMark from '@/Components/ApplicationMark';
 import ApplicationName from '@/Components/ApplicationName';
@@ -12,6 +12,10 @@ interface Props {
   showDashboardButton: boolean;
   showLoginButton: boolean;
   showLogoutButton: boolean;
+  /**
+   * The signed-in account: "Log out" removes the texts that it did not send from the browser (#1622)
+   */
+  accountCuid?: string | null | undefined;
   showRegisterButton: boolean;
 }
 
@@ -77,6 +81,11 @@ export default function PageHeader(props: PropsWithChildren<Props>) {
               size={props.compact ? 'md' : 'lg'}
               iconOnly
               aria-label="Log out"
+              onClick={() => {
+                if (props.accountCuid) {
+                  removeKeptTextsOfAccount(props.accountCuid);
+                }
+              }}
             >
               <FaSignOutAlt aria-hidden="true" />
             </LinkButton>

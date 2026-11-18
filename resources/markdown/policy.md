@@ -1,6 +1,6 @@
 ---
 title: Privacy policy
-updated: 2026-11-16
+updated: 2026-11-18
 draft: false
 ---
 
@@ -75,12 +75,13 @@ When a member adds a link to a resources space, our server fetches the page to c
 
 Knowii uses only the cookies and the browser storage that the service needs, so there is no consent banner.
 
-| Name                                                                                 | Kind            | Purpose                                                        | Duration                                       |
-| ------------------------------------------------------------------------------------ | --------------- | -------------------------------------------------------------- | ---------------------------------------------- |
-| `{{cookies.session}}`                                                                | Cookie          | Keeps you signed in                                            | {{retention.session}} after your last activity |
-| `XSRF-TOKEN`                                                                         | Cookie          | Protects your forms against cross-site requests                | The same duration as the session               |
-| `remember_web_*`                                                                     | Cookie          | Keeps you signed in between visits when you tick "Remember me" | 400 days, or until you sign out                |
-| The theme, the comment threads that you collapsed, the skin tone of the emoji picker | Browser storage | It never leaves your browser                                   | It stays until you clear it                    |
+| Name                                                                                 | Kind            | Purpose                                                                                                                                           | Duration                                                                              |
+| ------------------------------------------------------------------------------------ | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `{{cookies.session}}`                                                                | Cookie          | Keeps you signed in                                                                                                                               | {{retention.session}} after your last activity                                        |
+| `XSRF-TOKEN`                                                                         | Cookie          | Protects your forms against cross-site requests                                                                                                   | The same duration as the session                                                      |
+| `remember_web_*`                                                                     | Cookie          | Keeps you signed in between visits when you tick "Remember me"                                                                                    | 400 days, or until you sign out                                                       |
+| The theme, the comment threads that you collapsed, the skin tone of the emoji picker | Browser storage | It never leaves your browser                                                                                                                      | It stays until you clear it                                                           |
+| The text of a post, a page or a lesson that you wrote and did not send               | Browser storage | Gives your text back after a closed tab, a reload or a crash. It stays only in your browser and is never sent to the server before you publish it | Until you publish or discard it, until you sign out, or 7 days after your last change |
 
 The sign-up, waitlist and newsletter forms use Cloudflare Turnstile to block bots. Cloudflare processes your IP address and data about your browser for this check.
 

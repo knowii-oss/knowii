@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { readKeptText, writeKeptText } from '@knowii/common';
 import DeleteUserForm from './DeleteUserForm';
 
 const send = vi.fn();
@@ -20,6 +21,7 @@ vi.mock('@inertiajs/react', async () => {
         delete: (url: string, options: unknown) => send(url, data, options),
       };
     },
+    usePage: () => ({ props: { auth: { user: { cuid: 'ada1' } } } }),
   };
 });
 vi.mock('ziggy-js', () => ({ useRoute: () => (name: string) => `/${name}` }));
@@ -71,5 +73,21 @@ describe('DeleteUserForm (#1344)', () => {
     expect(box).toHaveAccessibleDescription(
       'Your resources, pages and lessons stay, under the name "Deleted member". A post or a comment that has replies stays as an empty marker.',
     );
+  });
+
+  it('removes the texts that the account did not send once the account is deleted (#1622)', async () => {
+    const text = { fields: { title: 'Draft', body: 'Not sent' }, changedAt: Date.now(), base: null };
+    writeKeptText({ account: 'ada1', kind: 'post', place: 's1' }, text);
+    writeKeptText({ account: 'bob1', kind: 'post', place: 's1' }, text);
+    await openDialog();
+    await userEvent.type(screen.getByLabelText(/Please enter your password/), 'secret');
+    await userEvent.click(screen.getByRole('button', { name: 'Go ahead!' }));
+    expect(readKeptText({ account: 'ada1', kind: 'post', place: 's1' })).not.toBeNull();
+
+    const options = send.mock.lastCall?.[2] as { onSuccess: () => void };
+    act(() => options.onSuccess());
+
+    expect(readKeptText({ account: 'ada1', kind: 'post', place: 's1' })).toBeNull();
+    expect(readKeptText({ account: 'bob1', kind: 'post', place: 's1' })).not.toBeNull();
   });
 });
