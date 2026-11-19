@@ -79,3 +79,4 @@ Do not write an ADR for a bug fix, a refactor that keeps the structure, or a fea
 | [0052](0052-account-deletion-after-a-new-sign-in.md)                                    | An account without a password deletes itself after a new sign-in           | Accepted |
 | [0053](0053-events-a-space-type-with-its-own-table.md)                                  | Events: a space type with its own table                                    | Accepted |
 | [0054](0054-email-delivery-the-mail-queue-the-budget-bounces-and-the-one-click-stop.md) | Email delivery: the mail queue, the budget, bounces and the one-click stop | Accepted |
+| [0055](0055-instance-values-come-from-configuration.md)                                 | The values of one instance come from configuration                         | Accepted |

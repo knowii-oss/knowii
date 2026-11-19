@@ -15,7 +15,7 @@ return [
     */
 
     // Plausible audience statistics through a proxy (#1316): off unless both values are set. The proxy serves the
-    // script at /content/script.js and receives the events at /api/v1/event (a Cloudflare Worker for knowii.net)
+    // script at /content/script.js and receives the events at /api/v1/event (for example https://stats.example.com)
     'plausible' => [
         'domain' => env('PLAUSIBLE_DOMAIN'),
         'proxy_url' => env('PLAUSIBLE_PROXY_URL'),

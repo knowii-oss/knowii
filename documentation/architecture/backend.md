@@ -113,6 +113,17 @@ A shared community has a `join_policy` (`AppEnumsKnowiiCommunityJoinPolicy`: `in
 
 More details: https://laravel.com/docs/13.x/authorization
 
+## Instance values
+
+The values that describe one instance come from configuration, never from the code (#1653, [ADR 0055](../adr/0055-instance-values-come-from-configuration.md)). `SELF_HOSTING.md` ("Instance values") has the table for an operator.
+
+1. `config/legal.php` holds the two required values: `operator` (`LEGAL_OPERATOR`) and `contact_email` (`LEGAL_CONTACT_EMAIL`). A value that is empty or blank is not set. Outside production a value that is not set gets a placeholder (`Constants::INSTANCE_PLACEHOLDER_OPERATOR`, `Constants::INSTANCE_PLACEHOLDER_CONTACT_EMAIL`). In production it stays empty.
+2. `config/instance.php` holds the optional values as trimmed text: `publisher.name`, `publisher.url`, `footer.note`, `footer.links`, `social_links` and `seed.admin_email`. Empty means hidden.
+3. `App\Support\InstanceValues` is the only reader. `missing()` returns the environment names to set (always empty outside production; in production a value is missing when it is empty, a placeholder, or not an email address for the contact). `footerLinks()` and `socialLinks()` parse the two lists and leave a wrong entry out with a warning in the log. `pageProp()` is the shared Inertia prop `instance`. `structuredData()` is the JSON-LD block of `app.blade.php`, which names a publisher only when the instance names one.
+4. The start check, in production only (`app()->isProduction()`). The global middleware `App\Http\Middleware\RefuseUnconfiguredInstance` is first in the stack (`bootstrap/app.php`): while a value is missing, every address answers `503` with the message as plain text, `/up` too, and the log gets the message at the level `critical`. The listener `App\Listeners\RefuseUnconfiguredInstance` hears `CommandStarting` and throws `InstanceNotConfiguredException` for the commands of `Constants::INSTANCE_CHECKED_COMMANDS` (the queue worker, the scheduler, Reverb). Every other command runs.
+5. `/contact` answers 404 without a contact address. The invitation email names `legal.operator`. `DatabaseSeeder` creates its first user with `instance.seed.admin_email`.
+6. Tests: the test environment runs with the placeholders. A test that switches to production calls `configuredInstance()` (`tests/Pest.php`) first, else every request answers 503. `tests/Unit/InstanceNeutralNamesTest.php` fails when a value of one instance comes back in the code, the configuration, the views, the front-end, the tests, `public/humans.txt` or the example environment files.
+
 ## Types
 
 PHPStan runs at the highest level (`level: max` in `phpstan.neon`), which already refuses an unchecked `mixed` value. The code also keeps the word `mixed` out of its signatures and PHPDoc (#726): a parameter, a return value or an array shape names its real type, a union type or an array shape.

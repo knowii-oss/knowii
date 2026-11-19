@@ -116,7 +116,7 @@ function noAccessAssertNoSecret(TestResponse $response): void
  */
 function noAccessPageProps(array $props): array
 {
-    return array_diff_key($props, array_flip(['auth', 'userProfile', 'jetstream', 'errors', 'errorBags', 'ziggy', 'newsletter', 'oidc', 'catchUp', 'communityCount']));
+    return array_diff_key($props, array_flip(['auth', 'userProfile', 'jetstream', 'errors', 'errorBags', 'ziggy', 'newsletter', 'instance', 'oidc', 'catchUp', 'communityCount']));
 }
 
 dataset('no access communities with a public page', ['open', 'invitation']);
@@ -263,6 +263,7 @@ test('an Inertia visit gets the page without access as an Inertia page, with the
 test('the page without access shows outside the local and testing environments, and the other errors keep the error page', function () {
     noAccessCommunity('none');
     $groups = Space::factory()->inGroup($this->space->spaceGroup)->create(['visibility' => KnowiiSpaceVisibility::Groups]);
+    configuredInstance();
     app()->detectEnvironment(fn () => 'production');
 
     $this->actingAs($this->c['outsider'])->get(noAccessPages()['space']['url'])

@@ -3,14 +3,7 @@ import type { FormEventHandler, ReactNode } from 'react';
 import { useRef, useState } from 'react';
 import { router, useForm } from '@inertiajs/react';
 import type { AccountDeletionState } from '@knowii/common';
-import {
-  DELETE_USER_URL,
-  OIDC_CONFIRM_DELETION_URL,
-  formatFullDateTime,
-  metadata,
-  removeKeptTextsOfAccount,
-  useTypedPage,
-} from '@knowii/common';
+import { DELETE_USER_URL, OIDC_CONFIRM_DELETION_URL, formatFullDateTime, removeKeptTextsOfAccount, useTypedPage } from '@knowii/common';
 import { FaLock } from 'react-icons/fa';
 import InputError from '@/Components/InputError';
 import ActionSection from '@/Components/ActionSection';
@@ -40,11 +33,17 @@ interface Props {
  *   account until the time that it shows (with the code when two-factor authentication is on);
  * - an account without a password and without a way to make the proof gets the text that names the contact address.
  *
+ * The contact address is the one of the instance (#1653, the shared prop `instance`). Without one, the texts say "the
+ * operator of this site", the words of AccountDeletion::UNAVAILABLE_MESSAGE (back-end).
+ *
  * The choice of the box goes with the round trip to the provider and comes back.
  */
 export default function DeleteUserForm({ deletion }: Props) {
   const route = useRoute();
-  const account = useTypedPage().props.auth.user;
+  const page = useTypedPage();
+  const account = page.props.auth.user;
+  // Whom to write to: the contact address of the instance, or the operator when the instance gives no address
+  const contact = page.props.instance?.contactEmail || 'the operator of this site';
   const zone = useAccountTimeZone();
 
   const proof = deletion?.proof ?? 'password';
@@ -135,7 +134,7 @@ export default function DeleteUserForm({ deletion }: Props) {
 
   const whatStays = (
     <p className="mb-4 text-sm">
-      {`Your posts, comments, resources and messages stay in their communities under the name "Deleted member". Delete what you want removed before you delete your account, or tick the box below. Afterwards, write to ${metadata.contact.info} to have content removed.`}
+      {`Your posts, comments, resources and messages stay in their communities under the name "Deleted member". Delete what you want removed before you delete your account, or tick the box below. Afterwards, write to ${contact} to have content removed.`}
     </p>
   );
 
@@ -241,7 +240,7 @@ export default function DeleteUserForm({ deletion }: Props) {
         {proof === 'unavailable' ? (
           // No password and no way to make the proof (#1521): no button, the operator deletes the account
           <p className="mt-5 max-w-xl text-sm font-medium">
-            {`This account has no password and no connected sign-in account, so it cannot confirm its deletion here. Please write to ${metadata.contact.info} to have it deleted.`}
+            {`This account has no password and no connected sign-in account, so it cannot confirm its deletion here. Please write to ${contact} to have it deleted.`}
           </p>
         ) : (
           <div className="mt-5 flex items-center">

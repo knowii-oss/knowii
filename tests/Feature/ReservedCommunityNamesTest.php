@@ -15,7 +15,7 @@ use Illuminate\Testing\TestResponse;
 
 beforeEach(function () {
     config([
-        'communities.extra_reserved_names' => ['Acme Academy', 'dSebastien'],
+        'communities.extra_reserved_names' => ['Acme Academy', 'ExampleBrand'],
         'communities.reserved_names_owners' => ['root@example.com'],
     ]);
     $this->user = User::factory()->withUserProfile()->create();
@@ -44,7 +44,7 @@ test('a reserved name is reserved whatever the case and by the address that it g
     'same address' => ['Knowii-Community', true],
     'name of the instance' => ['Acme Academy', true],
     'name of the instance, as an address' => ['acme-academy', true],
-    'name of the instance, other case' => ['DSEBASTIEN', true],
+    'name of the instance, other case' => ['EXAMPLEBRAND', true],
     'a longer name is free' => ['Support for gardeners', false],
     'a name that only starts like a reserved one' => ['Knowii Fans', false],
     'any other name' => ['Knowledge Builders', false],

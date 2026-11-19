@@ -290,6 +290,15 @@ function entForge(array $header, array $claims, string $signature = ''): string
 }
 
 /**
+ * An instance with its two required values (#1653, ADR 0055). A test that switches to production calls it first: in
+ * production the placeholders of the test environment count as not set, and every request answers 503.
+ */
+function configuredInstance(): void
+{
+    config(['legal.operator' => 'Example Ltd (Ireland)', 'legal.contact_email' => 'hello@example.com']);
+}
+
+/**
  * Everything that the application logs from now on: the messages and the contexts, as one text each
  */
 function entCaptureLogs(): ArrayObject

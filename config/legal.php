@@ -1,8 +1,10 @@
 <?php
 
+use App\Constants;
+
 /*
 |--------------------------------------------------------------------------
-| Legal facts shared by several legal pages (#904)
+| Legal facts of the instance: the operator, its contact address and the sub-processors (#904, #1653)
 |--------------------------------------------------------------------------
 |
 | The privacy policy and the data processing agreement show the sub-processors through the {{subprocessors}}
@@ -11,17 +13,36 @@
 | The DPA promises 14 days of notice to the community owners before a new sub-processor applies. A sub-processor that only an
 | optional feature uses (an AI feature that each owner turns on) sets 'feature': it needs no notice, and the table says so.
 |
-| 'scope' says whose data a sub-processor receives (#1352): 'community' for the data of the communities (DeveloPassion
+| 'scope' says whose data a sub-processor receives (#1352): 'community' for the data of the communities (the operator
 | is the processor: the DPA lists it), 'platform' for the data of the accounts, the waitlist, the newsletter and the
-| statistics (DeveloPassion is the controller: only the privacy policy lists it). Without a scope, both pages list it.
+| statistics (the operator is the controller: only the privacy policy lists it). Without a scope, both pages list it.
 |
 */
 
+// A required value of the instance (#1653, ADR 0055). No default names an operator or an address. A value that is empty or
+// blank is not set (KEY= in .env gives an empty text, not a default). Outside production a value that is not set gets a
+// neutral placeholder. In production it stays empty, and the instance refuses to start (App\Support\InstanceValues)
+$required = static function (string $name, string $placeholder): string {
+    $value = env($name);
+    $value = is_string($value) ? trim($value) : '';
+    if ($value !== '') {
+        return $value;
+    }
+
+    return env('APP_ENV', 'production') !== 'production' ? $placeholder : '';
+};
+
 return [
     /*
-    | Who runs this instance: the invitation email names it (GDPR art. 14, #1345). A self-hosted instance sets its own.
+    | Who runs this instance: the invitation email names it (GDPR art. 14, #1345). Required in production.
     */
-    'operator' => env('LEGAL_OPERATOR', 'DeveloPassion SRL (Belgium)'),
+    'operator' => $required('LEGAL_OPERATOR', Constants::INSTANCE_PLACEHOLDER_OPERATOR),
+
+    /*
+    | The public contact address of the operator: the contact page, the footer and the account deletion texts show it.
+    | Required in production.
+    */
+    'contact_email' => $required('LEGAL_CONTACT_EMAIL', Constants::INSTANCE_PLACEHOLDER_CONTACT_EMAIL),
 
     'subprocessors' => [
         [

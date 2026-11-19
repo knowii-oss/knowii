@@ -13,7 +13,7 @@ export interface LegalPageProps {
    */
   updated: string | null;
   /**
-   * True while Sébastien has not approved the text
+   * True while the owner of the instance has not approved the text
    */
   draft: boolean;
   /**

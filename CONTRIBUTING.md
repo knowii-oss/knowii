@@ -10,7 +10,7 @@ First, make sure to read the [general guidelines](https://github.com/knowii-oss/
 
 ## Don't know where to start?
 
-Take a look at the project's open [issues](https://github.com/DeveloPassion/knowii/issues).
+Take a look at the project's open [issues](https://github.com/knowii-oss/knowii/issues).
 This contains tons of ideas to help us out.
 
 ## Security
@@ -266,7 +266,7 @@ Once you're found what you want to contribute to Knowii, then:
 
 - Create a feature branch in your fork: `git checkout -b my-new-branch main`
 - Configure the upstream
-  - `git remote add upstream https://github.com/DeveloPassion/knowii.git`
+  - `git remote add upstream https://github.com/knowii-oss/knowii.git`
   - reference: https://help.github.com/articles/configuring-a-remote-for-a-fork/
 
 From then on, you may work on your feature at your own rhythm and commit/push to your fork.
@@ -309,7 +309,7 @@ At this point, you'll probably want to do a rebase in order to squash your commi
 
 The idea there is to let you make as many commits as you want with or without respecting our commit message conventions, as long as you clean those when you're ready to send us a PR.
 
-Once done, you may submit a new Pull Request (PR): https://github.com/DeveloPassion/knowii/pull/new/main
+Once done, you may submit a new Pull Request (PR): https://github.com/knowii-oss/knowii/pull/new/main
 
 Note that if you didn't follow this, we'll probably ask for a cleanup/rebase before we merge your changes.
 
@@ -364,7 +364,7 @@ Workflow and commands:
 
 - fork: through GitHub
 - clone: `git clone https://github.com/<username>/knowii`
-- add upstream: `git remote add upstream https://github.com/DeveloPassion/knowii`
+- add upstream: `git remote add upstream https://github.com/knowii-oss/knowii`
   - that way you can fetch new commits that have been integrated into Knowii's main repository
 - create a feature branch for whatever you want to work on
   - `git checkout -b feature/<name>`

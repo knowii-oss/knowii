@@ -56,45 +56,9 @@
   <!-- Safari Pinned Tab Icon: https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/pinnedTabs/pinnedTabs.html -->
   <link color="#303843" href="/icons/favicon.svg" rel="mask-icon" />
 
+  <!-- Structured data of the site (#1653): built from the configuration of the instance. The publisher is there only when the instance names one -->
   <script id="site-microdata-script" type="application/ld+json" nonce="{{ csp_nonce('script') }}">
-    @verbatim
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "Knowii",
-      "alternateName": "Knowii",
-      "description": "Where all communities belong. A place for your Knowledge, your Ideas and Inspiration.",
-      "publisher": {
-        "@context": "https://schema.org/",
-        "@type": "Person",
-        "name": "Sébastien Dubois",
-        "familyName": "Dubois",
-        "givenName": "Sébastien",
-        "image": "https://www.dsebastien.net/content/images/size/w2000/2024/04/Seb-2022.jpg",
-        "url": "https://x.com/dSebastien",
-        "sameAs": [
-          "https://www.linkedin.com/in/sebastiend/",
-          "https://github.com/dsebastien",
-          "https://dsebastien.medium.com/",
-          "https://dev.to/dsebastien",
-          "https://www.youtube.com/channel/UCz0x-VJhvKwV-PK3E_i5G1w",
-          "https://www.twitch.tv/dsebastien",
-          "https://stackoverflow.com/users/226630/dsebastien",
-          "https://www.facebook.com/trankill",
-          "https://dsebastien.hashnode.dev/",
-          "https://updates.dsebastien.net/",
-          "https://www.reddit.com/user/lechtitseb/"
-        ],
-        "jobTitle": "Founder",
-        "worksFor": {
-          "@type": "Organization",
-          "name": "DeveloPassion",
-          "url": "https://developassion.be"
-        }
-      },
-      "url": "https://www.knowii.net"
-    }
-    @endverbatim
+    {!! json_encode(\App\Support\InstanceValues::structuredData(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE | JSON_THROW_ON_ERROR) !!}
   </script>
 
   <!-- TODO add manifests -->

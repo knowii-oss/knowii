@@ -5,10 +5,10 @@ use App\Support\ContentSecurityPolicySources as Sources;
 it('builds the WebSocket origin of the Reverb server', function (?string $host, int|string|null $port, ?string $scheme, ?string $expected) {
     expect(Sources::reverbOrigin($host, $port, $scheme))->toBe($expected);
 })->with([
-    'TLS on the default port' => ['ws.knowii.net', 443, 'https', 'wss://ws.knowii.net'],
-    'TLS on another port' => ['ws.knowii.net', '8443', 'https', 'wss://ws.knowii.net:8443'],
+    'TLS on the default port' => ['ws.example.com', 443, 'https', 'wss://ws.example.com'],
+    'TLS on another port' => ['ws.example.com', '8443', 'https', 'wss://ws.example.com:8443'],
     'local, without TLS' => ['localhost', 4201, 'http', 'ws://localhost:4201'],
-    'no port given, TLS' => ['ws.knowii.net', null, null, 'wss://ws.knowii.net'],
+    'no port given, TLS' => ['ws.example.com', null, null, 'wss://ws.example.com'],
     'no host' => [null, 443, 'https', null],
     'empty host' => ['', 443, 'https', null],
 ]);
@@ -21,7 +21,7 @@ it('adds the Vite dev server in the local environment only', function () {
 });
 
 it('extracts the origin of a URL', function () {
-    expect(Sources::origin('https://files.knowii.net/uploads/a.webp'))->toBe('https://files.knowii.net')
+    expect(Sources::origin('https://files.example.com/uploads/a.webp'))->toBe('https://files.example.com')
         ->and(Sources::origin('http://localhost:9000/bucket'))->toBe('http://localhost:9000')
         ->and(Sources::origin('not a url'))->toBeNull()
         ->and(Sources::origin(null))->toBeNull();
