@@ -393,14 +393,15 @@ test('the invitation email links to the signed accept route (#1242)', function (
 });
 
 test('the invitation email says who invited the person, who sends it, and where their rights are (#1345)', function () {
-    config(['retention.expired_invitations_days' => 30]);
+    // The operator is a value of the instance (#1653): the email names the configured one
+    config(['retention.expired_invitations_days' => 30, 'legal.operator' => 'Example Ltd (Ireland)']);
     $community = $this->c['community'];
     $invitation = $community->communityInvitations()->create(['email' => 'grace@example.com', 'role' => KnowiiCommunityMemberRole::Member]);
 
     $text = html_entity_decode(strip_tags((new CommunityInvitationMail($invitation, $this->c['admin']))->render()), ENT_QUOTES);
     $text = (string) preg_replace('/\s+/', ' ', $text);
 
-    expect($text)->toContain($this->c['admin']->name.' invited you to the '.$community->name.' community. DeveloPassion SRL (Belgium) runs Knowii and sends this email for that community.')
+    expect($text)->toContain($this->c['admin']->name.' invited you to the '.$community->name.' community. Example Ltd (Ireland) runs Knowii and sends this email for that community.')
         ->and($text)->toContain('We got your email address from the person who invited you and use it only for this invitation.')
         ->and($text)->toContain('If you do nothing, we delete the invitation and your address 30 days after it expires.')
         ->and($text)->toContain('Your rights are in the privacy policy: '.route('privacy-policy.show'));

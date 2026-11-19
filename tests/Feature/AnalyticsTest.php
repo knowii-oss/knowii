@@ -2,7 +2,7 @@
 
 /**
  * Plausible statistics are configuration, off by default (#1316): development, acceptance and self-hosted instances
- * send nothing to the knowii.net site.
+ * send nothing to a statistics site.
  */
 test('without configuration, the pages load no analytics script', function () {
     config(['services.plausible.domain' => null, 'services.plausible.proxy_url' => null]);
@@ -15,20 +15,20 @@ test('a domain without a proxy, or a proxy without a domain, loads nothing', fun
 
     $this->get('/')->assertOk()->assertDontSee('/content/script.js', false);
 })->with([
-    'domain only' => ['knowii.net', null],
+    'domain only' => ['community.example.com', null],
     'proxy only' => [null, 'https://stats.example.com'],
-    'proxy without host' => ['knowii.net', 'not a url'],
+    'proxy without host' => ['community.example.com', 'not a url'],
 ]);
 
 test('with configuration, the pages load the script through the proxy with the nonce', function () {
-    config(['services.plausible.domain' => 'knowii.net', 'services.plausible.proxy_url' => 'https://stats.example.com/ignored/path']);
+    config(['services.plausible.domain' => 'community.example.com', 'services.plausible.proxy_url' => 'https://stats.example.com/ignored/path']);
 
     $html = $this->get('/')->assertOk()->getContent();
 
-    expect($html)->toContain('data-domain="knowii.net"')
+    expect($html)->toContain('data-domain="community.example.com"')
         ->toContain('data-api="https://stats.example.com/api/v1/event"')
         ->toContain('src="https://stats.example.com/content/script.js"')
-        ->toMatch('/<script\s+defer\s+data-domain="knowii.net"[^>]*nonce="[^"]+"/');
+        ->toMatch('/<script\s+defer\s+data-domain="community.example.com"[^>]*nonce="[^"]+"/');
 });
 
 test('the Content Security Policy allows the proxy only when analytics is configured', function () {
@@ -46,7 +46,7 @@ test('the Content Security Policy allows the proxy only when analytics is config
         [$scripts, $connect] = $load(null, null);
         expect(implode(' ', [...$scripts, ...$connect]))->not->toContain('workers.dev')->not->toContain('stats.example.com');
 
-        [$scripts, $connect] = $load('knowii.net', 'https://stats.example.com');
+        [$scripts, $connect] = $load('community.example.com', 'https://stats.example.com');
         expect($scripts)->toContain('https://stats.example.com')
             ->and($connect)->toContain('https://stats.example.com/api/v1/event');
     } finally {

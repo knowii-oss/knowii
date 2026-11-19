@@ -1,27 +1,3 @@
 {
-  "author": "Sébastien Dubois",
-  "authorAlias": "dSebastien",
-  "publisher": "DeveloPassion SRL",
-  "repositoryUrl": "https://github.com/knowii-oss/knowii",
-  "communityUrl": "https://www.knowii.net",
-  "sourceCodeUrl": "https://github.com/knowii-oss",
-  "contact": {
-    "info": "contact@developassion.be"
-  },
-  "social": {
-    "blogSebastien": "https://dsebastien.net",
-    "devToSebastien": "https://dev.to/dsebastien",
-    "facebookSebastien": "https://www.facebook.com/trankill",
-    "githubSebastien": "https://github.com/dSebastien",
-    "linkedInSebastien": "https://www.linkedin.com/in/sebastiend/",
-    "linktreeSebastien": "https://linktr.ee/dsebastien",
-    "mediumSebastien": "https://medium.com/@dSebastien",
-    "newsletterSebastien": "https://www.dsebastien.net/tag/newsletter",
-    "redditSebastien": "https://www.reddit.com/user/lechtitseb",
-    "stackOverflowSebastien": "https://stackoverflow.com/users/226630/dsebastien",
-    "substackSebastien": "https://developassion.substack.com/",
-    "twitchSebastien": "https://www.twitch.tv/dsebastien",
-    "xSebastien": "https://x.com/dSebastien",
-    "youtubeSebastien": "https://youtube.com/@dSebastien"
-  }
+  "repositoryUrl": "https://github.com/knowii-oss/knowii"
 }

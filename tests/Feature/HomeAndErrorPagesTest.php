@@ -38,6 +38,7 @@ test('the waitlist route is gone', function () {
 
 test('the error page renders the component Error with the status, for a visitor and for a signed-in person', function () {
     $base = homeErrorRoute();
+    configuredInstance();
     app()->detectEnvironment(fn () => 'production');
 
     foreach (HOME_ERROR_STATUSES as $status) {
@@ -53,6 +54,7 @@ test('the error page renders the component Error with the status, for a visitor 
 });
 
 test('an address that matches no route answers 404 and the error page knows who is signed in', function () {
+    configuredInstance();
     app()->detectEnvironment(fn () => 'production');
     $user = User::factory()->withUserProfile()->create();
 

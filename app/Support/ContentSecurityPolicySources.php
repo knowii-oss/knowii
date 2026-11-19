@@ -14,7 +14,7 @@ final class ContentSecurityPolicySources
     /**
      * WebSocket origin of the Reverb server, as the browser connects to it.
      *
-     * Example: scheme `https`, host `ws.knowii.net`, port 443 => `wss://ws.knowii.net`.
+     * Example: scheme `https`, host `ws.example.com`, port 443 => `wss://ws.example.com`.
      */
     public static function reverbOrigin(?string $host, int|string|null $port, ?string $scheme): ?string
     {

@@ -19,6 +19,7 @@ use App\Http\Controllers\RobotsController;
 use App\Http\Controllers\SecurityTxtController;
 use App\Http\Controllers\Webhooks\OidcEntitlementsWebhookController;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Support\InstanceValues;
 use App\Support\LegalPages;
 use App\Support\OidcEntitlements;
 use App\Support\SecurityTxt;
@@ -29,6 +30,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 
 // Built from config/robots.php (#104): AI crawlers refused, member areas never crawled
 Route::get('/robots.txt', RobotsController::class)->name('robots');
@@ -135,7 +137,12 @@ Route::post(OidcEntitlements::WEBHOOK_PATH, [OidcEntitlementsWebhookController::
     ->middleware('throttle:oidc-entitlements')
     ->name('oidc.entitlements.webhook');
 
-Route::inertia('/contact', 'Contact');
+// The contact page shows the contact address of the instance (#1653): without an address, the page does not exist
+Route::get('/contact', static function (): InertiaResponse {
+    abort_if(InstanceValues::contactEmail() === '', 404);
+
+    return Inertia::render('Contact');
+});
 // The legal pages (#904): one controller, one Markdown file per page (App\Support\LegalPages)
 foreach (array_keys(LegalPages::PAGES) as $legalPage) {
     Route::get('/'.$legalPage, [LegalPageController::class, 'show'])->defaults('page', $legalPage)->name($legalPage.'.show');

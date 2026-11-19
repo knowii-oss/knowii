@@ -1,12 +1,15 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { AccountDeletionState } from '@knowii/common';
+import type { AccountDeletionState, InstancePageProp } from '@knowii/common';
 import { formatFullDateTime, readKeptText, writeKeptText } from '@knowii/common';
 import DeleteUserForm from './DeleteUserForm';
 
 const send = vi.fn();
 const post = vi.fn();
+
+// The values of the instance (#1653): the texts name its contact address
+const pageProps: { auth: { user: { cuid: string } }; instance?: InstancePageProp } = { auth: { user: { cuid: 'ada1' } } };
 
 // A form with real state, to see what the dialog sends
 vi.mock('@inertiajs/react', async () => {
@@ -24,7 +27,7 @@ vi.mock('@inertiajs/react', async () => {
       };
     },
     router: { post: (url: string, data: unknown, options: unknown) => post(url, data, options) },
-    usePage: () => ({ props: { auth: { user: { cuid: 'ada1' } } } }),
+    usePage: () => ({ props: pageProps }),
   };
 });
 vi.mock('ziggy-js', () => ({ useRoute: () => (name: string) => `/${name}` }));
@@ -49,17 +52,32 @@ async function openDialog(deletion?: AccountDeletionState) {
   await userEvent.click(screen.getByRole('button', { name: 'Delete Account' }));
 }
 
+beforeEach(() => {
+  pageProps.instance = { contactEmail: 'contact@example.com', publisher: null, footerNote: null, footerLinks: [], socialLinks: [] };
+});
+
 describe('DeleteUserForm (#1344)', () => {
   it('tells what stays and offers the box, not ticked by default', async () => {
     await openDialog();
 
     expect(
       screen.getByText(
-        'Your posts, comments, resources and messages stay in their communities under the name "Deleted member". Delete what you want removed before you delete your account, or tick the box below. Afterwards, write to contact@developassion.be to have content removed.',
+        'Your posts, comments, resources and messages stay in their communities under the name "Deleted member". Delete what you want removed before you delete your account, or tick the box below. Afterwards, write to contact@example.com to have content removed.',
       ),
     ).toBeInTheDocument();
     const box = screen.getByRole('checkbox', { name: 'Also delete my posts, comments and messages' });
     expect(box).not.toBeChecked();
+  });
+
+  it('names the operator of the site when the instance gives no contact address (#1653)', async () => {
+    delete pageProps.instance;
+    await openDialog();
+
+    expect(
+      screen.getByText(
+        'Your posts, comments, resources and messages stay in their communities under the name "Deleted member". Delete what you want removed before you delete your account, or tick the box below. Afterwards, write to the operator of this site to have content removed.',
+      ),
+    ).toBeInTheDocument();
   });
 
   it('with a password and two-factor authentication, asks for the code after the password', async () => {
@@ -223,7 +241,18 @@ describe('DeleteUserForm for an account without a password (#1521)', () => {
     expect(screen.queryByRole('button', { name: 'Delete Account' })).not.toBeInTheDocument();
     expect(
       screen.getByText(
-        'This account has no password and no connected sign-in account, so it cannot confirm its deletion here. Please write to contact@developassion.be to have it deleted.',
+        'This account has no password and no connected sign-in account, so it cannot confirm its deletion here. Please write to contact@example.com to have it deleted.',
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('without a way to make the proof and without a contact address, tells to write to the operator of the site (#1653)', () => {
+    pageProps.instance = { contactEmail: '', publisher: null, footerNote: null, footerLinks: [], socialLinks: [] };
+    render(<DeleteUserForm deletion={deletionState({ proof: 'unavailable', label: null })} />);
+
+    expect(
+      screen.getByText(
+        'This account has no password and no connected sign-in account, so it cannot confirm its deletion here. Please write to the operator of this site to have it deleted.',
       ),
     ).toBeInTheDocument();
   });

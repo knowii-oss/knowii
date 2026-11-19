@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Enums\KnowiiCommunityMemberRole;
 use App\Enums\KnowiiCommunityVisibility;
 use App\Models\User;
+use App\Support\InstanceValues;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -17,8 +18,9 @@ class DatabaseSeeder extends Seeder
     final public function run(): void
     {
         $user = User::factory()->withUserProfile()->withPersonalCommunity()->create([
-            'name' => 'Sébastien Dubois',
-            'email' => 'sebastien@developassion.be',
+            // The first user: its address comes from the configuration of the instance (SEED_ADMIN_EMAIL, #1653)
+            'name' => 'Example Admin',
+            'email' => InstanceValues::seedAdminEmail(),
             'password' => Hash::make('foo'),
         ]);
 

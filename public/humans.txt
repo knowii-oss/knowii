@@ -3,7 +3,8 @@
 
 # TEAM
 
-  Sébastien Dubois -- Founder -- https://dsebastien.net — https://x.com/@dsebastien
+  The Knowii open source project -- https://github.com/knowii-oss/knowii
+  Contributors -- https://github.com/knowii-oss/knowii/graphs/contributors
 
 # THANKS
 

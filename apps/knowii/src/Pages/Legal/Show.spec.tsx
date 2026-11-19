@@ -10,10 +10,10 @@ vi.mock('@/Components/Footer', () => ({ default: () => <footer /> }));
 
 describe('LegalPage', () => {
   it('shows the HTML rendered by the server and the date of the last change', () => {
-    render(<LegalPage title="Imprint" updated="2026-11-10" draft={false} html="<h1>Imprint</h1><p>DeveloPassion SRL</p>" />);
+    render(<LegalPage title="Imprint" updated="2026-11-10" draft={false} html="<h1>Imprint</h1><p>Example Operator</p>" />);
 
     expect(screen.getByRole('heading', { level: 1, name: 'Imprint' })).toBeInTheDocument();
-    expect(screen.getByText('DeveloPassion SRL')).toBeInTheDocument();
+    expect(screen.getByText('Example Operator')).toBeInTheDocument();
     expect(screen.getByText('2026-11-10')).toHaveAttribute('dateTime', '2026-11-10');
     expect(screen.queryByRole('note')).not.toBeInTheDocument();
   });

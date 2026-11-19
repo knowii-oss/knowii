@@ -141,7 +141,8 @@ class Constants
     // Capture of resources (ADR 0018): a plain HTTP fetch in a queued job
     public const int CAPTURE_TIMEOUT_SECONDS = 15;
 
-    public const string CAPTURE_USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36 Knowii/1.0 (+https://knowii.net)';
+    // The agent names the project, not one instance (#1653)
+    public const string CAPTURE_USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36 Knowii/1.0 (+https://github.com/knowii-oss/knowii)';
 
     // Images of a captured article stored by Knowii (ADR 0018): the first ones, the others become their alternative text
     public const int CAPTURE_MAX_IMAGES = 20;
@@ -350,6 +351,23 @@ class Constants
         'social_link_orcid',
         'social_link_kofi',
     ];
+
+    // The values of one instance (#1653, ADR 0055). Outside production, an operator and a contact address that are not
+    // set get these placeholders (config/legal.php). In production they count as not set: the instance refuses to start
+    public const string INSTANCE_PLACEHOLDER_OPERATOR = 'Example Operator';
+
+    public const string INSTANCE_PLACEHOLDER_CONTACT_EMAIL = 'contact@example.com';
+
+    // The address of the first user of the seeder when SEED_ADMIN_EMAIL is empty
+    public const string INSTANCE_DEFAULT_SEED_ADMIN_EMAIL = 'admin@example.com';
+
+    /**
+     * The artisan commands that refuse to start in production while a required value of the instance is missing: the
+     * long-running processes. The other commands run (key:generate, the caches, migrate, app:health)
+     *
+     * @var list<string>
+     */
+    public const array INSTANCE_CHECKED_COMMANDS = ['queue:work', 'queue:listen', 'schedule:work', 'schedule:run', 'reverb:start'];
 
     // WebSockets
     public const string WS_CHANNEL_COMMUNITIES = 'communities';

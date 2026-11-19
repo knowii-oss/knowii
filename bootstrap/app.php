@@ -10,6 +10,7 @@ use App\Http\Middleware\AuthenticateIfPresent;
 use App\Http\Middleware\EnsureRequestIsJson;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RecordLastVisit;
+use App\Http\Middleware\RefuseUnconfiguredInstance;
 use App\Http\Middleware\RequireTokenAbility;
 use App\Traits\ApiResponses;
 use Bepsvpt\SecureHeaders\SecureHeadersMiddleware;
@@ -43,6 +44,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // In production, an instance without an operator or a contact address answers only a 503 (#1653, ADR 0055): before
+        // every middleware of the application and of the framework that reads a session, a cookie or the database, so that
+        // every address answers so, the health address too. Only a middleware that a package prepends later runs before it
+        $middleware->prepend(RefuseUnconfiguredInstance::class);
+
         $middleware->web(append: [
             HandleInertiaRequests::class,
             // The last visit of a member, one date at most once a day (#1476)

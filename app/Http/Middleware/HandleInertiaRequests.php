@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Constants;
+use App\Support\InstanceValues;
 use App\Support\Newsletter;
 use App\Support\OpenIdConnect;
 use Illuminate\Http\Request;
@@ -40,6 +41,8 @@ class HandleInertiaRequests extends Middleware
             ],
             // The newsletter form of the footer (#938)
             'newsletter' => fn () => Newsletter::pageProp(),
+            // The values of this instance (#1653): the contact address, the publisher, the footer and the social links
+            'instance' => fn () => InstanceValues::pageProp(),
             // Sign in with an OpenID Connect provider (#1385): null when the instance has none, so that no page shows a
             // button. The error and the status come from the callback, for one request
             'oidc' => function () use ($request) {

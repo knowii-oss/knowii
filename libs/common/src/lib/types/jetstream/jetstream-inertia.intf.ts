@@ -1,5 +1,6 @@
 import type { DateTime } from '../date-time.intf';
 import type { Nullable } from '../nullable.intf';
+import type { SocialMediaLinkProperty } from '../social-media-link.schema';
 import type { CurrentUser, UserProfile } from '../user.schema';
 
 export interface Auth {
@@ -46,7 +47,38 @@ export type InertiaSharedProps<T = NonNullable<unknown>> = T & {
    * `error` and `status` come from the callback, for one request
    */
   oidc?: OpenIdConnectPageProp | null;
+  /**
+   * The values of this instance (#1653): the contact address, the publisher, the footer and the social links
+   */
+  instance?: InstancePageProp;
 };
+
+/**
+ * The values of one instance that the pages show (#1653, ADR 0055). They come from the configuration of the server
+ * (App\Support\InstanceValues::pageProp()), never from the code. An empty or null value hides what it feeds.
+ */
+export interface InstancePageProp {
+  /**
+   * The public contact address of the operator. Empty when the instance gives none
+   */
+  contactEmail: string;
+  /**
+   * The name of the publisher, for the line "© <year> <name>." of the footer
+   */
+  publisher: string | null;
+  /**
+   * The text after the "©" text of the footer
+   */
+  footerNote: string | null;
+  /**
+   * The extra links of the "Community" column of the footer, in their order
+   */
+  footerLinks: { label: string; href: string }[];
+  /**
+   * The icon links of the footer, in their order
+   */
+  socialLinks: { property: SocialMediaLinkProperty; href: string }[];
+}
 
 export interface OpenIdConnectPageProp {
   label: string;

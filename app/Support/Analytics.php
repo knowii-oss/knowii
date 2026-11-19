@@ -4,8 +4,9 @@ namespace App\Support;
 
 /**
  * Plausible audience statistics (#1316): cookieless, through a proxy. Off unless PLAUSIBLE_DOMAIN and
- * PLAUSIBLE_PROXY_URL are set, so development, acceptance and self-hosted instances send nothing to the knowii.net
- * site. config/secure-headers.php allows the proxy origin under the same condition.
+ * PLAUSIBLE_PROXY_URL are set, so an instance that sets neither (development, acceptance, self-hosted) sends nothing
+ * to a statistics site such as stats.example.com. config/secure-headers.php allows the proxy origin under the same
+ * condition.
  */
 final class Analytics
 {

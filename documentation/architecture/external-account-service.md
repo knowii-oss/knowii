@@ -7,7 +7,7 @@ Two names are used:
 1. "The external account service" is the whole contract: the sign-in, the new sign-in, the entitlements and the change calls.
 2. "The sign-in provider" is the sign-in part only.
 
-The decisions behind it: [ADR 0010](../adr/0010-own-accounts-optional-oidc.md) (own accounts, an optional provider), [ADR 0045](../adr/0045-openid-connect-sign-in.md) (the sign-in), [ADR 0047](../adr/0047-entitlement-rules-feed-access-groups.md) (the entitlements and the change calls) and [ADR 0052](../adr/0052-account-deletion-after-a-new-sign-in.md) (the new sign-in for a deletion). The steps for an operator are in [`SELF_HOSTING.md`](../../SELF_HOSTING.md). `tests/Unit/InstanceNeutralNamesTest.php` fails when the name or a host of one instance comes back in the code.
+The decisions behind it: [ADR 0010](../adr/0010-own-accounts-optional-oidc.md) (own accounts, an optional provider), [ADR 0045](../adr/0045-openid-connect-sign-in.md) (the sign-in), [ADR 0047](../adr/0047-entitlement-rules-feed-access-groups.md) (the entitlements and the change calls) and [ADR 0052](../adr/0052-account-deletion-after-a-new-sign-in.md) (the new sign-in for a deletion). The steps for an operator are in [`SELF_HOSTING.md`](../../SELF_HOSTING.md). `tests/Unit/InstanceNeutralNamesTest.php` fails when the name or a host of one instance comes back in the code. The same guard covers the other values of one instance (#1653, [ADR 0055](../adr/0055-instance-values-come-from-configuration.md)): its operator, the founder, the company number, the street address and the hosts of the hosted instance come from configuration, never from the code.
 
 ## What the platform needs
 
