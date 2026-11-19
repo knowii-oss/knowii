@@ -1,12 +1,15 @@
 // Knowii UI components: Tailwind CSS with the Knowii brand tokens (styles.css), Headless UI for dialog, listbox and menu
 export * from './AccountTimeZone';
 export * from './Avatar';
+export * from './Badge';
 export * from './Breadcrumb';
 export * from './Button';
 export * from './Card';
 export * from './Checkbox';
 export * from './cn';
 export * from './Collapsible';
+export * from './Combobox';
+export * from './CoverImage';
 export * from './current-url';
 export * from './Dialog';
 export * from './Divider';
@@ -15,6 +18,7 @@ export * from './EmptyState';
 export * from './ErrorBoundary';
 export * from './ImageInsertPanel';
 export * from './ImageViewer';
+export * from './LinkTabs';
 export * from './MarkdownContent';
 export * from './MarkdownEditor';
 export * from './markdown-format';

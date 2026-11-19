@@ -250,7 +250,8 @@ describe('the notification settings page (#1497)', () => {
   });
 });
 
-describe('the time zone and the pop-ups of the settings page (#1476)', () => {
+// The list of zones renders up to 50 entries of more than 400: seconds on a busy machine
+describe('the time zone and the pop-ups of the settings page (#1476)', { timeout: 20_000 }, () => {
   beforeEach(() => {
     shared.user = { cuid: 'u1', time_zone: 'Europe/Brussels', notification_popups: true };
     shared.reload.mockClear();
@@ -265,20 +266,28 @@ describe('the time zone and the pop-ups of the settings page (#1476)', () => {
       .spyOn(knowiiApiClient.users, 'setTimeZone')
       .mockImplementation((zone) => Promise.resolve({ ok: true, message: '', data: { time_zone: zone } }));
 
+  // The picker is a combobox that filters (#1666): TimeZoneForm.spec.tsx has its cases
+  const timeZoneField = () => screen.getByRole<HTMLInputElement>('combobox', { name: 'Time zone' });
+  const tokyo = () => screen.findByRole('option', { name: /^Tokyo, Asia \(UTC\+9\)/ });
+
   it('shows "Your time zone": the zone of the account in words, and a choice of every zone with UTC', async () => {
     renderPage();
     const user = userEvent.setup();
 
     expect(screen.getByRole('heading', { name: 'Your time zone' })).toBeInTheDocument();
     expect(screen.getByText(/Times show in Central European (Standard )?Time \(Europe\/Brussels\)/)).toBeInTheDocument();
-    const control = screen.getByLabelText('Time zone');
-    expect(control).toHaveTextContent('Europe/Brussels');
+    const control = timeZoneField();
+    expect(control.value).toMatch(/^Brussels, Europe \(UTC\+[12]\)$/);
 
-    await user.click(control);
-    const options = within(await screen.findByRole('listbox')).getAllByRole('option');
-    expect(options.length).toBeGreaterThan(100);
-    expect(options.map((option) => option.textContent)).toContain('UTC');
-    expect(options.map((option) => option.textContent)).toContain('Asia/Tokyo');
+    // More than 100 zones: the list shows the first ones, and typing finds the others
+    await user.click(screen.getByRole('button', { name: 'Show the list Time zone' }));
+    const listbox = await screen.findByRole('listbox', { name: 'Time zone' });
+    expect(within(listbox).getAllByRole('option')).toHaveLength(50);
+    expect(within(listbox).getByText('Type to see more')).toBeInTheDocument();
+    // The label in the field is selected: the search text takes its place
+    await user.paste('tokyo');
+    expect(await tokyo()).toBeInTheDocument();
+    expect(within(listbox).getAllByRole('option')).toHaveLength(1);
   });
 
   it('says "Set your time zone" and names the zone that applies until then, when the account has none', () => {
@@ -287,7 +296,8 @@ describe('the time zone and the pop-ups of the settings page (#1476)', () => {
 
     expect(screen.getByText('Set your time zone.')).toBeInTheDocument();
     expect(screen.getByText(/Until you do, times show in/)).toBeInTheDocument();
-    expect(screen.getByLabelText('Time zone')).toHaveTextContent('Choose a time zone');
+    expect(timeZoneField()).toHaveValue('');
+    expect(timeZoneField()).toHaveAttribute('placeholder', 'Choose a time zone');
   });
 
   it('saves a new zone at once, says "Saved", and loads the account again', async () => {
@@ -295,12 +305,13 @@ describe('the time zone and the pop-ups of the settings page (#1476)', () => {
     renderPage();
     const user = userEvent.setup();
 
-    await user.click(screen.getByLabelText('Time zone'));
-    await user.click(await screen.findByRole('option', { name: 'Asia/Tokyo' }));
+    await user.click(timeZoneField());
+    await user.paste('tokyo');
+    await user.click(await tokyo());
 
     expect(save).toHaveBeenCalledWith('Asia/Tokyo');
     await waitFor(() => expect(screen.getAllByRole('status')[0]).toHaveTextContent('Saved'));
-    expect(screen.getByLabelText('Time zone')).toHaveTextContent('Asia/Tokyo');
+    expect(timeZoneField()).toHaveValue('Tokyo, Asia (UTC+9)');
     expect(shared.reload).toHaveBeenCalledWith({ only: ['auth'] });
   });
 
@@ -309,12 +320,13 @@ describe('the time zone and the pop-ups of the settings page (#1476)', () => {
     renderPage();
     const user = userEvent.setup();
 
-    await user.click(screen.getByLabelText('Time zone'));
-    await user.click(await screen.findByRole('option', { name: 'Asia/Tokyo' }));
+    await user.click(timeZoneField());
+    await user.paste('tokyo');
+    await user.click(await tokyo());
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Not saved. Retry.');
-    const control = screen.getByLabelText('Time zone');
-    expect(control).toHaveTextContent('Europe/Brussels');
+    const control = timeZoneField();
+    await waitFor(() => expect(control.value).toMatch(/^Brussels, Europe \(UTC\+[12]\)$/));
     await waitFor(() => expect(control).toHaveFocus());
     expect(shared.reload).not.toHaveBeenCalled();
   });
@@ -362,7 +374,7 @@ describe('the time zone and the pop-ups of the settings page (#1476)', () => {
     const { container } = renderPage();
     await screen.findByRole('group', { name: 'Talk' });
 
-    expect(screen.getByLabelText('Time zone').className).toContain('h-11');
+    expect(timeZoneField().className).toContain('h-11');
     expect(screen.getByRole('switch', { name: /Show pop-ups/ })).toHaveClass('h-11', 'w-11');
     const results = await axe.run(container, { rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
     expect(results.violations.map((violation) => violation.id)).toEqual([]);

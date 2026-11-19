@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { router } from '@inertiajs/react';
-import { browserTimeZone, knowiiApiClient, knownTimeZones, timeZoneInWords } from '@knowii/common';
-import { Select } from '@/Components/ui';
+import { browserTimeZone, knowiiApiClient, timeZoneInWords, timeZoneOptions } from '@knowii/common';
+import { Combobox } from '@/Components/ui';
 
 export interface TimeZoneFormProps {
   // The zone of the account, null when it is not known
@@ -15,14 +15,21 @@ export interface TimeZoneFormProps {
  * the browser knows (with UTC). A change is saved at once and the page says "Saved". On an error the old value stays, an alert
  * says "Not saved. Retry." and the focus stays on the control. With no zone: "Set your time zone", and the zone that applies
  * until then (the one of the browser). Only the member sets it.
+ *
+ * The choice is a `Combobox` (#1666): typing filters the zones by a part of the city, of the region or of the identifier
+ * ("new york" finds America/New_York). Each entry reads "Brussels, Europe (UTC+1)" with the long name of the zone under it.
+ * With no search text, the zone of the browser and the zone of the account are at the top. The value sent is the identifier.
  */
 export function TimeZoneForm({ timeZone, onStatus }: TimeZoneFormProps) {
   const [zone, setZone] = useState<string | null>(timeZone);
   const [failed, setFailed] = useState(false);
   const [busy, setBusy] = useState(false);
   const busyRef = useRef(false);
-  const options = useMemo(() => knownTimeZones([zone]).map((name) => ({ value: name, label: name })), [zone]);
-  const applying = browserTimeZone() ?? 'UTC';
+  const options = useMemo(() => timeZoneOptions([zone]), [zone]);
+  const browserZone = browserTimeZone();
+  // At the top of the list: the zone of the browser, then the zone of the account
+  const pinned = useMemo(() => [browserZone, zone].filter((name) => name !== null), [browserZone, zone]);
+  const applying = browserZone ?? 'UTC';
 
   const choose = async (next: string) => {
     if (busyRef.current || next === zone) {
@@ -54,12 +61,14 @@ export function TimeZoneForm({ timeZone, onStatus }: TimeZoneFormProps) {
         </p>
       )}
       <div className="flex flex-col gap-1">
-        <label htmlFor="time-zone-select" className="text-sm font-bold">
+        <label id="time-zone-label" htmlFor="time-zone-select" className="text-sm font-bold">
           Time zone
         </label>
-        <Select<string>
+        <Combobox<string>
           id="time-zone-select"
+          aria-labelledby="time-zone-label"
           options={options}
+          pinned={pinned}
           value={zone}
           placeholder="Choose a time zone"
           onChange={(next) => void choose(next)}

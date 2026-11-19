@@ -2086,7 +2086,21 @@
       "roles": ["member"],
       "component": "Pages/Profile/Notifications.tsx",
       "steps": [
-        ["click", "main button:has-text(\"Europe/Brussels\")"],
+        ["click", "role=button[name=\"Show the list Time zone\"]"],
+        ["wait", 800]
+      ]
+    },
+    {
+      "area": "notifications",
+      "screen": "settings",
+      "state": "time-zone-search",
+      "name": "Notification settings, time zone search with results",
+      "path": "/user/notifications",
+      "roles": ["member"],
+      "component": "Pages/Profile/Notifications.tsx",
+      "steps": [
+        ["click", "#time-zone-select"],
+        ["type", "#time-zone-select", "new"],
         ["wait", 800]
       ]
     },
