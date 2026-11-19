@@ -410,6 +410,8 @@ test('an old auth_time is refused: the person did not sign in again', function (
 });
 
 test('a sign-in from before the start of the proof is refused: the provider did not ask again', function () {
+    // The clock stands still, like in the test of the future auth_time below
+    $this->freezeSecond();
     $this->actingAs($this->member);
 
     // Two minutes old: fresh enough for the time limit, but older than the flow, so it is the sign-in of the session
@@ -426,6 +428,9 @@ test('a sign-in from before the start of the proof is refused: the provider did 
 });
 
 test('an auth_time more than 60 seconds in the future is refused, a small skew is accepted', function () {
+    // The clock stands still: the limit is exact to the second, and a second that passes between the line that builds the
+    // token and the check on the server would turn 61 into 60
+    $this->freezeSecond();
     $this->actingAs($this->member);
 
     freshAssertRefused(
