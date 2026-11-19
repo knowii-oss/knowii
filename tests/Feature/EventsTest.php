@@ -226,6 +226,16 @@ test('an offset that is not the offset of the zone at that time is a field error
     expect($event->starts_at->toIso8601ZuluString())->toBe('2026-11-18T16:00:00Z')->and($event->time_zone)->toBe('America/New_York');
 });
 
+test('an older name of a zone is accepted, and the event keeps the current name (#1678)', function () {
+    // The same moment in India, with the name that a browser can still give
+    $event = evtCreate($this->c['owner'], $this->events, ['starts_at' => '2026-11-18T21:30:00+05:30', 'ends_at' => '2026-11-18T22:30:00+05:30', 'time_zone' => 'Asia/Calcutta']);
+    expect($event->starts_at->toIso8601ZuluString())->toBe('2026-11-18T16:00:00Z')
+        ->and($event->fresh()->time_zone)->toBe('Asia/Kolkata');
+
+    $updated = app(UpdatesEvents::class)->update($this->c['owner'], $event, ['time_zone' => 'Europe/Kiev', 'starts_at' => '2026-11-18T18:00:00+02:00', 'ends_at' => '2026-11-18T19:00:00+02:00']);
+    expect($updated->fresh()->time_zone)->toBe('Europe/Kyiv');
+});
+
 test('an unknown zone is a field error', function () {
     expect(evtErrors(fn () => evtCreate($this->c['owner'], $this->events, ['time_zone' => 'Europe/Atlantis'])))->toHaveKey('time_zone')
         ->and(evtErrors(fn () => evtCreate($this->c['owner'], $this->events, ['time_zone' => 'CET+1'])))->toHaveKey('time_zone');
