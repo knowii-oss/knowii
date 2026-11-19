@@ -15,6 +15,6 @@ headers {
 }
 
 docs {
-  The events of an events space (#1513). scope: upcoming (default, the events that end now or later, the next start first) or past (the newest start first); another value is refused (400). A draft is listed only for its host, the owner and the admins. Lists carry no description. Ability events:read.
+  The events of an events space (#1513). scope: upcoming (default, the events that end now or later, the drafts first, then the next start first) or past (the newest start first); another value is refused (400). A draft is listed only for its host, the owner and the admins. Lists carry no description. Ability events:read.
   Public: in a public space this request works without a session and without a token (never a draft, never the meeting address or the place; the host as name, username and avatar). Every other space answers 401 without an account.
 }

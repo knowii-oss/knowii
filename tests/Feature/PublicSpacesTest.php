@@ -10,6 +10,7 @@ use App\Models\ChatMessage;
 use App\Models\Comment;
 use App\Models\CommunityResource;
 use App\Models\CourseMaterial;
+use App\Models\Event as EventModel;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\Quiz;
@@ -42,6 +43,7 @@ beforeEach(function () {
     $make = fn (KnowiiSpaceType $type, KnowiiSpaceVisibility $visibility) => Space::factory()->inGroup($group)->create(['type' => $type, 'visibility' => $visibility]);
 
     $this->discussion = $this->pagesSpace = $this->resourcesSpace = $this->course = $this->post = $this->comment = $this->page = $this->resource = $this->lesson = $this->material = [];
+    $this->eventsSpace = $this->event = [];
     foreach ($visibilities as $key => $visibility) {
         $discussion = $make(KnowiiSpaceType::Discussion, $visibility);
         $post = Post::factory()->inSpace($discussion)->create(['author_id' => $this->author->id]);
@@ -72,6 +74,12 @@ beforeEach(function () {
             'prompt' => 'Which one?', 'prompt_html' => '<p>Which one?</p>', 'explanation' => 'SECRET-EXPLANATION', 'explanation_html' => '<p>SECRET-EXPLANATION</p>',
         ]);
         $this->material[$key] = publicLinkMaterial($course, $lesson);
+
+        // An events space and an event (#1514): the meeting address and the place never reach a visitor
+        $events = $make(KnowiiSpaceType::Events, $visibility);
+        $this->eventsSpace[$key] = $events;
+        $this->event[$key] = EventModel::factory()->inSpace($events)->hostedBy($this->author)
+            ->create(['meeting_url' => 'https://meet.example.com/SECRET-MEETING-ADDRESS', 'place' => 'SECRET-PLACE-OF-THE-EVENT']);
     }
 
     $this->chat = [
@@ -114,6 +122,8 @@ function publicWebUrls(string $visibility): array
         'lesson' => route('pages.show', ['communitySlug' => $slug, 'spaceSlug' => $test->course[$visibility]->slug, 'pageSlug' => $test->lesson[$visibility]->slug]),
         'resources space' => route('spaces.show', ['communitySlug' => $slug, 'spaceSlug' => $test->resourcesSpace[$visibility]->slug]),
         'resource' => route('resources.show', ['communitySlug' => $slug, 'spaceSlug' => $test->resourcesSpace[$visibility]->slug, 'resourceSlug' => $test->resource[$visibility]->slug]),
+        'events space' => route('spaces.show', ['communitySlug' => $slug, 'spaceSlug' => $test->eventsSpace[$visibility]->slug]),
+        'event' => route('events.show', ['communitySlug' => $slug, 'spaceSlug' => $test->eventsSpace[$visibility]->slug, 'eventSlug' => $test->event[$visibility]->slug]),
     ];
 }
 
@@ -134,7 +144,7 @@ function publicReadAs(string $reader, string $url): TestResponse
     return $test->actingAs($test->c[$reader])->get($url);
 }
 
-dataset('web pages', ['space', 'post', 'pages space', 'page', 'course', 'lesson', 'resources space', 'resource']);
+dataset('web pages', ['space', 'post', 'pages space', 'page', 'course', 'lesson', 'resources space', 'resource', 'events space', 'event']);
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Web pages: the matrix
@@ -263,7 +273,7 @@ function publicAssertNoMemberData(array $props, string $reader = 'visitor'): voi
     $json = (string) json_encode($scanned);
 
     expect(array_intersect(publicKeysOf($scanned), PUBLIC_SPACES_FORBIDDEN_KEYS))->toBe([], 'a field of the "never" list reaches the reader');
-    foreach ([$test->author->email, $test->author->profile->email, 'SECRET-BIO-OF-THE-AUTHOR', 'SECRET-PHONE-OF-THE-AUTHOR', 'SECRET-CAPTURED-ARTICLE', 'SECRET-EXPLANATION', 'SECRET-CHAT-LINE'] as $secret) {
+    foreach ([$test->author->email, $test->author->profile->email, 'SECRET-BIO-OF-THE-AUTHOR', 'SECRET-PHONE-OF-THE-AUTHOR', 'SECRET-CAPTURED-ARTICLE', 'SECRET-EXPLANATION', 'SECRET-CHAT-LINE', 'SECRET-MEETING-ADDRESS', 'SECRET-PLACE-OF-THE-EVENT'] as $secret) {
         expect($json)->not->toContain($secret);
     }
     // Nobody is named but the authors of what is read

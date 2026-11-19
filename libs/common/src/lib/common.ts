@@ -10,6 +10,7 @@ export * from './api/knowii-api-client';
 export * from './api/waitlist/join-waitlist-request.schema';
 export * from './api/waitlist/join-waitlist-response.schema';
 export * from './api/api-result';
+export * from './api/communities/event-request.schema';
 
 export * from './contexts/app-context';
 

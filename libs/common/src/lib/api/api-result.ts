@@ -1,5 +1,7 @@
-import type { z } from 'zod';
+import { z } from 'zod';
 import { HttpStatus } from '../types/http-status.intf';
+import type { Paginated } from '../types/post.schema';
+import { paginationSchema } from '../types/post.schema';
 
 /**
  * Result of an API call: the parsed data, or a message and the field errors. Never throws.
@@ -35,6 +37,44 @@ export function fieldErrors(value: unknown): Record<string, string[]> {
 }
 
 /**
+ * What the server answered, before the `data` is parsed: nothing (204), or the envelope with its message
+ */
+type ApiAnswer =
+  | { ok: true; status: number; message: string; envelope: Record<string, unknown> | null }
+  | { ok: false; status: number; message: string; errors: Record<string, string[]> };
+
+/**
+ * Send one request to the Knowii API (session cookie, JSON) and read the envelope of the answer. Never throws.
+ */
+async function callApi(method: ApiMethod, url: string, failureMessage: string, body?: unknown, signal?: AbortSignal): Promise<ApiAnswer> {
+  try {
+    const response = await fetch(url, {
+      // fetch() uppercases GET, POST, DELETE... but not PATCH: servers reject a lowercase "patch" method
+      method: method.toUpperCase(),
+      headers: jsonHeaders,
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      ...(signal === undefined ? {} : { signal }),
+    });
+
+    if (response.status === HttpStatus.NO_CONTENT) {
+      return { ok: true, status: response.status, message: '', envelope: null };
+    }
+
+    const json: unknown = await response.json();
+    const envelope = typeof json === 'object' && json !== null ? (json as Record<string, unknown>) : {};
+    const message = typeof envelope['message'] === 'string' && envelope['message'] !== '' ? envelope['message'] : failureMessage;
+
+    if (!response.ok) {
+      return { ok: false, status: response.status, message, errors: fieldErrors(envelope['errors']) };
+    }
+
+    return { ok: true, status: response.status, message, envelope };
+  } catch {
+    return { ok: false, status: 0, message: failureMessage, errors: {} };
+  }
+}
+
+/**
  * Call the Knowii API (session cookie, JSON) and parse the `data` of the response with the given schema.
  * Pass `null` as schema for responses without content (204).
  */
@@ -46,38 +86,43 @@ export async function apiRequest<T>(
   body?: unknown,
   signal?: AbortSignal,
 ): Promise<ApiResult<T>> {
-  try {
-    const response = await fetch(url, {
-      // fetch() uppercases GET, POST, DELETE... but not PATCH: servers reject a lowercase "patch" method
-      method: method.toUpperCase(),
-      headers: jsonHeaders,
-      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-      ...(signal === undefined ? {} : { signal }),
-    });
-
-    if (response.status === HttpStatus.NO_CONTENT) {
-      return { ok: true, message: '', data: undefined as T };
-    }
-
-    const json: unknown = await response.json();
-    const envelope = typeof json === 'object' && json !== null ? (json as Record<string, unknown>) : {};
-    const message = typeof envelope['message'] === 'string' && envelope['message'] !== '' ? envelope['message'] : failureMessage;
-
-    if (!response.ok) {
-      return { ok: false, status: response.status, message, errors: fieldErrors(envelope['errors']) };
-    }
-
-    if (schema === null) {
-      return { ok: true, message, data: undefined as T };
-    }
-
-    const parsed = schema.safeParse(envelope['data']);
-    if (!parsed.success) {
-      return { ok: false, status: response.status, message: failureMessage, errors: {} };
-    }
-
-    return { ok: true, message, data: parsed.data };
-  } catch {
-    return { ok: false, status: 0, message: failureMessage, errors: {} };
+  const answer = await callApi(method, url, failureMessage, body, signal);
+  if (!answer.ok) {
+    return answer;
   }
+  if (answer.envelope === null || schema === null) {
+    return { ok: true, message: answer.message, data: undefined as T };
+  }
+
+  const parsed = schema.safeParse(answer.envelope['data']);
+  if (!parsed.success) {
+    return { ok: false, status: answer.status, message: failureMessage, errors: {} };
+  }
+
+  return { ok: true, message: answer.message, data: parsed.data };
+}
+
+/**
+ * `apiRequest()` for one page of a list (ADR 0011): a GET that parses the items of `data` with the given schema and the
+ * pagination of `metadata`. A refusal keeps the message of the server, like every other call.
+ */
+export async function apiPageRequest<T>(
+  url: string,
+  itemSchema: z.ZodType<T>,
+  failureMessage: string,
+  signal?: AbortSignal,
+): Promise<ApiResult<Paginated<T>>> {
+  const answer = await callApi('get', url, failureMessage, undefined, signal);
+  if (!answer.ok) {
+    return answer;
+  }
+
+  const parsed = z
+    .object({ data: z.array(itemSchema), metadata: z.object({ pagination: paginationSchema }) })
+    .safeParse(answer.envelope ?? {});
+  if (!parsed.success) {
+    return { ok: false, status: answer.status, message: failureMessage, errors: {} };
+  }
+
+  return { ok: true, message: answer.message, data: { items: parsed.data.data, pagination: parsed.data.metadata.pagination } };
 }

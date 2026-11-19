@@ -16,6 +16,7 @@ use App\Support\NoAccess;
 use App\Support\OidcEntitlements;
 use App\Support\PublicCommunity;
 use App\Support\SpaceTree;
+use App\Support\UpcomingEvents;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Routing\Controller;
@@ -66,6 +67,8 @@ class CommunityController extends Controller
             'community' => $community->loadCount('users')->toResource()->withLargeFields(),
 
             'recentResources' => $recentResources->toResourceCollection(),
+            // "Next events" (#1514): the first upcoming events of the events spaces of the navigation of the member
+            'nextEvents' => UpcomingEvents::next($community, $request->user(), $spaceGroups)->toResourceCollection(),
             'spaceGroups' => $spaceGroups->toResourceCollection(),
 
             'permissions' => $this->getCommunityPermissions($community),
@@ -77,7 +80,8 @@ class CommunityController extends Controller
      * exists only when the community has a public space that is not a chat space: any other community answers 404 to a
      * visitor (the sign-in page) and 403 to an outsider, as before, now with the page without access (#1561). Its props
      * are cut here, on the server: the community without its member count, rights and settings, the public spaces without
-     * any chat space, the newest public posts. No team, no member list, no permission.
+     * any chat space, the newest public posts, the next events of the public events spaces. No team, no member list, no
+     * permission.
      */
     private function showPublic(Request $request, Community $community): Response
     {
@@ -90,6 +94,9 @@ class CommunityController extends Controller
             'community' => $community->toResource(),
             'spaceGroups' => PublicCommunity::tree($community, $request->user())->toResourceCollection(),
             'newestPosts' => PublicCommunity::newestPosts($community)->toResourceCollection(NewestPostResource::class),
+            // "Next events" (#1514): the first upcoming events of the public events spaces. The resource cuts the meeting
+            // address and the place for a reader who is not a member
+            'nextEvents' => UpcomingEvents::next($community, $request->user())->toResourceCollection(),
         ]);
     }
 

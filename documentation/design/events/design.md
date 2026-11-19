@@ -1,6 +1,6 @@
 # Events design for the Knowii Platform (2026-11-16)
 
-Status: approved by the owner on 2026-11-16; his answers to the decisions of this design are in the comments of #1388 and in the build issues. Tracking issue: #1388, with the build slices #1513 to #1516. Not built yet.
+Status: approved by the owner on 2026-11-16; his answers to the decisions of this design are in the comments of #1388 and in the build issues. Tracking issue: #1388, with the build slices #1513 to #1516. Slice E1 is built: the server part (#1513) and the screens (#1514), see [ADR 0053](../../adr/0053-events-a-space-type-with-its-own-table.md) and the [release test](release-test.md). Slices E2 and later are not built.
 
 This design covers #1388 (events with answers, calendar file, reminders, replay). It touches #1444 (members host, drafts), #1443 (series, calendar view), #1413 (places, waitlist, public page, paid), #1412 (live rooms: out of the MVP), #1423 and #1476 (time zone), #1482 (notification slice 8), #1396 and #1431 (the move). Nothing here is approved. The owner approves section 13 point by point, then the build issues follow section 14.
 

@@ -12,6 +12,7 @@
     "pages": "Pages spaces",
     "resources": "Resources spaces",
     "link": "Link spaces",
+    "events": "Events spaces and events",
     "notifications": "Notifications",
     "account": "Account settings",
     "errors": "Error pages"
@@ -1935,6 +1936,227 @@
       "path": "/community/{garden}/space/{spaces.link}",
       "roles": ["member", "owner"],
       "component": "Pages/Spaces/Show.tsx"
+    },
+    {
+      "area": "events",
+      "screen": "space",
+      "state": "full",
+      "name": "Events space, upcoming events",
+      "path": "/community/{garden}/space/{spaces.events}",
+      "roles": ["visitor", "member", "moderator", "owner"],
+      "component": "Pages/Spaces/Show.tsx"
+    },
+    {
+      "area": "events",
+      "screen": "space",
+      "state": "past",
+      "name": "Events space, past events",
+      "path": "/community/{garden}/space/{spaces.events}?scope=past",
+      "roles": ["member", "owner"],
+      "component": "Pages/Spaces/Show.tsx"
+    },
+    {
+      "area": "events",
+      "screen": "space",
+      "state": "empty",
+      "name": "Events space without events",
+      "path": "/community/{empty}/space/{emptySpaces.events}",
+      "roles": ["member", "owner"],
+      "component": "Pages/Spaces/Show.tsx"
+    },
+    {
+      "area": "events",
+      "screen": "event",
+      "state": "full",
+      "name": "Event with a cover and a meeting address",
+      "path": "/community/{garden}/space/{spaces.events}/event/{events.next}",
+      "roles": ["visitor", "member", "moderator", "owner"],
+      "component": "Pages/Events/Show.tsx"
+    },
+    {
+      "area": "events",
+      "screen": "event",
+      "state": "other-zone",
+      "name": "Event, read in another time zone than the one of the host",
+      "path": "/community/{garden}/space/{spaces.events}/event/{events.next}",
+      "roles": ["visitor"],
+      "component": "Pages/Events/Show.tsx",
+      "timezone": "America/New_York",
+      "note": "The browser of this picture is in the zone America/New_York, the event in Europe/Brussels: the page adds the time of the host."
+    },
+    {
+      "area": "events",
+      "screen": "event-place",
+      "state": "full",
+      "name": "Event in a room",
+      "path": "/community/{garden}/space/{spaces.events}/event/{events.place}",
+      "roles": ["member"],
+      "component": "Pages/Events/Show.tsx"
+    },
+    {
+      "area": "events",
+      "screen": "event-cancelled",
+      "state": "full",
+      "name": "Cancelled event",
+      "path": "/community/{garden}/space/{spaces.events}/event/{events.cancelled}",
+      "roles": ["member", "owner"],
+      "component": "Pages/Events/Show.tsx"
+    },
+    {
+      "area": "events",
+      "screen": "event-past",
+      "state": "full",
+      "name": "Past event",
+      "path": "/community/{garden}/space/{spaces.events}/event/{events.past}",
+      "roles": ["member"],
+      "component": "Pages/Events/Show.tsx"
+    },
+    {
+      "area": "events",
+      "screen": "event-draft",
+      "state": "full",
+      "name": "Draft of an event",
+      "path": "/community/{garden}/space/{spaces.events}/event/{events.draft}",
+      "roles": ["owner"],
+      "component": "Pages/Events/Show.tsx"
+    },
+    {
+      "area": "events",
+      "screen": "event-draft",
+      "state": "not-found",
+      "name": "Draft of an event, for a member who may not see it",
+      "path": "/community/{garden}/space/{spaces.events}/event/{events.draft}",
+      "roles": ["member"],
+      "component": "Pages/Events/Show.tsx",
+      "expect": { "status": 404 }
+    },
+    {
+      "area": "events",
+      "screen": "event",
+      "state": "actions-menu",
+      "name": "Event, menu of actions open",
+      "path": "/community/{garden}/space/{spaces.events}/event/{events.next}",
+      "roles": ["moderator", "owner"],
+      "component": "Pages/Events/Show.tsx",
+      "steps": [
+        ["click", "role=button[name=\"Event actions\"]"],
+        ["wait", 500]
+      ]
+    },
+    {
+      "area": "events",
+      "screen": "event",
+      "state": "cancel-dialog",
+      "name": "Cancel an event, dialog",
+      "path": "/community/{garden}/space/{spaces.events}/event/{events.next}",
+      "roles": ["owner"],
+      "component": "Pages/Events/Show.tsx",
+      "steps": [["click", "role=button[name=\"Event actions\"]"], ["click", "role=menuitem[name=\"Cancel event\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "events",
+      "screen": "event",
+      "state": "delete-dialog",
+      "name": "Delete an event, dialog",
+      "path": "/community/{garden}/space/{spaces.events}/event/{events.next}",
+      "roles": ["owner"],
+      "component": "Pages/Events/Show.tsx",
+      "steps": [["click", "role=button[name=\"Event actions\"]"], ["click", "role=menuitem[name=\"Delete\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "events",
+      "screen": "form",
+      "state": "new",
+      "name": "New event, form",
+      "path": "/community/{garden}/space/{spaces.events}/events/new",
+      "roles": ["moderator", "owner"],
+      "component": "Pages/Events/Form.tsx"
+    },
+    {
+      "area": "events",
+      "screen": "form",
+      "state": "errors",
+      "name": "New event, form with errors",
+      "path": "/community/{garden}/space/{spaces.events}/events/new",
+      "roles": ["owner"],
+      "component": "Pages/Events/Form.tsx",
+      "steps": [
+        ["click", "role=button[name=\"Save as draft\"]"],
+        ["wait", 600]
+      ]
+    },
+    {
+      "area": "events",
+      "screen": "form",
+      "state": "skipped-time",
+      "name": "New event, a time that the zone skips",
+      "path": "/community/{garden}/space/{spaces.events}/events/new",
+      "roles": ["owner"],
+      "component": "Pages/Events/Form.tsx",
+      "steps": [
+        ["fill", "#event-start-date", "2027-03-28"],
+        ["fill", "#event-start-time", "02:30"],
+        ["fill", "#event-end-time", "04:00"],
+        ["press", "Tab"],
+        ["wait", 400]
+      ]
+    },
+    {
+      "area": "events",
+      "screen": "form",
+      "state": "twice-time",
+      "name": "New event, a time that exists twice",
+      "path": "/community/{garden}/space/{spaces.events}/events/new",
+      "roles": ["owner"],
+      "component": "Pages/Events/Form.tsx",
+      "steps": [
+        ["fill", "#event-start-date", "2027-10-31"],
+        ["fill", "#event-start-time", "02:30"],
+        ["fill", "#event-end-time", "04:00"],
+        ["press", "Tab"],
+        ["wait", 400]
+      ]
+    },
+    {
+      "area": "events",
+      "screen": "form",
+      "state": "zone-list",
+      "name": "New event, list of time zones open",
+      "path": "/community/{garden}/space/{spaces.events}/events/new",
+      "roles": ["owner"],
+      "component": "Pages/Events/Form.tsx",
+      "steps": [
+        ["click", "#event-time-zone"],
+        ["wait", 600]
+      ]
+    },
+    {
+      "area": "events",
+      "screen": "form",
+      "state": "edit",
+      "name": "Edit an event, form",
+      "path": "/community/{garden}/space/{spaces.events}/event/{events.next}/edit",
+      "roles": ["owner"],
+      "component": "Pages/Events/Form.tsx"
+    },
+    {
+      "area": "events",
+      "screen": "form",
+      "state": "edit-draft",
+      "name": "Edit a draft, form",
+      "path": "/community/{garden}/space/{spaces.events}/event/{events.draft}/edit",
+      "roles": ["owner"],
+      "component": "Pages/Events/Form.tsx"
+    },
+    {
+      "area": "events",
+      "screen": "form",
+      "state": "forbidden",
+      "name": "New event, for a member who may not create one",
+      "path": "/community/{garden}/space/{spaces.events}/events/new",
+      "roles": ["member"],
+      "component": "Pages/Events/Form.tsx",
+      "expect": { "status": 403 }
     },
     {
       "area": "notifications",

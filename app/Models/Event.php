@@ -228,14 +228,20 @@ class Event extends Model
     }
 
     /**
-     * Upcoming: the end is now or later, the next start first
+     * Upcoming: the end is now or later. The drafts first (the people who may see them must not lose them under the
+     * published events, design 6.1 point 5), then the next start first. The API and the page of a space use the same
+     * order (#1514).
      *
      * @param  Builder<Event>  $query
      * @return Builder<Event>
      */
     final public function scopeUpcoming(Builder $query): Builder
     {
-        return $query->where('ends_at', '>=', now())->orderBy('starts_at')->orderBy('id');
+        return $query->where('ends_at', '>=', now())
+            // PostgreSQL sorts true after false: descending puts the drafts first
+            ->orderByRaw('(state = ?) desc', [KnowiiEventState::Draft->value])
+            ->orderBy('starts_at')
+            ->orderBy('id');
     }
 
     /**

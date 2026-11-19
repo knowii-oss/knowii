@@ -75,7 +75,7 @@ describe('notificationHref (#1484)', () => {
     expect(notificationHref(makeNotification('a', { target }), route)).toBe('/resources.show/knowii/open/a-resource#comment-k1');
   });
 
-  it('opens the space of a new event (#1513)', () => {
+  it('opens the page of a new event, and the page of its space when the target has no slug of the event (#1514)', () => {
     const target: NotificationTarget = {
       post_slug: null,
       post_cuid: null,
@@ -89,7 +89,13 @@ describe('notificationHref (#1484)', () => {
       event_slug: 'weekly-review',
     };
 
-    expect(notificationHref(makeNotification('a', { kind: 'event_new', level: 2, target }), route)).toBe('/spaces.show/knowii/open');
+    expect(notificationHref(makeNotification('a', { kind: 'event_new', level: 2, target }), route)).toBe(
+      '/events.show/knowii/open/weekly-review',
+    );
+    // A row of an older server names the event by its cuid only
+    expect(notificationHref(makeNotification('a', { kind: 'event_new', level: 2, target: { ...target, event_slug: null } }), route)).toBe(
+      '/spaces.show/knowii/open',
+    );
     expect(threadOf(makeNotification('a', { kind: 'event_new', level: 2, target }))).toBeNull();
   });
 

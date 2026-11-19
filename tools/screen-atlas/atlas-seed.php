@@ -29,6 +29,9 @@ use App\Actions\CommunityMembers\InviteCommunityMember;
 use App\Actions\Conversations\SendDirectMessage;
 use App\Actions\Conversations\StartConversation;
 use App\Actions\CourseMaterials\CreateCourseMaterial;
+use App\Actions\Events\CreateEvent;
+use App\Actions\Events\SetEventState;
+use App\Actions\Events\UpdateEvent;
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\UpdateUserProfileInformation;
 use App\Actions\Notifications\ChooseSpaceLevels;
@@ -54,6 +57,7 @@ use App\Models\Comment;
 use App\Models\Community;
 use App\Models\CommunityResource;
 use App\Models\Conversation;
+use App\Models\Event as EventModel;
 use App\Models\Notification;
 use App\Models\Page;
 use App\Models\Post;
@@ -62,6 +66,7 @@ use App\Models\Space;
 use App\Models\SpaceGroup;
 use App\Models\Upload;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -228,6 +233,29 @@ use Laravel\Fortify\Actions\EnableTwoFactorAuthentication;
         return app(CreateCommunityResource::class)->create($by, $space, ['url' => $url, 'name' => $name, 'description' => $description, 'type' => $type, 'level' => $level, 'capture' => false]);
     };
 
+    // A start or an end as the API takes it: a number of days from today, at an hour of Brussels, with the offset of that day
+    $eventTime = static fn (int $days, int $hour): string => CarbonImmutable::now('Europe/Brussels')->addDays($days)->setTime($hour, 0)->format('Y-m-d\TH:i:sP');
+
+    // An event of an events space (#1514): found by its title. The owner creates every event (a start in the past is for
+    // the owner and the admins) and names the host
+    $event = static function (User $by, Space $space, User $host, string $title, int $days, int $hour, array $extra = []) use (&$made, $eventTime): EventModel {
+        $found = $space->events()->where('title', $title)->first();
+        if ($found !== null) {
+            return $found;
+        }
+        $made++;
+
+        return app(CreateEvent::class)->create($by, $space, [
+            'title' => $title,
+            'starts_at' => $eventTime($days, $hour),
+            'ends_at' => $eventTime($days, $hour + 1),
+            'time_zone' => 'Europe/Brussels',
+            'host_cuid' => $host->cuid,
+            'state' => 'published',
+            ...$extra,
+        ]);
+    };
+
     $accessGroup = static function (Community $community, User $by, string $name, string $description) use (&$made): AccessGroup {
         $found = $community->accessGroups()->where('name', $name)->first();
         if ($found !== null) {
@@ -380,6 +408,8 @@ use Laravel\Fortify\Actions\EnableTwoFactorAuthentication;
     $course = $space($garden, $owner, $learn, ['name' => 'Balcony course', 'emoji' => '🎓', 'type' => 'course', 'posting_policy' => 'moderators', 'description' => 'From an empty balcony to the first harvest, step by step.']);
     $reading = $space($garden, $owner, $learn, ['name' => 'Reading list', 'emoji' => '📚', 'type' => 'resources', 'description' => 'Articles, books and videos that the members recommend.']);
     $tools = $space($garden, $owner, $learn, ['name' => 'Tools', 'emoji' => '🧰', 'type' => 'resources', 'posting_policy' => 'moderators', 'description' => 'Calculators and planners. The team curates this collection.']);
+    // A public events space (#1514): a visitor reads its list and its events, without the meeting address
+    $gardenEvents = $space($garden, $owner, $together, ['name' => 'Garden events', 'emoji' => '📅', 'type' => 'events', 'visibility' => 'public', 'posting_policy' => 'moderators', 'description' => 'Workshops, seed swaps and question hours. The team plans them.']);
     $patronsSpace = $space($garden, $owner, $patronsGroup, ['name' => 'Patrons lounge', 'emoji' => '🌟', 'type' => 'discussion', 'visibility' => 'groups', 'access_groups' => [$patrons->cuid], 'description' => 'Only the access group "Patrons" reads this space.']);
 
     $emptyGroup = $spaceGroup($empty, $owner, 'Spaces');
@@ -388,6 +418,7 @@ use Laravel\Fortify\Actions\EnableTwoFactorAuthentication;
     $space($empty, $owner, $emptyGroup, ['name' => 'Empty pages', 'emoji' => '📄', 'type' => 'pages', 'posting_policy' => 'moderators', 'description' => 'A pages space without pages.']);
     $space($empty, $owner, $emptyGroup, ['name' => 'Empty course', 'emoji' => '🎓', 'type' => 'course', 'posting_policy' => 'moderators', 'description' => 'A course space without lessons.']);
     $space($empty, $owner, $emptyGroup, ['name' => 'Empty resources', 'emoji' => '📚', 'type' => 'resources', 'description' => 'A resources space without resources.']);
+    $space($empty, $owner, $emptyGroup, ['name' => 'Empty events', 'emoji' => '📅', 'type' => 'events', 'posting_policy' => 'moderators', 'description' => 'An events space without events.']);
     $space($empty, $owner, $emptyGroup, ['name' => 'Empty link', 'emoji' => '🔗', 'type' => 'link', 'url' => 'https://example.com/atlas/empty-link', 'description' => 'A link space.']);
     $say('communities, members, access groups and spaces ready');
 
@@ -617,6 +648,43 @@ use Laravel\Fortify\Actions\EnableTwoFactorAuthentication;
     $say('history ready');
 
     // ---------------------------------------------------------------------------------------------------------------
+    // 3b. Events (#1514): an event with a cover and a meeting address, one in a room, a cancelled one, a draft and a
+    // past one. No notification (Notify::silenced): the counts of the other pictures stay what they were
+    // ---------------------------------------------------------------------------------------------------------------
+
+    $events = Notify::silenced(function () use ($garden, $owner, $moderator, $gardenEvents, $event, $upload): array {
+        $cover = $upload($owner, $garden, 'Paper bags with seeds on a wooden table', 1600, 900, [255, 236, 179], [129, 199, 132]);
+        $swap = $event($owner, $gardenEvents, $owner, 'Seed swap, online', 3, 18, [
+            'body' => "Bring the seeds that you saved this year, and a short story about each one.\n\n## How it works\n\n1. Each person shows one seed and says where it grew.\n2. We write down who wants which seed.\n3. You send the seeds by post after the call.\n\nNew gardeners are welcome: you do not need seeds to join.",
+            'meeting_url' => 'https://example.com/atlas/meet/seed-swap',
+            'cover_upload_cuid' => $cover->cuid,
+            'cover_alt' => 'Paper bags with seeds on a wooden table',
+        ]);
+        $workshop = $event($owner, $gardenEvents, $moderator, 'Pruning workshop for small fruit trees', 10, 10, [
+            'body' => 'A workshop of one hour in the greenhouse. Bring gloves and your own shears.',
+            'place' => 'Greenhouse 2, City garden, Brussels',
+        ]);
+        $cancelled = $event($owner, $gardenEvents, $moderator, 'Open garden day', 5, 14, [
+            'body' => 'The garden is open for visitors. Members show their beds.',
+            'place' => 'City garden, Brussels',
+        ]);
+        if ($cancelled->state->value === 'published') {
+            app(SetEventState::class)->setState($owner, $cancelled, ['state' => 'cancelled']);
+        }
+        $draft = $event($owner, $gardenEvents, $owner, 'Autumn planning, question hour', 20, 19, [
+            'body' => 'A draft: the date is not sure yet.',
+            'state' => 'draft',
+        ]);
+        $past = $event($owner, $gardenEvents, $moderator, 'Compost question hour', -7, 18, [
+            'body' => 'Everything about compost: what goes in, what stays out, and why it smells.',
+            'meeting_url' => 'https://example.com/atlas/meet/compost',
+        ]);
+
+        return compact('swap', 'workshop', 'cancelled', 'draft', 'past');
+    });
+    $say('events ready');
+
+    // ---------------------------------------------------------------------------------------------------------------
     // 4. What the member chose: levels of spaces, threads followed and muted
     // ---------------------------------------------------------------------------------------------------------------
 
@@ -730,6 +798,11 @@ use Laravel\Fortify\Actions\EnableTwoFactorAuthentication;
     // The member was away for nine days (no action sets the date of the last visit): the "Catch up" card shows in the
     // next session
     DB::table('users')->where('id', $member->id)->update(['last_visit_on' => now('UTC')->subDays(9)->toDateString()]);
+    // The events keep their distance from today (#1514), so that "Upcoming" and "Past" hold the same events on each run.
+    // The action of the application moves them: a change of an event tells nobody
+    foreach (['swap' => [3, 18], 'workshop' => [10, 10], 'cancelled' => [5, 14], 'draft' => [20, 19], 'past' => [-7, 18]] as $key => [$days, $hour]) {
+        app(UpdateEvent::class)->update($owner, $events[$key]->refresh(), ['starts_at' => $eventTime($days, $hour), 'ends_at' => $eventTime($days, $hour + 1), 'time_zone' => 'Europe/Brussels']);
+    }
 
     // ---------------------------------------------------------------------------------------------------------------
     // 8. The manifest: the addresses that the screenshot tool needs
@@ -753,6 +826,7 @@ use Laravel\Fortify\Actions\EnableTwoFactorAuthentication;
         'spaces' => [
             'welcome' => $welcome->slug, 'announcements' => $announcements->slug, 'link' => $website->slug, 'discussion' => $discussion->slug, 'off-topic' => $offTopic->slug,
             'chat' => $lounge->slug, 'course' => $course->slug, 'resources' => $reading->slug, 'tools' => $tools->slug, 'patrons' => $patronsSpace->slug,
+            'events' => $gardenEvents->slug,
         ],
         'emptySpaces' => $emptySpaces,
         'posts' => [
@@ -766,6 +840,7 @@ use Laravel\Fortify\Actions\EnableTwoFactorAuthentication;
             'quiz-after' => $refs['quizOne']->slug, 'quiz-before' => $refs['quizTwo']->slug,
         ],
         'resources' => ['guide' => $refs['guide']->slug],
+        'events' => ['next' => $events['swap']->slug, 'place' => $events['workshop']->slug, 'cancelled' => $events['cancelled']->slug, 'draft' => $events['draft']->slug, 'past' => $events['past']->slug],
         'conversations' => ['direct' => $direct->cuid, 'group' => $group->cuid, 'owner' => $direct2->cuid],
         'chat' => ['thread' => $refs['threadTwo']->cuid],
     ];

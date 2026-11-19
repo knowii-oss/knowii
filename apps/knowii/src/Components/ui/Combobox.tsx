@@ -54,6 +54,15 @@ export type ComboboxProps<V extends string> = ComboboxName & {
   placeholder?: string;
   disabled?: boolean;
   /**
+   * Marks the field as invalid (`aria-invalid`, and the border of an error). Show the error as text near the field,
+   * and name its element with `aria-describedby`.
+   */
+  invalid?: boolean;
+  /**
+   * Ids of the elements that describe the field: its hint, its error
+   */
+  'aria-describedby'?: string | undefined;
+  /**
    * Values that stay at the top of the list, in this order, while the field holds no search text. With a search text,
    * the list holds the matches whose label starts with the text, then the other matches, both in the order of
    * `options`.
@@ -112,11 +121,15 @@ function resultsText(count: number, shown: number, noResultsText: string): strin
   return count > shown ? `${results}. ${MORE_TEXT}.` : results;
 }
 
-// Headless UI sets aria-labelledby of its parts itself, over the one of the props (see SelectButton): the parts below
-// take the ids under another name
+// Headless UI sets aria-labelledby (and aria-describedby of the field) of its parts itself, over the one of the props
+// (see SelectButton): the parts below take the ids under another name
 
-function ComboboxField({ labelledBy, ...props }: ComponentProps<'input'> & { labelledBy?: string | undefined }) {
-  return <input {...props} aria-labelledby={labelledBy} />;
+function ComboboxField({
+  labelledBy,
+  describedBy,
+  ...props
+}: ComponentProps<'input'> & { labelledBy?: string | undefined; describedBy?: string | undefined }) {
+  return <input {...props} aria-labelledby={labelledBy} aria-describedby={describedBy} />;
 }
 
 function ComboboxToggle({ labelledBy, ...props }: ComponentProps<'button'> & { labelledBy?: string | undefined }) {
@@ -154,7 +167,8 @@ function SelectLabelOnToggle({ open, searching, input }: { open: boolean; search
  * Keyboard: typing filters, the arrows open the list and move in it, Enter picks the active option, Escape closes and
  * keeps the old value, and Tab leaves and keeps the old value, like a click outside. Closed, the field shows the label
  * of the value, selected, so that typing starts a new search. A polite status says the number of results after each
- * change of the list. The list renders at most `COMBOBOX_MAX_OPTIONS` options, in the landmark of the field (or in its
+ * change of the list. An error: `invalid` marks the field, and `aria-describedby` names the text of the error, which
+ * the form shows. The list renders at most `COMBOBOX_MAX_OPTIONS` options, in the landmark of the field (or in its
  * dialog), not on the body.
  */
 export function Combobox<V extends string>({
@@ -164,6 +178,8 @@ export function Combobox<V extends string>({
   onChange,
   placeholder = 'Type to search',
   disabled = false,
+  invalid = false,
+  'aria-describedby': ariaDescribedBy,
   pinned,
   filter = comboboxOptionMatches,
   noResultsText = 'No results',
@@ -208,6 +224,7 @@ export function Combobox<V extends string>({
       }}
       onClose={() => setQuery('')}
       disabled={disabled}
+      invalid={invalid}
     >
       {({ open }) => (
         <div className="relative">
@@ -217,6 +234,8 @@ export function Combobox<V extends string>({
             id={id}
             aria-label={ariaLabel}
             labelledBy={ariaLabelledBy}
+            describedBy={ariaDescribedBy}
+            aria-invalid={invalid || undefined}
             placeholder={placeholder}
             autoComplete="off"
             displayValue={(shownValue: V | null) => (shownValue === null ? '' : (labels.get(shownValue) ?? ''))}

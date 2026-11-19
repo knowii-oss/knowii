@@ -15,6 +15,7 @@ use App\Support\CourseProgress;
 use App\Support\NoAccess;
 use App\Support\Pagination;
 use App\Support\SpaceTree;
+use App\Support\UpcomingEvents;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Resources\Json\ResourceCollection;
@@ -30,6 +31,13 @@ class SpaceController extends Controller
 
     // WARNING: aligned with RESOURCES_PER_PAGE (constants.ts)
     public const int RESOURCES_PER_PAGE = 24;
+
+    // WARNING: aligned with EVENTS_PER_PAGE (constants.ts)
+    public const int EVENTS_PER_PAGE = 20;
+
+    public const string EVENTS_SCOPE_UPCOMING = 'upcoming';
+
+    public const string EVENTS_SCOPE_PAST = 'past';
 
     /**
      * Show a space of a community.
@@ -68,6 +76,26 @@ class SpaceController extends Controller
             ];
         }
 
+        // Events spaces: the first page of the upcoming or of the past events (#1514, design 6.1). A draft only for its
+        // host, the owner and the admins. Any other value of `scope` than "past" means "upcoming"
+        $events = null;
+        $eventsScope = null;
+        if ($space->type === KnowiiSpaceType::Events) {
+            $eventsScope = $request->query('scope') === self::EVENTS_SCOPE_PAST ? self::EVENTS_SCOPE_PAST : self::EVENTS_SCOPE_UPCOMING;
+            $query = $space->events()->visibleTo($request->user(), $community)->with(UpcomingEvents::RELATIONS);
+            $page = (new Pagination(self::EVENTS_PER_PAGE, 0))->apply($eventsScope === self::EVENTS_SCOPE_PAST ? $query->past() : $query->upcoming());
+            // The policy of each event reads its space and its community: they are known, so no query per event
+            $space->setRelation('community', $community);
+            foreach ($page['items'] as $event) {
+                $event->setRelation('space', $space);
+                $event->setRelation('community', $community);
+            }
+            $events = [
+                'items' => $page['items']->toResourceCollection(),
+                'pagination' => $page['metadata']['pagination'],
+            ];
+        }
+
         // Chat spaces: the newest messages, oldest first, and where the unread ones start (#1185)
         $chat = $space->type === KnowiiSpaceType::Chat ? self::chat($space, $request->user()) : null;
 
@@ -84,6 +112,8 @@ class SpaceController extends Controller
         return Jetstream::inertia()->render($request, 'Spaces/Show', [
             'posts' => $posts,
             'resources' => $resources,
+            'events' => $events,
+            'eventsScope' => $eventsScope,
             'pages' => $pages,
             'progress' => $progress,
             'chat' => $chat,

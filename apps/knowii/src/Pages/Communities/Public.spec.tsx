@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
-import type { Community, NewestPost, SpaceGroup } from '@knowii/common';
+import type { Community, NewestPost, SpaceEvent, SpaceGroup } from '@knowii/common';
+import { eventFixture } from '@/test-utils/events';
 import PublicCommunityPage from './Public';
 
 const page = vi.hoisted(() => ({ user: null as { cuid: string } | null }));
@@ -66,7 +67,7 @@ const newestPosts: NewestPost[] = [
 ];
 
 function renderPage(posts: NewestPost[] = newestPosts) {
-  render(<PublicCommunityPage community={community} spaceGroups={[] as SpaceGroup[]} newestPosts={posts} />);
+  render(<PublicCommunityPage community={community} spaceGroups={[] as SpaceGroup[]} newestPosts={posts} nextEvents={[]} />);
 }
 
 describe('The public community page (#1485)', () => {
@@ -93,7 +94,12 @@ describe('The public community page (#1485)', () => {
   it('shows "Sign up to join" and "Sign in" to a visitor when the community is open (#1486)', () => {
     page.user = null;
     render(
-      <PublicCommunityPage community={{ ...community, join_policy: 'open' }} spaceGroups={[] as SpaceGroup[]} newestPosts={newestPosts} />,
+      <PublicCommunityPage
+        community={{ ...community, join_policy: 'open' }}
+        spaceGroups={[] as SpaceGroup[]}
+        newestPosts={newestPosts}
+        nextEvents={[]}
+      />,
     );
 
     const slot = document.querySelector('[data-slot="join"]') as HTMLElement;
@@ -105,7 +111,12 @@ describe('The public community page (#1485)', () => {
   it('shows "Join" to a signed-in person who is not a member when the community is open (#1486)', () => {
     page.user = { cuid: 'u9' };
     render(
-      <PublicCommunityPage community={{ ...community, join_policy: 'open' }} spaceGroups={[] as SpaceGroup[]} newestPosts={newestPosts} />,
+      <PublicCommunityPage
+        community={{ ...community, join_policy: 'open' }}
+        spaceGroups={[] as SpaceGroup[]}
+        newestPosts={newestPosts}
+        nextEvents={[]}
+      />,
     );
 
     const slot = document.querySelector('[data-slot="join"]') as HTMLElement;
@@ -119,6 +130,7 @@ describe('The public community page (#1485)', () => {
         community={{ ...community, join_policy: 'invitation' }}
         spaceGroups={[] as SpaceGroup[]}
         newestPosts={newestPosts}
+        nextEvents={[]}
       />,
     );
 
@@ -163,5 +175,42 @@ describe('The public community page (#1485)', () => {
 
     expect(screen.queryByText(/[0-9]+ members?/i)).toBeNull();
     expect(screen.queryByText(/team/i)).toBeNull();
+  });
+});
+
+describe('"Next events" on the public community page (#1514, design 6.7 point 3)', () => {
+  const renderWith = (nextEvents: SpaceEvent[]) =>
+    render(
+      <PublicCommunityPage community={community} spaceGroups={[] as SpaceGroup[]} newestPosts={newestPosts} nextEvents={nextEvents} />,
+    );
+
+  it('lists the next events with the title as a link and the time, and nothing else of them', () => {
+    page.user = null;
+    renderWith([
+      eventFixture('e1', 'Weekly review', { can_view_location: false, meeting_url: null }),
+      eventFixture('e2', 'Workshop', { can_view_location: false, meeting_url: null }),
+    ]);
+
+    const card = screen.getByRole('region', { name: 'Next events' });
+    expect(within(card).getAllByRole('listitem')).toHaveLength(2);
+    expect(within(card).getByRole('link', { name: 'Weekly review' })).toHaveAttribute(
+      'href',
+      '/events.show/tests/office-hours/weekly-review',
+    );
+    expect(card.querySelector('time')).toHaveAttribute('datetime', '2026-11-18T16:00:00.000Z');
+    // The title and the time only: no space name, no host
+    expect(within(card).queryByText('Office hours')).toBeNull();
+    expect(within(card).queryByText(/Ada Lovelace/)).toBeNull();
+    // Before the newest posts
+    const posts = screen.getByRole('region', { name: 'Newest posts' });
+    expect(card.compareDocumentPosition(posts) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('shows no block without an event', () => {
+    page.user = null;
+    renderWith([]);
+
+    expect(screen.queryByRole('region', { name: 'Next events' })).toBeNull();
+    expect(screen.queryByText('Next events')).toBeNull();
   });
 });

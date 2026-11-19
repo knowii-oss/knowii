@@ -72,6 +72,13 @@ import {
   SPACE_API_PARAM_COMMENT,
   COMMUNITY_SPACE_POST_PIN_API_PATH,
   COMMUNITY_SPACE_POSTS_API_PATH,
+  COMMUNITY_EVENTS_API_PATH,
+  COMMUNITY_SPACE_EVENTS_API_PATH,
+  COMMUNITY_SPACE_EVENT_API_PATH,
+  COMMUNITY_SPACE_EVENT_STATE_API_PATH,
+  COMMUNITY_SPACE_EVENT_DUPLICATE_API_PATH,
+  SPACE_API_PARAM_EVENT,
+  EVENTS_PER_PAGE,
   MARKDOWN_PREVIEW_API_PATH,
   SPACE_API_PARAM_MESSAGE,
   SPACE_API_PARAM_PAGE,
@@ -125,7 +132,10 @@ import type {
 import { accessGroupMemberSchema, accessGroupSchema, accessGroupSpaceGroupSchema } from '../types/access-group.schema';
 import { HttpStatus } from '../types/http-status.intf';
 import type { ApiResult } from './api-result';
-import { apiPath, apiRequest, fieldErrors } from './api-result';
+import { apiPageRequest, apiPath, apiRequest, fieldErrors } from './api-result';
+import type { EventRequest, EventScope, EventUpdateRequest } from './communities/event-request.schema';
+import type { EventState, SpaceEvent } from '../types/event.schema';
+import { eventSchema } from '../types/event.schema';
 import type { Space, SpaceCreateInput, SpaceForm, SpaceGroup, SpaceGroupForm } from '../types/space.schema';
 import { spaceGroupSchema, spaceSchema } from '../types/space.schema';
 import type { Author, Paginated, Pagination, Post, PostCreateInput, PostForm } from '../types/post.schema';
@@ -207,6 +217,9 @@ const accessGroupPath = (communityCuid: string, groupCuid: string, path = COMMUN
   });
 const postsPath = (communityCuid: string, spaceCuid: string, postCuid = '', path = COMMUNITY_SPACE_POSTS_API_PATH) =>
   apiPath(path, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE]: spaceCuid, [SPACE_API_PARAM_POST]: postCuid });
+
+const eventsPath = (communityCuid: string, spaceCuid: string, eventCuid = '', path = COMMUNITY_SPACE_EVENTS_API_PATH) =>
+  apiPath(path, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE]: spaceCuid, [SPACE_API_PARAM_EVENT]: eventCuid });
 
 const FOLLOW_FAILURE = 'Failed to save what you follow.';
 const spaceLevelPath = (communityCuid: string, spaceCuid: string) =>
@@ -558,6 +571,101 @@ export const knowiiApiClient = {
           postSchema,
           pinned ? 'Failed to pin the post.' : 'Failed to unpin the post.',
           { pinned },
+        ),
+    },
+    /**
+     * The events of events spaces (#1513, #1514, ADR 0053). The start and the end of a request carry the offset of the
+     * zone ("2026-11-18T17:00:00+01:00"); the server answers a wrong time with a field error (400) and a refused rule
+     * with its message (422).
+     */
+    events: {
+      /**
+       * A page of the events of a space. `upcoming`: the drafts that the reader may see first, then the next start
+       * first. `past`: the newest start first. No description in a list.
+       */
+      list: (
+        communityCuid: string,
+        spaceCuid: string,
+        scope: EventScope,
+        limit: number = EVENTS_PER_PAGE,
+        offset = 0,
+      ): Promise<ApiResult<Paginated<SpaceEvent>>> =>
+        apiPageRequest(
+          `${eventsPath(communityCuid, spaceCuid)}?${new URLSearchParams({ scope, limit: String(limit), offset: String(offset) }).toString()}`,
+          eventSchema,
+          'Failed to load the events.',
+        ),
+      /**
+       * The upcoming events of every events space of the community that the reader can read, the next start first,
+       * never a draft
+       */
+      listUpcoming: (communityCuid: string, limit: number = EVENTS_PER_PAGE, offset = 0): Promise<ApiResult<Paginated<SpaceEvent>>> =>
+        apiPageRequest(
+          `${communityPath(COMMUNITY_EVENTS_API_PATH, communityCuid)}?${new URLSearchParams({ limit: String(limit), offset: String(offset) }).toString()}`,
+          eventSchema,
+          'Failed to load the events.',
+        ),
+      /**
+       * One event, with its description. A 403 means "not for this reader" (a draft, a space that the reader may not
+       * read), a 404 that the event is gone
+       */
+      get: (communityCuid: string, spaceCuid: string, eventCuid: string): Promise<ApiResult<SpaceEvent>> =>
+        apiRequest(
+          'get',
+          eventsPath(communityCuid, spaceCuid, eventCuid, COMMUNITY_SPACE_EVENT_API_PATH),
+          eventSchema,
+          'Failed to load the event.',
+        ),
+      /**
+       * Create an event: a draft, or published with `state`
+       */
+      create: (communityCuid: string, spaceCuid: string, input: EventRequest): Promise<ApiResult<SpaceEvent>> =>
+        apiRequest('post', eventsPath(communityCuid, spaceCuid), eventSchema, 'Failed to save the event.', input),
+      /**
+       * Change the fields of an event. The state has its own call
+       */
+      update: (communityCuid: string, spaceCuid: string, eventCuid: string, input: EventUpdateRequest): Promise<ApiResult<SpaceEvent>> =>
+        apiRequest(
+          'patch',
+          eventsPath(communityCuid, spaceCuid, eventCuid, COMMUNITY_SPACE_EVENT_API_PATH),
+          eventSchema,
+          'Failed to save the event.',
+          input,
+        ),
+      /**
+       * Publish, cancel, publish again or go back to draft. `notifyNow` (with `published`) tells the members now, for
+       * the people who can moderate the space
+       */
+      setState: (
+        communityCuid: string,
+        spaceCuid: string,
+        eventCuid: string,
+        state: EventState,
+        notifyNow = false,
+      ): Promise<ApiResult<SpaceEvent>> =>
+        apiRequest(
+          'put',
+          eventsPath(communityCuid, spaceCuid, eventCuid, COMMUNITY_SPACE_EVENT_STATE_API_PATH),
+          eventSchema,
+          'Failed to change the state of the event.',
+          notifyNow ? { state, notify_now: true } : { state },
+        ),
+      /**
+       * A draft copy, 7 days later at the same hour of the zone of the event
+       */
+      duplicate: (communityCuid: string, spaceCuid: string, eventCuid: string): Promise<ApiResult<SpaceEvent>> =>
+        apiRequest(
+          'post',
+          eventsPath(communityCuid, spaceCuid, eventCuid, COMMUNITY_SPACE_EVENT_DUPLICATE_API_PATH),
+          eventSchema,
+          'Failed to duplicate the event.',
+        ),
+      delete: (communityCuid: string, spaceCuid: string, eventCuid: string): Promise<ApiResult<undefined>> =>
+        apiRequest(
+          'delete',
+          eventsPath(communityCuid, spaceCuid, eventCuid, COMMUNITY_SPACE_EVENT_API_PATH),
+          null,
+          'Failed to delete the event.',
         ),
     },
     /**

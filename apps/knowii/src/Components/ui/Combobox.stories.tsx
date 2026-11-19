@@ -36,14 +36,21 @@ type StoryArgs = Extract<ComboboxProps<string>, { 'aria-label': string }> & {
    * `aria-label`
    */
   withLabel?: boolean;
+  /**
+   * The text of an error under the field: the story marks the combobox as invalid and links the text to it
+   */
+  error?: string;
 };
 
 /**
  * The combobox with its label and its value, as a form shows it, and a text after it for a click outside
  */
-function LabelledCombobox({ value: valueAtStart, onChange, withLabel = true, 'aria-label': label, ...args }: StoryArgs) {
+function LabelledCombobox({ value: valueAtStart, onChange, withLabel = true, error, 'aria-label': label, ...args }: StoryArgs) {
   const id = useId();
   const labelId = `${id}-label`;
+  const errorId = `${id}-error`;
+  // The error of a form: the field is invalid, and the text of the error describes it
+  const errorProps = error === undefined ? {} : { invalid: true, 'aria-describedby': errorId };
   const [value, setValue] = useState<string | null>(valueAtStart);
   const change = (next: string) => {
     setValue(next);
@@ -57,9 +64,14 @@ function LabelledCombobox({ value: valueAtStart, onChange, withLabel = true, 'ar
         </label>
       )}
       {withLabel ? (
-        <Combobox<string> {...args} id={id} aria-labelledby={labelId} value={value} onChange={change} />
+        <Combobox<string> {...args} {...errorProps} id={id} aria-labelledby={labelId} value={value} onChange={change} />
       ) : (
-        <Combobox<string> {...args} id={id} aria-label={label} value={value} onChange={change} />
+        <Combobox<string> {...args} {...errorProps} id={id} aria-label={label} value={value} onChange={change} />
+      )}
+      {error !== undefined && (
+        <p id={errorId} role="alert" className="text-sm text-danger-text">
+          {error}
+        </p>
       )}
       <p className="text-sm text-muted">The plant shows on the label of the seed bag.</p>
     </div>
@@ -132,6 +144,9 @@ export const Default: Story = {
     await expect(field).toHaveValue('');
     await expect(field).toHaveAttribute('placeholder', 'Type the name of a plant');
     await expect(status).toBeEmptyDOMElement();
+    // A valid field: no error state, and nothing describes it
+    await expect(field).not.toHaveAttribute('aria-invalid');
+    await expect(field).not.toHaveAttribute('aria-describedby');
 
     await step('Typing filters the list at each key, and the status says the number of results', async () => {
       await userEvent.tab();
@@ -422,6 +437,25 @@ export const Disabled: Story = {
     await expect(button).toBeDisabled();
     await userEvent.click(button);
     await expect(page.queryByRole('listbox')).toBeNull();
+  },
+};
+
+/**
+ * An error of the form: `invalid` marks the field (`aria-invalid`, and a border that is not the only sign: the form
+ * shows the text of the error), and `aria-describedby` names that text, so that a screen reader reads it with the
+ * field. A valid field has neither attribute.
+ */
+export const Invalid: Story = {
+  args: { error: 'Choose a plant of the list.' },
+  play: async ({ canvasElement }) => {
+    const { field, page } = parts(canvasElement);
+    await expect(field).toHaveAttribute('aria-invalid', 'true');
+    await expect(field).toHaveAccessibleDescription('Choose a plant of the list.');
+    // The field still works: a choice goes to the form, which decides when the error goes
+    await userEvent.tab();
+    await userEvent.keyboard('{ArrowDown}');
+    await expect(await page.findByRole('listbox', { name: LABEL })).toBeInTheDocument();
+    await userEvent.keyboard('{Escape}');
   },
 };
 

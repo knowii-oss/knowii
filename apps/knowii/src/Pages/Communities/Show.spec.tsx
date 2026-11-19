@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import type { Community, CommunityPermissions } from '@knowii/common';
+import { render, screen, within } from '@testing-library/react';
+import type { Community, CommunityPermissions, SpaceEvent } from '@knowii/common';
 import { knowiiApiClient } from '@knowii/common';
+import { eventFixture } from '@/test-utils/events';
 import { spyOnNotificationApi } from '@/test-utils/notifications';
 import { NotificationsProvider } from '@/Components/Notifications/NotificationsProvider';
 import CommunityPage from './Show';
@@ -33,10 +34,10 @@ describe('the home of a community and the "Catch up" card (#1476)', () => {
     vi.restoreAllMocks();
   });
 
-  const renderHome = () =>
+  const renderHome = (nextEvents: SpaceEvent[] = []) =>
     render(
       <NotificationsProvider userCuid="u1">
-        <CommunityPage community={community} permissions={permissions} recentResources={[]} spaceGroups={[]} />
+        <CommunityPage community={community} permissions={permissions} recentResources={[]} nextEvents={nextEvents} spaceGroups={[]} />
       </NotificationsProvider>,
     );
 
@@ -93,5 +94,34 @@ describe('the home of a community and the "Catch up" card (#1476)', () => {
     renderHome();
     await screen.findByRole('heading', { name: 'Recent Resources' });
     expect(screen.queryByRole('region', { name: 'Catch up' })).toBeNull();
+  });
+
+  describe('"Next events" (#1514, design 6.7 point 1)', () => {
+    it('shows the block after the "Catch up" card and before "Recent Resources", with a line per event', async () => {
+      shared.props = { communityCount: 1, catchUp: null };
+      renderHome([eventFixture('e1', 'Weekly review'), eventFixture('e2', 'Workshop', { state: 'cancelled' })]);
+
+      const card = screen.getByRole('region', { name: 'Next events' });
+      const resources = screen.getByRole('region', { name: 'Recent Resources' });
+      expect(card.compareDocumentPosition(resources) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      const lines = within(card).getAllByRole('listitem');
+      expect(lines).toHaveLength(2);
+      const first = lines[0] as HTMLElement;
+      expect(within(first).getByRole('link', { name: 'Weekly review' })).toHaveAttribute('href', '/events.show');
+      expect(first.querySelector('time')).toHaveAttribute('datetime', '2026-11-18T16:00:00.000Z');
+      // The home names the space of each event
+      expect(within(first).getByText('Office hours')).toBeInTheDocument();
+      expect(within(first).queryByText('Cancelled')).toBeNull();
+      // A cancelled event stays in the list, with its label
+      expect(within(lines[1] as HTMLElement).getByText('Cancelled')).toBeInTheDocument();
+    });
+
+    it('shows no block when no event is planned', () => {
+      shared.props = { communityCount: 1, catchUp: null };
+      renderHome([]);
+
+      expect(screen.queryByRole('region', { name: 'Next events' })).toBeNull();
+      expect(screen.getByRole('region', { name: 'Recent Resources' })).toBeInTheDocument();
+    });
   });
 });

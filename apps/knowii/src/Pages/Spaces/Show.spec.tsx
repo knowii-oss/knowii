@@ -1,7 +1,11 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import type { Community, Space } from '@knowii/common';
 import { AppDataProvider, knowiiApiClient } from '@knowii/common';
+import type { ToolkitLinkProps } from '@/Components/ui';
+import { ToolkitProvider } from '@/Components/ui';
+import { eventFixture } from '@/test-utils/events';
 import { spyOnFollowApi } from '@/test-utils/notifications';
 import SpacePage from './Show';
 
@@ -115,5 +119,98 @@ describe('SpacePage, the level of the space (#1497)', () => {
 
     expect(knowiiApiClient.notificationLevels.get).not.toHaveBeenCalled();
     expect(screen.queryByRole('button', { name: /^Notifications:/ })).toBeNull();
+  });
+});
+
+describe('SpacePage, an events space (#1514, design 6.1)', () => {
+  const eventsSpace = { ...props.space, cuid: 's9', slug: 'office-hours', name: 'Office hours', type: 'events', emoji: '' } as Space;
+  const pagination = { limit: 20, offset: 0, previousOffset: null, nextOffset: null, currentPage: 1, pageCount: 1, totalCount: 1 };
+  // What a press on "Upcoming" or "Past" does: the visit of the router, which gives new props to the same page
+  let visit: ((href: string) => void) | null = null;
+  afterEach(() => {
+    visit = null;
+  });
+  // The link of the application for the toolkit: a press visits, and stays in the page
+  const VisitLink = ({ href, children, className, 'aria-current': ariaCurrent }: ToolkitLinkProps) => (
+    <a
+      href={href}
+      className={className}
+      aria-current={ariaCurrent}
+      onClick={(event) => {
+        event.preventDefault();
+        visit?.(href);
+      }}
+    >
+      {children}
+    </a>
+  );
+  const tree = (scope: 'upcoming' | 'past', titles: string[], canContribute: boolean) => (
+    <AppDataProvider>
+      <ToolkitProvider linkComponent={VisitLink}>
+        <SpacePage
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          {...({
+            ...props,
+            space: eventsSpace,
+            permissions: { canManageSpaces: false, canContribute },
+            events: {
+              items: titles.map((title, index) => eventFixture(`e${index}-${scope}`, title, { is_past: scope === 'past' })),
+              pagination,
+            },
+            eventsScope: scope,
+          } as any)}
+        />
+      </ToolkitProvider>
+    </AppDataProvider>
+  );
+
+  it('shows the list of the events with "Upcoming" and "Past", and "New event" for a reader who may create one', () => {
+    render(tree('upcoming', ['Weekly review'], true));
+
+    expect(screen.getByRole('link', { name: 'Upcoming' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'Past' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Weekly review' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'New event' })).toBeInTheDocument();
+    // The empty state of the other types of space does not show
+    expect(screen.queryByText('No events yet')).toBeNull();
+  });
+
+  it('shows no "New event" to a reader who may not create one', () => {
+    render(tree('upcoming', ['Weekly review'], false));
+
+    expect(screen.queryByRole('link', { name: 'New event' })).toBeNull();
+  });
+
+  it('starts a new list when the scope of the page changes: the link keeps the state of the page', () => {
+    const { rerender } = render(tree('upcoming', ['Weekly review'], false));
+    expect(screen.getByRole('list', { name: 'Upcoming events' })).toBeInTheDocument();
+
+    // The visit to "?scope=past" gives new props to the same page
+    rerender(tree('past', ['Last week'], false));
+
+    expect(screen.getByRole('link', { name: 'Past' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('list', { name: 'Past events' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Last week' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Weekly review' })).toBeNull();
+  });
+
+  it('keeps "Upcoming" and "Past" in the page when the keyboard presses one: the focus stays on it, and a status names the new list', async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(tree('upcoming', ['Weekly review'], false));
+    visit = (href) =>
+      rerender(href.endsWith('scope=past') ? tree('past', ['Last week'], false) : tree('upcoming', ['Weekly review'], false));
+    const past = screen.getByRole('link', { name: 'Past' });
+
+    past.focus();
+    await user.keyboard('{Enter}');
+
+    expect(screen.getByRole('list', { name: 'Past events' })).toBeInTheDocument();
+    // The same link, not a new one: a link that goes away drops the focus on the page
+    expect(screen.getByRole('link', { name: 'Past' })).toBe(past);
+    expect(past).toHaveFocus();
+    expect(past).toHaveAttribute('aria-current', 'page');
+    const status = within(screen.getByRole('region', { name: 'Events in Office hours' })).getByRole('status');
+    expect(status).toHaveTextContent('Past events: 1');
+    expect(status).toHaveAttribute('aria-live', 'polite');
   });
 });

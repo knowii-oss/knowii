@@ -7,6 +7,7 @@ use App\Enums\KnowiiSpaceVisibility;
 use App\Models\AccessGroup;
 use App\Models\ChatMessage;
 use App\Models\Community;
+use App\Models\Event as EventModel;
 use App\Models\Post;
 use App\Models\Space;
 use App\Models\SpaceGroup;
@@ -289,6 +290,40 @@ test('page: the newest posts show the title, an excerpt, the author as name, use
             'created_at' => $this->publicPost->created_at?->toJSON(),
         ]);
 })->with('non-members');
+
+test('page: the next events are the upcoming events of the public events spaces, without their meeting address and their place (#1514)', function (string $reader) {
+    publicPageCommunity('discussion');
+    $group = SpaceGroup::query()->where('community_id', $this->c['community']->id)->firstOrFail();
+    $public = Space::factory()->inGroup($group)->create(['type' => KnowiiSpaceType::Events, 'visibility' => KnowiiSpaceVisibility::Public, 'name' => 'Open events']);
+    $members = Space::factory()->inGroup($group)->create(['type' => KnowiiSpaceType::Events, 'visibility' => KnowiiSpaceVisibility::Members, 'name' => 'SECRET-MEMBERS-SPACE of events']);
+    $event = EventModel::factory()->inSpace($public)->hostedBy($this->author)->create(['title' => 'An open event', 'meeting_url' => 'https://meet.example.com/SECRET-MEETING-ADDRESS', 'place' => 'SECRET-PLACE-OF-THE-EVENT']);
+    EventModel::factory()->inSpace($public)->hostedBy($this->author)->draft()->create(['title' => 'SECRET-DRAFT-EVENT']);
+    EventModel::factory()->inSpace($public)->hostedBy($this->author)->past()->create(['title' => 'An event of last week']);
+    EventModel::factory()->inSpace($members)->hostedBy($this->author)->create(['title' => 'SECRET-MEMBERS-EVENT']);
+
+    $props = publicPageAs($reader, publicPageUrl())->assertOk()->viewData('page')['props'];
+    $json = (string) json_encode($props);
+
+    publicPageAssertNoLeak($props, $reader);
+    expect($props['nextEvents'])->toHaveCount(1)
+        ->and($props['nextEvents'][0]['cuid'])->toBe($event->cuid)
+        ->and($props['nextEvents'][0]['title'])->toBe('An open event')
+        ->and($props['nextEvents'][0]['space'])->toBe(['cuid' => $public->cuid, 'slug' => $public->slug, 'name' => 'Open events'])
+        ->and($props['nextEvents'][0]['host'])->toBe(['cuid' => $this->author->cuid, 'name' => $this->author->name, 'username' => $this->author->username, 'avatar_url' => $this->author->avatar_url])
+        ->and($props['nextEvents'][0]['can_view_location'])->toBeFalse()
+        ->and($props['nextEvents'][0]['meeting_url'])->toBeNull()
+        ->and($props['nextEvents'][0]['place'])->toBeNull()
+        ->and($props['nextEvents'][0]['body'])->toBeNull();
+    foreach (['SECRET-MEETING-ADDRESS', 'SECRET-PLACE-OF-THE-EVENT', 'SECRET-DRAFT-EVENT', 'SECRET-MEMBERS-EVENT', 'An event of last week'] as $secret) {
+        expect(str_contains($json, $secret))->toBeFalse("the public page of a {$reader} holds \"{$secret}\"");
+    }
+})->with('non-members');
+
+test('page: a community without an event gets an empty list of next events', function () {
+    publicPageCommunity('discussion');
+
+    expect(publicPageAs('visitor', publicPageUrl())->viewData('page')['props']['nextEvents'])->toBe([]);
+});
 
 // ---------------------------------------------------------------------------------------------------------------------
 // The newest posts: which posts

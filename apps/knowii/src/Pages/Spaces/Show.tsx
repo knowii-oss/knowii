@@ -4,10 +4,12 @@ import type {
   Community,
   CommunityResource,
   CourseProgress,
+  EventScope,
   Page,
   Paginated,
   Post,
   Space,
+  SpaceEvent,
   SpaceGroup,
   SpacePermissions,
 } from '@knowii/common';
@@ -29,6 +31,7 @@ import type { BreadcrumbItem } from '@/Components/ui';
 import { buttonClasses, EmptyState } from '@/Components/ui';
 import { PostList } from '@/Components/Posts/PostList';
 import { ResourceList } from '@/Components/Resources/ResourceList';
+import { EventList } from '@/Components/Events/EventList';
 import { PageList } from '@/Components/SpacePages/PageList';
 import { CourseMaterials } from '@/Components/SpacePages/CourseMaterials';
 import { ChatSpace } from '@/Components/Chat/ChatSpace';
@@ -44,6 +47,9 @@ interface Props {
   posts: Paginated<Post> | null;
   // Resources spaces only: the first page of resources (ADR 0015)
   resources: Paginated<CommunityResource> | null;
+  // Events spaces only (#1514): the first page of the list that `eventsScope` names ("upcoming" or "past")
+  events: Paginated<SpaceEvent> | null;
+  eventsScope: EventScope | null;
   // Page spaces (#1179): the titles, in their order
   pages: Page[] | null;
   // Course spaces (#1304): the progress of the member, null for a reader who is not a member
@@ -59,7 +65,7 @@ const EMPTY_STATES: Record<Space['type'], { title: string; description: string }
   course: { title: 'No lessons yet', description: 'The lessons of this course will show here, in order.' },
   resources: { title: 'No resources yet', description: 'Curated articles will show here.' },
   link: { title: 'No address', description: 'This link has no valid address. A member who manages the spaces can fix it.' },
-  // #1513: the list of the events comes with the screens (#1514)
+  // The list of an events space has its own empty states, one per scope (EventList, #1514)
   events: { title: 'No events yet', description: 'The events of this space will show here.' },
 };
 
@@ -201,6 +207,16 @@ export default function SpacePage(props: Props) {
             community={community}
             space={space}
             initialResources={props.resources}
+            canContribute={props.permissions.canContribute}
+          />
+        ) : space.type === 'events' && props.events ? (
+          <EventList
+            // No key: a change of scope ("Upcoming", "Past") keeps the two links and their focus. The list starts its
+            // cards again itself
+            community={community}
+            space={space}
+            initialEvents={props.events}
+            scope={props.eventsScope ?? 'upcoming'}
             canContribute={props.permissions.canContribute}
           />
         ) : space.type === 'link' ? (
