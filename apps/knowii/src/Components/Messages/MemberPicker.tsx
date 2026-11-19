@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Combobox, ComboboxInput, ComboboxOption, ComboboxOptions, Label } from '@headlessui/react';
 import type { Author } from '@knowii/common';
 import { knowiiApiClient } from '@knowii/common';
 import { FaXmark } from 'react-icons/fa6';
-import { Avatar, cn } from '@/Components/ui';
+import { Avatar, cn, useFocusAfterRender } from '@/Components/ui';
 
 export interface MemberPickerProps {
   communityCuid: string;
@@ -15,6 +15,19 @@ export interface MemberPickerProps {
   label: string;
   id: string;
   autoFocus?: boolean;
+  /**
+   * The text under the field. Default: the one of a conversation ("Up to 10 members. ...")
+   */
+  hint?: string;
+  /**
+   * The placeholder of the field while it is full. Default: the one of a conversation
+   */
+  fullPlaceholder?: string;
+  /**
+   * Marks the field as invalid, and names the element that holds its error
+   */
+  invalid?: boolean;
+  errorId?: string | undefined;
 }
 
 const SUGGESTIONS = 8;
@@ -22,11 +35,27 @@ const SUGGESTIONS = 8;
 /**
  * Choose members of the community by name or username (#1186): a combobox. Type to search, Up and Down to move,
  * Enter to add, Backspace in the empty field removes the last member. The chosen members show as chips with a remove
- * button each.
+ * button each. A press on a remove button takes the button away: the focus then goes to the field, which is enabled
+ * again when the picker was full (with `max` 1, the remove button is the only way to the field for the keyboard).
  */
-export function MemberPicker({ communityCuid, value, onChange, excludeCuids, max, label, id, autoFocus = false }: MemberPickerProps) {
+export function MemberPicker({
+  communityCuid,
+  value,
+  onChange,
+  excludeCuids,
+  max,
+  label,
+  id,
+  autoFocus = false,
+  hint,
+  fullPlaceholder = 'The conversation is full',
+  invalid = false,
+  errorId,
+}: MemberPickerProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Author[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const focusAfterRender = useFocusAfterRender();
 
   useEffect(() => {
     const trimmed = query.trim();
@@ -71,19 +100,25 @@ export function MemberPicker({ communityCuid, value, onChange, excludeCuids, max
             <button
               type="button"
               aria-label={`Remove ${member.name}`}
-              onClick={() => onChange(value.filter((chosen) => chosen.cuid !== member.cuid))}
-              className="rounded-full p-1 hover:bg-overlay/20 focus-visible:outline-2 focus-visible:outline-primary"
+              onClick={() => {
+                onChange(value.filter((chosen) => chosen.cuid !== member.cuid));
+                // The button goes away with its chip: the field takes the focus, after the render that enables it
+                focusAfterRender(() => inputRef.current);
+              }}
+              // 44 px on a touch screen (`touch-target`), 24 px from the `md` width, where the chip stays one line high
+              className="touch-target min-w-11 justify-center rounded-full hover:bg-overlay/20 focus-visible:outline-2 focus-visible:outline-primary md:size-6 md:min-w-0"
             >
               <FaXmark aria-hidden="true" className="size-3" />
             </button>
           </span>
         ))}
         <ComboboxInput
+          ref={inputRef}
           id={id}
           autoFocus={autoFocus}
           {...(autoFocus ? { 'data-autofocus': true } : {})}
           className="min-w-32 grow bg-transparent px-2 py-1.5 text-base outline-none"
-          placeholder={full ? 'The conversation is full' : 'Name or username'}
+          placeholder={full ? fullPlaceholder : 'Name or username'}
           disabled={full}
           value={query}
           onChange={(event) => setQuery(event.target.value)}
@@ -92,11 +127,12 @@ export function MemberPicker({ communityCuid, value, onChange, excludeCuids, max
               onChange(value.slice(0, -1));
             }
           }}
-          aria-describedby={`${id}-hint`}
+          aria-invalid={invalid || undefined}
+          aria-describedby={errorId ? `${id}-hint ${errorId}` : `${id}-hint`}
         />
       </div>
       <p id={`${id}-hint`} className="mt-1 text-xs text-muted">
-        Up to {max} members. Type a name, then choose with the arrows and Enter.
+        {hint ?? `Up to ${max} members. Type a name, then choose with the arrows and Enter.`}
       </p>
       <ComboboxOptions
         anchor="bottom start"

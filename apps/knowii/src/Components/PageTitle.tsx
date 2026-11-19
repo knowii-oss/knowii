@@ -18,7 +18,9 @@ export default function PageTitle(props: Props) {
 
   return (
     <div className="flex w-full flex-col items-center justify-between gap-2 sm:flex-row">
-      <Breadcrumb items={items} />
+      {/* On a phone the items are centered in a column: without a limit, a long title of the open page (an event, a
+          post) makes the path wider than the screen (#1514) */}
+      <Breadcrumb items={items} className="max-w-full" />
       {props.pageActions}
     </div>
   );

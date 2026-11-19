@@ -7,18 +7,15 @@ use App\Contracts\Events\DeletesEvents;
 use App\Contracts\Events\DuplicatesEvents;
 use App\Contracts\Events\SetsEventStates;
 use App\Contracts\Events\UpdatesEvents;
-use App\Enums\KnowiiEventState;
 use App\Enums\KnowiiSpaceType;
-use App\Enums\KnowiiSpaceVisibility;
 use App\Exceptions\BusinessException;
 use App\Http\Controllers\Controller;
 use App\Models\Community;
 use App\Models\Event;
 use App\Models\Space;
-use App\Models\SpaceGroup;
 use App\Support\Pagination;
 use App\Support\PublicCommunity;
-use App\Support\SpaceTree;
+use App\Support\UpcomingEvents;
 use App\Traits\ApiResponses;
 use Dedoc\Scramble\Attributes\BodyParameter;
 use Dedoc\Scramble\Attributes\QueryParameter;
@@ -39,17 +36,17 @@ class EventApiController extends Controller
 {
     use ApiResponses;
 
-    private const array RELATIONS = ['host', 'cover'];
+    private const array RELATIONS = UpcomingEvents::RELATIONS;
 
     private const string SCOPE_UPCOMING = 'upcoming';
 
     private const string SCOPE_PAST = 'past';
 
     /**
-     * List the events of an events space. `upcoming` (the default): the events that end now or later, the next start
-     * first. `past`: the events that ended, the newest start first. A cancelled event stays in the list with its state. A
-     * draft is listed only for its host, the owner and the admins. Offset pagination (ADR 0011). Lists never carry the
-     * description: get one event for it.
+     * List the events of an events space. `upcoming` (the default): the events that end now or later, the drafts first,
+     * then the next start first. `past`: the events that ended, the newest start first. A cancelled event stays in the
+     * list with its state. A draft is listed only for its host, the owner and the admins. Offset pagination (ADR 0011).
+     * Lists never carry the description: get one event for it.
      */
     #[QueryParameter('scope', description: 'upcoming (default) or past', type: 'string', example: 'upcoming')]
     #[QueryParameter('limit', description: 'Number of events (default 10, maximum 100)', type: 'int', example: 10)]
@@ -82,35 +79,14 @@ class EventApiController extends Controller
     final public function community(Request $request, Community $community): JsonResponse
     {
         $user = $request->user();
-        if (PublicCommunity::isMember($user, $community)) {
-            $spaces = SpaceTree::for($community, $user)
-                ->flatMap(static fn (SpaceGroup $group) => $group->spaces)
-                ->filter(static fn (Space $space): bool => $space->type === KnowiiSpaceType::Events);
-        } else {
+        if (! PublicCommunity::isMember($user, $community)) {
             PublicCommunity::ensureExists($community, $request);
-            $spaces = $community->spaces()
-                ->where('type', KnowiiSpaceType::Events->value)
-                ->where('visibility', KnowiiSpaceVisibility::Public->value)
-                ->get()
-                ->filter(static fn (Space $space): bool => Gate::forUser($user)->check('view', $space));
         }
-        /** @var array<int, Space> $byId */
-        $byId = $spaces->keyBy('id')->all();
 
-        $page = Pagination::fromRequest($request)->apply(
-            Event::query()
-                ->where('community_id', $community->id)
-                ->whereIn('space_id', array_keys($byId))
-                ->where('state', '!=', KnowiiEventState::Draft->value)
-                ->with(self::RELATIONS)
-                ->upcoming(),
-        );
-        foreach ($page['items'] as $event) {
-            $space = $byId[$event->space_id];
-            $space->setRelation('community', $community);
-            $event->setRelation('space', $space);
-            $event->setRelation('community', $community);
-        }
+        // The same query as "Next events" on the home and on the public page of the community (#1514)
+        $spaces = UpcomingEvents::spaces($community, $user);
+        $page = Pagination::fromRequest($request)->apply(UpcomingEvents::query($community, $spaces));
+        UpcomingEvents::inSpaces($page['items'], $community, $spaces);
 
         return self::success('Upcoming events', $page['metadata'], $page['items']->toResourceCollection());
     }

@@ -254,6 +254,9 @@ class Constants
 
     public const int PUBLIC_POST_EXCERPT_LENGTH = 200;
 
+    // "Next events" on the home and on the public page of a community (#1514). WARNING: aligned with NEXT_EVENTS (constants.ts)
+    public const int NEXT_EVENTS = 3;
+
     // Pagination (ADR 0011: limit and offset, defaults of the NBB guide)
     public const int PAGINATION_DEFAULT_LIMIT = 10;
 

@@ -94,7 +94,7 @@ An events space (`type` events, [ADR 0053](../adr/0053-events-a-space-type-with-
 
 | Method and path | What it does |
 |---|---|
-| `GET .../spaces/{space}/events` | The list: `scope` `upcoming` (default: the events that end now or later, the next start first) or `past` (the newest start first), `limit`, `offset`. A draft only for its host, the owner and the admins |
+| `GET .../spaces/{space}/events` | The list: `scope` `upcoming` (default: the events that end now or later, the drafts first, then the next start first) or `past` (the newest start first), `limit`, `offset`. A draft only for its host, the owner and the admins |
 | `POST .../spaces/{space}/events` | Create (201): a draft by default, or `state` `published` |
 | `GET .../spaces/{space}/events/{event}` | One event with `body` and `body_html` |
 | `PATCH .../spaces/{space}/events/{event}` | Change any field but the state |

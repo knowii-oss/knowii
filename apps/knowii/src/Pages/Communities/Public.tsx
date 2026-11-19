@@ -1,11 +1,12 @@
 import { Link } from '@inertiajs/react';
-import type { Community, NewestPost, SpaceGroup } from '@knowii/common';
+import type { Community, NewestPost, SpaceEvent, SpaceGroup } from '@knowii/common';
 import { LOGIN_URL, POST_URL, REGISTER_URL, useTypedPage } from '@knowii/common';
 import { FaRegNewspaper } from 'react-icons/fa6';
 import AppLayout from '@/Layouts/AppLayout';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
 import { JoinCommunity } from '@/Components/Communities/JoinCommunity';
+import { NextEvents } from '@/Components/Events/NextEvents';
 import { CommunityShell } from '@/Components/Spaces/CommunityShell';
 import type { BreadcrumbItem } from '@/Components/ui';
 import { Avatar, Card, CardBody, CardHeader, LinkButton, RelativeTime } from '@/Components/ui';
@@ -17,14 +18,16 @@ interface Props {
   spaceGroups: SpaceGroup[];
   // The newest posts of the public discussion spaces, 10 at most
   newestPosts: NewestPost[];
+  // The next upcoming events of the public events spaces, 3 at most, without their meeting address (#1514)
+  nextEvents: SpaceEvent[];
 }
 
 /**
  * The public page of a community (#1485, ADR 0044), for a visitor and for a signed-in person who is not a member: the
- * name, the description, the navigation of the public spaces and the newest public posts. No team, no member count and
- * no member list: the server sends none of it.
+ * name, the description, the navigation of the public spaces, the next events of the public events spaces and the newest
+ * public posts. No team, no member count and no member list: the server sends none of it.
  */
-export default function PublicCommunityPage({ community, spaceGroups, newestPosts }: Props) {
+export default function PublicCommunityPage({ community, spaceGroups, newestPosts, nextEvents }: Props) {
   const isVisitor = !useTypedPage().props.auth.user;
 
   const breadcrumbItems: BreadcrumbItem[] = [{ label: community.name, icon: <CommunityIcon visibility={community.visibility} /> }];
@@ -53,6 +56,9 @@ export default function PublicCommunityPage({ community, spaceGroups, newestPost
               </div>
             </div>
           </section>
+
+          {/* "Next events" (#1514): the title and the time only, and only when an event is planned */}
+          <NextEvents community={community} events={nextEvents} />
 
           <Card aria-labelledby="newest-posts-title" className="overflow-hidden">
             <CardHeader title={<span id="newest-posts-title">Newest posts</span>} icon={<FaRegNewspaper aria-hidden="true" />} />

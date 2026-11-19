@@ -1,5 +1,5 @@
 import AppLayout from '@/Layouts/AppLayout';
-import type { Community, CommunityPermissions, CommunityResource, SpaceGroup } from '@knowii/common';
+import type { Community, CommunityPermissions, CommunityResource, SpaceEvent, SpaceGroup } from '@knowii/common';
 import { COMMUNITY_ABOUT_URL, COMMUNITY_SETTINGS_URL, DASHBOARD_URL, RESOURCE_URL, useSocket } from '@knowii/common';
 import { breadcrumbHome } from '../../Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
@@ -11,6 +11,7 @@ import { FaCircleInfo, FaGear } from 'react-icons/fa6';
 import type { BreadcrumbItem } from '@/Components/ui';
 import { buttonClasses, Card, CardBody, CardHeader } from '@/Components/ui';
 import { CatchUpCard } from '@/Components/Notifications/CatchUpCard';
+import { NextEvents } from '@/Components/Events/NextEvents';
 import { CommunityShell } from '@/Components/Spaces/CommunityShell';
 
 interface Props {
@@ -18,6 +19,8 @@ interface Props {
   permissions: CommunityPermissions;
   // The newest resources of the resources spaces that the member can see (ADR 0015)
   recentResources: CommunityResource[];
+  // The next upcoming events of the events spaces that the member can see, 3 at most (#1514)
+  nextEvents: SpaceEvent[];
   spaceGroups: SpaceGroup[];
 }
 
@@ -78,6 +81,9 @@ export default function CommunityPage(props: Props) {
           <div className="flex flex-col gap-6 lg:w-4/5">
             {/* "Catch up" (#1476): the first card, only after a week away and when the community has lines */}
             <CatchUpCard community={props.community} />
+
+            {/* "Next events" (#1514): only when an event is planned */}
+            <NextEvents community={props.community} events={props.nextEvents} showSpace />
 
             {/* Recent resources */}
             <Card aria-labelledby="recent-resources-title" className="overflow-hidden">

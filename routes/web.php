@@ -6,6 +6,7 @@ use App\Http\Controllers\Inertia\CommunityResourceController;
 use App\Http\Controllers\Inertia\ConversationController;
 use App\Http\Controllers\Inertia\DashboardController;
 use App\Http\Controllers\Inertia\DeleteAccountController;
+use App\Http\Controllers\Inertia\EventController;
 use App\Http\Controllers\Inertia\MagicLinkController;
 use App\Http\Controllers\Inertia\MemberController;
 use App\Http\Controllers\Inertia\NotificationSettingsController;
@@ -70,6 +71,11 @@ Route::middleware([
     // Direct messages (#1186)
     Route::get('/community/{communitySlug}/messages', [ConversationController::class, 'index'])->name('messages.index');
     Route::get('/community/{communitySlug}/messages/{conversationCuid}', [ConversationController::class, 'show'])->name('messages.show');
+
+    // The form of the host of an event (#1514, ADR 0053). "events/new" is plural, so an event with the slug "new" never
+    // collides with it
+    Route::get('/community/{communitySlug}/space/{spaceSlug}/events/new', [EventController::class, 'create'])->name('events.create');
+    Route::get('/community/{communitySlug}/space/{spaceSlug}/event/{eventSlug}/edit', [EventController::class, 'edit'])->name('events.edit');
 });
 
 // The pages of the spaces that visitors may read (#1387, ADR 0044). Without an account the policies decide: a public
@@ -88,6 +94,9 @@ Route::middleware([
 
     // A resource of a resources space (ADR 0015). The page itself is #1133
     Route::get('/community/{communitySlug}/space/{spaceSlug}/resource/{resourceSlug}', [CommunityResourceController::class, 'show'])->name('resources.show');
+
+    // An event of an events space (#1514, ADR 0053): a visitor reads it in a public space, without its meeting address
+    Route::get('/community/{communitySlug}/space/{spaceSlug}/event/{eventSlug}', [EventController::class, 'show'])->name('events.show');
 });
 
 // Delete the account (#1261, #1344): the same address and name as the Jetstream route, which cannot pass the option to

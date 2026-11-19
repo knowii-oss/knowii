@@ -72,6 +72,13 @@ export const CONVERSATION_URL = 'messages.show';
 // Resources
 export const RESOURCE_URL = 'resources.show';
 
+// Events of an events space (#1514). WARNING: aligned with routes/web.php
+export const EVENT_URL = 'events.show';
+export const EVENT_CREATE_URL = 'events.create';
+export const EVENT_EDIT_URL = 'events.edit';
+// The query parameter of the page of an events space that chooses "Upcoming" or "Past". WARNING: aligned with SpaceController.php
+export const EVENTS_SCOPE_QUERY_PARAM = 'scope';
+
 // Authentication
 export const LOGIN_URL = 'login';
 // The redirect to the OpenID Connect provider of the instance, when it has one (#1385)
@@ -154,6 +161,10 @@ export const MAX_LENGTH_EVENT_MEETING_URL = 2048;
 export const MAX_LENGTH_EVENT_PLACE = 255;
 export const MAX_LENGTH_EVENT_COVER_ALT = 125;
 export const MAX_EVENT_DURATION_HOURS = 24;
+// The events of one page of the list of an events space (#1514). WARNING: aligned with SpaceController::EVENTS_PER_PAGE
+export const EVENTS_PER_PAGE = 20;
+// "Next events" on the home and on the public page of a community (#1514). WARNING: aligned with Constants::NEXT_EVENTS
+export const NEXT_EVENTS = 3;
 // Chat messages (#1185). WARNING: aligned with Constants.php
 export const MAX_LENGTH_CHAT_MESSAGE = 10000;
 // The members of a conversation, the author included (#1186). WARNING: aligned with Conversation::MAX_PARTICIPANTS

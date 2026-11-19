@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -29,6 +30,8 @@ beforeAll(() => {
     value: (_name: string, params: { conversationCuid?: string }) => `/messages/${params?.conversationCuid ?? ''}`,
     writable: true,
   });
+  // jsdom has no scrollIntoView: the field scrolls into view when it takes the focus after a removal
+  Element.prototype.scrollIntoView = vi.fn();
 });
 
 const me: Author = { cuid: 'me', name: 'Me', username: 'me', avatar_url: null };
@@ -97,6 +100,47 @@ describe('MemberPicker (#1186)', () => {
     await userEvent.click(screen.getByRole('combobox', { name: 'To' }));
     await userEvent.keyboard('{Backspace}');
     expect(onChange).toHaveBeenLastCalledWith([]);
+  });
+});
+
+describe('MemberPicker, the remove button of a member (#1514)', () => {
+  function Picker({ start, max }: { start: Author[]; max: number }) {
+    const [value, setValue] = useState(start);
+    return <MemberPicker id="to" label="To" communityCuid="c1" value={value} onChange={setValue} excludeCuids={[]} max={max} />;
+  }
+
+  it('gives the focus to the field after a removal with the keyboard, when the full picker has room again', async () => {
+    const user = userEvent.setup();
+    render(<Picker start={[ada]} max={1} />);
+    const field = screen.getByRole('combobox', { name: 'To' });
+    // Full: the field is disabled, so the remove button is the only stop of the Tab key
+    expect(field).toBeDisabled();
+
+    await user.tab();
+    expect(screen.getByRole('button', { name: 'Remove Ada Lovelace' })).toHaveFocus();
+    await user.keyboard('{Enter}');
+
+    expect(screen.queryByRole('button', { name: 'Remove Ada Lovelace' })).toBeNull();
+    await waitFor(() => expect(field).toHaveFocus());
+    expect(field).toBeEnabled();
+  });
+
+  it('gives the focus to the field after a removal in a picker that was not full', async () => {
+    const user = userEvent.setup();
+    render(<Picker start={[ada, bob]} max={9} />);
+
+    await user.click(screen.getByRole('button', { name: 'Remove Ada Lovelace' }));
+
+    await waitFor(() => expect(screen.getByRole('combobox', { name: 'To' })).toHaveFocus());
+    expect(screen.getByRole('button', { name: 'Remove Bob Marley' })).toBeInTheDocument();
+  });
+
+  it('has a remove button of 44 px on a touch screen, and of 24 px on a wider screen', () => {
+    render(<Picker start={[ada]} max={1} />);
+
+    const button = screen.getByRole('button', { name: 'Remove Ada Lovelace' });
+    // `touch-target` is the 44 px of the height below the `md` width; the two other pairs are the width, and the 24 px
+    expect(button).toHaveClass('touch-target', 'min-w-11', 'md:size-6', 'md:min-w-0');
   });
 });
 

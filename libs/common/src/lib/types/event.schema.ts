@@ -49,3 +49,27 @@ export const eventSchema = z.object({
 });
 // Not `Event`: the name of the DOM events
 export type SpaceEvent = z.infer<typeof eventSchema>;
+
+/**
+ * What the reader may do on the page of an event (#1514). All false for a visitor and for a person who is not a member.
+ * WARNING: aligned with EventController::show
+ */
+export interface EventPermissions {
+  // Edit, publish, publish again, back to draft: the owner, the admins and the host
+  canUpdate: boolean;
+  // Those people, and the moderators of the space
+  canCancel: boolean;
+  canDelete: boolean;
+  // The right to change this event, and the right to create one in the space
+  canDuplicate: boolean;
+}
+
+/**
+ * What the reader may do in the form of an event (#1514). WARNING: aligned with EventController::form
+ */
+export interface EventFormPermissions {
+  // "Publish now": tells the members without the 5 minutes of waiting
+  canNotifyNow: boolean;
+  // The owner and the admins see and change the events of every host
+  canManageAllEvents: boolean;
+}

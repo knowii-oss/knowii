@@ -157,7 +157,7 @@ test('notify_now through the API is for the people who moderate the space', func
     $this->actingAs($this->c['moderator'])->postJson(evaPath(ApiRoutes::COMMUNITY_SPACE_EVENTS, $space), $input)->assertCreated();
 });
 
-test('the list gives upcoming events by default, the next start first, and past events newest first; another scope is a field error', function () {
+test('the list gives upcoming events by default, the drafts first, then the next start first, and past events newest first; another scope is a field error', function () {
     $space = $this->spaces['public'];
     $later = EventModel::factory()->inSpace($space)->hostedBy($this->c['moderator'])->create(['title' => 'Later', 'starts_at' => now()->addWeeks(3), 'ends_at' => now()->addWeeks(3)->addHour()]);
     $soon = EventModel::factory()->inSpace($space)->hostedBy($this->c['moderator'])->cancelled()->create(['title' => 'Soon, cancelled', 'starts_at' => now()->addDay(), 'ends_at' => now()->addDay()->addHour()]);
@@ -168,6 +168,12 @@ test('the list gives upcoming events by default, the next start first, and past 
         ->and($upcoming->json('metadata.pagination.totalCount'))->toBe(4)
         ->and($upcoming->json('data.0.body'))->toBeNull()
         ->and($upcoming->json('data.0.state'))->toBe('cancelled');
+
+    // The drafts first, for the people who may see them (#1514): the host, then the owner
+    foreach (['moderator', 'owner'] as $role) {
+        expect(evaTitles($this->actingAs($this->c[$role])->getJson(evaPath(ApiRoutes::COMMUNITY_SPACE_EVENTS, $space))->assertOk()))
+            ->toBe(['Draft public', 'Soon, cancelled', 'Published public', 'Going only', 'Later']);
+    }
 
     $past = $this->actingAs($this->c['member'])->getJson(evaPath(ApiRoutes::COMMUNITY_SPACE_EVENTS, $space).'?scope=past')->assertOk();
     expect(evaTitles($past))->toBe(['Last week', 'Two weeks ago'])
