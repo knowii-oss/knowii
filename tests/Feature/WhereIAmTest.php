@@ -155,6 +155,37 @@ test('the member sets the time zone of the account, and it is in their own resou
     $this->getJson(ApiRoutes::path(ApiRoutes::USER))->assertOk()->assertJsonPath('data.time_zone', 'UTC');
 });
 
+test('an older name of a zone is accepted and stored under its current name (#1678)', function (string $older, string $current) {
+    // A browser can still give the older name of a zone
+    $this->actingAs($this->plain)->putJson(ApiRoutes::path(ApiRoutes::USER_TIME_ZONE), ['time_zone' => $older])
+        ->assertOk()
+        ->assertJsonPath('data.time_zone', $current);
+    expect($this->plain->fresh()->time_zone)->toBe($current);
+
+    $this->plain->forceFill(['time_zone' => 'Asia/Tokyo'])->save();
+    $this->put('/user/profile-information', ['email' => $this->plain->email, 'name' => 'Older Zone', 'time_zone' => $older]);
+    expect($this->plain->fresh()->time_zone)->toBe($current);
+})->with([
+    'India' => ['Asia/Calcutta', 'Asia/Kolkata'],
+    'Ukraine' => ['Europe/Kiev', 'Europe/Kyiv'],
+    'Vietnam' => ['Asia/Saigon', 'Asia/Ho_Chi_Minh'],
+    'Argentina' => ['America/Buenos_Aires', 'America/Argentina/Buenos_Aires'],
+]);
+
+test('the current name of a zone: itself, the current name of an older one, or null (#1678)', function () {
+    expect(TimeZones::current('Europe/Brussels'))->toBe('Europe/Brussels')
+        ->and(TimeZones::current('UTC'))->toBe('UTC')
+        ->and(TimeZones::current('Asia/Calcutta'))->toBe('Asia/Kolkata')
+        ->and(TimeZones::isValid('Europe/Kiev'))->toBeTrue()
+        ->and(TimeZones::orNull('Asia/Saigon'))->toBe('Asia/Ho_Chi_Minh')
+        ->and(TimeZones::identifiers())->toContain('Asia/Kolkata')->not->toContain('Asia/Calcutta');
+
+    foreach (['Mars/Olympus', 'europe/brussels', '+02:00', 'CET+1', 'Etc/GMT+2', '', ' Europe/Paris', "Europe/Paris\n", null] as $bad) {
+        expect(TimeZones::current($bad))->toBeNull()
+            ->and(TimeZones::isValid($bad))->toBeFalse();
+    }
+});
+
 test('an unknown time zone is refused and changes nothing', function () {
     $this->plain->forceFill(['time_zone' => 'Asia/Tokyo'])->save();
     $this->actingAs($this->plain);
@@ -198,7 +229,7 @@ test('the time zone is in the shared account of the page, and in no resource tha
 });
 
 test('the sign-up form sends the zone: an invalid or absent value gives null and never an error', function () {
-    foreach ([['time_zone' => 'Europe/Paris', 'expected' => 'Europe/Paris'], ['time_zone' => 'Nowhere/Land', 'expected' => null], ['time_zone' => ['x'], 'expected' => null], ['expected' => null]] as $index => $case) {
+    foreach ([['time_zone' => 'Europe/Paris', 'expected' => 'Europe/Paris'], ['time_zone' => 'Asia/Calcutta', 'expected' => 'Asia/Kolkata'], ['time_zone' => 'Nowhere/Land', 'expected' => null], ['time_zone' => ['x'], 'expected' => null], ['expected' => null]] as $index => $case) {
         $expected = $case['expected'];
         unset($case['expected']);
         app('auth')->forgetGuards();

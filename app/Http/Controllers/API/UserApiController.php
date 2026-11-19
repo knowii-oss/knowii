@@ -101,7 +101,7 @@ class UserApiController extends Controller
      *
      * @throws AuthenticationException
      */
-    #[BodyParameter('time_zone', description: 'An IANA time zone name', required: true, type: 'string', example: 'Europe/Brussels')]
+    #[BodyParameter('time_zone', description: 'An IANA time zone name. An older name of a zone (`Asia/Calcutta`) is accepted and stored under the current name (`Asia/Kolkata`)', required: true, type: 'string', example: 'Europe/Brussels')]
     final public function updateTimeZone(Request $request): JsonResponse
     {
         $user = app(UpdatesTimeZones::class)->update($request->user() ?? throw new AuthenticationException, $request->only(['time_zone']));

@@ -13,13 +13,13 @@ use App\Models\Event;
 use App\Models\Space;
 use App\Models\Upload;
 use App\Models\User;
+use App\Rules\KnownTimeZone;
 use App\Rules\MaxMarkdownImages;
 use App\Support\CommunityRoles;
 use App\Support\EventTimes;
 use App\Support\Markdown;
 use App\Support\TimeZones;
 use Carbon\CarbonImmutable;
-use Closure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -119,11 +119,7 @@ class CreateEvent implements CreatesEvents
             'body' => ['sometimes', 'nullable', 'string', 'max:'.Constants::MAX_LENGTH_EVENT_BODY, new MaxMarkdownImages],
             'starts_at' => [$presence, 'string'],
             'ends_at' => [$presence, 'string'],
-            'time_zone' => [$presence, 'string', static function (string $attribute, mixed $value, Closure $fail): void {
-                if (! is_string($value) || ! TimeZones::isValid($value)) {
-                    $fail('Choose a time zone of the list, like Europe/Brussels');
-                }
-            }],
+            'time_zone' => [$presence, 'string', new KnownTimeZone],
             'meeting_url' => ['sometimes', 'nullable', 'string', 'url:http,https', 'max:'.Constants::MAX_LENGTH_EVENT_MEETING_URL],
             'place' => ['sometimes', 'nullable', 'string', 'max:'.Constants::MAX_LENGTH_EVENT_PLACE],
             'location_visibility' => ['sometimes', Rule::enum(KnowiiEventLocationVisibility::class)],
@@ -142,7 +138,8 @@ class CreateEvent implements CreatesEvents
      */
     public static function times(User $user, Community $community, array $validated, ?Event $event): array
     {
-        $zone = $validated['time_zone'] ?? $event->time_zone ?? 'UTC';
+        // An older name of a zone is stored under its current name (#1678)
+        $zone = TimeZones::current($validated['time_zone'] ?? null) ?? $event->time_zone ?? 'UTC';
         $startsAt = isset($validated['starts_at']) ? EventTimes::parse('starts_at', $validated['starts_at'], $zone) : $event?->starts_at->toImmutable();
         $endsAt = isset($validated['ends_at']) ? EventTimes::parse('ends_at', $validated['ends_at'], $zone) : $event?->ends_at->toImmutable();
         if ($startsAt === null || $endsAt === null) {
