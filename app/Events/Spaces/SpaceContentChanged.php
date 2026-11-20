@@ -18,7 +18,7 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Support\Str;
 
 /**
- * A post, a comment, a page, a message, an event or the reactions of a space changed (#1180). The event goes to the channel of the space only,
+ * A post, a comment, a page, a message, an event, the places of an event or the reactions of a space changed (#1180). The event goes to the channel of the space only,
  * which checks SpacePolicy::view (members-only and access group spaces never leak).
  *
  * The payload holds identifiers only: the open pages load the item again through the API, which checks the access and
@@ -66,6 +66,9 @@ class SpaceContentChanged implements ShouldBroadcast, ShouldDispatchAfterCommit
 
     public const string EVENT_DELETED = 'space.event.deleted';
 
+    // The number of Yes answers of an event with a limit of places changed (#1515): "places left" is read again
+    public const string EVENT_ANSWERS_CHANGED = 'space.event.answers.changed';
+
     /**
      * @param  array<string, string|null>  $payload
      */
@@ -92,6 +95,15 @@ class SpaceContentChanged implements ShouldBroadcast, ShouldDispatchAfterCommit
     public static function forEvent(string $name, Event $event, ?string $authorCuid = null): self
     {
         return self::in($event->space, $name, ['event_cuid' => $event->cuid, 'author_cuid' => $authorCuid]);
+    }
+
+    /**
+     * The places of an event changed (#1515). The event only: never the member who answered, never an answer, never a
+     * count
+     */
+    public static function forEventAnswers(Event $event): self
+    {
+        return self::in($event->space, self::EVENT_ANSWERS_CHANGED, ['event_cuid' => $event->cuid]);
     }
 
     public static function forMessage(string $name, ChatMessage $message, ?string $authorCuid = null): self

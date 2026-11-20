@@ -22,5 +22,5 @@ body:json {
 }
 
 docs {
-  Error case: a published event that started cannot go back to draft: 422, "An event that started cannot go back to draft. Cancel it instead." A draft cannot be cancelled (422) and a cancelled event cannot go back to draft (422).
+  Error case: a published event that started cannot go back to draft: 422, "An event that started cannot go back to draft. Cancel it instead." A published event that a member answered cannot go back to draft either: 422, "Members answered this event. Cancel it instead." (#1515). A draft cannot be cancelled (422) and a cancelled event cannot go back to draft (422).
 }

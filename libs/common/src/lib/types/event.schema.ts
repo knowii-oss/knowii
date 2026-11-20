@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { eventAnswerValueSchema } from './event-answer.schema';
 import { authorSchema } from './post.schema';
 import { uploadSchema } from './upload.schema';
 
@@ -21,6 +22,10 @@ export type EventLocationVisibility = z.infer<typeof eventLocationVisibilitySche
  * An event of an events space (#1513, ADR 0053). The start and the end are UTC instants; `time_zone` is the zone in which
  * the host entered them. The server cuts the meeting address and the place for the readers who may not see them: they are
  * null and `can_view_location` is false. Lists carry no description: get one event for its Markdown and its HTML.
+ *
+ * The answers (#1515): `my_answer` is the answer of the reader and of nobody else, and `places_left` is the number of
+ * places that are left when the event has a limit. `capacity`, the limit itself, is only for the people who read the
+ * answers (the host, the owner and the admins). A visitor and a person who is not a member get null, false, null and null.
  * WARNING: aligned with EventResource.php
  */
 export const eventSchema = z.object({
@@ -36,6 +41,16 @@ export const eventSchema = z.object({
   can_view_location: z.boolean(),
   meeting_url: z.string().nullable(),
   place: z.string().nullable(),
+  // The answer of the reader. Null: no answer, a visitor, a person who is not a member
+  my_answer: eventAnswerValueSchema.nullable(),
+  // A member who can see the event, while it is published and not over
+  can_answer: z.boolean(),
+  // The host says that a replay will exist: "Replay only" is an answer
+  replay_expected: z.boolean(),
+  // From 0, for a member who can see an event with a limit. Null: no limit, or not a member
+  places_left: z.number().int().nonnegative().nullable(),
+  // The limit of places, for the host, the owner and the admins. Null for the others, and when there is no limit
+  capacity: z.number().int().positive().nullable(),
   cover: uploadSchema.nullable(),
   // Empty: a decorative image
   cover_alt: z.string().nullable(),

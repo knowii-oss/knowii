@@ -10,10 +10,12 @@ use App\Events\Spaces\SpaceTreeChanged;
 use App\Http\Controllers\Inertia\SpaceController;
 use App\Models\AccessGroup;
 use App\Models\Event as EventModel;
+use App\Models\EventAnswer;
 use App\Models\Space;
 use App\Models\SpaceGroup;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Testing\TestResponse;
 
@@ -29,6 +31,10 @@ const EVP_MEETING_URL = 'https://meet.example.com/the-secret-room-of-the-pages';
 const EVP_PLACE = 'Cellar of the old town hall';
 
 const EVP_READERS = ['owner', 'admin', 'moderator', 'host', 'member', 'outsider', 'visitor'];
+
+// The most queries that a page with events may run, whatever the number of its events: the page of a space (36 for a
+// member on 2026-11-20) and the home of a community (45). A query per event of a page of 20 would pass both
+const EVP_MAX_QUERIES = ['events' => 40, 'nextEvents' => 48];
 
 beforeEach(function () {
     $this->travelTo(CarbonImmutable::parse('2026-11-10T09:00:00Z'));
@@ -479,6 +485,140 @@ test('no screen gives the meeting address or the place to a visitor, an outsider
         expect(str_contains($scan($reader, evpEventUrl($going)), 'the-secret-room-of-the-pages'))->toBeTrue("the going event for the {$reader}");
     }
 });
+
+test('the four screens give the address of a "going" event to a member who answered Yes, the host, the owner and an admin, and to nobody else (#1515)', function () {
+    $space = $this->spaces['public'];
+    $going = EventModel::factory()->inSpace($space)->hostedBy($this->c['host'])
+        ->create(['title' => 'Going only', 'meeting_url' => EVP_MEETING_URL, 'place' => EVP_PLACE, 'location_visibility' => KnowiiEventLocationVisibility::Going, 'starts_at' => now()->addDay(), 'ends_at' => now()->addDay()->addHour()]);
+    // The other events of the screens give their address to every member: without them, only the "going" event holds it
+    EventModel::query()->whereKeyNot($going->id)->update(['meeting_url' => null, 'place' => null]);
+    foreach (['yes' => 'Yes', 'replay' => 'Replay only', 'no' => 'No'] as $answer => $label) {
+        $this->c[$answer] = User::factory()->withUserProfile()->create(['name' => "Member {$label}"]);
+        $this->c['community']->users()->attach($this->c[$answer], ['role' => KnowiiCommunityMemberRole::Member]);
+        EventAnswer::factory()->to($going)->of($this->c[$answer])->state(['answer' => $answer])->create();
+    }
+    // The list of the space, the page of the event, the home of a member, and the public page for the others
+    $screens = ['list' => evpSpaceUrl($space), 'event' => evpEventUrl($going), 'home or public page' => evpHomeUrl()];
+    $holds = function (string $reader, string $url): bool {
+        $response = evpGet($reader, $url)->assertOk();
+        $text = (string) json_encode(evpProps($response)).$response->getContent();
+        // The screen does hold the event: the scan reads something
+        expect(str_contains($text, 'Going only'))->toBeTrue("{$reader} on {$url}");
+
+        return str_contains($text, 'the-secret-room-of-the-pages') || str_contains($text, EVP_PLACE);
+    };
+
+    foreach (['yes', 'host', 'owner', 'admin'] as $reader) {
+        foreach ($screens as $screen => $url) {
+            expect($holds($reader, $url))->toBeTrue("the {$screen} for {$reader}");
+        }
+    }
+    foreach (['replay', 'no', 'member', 'moderator', 'outsider', 'visitor'] as $reader) {
+        foreach ($screens as $screen => $url) {
+            expect($holds($reader, $url))->toBeFalse("the {$screen} for {$reader}");
+        }
+    }
+    // The form of the event is for the host, the owner and the admins, who read the address anyway
+    expect($holds('host', evpEventUrl($going, 'events.edit')))->toBeTrue();
+    evpAssertAnswer('yes', evpEventUrl($going, 'events.edit'), 403);
+
+    // The member changes Yes to No: the address goes away on every screen. Then Yes again, and the member leaves
+    EventAnswer::query()->where('event_id', $going->id)->where('user_id', $this->c['yes']->id)->update(['answer' => 'no']);
+    foreach ($screens as $screen => $url) {
+        expect($holds('yes', $url))->toBeFalse("the {$screen} after Yes became No");
+    }
+    EventAnswer::query()->where('event_id', $going->id)->where('user_id', $this->c['yes']->id)->update(['answer' => 'yes']);
+    expect($holds('yes', evpEventUrl($going)))->toBeTrue();
+    $this->c['community']->removeUser($this->c['yes']);
+    $this->c['yes'] = User::findOrFail($this->c['yes']->id);
+    foreach ($screens as $screen => $url) {
+        expect($holds('yes', $url))->toBeFalse("the {$screen} after the member left");
+    }
+});
+
+test('the screens give each reader their own answer and the places, and the limit only to the people who read the answers (#1515)', function () {
+    $space = $this->spaces['members'];
+    $event = EventModel::factory()->inSpace($space)->hostedBy($this->c['host'])
+        ->create(['title' => 'With a limit', 'capacity' => 4321, 'replay_expected' => true, 'starts_at' => now()->addDay(), 'ends_at' => now()->addDay()->addHour()]);
+    EventAnswer::factory()->to($event)->of($this->c['member'])->yes()->create();
+    EventAnswer::factory()->to($event)->of($this->c['moderator'])->replay()->create();
+    $fields = function (string $reader, string $url, string $key) use ($event): array {
+        $props = evpProps(evpGet($reader, $url)->assertOk());
+        $list = $key === 'event' ? [$props['event']] : $props[$key];
+        $items = (array) json_decode((string) json_encode(is_array($list) && array_key_exists('items', $list) ? $list['items'] : $list), true);
+        $found = array_column($items, null, 'cuid')[$event->cuid];
+
+        return [$found['my_answer'], $found['can_answer'], $found['replay_expected'], $found['places_left'], $found['capacity']];
+    };
+
+    foreach (['events' => evpSpaceUrl($space), 'event' => evpEventUrl($event), 'nextEvents' => evpHomeUrl()] as $key => $url) {
+        expect($fields('member', $url, $key))->toBe(['yes', true, true, 4320, null], "member, {$key}")
+            ->and($fields('moderator', $url, $key))->toBe(['replay', true, true, 4320, null], "moderator, {$key}")
+            ->and($fields('host', $url, $key))->toBe([null, true, true, 4320, 4321], "host, {$key}")
+            ->and($fields('owner', $url, $key))->toBe([null, true, true, 4320, 4321], "owner, {$key}");
+        // A member never reads the limit or the answer of another member, anywhere in the page
+        $page = evpGet('member', $url);
+        $text = (string) json_encode(evpProps($page)).$page->getContent();
+        expect(str_contains($text, '4321'))->toBeFalse("member, {$key}")->and(str_contains($text, '"replay"'))->toBeFalse("member, {$key}");
+    }
+});
+
+test('the list of a space and "Next events" run the same queries for 2 events and for 20: the answers and the places load once (#1515)', function (string $reader) {
+    $space = $this->spaces['members'];
+    // Only the events of this test: every reader then gets the same ones (a draft is in the lists of some readers only)
+    EventModel::query()->delete();
+    $add = function (int $number) use ($space): void {
+        $event = EventModel::factory()->inSpace($space)->hostedBy($this->c['host'])->create([
+            'title' => "Counted {$number}", 'capacity' => 10 + $number, 'replay_expected' => true,
+            'location_visibility' => $number % 2 === 0 ? KnowiiEventLocationVisibility::Going : KnowiiEventLocationVisibility::Members,
+            'starts_at' => now()->addDays($number), 'ends_at' => now()->addDays($number)->addHour(),
+        ]);
+        EventAnswer::factory()->to($event)->of($this->c['member'])->state(['answer' => $number % 2 === 0 ? 'yes' : 'no'])->create();
+        EventAnswer::factory()->to($event)->of($this->c['moderator'])->yes()->create();
+    };
+    $queries = function (string $url, string $key) use ($reader): array {
+        // A new instance of the reader: the one of the test keeps the relations that an earlier request loaded
+        $this->c[$reader] = User::query()->findOrFail($this->c[$reader]->id);
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        $props = evpProps(evpGet($reader, $url)->assertOk());
+        DB::disableQueryLog();
+        $list = $props[$key];
+        $items = (array) json_decode((string) json_encode(is_array($list) && array_key_exists('items', $list) ? $list['items'] : $list), true);
+
+        return [count(DB::getQueryLog()), $items];
+    };
+    $screens = ['events' => evpSpaceUrl($space), 'nextEvents' => evpHomeUrl()];
+    // 2 events
+    $add(1);
+    $add(2);
+    // A first request fills what the application keeps for the next ones
+    foreach ($screens as $key => $url) {
+        $queries($url, $key);
+    }
+    $few = [];
+    foreach ($screens as $key => $url) {
+        [$few[$key], $items] = $queries($url, $key);
+        expect($items)->toHaveCount(2, $key);
+    }
+
+    // 20 events: the list of the space gives them all, "Next events" the first 3
+    foreach (range(3, 20) as $number) {
+        $add($number);
+    }
+    foreach ($screens as $key => $url) {
+        [$many, $items] = $queries($url, $key);
+        // The fields that need the answers are there, for each event of the page
+        $first = array_column($items, null, 'title')['Counted 1'];
+        expect($items)->toHaveCount($key === 'events' ? 20 : 3, $key)
+            // One Yes of a moderator for 11 places
+            ->and($first['places_left'])->toBe(10, $key)
+            ->and($first['my_answer'])->toBe($reader === 'member' ? 'no' : null, $key)
+            ->and($many)->toBe($few[$key], "{$reader}, {$key}")
+            // A fixed ceiling: a query per event would pass it at once
+            ->and($many)->toBeLessThanOrEqual(EVP_MAX_QUERIES[$key], "{$reader}, {$key}: {$many}");
+    }
+})->with(['member', 'host', 'owner']);
 
 // ---------------------------------------------------------------------------------------------------------------------
 // "Next events"

@@ -78,6 +78,8 @@ export const SPACE_CONTENT_EVENTS = [
   'space.event.created',
   'space.event.updated',
   'space.event.deleted',
+  // The number of Yes answers of an event with a limit of places changed (#1515): the event only, never a member
+  'space.event.answers.changed',
 ] as const;
 export type SpaceContentEvent = (typeof SPACE_CONTENT_EVENTS)[number];
 

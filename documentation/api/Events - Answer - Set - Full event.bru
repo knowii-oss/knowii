@@ -1,0 +1,26 @@
+meta {
+  name: Events - Answer - Set - Full event
+  type: http
+  seq: 197
+}
+
+put {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of an events space>/events/<cuid of an event>/answer
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "answer": "yes"
+  }
+}
+
+docs {
+  Error case: the event has a limit of places (capacity) and as many Yes answers of members who can read the space: 422, "This event is full." Your old answer stays. "no" and "replay" are still accepted, and the same Yes again answers 200. A member who changes a Yes to another answer frees a place; nobody takes it for another member (there is no waiting list).
+}

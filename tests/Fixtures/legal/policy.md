@@ -28,6 +28,7 @@ The sign-in provider of this site: {{sign_in_provider}}.
 6. Waitlist: at most {{retention.waitlist}}. Unconfirmed addresses: {{retention.inactive_contacts}}.
 7. Backups: {{retention.backups_daily}} daily, {{retention.backups_weekly}} weekly and {{retention.backups_monthly}} monthly, for up to {{retention.backups_longest}}.
 8. Notifications: {{retention.notifications_read}} after you read them, {{retention.notifications_unread}} when you never read them.
+9. Answers to events: {{retention.event_answers}} after the event.
 
 ## 4. Cookies
 

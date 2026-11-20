@@ -169,6 +169,9 @@ export const MAX_LENGTH_EVENT_MEETING_URL = 2048;
 export const MAX_LENGTH_EVENT_PLACE = 255;
 export const MAX_LENGTH_EVENT_COVER_ALT = 125;
 export const MAX_EVENT_DURATION_HOURS = 24;
+// The limit of places of an event (#1515): it counts the Yes answers
+export const MIN_EVENT_CAPACITY = 1;
+export const MAX_EVENT_CAPACITY = 5000;
 // The events of one page of the list of an events space (#1514). WARNING: aligned with SpaceController::EVENTS_PER_PAGE
 export const EVENTS_PER_PAGE = 20;
 // "Next events" on the home and on the public page of a community (#1514). WARNING: aligned with Constants::NEXT_EVENTS
@@ -305,6 +308,9 @@ export const COMMUNITY_SPACE_EVENTS_API_PATH = `${COMMUNITY_SPACE_API_PATH}/even
 export const COMMUNITY_SPACE_EVENT_API_PATH = `${COMMUNITY_SPACE_EVENTS_API_PATH}/${SPACE_API_PARAM_EVENT}`;
 export const COMMUNITY_SPACE_EVENT_STATE_API_PATH = `${COMMUNITY_SPACE_EVENT_API_PATH}/state`;
 export const COMMUNITY_SPACE_EVENT_DUPLICATE_API_PATH = `${COMMUNITY_SPACE_EVENT_API_PATH}/duplicate`;
+// The answer of the member to an event, and the answers that the host and the team read (#1515)
+export const COMMUNITY_SPACE_EVENT_ANSWER_API_PATH = `${COMMUNITY_SPACE_EVENT_API_PATH}/answer`;
+export const COMMUNITY_SPACE_EVENT_ANSWERS_API_PATH = `${COMMUNITY_SPACE_EVENT_API_PATH}/answers`;
 export const COMMUNITY_EVENTS_API_PATH = `${COMMUNITY_API_PATH}/events`;
 // Messages of chat spaces (#1185)
 export const SPACE_API_PARAM_MESSAGE = '{messageCuid}';

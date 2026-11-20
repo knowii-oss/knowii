@@ -9,6 +9,7 @@ use App\Models\Comment;
 use App\Models\Community;
 use App\Models\Conversation;
 use App\Models\Event;
+use App\Models\EventAnswer;
 use App\Models\Post;
 use App\Models\Reaction;
 use App\Models\Space;
@@ -236,4 +237,24 @@ test('the export holds the events with their Markdown, never their HTML or their
         ->and($rows[0])->not->toHaveKey('body_html')
         ->and($rows[0])->not->toHaveKey('id')
         ->and($files['README.txt'])->toContain('events.json');
+});
+
+test('the export holds the limit of places and the replay choice of an event, and no answer of a member (#1515)', function () {
+    $f = communityExportFixture();
+    $events = Space::factory()->inGroup(SpaceGroup::query()->where('community_id', $f['community']->id)->firstOrFail())->create(['type' => KnowiiSpaceType::Events]);
+    $event = Event::factory()->inSpace($events)->hostedBy($f['member'])->create(['capacity' => 40, 'replay_expected' => true]);
+    $answer = EventAnswer::factory()->to($event)->of($f['member'])->replay()->create();
+
+    $files = runCommunityExport($f['community']);
+    $rows = json_decode($files['events.json'], true)['events'];
+
+    expect($rows[0]['capacity'])->toBe(40)
+        ->and($rows[0]['replay_expected'])->toBeTrue()
+        ->and(array_keys($files))->not->toContain('event-answers.json');
+    foreach ($files as $name => $contents) {
+        // Not `toContain`: a failure would print the whole file
+        expect(str_contains($contents, $answer->cuid))->toBeFalse($name)
+            ->and(str_contains($contents, 'event_answers'))->toBeFalse($name)
+            ->and(str_contains($contents, '"answer"'))->toBeFalse($name);
+    }
 });

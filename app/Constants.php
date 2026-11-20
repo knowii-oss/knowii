@@ -100,6 +100,11 @@ class Constants
     // An event ends at most this many hours after its start
     public const int MAX_EVENT_DURATION_HOURS = 24;
 
+    // The limit of places of an event (#1515): it counts the Yes answers. The migration holds the same numbers in a check
+    public const int MIN_EVENT_CAPACITY = 1;
+
+    public const int MAX_EVENT_CAPACITY = 5000;
+
     // Chat messages (#1185). WARNING: aligned with constants.ts
     public const int MAX_LENGTH_CHAT_MESSAGE = 10000;
 
@@ -228,6 +233,9 @@ class Constants
 
     // New events and copies of events per member (#1513)
     public const int EVENTS_PER_MINUTE = 5;
+
+    // Answers to events, and clears of an answer, per member (#1515)
+    public const int EVENT_ANSWERS_PER_MINUTE = 30;
 
     // Starts and ends of a sign-in with the OpenID Connect provider per minute and per IP address (#1385)
     public const int OIDC_REQUESTS_PER_MINUTE = 10;

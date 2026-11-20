@@ -1,0 +1,26 @@
+meta {
+  name: Events - Answer - Set
+  type: http
+  seq: 196
+}
+
+put {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of an events space>/events/<cuid of an event>/answer
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "answer": "yes"
+  }
+}
+
+docs {
+  Sets your answer to an event (#1515): yes, no, or replay ("Replay only", accepted only when the event has replay_expected true: 400 otherwise). It replaces the answer that you gave before; the same answer again changes nothing. For the members of the community who can see the event, while it is published and not over: a cancelled event answers 422, "This event is cancelled. It takes no answers.", and an event that ended 422, "This event is over. It takes no answers." Only you, the host, the owner and the admins see your answer, and nobody is told. With location_visibility going, a Yes gives you the meeting address and the place. Limited per member (the event-answers limiter, 30 a minute). Ability events:write.
+}

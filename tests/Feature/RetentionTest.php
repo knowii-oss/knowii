@@ -1,7 +1,10 @@
 <?php
 
+use App\Contracts\Retention\PrunesExpiredData;
 use App\Models\Community;
 use App\Models\CommunityInvitation;
+use App\Models\Event as EventModel;
+use App\Models\EventAnswer;
 use App\Models\User;
 use App\Support\Retention;
 use Illuminate\Console\Scheduling\Event;
@@ -51,6 +54,7 @@ test('the periods of the privacy policy come from the configuration (ADR 0030)',
         ->and($periods['unused_uploads'])->toBe('7 days')
         ->and($periods['notifications_read'])->toBe('60 days')
         ->and($periods['notifications_unread'])->toBe('90 days')
+        ->and($periods['event_answers'])->toBe('90 days')
         ->and($periods['logs'])->toBe('14 days')
         ->and($periods['waitlist'])->toBe('12 months')
         ->and($periods['inactive_contacts'])->toBe('30 days')
@@ -137,10 +141,41 @@ test('the dry run of the retention prune deletes nothing (#1306)', function () {
     $old = invitationCreatedDaysAgo($community, 60);
 
     $this->artisan('retention:prune', ['--dry-run' => true])
-        ->expectsTable(['Data', 'To delete'], [['invitations', 1], ['api_tokens', 0], ['failed_jobs', 0], ['password_reset_tokens', 0], ['sessions', 0], ['cache', 0], ['notifications', 0], ['exports', 0]])
+        ->expectsTable(['Data', 'To delete'], [['invitations', 1], ['api_tokens', 0], ['failed_jobs', 0], ['password_reset_tokens', 0], ['sessions', 0], ['cache', 0], ['notifications', 0], ['event_answers', 0], ['exports', 0]])
         ->assertSuccessful();
 
     expect(CommunityInvitation::query()->whereKey($old->id)->exists())->toBeTrue();
+});
+
+test('the answer to an event is deleted 90 days after the end of the event, and the dry run deletes nothing (#1515)', function () {
+    $answerOfEventThatEnded = function (int $daysAgo): EventAnswer {
+        $event = EventModel::factory()->create(['starts_at' => now()->subDays($daysAgo)->subHour(), 'ends_at' => now()->subDays($daysAgo)]);
+
+        return EventAnswer::factory()->to($event)->create();
+    };
+    $old = $answerOfEventThatEnded(91);
+    $recent = $answerOfEventThatEnded(89);
+    $upcoming = EventAnswer::factory()->create();
+    // An answer that the member gave long ago to an event that is still to come stays: the end of the event counts
+    $upcoming->forceFill(['created_at' => now()->subDays(400), 'updated_at' => now()->subDays(400)])->saveQuietly();
+
+    // The dry run counts the one answer, and deletes nothing
+    expect(app(PrunesExpiredData::class)->prune(true)['event_answers'])->toBe(1);
+    $this->artisan('retention:prune', ['--dry-run' => true])->expectsOutputToContain('event_answers')->assertSuccessful();
+    expect(EventAnswer::query()->count())->toBe(3);
+
+    $this->artisan('retention:prune')->assertSuccessful();
+
+    expect(EventAnswer::query()->whereKey($old->id)->exists())->toBeFalse()
+        ->and(EventAnswer::query()->whereKey($recent->id)->exists())->toBeTrue()
+        ->and(EventAnswer::query()->whereKey($upcoming->id)->exists())->toBeTrue()
+        // The event stays: it is content of the community
+        ->and(EventModel::query()->whereKey($old->event_id)->exists())->toBeTrue();
+
+    // The period comes from the configuration
+    config(['retention.event_answers_days' => 80]);
+    $this->artisan('retention:prune')->assertSuccessful();
+    expect(EventAnswer::query()->whereKey($recent->id)->exists())->toBeFalse();
 });
 
 function exportFileAgeDays(string $name, int $days): string

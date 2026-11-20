@@ -76,6 +76,14 @@ test('a template names the operator, its contact address and its site only throu
         ->and($all)->not->toContain('@');
 });
 
+test('the template of the privacy policy tells about the answers to events, with the period of the configuration (#1515)', function () {
+    $policy = File::get(legalTemplatesFolder().'/policy.md');
+
+    expect($policy)
+        ->toContain('Your answers to events (yes, replay only or no), until {{retention.event_answers}} after the event or until you leave the community. The host and the team of an event see who answered yes or replay only. They do not see when you open the meeting. We do not record who attends a meeting.')
+        ->toContain('Answers to events: {{retention.event_answers}} after the event, or until you leave the community.');
+});
+
 test('the imprint template keeps only its headings and the source code of the project', function () {
     $body = explode("\n---\n", File::get(legalTemplatesFolder().'/imprint.md'), 2)[1] ?? '';
     $lines = array_values(array_filter(array_map(trim(...), explode("\n", $body)), static fn (string $line): bool => $line !== ''));

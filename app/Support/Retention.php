@@ -72,6 +72,11 @@ final class Retention
         return self::int('retention.notifications_unread_days', 90);
     }
 
+    public static function eventAnswersDays(): int
+    {
+        return self::int('retention.event_answers_days', 90);
+    }
+
     public static function logDays(): int
     {
         return self::int('logging.channels.daily.days', 14);
@@ -120,6 +125,7 @@ final class Retention
             'unused_uploads' => self::count(self::unusedUploadsDays(), 'day'),
             'notifications_read' => self::count(self::notificationsReadDays(), 'day'),
             'notifications_unread' => self::count(self::notificationsUnreadDays(), 'day'),
+            'event_answers' => self::count(self::eventAnswersDays(), 'day'),
             'logs' => self::count(self::logDays(), 'day'),
             'waitlist' => self::count(self::waitlistMonths(), 'month'),
             'inactive_contacts' => self::count(self::inactiveContactsDays(), 'day'),

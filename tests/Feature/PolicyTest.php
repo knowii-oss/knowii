@@ -6,9 +6,11 @@ use App\Enums\KnowiiModeratorPermission;
 use App\Enums\KnowiiSpacePostingPolicy;
 use App\Enums\KnowiiSpaceType;
 use App\Enums\KnowiiSpaceVisibility;
+use App\Models\AccessGroup;
 use App\Models\Comment;
 use App\Models\Community;
 use App\Models\Event;
+use App\Models\EventAnswer;
 use App\Models\Post;
 use App\Models\Space;
 use App\Models\SpaceGroup;
@@ -150,7 +152,7 @@ test('event abilities per role', function (string $ability, string $item, array 
     'delete: the host, the owner, the admins and the moderators' => ['delete', 'event', POLICY_MEMBERS],
     'delete the event of the admin: the moderators too' => ['delete', 'publicEvent', POLICY_MODERATORS],
     'the address with members: every member, never an outsider or a visitor' => ['viewLocation', 'publicEvent', POLICY_MEMBERS],
-    'the address with going: the host, the owner and the admins' => ['viewLocation', 'goingEvent', ['owner', 'admin', 'moderator']],
+    'the address with going: the host, the owner and the admins (and the members who answered Yes, below)' => ['viewLocation', 'goingEvent', ['owner', 'admin', 'moderator']],
     'the address of a draft: who may view it' => ['viewLocation', 'draftEvent', ['owner', 'admin', 'member']],
 ]);
 
@@ -162,6 +164,97 @@ test('a moderator without the right to delete content cancels and deletes only t
 
     expect(Gate::forUser($moderator)->allows('cancel', $event))->toBeFalse()
         ->and(Gate::forUser($moderator)->allows('delete', $event))->toBeFalse();
+});
+
+/**
+ * The answers to events (#1515, ADR 0053): who answers an event, and who reads the answers of the others. The host and
+ * the member of the access group are plain members; in the groups space, the access group holds them and nobody else.
+ */
+const POLICY_EVENT_READERS = ['owner', 'admin', 'moderator', 'host', 'member', 'inGroup', 'outsider', 'guest'];
+
+test('the answers to an event per role, per visibility of its space and per state', function (string $visibility, string $state, array $answer, array $viewAnswers) {
+    $c = [...$this->c, 'guest' => null];
+    foreach (['host', 'inGroup'] as $key) {
+        $c[$key] = User::factory()->withUserProfile()->create();
+        $c['community']->users()->attach($c[$key], ['role' => KnowiiCommunityMemberRole::Member]);
+    }
+    $group = SpaceGroup::factory()->create(['community_id' => $c['community']->id]);
+    $space = Space::factory()->inGroup($group)->create(['type' => KnowiiSpaceType::Events, 'visibility' => $visibility]);
+    if ($visibility === 'groups') {
+        $buyers = AccessGroup::query()->create(['community_id' => $c['community']->id, 'name' => 'Buyers']);
+        $space->accessGroups()->attach($buyers);
+        $buyers->members()->attach([$c['host']->id, $c['inGroup']->id]);
+    }
+    $factory = Event::factory()->inSpace($space)->hostedBy($c['host']);
+    $event = match ($state) {
+        'draft' => $factory->draft()->create(),
+        'cancelled' => $factory->cancelled()->create(),
+        'past' => $factory->past()->create(),
+        'started' => $factory->create(['starts_at' => now()->subMinutes(10), 'ends_at' => now()->addMinutes(50)]),
+        default => $factory->create(),
+    };
+
+    foreach (POLICY_EVENT_READERS as $role) {
+        expect(Gate::forUser($c[$role])->allows('answer', $event))->toBe(in_array($role, $answer, true), "{$role}, answer")
+            ->and(Gate::forUser($c[$role])->allows('viewAnswers', $event))->toBe(in_array($role, $viewAnswers, true), "{$role}, viewAnswers");
+    }
+})->with([
+    'a public space: every member answers, never an outsider or a visitor' => ['public', 'published', ['owner', 'admin', 'moderator', 'host', 'member', 'inGroup'], ['owner', 'admin', 'host']],
+    'a members space' => ['members', 'published', ['owner', 'admin', 'moderator', 'host', 'member', 'inGroup'], ['owner', 'admin', 'host']],
+    'a groups space: the members of the group, the owner and the admins' => ['groups', 'published', ['owner', 'admin', 'host', 'inGroup'], ['owner', 'admin', 'host']],
+    'an event that started and did not end' => ['members', 'started', ['owner', 'admin', 'moderator', 'host', 'member', 'inGroup'], ['owner', 'admin', 'host']],
+    'a cancelled event: no answer, the answers are still read' => ['public', 'cancelled', [], ['owner', 'admin', 'host']],
+    'an event that ended: no answer, the answers are still read' => ['members', 'past', [], ['owner', 'admin', 'host']],
+    'a past event of a groups space' => ['groups', 'past', [], ['owner', 'admin', 'host']],
+    'a draft has no answers' => ['members', 'draft', [], []],
+    'a draft of a public space' => ['public', 'draft', [], []],
+]);
+
+test('a host who lost the access group, and a host who left, read no answer and do not answer', function () {
+    $host = User::factory()->withUserProfile()->create();
+    $this->c['community']->users()->attach($host, ['role' => KnowiiCommunityMemberRole::Member]);
+    $space = Space::factory()->inGroup(SpaceGroup::factory()->create(['community_id' => $this->c['community']->id]))->create(['type' => KnowiiSpaceType::Events, 'visibility' => KnowiiSpaceVisibility::Groups]);
+    $buyers = AccessGroup::query()->create(['community_id' => $this->c['community']->id, 'name' => 'Buyers']);
+    $space->accessGroups()->attach($buyers);
+    $buyers->members()->attach($host);
+    $event = Event::factory()->inSpace($space)->hostedBy($host)->create();
+    expect(Gate::forUser($host)->allows('viewAnswers', $event))->toBeTrue()->and(Gate::forUser($host)->allows('answer', $event))->toBeTrue();
+
+    $buyers->members()->detach($host);
+    $host = User::findOrFail($host->id);
+    expect(Gate::forUser($host)->allows('viewAnswers', $event))->toBeFalse()->and(Gate::forUser($host)->allows('answer', $event))->toBeFalse();
+
+    $buyers->members()->attach($host);
+    $this->c['community']->removeUser($host);
+    $host = User::findOrFail($host->id);
+    expect(Gate::forUser($host)->allows('viewAnswers', $event))->toBeFalse()->and(Gate::forUser($host)->allows('answer', $event))->toBeFalse();
+});
+
+test('the address of a "going" event: also the members who answered Yes, never Replay only or No (#1515)', function () {
+    $events = policyEvents($this->c);
+    $going = $events['goingEvent'];
+    $address = fn (): bool => Gate::forUser(User::findOrFail($this->c['member']->id))->allows('viewLocation', Event::query()->findOrFail($going->id));
+    expect($address())->toBeFalse();
+
+    foreach (['replay' => false, 'no' => false, 'yes' => true] as $answer => $allowed) {
+        EventAnswer::query()->updateOrCreate(['event_id' => $going->id, 'user_id' => $this->c['member']->id], ['community_id' => $going->community_id, 'answer' => $answer]);
+        expect($address())->toBe($allowed, $answer);
+    }
+    // A Yes to another event gives nothing here, and the Yes of another member gives nothing to this one
+    EventAnswer::query()->where('user_id', $this->c['member']->id)->delete();
+    EventAnswer::factory()->to($events['publicEvent'])->of($this->c['member'])->yes()->create();
+    EventAnswer::factory()->to($going)->of($this->c['admin'])->yes()->create();
+    expect($address())->toBeFalse();
+
+    // The answer counts also when the event is cancelled or over
+    EventAnswer::factory()->to($going)->of($this->c['member'])->yes()->create();
+    $going->update(['state' => 'cancelled']);
+    expect($address())->toBeTrue();
+    $going->update(['state' => 'published', 'starts_at' => now()->subDays(3), 'ends_at' => now()->subDays(3)->addHour()]);
+    expect($address())->toBeTrue();
+    // Not for a person who left: the answers go with the membership, and a person who is not a member never reads it
+    $this->c['community']->removeUser($this->c['member']);
+    expect($address())->toBeFalse();
 });
 
 test('comment abilities per role', function (string $ability, array $allowed) {

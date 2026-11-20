@@ -12,6 +12,7 @@ use App\Models\Community;
 use App\Models\Space;
 use App\Models\User;
 use App\Support\CourseProgress;
+use App\Support\EventAnswers;
 use App\Support\NoAccess;
 use App\Support\Pagination;
 use App\Support\SpaceTree;
@@ -91,7 +92,8 @@ class SpaceController extends Controller
                 $event->setRelation('community', $community);
             }
             $events = [
-                'items' => $page['items']->toResourceCollection(),
+                // The answers of the reader and the places load once for the page (#1515)
+                'items' => EventAnswers::forList($page['items'], $request->user(), $community, static fn (): array => $page['items']->toResourceCollection()->resolve($request)),
                 'pagination' => $page['metadata']['pagination'],
             ];
         }

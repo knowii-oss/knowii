@@ -2,7 +2,9 @@
 
 namespace App\Policies;
 
+use App\Enums\KnowiiEventAnswer;
 use App\Enums\KnowiiEventLocationVisibility;
+use App\Enums\KnowiiEventState;
 use App\Models\Event;
 use App\Models\User;
 use App\Support\CommunityRoles;
@@ -62,7 +64,9 @@ class EventPolicy
 
     /**
      * The meeting address and the place: never a visitor, never a person who is not a member. With `members`, every
-     * member who can see the event; with `going`, the host, the owner and the admins.
+     * member who can see the event; with `going`, the host, the owner, the admins, and the members whose answer to this
+     * event is Yes (#1515). "Replay only" and "No" do not pass. The answer counts also when the event is cancelled or
+     * over.
      */
     final public function viewLocation(?User $user, Event $event): bool
     {
@@ -72,7 +76,32 @@ class EventPolicy
 
         return $event->location_visibility === KnowiiEventLocationVisibility::Members
             || CommunityRoles::isOwnerOrAdmin($user, $event->community)
-            || self::isHost($user, $event);
+            || self::isHost($user, $event)
+            || $event->answerOf($user) === KnowiiEventAnswer::Yes;
+    }
+
+    /**
+     * Answer an event, change the answer or clear it (#1515): a member of the community who can see the event, while it
+     * is published and not over. The owner, the admins and the moderators answer like members. Never a person who is
+     * not a member, also in a public space.
+     */
+    final public function answer(User $user, Event $event): bool
+    {
+        return $user->belongsToCommunity($event->community)
+            && $this->view($user, $event)
+            && $event->state === KnowiiEventState::Published
+            && ! $event->isPast();
+    }
+
+    /**
+     * Read who answered Yes and Replay only, and how many answered No (#1515): the owner, the admins and the host.
+     * Never a moderator, also with the right to delete content: the answers are personal data that moderation does not
+     * need. The answers of a draft are read by nobody.
+     */
+    final public function viewAnswers(User $user, Event $event): bool
+    {
+        return ! $event->isDraft()
+            && (CommunityRoles::isOwnerOrAdmin($user, $event->community) || self::isHost($user, $event));
     }
 
     /**

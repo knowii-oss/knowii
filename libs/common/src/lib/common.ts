@@ -33,6 +33,7 @@ export * from './types/space.schema';
 export * from './types/post.schema';
 export * from './types/page.schema';
 export * from './types/event.schema';
+export * from './types/event-answer.schema';
 export * from './types/course-material.schema';
 export * from './types/quiz.schema';
 export * from './types/chat-message.schema';

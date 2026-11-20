@@ -54,6 +54,7 @@ use App\Actions\EmailOctopus\PruneEmailOctopusContacts;
 use App\Actions\Entitlements\ReceiveEntitlementEvent;
 use App\Actions\Entitlements\RefreshEntitlements;
 use App\Actions\Entitlements\SyncEntitlementRules;
+use App\Actions\Events\AnswerEvent;
 use App\Actions\Events\CreateEvent;
 use App\Actions\Events\DeleteEvent;
 use App\Actions\Events\DuplicateEvent;
@@ -162,6 +163,7 @@ use App\Contracts\CourseMaterials\UpdatesCourseMaterials;
 use App\Contracts\Entitlements\ReceivesEntitlementEvents;
 use App\Contracts\Entitlements\RefreshesEntitlements;
 use App\Contracts\Entitlements\SyncsEntitlementRules;
+use App\Contracts\Events\AnswersEvents;
 use App\Contracts\Events\CreatesEvents;
 use App\Contracts\Events\DeletesEvents;
 use App\Contracts\Events\DuplicatesEvents;
@@ -322,6 +324,8 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(SetsEventStates::class, SetEventState::class);
         app()->singleton(DeletesEvents::class, DeleteEvent::class);
         app()->singleton(DuplicatesEvents::class, DuplicateEvent::class);
+        // The answers of members to events (#1515, ADR 0053)
+        app()->singleton(AnswersEvents::class, AnswerEvent::class);
         app()->singleton(UpdatesPosts::class, UpdatePost::class);
         app()->singleton(DeletesPosts::class, DeletePost::class);
         app()->singleton(PinsPosts::class, PinPost::class);
@@ -397,6 +401,11 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('events', static function (Request $request) {
             return Limit::perMinute(Constants::EVENTS_PER_MINUTE)->by(self::rateLimitKey($request));
+        });
+
+        // Answers to events (#1515): a member changes their mind a few times, not hundreds of times
+        RateLimiter::for('event-answers', static function (Request $request) {
+            return Limit::perMinute(Constants::EVENT_ANSWERS_PER_MINUTE)->by(self::rateLimitKey($request));
         });
 
         RateLimiter::for('comments', static function (Request $request) {

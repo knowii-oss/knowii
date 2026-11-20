@@ -15,6 +15,11 @@ const fromServer = {
   can_view_location: true,
   meeting_url: 'https://meet.example.com/abc',
   place: null,
+  my_answer: 'yes',
+  can_answer: true,
+  replay_expected: true,
+  places_left: 28,
+  capacity: null,
   cover: null,
   cover_alt: null,
   host: { cuid: 'u1', name: 'Ada', username: 'ada', avatar_url: null },
@@ -37,12 +42,51 @@ describe('eventSchema (#1513)', () => {
 
   it('reads the cut of a visitor: no address, no place, a deleted host, no space', () => {
     const { space: _space, ...withoutSpace } = fromServer;
-    const event = eventSchema.parse({ ...withoutSpace, can_view_location: false, meeting_url: null, host: null });
+    const event = eventSchema.parse({
+      ...withoutSpace,
+      can_view_location: false,
+      meeting_url: null,
+      host: null,
+      my_answer: null,
+      can_answer: false,
+      places_left: null,
+      capacity: null,
+    });
 
+    // The answers (#1515): null, false, the boolean, null, null
+    expect(event.my_answer).toBeNull();
+    expect(event.can_answer).toBe(false);
+    expect(event.replay_expected).toBe(true);
+    expect(event.places_left).toBeNull();
+    expect(event.capacity).toBeNull();
     expect(event.can_view_location).toBe(false);
     expect(event.meeting_url).toBeNull();
     expect(event.host).toBeNull();
     expect(event.space).toBeUndefined();
+  });
+
+  it('reads the five fields of the answers: the answer of the reader, the places that are left, and the limit for the host', () => {
+    const member = eventSchema.parse(fromServer);
+    expect(member.my_answer).toBe('yes');
+    expect(member.can_answer).toBe(true);
+    expect(member.replay_expected).toBe(true);
+    expect(member.places_left).toBe(28);
+    expect(member.capacity).toBeNull();
+
+    const host = eventSchema.parse({ ...fromServer, my_answer: null, places_left: 0, capacity: 40 });
+    expect(host.my_answer).toBeNull();
+    expect(host.places_left).toBe(0);
+    expect(host.capacity).toBe(40);
+  });
+
+  it('refuses an answer that does not exist, a negative number of places and an event without the five fields', () => {
+    expect(eventSchema.safeParse({ ...fromServer, my_answer: 'maybe' }).success).toBe(false);
+    expect(eventSchema.safeParse({ ...fromServer, places_left: -1 }).success).toBe(false);
+    expect(eventSchema.safeParse({ ...fromServer, capacity: 0 }).success).toBe(false);
+    for (const field of ['my_answer', 'can_answer', 'replay_expected', 'places_left', 'capacity'] as const) {
+      const { [field]: _dropped, ...without } = fromServer;
+      expect(eventSchema.safeParse(without).success, field).toBe(false);
+    }
   });
 
   it('knows the three states and the two visibilities of the address, and nothing else', () => {

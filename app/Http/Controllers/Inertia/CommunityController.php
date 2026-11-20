@@ -12,6 +12,7 @@ use App\Models\SpaceGroup;
 use App\Models\User;
 use App\Support\CommunityMemberQuery;
 use App\Support\CommunityRoles;
+use App\Support\EventAnswers;
 use App\Support\NoAccess;
 use App\Support\OidcEntitlements;
 use App\Support\PublicCommunity;
@@ -56,6 +57,8 @@ class CommunityController extends Controller
             ->values()
             ->all();
         $recentResources = $community->recentResources($resourcesSpaceIds);
+        // "Next events" (#1514): the first upcoming events of the events spaces of the navigation of the member
+        $nextEvents = UpcomingEvents::next($community, $request->user(), $spaceGroups);
 
         // Disable wrapping for the data we return to the frontend from this controller
         // This lets us use the API Resources classes without the wrapping that is normally applied
@@ -67,8 +70,8 @@ class CommunityController extends Controller
             'community' => $community->loadCount('users')->toResource()->withLargeFields(),
 
             'recentResources' => $recentResources->toResourceCollection(),
-            // "Next events" (#1514): the first upcoming events of the events spaces of the navigation of the member
-            'nextEvents' => UpcomingEvents::next($community, $request->user(), $spaceGroups)->toResourceCollection(),
+            // The answers of the member and the places load once for the list (#1515)
+            'nextEvents' => EventAnswers::forList($nextEvents, $request->user(), $community, static fn (): array => $nextEvents->toResourceCollection()->resolve($request)),
             'spaceGroups' => $spaceGroups->toResourceCollection(),
 
             'permissions' => $this->getCommunityPermissions($community),
@@ -86,6 +89,7 @@ class CommunityController extends Controller
     private function showPublic(Request $request, Community $community): Response
     {
         NoAccess::ensurePublicPage($request, $community);
+        $nextEvents = UpcomingEvents::next($community, $request->user());
 
         JsonResource::withoutWrapping();
 
@@ -96,7 +100,7 @@ class CommunityController extends Controller
             'newestPosts' => PublicCommunity::newestPosts($community)->toResourceCollection(NewestPostResource::class),
             // "Next events" (#1514): the first upcoming events of the public events spaces. The resource cuts the meeting
             // address and the place for a reader who is not a member
-            'nextEvents' => UpcomingEvents::next($community, $request->user())->toResourceCollection(),
+            'nextEvents' => EventAnswers::forList($nextEvents, $request->user(), $community, static fn (): array => $nextEvents->toResourceCollection()->resolve($request)),
         ]);
     }
 

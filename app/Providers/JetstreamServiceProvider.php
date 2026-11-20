@@ -162,6 +162,10 @@ class JetstreamServiceProvider extends ServiceProvider
             // Events of events spaces (#1513, ADR 0053): reading is in the default set, writing is not
             'events:read',
             'events:write',
+            // The answers of members to the events that the member hosts or manages (#1515, ADR 0053): never in the default
+            // set, they are personal data of other members. A member reads and sets their own answer with events:read and
+            // events:write
+            'event-answers:read',
             // Access groups (#1241, ADR 0025): a sync token from another system needs groups:write only
             'groups:read',
             'groups:write',

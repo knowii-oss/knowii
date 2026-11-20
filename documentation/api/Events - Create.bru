@@ -24,10 +24,12 @@ body:json {
     "time_zone": "Europe/Brussels",
     "meeting_url": "https://meet.example.com/abc-defg-hij",
     "location_visibility": "members",
+    "capacity": 40,
+    "replay_expected": true,
     "state": "draft"
   }
 }
 
 docs {
-  Creates an event (#1513): a draft by default. The posting policy of the space decides who can create one. The times are ISO 8601 with the offset of time_zone at that time; the server stores the UTC instants. A published event with a start in the future tells the members at Everything after 5 minutes (notify_now: true skips the wait, for the moderators of the space). In a public space, anyone on the internet can read a published event, never its address or its place. Ability events:write.
+  Creates an event (#1513): a draft by default. The posting policy of the space decides who can create one. The times are ISO 8601 with the offset of time_zone at that time; the server stores the UTC instants. A published event with a start in the future tells the members at Everything after 5 minutes (notify_now: true skips the wait, for the moderators of the space). In a public space, anyone on the internet can read a published event, never its address or its place. capacity (1 to 5 000, or null) is the limit of places: it counts the Yes answers of the members who can read the space. With a token, the answer holds capacity only with the ability event-answers:read. replay_expected true offers the answer "Replay only". location_visibility going gives the address and the place to the members who answer Yes, the host, the owner and the admins (#1515). Ability events:write.
 }

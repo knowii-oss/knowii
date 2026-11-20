@@ -12,6 +12,7 @@ use App\Http\Controllers\API\CommunityResourceApiController;
 use App\Http\Controllers\API\CommunityResourceCommentApiController;
 use App\Http\Controllers\API\ConversationApiController;
 use App\Http\Controllers\API\CourseMaterialApiController;
+use App\Http\Controllers\API\EventAnswerApiController;
 use App\Http\Controllers\API\EventApiController;
 use App\Http\Controllers\API\IndexingApiController;
 use App\Http\Controllers\API\JoinPolicyApiController;
@@ -207,6 +208,12 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::delete(ApiRoutes::COMMUNITY_SPACE_EVENT, [EventApiController::class, 'destroy'])->middleware('ability:events:write');
             Route::put(ApiRoutes::COMMUNITY_SPACE_EVENT_STATE, [EventApiController::class, 'state'])->middleware('ability:events:write');
             Route::post(ApiRoutes::COMMUNITY_SPACE_EVENT_DUPLICATE, [EventApiController::class, 'duplicate'])->middleware('ability:events:write')->middleware('throttle:events');
+            // The answers of members to an event (#1515, ADR 0053): a member reads and sets their own answer; the host, the
+            // owner and the admins read the list, with an ability that is never in the default set of a token
+            Route::get(ApiRoutes::COMMUNITY_SPACE_EVENT_ANSWER, [EventAnswerApiController::class, 'show'])->middleware('ability:events:read');
+            Route::put(ApiRoutes::COMMUNITY_SPACE_EVENT_ANSWER, [EventAnswerApiController::class, 'update'])->middleware('ability:events:write')->middleware('throttle:event-answers');
+            Route::delete(ApiRoutes::COMMUNITY_SPACE_EVENT_ANSWER, [EventAnswerApiController::class, 'destroy'])->middleware('ability:events:write')->middleware('throttle:event-answers');
+            Route::get(ApiRoutes::COMMUNITY_SPACE_EVENT_ANSWERS, [EventAnswerApiController::class, 'index'])->middleware('ability:event-answers:read');
 
             // Comments on resources (#1034)
             Route::post(ApiRoutes::COMMUNITY_SPACE_RESOURCE_COMMENTS, [CommunityResourceCommentApiController::class, 'store'])->middleware('ability:resources:write')->middleware('throttle:comments');
