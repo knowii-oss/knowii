@@ -228,7 +228,9 @@ class UserApiController extends Controller
         }
 
         if ($proof === KnowiiAccountDeletionProof::Password) {
-            app(DeletesAccounts::class)->delete($user->fresh() ?? $user, $request->only(['delete_content']));
+            // The model of the request, whose password was checked: the action compares its version of the sessions with the
+            // row that it locks (ADR 0059)
+            app(DeletesAccounts::class)->delete($user, $request->only(['delete_content']));
         } else {
             // The proof is checked again and used up in the transaction of the deletion: a second request cannot use it
             try {

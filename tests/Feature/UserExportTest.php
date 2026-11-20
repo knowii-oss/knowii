@@ -130,6 +130,7 @@ test('the export holds the account, the profile, the membership, the content and
         ->and($account['account']['email'])->toBe('member@example.com')
         ->and($account['account']['name'])->toBe('Marie Member')
         ->and($account['account']['email_verified_at'])->not->toBeNull()
+        ->and($account['account'])->not->toHaveKey('session_version')
         ->and($account['account']['two_factor_authentication'])->toBeFalse()
         ->and($account['account']['show_online_status'])->toBeTrue()
         ->and($account['account']['avatar'])->toBe('files/avatar.png')

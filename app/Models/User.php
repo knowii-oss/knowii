@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\UseResource;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -47,6 +48,7 @@ use TaylorNetwork\UsernameGenerator\GeneratesUsernames;
  * @property ?Carbon $email_verified_at
  * @property ?string $pending_email The new address that the member asked for, until it is confirmed or cancelled (#1706, ADR 0058). Null when none, and when it waited for more than Retention::pendingEmailDays() days. Hidden from every serialization: only the member reads it (User::ownPendingEmailChange())
  * @property ?Carbon $pending_email_requested_at The time of the request of the pending address (#1706). Hidden from every serialization
+ * @property int $session_version The number that each session of the account holds from its sign-in (ADR 0059): a takeover adds 1, and a session with another number is signed out. Hidden from every serialization
  * @property ?string $password Null for an account without a password (created by an OpenID Connect provider, or its password was removed, #1385)
  * @property ?Carbon $deletion_signed_in_at The time of the new sign-in at the provider that proves the intent to delete an account without a password (#1521, ADR 0052). Null when none, or when a deletion used it. Hidden from every serialization
  * @property ?string $two_factor_secret
@@ -121,6 +123,14 @@ class User extends Authenticatable implements MustVerifyEmail
         'username',
         'email',
         'password',
+    ];
+
+    /**
+     * A new account holds the version 0 of the sessions (ADR 0059), as the default of the column: the model knows it from
+     * its first write, so its updates check it (setKeysForSaveQuery()).
+     */
+    protected $attributes = [
+        'session_version' => 0,
     ];
 
     /**
@@ -204,6 +214,8 @@ class User extends Authenticatable implements MustVerifyEmail
         // ownPendingEmailChange()
         'pending_email',
         'pending_email_requested_at',
+        // The version of the sessions (ADR 0059): only the server reads it
+        'session_version',
         'two_factor_recovery_codes',
         'two_factor_secret',
     ];
@@ -218,6 +230,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'pending_email_requested_at' => 'datetime',
+            'session_version' => 'integer',
             'password' => 'hashed',
             'show_online_status' => 'boolean',
             'notification_popups' => 'boolean',
@@ -335,6 +348,38 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Whether the address of the account was never verified (ADR 0059): nobody proved that they read its mailbox. Only such
+     * an account is taken over by the first proof of an address. A verified account keeps its verified address through a
+     * change of the address, which applies after the new address is confirmed (ADR 0058): an account that is not verified
+     * now was never verified. A query may select some columns only: a column that the model does not hold counts as null.
+     */
+    final public function addressWasNeverVerified(): bool
+    {
+        return ($this->getAttributes()['email_verified_at'] ?? null) === null;
+    }
+
+    /**
+     * Whether the account has this address now, without regard to the case (the unique index of the address ignores the case)
+     */
+    final public function hasAddress(string $address): bool
+    {
+        $email = $this->getAttributes()['email'] ?? null;
+
+        return is_string($email) && mb_strtolower($email) === mb_strtolower(trim($address));
+    }
+
+    /**
+     * The version of the sessions of the account (ADR 0059). A new account holds 0: the column defaults to 0, and a model
+     * built in memory does not hold it yet.
+     */
+    final public function sessionVersion(): int
+    {
+        $value = $this->getAttributes()['session_version'] ?? 0;
+
+        return is_numeric($value) ? (int) $value : 0;
+    }
+
+    /**
      * Marks the address as verified, in one conditional write (#1706, ADR 0058): only while the stored row still has the
      * address of this model and no verified address. A model that was read before a change of the address, or before
      * another proof verified it, writes nothing. Returns whether it wrote; the model holds the new values only then.
@@ -369,6 +414,40 @@ class User extends Authenticatable implements MustVerifyEmail
     final public function sendEmailVerificationNotification(): void
     {
         $this->notify(new VerifyEmailAddress(Landing::fromSession()));
+    }
+
+    /**
+     * Every update of the row by a model also needs the version of the sessions that the model read (ADR 0059). A takeover
+     * adds 1 to the version on the locked row, so a model that a request read before it (a request of the session of
+     * before, which passed the session check a moment before the takeover) writes nothing after it: no error, and the row
+     * keeps the values of the takeover. This holds for every writer: the actions of the application, and the framework (the
+     * password that the sign-in or "Log out other browser sessions" hashes again, the remember token, the second factor).
+     * A model that does not hold the column (a query that selected some columns only) is not checked.
+     *
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    protected function setKeysForSaveQuery($query)
+    {
+        parent::setKeysForSaveQuery($query);
+        if (array_key_exists('session_version', $this->original)) {
+            $query->where('session_version', '=', $this->getRawOriginal('session_version'));
+        }
+
+        return $query;
+    }
+
+    /**
+     * The deletion of the account is no update: it finds the row by its key only, as the framework does. The deletion with
+     * a password checks the version of the sessions on the locked row first (DeleteUser::delete())
+     */
+    protected function performDeleteOnModel()
+    {
+        /** @var Builder<static> $query */
+        $query = $this->newModelQuery();
+        parent::setKeysForSaveQuery($query)->delete();
+
+        $this->exists = false;
     }
 
     final public function getRouteKeyName(): string

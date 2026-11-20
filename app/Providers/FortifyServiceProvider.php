@@ -2,10 +2,14 @@
 
 namespace App\Providers;
 
+use App\Actions\Fortify\ConfirmTwoFactorAuthentication;
 use App\Actions\Fortify\CreateNewUser;
+use App\Actions\Fortify\EnableTwoFactorAuthentication;
+use App\Actions\Fortify\GenerateNewRecoveryCodes;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
+use App\Http\Requests\TwoFactorLoginRequest;
 use App\Http\Responses\TwoFactorLoginResponse;
 use App\Http\Responses\VerifyEmailResponse;
 use App\Support\OpenIdConnect;
@@ -17,9 +21,13 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Laravel\Fortify\Actions\ConfirmTwoFactorAuthentication as FortifyConfirmTwoFactorAuthentication;
+use Laravel\Fortify\Actions\EnableTwoFactorAuthentication as FortifyEnableTwoFactorAuthentication;
+use Laravel\Fortify\Actions\GenerateNewRecoveryCodes as FortifyGenerateNewRecoveryCodes;
 use Laravel\Fortify\Contracts\TwoFactorLoginResponse as TwoFactorLoginResponseContract;
 use Laravel\Fortify\Contracts\VerifyEmailResponse as VerifyEmailResponseContract;
 use Laravel\Fortify\Fortify;
+use Laravel\Fortify\Http\Requests\TwoFactorLoginRequest as FortifyTwoFactorLoginRequest;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -32,6 +40,13 @@ class FortifyServiceProvider extends ServiceProvider
         $this->app->singleton(VerifyEmailResponseContract::class, VerifyEmailResponse::class);
         // After the code of the second factor, a sign-in link lands on the page that it carries (#1612, ADR 0057)
         $this->app->singleton(TwoFactorLoginResponseContract::class, TwoFactorLoginResponse::class);
+        // A challenge of the second factor for an account that has none any more ends on the sign-in page (ADR 0059)
+        $this->app->bind(FortifyTwoFactorLoginRequest::class, TwoFactorLoginRequest::class);
+        // An account whose address was never verified cannot turn the second factor on (ADR 0059): "Enable", new recovery
+        // codes and the confirmation are refused
+        $this->app->bind(FortifyEnableTwoFactorAuthentication::class, EnableTwoFactorAuthentication::class);
+        $this->app->bind(FortifyGenerateNewRecoveryCodes::class, GenerateNewRecoveryCodes::class);
+        $this->app->bind(FortifyConfirmTwoFactorAuthentication::class, ConfirmTwoFactorAuthentication::class);
     }
 
     /**

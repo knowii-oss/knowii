@@ -15,6 +15,7 @@ use App\Actions\Auth\LinkIdentity;
 use App\Actions\Auth\MagicLinks;
 use App\Actions\Auth\OpenIdConnectClient;
 use App\Actions\Auth\SignInWithOpenIdConnect;
+use App\Actions\Auth\TakeOverUnverifiedAccount;
 use App\Actions\Auth\UnlinkIdentity;
 use App\Actions\Chat\CreateChatMessage;
 use App\Actions\Chat\DeleteChatMessage;
@@ -127,6 +128,7 @@ use App\Contracts\Auth\ReadsOpenIdConnectIdentities;
 use App\Contracts\Auth\ReadsSubjectEntitlements;
 use App\Contracts\Auth\SendsMagicLinks;
 use App\Contracts\Auth\SignsInWithOpenIdConnect;
+use App\Contracts\Auth\TakesOverUnverifiedAccounts;
 use App\Contracts\Auth\UnlinksIdentities;
 use App\Contracts\Chat\CreatesChatMessages;
 use App\Contracts\Chat\DeletesChatMessages;
@@ -196,6 +198,7 @@ use App\Contracts\Quizzes\AttemptsQuizzes;
 use App\Contracts\Quizzes\DeletesQuizzes;
 use App\Contracts\Quizzes\SavesQuizzes;
 use App\Contracts\Reactions\TogglesReactions;
+use App\Contracts\Realtime\EndsLiveConnections;
 use App\Contracts\Realtime\ReadsPresenceChannels;
 use App\Contracts\Resources\CapturesResourcePages;
 use App\Contracts\Resources\CreatesCommunityResources;
@@ -229,6 +232,7 @@ use App\Http\Controllers\Inertia\MemberController;
 use App\Models\User;
 use App\Support\EmailChangeBudget;
 use App\Support\MailSettings;
+use App\Support\ReverbLiveConnections;
 use App\Support\ReverbPresenceChannels;
 use Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -281,6 +285,8 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(SendsDirectMessages::class, SendDirectMessage::class);
         app()->singleton(MarksConversationsAsRead::class, MarkConversationAsRead::class);
         app()->singleton(ReadsPresenceChannels::class, ReverbPresenceChannels::class);
+        // A takeover ends the live connections of the account (ADR 0059)
+        app()->singleton(EndsLiveConnections::class, ReverbLiveConnections::class);
         app()->singleton(CreatesCommunityResources::class, CreateCommunityResource::class);
         app()->bind(CapturesResourcePages::class, CaptureResourcePage::class);
         app()->singleton(UpdatesCommunityResources::class, UpdateCommunityResource::class);
@@ -377,6 +383,7 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(SignsInWithOpenIdConnect::class, SignInWithOpenIdConnect::class);
         app()->singleton(LinksIdentities::class, LinkIdentity::class);
         app()->singleton(UnlinksIdentities::class, UnlinkIdentity::class);
+        app()->singleton(TakesOverUnverifiedAccounts::class, TakeOverUnverifiedAccount::class);
         // An account without a password confirms its deletion with a new sign-in (#1521, ADR 0052)
         app()->singleton(ConfirmsAccountDeletions::class, ConfirmAccountDeletion::class);
         // The entitlements of the sign-in provider feed the access groups (#1386, ADR 0047)

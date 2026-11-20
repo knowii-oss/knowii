@@ -8,6 +8,7 @@ use App\Http\Middleware\AddRobotsHeader;
 use App\Http\Middleware\AddViteContentSecurityPolicyNonce;
 use App\Http\Middleware\AnswerOnlyForOwnHostNames;
 use App\Http\Middleware\AuthenticateIfPresent;
+use App\Http\Middleware\EndOutdatedSessions;
 use App\Http\Middleware\EnsureRequestIsJson;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RecordLastVisit;
@@ -18,6 +19,7 @@ use App\Support\LegalPages;
 use App\Traits\ApiResponses;
 use Bepsvpt\SecureHeaders\SecureHeadersMiddleware;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Database\Eloquent\RelationNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
@@ -59,6 +61,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->insertAfter(TrustProxies::class, AnswerOnlyForOwnHostNames::class);
 
         $middleware->web(append: [
+            // A session of an account that was taken over since its sign-in ends here (ADR 0059), before anything reads
+            // the account of the session (see the priority below)
+            EndOutdatedSessions::class,
             HandleInertiaRequests::class,
             // The last visit of a member, one date at most once a day (#1476)
             RecordLastVisit::class,
@@ -79,6 +84,10 @@ return Application::configure(basePath: dirname(__DIR__))
             // Reject non-JSON request bodies (the API only accepts JSON input)
             EnsureRequestIsJson::class,
 
+            // A session of the first-party front-end whose account was taken over since its sign-in ends here, as in the
+            // web group (ADR 0059). A request with a token has no session: nothing to check
+            EndOutdatedSessions::class,
+
             // WARNING: Enabling this causes 302 redirects for API calls
             // \Illuminate\Foundation\Http\Middleware\PreventRequestForgery::class,
 
@@ -91,6 +100,11 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->statefulApi();
+
+        // The end of a session of an earlier version (ADR 0059) comes before the middleware of the framework that reads the
+        // account of the session: the sign-in check of the routes, the limits per account, the check of the password and the
+        // bindings of the route
+        $middleware->prependToPriorityList(AuthenticatesRequests::class, EndOutdatedSessions::class);
 
         // Token abilities on the API routes (ADR 0022, #689): `ability:a,b` passes with any of them
         $middleware->alias([

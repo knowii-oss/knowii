@@ -66,7 +66,9 @@ class DeleteAccountController extends Controller
             ])->validate();
             $this->checkSecondFactor($request, $user);
 
-            app(DeletesAccounts::class)->delete($user->fresh() ?? $user, $request->only(['delete_content']));
+            // The model of the request, whose password was checked: the action compares its version of the sessions with the
+            // row that it locks (ADR 0059)
+            app(DeletesAccounts::class)->delete($user, $request->only(['delete_content']));
         }
 
         $guard->logout();
