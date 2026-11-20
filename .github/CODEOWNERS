@@ -20,6 +20,7 @@
 
 # The texts that the owner approves
 /SECURITY.md @dsebastien
-/resources/markdown/ @dsebastien
+/deploy/ @dsebastien
+/resources/legal-templates/ @dsebastien
 /config/legal.php @dsebastien
 /config/retention.php @dsebastien

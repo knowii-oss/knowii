@@ -64,17 +64,19 @@ class CreateCommunity implements CreatesCommunities
 
         try {
             // The owner of a shared community accepts the DPA in the create dialog: Knowii records the date and the
-            // version of the text (#1353). A personal community holds nobody else's data: nothing to accept
+            // version of the text (#1353). A personal community holds nobody else's data: nothing to accept. An instance
+            // without the text of the agreement shows none in the dialog (#1653): the community is created, and no
+            // agreement is recorded
             $shared = $input['visibility'] !== KnowiiCommunityVisibility::Personal->value;
-            $dpaVersion = $shared ? LegalPages::updated('dpa') : null;
+            $acceptsDpa = $shared && LegalPages::exists('dpa');
 
             $retVal = $user->ownedCommunities()->create([
                 'name' => $communityName,
                 // Slug is generated automatically
                 'description' => $input['description'] ?? null,
                 'visibility' => $input['visibility'],
-                'dpa_accepted_at' => $shared ? now() : null,
-                'dpa_version' => $dpaVersion,
+                'dpa_accepted_at' => $acceptsDpa ? now() : null,
+                'dpa_version' => $acceptsDpa ? LegalPages::updated('dpa') : null,
             ]);
 
             Log::info('New community created successfully', ['community' => $retVal->cuid]);

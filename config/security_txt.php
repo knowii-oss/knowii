@@ -13,7 +13,8 @@ return [
     // the current day. The file is built from the configuration that runs, so a date that moves stays true.
     'expires' => env('SECURITY_TXT_EXPIRES'),
 
-    // The page with the security policy of this instance (https). Empty: the security page of the application.
+    // The page with the security policy of this instance (https). Empty: the security page of the application, when the
+    // instance has its text (storage/app/legal/security.md), else the file has no Policy line (#1653).
     'policy' => env('SECURITY_TXT_POLICY'),
 
     // Optional (https): the public key for encrypted reports, and the page that thanks the reporters.

@@ -5,7 +5,7 @@ Please check if your PR fulfills the following requirements:
 - [ ] The commit message follows our guidelines
 - [ ] Tests for the changes have been added (for bug fixes / features)
 - [ ] Docs have been added / updated (for bug fixes / features)
-- [ ] A new third-party service that receives personal data (AI provider, email, analytics, storage) is in the sub-processors of `config/legal.php` (DPA and privacy policy)
+- [ ] A new third-party service that receives personal data (AI provider, email, analytics, storage) is in the sub-processors of the hosted instance when it uses it (`deploy/knowii.net/legal/subprocessors.json`: DPA and privacy policy), and `SELF_HOSTING.md` tells an operator to list it
 - [ ] A new route has a policy check, and an API route names its token ability
 - [ ] New personal data has a retention period, a line in the member export and a line in the privacy policy
 - [ ] The text of this pull request and of its commits describes no security problem that is not fixed yet (see "Security issues" in `AGENTS.md`)

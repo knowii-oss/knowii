@@ -104,9 +104,9 @@ exception.
   only when the maintainer decides it, with the reason in writing.
 - **Tests**: test on a local environment, never on a hosted instance, and
   never with the data of real people.
-- **Approved texts**: `SECURITY.md` and the security page of the application
-  (`resources/markdown/security.md`) change only with the approval of the
-  owner.
+- **Approved texts**: `SECURITY.md` and the security page of the hosted
+  instance (`deploy/knowii.net/legal/security.md`) change only with the
+  approval of the owner.
 
 ## Commands
 

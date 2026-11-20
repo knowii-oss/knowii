@@ -1,0 +1,37 @@
+[
+  {
+    "name": "Example Hosting GmbH",
+    "country": "Germany",
+    "purpose": "Hosting of the servers",
+    "safeguard": "European Union",
+    "scope": ["platform", "community"]
+  },
+  {
+    "name": "Example Mail, Inc.",
+    "country": "United States",
+    "purpose": "Emails of the service",
+    "safeguard": "Standard contractual clauses",
+    "scope": ["platform", "community"]
+  },
+  {
+    "name": "Example Statistics OÜ",
+    "country": "Estonia",
+    "purpose": "Audience statistics",
+    "safeguard": "European Union",
+    "scope": ["platform"]
+  },
+  {
+    "name": "Example Archive Ltd",
+    "country": "Ireland",
+    "purpose": "Storage of the backups",
+    "safeguard": "European Union"
+  },
+  {
+    "name": "Example AI, Inc.",
+    "country": "United States",
+    "purpose": "Summaries of posts",
+    "safeguard": "Standard contractual clauses",
+    "scope": ["community"],
+    "feature": "AI summaries"
+  }
+]

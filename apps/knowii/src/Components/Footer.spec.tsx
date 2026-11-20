@@ -1,11 +1,13 @@
 import { render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { InstancePageProp } from '@knowii/common';
+import type { InstancePageProp, LegalPageSlug } from '@knowii/common';
+import { LEGAL_PAGE_SLUGS } from '@knowii/common';
 import Footer from './Footer';
 
 const pageProps: {
   newsletter?: { enabled: boolean; turnstileSiteKey: string | null };
   instance?: InstancePageProp;
+  legalPages?: LegalPageSlug[];
   auth: { user: { email: string } | null };
 } = {
   auth: { user: null },
@@ -33,6 +35,8 @@ describe('Footer', () => {
   beforeEach(() => {
     delete pageProps.newsletter;
     pageProps.instance = instanceValues();
+    // An instance with every legal text, unless a test says otherwise
+    pageProps.legalPages = [...LEGAL_PAGE_SLUGS];
     pageProps.auth.user = null;
   });
 
@@ -77,6 +81,80 @@ describe('Footer', () => {
     expect(screen.queryByRole('navigation', { name: 'Product' })).toBeNull();
     expect(screen.queryByRole('form', { name: 'Newsletter' })).toBeNull();
     expect(screen.getByText(`© ${new Date().getFullYear()} Example Ltd. Made in Ireland.`)).toBeInTheDocument();
+  });
+
+  describe('the legal pages of the instance (#1653)', () => {
+    const legalLinks = () => within(screen.getByRole('navigation', { name: 'Legal' })).getAllByRole('link');
+
+    it('links every legal page of an instance that has every text', () => {
+      render(<Footer />);
+
+      expect(legalLinks().map((link) => [link.textContent, link.getAttribute('href')])).toEqual([
+        ['Terms of service', '/terms-of-service.show'],
+        ['Privacy policy', '/privacy-policy.show'],
+        ['Data processing agreement', '/dpa.show'],
+        ['Content policy', '/content-policy.show'],
+        ['Imprint', '/imprint.show'],
+        ['Security', '/security.show'],
+      ]);
+    });
+
+    it('links only the legal pages that exist', () => {
+      pageProps.legalPages = ['privacy-policy', 'imprint'];
+      render(<Footer />);
+
+      expect(legalLinks().map((link) => link.textContent)).toEqual(['Privacy policy', 'Imprint']);
+      expect(screen.queryByRole('link', { name: 'Terms of service' })).toBeNull();
+      expect(screen.queryByRole('link', { name: 'Data processing agreement' })).toBeNull();
+      expect(screen.queryByRole('link', { name: 'Content policy' })).toBeNull();
+      expect(screen.queryByRole('link', { name: 'Security' })).toBeNull();
+    });
+
+    it('has no "Legal" column when the instance has no legal text, and keeps the other columns', () => {
+      pageProps.legalPages = [];
+      render(<Footer />);
+
+      expect(screen.queryByRole('navigation', { name: 'Legal' })).toBeNull();
+      expect(screen.queryByRole('link', { name: 'Privacy policy' })).toBeNull();
+      for (const name of ['Product', 'Community', 'Open source']) {
+        expect(screen.getByRole('navigation', { name })).toBeInTheDocument();
+      }
+    });
+
+    it('has no "Legal" column without the prop', () => {
+      delete pageProps.legalPages;
+      render(<Footer />);
+
+      expect(screen.queryByRole('navigation', { name: 'Legal' })).toBeNull();
+      expect(screen.queryByRole('link', { name: 'Imprint' })).toBeNull();
+    });
+
+    it('follows in the compact variant: only the pages that exist', () => {
+      pageProps.legalPages = ['terms-of-service', 'security'];
+      render(<Footer variant="compact" />);
+
+      expect(legalLinks().map((link) => [link.textContent, link.getAttribute('href')])).toEqual([
+        ['Terms of service', '/terms-of-service.show'],
+        ['Security', '/security.show'],
+      ]);
+    });
+
+    it('shows no legal navigation in the compact variant without a legal text, and keeps the bottom line', () => {
+      pageProps.instance = instanceValues({ publisher: 'Example Ltd' });
+      for (const legalPages of [[], undefined]) {
+        if (legalPages) {
+          pageProps.legalPages = legalPages;
+        } else {
+          delete pageProps.legalPages;
+        }
+        const { unmount } = render(<Footer variant="compact" />);
+
+        expect(screen.queryByRole('navigation')).toBeNull();
+        expect(screen.queryAllByRole('link')).toEqual([]);
+        expect(screen.getByText(`© ${new Date().getFullYear()} Example Ltd.`)).toBeInTheDocument();
+        unmount();
+      }
+    });
   });
 
   describe('the values of the instance (#1653)', () => {

@@ -11,7 +11,12 @@
  * street address and its hosts come from configuration (config/legal.php, config/instance.php). Use "the operator", and
  * in test data "Example Operator", "Example Ltd" and example.com addresses.
  *
- * The guard never reads deploy/: that folder holds the values of the hosted instance on purpose.
+ * The code holds no legal text either: the texts of an instance live in storage/app/legal. The guard reads all of
+ * resources/, so the templates of resources/legal-templates name the operator, its contact address and its site only
+ * through a placeholder, and a legal text of one instance cannot come back there.
+ *
+ * The guard never reads deploy/: that folder holds the values and the legal texts of the hosted instance on purpose. It
+ * skips one file, tests/Feature/HostedLegalTextsTest.php, which checks the words of those texts. No file is an exception.
  *
  * The patterns are regular expressions, so this file does not match itself.
  */
@@ -37,14 +42,14 @@ function instanceValuePatterns(): array
 }
 
 /**
- * The folders that the guard reads. Never deploy/ (the values of the hosted instance), and not yet resources/markdown
- * (the legal texts, until they leave the code: #1653)
+ * The folders that the guard reads. All of resources/: the views, and the templates of the legal texts. Never deploy/
+ * (the values and the legal texts of the hosted instance)
  *
  * @return list<string>
  */
 function instanceNeutralFolders(): array
 {
-    return ['app', 'config', 'database', 'lang', 'routes', 'resources/views', 'apps/knowii/src', 'libs/common/src', 'tests'];
+    return ['app', 'config', 'database', 'lang', 'routes', 'resources', 'apps/knowii/src', 'libs/common/src', 'tests'];
 }
 
 /**
@@ -64,10 +69,8 @@ function instanceNeutralFiles(): array
  */
 function instanceValueExceptions(): array
 {
-    // Add a file here only with its issue, and remove it with the fix
-    return [
-        'tests/Feature/LegalPagesTest.php' => 'It checks the words of the legal texts of the hosted instance, which still live in resources/markdown. The texts and this test move with the second part of #1653',
-    ];
+    // Empty since the legal texts left the code (#1653). Add a file here only with its issue, and remove it with the fix
+    return [];
 }
 
 /**
@@ -77,8 +80,9 @@ function instanceValueExceptions(): array
  */
 function instanceValueSkippedFiles(): array
 {
-    // None since the values of one instance come from configuration (#1653)
-    return [];
+    // The only one (#1653): the tests of the legal texts of the hosted instance, which live in deploy/. They check the
+    // words that the owner approved, so they name the operator
+    return ['tests/Feature/HostedLegalTextsTest.php'];
 }
 
 /**
@@ -151,15 +155,31 @@ test('every exception of the guard still holds a value of one instance: remove t
     expect($stale)->toBe([]);
 });
 
-test('the guard never reads the folder of the hosted instance, and skips no file (#1653)', function () {
+test('the guard never reads the folder of the hosted instance, has no exception, and skips only the tests of the hosted texts (#1653)', function () {
     $entries = [...instanceNeutralFolders(), ...instanceNeutralFiles(), ...array_keys(instanceValueExceptions()), ...instanceValueSkippedFiles()];
 
     expect(array_values(array_filter($entries, static fn (string $entry): bool => str_starts_with(ltrim($entry, './'), 'deploy'))))->toBe([])
-        ->and(instanceValueSkippedFiles())->toBe([])
-        // The legal texts are not read yet, and one test file is the only exception, until the second part of #1653
-        ->and(array_keys(instanceValueExceptions()))->toBe(['tests/Feature/LegalPagesTest.php'])
-        ->and(instanceNeutralFolders())->toContain('app', 'config', 'database', 'lang', 'routes', 'resources/views', 'apps/knowii/src', 'libs/common/src', 'tests')
+        ->and(instanceValueSkippedFiles())->toBe(['tests/Feature/HostedLegalTextsTest.php'])
+        ->and(instanceValueExceptions())->toBe([])
+        // All of resources/: the views and the templates of the legal texts
+        ->and(instanceNeutralFolders())->toBe(['app', 'config', 'database', 'lang', 'routes', 'resources', 'apps/knowii/src', 'libs/common/src', 'tests'])
         ->and(instanceNeutralFiles())->toBe(['public/humans.txt', '.env.example', '.env.production.example']);
+});
+
+test('the guard reads the templates of the legal texts, and the skipped file exists and holds a value (#1653)', function () {
+    $root = dirname(__DIR__, 2);
+
+    // The templates are under a folder that the guard reads: a name of one instance in a template fails the first test
+    expect(is_dir($root.'/resources/legal-templates'))->toBeTrue()
+        ->and(is_dir($root.'/resources/markdown'))->toBeFalse();
+
+    // A skipped file that is gone, or that names nothing any more, leaves the list
+    foreach (instanceValueSkippedFiles() as $path) {
+        expect(is_file($root.'/'.$path))->toBeTrue();
+        $source = (string) file_get_contents($root.'/'.$path);
+        $found = array_filter(instanceValuePatterns(), static fn (string $pattern): bool => preg_match($pattern, $source) === 1);
+        expect($found)->not->toBe([]);
+    }
 });
 
 test('the guard finds each value, in any case (#1643, #1653)', function (string $text) {

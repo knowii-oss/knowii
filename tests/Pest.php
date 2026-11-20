@@ -290,6 +290,24 @@ function entForge(array $header, array $claims, string $signature = ''): string
 }
 
 /**
+ * The legal texts of the fixtures (tests/Fixtures/legal) without the given files, by file name: what a test gives to
+ * useLegalFolder() for an instance that has every text but these (#1653)
+ *
+ * @return array<string, string>
+ */
+function legalTextsWithout(string ...$without): array
+{
+    $files = [];
+    foreach (glob(dirname(__DIR__).'/tests/Fixtures/legal/*') ?: [] as $path) {
+        if (! in_array(basename($path), $without, true)) {
+            $files[basename($path)] = (string) file_get_contents($path);
+        }
+    }
+
+    return $files;
+}
+
+/**
  * An instance with its two required values (#1653, ADR 0055). A test that switches to production calls it first: in
  * production the placeholders of the test environment count as not set, and every request answers 503.
  */

@@ -23,5 +23,6 @@
 
 ---
 
-{{ __(':name invited you to the :community community. :operator runs Knowii and sends this email for that community. We got your email address from the person who invited you and use it only for this invitation. If you do nothing, we delete the invitation and your address :period after it expires. Your rights are in the privacy policy: :link.', ['name' => $inviterName, 'community' => $communityName, 'operator' => $operator, 'period' => $deletedAfter, 'link' => $privacyPolicyUrl]) }}
+{{ __(':name invited you to the :community community. :operator runs Knowii and sends this email for that community. We got your email address from the person who invited you and use it only for this invitation. If you do nothing, we delete the invitation and your address :period after it expires.', ['name' => $inviterName, 'community' => $communityName, 'operator' => $operator, 'period' => $deletedAfter]) }}@if ($privacyPolicyUrl !== null) {{ __('Your rights are in the privacy policy: :link.', ['link' => $privacyPolicyUrl]) }}@endif
+
 @endcomponent

@@ -404,12 +404,38 @@ test('the invitation email says who invited the person, who sends it, and where 
     expect($text)->toContain($this->c['admin']->name.' invited you to the '.$community->name.' community. Example Ltd (Ireland) runs Knowii and sends this email for that community.')
         ->and($text)->toContain('We got your email address from the person who invited you and use it only for this invitation.')
         ->and($text)->toContain('If you do nothing, we delete the invitation and your address 30 days after it expires.')
-        ->and($text)->toContain('Your rights are in the privacy policy: '.route('privacy-policy.show'));
+        ->and($text)->toContain('Your rights are in the privacy policy: '.route('privacy-policy.show'))
+        // One paragraph, as before the sentence became a text of its own (#1653)
+        ->and($text)->toContain('If you do nothing, we delete the invitation and your address 30 days after it expires. Your rights are in the privacy policy: '.route('privacy-policy.show').'.');
 });
 
-test('the privacy policy describes the data that comes from other people (#1345)', function () {
-    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
-        ->where('html', fn (string $html) => str_contains($html, 'Data that we get from other people: when a manager of a community invites you, they give us your email address. When a member mentions you, that mention is content of the community.')));
+test('the invitation email of an instance without a privacy policy names none, and keeps the other sentences (#1653)', function () {
+    config(['retention.expired_invitations_days' => 30, 'legal.operator' => 'Example Ltd (Ireland)']);
+    $this->useLegalFolder(legalTextsWithout('policy.md'));
+    $community = $this->c['community'];
+    $invitation = $community->communityInvitations()->create(['email' => 'grace@example.com', 'role' => KnowiiCommunityMemberRole::Member]);
+
+    $html = (new CommunityInvitationMail($invitation, $this->c['admin']))->render();
+    $text = (string) preg_replace('/\s+/', ' ', html_entity_decode(strip_tags($html), ENT_QUOTES));
+
+    expect($text)->toContain($this->c['admin']->name.' invited you to the '.$community->name.' community. Example Ltd (Ireland) runs Knowii and sends this email for that community.')
+        ->and($text)->toContain('We got your email address from the person who invited you and use it only for this invitation.')
+        ->and($text)->toContain('If you do nothing, we delete the invitation and your address 30 days after it expires.')
+        ->and($text)->not->toContain('Your rights')
+        ->and($text)->not->toContain('privacy policy')
+        ->and($html)->not->toContain('privacy-policy');
+});
+
+test('the invitation email is one text with the privacy policy, and the same text without its last sentence (#1653)', function () {
+    $invitation = $this->c['community']->communityInvitations()->create(['email' => 'grace@example.com', 'role' => KnowiiCommunityMemberRole::Member]);
+    $normalize = static fn (string $html): string => trim((string) preg_replace('/\s+/', ' ', html_entity_decode(strip_tags($html), ENT_QUOTES)));
+
+    $with = $normalize((new CommunityInvitationMail($invitation, $this->c['admin']))->render());
+    $this->useLegalFolder();
+    $without = $normalize((new CommunityInvitationMail($invitation, $this->c['admin']))->render());
+
+    expect(str_replace(' Your rights are in the privacy policy: '.route('privacy-policy.show').'.', '', $with))->toBe($without)
+        ->and($with)->not->toBe($without);
 });
 
 // ---------------------------------------------------------------------------------------------------------------------

@@ -3,6 +3,7 @@
 use App\Actions\Communities\CreateCommunity;
 use App\Constants;
 use App\Enums\KnowiiCommunityVisibility;
+use App\Models\Community;
 use App\Models\User;
 use App\Support\LegalPages;
 use Illuminate\Validation\ValidationException;
@@ -224,6 +225,49 @@ test('a shared community records the acceptance of the DPA and its version (#135
         ->and($community->dpa_accepted_at->isToday())->toBeTrue()
         ->and($community->dpa_version->toDateString())->toBe(LegalPages::updated('dpa'));
 });
+
+test('a shared community records the version of the agreement text of the instance (#1653)', function () {
+    $this->useLegalFolder(['dpa.md' => "---\ntitle: Agreement\nupdated: 2027-03-04\n---\n\n# Agreement\n"]);
+    $user = User::factory()->withUserProfile()->create();
+
+    $community = (new CreateCommunity)->create($user, ['name' => 'Shared Garden', 'visibility' => KnowiiCommunityVisibility::Private->value])->fresh();
+
+    expect($community->dpa_accepted_at->isToday())->toBeTrue()
+        ->and($community->dpa_version->toDateString())->toBe('2027-03-04');
+});
+
+test('a shared community records the acceptance without a version when the agreement text has no valid date (#1653)', function (string $frontMatter) {
+    $this->useLegalFolder(['dpa.md' => $frontMatter."# Agreement\n"]);
+    $user = User::factory()->withUserProfile()->create();
+
+    $community = (new CreateCommunity)->create($user, ['name' => 'Shared Garden', 'visibility' => KnowiiCommunityVisibility::Public->value])->fresh();
+
+    expect($community->dpa_accepted_at)->not->toBeNull()
+        ->and($community->dpa_version)->toBeNull();
+})->with([
+    'no front matter' => [''],
+    'a draft without a date' => ["---\ntitle: Agreement\ndraft: true\n---\n\n"],
+    'a date that is not a date' => ["---\nupdated: soon\n---\n\n"],
+    'a day that does not exist' => ["---\nupdated: 2027-02-30\n---\n\n"],
+]);
+
+test('an instance without the agreement text creates a shared community, and records no agreement (#1653)', function (string $visibility) {
+    $this->useLegalFolder(legalTextsWithout('dpa.md'));
+    $user = User::factory()->withUserProfile()->withPersonalCommunity()->create();
+
+    $community = (new CreateCommunity)->create($user, ['name' => 'Shared Garden', 'visibility' => $visibility])->fresh();
+
+    expect($community->exists)->toBeTrue()
+        ->and($community->dpa_accepted_at)->toBeNull()
+        ->and($community->dpa_version)->toBeNull();
+
+    // Through the API too
+    $this->actingAs($user)
+        ->postJson('/api/v1/communities', ['name' => 'Second Garden', 'visibility' => $visibility])
+        ->assertCreated();
+
+    expect(Community::query()->where('name', 'Second Garden')->sole()->dpa_accepted_at)->toBeNull();
+})->with([KnowiiCommunityVisibility::Private->value, KnowiiCommunityVisibility::Public->value]);
 
 test('a personal community records no acceptance, nobody else has data in it (#1353)', function () {
     $user = User::factory()->withUserProfile()->create();
