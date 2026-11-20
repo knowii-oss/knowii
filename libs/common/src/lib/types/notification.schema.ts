@@ -104,16 +104,6 @@ export interface NotificationsChangedPayload {
 }
 
 /**
- * The number that the bell shows: 1 to 9, then "9+", and nothing at zero
- */
-export function notificationBadge(count: number): string | null {
-  if (count <= 0) {
-    return null;
-  }
-  return count > 9 ? '9+' : String(count);
-}
-
-/**
  * The accessible name of the bell: the badge is hidden from assistive technology, so the name holds the number
  */
 export function notificationBellName(count: number): string {

@@ -64,14 +64,19 @@ describe('the Notifications panel (#1484)', () => {
       expect(within(panel()).getByRole('heading', { name: 'Needs you' })).toBeInTheDocument();
     });
 
-    it('shows 4 skeleton lines and aria-busy while it loads', async () => {
+    it('shows 4 skeleton lines in a status that says what loads', async () => {
       api.list.mockReturnValue(new Promise(() => undefined));
       renderBell();
       await openPanel();
 
-      const list = within(panel()).getByRole('list', { hidden: true });
-      expect(list).toHaveAttribute('aria-busy', 'true');
-      expect(list.querySelectorAll('li')).toHaveLength(4);
+      // The words that a screen reader hears are the only text of a status
+      const skeleton = within(panel())
+        .getAllByRole('status')
+        .filter((status) => status.textContent === 'Loading your notifications');
+      expect(skeleton).toHaveLength(1);
+      expect(skeleton[0]?.querySelectorAll(':scope > [aria-hidden="true"]')).toHaveLength(4);
+      // A screen reader may ignore what a busy element holds: the status is in none
+      expect(skeleton[0]?.closest('[aria-busy="true"]')).toBeNull();
     });
 
     it('shows the empty state', async () => {

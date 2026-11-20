@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { notificationBadge, notificationBellName, useTypedPage } from '@knowii/common';
+import { notificationBellName, useTypedPage } from '@knowii/common';
 import { FaBell } from 'react-icons/fa';
-import { Button, Drawer } from '@/Components/ui';
+import { Button, CountBadge, Drawer } from '@/Components/ui';
 import { NotificationsPanel } from './NotificationsPanel';
 import { useNotifications } from './NotificationsProvider';
 
@@ -108,7 +108,6 @@ export function NotificationBell() {
     };
   }, [open, narrow, focusHeading]);
 
-  const badge = notificationBadge(count);
   const headingText = (
     <span
       ref={heading}
@@ -134,14 +133,8 @@ export function NotificationBell() {
         className="relative"
       >
         <FaBell aria-hidden="true" />
-        {badge && (
-          <span
-            aria-hidden="true"
-            className="absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-well bg-secondary px-1 text-xs leading-none font-bold text-white"
-          >
-            {badge}
-          </span>
-        )}
+        {/* 1 to 9, then "9+". No label: the name of the button holds the number */}
+        <CountBadge count={count} max={9} placement="corner" />
       </Button>
 
       {narrow ? (

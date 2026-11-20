@@ -1,5 +1,6 @@
+import type { MockInstance } from 'vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { AccessGroup, AccessGroupMember, Author, Paginated, SpaceGroup } from '@knowii/common';
 import { AppDataProvider, knowiiApiClient } from '@knowii/common';
@@ -133,6 +134,114 @@ describe('AccessGroupsManager (#1241)', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));
 
     await waitFor(() => expect(destroy).toHaveBeenCalledWith('c1', 'g1'));
+  });
+});
+
+describe('AccessGroupsManager "Show more" of the members (#657)', () => {
+  type MembersAnswer = Awaited<ReturnType<typeof knowiiApiClient.communities.accessGroups.members.list>>;
+
+  const team: AccessGroup = { ...paid, cuid: 'g2', name: 'Team', description: '' };
+  const grace: AccessGroupMember = { cuid: 'u2', name: 'Grace Hopper', username: 'grace', avatar_url: null, sources: ['manual'] };
+  const alan: AccessGroupMember = { cuid: 'u3', name: 'Alan Turing', username: 'alan', avatar_url: null, sources: ['manual'] };
+
+  // The first part of a list that has more
+  const firstPart = (items: AccessGroupMember[]): MembersAnswer => {
+    const data = page(items);
+    return { ok: true, message: '', data: { ...data, pagination: { ...data.pagination, nextOffset: 20, pageCount: 2, totalCount: 21 } } };
+  };
+
+  let list: MockInstance<typeof knowiiApiClient.communities.accessGroups.members.list>;
+  // Gives the answer to "Show more" of the first group, which waits until the test calls it
+  let answerMore: (answer: MembersAnswer) => void;
+
+  beforeEach(() => {
+    vi.spyOn(knowiiApiClient.communities.accessGroups, 'list').mockResolvedValue({ ok: true, message: '', data: [paid, team] });
+    list = vi
+      .spyOn(knowiiApiClient.communities.accessGroups.members, 'list')
+      .mockImplementation((_communityCuid, groupCuid, _limit, offset) => {
+        if (groupCuid === 'g1' && offset === 20) {
+          return new Promise<MembersAnswer>((resolve) => {
+            answerMore = resolve;
+          });
+        }
+        return Promise.resolve(firstPart([groupCuid === 'g1' ? adaMember : grace]));
+      });
+  });
+
+  async function openMembersOf(name: string, member: string) {
+    await userEvent.click(await screen.findByRole('button', { name: `Members of ${name}` }));
+    const dialog = await screen.findByRole('dialog', { name: `Members of ${name}` });
+    await within(within(dialog).getByRole('list', { name: `Members of ${name}` })).findByText(member);
+    return dialog;
+  }
+
+  it('is busy while the next members load, and a second click makes no second call', async () => {
+    renderManager();
+    const dialog = await openMembersOf('Paid members', 'Ada Lovelace');
+    const more = within(dialog).getByRole('button', { name: 'Show more' });
+    expect(more).not.toHaveAttribute('aria-busy');
+
+    await userEvent.click(more);
+    expect(more).toHaveAttribute('aria-busy', 'true');
+    expect(more).toHaveAttribute('aria-disabled', 'true');
+    expect(list).toHaveBeenCalledTimes(2);
+    expect(list).toHaveBeenLastCalledWith('c1', 'g1', 20, 20);
+
+    await userEvent.click(more);
+    more.focus();
+    await userEvent.keyboard('{Enter}');
+    expect(list).toHaveBeenCalledTimes(2);
+
+    answerMore({ ok: true, message: '', data: page([grace]) });
+    expect(await within(dialog).findByText('Grace Hopper')).toBeInTheDocument();
+    expect(within(dialog).getByText('Ada Lovelace')).toBeInTheDocument();
+    // Nothing more to load
+    expect(within(dialog).queryByRole('button', { name: /Show more/ })).not.toBeInTheDocument();
+  });
+
+  it('is no longer busy after an answer that is not ok', async () => {
+    renderManager();
+    const dialog = await openMembersOf('Paid members', 'Ada Lovelace');
+    const more = within(dialog).getByRole('button', { name: 'Show more' });
+
+    await userEvent.click(more);
+    expect(more).toHaveAttribute('aria-busy', 'true');
+
+    answerMore({ ok: false, status: 500, message: 'The members did not load', errors: {} });
+    expect(await screen.findByText('The members did not load')).toBeInTheDocument();
+    await waitFor(() => expect(within(dialog).getByRole('button', { name: 'Show more' })).not.toHaveAttribute('aria-busy'));
+    expect(within(dialog).getByRole('button', { name: 'Show more' })).not.toHaveAttribute('aria-disabled');
+
+    // The member can ask again
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Show more' }));
+    expect(list).toHaveBeenCalledTimes(3);
+  });
+
+  it('is not busy for the next group, and a late answer of the first group adds nothing to it', async () => {
+    renderManager();
+    const first = await openMembersOf('Paid members', 'Ada Lovelace');
+    await userEvent.click(within(first).getByRole('button', { name: 'Show more' }));
+    expect(within(first).getByRole('button', { name: /Show more/ })).toHaveAttribute('aria-busy', 'true');
+
+    // The first group still loads when the manager closes it and opens the second one
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Members of Paid members' })).not.toBeInTheDocument());
+    const second = await openMembersOf('Team', 'Grace Hopper');
+    const more = within(second).getByRole('button', { name: 'Show more' });
+    expect(more).not.toHaveAttribute('aria-busy');
+    expect(more).not.toHaveAttribute('aria-disabled');
+
+    // The answer of the first group comes late: its member is not a member of the second group
+    answerMore({ ok: true, message: '', data: page([alan]) });
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    const members = within(second).getByRole('list', { name: 'Members of Team' });
+    expect(within(members).getAllByRole('listitem')).toHaveLength(1);
+    expect(within(members).getByText('Grace Hopper')).toBeInTheDocument();
+    expect(screen.queryByText('Alan Turing')).not.toBeInTheDocument();
+    // The second group still has more to load, and its button is still not busy
+    expect(within(second).getByRole('button', { name: 'Show more' })).not.toHaveAttribute('aria-busy');
   });
 });
 

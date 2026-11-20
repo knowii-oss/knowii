@@ -5,7 +5,6 @@ import {
   catchUpSchema,
   FOLLOWING_KINDS,
   notificationActorNames,
-  notificationBadge,
   notificationBellName,
   notificationReasonSentence,
   notificationSchema,
@@ -87,14 +86,6 @@ describe('notificationSchema (#1484)', () => {
 });
 
 describe('the bell (#1484)', () => {
-  it('shows 1 to 9, then "9+", and nothing at zero', () => {
-    expect(notificationBadge(0)).toBeNull();
-    expect(notificationBadge(3)).toBe('3');
-    expect(notificationBadge(9)).toBe('9');
-    expect(notificationBadge(10)).toBe('9+');
-    expect(notificationBadge(120)).toBe('9+');
-  });
-
   it('names the bell with the number', () => {
     expect(notificationBellName(0)).toBe('Notifications');
     expect(notificationBellName(3)).toBe('Notifications, 3 new');

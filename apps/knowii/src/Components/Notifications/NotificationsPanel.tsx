@@ -5,7 +5,7 @@ import { knowiiApiClient, NOTIFICATIONS_PER_PAGE, NOTIFICATIONS_URL, USER_NOTIFI
 import { Link } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
 import { FaChevronDown, FaChevronRight } from 'react-icons/fa6';
-import { Button, EmptyState } from '@/Components/ui';
+import { Button, EmptyState, LoadMoreButton, Skeleton } from '@/Components/ui';
 import { clearCatchUp, useActiveCatchUp } from './catch-up-state';
 import type { CatchUpCommunity } from './CatchUpCard';
 import { CatchUpCard } from './CatchUpCard';
@@ -693,19 +693,7 @@ export function NotificationsPanel({ onClose, focusHeading, catchUpCommunities =
           </Button>
         )}
 
-        {main.status === 'loading' && (
-          <ul aria-busy="true" className="flex flex-col gap-2">
-            {Array.from({ length: SKELETON_LINES }, (_, index) => (
-              <li key={index} aria-hidden="true" className="flex gap-3 px-2 py-3">
-                <span className="size-8 shrink-0 rounded-full bg-overlay/10 motion-safe:animate-pulse" />
-                <span className="flex grow flex-col gap-2">
-                  <span className="h-3 w-3/4 rounded bg-overlay/10 motion-safe:animate-pulse" />
-                  <span className="h-3 w-full rounded bg-overlay/10 motion-safe:animate-pulse" />
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
+        {main.status === 'loading' && <Skeleton label="Loading your notifications" rows={SKELETON_LINES} avatar />}
 
         {main.status === 'error' && (
           <div className="flex flex-col items-start gap-2 rounded-lg border border-border px-3 py-3 text-sm">
@@ -726,16 +714,9 @@ export function NotificationsPanel({ onClose, focusHeading, catchUpCommunities =
           ))}
 
         {main.status === 'ready' && main.hasMore && (
-          <Button
-            variant="secondary"
-            size="sm"
-            aria-busy={main.loadingMore || undefined}
-            aria-disabled={main.loadingMore || undefined}
-            onClick={() => void loadMore(main)}
-            className="self-start"
-          >
+          <LoadMoreButton size="sm" align="start" loading={main.loadingMore} onClick={() => void loadMore(main)} className="self-start">
             Load older
-          </Button>
+          </LoadMoreButton>
         )}
       </section>
 
@@ -763,18 +744,7 @@ export function NotificationsPanel({ onClose, focusHeading, catchUpCommunities =
           )}
         </div>
 
-        {following.status === 'loading' && (
-          <div aria-busy="true" className="flex flex-col gap-2">
-            {Array.from({ length: FOLLOWING_SKELETON_LINES }, (_, index) => (
-              <div key={index} aria-hidden="true" className="flex gap-3 px-2 py-3">
-                <span className="size-8 shrink-0 rounded-full bg-overlay/10 motion-safe:animate-pulse" />
-                <span className="flex grow flex-col gap-2">
-                  <span className="h-3 w-3/4 rounded bg-overlay/10 motion-safe:animate-pulse" />
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
+        {following.status === 'loading' && <Skeleton label="Loading Following" rows={FOLLOWING_SKELETON_LINES} lines={1} avatar />}
 
         {following.status === 'error' && (
           <div className="flex flex-col items-start gap-2 rounded-lg border border-border px-3 py-3 text-sm">
@@ -795,17 +765,16 @@ export function NotificationsPanel({ onClose, focusHeading, catchUpCommunities =
           ))}
 
         {following.status === 'ready' && following.hasMore && (
-          <Button
-            variant="secondary"
+          <LoadMoreButton
             size="sm"
+            align="start"
             aria-label="Load more in Following"
-            aria-busy={following.loadingMore || undefined}
-            aria-disabled={following.loadingMore || undefined}
+            loading={following.loadingMore}
             onClick={() => void loadMore(following)}
             className="self-start"
           >
             Load more
-          </Button>
+          </LoadMoreButton>
         )}
       </section>
 
@@ -842,16 +811,9 @@ export function NotificationsPanel({ onClose, focusHeading, catchUpCommunities =
             </ul>
           )}
           {olderOpen && older.status === 'ready' && older.hasMore && (
-            <Button
-              variant="secondary"
-              size="sm"
-              aria-busy={older.loadingMore || undefined}
-              aria-disabled={older.loadingMore || undefined}
-              onClick={() => void loadMore(older)}
-              className="mt-2 ml-2"
-            >
+            <LoadMoreButton size="sm" align="start" loading={older.loadingMore} onClick={() => void loadMore(older)} className="mt-2 ml-2">
               Load more
-            </Button>
+            </LoadMoreButton>
           )}
         </div>
       </section>

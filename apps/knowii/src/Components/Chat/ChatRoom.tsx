@@ -3,7 +3,7 @@ import type { ApiResult, ChatMessage, PresenceMember } from '@knowii/common';
 import { CONVERSATION_EVENTS, useAppData, usePresence, useSocket } from '@knowii/common';
 import { HereNowButton } from '@/Components/Presence/HereNowButton';
 import { TypingIndicator } from '@/Components/Presence/TypingIndicator';
-import { Button, Dialog, EmptyState, useFocusAfterRender } from '@/Components/ui';
+import { Button, Dialog, EmptyState, LoadMoreButton, useFocusAfterRender } from '@/Components/ui';
 import { ChatComposer } from './ChatComposer';
 import { ChatMessageItem } from './ChatMessageItem';
 import { ThreadPanel } from './ThreadPanel';
@@ -351,11 +351,9 @@ export function ChatRoom(props: ChatRoomProps) {
         <HereNowButton communitySlug={props.communitySlug} members={presence.members} />
       )}
       {hasMore && (
-        <div className="flex justify-center">
-          <Button variant="secondary" size="sm" onClick={() => void loadOlder()} loading={loadingOlder}>
-            Load older messages
-          </Button>
-        </div>
+        <LoadMoreButton size="sm" onClick={() => void loadOlder()} loading={loadingOlder}>
+          Load older messages
+        </LoadMoreButton>
       )}
 
       {messages.length === 0 ? (

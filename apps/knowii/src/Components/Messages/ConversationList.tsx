@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react';
 import type { Conversation } from '@knowii/common';
 import { CONVERSATION_URL, conversationTitle } from '@knowii/common';
-import { Avatar, cn, RelativeTime } from '@/Components/ui';
+import { Avatar, cn, CountBadge, RelativeTime } from '@/Components/ui';
 
 export interface ConversationListProps {
   communitySlug: string;
@@ -56,12 +56,7 @@ export function ConversationList({ communitySlug, conversations, activeCuid, cur
                   <span className="min-w-0 grow truncate text-xs text-muted">
                     {!last ? '' : last.deleted ? 'This message was deleted.' : `${last.author_name ?? 'Deleted member'}: ${last.text}`}
                   </span>
-                  {unread > 0 && (
-                    <span className="shrink-0 rounded-full bg-secondary px-1.5 text-xs font-bold text-white">
-                      {unread}
-                      <span className="sr-only"> unread</span>
-                    </span>
-                  )}
+                  <CountBadge count={unread} label="unread" />
                 </span>
               </span>
             </Link>

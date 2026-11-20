@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { router } from '@inertiajs/react';
 import { browserTimeZone, knowiiApiClient, useTypedPage } from '@knowii/common';
-import { Button } from '@/Components/ui';
+import { Button, QuestionBanner } from '@/Components/ui';
 
 // One write without a click per page load: the account has no zone, so the zone of the browser is saved one time
 let savedWithoutQuestion = false;
@@ -98,25 +98,19 @@ export function TimeZoneAsk() {
   };
 
   return (
-    <div className="border-b border-border bg-surface">
-      <div role="region" aria-labelledby="time-zone-question" className="page-container flex flex-wrap items-center gap-x-4 gap-y-2 py-2">
-        <p id="time-zone-question" className="text-sm font-bold">
-          Show times in {browserZone}?
-        </p>
-        <div className="flex flex-wrap gap-2">
+    <QuestionBanner
+      question={`Show times in ${browserZone}?`}
+      actions={
+        <>
           <Button size="sm" aria-disabled={busy || undefined} aria-busy={busy || undefined} onClick={() => void use()}>
             Yes, use {browserZone}
           </Button>
           <Button size="sm" variant="secondary" onClick={() => answer()}>
             Keep {accountZone}
           </Button>
-        </div>
-        {failed && (
-          <p role="alert" className="text-sm text-danger-text">
-            Not saved. Retry.
-          </p>
-        )}
-      </div>
-    </div>
+        </>
+      }
+      error={failed ? 'Not saved. Retry.' : undefined}
+    />
   );
 }

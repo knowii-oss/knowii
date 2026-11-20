@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { AccessGroup, AccessGroupForm, AccessGroupMember, CommunityPermissions, Pagination, SpaceGroup } from '@knowii/common';
 import {
   accessGroupFormSchema,
@@ -10,7 +10,19 @@ import {
   useAppData,
 } from '@knowii/common';
 import { FaKey, FaLayerGroup, FaPen, FaTrash, FaUserLock, FaUserMinus, FaUserPlus, FaUsers } from 'react-icons/fa6';
-import { Avatar, Button, Card, CardBody, CardHeader, Checkbox, Dialog, EmptyState, Textarea, TextInput } from '@/Components/ui';
+import {
+  Avatar,
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  Checkbox,
+  Dialog,
+  EmptyState,
+  LoadMoreButton,
+  Textarea,
+  TextInput,
+} from '@/Components/ui';
 import InputLabel from '@/Components/InputLabel';
 import InputError from '@/Components/InputError';
 
@@ -189,18 +201,40 @@ function GroupMembersDialog(props: { communityCuid: string; group: AccessGroup |
   const [who, setWho] = useState('');
   const [error, setError] = useState<string | undefined>(undefined);
   const [adding, setAdding] = useState(false);
+  // The next members load ("Show more")
+  const [loadingMore, setLoadingMore] = useState(false);
+  // The dialog stays mounted from one group to the next (and to no group, when it closes)
+  const groupCuid = group?.cuid ?? null;
+  const [shownGroupCuid, setShownGroupCuid] = useState(groupCuid);
+  if (shownGroupCuid !== groupCuid) {
+    // Another group: "Show more" of the group before is not its business
+    setShownGroupCuid(groupCuid);
+    setLoadingMore(false);
+  }
+  // The number of times the open group changed: an answer that comes after a change was asked for the group before, and
+  // is not for the group that is open now
+  const groupChanges = useRef(0);
+
+  useEffect(() => {
+    groupChanges.current += 1;
+  }, [groupCuid]);
 
   const load = useCallback(
     async (offset: number) => {
       if (!group) {
         return;
       }
+      const asked = groupChanges.current;
       const result = await knowiiApiClient.communities.accessGroups.members.list(
         communityCuid,
         group.cuid,
         COMMUNITY_MEMBERS_PAGE_SIZE,
         offset,
       );
+      if (asked !== groupChanges.current) {
+        // The group changed before the answer came: these are not the members of the open group
+        return;
+      }
       if (result.ok) {
         setMembers((current) => (offset === 0 ? result.data.items : [...current, ...result.data.items]));
         setPagination(result.data.pagination);
@@ -210,6 +244,16 @@ function GroupMembersDialog(props: { communityCuid: string; group: AccessGroup |
     },
     [communityCuid, group, showToast],
   );
+
+  const showMore = async (offset: number) => {
+    const asked = groupChanges.current;
+    setLoadingMore(true);
+    await load(offset);
+    // After a change of group, the busy state is that of the new group: leave it
+    if (asked === groupChanges.current) {
+      setLoadingMore(false);
+    }
+  };
 
   useEffect(() => {
     if (!group) {
@@ -339,11 +383,9 @@ function GroupMembersDialog(props: { communityCuid: string; group: AccessGroup |
         </ul>
       )}
       {pagination?.nextOffset != null && (
-        <div className="mt-3 flex justify-center">
-          <Button variant="secondary" size="sm" onClick={() => void load(pagination.nextOffset ?? 0)}>
-            Show more
-          </Button>
-        </div>
+        <LoadMoreButton size="sm" loading={loadingMore} onClick={() => void showMore(pagination.nextOffset ?? 0)} className="mt-3">
+          Show more
+        </LoadMoreButton>
       )}
     </Dialog>
   );
