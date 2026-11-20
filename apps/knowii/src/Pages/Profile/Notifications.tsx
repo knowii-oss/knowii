@@ -4,8 +4,8 @@ import { useTypedPage } from '@knowii/common';
 import AppLayout from '@/Layouts/AppLayout';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
 import ActionSection from '@/Components/ActionSection';
-import Separator from '@/Components/Separator';
 import type { BreadcrumbItem } from '@/Components/ui';
+import { Divider } from '@/Components/ui';
 import { PopupsForm } from '@/Pages/Profile/Partials/PopupsForm';
 import { SpaceLevelsForm } from '@/Pages/Profile/Partials/SpaceLevelsForm';
 import { TimeZoneForm } from '@/Pages/Profile/Partials/TimeZoneForm';
@@ -69,18 +69,18 @@ export default function NotificationSettings({ communities }: Props) {
       >
         <TimeZoneForm timeZone={user?.time_zone ?? null} onStatus={announce} />
       </ActionSection>
-      <Separator />
+      <Divider className="my-10" />
       <ActionSection title="Pop-ups" description="When something new needs you, a short message can appear at the top of the page.">
         <PopupsForm popups={user?.notification_popups !== false} onStatus={announce} />
       </ActionSection>
-      <Separator />
+      <Divider className="my-10" />
 
       {communities.length === 0 ? (
         <p>You do not belong to a community yet.</p>
       ) : (
         communities.map((community, index) => (
           <div key={community.cuid}>
-            {index > 0 && <Separator />}
+            {index > 0 && <Divider className="my-10" />}
             <ActionSection
               title={communities.length > 1 ? `Your spaces in ${community.name}` : 'Your spaces'}
               description="How close you want to be to each space. Your choice always wins over the default of the space."

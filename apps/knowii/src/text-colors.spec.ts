@@ -13,7 +13,7 @@ const FILL_TOKEN_AS_TEXT = /(?<![\w-])text-(danger|secondary)(?![\w-])/;
 
 describe('text colors', () => {
   it('finds the component files', () => {
-    expect(Object.keys(sources)).toContain('./Components/InputError.tsx');
+    expect(Object.keys(sources)).toContain('./Components/ui/InputError.tsx');
   });
 
   it('never uses a fill token as a text color', () => {

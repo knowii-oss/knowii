@@ -16,9 +16,7 @@ import {
 import { FaKey } from 'react-icons/fa';
 import ActionSection from '@/Components/ActionSection';
 import ConfirmsPassword from '@/Components/ConfirmsPassword';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import { Button, TextInput } from '@/Components/ui';
+import { Button, InputError, InputLabel, TextInput } from '@/Components/ui';
 
 interface Props {
   requiresConfirmation: boolean;

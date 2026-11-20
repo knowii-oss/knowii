@@ -4,10 +4,8 @@ import { useRoute } from 'ziggy-js';
 import type { FormEventHandler } from 'react';
 import { useRef } from 'react';
 import FormSection from '@/Components/FormSection';
-import InputLabel from '@/Components/InputLabel';
 import { FaLock } from 'react-icons/fa';
-import InputError from '@/Components/InputError';
-import { Button, PasswordInput } from '@/Components/ui';
+import { Button, InputError, InputLabel, PasswordInput } from '@/Components/ui';
 
 interface UpdatePasswordFormData {
   current_password: string;

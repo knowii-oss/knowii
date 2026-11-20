@@ -18,11 +18,8 @@ import AppLayout from '@/Layouts/AppLayout';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
 import ActionSection from '@/Components/ActionSection';
 import FormSection from '@/Components/FormSection';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import Separator from '@/Components/Separator';
 import type { BreadcrumbItem } from '@/Components/ui';
-import { Button, Checkbox, Dialog, SegmentedControl, TextInput } from '@/Components/ui';
+import { Button, Checkbox, Dialog, Divider, InputError, InputLabel, SegmentedControl, TextInput } from '@/Components/ui';
 
 interface Props {
   tokens: ApiToken[];
@@ -202,7 +199,7 @@ export default function ApiTokensPage({ tokens, availablePermissions, defaultPer
 
       {tokens.length > 0 && (
         <>
-          <Separator />
+          <Divider className="my-10" />
           <ActionSection
             title="Your API tokens"
             description="Delete a token that you no longer use. A deleted token stops working at once."

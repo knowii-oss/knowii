@@ -3,8 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useId, useMemo } from 'react';
 import type { CommentForm as CommentFormValues } from '@knowii/common';
 import { COMMENT_EDITOR_ROWS, commentFormSchema, knowiiApiClient, MAX_LENGTH_COMMENT_BODY } from '@knowii/common';
-import InputError from '@/Components/InputError';
-import { Button, MarkdownEditor } from '@/Components/ui';
+import { Button, InputError, MarkdownEditor } from '@/Components/ui';
 import { useMentionSource } from '@/Components/Members/use-mention-source';
 import { useImageUploader } from '@/Components/Uploads/use-image-uploader';
 

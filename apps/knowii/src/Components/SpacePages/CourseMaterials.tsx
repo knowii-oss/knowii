@@ -15,9 +15,8 @@ import {
   safeHttpUrl,
   useAppData,
 } from '@knowii/common';
-import InputError from '@/Components/InputError';
 import { SignInPrompt, useIsVisitor } from '@/Components/Reader/Reader';
-import { Button, Card, CardBody, CardHeader, Dialog, SegmentedControl, TextInput } from '@/Components/ui';
+import { Button, Card, CardBody, CardHeader, Dialog, InputError, SegmentedControl, TextInput } from '@/Components/ui';
 
 /**
  * Where materials go: the whole course (pageCuid null), a section or a lesson

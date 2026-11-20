@@ -20,10 +20,8 @@ import {
   useAppData,
 } from '@knowii/common';
 import { useEffect, useMemo, useState } from 'react';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
 import { PUBLIC_CHAT_SPACE_FORM_NOTE, PUBLIC_SPACE_FORM_WARNING } from './PublicSpaceNotice';
-import { Button, Checkbox, Dialog, DialogCloseButton, Select, Textarea, TextInput } from '@/Components/ui';
+import { Button, Checkbox, Dialog, DialogCloseButton, InputError, InputLabel, Select, Textarea, TextInput } from '@/Components/ui';
 
 export interface SpaceDialogProps {
   open: boolean;

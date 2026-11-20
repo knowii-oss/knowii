@@ -13,9 +13,7 @@ import {
   useAppData,
 } from '@knowii/common';
 import { useImageUploader } from '@/Components/Uploads/use-image-uploader';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import { Button, Dialog, DialogCloseButton, MarkdownEditor, TextInput } from '@/Components/ui';
+import { Button, Dialog, DialogCloseButton, InputError, InputLabel, MarkdownEditor, TextInput } from '@/Components/ui';
 import { KeptTextNotice } from '@/Components/KeptText/KeptTextNotice';
 import { useKeptText } from '@/Components/KeptText/use-kept-text';
 

@@ -13,9 +13,7 @@ import {
   useAppData,
 } from '@knowii/common';
 import ResourceIcon from '@/Components/Resources/ResourceIcon';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import { Button, Checkbox, Dialog, DialogCloseButton, Select, Textarea, TextInput } from '@/Components/ui';
+import { Button, Checkbox, Dialog, DialogCloseButton, InputError, InputLabel, Select, Textarea, TextInput } from '@/Components/ui';
 
 const levelOptions = resourceLevelSchemaOptions.map((option) => ({ value: option.level, label: option.name, icon: option.icon }));
 

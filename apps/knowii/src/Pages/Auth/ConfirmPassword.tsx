@@ -1,13 +1,11 @@
 import Footer from '@/Components/Footer';
-import { Button, PasswordInput } from '@/Components/ui';
+import { Button, InputError, InputLabel, PasswordInput } from '@/Components/ui';
 import { Head, useForm } from '@inertiajs/react';
 import type { FormEventHandler } from 'react';
 import { useRoute } from 'ziggy-js';
 import { PASSWORD_CONFIRM_URL } from '@knowii/common';
 import AuthenticationCard from '@/Components/AuthenticationCard';
-import InputLabel from '@/Components/InputLabel';
 import { FaLock } from 'react-icons/fa';
-import InputError from '@/Components/InputError';
 
 interface ConfirmPasswordFormData {
   password: string;

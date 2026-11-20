@@ -3,8 +3,7 @@ import { router } from '@inertiajs/react';
 import { knowiiApiClient, useAppData } from '@knowii/common';
 import { FaCamera, FaTrash } from 'react-icons/fa6';
 import ActionSection from '@/Components/ActionSection';
-import InputError from '@/Components/InputError';
-import { Avatar, Button } from '@/Components/ui';
+import { Avatar, Button, InputError } from '@/Components/ui';
 
 interface Props {
   name: string;

@@ -1,13 +1,11 @@
 import Footer from '@/Components/Footer';
-import { Button, TextInput } from '@/Components/ui';
+import { Button, InputError, InputLabel, TextInput } from '@/Components/ui';
 import { Head, useForm } from '@inertiajs/react';
 import type { FormEventHandler } from 'react';
 import { useRoute } from 'ziggy-js';
 import { EMAIL_PASSWORD_URL } from '@knowii/common';
 import AuthenticationCard from '@/Components/AuthenticationCard';
-import InputLabel from '@/Components/InputLabel';
 import { FaAt } from 'react-icons/fa';
-import InputError from '@/Components/InputError';
 
 interface Props {
   status?: string;

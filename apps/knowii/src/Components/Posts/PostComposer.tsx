@@ -5,9 +5,7 @@ import type { KeptTextFields, Post, PostForm } from '@knowii/common';
 import { knowiiApiClient, MAX_LENGTH_POST_BODY, MAX_LENGTH_POST_TITLE, POST_EDITOR_ROWS, postFormSchema, useAppData } from '@knowii/common';
 import { useMentionSource } from '@/Components/Members/use-mention-source';
 import { useImageUploader } from '@/Components/Uploads/use-image-uploader';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import { Button, Checkbox, Dialog, DialogCloseButton, MarkdownEditor, TextInput } from '@/Components/ui';
+import { Button, Checkbox, Dialog, DialogCloseButton, InputError, InputLabel, MarkdownEditor, TextInput } from '@/Components/ui';
 import { KeptTextNotice } from '@/Components/KeptText/KeptTextNotice';
 import { useKeptText } from '@/Components/KeptText/use-kept-text';
 

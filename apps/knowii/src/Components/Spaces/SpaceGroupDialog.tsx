@@ -3,9 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { SpaceGroup, SpaceGroupForm } from '@knowii/common';
 import { knowiiApiClient, spaceGroupFormSchema, useAppData } from '@knowii/common';
 import { useEffect } from 'react';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import { Button, Dialog, TextInput } from '@/Components/ui';
+import { Button, Dialog, InputError, InputLabel, TextInput } from '@/Components/ui';
 
 export interface SpaceGroupDialogProps {
   open: boolean;

@@ -3,8 +3,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { FaCircleCheck, FaCircleXmark, FaListCheck, FaRotateRight } from 'react-icons/fa6';
 import type { LessonQuiz as LessonQuizData, QuizAttempt, QuizQuestion, QuizResult, QuizReview } from '@knowii/common';
 import { knowiiApiClient, quizOutcome } from '@knowii/common';
-import InputError from '@/Components/InputError';
-import { Button, Card, CardBody, CardHeader, Checkbox, cn, MarkdownContent, Radio } from '@/Components/ui';
+import { Button, Card, CardBody, CardHeader, Checkbox, cn, InputError, MarkdownContent, Radio } from '@/Components/ui';
 
 interface Props {
   communityCuid: string;

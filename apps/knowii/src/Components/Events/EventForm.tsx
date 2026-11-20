@@ -36,8 +36,6 @@ import {
   zonedDateTimeToIso,
 } from '@knowii/common';
 import { FaImage, FaTrash } from 'react-icons/fa6';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
 import { MemberPicker } from '@/Components/Messages/MemberPicker';
 import { useImageUploader } from '@/Components/Uploads/use-image-uploader';
 import {
@@ -46,6 +44,8 @@ import {
   Checkbox,
   Combobox,
   CoverImage,
+  InputError,
+  InputLabel,
   MarkdownEditor,
   Radio,
   TextInput,

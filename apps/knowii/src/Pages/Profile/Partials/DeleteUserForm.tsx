@@ -5,9 +5,8 @@ import { router, useForm } from '@inertiajs/react';
 import type { AccountDeletionState } from '@knowii/common';
 import { DELETE_USER_URL, OIDC_CONFIRM_DELETION_URL, formatFullDateTime, removeKeptTextsOfAccount, useTypedPage } from '@knowii/common';
 import { FaLock } from 'react-icons/fa';
-import InputError from '@/Components/InputError';
 import ActionSection from '@/Components/ActionSection';
-import { Button, Checkbox, Dialog, PasswordInput, TextInput, useAccountTimeZone } from '@/Components/ui';
+import { Button, Checkbox, Dialog, InputError, PasswordInput, TextInput, useAccountTimeZone } from '@/Components/ui';
 
 interface DeleteUserFormData {
   password: string;

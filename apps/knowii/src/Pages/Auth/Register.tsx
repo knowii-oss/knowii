@@ -1,6 +1,6 @@
 import Footer from '@/Components/Footer';
 import OpenIdConnectButton from '@/Components/Auth/OpenIdConnectButton';
-import { Button, Checkbox, PasswordInput, TextInput, Turnstile } from '@/Components/ui';
+import { Button, Checkbox, InputError, InputLabel, PasswordInput, TextInput, Turnstile } from '@/Components/ui';
 import AuthenticationCard from '@/Components/AuthenticationCard';
 import { Head, Link, useForm } from '@inertiajs/react';
 import type { FormEventHandler } from 'react';
@@ -15,9 +15,7 @@ import {
   useTypedPage,
 } from '@knowii/common';
 import { useRoute } from 'ziggy-js';
-import InputLabel from '@/Components/InputLabel';
 import { FaAt, FaLock, FaUser } from 'react-icons/fa';
-import InputError from '@/Components/InputError';
 
 interface RegisterFormData {
   name: string;

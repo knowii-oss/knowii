@@ -3,8 +3,6 @@ import { router } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
 import type { NewCommunity, Community, CommunityVisibility } from '@knowii/common';
 import {
   COMMUNITY_URL,
@@ -23,7 +21,7 @@ import { useRef, useState } from 'react';
 import CommunityIcon from './CommunityIcon';
 import { CommunityNameStatus } from './CommunityNameStatus';
 import { useCommunityNameAvailability } from './use-community-name-availability';
-import { Button, Dialog, DialogCloseButton, SegmentedControl, Spinner, Textarea, TextInput } from '@/Components/ui';
+import { Button, Dialog, DialogCloseButton, InputError, InputLabel, SegmentedControl, Spinner, Textarea, TextInput } from '@/Components/ui';
 
 interface CreateCommunityDialogProps {
   visible: boolean;

@@ -19,12 +19,12 @@ import {
   Checkbox,
   Dialog,
   EmptyState,
+  InputError,
+  InputLabel,
   LoadMoreButton,
   Textarea,
   TextInput,
 } from '@/Components/ui';
-import InputLabel from '@/Components/InputLabel';
-import InputError from '@/Components/InputError';
 
 export interface AccessGroupsManagerProps {
   communityCuid: string;
