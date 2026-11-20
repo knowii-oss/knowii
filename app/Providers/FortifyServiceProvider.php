@@ -6,6 +6,8 @@ use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
+use App\Http\Responses\TwoFactorLoginResponse;
+use App\Http\Responses\VerifyEmailResponse;
 use App\Support\OpenIdConnect;
 use App\Support\Turnstile;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -15,6 +17,8 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Laravel\Fortify\Contracts\TwoFactorLoginResponse as TwoFactorLoginResponseContract;
+use Laravel\Fortify\Contracts\VerifyEmailResponse as VerifyEmailResponseContract;
 use Laravel\Fortify\Fortify;
 
 class FortifyServiceProvider extends ServiceProvider
@@ -24,7 +28,10 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // The link of the address check lands on the page of a community that it carries (#1612, ADR 0057)
+        $this->app->singleton(VerifyEmailResponseContract::class, VerifyEmailResponse::class);
+        // After the code of the second factor, a sign-in link lands on the page that it carries (#1612, ADR 0057)
+        $this->app->singleton(TwoFactorLoginResponseContract::class, TwoFactorLoginResponse::class);
     }
 
     /**

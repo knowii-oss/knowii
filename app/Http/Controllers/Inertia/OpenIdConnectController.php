@@ -11,6 +11,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Support\AccountDeletion;
 use App\Support\EntitlementReads;
+use App\Support\Landing;
 use App\Support\OpenIdConnect;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -194,6 +195,8 @@ class OpenIdConnectController extends Controller
         // The provider replaces the password, never the second factor: the challenge of Fortify comes next
         if ($user->hasEnabledTwoFactorAuthentication()) {
             $request->session()->put(['login.id' => $user->getKey(), 'login.remember' => false]);
+            // This challenge replaces an earlier one of this session: the landing that a sign-in link left for it goes (#1612)
+            Landing::forgetHeld($request);
 
             return redirect()->route('two-factor.login');
         }
