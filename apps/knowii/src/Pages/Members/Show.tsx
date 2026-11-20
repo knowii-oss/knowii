@@ -75,6 +75,8 @@ export default function MemberPage({ community, spaceGroups, member, messaging }
               <h1 id="member-name" className="text-2xl font-extrabold">
                 {member.name}
               </h1>
+              {/* The headline (#1688) is plain text: never HTML, Markdown or a link. A long word breaks, and nothing is cut */}
+              {member.headline && <p className="wrap-anywhere">{member.headline}</p>}
               <p className="text-muted">@{member.username}</p>
             </div>
           </header>

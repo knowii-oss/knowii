@@ -19,6 +19,7 @@ class UserProfileResource extends AbstractKnowiiJsonResource
             'cuid' => $this->cuid,
             'name' => $this->name,
             'username' => $this->username ?? '',
+            'headline' => $this->headline ?? '', // Ensures the returned value is never null,
             'bio' => $this->bio ?? '', // Ensures the returned value is never null,
             'location' => $this->location ?? '', // Ensures the returned value is never null,
             'phone' => $this->phone ?? '', // Ensures the returned value is never null,

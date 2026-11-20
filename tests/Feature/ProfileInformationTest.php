@@ -73,3 +73,12 @@ test('every social link property exists on the user profile and in its API resou
             ->and($serialized)->toHaveKey($property);
     }
 });
+
+test('the headline exists on the user profile and in its API resource (#1688)', function () {
+    $user = User::factory()->withUserProfile()->create();
+
+    expect(Schema::hasColumn('user_profiles', 'headline'))->toBeTrue()
+        ->and(Schema::getColumnType('user_profiles', 'headline'))->toBe('varchar')
+        ->and($user->profile->toResource()->toArray(request()))->toHaveKey('headline', '')
+        ->and($user->profile->toResource()->toArray(request())['field_visibility'])->toHaveKey('headline', true);
+});

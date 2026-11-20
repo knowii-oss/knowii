@@ -30,6 +30,9 @@ class Constants
     // Cloudflare documents a maximum length of 2048 characters for Turnstile tokens
     public const int MAX_LENGTH_TURNSTILE_TOKEN = 2048;
 
+    // One line under the name of the member (#1688). WARNING: aligned with MAX_LENGTH_USER_HEADLINE (constants.ts)
+    public const int MAX_LENGTH_USER_HEADLINE = 80;
+
     public const int MAX_LENGTH_USER_BIO = 512;
 
     public const int MAX_LENGTH_USER_LOCATION = 128;

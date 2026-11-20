@@ -53,8 +53,8 @@ const community = {
 } as Community;
 
 const team: CommunityMember[] = [
-  { cuid: 'o', name: 'Olivia', username: 'olivia', role: 'owner', member_since: null },
-  { cuid: 'm', name: 'Margaret', username: 'margaret', role: 'moderator', member_since: null },
+  { cuid: 'o', name: 'Olivia', username: 'olivia', headline: 'Founder, grows food on a balcony', role: 'owner', member_since: null },
+  { cuid: 'm', name: 'Margaret', username: 'margaret', headline: '', role: 'moderator', member_since: null },
 ];
 
 const none: CommunityPermissions = {
@@ -100,6 +100,14 @@ describe('CommunityAboutPage', () => {
     const rights = screen.getByRole('region', { name: 'What moderators can do' });
     expect(within(rights).getAllByText('Yes')).toHaveLength(2);
     expect(within(rights).getAllByText('No')).toHaveLength(2);
+  });
+
+  it('does not show the headline of a member of the team: the second line stays the username (#1688)', () => {
+    renderPage('member');
+
+    const teamList = screen.getByRole('list', { name: 'Team' });
+    expect(within(teamList).getByText('@olivia')).toBeInTheDocument();
+    expect(screen.queryByText(/grows food on a balcony/)).not.toBeInTheDocument();
   });
 
   it('gives a member no settings control (#1135)', () => {

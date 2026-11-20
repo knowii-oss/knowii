@@ -9,7 +9,8 @@ use Illuminate\Database\Query\JoinClause;
 
 /**
  * The members of a community with their role, the owner included (#1242). Each user gets two extra attributes:
- * `community_role` (owner, admin, moderator or member) and `community_member_since`.
+ * `community_role` (owner, admin, moderator or member) and `community_member_since`. The profiles come with one query
+ * for the whole page, with only the columns that MemberWithRoleResource reads for the headline (#1688).
  */
 final class CommunityMemberQuery
 {
@@ -22,6 +23,7 @@ final class CommunityMemberQuery
     public static function for(Community $community, string $search = ''): Builder
     {
         $query = User::query()
+            ->with('profile:id,user_id,headline,field_visibility')
             ->leftJoin('community_members', function (JoinClause $join) use ($community) {
                 $join->on('community_members.user_id', '=', 'users.id')->where('community_members.community_id', '=', $community->id);
             })

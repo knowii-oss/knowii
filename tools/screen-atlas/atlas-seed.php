@@ -104,13 +104,18 @@ require_once __DIR__.'/atlas-shared.php';
     $account = static function (string $key, string $name, ?string $username, bool $verified = true, array $profile = []) use ($password, &$made): User {
         $email = 'atlas-'.$key.'@example.com';
         $user = User::query()->where('email', $email)->first();
-        if ($user === null) {
+        $created = $user === null;
+        if ($created) {
             // The action of the sign-up form, through its method without the bot check (the check calls an outside service)
             $user = app(CreateNewUser::class)->createAccount($name, $email, $password, $verified);
             $made++;
-            if ($verified && $username !== null) {
-                app(UpdateUserProfileInformation::class)->update($user, ['name' => $name, 'username' => $username, 'email' => $email, ...$profile]);
-            }
+        }
+        // An account from before the headline (#1688) gets its headline too, with the profile of the seed. The next run
+        // finds the headline and changes nothing
+        $lacksHeadline = ! $created && isset($profile['headline']) && $user->profile?->headline !== $profile['headline'];
+        if ($verified && $username !== null && ($created || $lacksHeadline)) {
+            app(UpdateUserProfileInformation::class)->update($user, ['name' => $name, 'username' => $username, 'email' => $email, ...$profile]);
+            $made += $lacksHeadline ? 1 : 0;
         }
 
         return User::query()->where('email', $email)->firstOrFail();
@@ -334,10 +339,10 @@ require_once __DIR__.'/atlas-shared.php';
     // ---------------------------------------------------------------------------------------------------------------
 
     $zone = ['time_zone' => 'Europe/Brussels'];
-    $owner = $account('owner', 'Olivia Owner', 'atlas-owner', true, [...$zone, 'bio' => 'I started Atlas Garden to share what grows on small balconies.', 'location' => 'Brussels']);
+    $owner = $account('owner', 'Olivia Owner', 'atlas-owner', true, [...$zone, 'headline' => 'Founder of Atlas Garden, grows food on a balcony', 'bio' => 'I started Atlas Garden to share what grows on small balconies.', 'location' => 'Brussels']);
     $admin = $account('admin', 'Adam Admin', 'atlas-admin', true, $zone);
-    $moderator = $account('moderator', 'Maya Moderator', 'atlas-moderator', true, [...$zone, 'bio' => 'Moderator. Ask me about compost.']);
-    $member = $account('member', 'Marc Member', 'atlas-member', true, [...$zone, 'bio' => 'Tomatoes, herbs and too many seed packets.', 'location' => 'Namur']);
+    $moderator = $account('moderator', 'Maya Moderator', 'atlas-moderator', true, [...$zone, 'headline' => 'Compost and soil, moderator', 'bio' => 'Moderator. Ask me about compost.']);
+    $member = $account('member', 'Marc Member', 'atlas-member', true, [...$zone, 'headline' => 'Product designer, writes about note-taking', 'bio' => 'Tomatoes, herbs and too many seed packets.', 'location' => 'Namur']);
     $tomas = $account('tomas', 'Tomas Silva', 'atlas-tomas', true, $zone);
     $lena = $account('lena', 'Lena Fischer', 'atlas-lena', true, $zone);
     // The new member: only the sign-up and the verified address. No user name chosen, no time zone, no community joined.

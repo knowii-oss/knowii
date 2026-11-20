@@ -27,6 +27,8 @@ export const userProfileSchema = z
   .object({
     name: z.string(),
     username: z.string().nullable(),
+    // One line of plain text under the name (#1688). Null when the member wrote none
+    headline: z.string().nullable(),
     bio: z.string().nullable(),
     location: z.string().nullable(),
     phone: z.string().nullable(),
@@ -41,7 +43,7 @@ export type UserProfile = z.infer<typeof userProfileSchema>;
  * The profile fields that a member shows to or hides from the other members (#1076, ADR 0020).
  * WARNING: aligned with ProfileFieldVisibility.php
  */
-export const PROFILE_VISIBILITY_FIELDS = ['bio', 'location', 'phone', ...SOCIAL_MEDIA_LINK_PROPERTIES] as const;
+export const PROFILE_VISIBILITY_FIELDS = ['headline', 'bio', 'location', 'phone', ...SOCIAL_MEDIA_LINK_PROPERTIES] as const;
 export type ProfileVisibilityField = (typeof PROFILE_VISIBILITY_FIELDS)[number];
 export type ProfileFieldVisibility = Record<ProfileVisibilityField, boolean>;
 

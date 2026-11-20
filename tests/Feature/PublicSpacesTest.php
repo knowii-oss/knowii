@@ -36,7 +36,7 @@ beforeEach(function () {
     $this->c = communityWithMembers();
     $this->author = $this->c['member'];
     // Data of the author that no visitor and no outsider may ever get
-    $this->author->profile->forceFill(['bio' => 'SECRET-BIO-OF-THE-AUTHOR', 'phone' => 'SECRET-PHONE-OF-THE-AUTHOR'])->save();
+    $this->author->profile->forceFill(['bio' => 'SECRET-BIO-OF-THE-AUTHOR', 'phone' => 'SECRET-PHONE-OF-THE-AUTHOR', 'headline' => 'SECRET-HEADLINE-OF-THE-AUTHOR'])->save();
 
     $group = SpaceGroup::factory()->create(['community_id' => $this->c['community']->id]);
     $visibilities = ['public' => KnowiiSpaceVisibility::Public, 'members' => KnowiiSpaceVisibility::Members, 'groups' => KnowiiSpaceVisibility::Groups];
@@ -228,7 +228,7 @@ test('web pages: an unverified account is refused, like everywhere else', functi
  * The keys that must not appear anywhere in what reaches a visitor or an outsider, and the values that must not either
  */
 const PUBLIC_SPACES_FORBIDDEN_KEYS = [
-    'email', 'phone', 'bio', 'access_groups', 'moderator_permissions', 'member_count', 'users_count',
+    'email', 'phone', 'bio', 'headline', 'access_groups', 'moderator_permissions', 'member_count', 'users_count',
     'direct_messages_enabled', 'unread_direct_messages', 'userProfile', 'field_visibility', 'online_status', 'show_online_status',
 ];
 
@@ -273,7 +273,7 @@ function publicAssertNoMemberData(array $props, string $reader = 'visitor'): voi
     $json = (string) json_encode($scanned);
 
     expect(array_intersect(publicKeysOf($scanned), PUBLIC_SPACES_FORBIDDEN_KEYS))->toBe([], 'a field of the "never" list reaches the reader');
-    foreach ([$test->author->email, $test->author->profile->email, 'SECRET-BIO-OF-THE-AUTHOR', 'SECRET-PHONE-OF-THE-AUTHOR', 'SECRET-CAPTURED-ARTICLE', 'SECRET-EXPLANATION', 'SECRET-CHAT-LINE', 'SECRET-MEETING-ADDRESS', 'SECRET-PLACE-OF-THE-EVENT'] as $secret) {
+    foreach ([$test->author->email, $test->author->profile->email, 'SECRET-BIO-OF-THE-AUTHOR', 'SECRET-PHONE-OF-THE-AUTHOR', 'SECRET-HEADLINE-OF-THE-AUTHOR', 'SECRET-CAPTURED-ARTICLE', 'SECRET-EXPLANATION', 'SECRET-CHAT-LINE', 'SECRET-MEETING-ADDRESS', 'SECRET-PLACE-OF-THE-EVENT'] as $secret) {
         expect($json)->not->toContain($secret);
     }
     // Nobody is named but the authors of what is read
@@ -479,7 +479,7 @@ test('API: what a visitor gets holds no member data', function (string $route) {
     $json = (string) json_encode($data);
 
     expect(array_intersect(publicKeysOf($data), PUBLIC_SPACES_FORBIDDEN_KEYS))->toBe([]);
-    foreach ([$this->author->email, 'SECRET-BIO-OF-THE-AUTHOR', 'SECRET-PHONE-OF-THE-AUTHOR', 'SECRET-CAPTURED-ARTICLE', $this->c['owner']->email, $this->c['moderator']->email] as $secret) {
+    foreach ([$this->author->email, 'SECRET-BIO-OF-THE-AUTHOR', 'SECRET-PHONE-OF-THE-AUTHOR', 'SECRET-HEADLINE-OF-THE-AUTHOR', 'SECRET-CAPTURED-ARTICLE', $this->c['owner']->email, $this->c['moderator']->email] as $secret) {
         expect($json)->not->toContain($secret);
     }
     expect($json)->not->toContain('"reacted":true');

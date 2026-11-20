@@ -12,6 +12,7 @@ import {
   USER_PROFILE_INFORMATION_UPDATE_URL,
   usernameSchema,
   useTypedPage,
+  MAX_LENGTH_USER_HEADLINE,
   MAX_LENGTH_USER_LOCATION,
   MAX_LENGTH_USER_BIO,
   MAX_LENGTH_USER_PHONE,
@@ -24,7 +25,7 @@ import { useRoute } from 'ziggy-js';
 import type { FormEventHandler } from 'react';
 import { useEffect, useState } from 'react';
 import FormSection from '@/Components/FormSection';
-import { FaAt, FaBookReader, FaMapMarkerAlt, FaPassport, FaPhone, FaUser } from 'react-icons/fa';
+import { FaAt, FaBookReader, FaIdBadge, FaMapMarkerAlt, FaPassport, FaPhone, FaUser } from 'react-icons/fa';
 import { Button, Checkbox, Collapsible, InputError, InputLabel, Textarea, TextInput } from '@/Components/ui';
 
 interface Props {
@@ -93,7 +94,10 @@ export default function UpdateProfileInformationForm(props: Props) {
       fieldLabel={fieldLabel}
       checked={form.data.field_visibility[field]}
       disabled={form.processing || userEmailNotVerified}
-      onChange={(checked) => form.setData('field_visibility', { ...form.data.field_visibility, [field]: checked })}
+      onChange={(checked) => {
+        form.setData('field_visibility', { ...form.data.field_visibility, [field]: checked });
+        form.clearErrors(`field_visibility.${field}`);
+      }}
     />
   );
 
@@ -181,6 +185,9 @@ export default function UpdateProfileInformationForm(props: Props) {
     e.preventDefault();
 
     form.put(route(USER_PROFILE_INFORMATION_UPDATE_URL), {
+      // WARNING: aligned with the error bag of UpdateUserProfileInformation.php. Without it, the errors of the server
+      // come under the name of the bag, and no field shows its error
+      errorBag: 'updateProfileInformation',
       preserveScroll: true,
       onSuccess: () => {
         showToast({ severity: 'success', summary: 'Success', detail: 'Profile updated successfully.' });
@@ -200,7 +207,7 @@ export default function UpdateProfileInformationForm(props: Props) {
         <>
           <span>
             Your name, username and picture show next to what you write. In a public space, visitors see them too. Your email address is
-            never shown to other members. Bio, location and phone: you choose below.
+            never shown to other members. Headline, bio, location and phone: you choose below.
           </span>
           {userEmailNotVerified && (
             <div role="alert" className="mt-2 font-bold text-danger-text">
@@ -214,7 +221,8 @@ export default function UpdateProfileInformationForm(props: Props) {
           <Button
             variant="secondary"
             onClick={() => {
-              form.reset();
+              // The stored values come back, so no error of the changed values is true any more
+              form.resetAndClearErrors();
             }}
             disabled={form.processing}
           >
@@ -235,7 +243,12 @@ export default function UpdateProfileInformationForm(props: Props) {
           id="name"
           type="text"
           value={form.data.name}
-          onChange={(e) => form.setData('name', e.target.value)}
+          onChange={(e) => {
+            // A change of a field removes the error of that field, here and below: the member corrects the text and saves
+            // again. Without this, an error of the server keeps "Save" disabled until the page loads again
+            form.setData('name', e.target.value);
+            form.clearErrors('name');
+          }}
           autoComplete="name"
           required
           disabled={form.processing || userEmailNotVerified}
@@ -252,7 +265,10 @@ export default function UpdateProfileInformationForm(props: Props) {
           id="email"
           type="email"
           value={form.data.email}
-          onChange={(e) => form.setData('email', e.target.value)}
+          onChange={(e) => {
+            form.setData('email', e.target.value);
+            form.clearErrors('email');
+          }}
           autoComplete="username"
           required
           disabled={form.processing || userEmailNotVerified}
@@ -293,6 +309,8 @@ export default function UpdateProfileInformationForm(props: Props) {
           value={form.data.username}
           onChange={(e) => {
             form.setData('username', e.target.value);
+            // The error of the last save goes first: the checks below give the error of the new username, if it has one
+            form.clearErrors('username');
             validateUsernameLocally(e.target.value);
           }}
           autoComplete="username"
@@ -300,6 +318,31 @@ export default function UpdateProfileInformationForm(props: Props) {
           required
         />
         <InputError className="mt-2" message={form.errors.username} />
+      </div>
+
+      {/* Headline (#1688): one line of plain text, shown under the name */}
+      <div className="col-span-6 sm:col-span-4">
+        <InputLabel htmlFor="headline">Headline</InputLabel>
+        <TextInput
+          icon={<FaIdBadge />}
+          wrapperClassName="mt-1"
+          id="headline"
+          type="text"
+          value={form.data.headline || ''}
+          onChange={(e) => {
+            form.setData('headline', e.target.value);
+            form.clearErrors('headline');
+          }}
+          disabled={form.processing || userEmailNotVerified}
+          maxLength={MAX_LENGTH_USER_HEADLINE}
+          invalid={Boolean(form.errors.headline)}
+          aria-describedby={form.errors.headline ? 'headline-hint headline-error' : 'headline-hint'}
+        />
+        <p id="headline-hint" className="mt-1 text-xs text-muted">
+          One line about you. It shows under your name.
+        </p>
+        {visibilityToggle('headline', 'Headline')}
+        <InputError id="headline-error" className="mt-2" message={form.errors.headline} />
       </div>
 
       {/* Bio */}
@@ -311,7 +354,10 @@ export default function UpdateProfileInformationForm(props: Props) {
           id="bio"
           rows={USER_PROFILE_BIO_TEXTAREA_ROWS}
           value={form.data.bio || ''}
-          onChange={(e) => form.setData('bio', e.target.value)}
+          onChange={(e) => {
+            form.setData('bio', e.target.value);
+            form.clearErrors('bio');
+          }}
           disabled={form.processing || userEmailNotVerified}
           maxLength={MAX_LENGTH_USER_BIO}
         />
@@ -328,7 +374,10 @@ export default function UpdateProfileInformationForm(props: Props) {
           id="location"
           type="text"
           value={form.data.location || ''}
-          onChange={(e) => form.setData('location', e.target.value)}
+          onChange={(e) => {
+            form.setData('location', e.target.value);
+            form.clearErrors('location');
+          }}
           disabled={form.processing || userEmailNotVerified}
           maxLength={MAX_LENGTH_USER_LOCATION}
         />
@@ -345,7 +394,10 @@ export default function UpdateProfileInformationForm(props: Props) {
           id="phone"
           type="tel"
           value={form.data.phone || ''}
-          onChange={(e) => form.setData('phone', e.target.value)}
+          onChange={(e) => {
+            form.setData('phone', e.target.value);
+            form.clearErrors('phone');
+          }}
           disabled={form.processing || userEmailNotVerified}
           maxLength={MAX_LENGTH_USER_PHONE}
           allowedCharacters={USER_PHONE_REGEX}
@@ -368,7 +420,10 @@ export default function UpdateProfileInformationForm(props: Props) {
                 type="url"
                 placeholder="https://..."
                 value={(form.data[link as keyof typeof form.data] as string) || ''}
-                onChange={(e) => form.setData(link as keyof typeof form.data, e.target.value)}
+                onChange={(e) => {
+                  form.setData(link as keyof typeof form.data, e.target.value);
+                  form.clearErrors(link as keyof typeof form.errors);
+                }}
                 disabled={form.processing || userEmailNotVerified}
               />
               {visibilityToggle(link, SOCIAL_MEDIA_LINK_NAMES[link as keyof typeof SOCIAL_MEDIA_LINK_NAMES])}

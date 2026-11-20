@@ -24,6 +24,8 @@ const member = (cuid: string, name: string, role: CommunityRole): CommunityMembe
   cuid,
   name,
   username: name.toLowerCase(),
+  // The entries of the member list hold the headline (#1688). The member management does not show it
+  headline: `The headline of ${name}`,
   role,
   member_since: '2026-11-01T10:00:00.000000Z',
 });
@@ -101,6 +103,14 @@ describe('CommunityMembersManager', () => {
     expect(within(list).getByRole('button', { name: 'Remove Ursula' })).toBeInTheDocument();
     expect(within(list).queryByRole('button', { name: /Role of Alan/ })).not.toBeInTheDocument();
     expect(within(list).getByRole('button', { name: /Role of Ursula/ })).toBeInTheDocument();
+  });
+
+  it('does not show the headline of a member: the second line stays the username (#1688)', async () => {
+    renderManager('admin');
+
+    const list = await screen.findByRole('list', { name: 'Members' });
+    expect(await within(list).findByText('@ursula')).toBeInTheDocument();
+    expect(screen.queryByText(/The headline of/)).not.toBeInTheDocument();
   });
 
   it('changes a role (#1242)', async () => {

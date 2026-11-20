@@ -129,6 +129,8 @@ export const MIN_LENGTH_USER_USERNAME = 3;
 export const MAX_LENGTH_USER_USERNAME = 36;
 export const ALLOWED_USER_USERNAME_CHARACTERS_REGEX = /^[a-zA-Z0-9-']+$/;
 
+// One line under the name of the member (#1688). WARNING: aligned with MAX_LENGTH_USER_HEADLINE (Constants.php)
+export const MAX_LENGTH_USER_HEADLINE = 80;
 export const MAX_LENGTH_USER_LOCATION = 128;
 export const MAX_LENGTH_USER_BIO = 512;
 export const MAX_LENGTH_USER_PHONE = 48;
