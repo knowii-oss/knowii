@@ -35,6 +35,8 @@ class UnlinkIdentity implements UnlinksIdentities
             $this->syncs->clearMember($user);
         }
 
-        Log::info('Disconnected an OpenID Connect account', ['user' => $user->cuid, 'issuer' => $identity->issuer, 'identity' => $identity->cuid]);
+        // Written when the change is stored: a takeover calls this inside its own transaction (ADR 0059)
+        $context = ['user' => $user->cuid, 'issuer' => $identity->issuer, 'identity' => $identity->cuid];
+        DB::afterCommit(static fn () => Log::info('Disconnected an OpenID Connect account', $context));
     }
 }

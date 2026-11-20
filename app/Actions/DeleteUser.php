@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 use Laravel\Jetstream\Contracts\DeletesUsers;
 
 /**
@@ -43,9 +44,13 @@ class DeleteUser implements DeletesAccounts, DeletesUsers
     ) {}
 
     /**
-     * Delete the given user.
+     * Delete the given user: the model of the request, that the caller checked the password of. The row of the account is
+     * read again and locked in the transaction of the deletion, and the account is deleted only when that row has the
+     * version of the sessions of the model (ADR 0059).
      *
      * @param  array<mixed>  $input
+     *
+     * @throws ValidationException When the row has another version of the sessions than the model, or is gone
      */
     final public function delete(User $user, array $input = []): void
     {
@@ -53,9 +58,20 @@ class DeleteUser implements DeletesAccounts, DeletesUsers
 
         // Only the cuid: the logs must not keep the personal data of a deleted account
         $cuid = $user->cuid;
-        Log::info('Deleting user', ['user' => $cuid]);
 
-        DB::transaction(fn () => $this->remove($user, $deleteContent));
+        DB::transaction(function () use ($user, $cuid, $deleteContent) {
+            // The row as it is stored now, locked until the commit. The model of the request must hold the version of the
+            // sessions of that row (ADR 0059): a model that was read before a takeover deletes nothing, and the answer is
+            // the one of a wrong password
+            $locked = User::query()->whereKey($user->getKey())->lockForUpdate()->first();
+            if ($locked === null || $locked->sessionVersion() !== $user->sessionVersion()) {
+                Log::warning('Account deletion refused', ['reason' => 'session_version', 'user' => $cuid]);
+                throw ValidationException::withMessages(['password' => __('The password is incorrect.')]);
+            }
+
+            Log::info('Deleting user', ['user' => $cuid]);
+            $this->remove($locked, $deleteContent);
+        });
 
         $this->afterRemoval($cuid);
     }

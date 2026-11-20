@@ -4,6 +4,7 @@ namespace App\Contracts\Users;
 
 use App\Exceptions\BusinessException;
 use App\Models\User;
+use Illuminate\Validation\ValidationException;
 use Laravel\Jetstream\Contracts\DeletesUsers;
 
 /**
@@ -13,7 +14,12 @@ use Laravel\Jetstream\Contracts\DeletesUsers;
 interface DeletesAccounts extends DeletesUsers
 {
     /**
+     * Delete the account of the model of the request. The row is locked in the transaction of the deletion, and the account
+     * is deleted only when the row has the version of the sessions of the model (ADR 0059).
+     *
      * @param  array<mixed>  $input  `delete_content` (boolean, optional): also delete the posts, comments and messages of the member
+     *
+     * @throws ValidationException With the error of a wrong password, when the row has another version of the sessions
      */
     public function delete(User $user, array $input = []): void;
 

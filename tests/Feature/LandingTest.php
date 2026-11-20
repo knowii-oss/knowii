@@ -943,6 +943,64 @@ test('a sign-in link of a member, opened in another browser, lands on the page t
     'the owner, from a members-only space' => ['owner', LANDING_MEMBERS_SPACE],
 ]);
 
+test('a sign-in link of a member whose change of the address waits goes to the address of the account, gets the challenge, and lands on the page after the code', function () {
+    $c = landingCommunity();
+    // The member asked for another address in the profile: it waits for its confirmation, and the account keeps its verified
+    // address (ADR 0058). The pending address gets no sign-in link, and a link to the address of the account is not a first
+    // proof (ADR 0059): the second factor stays, and the challenge holds the landing
+    $secret = landingSecondFactor($c['member']);
+    $c['member']->forceFill(['email' => 'member@example.org', 'pending_email' => 'member.new@example.org', 'pending_email_requested_at' => now()])->save();
+    expect($c['member']->fresh()?->addressWasNeverVerified())->toBeFalse();
+
+    landingNewBrowser();
+    $this->get(LANDING_MEMBERS_SPACE)->assertRedirect(route('login'));
+    $sent = count(app('mailer')->getSymfonyTransport()->messages());
+    $this->post('/login/link', ['email' => 'member.new@example.org'])->assertRedirect(route('login'));
+    expect(app('mailer')->getSymfonyTransport()->messages())->toHaveCount($sent);
+    $this->post('/login/link', ['email' => 'member@example.org'])->assertRedirect(route('login'));
+    $token = landingTokenOfTheMail();
+
+    landingNewBrowser();
+    $this->post('/login/link/'.$token)->assertRedirect(route('two-factor.login'))->assertSessionHas(LANDING_HELD, LANDING_MEMBERS_SPACE);
+    $this->assertGuest();
+    expect($c['member']->fresh()?->hasVerifiedEmail())->toBeTrue()
+        ->and($c['member']->fresh()?->hasEnabledTwoFactorAuthentication())->toBeTrue()
+        ->and($c['member']->fresh()?->pending_email)->toBe('member.new@example.org');
+
+    $this->post('/two-factor-challenge', ['code' => (new Google2FA)->getCurrentOtp($secret)])
+        ->assertRedirect(URL::to(LANDING_MEMBERS_SPACE))
+        ->assertSessionMissing(LANDING_HELD);
+    $this->assertAuthenticatedAs($c['member']);
+});
+
+test('a challenge whose account has no second factor any more ends on the sign-in page, and forgets the landing that it held', function (string $answer) {
+    $c = landingCommunity();
+    $secret = landingSecondFactor($c['member']);
+
+    landingNewBrowser();
+    $this->get(LANDING_MEMBERS_SPACE)->assertRedirect(route('login'));
+    $this->post('/login/link', ['email' => $c['member']->email])->assertRedirect(route('login'));
+    $token = landingTokenOfTheMail();
+
+    landingNewBrowser();
+    $this->post('/login/link/'.$token)->assertRedirect(route('two-factor.login'))->assertSessionHas(LANDING_HELD, LANDING_MEMBERS_SPACE);
+
+    // The second factor is turned off meanwhile (another session of the member)
+    $c['member']->forceFill(['two_factor_secret' => null, 'two_factor_recovery_codes' => null, 'two_factor_confirmed_at' => null])->save();
+
+    $response = match ($answer) {
+        'the page' => $this->get('/two-factor-challenge'),
+        'the code' => $this->post('/two-factor-challenge', ['code' => (new Google2FA)->getCurrentOtp($secret)]),
+        'a recovery code' => $this->post('/two-factor-challenge', ['recovery_code' => 'recovery-one']),
+    };
+    $response->assertRedirect(route('login'))
+        ->assertSessionMissing(LANDING_HELD)
+        ->assertSessionMissing('login.id')
+        ->assertSessionMissing('login.remember')
+        ->assertSessionMissing('url.intended');
+    $this->assertGuest();
+})->with(['the page', 'the code', 'a recovery code']);
+
 test('a sign-in link of an account that is not a member, opened in another browser, lands on the dashboard', function (string $page) {
     $c = landingCommunity();
 

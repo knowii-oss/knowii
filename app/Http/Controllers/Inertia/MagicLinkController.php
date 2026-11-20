@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Inertia;
 use App\Actions\Auth\MagicLinks;
 use App\Contracts\Auth\ConsumesMagicLinks;
 use App\Contracts\Auth\SendsMagicLinks;
+use App\Contracts\Auth\TakesOverUnverifiedAccounts;
+use App\Enums\KnowiiAddressProof;
 use App\Http\Controllers\Controller;
 use App\Support\Landing;
 use Illuminate\Http\RedirectResponse;
@@ -52,18 +54,19 @@ class MagicLinkController extends Controller
             return redirect()->route('login')->with('status', 'This sign-in link expired or was already used. Ask for a new one.');
         }
 
-        // The link proves that the member reads this inbox: its entry matched the address of the account (MagicLinks, ADR
-        // 0058). The address check writes only while the account has the address that was read here and no verified address
-        // (User::markEmailAsVerified(), ADR 0058): when it writes nothing, the account is read again. An account that
-        // another proof verified a moment before signs in as usual; an account with another address now gets the answer of
-        // a link that does not work
-        if (! $user->hasVerifiedEmail()) {
-            $address = $user->email;
-            if (! $user->markEmailAsVerified()) {
-                $user->refresh();
-                if (! $user->hasVerifiedEmail() || mb_strtolower($user->email) !== mb_strtolower($address)) {
-                    return redirect()->route('login')->with('status', 'This sign-in link expired or was already used. Ask for a new one.');
-                }
+        // The link proves that the person reads this inbox. For an account whose address was never verified it is the first
+        // proof of the address, and the first proof takes the account over (ADR 0059): the address is verified, and the
+        // password, the second factor, the sessions and the tokens of before go. No challenge follows then. The session of
+        // this request stays: it becomes a session of the account only below, after the takeover. When the takeover finds
+        // the address verified (another proof came first), the link goes on as for a verified account. When it finds
+        // another address (the address was corrected after the link was checked), the link proves nothing about the
+        // account: the answer of a link that does not work. A verified account keeps its verified address through a change
+        // of the address (ADR 0058): nothing of it changes here
+        if ($user->addressWasNeverVerified()) {
+            // The address of the link: the entry of the link matched it (MagicLinks, ADR 0058)
+            $provedAddress = $user->email;
+            if (! app(TakesOverUnverifiedAccounts::class)->takeOver($user, KnowiiAddressProof::SignInLink, $provedAddress) && ! $user->hasAddress($provedAddress)) {
+                return redirect()->route('login')->with('status', 'This sign-in link expired or was already used. Ask for a new one.');
             }
         }
 

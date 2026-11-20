@@ -94,7 +94,9 @@ final class SyncEntitlementRules implements SyncsEntitlementRules
 
         $this->announceAll($communityIds);
         if ($communityIds !== []) {
-            Log::info('Entitlement rule memberships of a member removed', ['member' => $user->cuid, 'communities' => count($communityIds)]);
+            // Written when the change is stored: a takeover calls this inside its own transaction (ADR 0059)
+            $context = ['member' => $user->cuid, 'communities' => count($communityIds)];
+            DB::afterCommit(static fn () => Log::info('Entitlement rule memberships of a member removed', $context));
         }
     }
 

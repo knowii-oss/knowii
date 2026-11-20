@@ -6,6 +6,8 @@ use App\Actions\Fortify\CreateNewUser;
 use App\Constants;
 use App\Contracts\Auth\LinksIdentities;
 use App\Contracts\Auth\SignsInWithOpenIdConnect;
+use App\Contracts\Auth\TakesOverUnverifiedAccounts;
+use App\Enums\KnowiiAddressProof;
 use App\Exceptions\OpenIdConnectException;
 use App\Models\User;
 use App\Models\UserIdentity;
@@ -25,9 +27,11 @@ use Illuminate\Support\Str;
  * 1. The pair exists: sign in its account.
  * 2. The provider does not say `email_verified: true` (the boolean), or sends no usable address: refused.
  * 3. A platform account has this address (compared without case) and verified it: connect and sign in.
- * 4. A platform account has this address and never verified it: connect, mark the address verified, remove the password
- *    and the second factor, and close the sessions and the API tokens. The provider proved the address, the person who
- *    created that account never did.
+ * 4. A platform account has this address and never verified it: the account is taken over (TakesOverUnverifiedAccounts,
+ *    ADR 0059: the address is marked verified, the password and the second factor are removed, the sessions and the API
+ *    tokens are closed), then connected. The provider proved the address, the person who created that account never did.
+ *    A verified account keeps its verified address through a change of the address (ADR 0058), so case 3 covers every
+ *    account that verified an address. When another proof of the address came first, the account is verified: case 3.
  * 5. Otherwise create the account through the normal creation path, without a password and with a verified address.
  *
  * An address that matches more than one account, or an account that already has another account at this provider,
@@ -43,6 +47,7 @@ class SignInWithOpenIdConnect implements SignsInWithOpenIdConnect
     public function __construct(
         private readonly LinksIdentities $linksIdentities,
         private readonly CreateNewUser $createsUsers,
+        private readonly TakesOverUnverifiedAccounts $takesOverAccounts,
     ) {}
 
     final public function resolve(OpenIdIdentity $identity, ?User $linking): User
@@ -76,7 +81,7 @@ class SignInWithOpenIdConnect implements SignsInWithOpenIdConnect
         }
     }
 
-    private function signInByAddress(OpenIdIdentity $identity, string $email): User
+    private function signInByAddress(OpenIdIdentity $identity, string $email, bool $again = false): User
     {
         $accounts = User::query()->whereRaw('lower(email) = ?', [mb_strtolower($email)])->lockForUpdate()->get();
         if ($accounts->count() > 1) {
@@ -94,38 +99,22 @@ class SignInWithOpenIdConnect implements SignsInWithOpenIdConnect
             throw new OpenIdConnectException('issuer_already_linked', 'The account with this address is connected to another account at this provider. Sign in the way you did before, or ask the administrators for help.');
         }
 
-        $takeOver = ! $user->hasVerifiedEmail();
+        // An account whose address was never verified: whoever created it never proved that the address is theirs. The owner
+        // of the address proved it at the provider, so the account is theirs now (decision of the owner, 2026-11-15, ADR
+        // 0059). The takeover comes first: it removes the connections of before, and the connection of this person comes
+        // after it. When the takeover finds the address verified (another proof came first), the account is connected as in
+        // case 3. When it finds another address (the rows are locked by their address, so this does not happen), the address
+        // of the provider takes its normal path again, once
+        if ($user->addressWasNeverVerified() && ! $this->takesOverAccounts->takeOver($user, KnowiiAddressProof::Provider, $email) && ! $user->hasAddress($email)) {
+            if ($again) {
+                throw new OpenIdConnectException('conflict', 'We could not finish this sign-in. Please try again.');
+            }
+
+            return $this->signInByAddress($identity, $email, true);
+        }
         $this->linksIdentities->link($user, $identity);
 
-        if ($takeOver) {
-            $this->takeOver($user);
-        }
-
         return $user;
-    }
-
-    /**
-     * An account whose address was never verified: whoever created it never proved that the address is theirs. The
-     * owner of the address proved it at the provider, so the account is theirs now (decision of the owner, 2026-11-15).
-     */
-    private function takeOver(User $user): void
-    {
-        $user->forceFill([
-            'email_verified_at' => now(),
-            // The old password cannot be used any more
-            'password' => null,
-            'remember_token' => Str::random(60),
-            // A second factor that the creator set up is theirs too
-            'two_factor_secret' => null,
-            'two_factor_recovery_codes' => null,
-            'two_factor_confirmed_at' => null,
-        ])->save();
-
-        DB::table('sessions')->where('user_id', $user->id)->delete();
-        $user->tokens()->delete();
-        DB::table('password_reset_tokens')->where('email', $user->email)->delete();
-
-        Log::notice('OpenID Connect: took over an account whose address was never verified', ['user' => $user->cuid]);
     }
 
     private function createAccount(OpenIdIdentity $identity, string $email): User
