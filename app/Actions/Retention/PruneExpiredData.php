@@ -5,6 +5,8 @@ namespace App\Actions\Retention;
 use App\Actions\Communities\ExportCommunity;
 use App\Contracts\Retention\PrunesExpiredData;
 use App\Models\CommunityInvitation;
+use App\Models\Event;
+use App\Models\EventAnswer;
 use App\Models\Notification;
 use App\Support\Retention;
 use Illuminate\Database\Query\Builder;
@@ -24,6 +26,7 @@ use Laravel\Sanctum\PersonalAccessToken;
  *   deletes them only at random on some requests
  * - notifications (#1474): the rows that the member read, some days after they read them, and the rows that they never read,
  *   some days after they were written
+ * - answers of members to events (#1515, ADR 0053), some days after the end of their event
  * - community exports (zip files of `php artisan communities:export`, #1353) after their retention period
  * - cache entries after their expiry (sign-in link tokens, rate limit counters by IP address), when the cache is the
  *   database: an expired entry stays in the table until someone reads its key again
@@ -65,6 +68,13 @@ final class PruneExpiredData implements PrunesExpiredData
                     ->where(fn ($query) => $query
                         ->where('read_at', '<', now()->subDays(Retention::notificationsReadDays()))
                         ->orWhere(fn ($unread) => $unread->whereNull('read_at')->where('created_at', '<', now()->subDays(Retention::notificationsUnreadDays()))))
+                    ->toBase(),
+                $dryRun
+            ),
+            // An answer says what a member planned to do: it has no use long after the event (ADR 0053)
+            'event_answers' => $this->apply(
+                EventAnswer::query()
+                    ->whereIn('event_id', Event::query()->where('ends_at', '<', now()->subDays(Retention::eventAnswersDays()))->select('id'))
                     ->toBase(),
                 $dryRun
             ),

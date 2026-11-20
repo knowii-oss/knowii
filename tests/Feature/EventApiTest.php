@@ -7,9 +7,11 @@ use App\Enums\KnowiiSpacePostingPolicy;
 use App\Enums\KnowiiSpaceType;
 use App\Enums\KnowiiSpaceVisibility;
 use App\Events\Spaces\SpaceTreeChanged;
+use App\Models\AccessGroup;
 use App\Models\Event as EventModel;
 use App\Models\Space;
 use App\Models\SpaceGroup;
+use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
@@ -110,7 +112,7 @@ test('a moderator creates, reads, changes, publishes, duplicates and deletes an 
         ->assertJsonPath('data.cover', null);
     expect(array_keys((array) $created->json('data')))->toBe([
         'cuid', 'title', 'slug', 'state', 'starts_at', 'ends_at', 'time_zone', 'is_past', 'location_visibility', 'can_view_location',
-        'meeting_url', 'place', 'cover', 'cover_alt', 'host', 'space', 'body', 'body_html', 'created_at', 'updated_at',
+        'meeting_url', 'place', 'my_answer', 'can_answer', 'replay_expected', 'places_left', 'capacity', 'cover', 'cover_alt', 'host', 'space', 'body', 'body_html', 'created_at', 'updated_at',
     ]);
     $event = EventModel::query()->where('cuid', $created->json('data.cuid'))->firstOrFail();
 
@@ -235,11 +237,64 @@ test('a visitor and an outsider read a public events space, and get the answer o
     evaRead('visitor', evaPath(ApiRoutes::COMMUNITY_SPACE_EVENTS, $this->spaces['members']))->assertUnauthorized();
     evaRead('outsider', evaPath(ApiRoutes::COMMUNITY_SPACE_EVENTS, $this->spaces['members']))->assertForbidden();
     evaRead('visitor', evaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $this->spaces['members'], $this->published['members']))->assertUnauthorized();
-    evaRead('outsider', evaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $this->spaces['members'], $this->published['members']))->assertForbidden();
+    // A signed-in person who cannot read the space: the event does not exist for them (see the test of the 404 below)
+    evaRead('outsider', evaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $this->spaces['members'], $this->published['members']))->assertNotFound();
     evaRead('visitor', evaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $this->spaces['public'], $this->drafts['public']))->assertUnauthorized();
-    evaRead('outsider', evaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $this->spaces['public'], $this->drafts['public']))->assertForbidden();
-    evaRead('member', evaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $this->spaces['public'], $this->drafts['public']))->assertForbidden();
     evaRead('moderator', evaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $this->spaces['public'], $this->drafts['public']))->assertOk();
+});
+
+test('the read of a draft answers 404 to a reader who cannot see it, as the writes do (ADR 0053, point 9)', function () {
+    $missing = EventModel::factory()->inSpace($this->spaces['public'])->make(['cuid' => 'nothing-here']);
+
+    foreach (['public', 'members'] as $visibility) {
+        $space = $this->spaces[$visibility];
+        foreach (['member', 'outsider'] as $reader) {
+            $ofDraft = evaRead($reader, evaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $space, $this->drafts[$visibility]))->assertNotFound();
+            $ofMissing = evaRead($reader, evaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $space, $missing))->assertNotFound();
+
+            expect($ofDraft->getContent())->toBe($ofMissing->getContent(), "{$reader}, {$visibility}");
+        }
+    }
+    // An admin hosts this draft: a moderator does not see it either
+    $this->drafts['public']->update(['host_id' => $this->c['admin']->id]);
+    evaRead('moderator', evaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $this->spaces['public'], $this->drafts['public']))->assertNotFound();
+    // The people who see the draft read it
+    foreach (['admin', 'owner'] as $reader) {
+        evaRead($reader, evaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $this->spaces['public'], $this->drafts['public']))->assertOk()->assertJsonPath('data.state', 'draft');
+    }
+});
+
+test('the read of a published event of a space that the reader cannot read answers 404, with the body of an event that does not exist', function () {
+    $groups = Space::factory()->inGroup($this->spaces['members']->spaceGroup)->create(['type' => KnowiiSpaceType::Events, 'visibility' => KnowiiSpaceVisibility::Groups]);
+    $buyers = AccessGroup::query()->create(['community_id' => $this->c['community']->id, 'name' => 'Buyers']);
+    $groups->accessGroups()->attach($buyers);
+    $forBuyers = EventModel::factory()->inSpace($groups)->hostedBy($this->c['owner'])->create(['title' => 'For the buyers']);
+    $cancelled = EventModel::factory()->inSpace($groups)->hostedBy($this->c['owner'])->cancelled()->create(['title' => 'Cancelled for the buyers']);
+
+    // A member and a moderator without the access group, and a signed-in person who is not a member, in a "groups" and
+    // in a "members" space
+    $cases = [
+        ['member', $groups, $forBuyers],
+        ['member', $groups, $cancelled],
+        ['moderator', $groups, $forBuyers],
+        ['outsider', $groups, $forBuyers],
+        ['outsider', $this->spaces['members'], $this->published['members']],
+    ];
+    foreach ($cases as $index => [$reader, $space, $event]) {
+        $missing = EventModel::factory()->inSpace($space)->make(['cuid' => 'nothing-here']);
+        $ofHidden = evaRead($reader, evaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $space, $event))->assertNotFound();
+        $ofMissing = evaRead($reader, evaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $space, $missing))->assertNotFound();
+
+        expect($ofHidden->getContent())->toBe($ofMissing->getContent(), "case {$index}: {$reader}")
+            ->and((string) $ofHidden->getContent())->not->toContain('the buyers')->not->toContain($event->cuid);
+    }
+
+    // The people who read the space read the event: the owner, an admin, and a member with the access group
+    $buyers->members()->attach($this->c['member']);
+    $this->c['member'] = User::query()->findOrFail($this->c['member']->id);
+    foreach (['owner', 'admin', 'member'] as $reader) {
+        evaRead($reader, evaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $groups, $forBuyers))->assertOk()->assertJsonPath('data.title', 'For the buyers');
+    }
 });
 
 test('a visitor gets no write route', function (string $method, string $route) {

@@ -1,0 +1,19 @@
+meta {
+  name: Events - Answers - List
+  type: http
+  seq: 199
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of an events space>/events/<cuid of an event>/answers?answer=yes&limit=10&offset=0
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The members who answered an event (#1515), for its host, the owner and the admins of the community: 403 for the others, a moderator included, and 404 for an event that you may not see. answer is yes (default) or replay: the members with that answer, by name then by username, each with cuid, name, username and avatar_url. metadata holds the pagination and counts (yes, replay, no). The members who answered No are never named, and no time of an answer is given. Only the people who are members today and can read the space are listed and counted, and only their Yes answers take a place. Ability event-answers:read, which is never in the default set of a token.
+}

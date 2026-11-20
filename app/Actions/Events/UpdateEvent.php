@@ -16,7 +16,8 @@ use Illuminate\Support\Facades\Validator;
 /**
  * Change an event (#1513, ADR 0053): the owner, the admins and the host. Every field of a create but the state, each
  * optional; the times are checked with the stored values of the fields that are absent. The slug stays. `sequence` goes
- * up when the start, the end, the meeting address or the place changes. An update tells nobody in this slice.
+ * up when the start, the end, the meeting address or the place changes. An update tells nobody in this slice. The limit
+ * of places and "a replay will exist" change here too (#1515): no answer is removed by a change.
  */
 class UpdateEvent implements UpdatesEvents
 {
@@ -29,7 +30,7 @@ class UpdateEvent implements UpdatesEvents
         EventPublication::assertVisible($user, $event);
         Gate::forUser($user)->authorize('update', $event);
 
-        /** @var array{title?: string, body?: string|null, starts_at?: string, ends_at?: string, time_zone?: string, meeting_url?: string|null, place?: string|null, location_visibility?: string, cover_upload_cuid?: string|null, cover_alt?: string|null, host_cuid?: string} $validated */
+        /** @var array{title?: string, body?: string|null, starts_at?: string, ends_at?: string, time_zone?: string, meeting_url?: string|null, place?: string|null, location_visibility?: string, cover_upload_cuid?: string|null, cover_alt?: string|null, capacity?: int|string|null, replay_expected?: bool|int|string, host_cuid?: string} $validated */
         $validated = Validator::make($input, [
             ...CreateEvent::rules(false),
             'host_cuid' => ['sometimes', 'string'],
@@ -62,6 +63,14 @@ class UpdateEvent implements UpdatesEvents
         if (isset($validated['location_visibility'])) {
             $changes['location_visibility'] = KnowiiEventLocationVisibility::from($validated['location_visibility']);
         }
+        // A limit under the number of Yes answers is accepted: nobody is removed, and no new Yes passes
+        if (array_key_exists('capacity', $validated)) {
+            $changes['capacity'] = CreateEvent::capacity($validated['capacity']);
+        }
+        // Without a replay, the "Replay only" answers stay: their members choose again when they want
+        if (array_key_exists('replay_expected', $validated)) {
+            $changes['replay_expected'] = filter_var($validated['replay_expected'], FILTER_VALIDATE_BOOLEAN);
+        }
         if (array_key_exists('cover_upload_cuid', $validated)) {
             $changes['cover_upload_id'] = CreateEvent::coverId($community, $validated['cover_upload_cuid']);
         }
@@ -70,6 +79,11 @@ class UpdateEvent implements UpdatesEvents
         }
 
         DB::transaction(function () use ($event, $changes) {
+            // A change of the limit waits for the answers that are being written, and they wait for it (#1515): the lock
+            // of the row of the event, as in AnswerEvent
+            if (array_key_exists('capacity', $changes)) {
+                Event::query()->whereKey($event->id)->lockForUpdate()->first();
+            }
             $event->fill($changes);
             if ($event->isDirty(self::SEQUENCE_FIELDS)) {
                 $event->sequence++;

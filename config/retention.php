@@ -34,6 +34,10 @@ return [
     'notifications_read_days' => (int) env('RETENTION_NOTIFICATIONS_READ_DAYS', 60),
     'notifications_unread_days' => (int) env('RETENTION_NOTIFICATIONS_UNREAD_DAYS', 90),
 
+    // The answer of a member to an event (#1515, ADR 0053) is deleted this many days after the end of the event. It also goes
+    // with the event, with the account, and when the member leaves the community
+    'event_answers_days' => (int) env('RETENTION_EVENT_ANSWERS_DAYS', 90),
+
     // Where I am (#1476, ADR 0048) has no period of its own: `users.time_zone` lives with the account, `users.last_visit_on` is one
     // date that each visit replaces, and the rows of `space_visits` are replaced at each visit and go with the membership (a member
     // who leaves or is removed) and with the account. Nothing accumulates, so `retention:prune` has no step for them.

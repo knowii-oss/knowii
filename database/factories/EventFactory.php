@@ -38,6 +38,9 @@ class EventFactory extends Factory
             'meeting_url' => 'https://meet.example.com/'.$this->faker->lexify('???-????-???'),
             'place' => null,
             'location_visibility' => KnowiiEventLocationVisibility::Members,
+            // No limit of places and no replay (#1515)
+            'capacity' => null,
+            'replay_expected' => false,
             'state' => KnowiiEventState::Published,
             'sequence' => 0,
             'space_id' => Space::factory()->state(['type' => KnowiiSpaceType::Events]),

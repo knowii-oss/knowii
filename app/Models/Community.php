@@ -374,6 +374,8 @@ class Community extends Model
         DB::table('lesson_progress')->where('community_id', $this->id)->where('user_id', $user->id)->delete();
         // Nor their quiz results (#1335, ADR 0038)
         DB::table('quiz_results')->where('community_id', $this->id)->where('user_id', $user->id)->delete();
+        // Nor their answers to its events (#1515, ADR 0053): a member who comes back starts with none
+        DB::table('event_answers')->where('community_id', $this->id)->where('user_id', $user->id)->delete();
         // Nor their notifications (#1474, ADR 0042)
         app(PrunesNotifications::class)->forMember($user, $this);
         // Nor their visits of its spaces (#1476, ADR 0048)

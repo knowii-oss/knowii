@@ -15,6 +15,6 @@ headers {
 }
 
 docs {
-  One event with its description in Markdown and HTML (#1513). A draft is for its host, the owner and the admins. meeting_url and place are null (and can_view_location false) for a reader who may not see them. Ability events:read.
+  One event with its description in Markdown and HTML (#1513). A draft is for its host, the owner and the admins. meeting_url and place are null (and can_view_location false) for a reader who may not see them. my_answer is your own answer (yes, replay, no or null), can_answer says if you may answer now, places_left is the number of places that are left when the event has a limit, and capacity (the limit) is null for everyone but the host, the owner and the admins, and for a token without the ability event-answers:read (#1515). An event that you may not see (a draft of another host, or an event of a space that you cannot read) answers 404 when you are signed in. Ability events:read.
   Public: in a public space this request works without a session and without a token, without the meeting address and the place.
 }

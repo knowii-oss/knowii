@@ -169,6 +169,11 @@ final class ApiRoutes
 
     public const COMMUNITY_SPACE_EVENT_DUPLICATE = self::COMMUNITY_SPACE_EVENT.'/duplicate';
 
+    // The answer of the member to an event, and the answers that the host and the team read (#1515, ADR 0053)
+    public const COMMUNITY_SPACE_EVENT_ANSWER = self::COMMUNITY_SPACE_EVENT.'/answer';
+
+    public const COMMUNITY_SPACE_EVENT_ANSWERS = self::COMMUNITY_SPACE_EVENT.'/answers';
+
     // The upcoming events of every events space that the reader can read (#1513)
     public const COMMUNITY_EVENTS = self::COMMUNITY.'/events';
 

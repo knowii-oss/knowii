@@ -47,7 +47,7 @@ class CreateEvent implements CreatesEvents
             throw new BusinessException('Events can only be created in events spaces');
         }
 
-        /** @var array{title: string, body?: string|null, starts_at: string, ends_at: string, time_zone: string, meeting_url?: string|null, place?: string|null, location_visibility?: string, cover_upload_cuid?: string|null, cover_alt?: string|null, host_cuid?: string|null, state?: string, notify_now?: bool} $validated */
+        /** @var array{title: string, body?: string|null, starts_at: string, ends_at: string, time_zone: string, meeting_url?: string|null, place?: string|null, location_visibility?: string, cover_upload_cuid?: string|null, cover_alt?: string|null, capacity?: int|string|null, replay_expected?: bool|int|string, host_cuid?: string|null, state?: string, notify_now?: bool} $validated */
         $validated = Validator::make($input, [
             ...self::rules(true),
             'host_cuid' => ['sometimes', 'nullable', 'string'],
@@ -86,6 +86,8 @@ class CreateEvent implements CreatesEvents
                 'location_visibility' => KnowiiEventLocationVisibility::from($validated['location_visibility'] ?? KnowiiEventLocationVisibility::Members->value),
                 'cover_upload_id' => $coverId,
                 'cover_alt' => self::blankToNull($validated['cover_alt'] ?? null),
+                'capacity' => self::capacity($validated['capacity'] ?? null),
+                'replay_expected' => filter_var($validated['replay_expected'] ?? false, FILTER_VALIDATE_BOOLEAN),
                 'state' => $state,
                 'sequence' => 0,
                 'published_notified_at' => null,
@@ -125,6 +127,11 @@ class CreateEvent implements CreatesEvents
             'location_visibility' => ['sometimes', Rule::enum(KnowiiEventLocationVisibility::class)],
             'cover_upload_cuid' => ['sometimes', 'nullable', 'string'],
             'cover_alt' => ['sometimes', 'nullable', 'string', 'max:'.Constants::MAX_LENGTH_EVENT_COVER_ALT],
+            // The limit of places (#1515): it counts the Yes answers. Null: no limit. A value under the number of Yes answers
+            // is accepted, and nobody is removed
+            'capacity' => ['sometimes', 'nullable', 'integer', 'min:'.Constants::MIN_EVENT_CAPACITY, 'max:'.Constants::MAX_EVENT_CAPACITY],
+            // A replay will exist: members may answer "Replay only"
+            'replay_expected' => ['sometimes', 'boolean'],
         ];
     }
 
@@ -200,6 +207,14 @@ class CreateEvent implements CreatesEvents
         }
 
         return $upload->id;
+    }
+
+    /**
+     * The limit of places as a number, or null for no limit
+     */
+    public static function capacity(int|string|null $value): ?int
+    {
+        return is_numeric($value) ? (int) $value : null;
     }
 
     public static function blankToNull(?string $value): ?string

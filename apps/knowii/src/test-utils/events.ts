@@ -45,6 +45,12 @@ export function eventFixture(cuid: string, title: string, changes: Partial<Recor
     can_view_location: true,
     meeting_url: 'https://meet.example.com/abc',
     place: null,
+    // The answers (#1515): a member who did not answer an event without a limit and without a replay
+    my_answer: null,
+    can_answer: true,
+    replay_expected: false,
+    places_left: null,
+    capacity: null,
     cover: null,
     cover_alt: null,
     host: { cuid: 'u1', name: 'Ada Lovelace', username: 'ada', avatar_url: null },

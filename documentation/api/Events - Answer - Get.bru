@@ -1,0 +1,19 @@
+meta {
+  name: Events - Answer - Get
+  type: http
+  seq: 195
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of an events space>/events/<cuid of an event>/answer
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Your answer to an event (#1515): answer is yes, replay or no, and null when you did not answer; updated_at is the time of your last change. For the members of the community who can see the event (403 for a person who is not a member, 404 for an event that you may not see). A cancelled event and an event that ended still give the answer that you gave. Ability events:read.
+}

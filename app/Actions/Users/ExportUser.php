@@ -13,6 +13,7 @@ use App\Models\CommunityJoinBlock;
 use App\Models\CommunityMember;
 use App\Models\CommunityResource;
 use App\Models\Event;
+use App\Models\EventAnswer;
 use App\Models\LessonProgress;
 use App\Models\Mention;
 use App\Models\Notification;
@@ -106,6 +107,7 @@ final class ExportUser implements ExportsUsers
                 'activity.json' => [[], [
                     'lessons_done' => $this->lessonsDone($user),
                     'quiz_results' => $this->quizResults($user),
+                    'event_answers' => $this->eventAnswers($user),
                     'chat_space_read_markers' => $this->chatSpaceReadMarkers($user),
                     'conversation_read_markers' => $this->conversationReadMarkers($user),
                     'blocked_members' => $this->blockedMembers($user),
@@ -344,6 +346,27 @@ final class ExportUser implements ExportsUsers
                 'attempts' => $result->attempts,
                 'passed_at' => $this->date($result->passed_at),
                 'updated_at' => $this->date($result->updated_at),
+            ];
+        }
+    }
+
+    /**
+     * The answers of the member to events (#1515, ADR 0053): the event by its cuid and its title, and the answer. Never
+     * the host, never another member.
+     *
+     * @return Generator<int, Row>
+     */
+    private function eventAnswers(User $user): Generator
+    {
+        foreach (EventAnswer::query()->where('user_id', $user->id)->with('event.space')->lazyById(self::CHUNK) as $answer) {
+            yield [
+                'cuid' => $answer->cuid,
+                ...$this->place($answer->community_id, $answer->event->space),
+                'event' => $answer->event->cuid,
+                'event_title' => $answer->event->title,
+                'answer' => $answer->answer?->value,
+                'created_at' => $this->date($answer->created_at),
+                'updated_at' => $this->date($answer->updated_at),
             ];
         }
     }
@@ -904,7 +927,7 @@ final class ExportUser implements ExportsUsers
         $descriptions = [
             'account.json' => 'your account and your profile, with the choice of who sees each profile field, and the accounts of other providers that you connected to sign in (the provider, your identifier there and the dates), with the entitlement keys that the provider reported for you and the date of the last check, your time zone, the date of your last visit (a date, no hour) and your choice of pop-ups',
             'memberships.json' => 'your communities and your role, the communities you own, your access groups (and whether you were added by hand or by an entitlement rule), the invitations sent to your email address and the communities where a manager removed you and where you cannot join again by yourself',
-            'activity.json' => 'the lessons you marked as done, your quiz results, what you read in chat spaces and conversations, the members you blocked, where you were mentioned, your notifications (kind, community, the items by identifier and the dates, never a text), the threads that you follow or muted and the level that you chose for each space, the date when you last visited each space, your API tokens and your sessions',
+            'activity.json' => 'the lessons you marked as done, your quiz results, your answers to events (the event by its identifier and its title, and your answer: yes, replay only or no), what you read in chat spaces and conversations, the members you blocked, where you were mentioned, your notifications (kind, community, the items by identifier and the dates, never a text), the threads that you follow or muted and the level that you chose for each space, the date when you last visited each space, your API tokens and your sessions',
             'posts.json' => 'your posts (Markdown)',
             'comments.json' => 'your comments (Markdown), with the cuid and the title of what they answer',
             'pages.json' => 'the pages and lessons you wrote (Markdown)',

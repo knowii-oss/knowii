@@ -25,6 +25,7 @@ Knowii is for people of 16 and older. We do not knowingly keep the data of young
 6. [TODO: keep only if you use it] Newsletter: your email address, if you join the newsletter.
 7. Data that we get from other people: when a manager of a community invites you, they give us your email address. When a member mentions you, that mention is content of the community.
 8. [TODO: keep only if you use it] Audience statistics: page views, counted by Plausible without cookies and without a stored identifier. Our proxy at Cloudflare and Plausible see your IP address to count the view and do not keep it.
+9. Your answers to events (yes, replay only or no), until {{retention.event_answers}} after the event or until you leave the community. The host and the team of an event see who answered yes or replay only. They do not see when you open the meeting. We do not record who attends a meeting.
 
 Your name, email address, username and password are required to create an account. Without them, we cannot give you one. Everything else is optional.
 
@@ -69,6 +70,7 @@ When a member adds a link to a resources space, our server fetches the page to c
 11. Notifications: {{retention.notifications_read}} after you read them, {{retention.notifications_unread}} when you never read them.
 12. Follows, mutes and space levels: while you are a member of the community.
 13. Time zone and pop-up choice: while your account exists. Last visit date: replaced at each visit. Last visit of each space: replaced at each visit, and deleted when you leave the community.
+14. Answers to events: {{retention.event_answers}} after the event, or until you leave the community.
 
 ## 6. Cookies
 

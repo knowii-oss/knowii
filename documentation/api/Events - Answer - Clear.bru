@@ -1,0 +1,19 @@
+meta {
+  name: Events - Answer - Clear
+  type: http
+  seq: 198
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of an events space>/events/<cuid of an event>/answer
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Clears your answer to an event (#1515): 204, also when you did not answer. A Yes that goes frees a place. A cancelled event and an event that ended answer 422: their answers stay as they are. Limited per member (the event-answers limiter). Ability events:write.
+}

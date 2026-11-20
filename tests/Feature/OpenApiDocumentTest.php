@@ -185,3 +185,22 @@ test('the events routes are documented with their required fields and their quer
         ->and($paths[$events.'/{event}/duplicate'])->toHaveKey('post')
         ->and($paths['/v1/communities/{community}/events'])->toHaveKey('get');
 });
+
+test('the routes of the answers to events are documented, with the limit of places and the replay choice of an event (#1515)', function () {
+    $paths = openApiDocument()['paths'];
+    $events = '/v1/communities/{community}/spaces/{space}/events';
+    $answer = $paths[$events.'/{event}/answer'] ?? [];
+    $answers = $paths[$events.'/{event}/answers'] ?? [];
+
+    expect($answer)->toHaveKeys(['get', 'put', 'delete'])
+        ->and($answer['put']['requestBody']['content']['application/json']['schema']['required'] ?? [])->toBe(['answer'])
+        ->and(array_keys($answer['delete']['responses'] ?? []))->toContain(204)
+        ->and($answers)->toHaveKey('get')
+        ->and(array_column($answers['get']['parameters'] ?? [], 'name'))->toContain('answer', 'limit', 'offset');
+
+    foreach ([$paths[$events]['post'], $paths[$events.'/{event}']['patch']] as $operation) {
+        $properties = $operation['requestBody']['content']['application/json']['schema']['properties'] ?? [];
+        expect($properties)->toHaveKeys(['capacity', 'replay_expected', 'location_visibility'])
+            ->and($properties['location_visibility']['description'] ?? '')->toContain('the members who answer Yes');
+    }
+});

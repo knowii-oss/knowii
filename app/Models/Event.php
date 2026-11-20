@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\KnowiiEventAnswer;
 use App\Enums\KnowiiEventLocationVisibility;
 use App\Enums\KnowiiEventState;
 use App\Http\Resources\EventResource;
@@ -17,11 +18,15 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * A dated item of an events space (#1513, ADR 0053): a title, a Markdown description, a start and an end, a host, a
  * meeting address or a place, and a cover. The start and the end are UTC instants; `time_zone` is the zone in which the
  * host entered them. "Past" is derived from the end, never stored.
+ *
+ * Members answer it (#1515): Yes, Replay only or No, one row per member in `event_answers`. `capacity` limits the Yes
+ * answers; `replay_expected` offers "Replay only".
  *
  * Not to confuse with the broadcast events of `app/Events/`.
  *
@@ -42,6 +47,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property KnowiiEventLocationVisibility $location_visibility
  * @property ?int $cover_upload_id
  * @property ?string $cover_alt Empty: a decorative image
+ * @property ?int $capacity The limit of places (1 to 5 000), which counts the Yes answers only. Null: no limit
+ * @property bool $replay_expected The host says that a replay will exist: members may answer "Replay only"
  * @property KnowiiEventState $state
  * @property int $sequence Goes up when the time, the address, the place or the state changes
  * @property ?Carbon $published_notified_at When the "new event" lines were queued
@@ -53,6 +60,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read ?Upload $cover
  * @property-read Collection<int, UploadUsage> $uploadUsages
  * @property-read ?int $upload_usages_count
+ * @property-read Collection<int, EventAnswer> $answers
+ * @property-read ?int $answers_count
  *
  * @method static \Database\Factories\EventFactory factory($count = null, $state = [])
  * @method static Builder<static> newModelQuery()
@@ -65,6 +74,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static Builder<static>|Event visibleTo(?\App\Models\User $user, \App\Models\Community $community)
  * @method static Builder<static>|Event whereBody($value)
  * @method static Builder<static>|Event whereBodyHtml($value)
+ * @method static Builder<static>|Event whereCapacity($value)
  * @method static Builder<static>|Event whereCommunityId($value)
  * @method static Builder<static>|Event whereCoverAlt($value)
  * @method static Builder<static>|Event whereCoverUploadId($value)
@@ -77,6 +87,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static Builder<static>|Event whereMeetingUrl($value)
  * @method static Builder<static>|Event wherePlace($value)
  * @method static Builder<static>|Event wherePublishedNotifiedAt($value)
+ * @method static Builder<static>|Event whereReplayExpected($value)
  * @method static Builder<static>|Event whereSequence($value)
  * @method static Builder<static>|Event whereSlug($value)
  * @method static Builder<static>|Event whereSpaceId($value)
@@ -121,6 +132,8 @@ class Event extends Model
         'location_visibility',
         'cover_upload_id',
         'cover_alt',
+        'capacity',
+        'replay_expected',
         'state',
         'sequence',
         'published_notified_at',
@@ -138,6 +151,17 @@ class Event extends Model
     ];
 
     /**
+     * What a read already knows of the answers of this event (App\Support\EventAnswers::preload): the answer of a
+     * reader by user id, and the number of Yes answers. A list then asks the database once, not once per event. Never
+     * stored, never serialized.
+     *
+     * @var array<int, ?KnowiiEventAnswer>
+     */
+    private array $knownAnswers = [];
+
+    private ?int $knownYesCount = null;
+
+    /**
      * @return array<string, string>
      */
     final public function casts(): array
@@ -146,6 +170,8 @@ class Event extends Model
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',
             'location_visibility' => KnowiiEventLocationVisibility::class,
+            'capacity' => 'integer',
+            'replay_expected' => 'boolean',
             'state' => KnowiiEventState::class,
             'sequence' => 'integer',
             'published_notified_at' => 'datetime',
@@ -204,6 +230,73 @@ class Event extends Model
     final public function cover(): BelongsTo
     {
         return $this->belongsTo(Upload::class, 'cover_upload_id');
+    }
+
+    /**
+     * The answers of members (#1515): one row per member, no row for a member who did not answer
+     *
+     * @return HasMany<EventAnswer, covariant $this>
+     */
+    final public function answers(): HasMany
+    {
+        return $this->hasMany(EventAnswer::class);
+    }
+
+    /**
+     * The answer of the member to this event, or null: what a read loaded for them, else the database
+     */
+    final public function answerOf(User $user): ?KnowiiEventAnswer
+    {
+        if (array_key_exists($user->id, $this->knownAnswers)) {
+            return $this->knownAnswers[$user->id];
+        }
+
+        return $this->answers()->where('user_id', $user->id)->first()?->answer;
+    }
+
+    /**
+     * The number of Yes answers that take a place: the ones of the members who can read the space of the event today
+     * (EventAnswer::scopeOfReaders). The Yes of a member who lost the access takes no place until the access is back
+     */
+    final public function yesCount(): int
+    {
+        return $this->knownYesCount ?? $this->answers()->ofReaders()->where('answer', KnowiiEventAnswer::Yes->value)->count();
+    }
+
+    /**
+     * The places that are left, never below 0: a host may lower the limit under the number of Yes answers, and members
+     * whose access comes back may bring an event over its limit. Null: no limit
+     */
+    final public function placesLeft(): ?int
+    {
+        return $this->capacity === null ? null : max(0, $this->capacity - $this->yesCount());
+    }
+
+    /**
+     * Whether a read already loaded the answer of this member (EventAnswers::preload)
+     */
+    final public function knowsAnswerOf(User $user): bool
+    {
+        return array_key_exists($user->id, $this->knownAnswers);
+    }
+
+    /**
+     * Give the event what a read loaded: the answer of one reader, and the number of Yes answers when the read counted
+     * them (null: not counted)
+     */
+    final public function knowAnswers(User $user, ?KnowiiEventAnswer $answer, ?int $yesCount): void
+    {
+        $this->knownAnswers[$user->id] = $answer;
+        $this->knownYesCount = $yesCount;
+    }
+
+    /**
+     * Forget what a read loaded: after a write of an answer, the next read asks the database again
+     */
+    final public function forgetAnswers(): void
+    {
+        $this->knownAnswers = [];
+        $this->knownYesCount = null;
     }
 
     /**

@@ -18,10 +18,13 @@ headers {
 body:json {
   {
     "title": "Weekly review office hour (new room)",
-    "meeting_url": "https://meet.example.com/new-room"
+    "meeting_url": "https://meet.example.com/new-room",
+    "location_visibility": "going",
+    "capacity": 40,
+    "replay_expected": true
   }
 }
 
 docs {
-  Changes an event (#1513): the owner, the admins and the host. Each field is optional; the times are checked with the stored values of the absent fields. The slug stays. sequence goes up when the start, the end, the meeting address or the place changes. A change tells nobody. Ability events:write.
+  Changes an event (#1513): the owner, the admins and the host. Each field is optional; the times are checked with the stored values of the absent fields. The slug stays. sequence goes up when the start, the end, the meeting address or the place changes. A change tells nobody. capacity (1 to 5 000, null removes the limit) may go under the number of Yes answers: nobody is removed, and no new Yes passes. With a token, the answer holds capacity only with the ability event-answers:read. replay_expected false keeps the "Replay only" answers that exist. location_visibility going gives the address and the place to the members who answer Yes, the host, the owner and the admins (#1515). Ability events:write.
 }

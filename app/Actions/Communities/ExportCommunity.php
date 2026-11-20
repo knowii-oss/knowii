@@ -342,7 +342,9 @@ final class ExportCommunity implements ExportsCommunities
 
     /**
      * The events of the events spaces (#1513): the description in Markdown (no HTML), the UTC instants and the zone of
-     * the host, the meeting address and the place. The cover is an upload of uploads.json.
+     * the host, the meeting address and the place, the limit of places and the replay choice. The cover is an upload of
+     * uploads.json. Never the answers of the members (#1515): they belong to the members, like their notifications, and
+     * each member gets their own in the export of their account.
      *
      * @return Generator<int, Row>
      */
@@ -363,6 +365,8 @@ final class ExportCommunity implements ExportsCommunities
                 'meeting_url' => $event->meeting_url,
                 'place' => $event->place,
                 'location_visibility' => $event->location_visibility->value,
+                'capacity' => $event->capacity,
+                'replay_expected' => $event->replay_expected,
                 'cover_upload' => $event->cover?->cuid,
                 'cover_alt' => $event->cover_alt,
                 'sequence' => $event->sequence,

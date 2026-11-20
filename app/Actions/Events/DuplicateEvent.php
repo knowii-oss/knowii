@@ -14,9 +14,9 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * "Duplicate" for weekly events (#1513, ADR 0053, design 3.5): a draft in the same space with the same title,
- * description, zone, address, place, visibility of the address, cover and host, 7 days later at the same wall-clock
- * time in the zone of the event (not 168 hours later: over a change of summer time, the instant moves by one hour).
- * `sequence` starts at 0 and the copy has told nobody yet.
+ * description, zone, address, place, visibility of the address, limit of places, replay choice (#1515), cover and host,
+ * 7 days later at the same wall-clock time in the zone of the event (not 168 hours later: over a change of summer time,
+ * the instant moves by one hour). `sequence` starts at 0, the copy has told nobody yet, and it has no answers.
  *
  * The person who duplicates changes the event and may create one in its space (the posting policy). The copy goes
  * through the time rules of a create: a wall-clock time that the zone skips that day, a length that a change of the
@@ -62,6 +62,10 @@ class DuplicateEvent implements DuplicatesEvents
                 'location_visibility' => $event->location_visibility,
                 'cover_upload_id' => $event->cover_upload_id,
                 'cover_alt' => $event->cover_alt,
+                // The limit of places and "a replay will exist" (#1515). The copy has no answers
+                'capacity' => $event->capacity,
+                // A model that was just created does not hold the default of the database (rules.md, Data 7)
+                'replay_expected' => $event->replay_expected === true,
                 'state' => KnowiiEventState::Draft,
                 'sequence' => 0,
                 'published_notified_at' => null,

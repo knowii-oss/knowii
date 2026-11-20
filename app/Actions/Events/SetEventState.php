@@ -9,6 +9,7 @@ use App\Events\Spaces\SpaceContentChanged;
 use App\Exceptions\BusinessException;
 use App\Models\Event;
 use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -16,12 +17,18 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
 /**
- * The state of an event (#1513, ADR 0053). Allowed: draft to published, published to draft (not once it started),
- * published to cancelled, cancelled to published. A cancel needs the ability `cancel` (moderators of the space too), the
- * other changes need `update`. Each real change adds 1 to `sequence`; the same state again changes nothing.
+ * The state of an event (#1513, ADR 0053). Allowed: draft to published, published to draft (not once it started, and
+ * not once a member who can read the space answered it, #1515), published to cancelled, cancelled to published (the
+ * answers are still there). A cancel needs the ability `cancel` (moderators of the space too), the other changes need
+ * `update`. Each real change adds 1 to `sequence`; the same state again changes nothing.
+ *
+ * The change is decided inside the lock of the row of the event, from the state and the start of that row: two changes
+ * of one event run one after the other, and the second one sees what the first one wrote.
  */
 class SetEventState implements SetsEventStates
 {
+    public const string ANSWERED_MESSAGE = 'Members answered this event. Cancel it instead.';
+
     final public function setState(User $user, Event $event, array $input): Event
     {
         Log::info('Processing request to change the state of an event', ['event' => $event->cuid]);
@@ -48,17 +55,36 @@ class SetEventState implements SetsEventStates
             Gate::forUser($user)->authorize('moderate', $event->space);
         }
 
-        $from = $event->state;
-        if ($target === $from) {
-            return $event;
-        }
-        self::assertAllowed($from, $target, $event);
+        $from = DB::transaction(function () use ($user, $event, $target): ?KnowiiEventState {
+            // A change of state waits for the answers that are being written, and they wait for it (#1515): an answer
+            // never passes a cancel that runs at the same moment. The lock of the row of the event, as in AnswerEvent
+            $locked = Event::query()->whereKey($event->id)->lockForUpdate()->first()
+                ?? throw (new ModelNotFoundException)->setModel(Event::class, [$event->cuid]);
+            // The row as it is now decides, not what the request loaded before the lock: another request may have
+            // changed the state or the start since. The model of the request takes the values of the locked row
+            $event->setRawAttributes($locked->getAttributes(), true);
+            self::assertMay($user, $event, $target);
 
-        DB::transaction(function () use ($event, $target) {
+            $from = $event->state;
+            if ($target === $from) {
+                return null;
+            }
+            self::assertAllowed($from, $target, $event);
+            // "Nobody answered" counts the answers of the members who can read the space today, and a "No" is an answer
+            // too: these members must find the event again. The row of a member who lost the access stays with the draft
+            if ($from === KnowiiEventState::Published && $target === KnowiiEventState::Draft && $event->answers()->ofReaders()->exists()) {
+                throw new BusinessException(self::ANSWERED_MESSAGE);
+            }
             $event->state = $target;
             $event->sequence++;
             $event->save();
+
+            return $from;
         });
+        // The same state again changes nothing
+        if ($from === null) {
+            return $event;
+        }
 
         Log::info('Event state changed', ['event' => $event->cuid, 'from' => $from->value, 'to' => $target->value]);
         match ($target) {
@@ -71,6 +97,16 @@ class SetEventState implements SetsEventStates
         };
 
         return $event;
+    }
+
+    /**
+     * The person sees the event and may make this change (a cancel needs `cancel`, the other changes need `update`), asked
+     * again inside the lock with the row as it is then: a draft is for fewer people than a published event
+     */
+    private static function assertMay(User $user, Event $event, KnowiiEventState $target): void
+    {
+        EventPublication::assertVisible($user, $event);
+        Gate::forUser($user)->authorize($target === KnowiiEventState::Cancelled ? 'cancel' : 'update', $event);
     }
 
     private static function backToDraft(Event $event, User $user): void
