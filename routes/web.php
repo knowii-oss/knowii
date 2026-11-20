@@ -67,6 +67,8 @@ Route::middleware([
     // The link of an invitation email (#1242): signed and temporary
     Route::get('/community-invitations/{invitation}', [CommunityInvitationController::class, 'accept'])->middleware('signed')->name('community-invitations.accept');
 
+    // The member directory (#148, ADR 0056): the members of the community, for its members. Limited with the API list
+    Route::get('/community/{communitySlug}/members', [MemberController::class, 'index'])->middleware('throttle:member-lists')->name('members.index');
     Route::get('/community/{communitySlug}/member/{username}', [MemberController::class, 'show'])->name('members.show');
     // Direct messages (#1186)
     Route::get('/community/{communitySlug}/messages', [ConversationController::class, 'index'])->name('messages.index');

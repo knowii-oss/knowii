@@ -75,6 +75,20 @@ export const communityMemberSchema = z.object({
 export type CommunityMember = z.infer<typeof communityMemberSchema>;
 
 /**
+ * The orders of the member list of a community (#148). `role`: the owner, the admins, the moderators, the members, each
+ * by username (the API list without `sort`). `name`: the name from A to Z. `newest`: the date of joining, the newest first.
+ * WARNING: aligned with KnowiiMemberSort.php
+ */
+export const MEMBER_SORTS = ['role', 'name', 'newest'] as const;
+export const memberSortSchema = z.enum(MEMBER_SORTS);
+export type MemberSort = z.infer<typeof memberSortSchema>;
+
+/**
+ * The orders that the member directory offers: it never shows the order of the roles
+ */
+export type MemberDirectorySort = Exclude<MemberSort, 'role'>;
+
+/**
  * A person whom a manager removed: they cannot join the community again by themselves (#1486). WARNING: aligned with
  * CommunityJoinBlockResource.php
  */

@@ -241,6 +241,10 @@ function eapMemberPages(): array
     return [
         'home of the community' => route('communities.show', ['communitySlug' => $slug]),
         'about page' => route('communities.about', ['communitySlug' => $slug]),
+        // The member directory (#148), with each of its two sorts and with a search that finds B
+        'member directory' => route('members.index', ['communitySlug' => $slug]),
+        'member directory, newest first' => route('members.index', ['communitySlug' => $slug, 'sort' => 'newest']),
+        'member directory, search of B' => route('members.index', ['communitySlug' => $slug, 'query' => 'bea']),
         'profile of B' => route('members.show', ['communitySlug' => $slug, 'username' => $test->b->username]),
         'discussion space' => route('spaces.show', ['communitySlug' => $slug, 'spaceSlug' => $test->discussion->slug]),
         'post of B' => route('posts.show', ['communitySlug' => $slug, 'spaceSlug' => $test->discussion->slug, 'postSlug' => $test->postOfB->slug]),

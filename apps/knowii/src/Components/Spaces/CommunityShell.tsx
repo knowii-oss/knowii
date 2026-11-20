@@ -2,8 +2,17 @@ import type { ReactNode } from 'react';
 import { useCallback, useMemo, useState } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
 import type { Community, Space, SpaceGroup } from '@knowii/common';
-import { communityOnlineChannel, knowiiApiClient, MESSAGES_URL, SPACE_URL, usePresence, useSocket, useTypedPage } from '@knowii/common';
-import { FaBars, FaEnvelope } from 'react-icons/fa6';
+import {
+  communityOnlineChannel,
+  knowiiApiClient,
+  MEMBERS_URL,
+  MESSAGES_URL,
+  SPACE_URL,
+  usePresence,
+  useSocket,
+  useTypedPage,
+} from '@knowii/common';
+import { FaBars, FaEnvelope, FaUsers } from 'react-icons/fa6';
 import { Button, cn, CountBadge, Drawer, isCurrentUrl } from '@/Components/ui';
 import { OnlineMembers } from '@/Components/Presence/OnlineMembers';
 import { SpaceNavigation } from './SpaceNavigation';
@@ -23,16 +32,20 @@ export interface CommunityShellProps {
 /**
  * Community pages: the space navigation in a sidebar (desktop) or a drawer (mobile), next to the content.
  * The navigation reloads when the space tree of the community changes (SpaceTreeChanged event). Members see who is
- * online under it (#1187). A visitor (nobody signed in, #1387) gets a static page: no channel, no presence, and no
- * link to the messages.
+ * online under it (#1187), and get two links above the spaces: their messages (#1186) and the member directory (#148).
+ * A visitor (nobody signed in, #1387) gets a static page: no channel, no presence, and none of the two links.
  */
 export function CommunityShell({ community, spaceGroups, activeSpaceCuid, contentWidth = 'wide', children }: CommunityShellProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const user = useTypedPage().props.auth.user;
   const isMember = community.is_member === true && !!user;
   const showsOnlineStatus = user?.show_online_status !== false;
+  const pageUrl = usePage().url;
   const messagesHref = route(MESSAGES_URL, { communitySlug: community.slug });
-  const onMessagesPage = isCurrentUrl(messagesHref, usePage().url, 'prefix');
+  const onMessagesPage = isCurrentUrl(messagesHref, pageUrl, 'prefix');
+  // The member directory (#148). The page of one member is another address ("/member/..."): the link is not marked there
+  const membersHref = route(MEMBERS_URL, { communitySlug: community.slug });
+  const onMembersPage = isCurrentUrl(membersHref, pageUrl);
   // A direct message arrived or went: the unread count of the navigation follows (#1186). The messages page reloads it itself
   const userChannel = useMemo(() => ({ type: 'user' as const, userCuid: user?.cuid ?? '' }), [user?.cuid]);
   useSocket({
@@ -46,13 +59,29 @@ export function CommunityShell({ community, spaceGroups, activeSpaceCuid, conten
     // A visitor opens no connection at all (#1387)
     enabled: !!user,
   });
-  const messagesLink = isMember ? (
-    <MessagesLink
-      href={messagesHref}
-      active={onMessagesPage}
-      unread={community.unread_direct_messages ?? 0}
-      onNavigate={() => setDrawerOpen(false)}
-    />
+  // The links of a member above the spaces: the messages, then the member directory. A personal community has one
+  // member: it gets no directory link
+  const memberLinks = isMember ? (
+    <div className="flex flex-col gap-1">
+      <MemberAreaLink
+        href={messagesHref}
+        active={onMessagesPage}
+        icon={<FaEnvelope aria-hidden="true" className="w-5 shrink-0" />}
+        label="Messages"
+        onNavigate={() => setDrawerOpen(false)}
+      >
+        <CountBadge count={community.unread_direct_messages ?? 0} label="unread" />
+      </MemberAreaLink>
+      {community.visibility !== 'personal' && (
+        <MemberAreaLink
+          href={membersHref}
+          active={onMembersPage}
+          icon={<FaUsers aria-hidden="true" className="w-5 shrink-0" />}
+          label="Members"
+          onNavigate={() => setDrawerOpen(false)}
+        />
+      )}
+    </div>
   ) : null;
 
   const fetchOnlineMembers = useCallback(() => knowiiApiClient.communities.onlineMembers(community.cuid), [community.cuid]);
@@ -94,7 +123,7 @@ export function CommunityShell({ community, spaceGroups, activeSpaceCuid, conten
     <div className="flex flex-col gap-6 md:flex-row">
       <aside aria-label={`${community.name} spaces`} className="hidden w-60 shrink-0 md:block">
         <div className="sticky top-4 flex flex-col gap-6">
-          {messagesLink}
+          {memberLinks}
           <SpaceNavigation spaceGroups={spaceGroups} activeSpaceCuid={activeSpaceCuid} getSpaceHref={getSpaceHref} />
           {isMember && (
             <OnlineMembers
@@ -113,7 +142,7 @@ export function CommunityShell({ community, spaceGroups, activeSpaceCuid, conten
           Spaces
         </Button>
         <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} title={community.name}>
-          {messagesLink && <div className="mb-5">{messagesLink}</div>}
+          {memberLinks && <div className="mb-5">{memberLinks}</div>}
           <SpaceNavigation
             spaceGroups={spaceGroups}
             activeSpaceCuid={activeSpaceCuid}
@@ -140,10 +169,26 @@ export function CommunityShell({ community, spaceGroups, activeSpaceCuid, conten
   );
 }
 
+interface MemberAreaLinkProps {
+  href: string;
+  /**
+   * The page of the link is open: the link gets `aria-current="page"` and the look of the open item
+   */
+  active: boolean;
+  icon: ReactNode;
+  label: string;
+  onNavigate: () => void;
+  /**
+   * What follows the label, at the end of the row: the count of the unread messages
+   */
+  children?: ReactNode;
+}
+
 /**
- * The direct messages of the member (#1186), above the spaces, with what they did not read
+ * A link of a member above the spaces, with one look for all of them: the direct messages (#1186), with what the member
+ * did not read, and the member directory (#148). The open one is marked by a bold text and a fill, never by a color alone.
  */
-function MessagesLink({ href, active, unread, onNavigate }: { href: string; active: boolean; unread: number; onNavigate: () => void }) {
+function MemberAreaLink({ href, active, icon, label, onNavigate, children }: MemberAreaLinkProps) {
   return (
     <Link
       href={href}
@@ -155,9 +200,9 @@ function MessagesLink({ href, active, unread, onNavigate }: { href: string; acti
         active ? 'bg-overlay/15 font-bold text-primary' : 'text-primary/90',
       )}
     >
-      <FaEnvelope aria-hidden="true" className="w-5 shrink-0" />
-      <span className="grow">Messages</span>
-      <CountBadge count={unread} label="unread" />
+      {icon}
+      <span className="grow">{label}</span>
+      {children}
     </Link>
   );
 }

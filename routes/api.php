@@ -273,7 +273,8 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::get(ApiRoutes::COMMUNITY_SPACE_ONLINE_MEMBERS, [OnlineMemberApiController::class, 'space'])->middleware('ability:chat:read');
         });
 
-        Route::get(ApiRoutes::COMMUNITY_MEMBERS, [MemberApiController::class, 'index'])->middleware('ability:communities:read')->middleware('throttle:markdown-preview');
+        // The member list (#1242): the member directory (#148), the member management and the member fields read it
+        Route::get(ApiRoutes::COMMUNITY_MEMBERS, [MemberApiController::class, 'index'])->middleware('ability:communities:read')->middleware('throttle:member-lists');
         Route::patch(ApiRoutes::COMMUNITY_MEMBER, [MemberApiController::class, 'update'])->middleware('ability:communities:write');
         Route::delete(ApiRoutes::COMMUNITY_MEMBER, [MemberApiController::class, 'destroy'])->middleware('ability:communities:write');
         // The current member leaves the community (#1338), or joins an open one by themselves (#1486, ADR 0044)

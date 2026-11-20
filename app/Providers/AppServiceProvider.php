@@ -223,6 +223,7 @@ use App\Contracts\Users\UpdatesNotificationSettings;
 use App\Contracts\Users\UpdatesOnlineStatus;
 use App\Contracts\Users\UpdatesTimeZones;
 use App\Contracts\Users\VerifiesUsernameAvailability;
+use App\Http\Controllers\Inertia\MemberController;
 use App\Models\User;
 use App\Support\MailSettings;
 use App\Support\ReverbPresenceChannels;
@@ -487,6 +488,15 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('markdown-preview', static function (Request $request) {
             return Limit::perMinute(Constants::MARKDOWN_PREVIEWS_PER_MINUTE)->by(self::rateLimitKey($request));
+        });
+
+        // The member directory and the API list of the members (#148, ADR 0056): one budget for both, apart from the one of
+        // the Markdown preview. A request is counted after its answer, and an answer of the directory that read no member
+        // list (a reload for another prop of the page) is not counted. A request over the limit answers 429 in every case
+        RateLimiter::for('member-lists', static function (Request $request) {
+            return Limit::perMinute(Constants::MEMBER_LISTS_PER_MINUTE)
+                ->by(self::rateLimitKey($request))
+                ->after(static fn (): bool => $request->attributes->get(MemberController::NO_MEMBER_LIST_ATTRIBUTE) !== true);
         });
 
         // Enable strict mode during development

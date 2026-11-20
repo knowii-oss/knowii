@@ -118,6 +118,18 @@ Answers (#1515): a member of the community who can see an event answers it with 
 
 What an event tells about the answers: `my_answer` (your own answer, or null), `can_answer`, `replay_expected`, `places_left` (the places that are left, for a member, when the event has a limit) and `capacity` (the limit, for the host, the owner and the admins only; with a token it also needs the ability `event-answers:read`, and a token without it reads `places_left` as a member does and `capacity` null). No route gives a member the answer of another member, a name or a count. The list of `GET .../answers` names the members who answered Yes or Replay only, by name then by username, never the members who answered No, and holds only the people who are members today and can read the space. Answers and clears are limited per member (the `event-answers` limiter, 30 a minute). The live update `space.event.answers.changed` carries `event_cuid` only and is sent only when the number of Yes answers of an event with a limit changed.
 
+## Member list
+
+`GET /v1/communities/{community}/members` gives the members of a community with their role, to its members ([ADR 0056](../adr/0056-the-member-directory-every-member-reads-the-member-list.md), #148). It needs an account and the ability `communities:read`. The member directory of a community (`/community/{slug}/members`), the member management of the settings and the member fields read it.
+
+| Parameter | What it does |
+| --------- | ------------ |
+| `sort` | The order. `role` (the default, also for any other value): the owner, the admins, the moderators, the members, each by username. `name`: the name from A to Z without the case, then the username. `newest`: the date of joining, the newest first, then the username; the owner joined at the date of the community |
+| `query` | Keeps the members whose username, or a word of their name, starts with the text. It reads the username and the name only. The server trims it and keeps its first 100 characters. With `role`, the usernames that start with the text come first |
+| `limit`, `offset` | Offset pagination: 10 by default, 100 at most |
+
+An entry holds `cuid`, `name`, `username`, `avatar_url`, `headline`, `role` and `member_since`. The headline is the only profile field: empty unless the member wrote one and shows it ([ADR 0020](../adr/0020-members-choose-visible-profile-fields.md)). An entry never holds an email address. The list holds the owner and the people with a membership, and nobody else. It is limited to 60 requests a minute for each account, together with the page of the directory: the next request answers 429.
+
 ## Who can join
 
 A shared community is by invitation (`join_policy` `invitation`, the default) or open (`open`) ([ADR 0044](../adr/0044-public-spaces-for-visitors.md), #1486). Read `join_policy` on `GET /v1/communities/{community}`, for a member and for someone who is not one.

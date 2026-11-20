@@ -15,5 +15,5 @@ headers {
 }
 
 docs {
-  Members of the community whose username, or a word of their name, starts with the query (mention autocomplete). Same fields as Members - List (cuid, name, username, avatar_url, headline, role, member_since). The headline (#1688) is empty unless the member shows it, and the search does not read it. Members of the community only.
+  Members of the community whose username, or a word of their name, starts with the query (mention autocomplete). Same fields as Members - List (cuid, name, username, avatar_url, headline, role, member_since). The headline (#1688) is empty unless the member shows it, and the search does not read it. The server trims the query and keeps its first 100 characters. Without a sort parameter, the usernames that start with the query come first; with sort=name or sort=newest, the sort alone gives the order (see Members - List). Members of the community only.
 }

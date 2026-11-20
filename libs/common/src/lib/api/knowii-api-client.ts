@@ -178,6 +178,7 @@ import type {
   CommunityInvitationForm,
   CommunityJoinBlock,
   CommunityMember,
+  MemberSort,
 } from '../types/member.schema';
 import { communityInvitationSchema, communityJoinBlockSchema, communityMemberSchema } from '../types/member.schema';
 import { reactionEmojiSchema, reactionSummarySchema, whoReactedSchema } from '../types/reaction.schema';
@@ -1226,11 +1227,19 @@ export const knowiiApiClient = {
     members: {
       /**
        * A page of the members with their role (#1242): owner first, then admins, moderators and members. An optional
-       * query keeps the members whose username or a word of their name starts with it.
+       * query keeps the members whose username or a word of their name starts with it. An optional sort gives another
+       * order (#148): `name` or `newest`. Without it, the request holds no `sort` and the server keeps the order above.
        */
-      list: async (communityCuid: string, limit: number, offset: number, query = ''): Promise<ApiResult<Paginated<CommunityMember>>> => {
+      list: async (
+        communityCuid: string,
+        limit: number,
+        offset: number,
+        query = '',
+        sort?: MemberSort,
+      ): Promise<ApiResult<Paginated<CommunityMember>>> => {
         const search = query === '' ? '' : `&query=${encodeURIComponent(query)}`;
-        const url = `${communityPath(COMMUNITY_MEMBERS_API_PATH, communityCuid)}?limit=${limit}&offset=${offset}${search}`;
+        const order = sort === undefined ? '' : `&sort=${encodeURIComponent(sort)}`;
+        const url = `${communityPath(COMMUNITY_MEMBERS_API_PATH, communityCuid)}?limit=${limit}&offset=${offset}${search}${order}`;
         try {
           const response = await fetch(url, { headers: { Accept: 'application/json' } });
           const json: unknown = await response.json();
