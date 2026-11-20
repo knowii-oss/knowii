@@ -28,6 +28,9 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # No later step uses git with the token
+          persist-credentials: false
 
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
@@ -66,8 +69,10 @@ jobs:
       # Artisan boots without a database, the extensions are there, the build exists and the user is not root
       - name: Smoke test
         if: ${{ !(github.event_name == 'push' && vars.PUBLISH_IMAGE == 'true') }}
+        env:
+          IMAGE_TAGS: ${{ steps.meta.outputs.tags }}
         run: |
-          image="$(echo '${{ steps.meta.outputs.tags }}' | head -n 1)"
+          image="$(echo "${IMAGE_TAGS}" | head -n 1)"
           docker run --rm -e MAIL_FROM_ADDRESS=ci@example.com --entrypoint php "${image}" artisan --version
           docker run --rm --entrypoint php "${image}" -m | grep -E '^(gd|intl|pcntl|pdo_pgsql|sodium|zip)$'
           docker run --rm --entrypoint sh "${image}" -c 'test -f public/build/manifest.json && test "$(id -u)" != 0'

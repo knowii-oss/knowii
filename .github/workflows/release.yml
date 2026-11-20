@@ -50,8 +50,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: |
-          pr_number=$(gh pr list --state open --limit 1 --json number --jq '.[0].number')
-          gh pr merge $pr_number --rebase
+          # The pull request of the release branch, by the name of its branch
+          gh pr merge "release-${GITHUB_SHA}" --rebase
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
