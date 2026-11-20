@@ -2,8 +2,8 @@
 
 use App\Http\Middleware\AnswerOnlyForOwnHostNames;
 use App\Models\User;
+use App\Notifications\VerifyEmailAddress;
 use Illuminate\Auth\Notifications\ResetPassword;
-use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
@@ -325,7 +325,7 @@ test('a signed link of a request by a configured name is valid in a second reque
     $this->actingAs($user)->post($address.'/email/verification-notification')->assertSessionHasNoErrors();
 
     $link = '';
-    Notification::assertSentTo($user, VerifyEmail::class, function (VerifyEmail $notification) use ($user, &$link) {
+    Notification::assertSentTo($user, VerifyEmailAddress::class, function (VerifyEmailAddress $notification) use ($user, &$link) {
         $link = $notification->toMail($user)->actionUrl;
 
         return true;

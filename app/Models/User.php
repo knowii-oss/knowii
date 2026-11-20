@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Actions\Users\UpdateAvatar;
 use App\Http\Resources\UserResource;
+use App\Notifications\VerifyEmailAddress;
+use App\Support\Landing;
 use App\Traits\GeneratesCuid;
 use App\Traits\HasCommunities;
 use Carbon\Carbon;
@@ -286,6 +288,16 @@ class User extends Authenticatable implements MustVerifyEmail
     final public function hasPassword(): bool
     {
         return is_string($this->password) && $this->password !== '';
+    }
+
+    /**
+     * The mail of the address check, for the sign-up, "Resend verification email" and a change of the address. Its link
+     * carries the page of a community that the session of the request holds, if any (#1612, ADR 0057): the link lands
+     * there, also in another browser.
+     */
+    final public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new VerifyEmailAddress(Landing::fromSession()));
     }
 
     final public function getRouteKeyName(): string

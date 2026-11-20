@@ -15,4 +15,10 @@ interface ConsumesMagicLinks
      * The user of a valid link, which is used up at once, or null.
      */
     public function consume(string $token): ?User;
+
+    /**
+     * The landing that was kept beside the link, read and deleted at once, or null. Call it before consume(): using the
+     * link up deletes its landing too.
+     */
+    public function pullLanding(string $token): ?string;
 }

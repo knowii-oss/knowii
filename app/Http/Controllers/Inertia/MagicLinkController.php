@@ -6,6 +6,7 @@ use App\Actions\Auth\MagicLinks;
 use App\Contracts\Auth\ConsumesMagicLinks;
 use App\Contracts\Auth\SendsMagicLinks;
 use App\Http\Controllers\Controller;
+use App\Support\Landing;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,7 +22,8 @@ class MagicLinkController extends Controller
 {
     public function store(Request $request): RedirectResponse
     {
-        app(SendsMagicLinks::class)->send($request->only(['email']));
+        // The link keeps the page of a community that this session holds: it lands there in another browser too (#1612)
+        app(SendsMagicLinks::class)->send($request->only(['email']), Landing::fromSession());
 
         return redirect()->route('login')->with('status', sprintf(
             'If an account has this address, we sent it a sign-in link. The link works once, for %d minutes.',
@@ -42,7 +44,10 @@ class MagicLinkController extends Controller
 
     public function consume(Request $request, string $token): RedirectResponse
     {
-        $user = app(ConsumesMagicLinks::class)->consume($token);
+        $links = app(ConsumesMagicLinks::class);
+        // Read first: using the link up deletes its landing
+        $landing = $links->pullLanding($token);
+        $user = $links->consume($token);
         if ($user === null) {
             return redirect()->route('login')->with('status', 'This sign-in link expired or was already used. Ask for a new one.');
         }
@@ -52,12 +57,20 @@ class MagicLinkController extends Controller
             $user->markEmailAsVerified();
         }
 
-        // A link replaces the password, never the second factor: the challenge of Fortify comes next
+        // A link replaces the password, never the second factor: the challenge of Fortify comes next. Nothing of the account
+        // is decided before the code: the session keeps only the path of the landing of the link, and the answer of the
+        // challenge reads it for the account that passed (App\Http\Responses\TwoFactorLoginResponse, #1612, ADR 0057)
         if ($user->hasEnabledTwoFactorAuthentication()) {
             $request->session()->put(['login.id' => $user->getKey(), 'login.remember' => false]);
+            Landing::holdForChallenge($request, $landing);
 
             return redirect()->route('two-factor.login');
         }
+
+        // The landing of the link becomes the intended address when the session has none of its own, and only when the
+        // account is a member of the community of the landing (#1612, ADR 0057)
+        Landing::forgetHeld($request);
+        Landing::rememberForMember($request, $user, $landing);
 
         Auth::login($user);
         $request->session()->regenerate();

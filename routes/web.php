@@ -83,6 +83,8 @@ Route::middleware([
 // The pages of the spaces that visitors may read (#1387, ADR 0044). Without an account the policies decide: a public
 // space (not a chat space) is read, any other address sends the visitor to the sign-in page and back. A signed-in
 // account goes through the same checks as the group above (session, verified email address)
+// WARNING: the named GET routes of this group must remain aligned with App\Support\Landing::ROUTES (#1612, ADR 0057): a
+// person who signs up or signs in from one of these pages lands on it again. tests/Feature/LandingTest.php compares the two
 Route::middleware([
     'auth.optional',
     config('jetstream.auth_session'),

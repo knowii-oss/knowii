@@ -81,3 +81,4 @@ Do not write an ADR for a bug fix, a refactor that keeps the structure, or a fea
 | [0054](0054-email-delivery-the-mail-queue-the-budget-bounces-and-the-one-click-stop.md) | Email delivery: the mail queue, the budget, bounces and the one-click stop | Accepted |
 | [0055](0055-instance-values-come-from-configuration.md)                                 | The values of one instance come from configuration                         | Accepted |
 | [0056](0056-the-member-directory-every-member-reads-the-member-list.md)                 | The member directory: every member reads the member list of the community  | Accepted |
+| [0057](0057-the-landing-after-the-address-check-travels-in-the-link.md)                 | The landing after the address check travels in the link                    | Accepted |

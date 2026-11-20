@@ -4,6 +4,7 @@ use App\Actions\Auth\OpenIdConnectClient;
 use App\ApiRoutes;
 use App\Contracts\Auth\ReadsOpenIdConnectIdentities;
 use App\Contracts\Users\DeletesAccounts;
+use App\Enums\KnowiiCommunityMemberRole;
 use App\Enums\KnowiiSpaceType;
 use App\Enums\KnowiiSpaceVisibility;
 use App\Models\Space;
@@ -929,6 +930,31 @@ test('the visitor who was reading a page comes back to it after the sign-in with
     $this->assertAuthenticatedAs($c['member']);
 });
 
+test('a sign-in with the provider from a public page of a community comes back to that page, with no address check (#1612)', function (string $account) {
+    $c = communityWithMembers();
+    $c['community']->forceFill(['name' => 'Harbour Of Landings', 'slug' => 'harbour-of-landings'])->save();
+    $group = SpaceGroup::factory()->create(['community_id' => $c['community']->id]);
+    Space::factory()->inGroup($group)->create(['type' => KnowiiSpaceType::Discussion, 'visibility' => KnowiiSpaceVisibility::Public, 'name' => 'Open talk', 'slug' => 'open-talk']);
+    $url = route('spaces.show', ['communitySlug' => 'harbour-of-landings', 'spaceSlug' => 'open-talk']);
+    if ($account === 'an account that exists') {
+        oidcMember('ada@example.com');
+    }
+
+    // The whole flow lives in one session: the page that the visitor read is its intended address
+    $this->get($url)->assertOk();
+    oidcCallback(oidcStart())->assertRedirect($url);
+
+    $user = User::query()->where('email', 'ada@example.com')->firstOrFail();
+    $this->assertAuthenticatedAs($user);
+    expect($user->hasVerifiedEmail())->toBeTrue()
+        // Nothing joins by itself
+        ->and($user->belongsToCommunity($c['community']))->toBeFalse();
+
+    // The page answers at once: the provider verified the address
+    $this->app['auth']->forgetGuards();
+    $this->get($url)->assertOk();
+})->with(['a new account', 'an account that exists']);
+
 test('the session id changes at the sign-in', function () {
     $start = oidcStart();
     $before = session()->getId();
@@ -967,6 +993,20 @@ test('the intended page survives the two-factor challenge', function () {
     $this->withSession(['url.intended' => 'https://knowii.test/community/x']);
     oidcCallback(oidcStart())->assertRedirect(route('two-factor.login'));
     $this->post('/two-factor-challenge', ['code' => (new Google2FA)->getCurrentOtp($secret)])->assertRedirect('https://knowii.test/community/x');
+});
+
+test('the challenge after the callback gets no landing that a sign-in link left in the session (#1612)', function () {
+    [$user, $secret] = oidcTwoFactorUser();
+    UserIdentity::factory()->create(['user_id' => $user->id, 'issuer' => OIDC_ISSUER, 'subject' => 'sub-ada']);
+    $c = communityWithMembers();
+    $c['community']->forceFill(['name' => 'Harbour Of Landings', 'slug' => 'harbour-of-landings'])->save();
+    $c['community']->users()->attach($user, ['role' => KnowiiCommunityMemberRole::Member]);
+
+    // An earlier challenge of this session, which a sign-in link started, kept a page that this member may read
+    $this->withSession(['login.landing' => '/community/harbour-of-landings']);
+    oidcCallback(oidcStart())->assertRedirect(route('two-factor.login'))->assertSessionMissing('login.landing');
+    $this->post('/two-factor-challenge', ['code' => (new Google2FA)->getCurrentOtp($secret)])->assertRedirect(route('dashboard'));
+    $this->assertAuthenticatedAs($user);
 });
 
 // ---------------------------------------------------------------------------------------------------------------------

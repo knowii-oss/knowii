@@ -14,7 +14,8 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Sign-in links (#703, ADR 0023): a random token, stored hashed in the cache for VALIDITY_MINUTES, used once.
+ * Sign-in links (#703, ADR 0023): a random token, stored hashed in the cache for VALIDITY_MINUTES, used once. The page
+ * of a community that the person was reading is kept beside it, for the same time (#1612, ADR 0057).
  */
 class MagicLinks implements ConsumesMagicLinks, SendsMagicLinks
 {
@@ -23,7 +24,7 @@ class MagicLinks implements ConsumesMagicLinks, SendsMagicLinks
     /**
      * @throws ValidationException
      */
-    final public function send(array $input): void
+    final public function send(array $input, ?string $landing = null): void
     {
         /** @var array{email: string} $validated */
         $validated = Validator::make($input, ['email' => ['required', 'string', 'email', 'max:255']])->validate();
@@ -38,6 +39,11 @@ class MagicLinks implements ConsumesMagicLinks, SendsMagicLinks
 
         $token = Str::random(64);
         Cache::put(self::key($token), $user->id, now()->addMinutes(self::VALIDITY_MINUTES));
+        // The page of a community that the person was reading (#1612, ADR 0057): a second entry with the life of the
+        // token. The first entry keeps its shape, so a link that was sent before this entry existed still works
+        if ($landing !== null) {
+            Cache::put(self::landingKey($token), $landing, now()->addMinutes(self::VALIDITY_MINUTES));
+        }
 
         Mail::to($user->email)->queue(new MagicLink($token));
         Log::info('Sign-in link sent', ['user' => $user->cuid]);
@@ -54,12 +60,26 @@ class MagicLinks implements ConsumesMagicLinks, SendsMagicLinks
     {
         // pull(): read and delete at once, so a link works once
         $userId = Cache::pull(self::key($token));
+        // Nothing stays in the cache after a link is used
+        Cache::forget(self::landingKey($token));
 
         return is_int($userId) ? User::query()->find($userId) : null;
+    }
+
+    final public function pullLanding(string $token): ?string
+    {
+        $landing = Cache::pull(self::landingKey($token));
+
+        return is_string($landing) ? $landing : null;
     }
 
     private static function key(string $token): string
     {
         return 'magic-link:'.hash('sha256', $token);
+    }
+
+    private static function landingKey(string $token): string
+    {
+        return 'magic-link-landing:'.hash('sha256', $token);
     }
 }
