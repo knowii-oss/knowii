@@ -2,6 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-11-17
+- Updated: 2026-11-20 (#657 slice 5: the documentation pages and the publication)
 - Issue: #657
 - Pull request: #1555
 
@@ -18,9 +19,10 @@ The owner decided on 2026-11-17 (comments of #657): Storybook in the application
 3. The stories sit next to the component: `Components/ui/<Name>.stories.tsx`, in the CSF 3 format with types. A story file has one story per variant and state (kinds, sizes, with and without an icon, disabled and `aria-disabled`, busy, error, long text, as the component has them). The comment of the meta says when to use the component and its accessibility contract.
 4. The stories are the test cases. `Components/ui/stories.spec.tsx` finds every story file (`import.meta.glob`), composes the stories (`composeStories`), and for each story: renders it, runs its `play` function, and runs `axe-core` on the page. It runs in the Vitest and jsdom set-up of the application, with the other tests. A keyboard path is a `play` function (for example the Dialog: it opens, the focus goes inside, Tab stays inside, Escape closes, the focus goes back).
 5. jsdom first. It needs no browser in the container image and no new CI job, and it is fast. Its limit: jsdom computes no colors and no layout. The spec turns off only the axe rules that need them (`color-contrast`), by name. The contrast, the sizes and the look are checked in the browser, in the accessibility panel of Storybook.
-6. The guard (`Components/ui/stories-guard.spec.ts`): every component file of `Components/ui` has a story file, and every story file exports one story or more. The components without a story are in an allow-list in the test, sorted. A name of the list that has a story fails the test, so the list only gets shorter.
+6. The guard (`Components/ui/stories-guard.spec.ts`): every component file of `Components/ui` has a story file, and every story file exports one story or more. The guard has no allow-list any more. Slice 1 had one, for the components without a story; it could only get shorter, and it went away when every component had its stories (slice 2, #1652 and #1658).
 7. `npm run storybook` starts the dev server (port 6006, reachable from the host) and `npm run storybook:build` writes the static site to `dist/storybook`. The `main` job of CI builds it.
-8. Later slices: the stories of the other components, then the publication of the built site on the page site of the repository, from `main`. No visual comparison of pictures for now; decide again after the fixes of the UI review (#1523).
+8. The publication (slice 5): `.github/workflows/toolkit.yml` builds the Storybook on each push to `main` and deploys the built site to the page site of the repository, `https://knowii-oss.github.io/knowii/`. From `main` only, never from a pull request (CI builds the Storybook there, and nothing is published) and never on a fork. No visual comparison of pictures for now; decide again after the fixes of the UI review (#1523).
+9. A documentation page is an `.mdx` file in `Components/ui/docs`, in the group `Introduction` (the first page of the catalogue) or in the group `Rules` (one page per rule). It holds text, links and doc blocks only: a live example in a page is a story of a story file (`<Canvas of={...} />`), so the tests of decision 4 cover it. The docs page of a component stays the page of decision 2, from the stories and the comment of the meta: no `.mdx` file per component.
 
 ## Consequences
 
@@ -30,6 +32,8 @@ The owner decided on 2026-11-17 (comments of #657): Storybook in the application
 4. The strict Content Security Policy of the application does not apply to Storybook, which is a development tool. Nothing in the application changes for it.
 5. jsdom does not make the page behind a dialog inert: `play` functions look for the elements inside the dialog (`within(dialog)`).
 6. The boundary of point 2.5 of the proposal is a lint rule since slice 3: `Components/ui` imports nothing of the application, which gives its parts through the toolkit context (`ToolkitProvider`, see `architecture/frontend.md`).
+7. The catalogue is public, and it is built from the repository alone. It must not hold a secret, a token or a key, data of a real person (a real name, a real email address, a real picture of a person), an address of an internal server, or a call to another origin when a page opens. An email address in a story or in a page is in `example.com`, `example.org` or `example.net`: `Components/ui/catalogue.spec.ts` checks it, and the rest is a rule for the review. Search engines do not index the catalogue: both HTML files of the site hold `noindex`.
+8. The workflow has two jobs. The build job runs the code of the repository (`npm ci`, the Storybook build) with a token that only reads. The deploy job holds the rights of the page site (`pages: write`, `id-token: write`) and runs no code of the repository: it gives the artifact of the build job to the page site. The environment `github-pages` lets only `main` deploy.
 
 ## Alternatives considered
 

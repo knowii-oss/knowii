@@ -1,6 +1,6 @@
 # Component toolkit: proposal (2026-11-17)
 
-Status: accepted by the owner on 2026-11-17 with the four decisions of section 4 (his answers are on #657). Decision record: ADR 0049. Built so far: slice 1 (#1555).
+Status: accepted by the owner on 2026-11-17 with the four decisions of section 4 (his answers are on #657). Decision record: ADR 0049. Built: slice 1 (#1555), slice 2 (#1652, #1658), slice 3 (#1672), slice 4 (#1682, #1687, and slice 4c), and slice 5 (the documentation pages and the publication of the catalogue). Open: slice 4d (the rule pages).
 
 This is a proposal for the owner. Nothing is built before the four decisions of section 4.
 

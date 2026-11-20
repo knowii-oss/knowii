@@ -1,0 +1,17 @@
+<!-- Search engines do not index the catalogue: it is a tool for contributors (#657, ADR 0049) -->
+<meta name="robots" content="noindex" />
+<!--
+  The styles of the application take the numbers and the bullets off every list (the reset of Tailwind CSS).
+  The lists of a documentation page get them back. Only the lists of the text of a page (Components/ui/docs/*.mdx):
+  a list inside a story keeps the styles of the application.
+-->
+<style>
+  .sbdocs-content > ol,
+  .sbdocs-content > :is(ol, ul) ol {
+    list-style: decimal;
+  }
+  .sbdocs-content > ul,
+  .sbdocs-content > :is(ol, ul) ul {
+    list-style: disc;
+  }
+</style>

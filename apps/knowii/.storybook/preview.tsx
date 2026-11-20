@@ -48,6 +48,13 @@ const preview: Preview = {
   },
   parameters: {
     layout: 'padded',
+    // The order of the list: the introduction, the rule pages, then the components. The pages are the .mdx files of
+    // Components/ui/docs, and the title of a component comes from its path (Components/ui/<Name>)
+    options: {
+      storySort: {
+        order: ['Introduction', 'Rules', 'Components'],
+      },
+    },
     // The theme sets the background (styles.css)
     backgrounds: { disable: true },
     // The two widths that every screen must support (definition of done in documentation/conventions/rules.md)

@@ -1,0 +1,31 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Introduction" />
+
+# The component toolkit of Knowii
+
+The toolkit holds the building blocks of the user interface of Knowii: buttons, form controls, dialogs, menus, cards and more. Knowii writes its own components ([ADR 0003](https://github.com/knowii-oss/knowii/blob/main/documentation/adr/0003-own-ui-components.md)). They live in `apps/knowii/src/Components/ui`, and this catalogue has one page per block, in the group "Components" of the list. The decisions behind the catalogue are in [ADR 0049](https://github.com/knowii-oss/knowii/blob/main/documentation/adr/0049-component-toolkit-storybook-stories-as-tests.md).
+
+## How to read the catalogue
+
+1. Open the "Docs" page of a block, for example [Button](./?path=/docs/components-ui-button--docs) or [Dialog](./?path=/docs/components-ui-dialog--docs). Its text says when to use the block, when not, and its accessibility contract. Under the text come the table of the props and one example per state.
+2. The toolbar switches the theme (dark first, like the application) and the width. The two widths are 360 px and 1920 px: every screen of Knowii must work at both.
+3. Open one story, then the "Accessibility" panel: it checks the contrast in your browser. The automated tests cannot measure a color.
+
+## How to add a block
+
+1. The component file, `Components/ui/<Name>.tsx`. The comment of a prop shows in the table of the props.
+2. The story file, `Components/ui/<Name>.stories.tsx`. The docblock above its `meta` is the text of the docs page: when to use the block, when not, and its accessibility contract. Write one story per variant and state, and one `play` function per point of the contract.
+3. The export in [`index.ts`](https://github.com/knowii-oss/knowii/blob/main/apps/knowii/src/Components/ui/index.ts).
+4. One point in the part "Toolkit" of [`frontend.md`](https://github.com/knowii-oss/knowii/blob/main/documentation/architecture/frontend.md#toolkit), which holds the full rules.
+
+## The four rules
+
+1. The stories are the tests. A spec renders every story, runs its `play` function and runs an automated accessibility check on the page, with the other tests of the application. A state without a story has no test.
+2. The guard. A second spec fails when a component file has no story file, or when a story file has no story. A new block comes with its stories in the same pull request.
+3. The boundary. A component of the toolkit imports only React, Headless UI, the icons, the shared library `@knowii/common` and three small helpers. A lint rule refuses anything of the application. The application gives its parts (its link, its video player) through the toolkit context.
+4. The accessibility contract. The docblock of a block states its name, its role, its states and what the focus does. A `play` function proves each point. A meaning never comes from a color alone.
+
+## Run the catalogue on your machine
+
+Start the development environment ([`CONTRIBUTING.md`](https://github.com/knowii-oss/knowii/blob/main/CONTRIBUTING.md)), then run `./vendor/bin/sail npm run storybook` and open `http://localhost:6006` in your browser. `./vendor/bin/sail npm run storybook:build` writes the static site to `dist/storybook`.

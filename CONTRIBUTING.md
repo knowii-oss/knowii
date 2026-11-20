@@ -155,6 +155,8 @@ If you want to run the production version locally, you can:
 - `composer serve`: Start the application
 - `composer start`: Start the application
 - `composer test`: Test the back-end code
+- `npm run storybook`: Start the catalogue of the component toolkit (Storybook, on port 6006)
+- `npm run storybook:build`: Build the static site of the catalogue in `dist/storybook`
 - `npm run test`: Test the front-end code
 
 ### IntelliJ / PHPStorm
@@ -206,6 +208,15 @@ For tests, go to Settings > Languages & Frameworks > PHP > Test Frameworks:
 - Select Pest
 - Choose the right PHP interpreter: `laravel.test`
 - Set the path to the Pest executable: `/var/www/html/vendor/bin/pest`
+
+### Component toolkit
+
+The building blocks of the user interface (`apps/knowii/src/Components/ui`) have a catalogue, made with Storybook. The catalogue of the branch `main` is public: https://knowii-oss.github.io/knowii/
+
+- Run it on your machine: `./vendor/bin/sail npm run storybook`, then open `http://localhost:6006`.
+- Read it: the "Docs" page of a block says when to use it, when not, and its accessibility contract, then shows its props and each of its states. The toolbar switches the theme and the width (360 px, 1920 px).
+- A new building block comes with its stories in the same pull request: the stories are its tests, and a guard test fails without them.
+- The rules are in the part "Toolkit" of [`documentation/architecture/frontend.md`](documentation/architecture/frontend.md#toolkit).
 
 ### Architecture and design
 

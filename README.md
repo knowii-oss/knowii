@@ -4,7 +4,7 @@ Welcome to Knowii, the place for your Knowledge, Ideas and Innovation
 
 ## Contributing
 
-Knowii is open source. We are always looking for new contributors. Check out the [contributing document](CONTRIBUTING.md) to know how.
+Knowii is open source. We are always looking for new contributors. Check out the [contributing document](CONTRIBUTING.md) to know how. The building blocks of the user interface have a public catalogue: the [component toolkit](https://knowii-oss.github.io/knowii/).
 
 ## API
 

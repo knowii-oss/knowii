@@ -1,0 +1,71 @@
+name: Toolkit catalogue
+
+# Builds the Storybook of the component toolkit (#657, ADR 0049) and publishes it on the page site of the repository:
+# https://knowii-oss.github.io/knowii/
+# - Push to main: build, then deploy.
+# - By hand (workflow_dispatch): the same, from main only. The environment "github-pages" refuses every other branch.
+# - Never on a pull request: ci.yml builds the Storybook there, and nothing is published.
+# - Never on a fork: both jobs check the name of the repository.
+# The build job runs the code of the repository with a token that only reads. The deploy job holds the rights of the
+# page site and runs no code of the repository: it gives the artifact of the build job to the page site.
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# One deployment at a time. A newer run replaces a run that waits. A deployment that runs is never cancelled.
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: false
+
+# A job has only the rights that it names
+permissions: {}
+
+jobs:
+  build:
+    if: github.repository == 'knowii-oss/knowii' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+      - name: Install front-end dependencies
+        run: npm ci
+
+      # No .env file and no secret: the catalogue holds only what the repository holds
+      - name: Build Storybook
+        run: npm run storybook:build
+        env:
+          NX_NO_CLOUD: true
+
+      - name: Upload the catalogue
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: dist/storybook
+
+  deploy:
+    needs: build
+    if: github.repository == 'knowii-oss/knowii' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      # To publish on the page site
+      pages: write
+      # The page site checks with this token that the artifact comes from this workflow, on this repository
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to the page site
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
