@@ -359,6 +359,15 @@ test('the privacy policy names the headline in the fields of the profile (#1688,
     );
 });
 
+test('the privacy policy tells who sees the member list of a community, and what an entry holds (#148, approved 2026-11-20)', function () {
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('updated', '2026-11-20')
+        ->where('html', fn (string $html) => str_contains($html, 'Members of a community see what you post in it, and the profile fields you choose to show. The members of a community see its member list: your name, your username, your picture, your headline, your role and the date you joined.')
+            // The sentence of before the member directory is gone: the list is no longer for the managers only
+            && ! str_contains($html, 'The owner and the administrators of a community see its member list.'))
+    );
+});
+
 test('the privacy policy tells about the answers to events, who sees them and how long they stay (#1515, approved 2026-11-17)', function () {
     config(['retention.event_answers_days' => 90]);
 

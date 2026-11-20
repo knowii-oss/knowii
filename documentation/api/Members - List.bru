@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/members?limit=20&offset=0
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/members?sort=name&limit=20&offset=0
   body: none
   auth: none
 }
@@ -15,5 +15,9 @@ headers {
 }
 
 docs {
-  The members of the community with their role (#1242): owner first, then admins, moderators and members, each by username. Each entry holds cuid, name, username, avatar_url, headline, role and member_since. The headline (#1688) is the line that the member wrote about themselves: empty unless the member shows it (ADR 0020), for every reader, the managers included. Offset pagination (limit, offset). Members of the community only. With a query parameter, the same list is filtered (see Members - Search).
+  The members of the community with their role (#1242). Each entry holds cuid, name, username, avatar_url, headline, role and member_since. The headline (#1688) is the line that the member wrote about themselves: empty unless the member shows it (ADR 0020), for every reader, the managers included.
+
+  The sort parameter gives the order (#148, ADR 0056). role (the default, also without the parameter and with any other value): owner first, then admins, moderators and members, each by username. name: the name from A to Z without the case, then the username. newest: the date of joining, the newest first, then the username; the owner joined at the date of the community. The member directory of a community uses name and newest.
+
+  Offset pagination (limit, offset; 10 by default, 100 at most). Members of the community only. Limited to 60 requests a minute for each account, together with the page of the member directory (429 after that). With a query parameter, the same list is filtered (see Members - Search).
 }

@@ -73,6 +73,8 @@ export const PAGE_URL = 'pages.show';
 
 // Members
 export const MEMBER_URL = 'members.show';
+// The member directory of a community (#148)
+export const MEMBERS_URL = 'members.index';
 // Direct messages (#1186)
 export const MESSAGES_URL = 'messages.index';
 export const CONVERSATION_URL = 'messages.show';
@@ -398,7 +400,12 @@ export const COMMUNITY_JOIN_BLOCK_API_PATH = `${COMMUNITY_JOIN_BLOCKS_API_PATH}/
 export const COMMUNITY_INVITATIONS_API_PATH = `${COMMUNITY_API_PATH}/invitations`;
 export const COMMUNITY_API_PARAM_INVITATION = '{invitationCuid}';
 export const COMMUNITY_INVITATION_API_PATH = `${COMMUNITY_INVITATIONS_API_PATH}/${COMMUNITY_API_PARAM_INVITATION}`;
+// The members of one page of the member management and of the member directory (#148). WARNING: aligned with
+// COMMUNITY_MEMBERS_PAGE_SIZE (Constants.php)
 export const COMMUNITY_MEMBERS_PAGE_SIZE = 20;
+// The search text of a member list: the server keeps its first characters (#148). WARNING: aligned with
+// MEMBER_SEARCH_MAX_LENGTH (Constants.php)
+export const MEMBER_SEARCH_MAX_LENGTH = 100;
 
 // Access groups (#1241, ADR 0025). WARNING: aligned with ApiRoutes.php and Constants.php
 export const COMMUNITY_ACCESS_GROUPS_API_PATH = `${COMMUNITY_API_PATH}/access-groups`;

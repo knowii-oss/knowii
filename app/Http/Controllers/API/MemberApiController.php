@@ -6,6 +6,7 @@ use App\Contracts\CommunityMembers\JoinsCommunities;
 use App\Contracts\CommunityMembers\LeavesCommunities;
 use App\Contracts\CommunityMembers\RemovesCommunityMembers;
 use App\Contracts\CommunityMembers\UpdatesCommunityMemberRoles;
+use App\Enums\KnowiiMemberSort;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\MemberWithRoleResource;
 use App\Models\Community;
@@ -30,18 +31,23 @@ class MemberApiController extends Controller
     use ApiResponses;
 
     /**
-     * List the members of the community with their role: owner first, then admins, moderators and members. With a
-     * query: the members whose username, or a word of their name, starts with it.
+     * List the members of the community with their role. Without `sort`: owner first, then admins, moderators and
+     * members. With a query: the members whose username, or a word of their name, starts with it. Limited per minute.
      */
-    #[QueryParameter('query', description: 'Beginning of the username or of a word of the name. Empty: every member', type: 'string', example: 'ada')]
-    #[QueryParameter('limit', description: 'Number of members (default 20, maximum 100)', type: 'int', example: 20)]
+    #[QueryParameter('query', description: 'Beginning of the username or of a word of the name. The server keeps its first 100 characters. Empty: every member', type: 'string', example: 'ada')]
+    #[QueryParameter('sort', description: 'The order. role: owner, admins, moderators, members, each by username. name: the name from A to Z. newest: the date of joining, the newest first. Any other value: role', type: "'role'|'name'|'newest'", default: 'role', example: 'name')]
+    #[QueryParameter('limit', description: 'Number of members (default 10, maximum 100)', type: 'int', example: 20)]
     #[QueryParameter('offset', description: 'Number of members to skip', type: 'int', example: 0)]
     final public function index(Request $request, Community $community): JsonResponse
     {
         Gate::authorize('view', $community);
 
-        $query = trim((string) $request->query('query', ''));
-        $page = Pagination::fromRequest($request)->apply(CommunityMemberQuery::for($community, $query));
+        // A value that is not a text (`?query[]=a`, `?sort[]=name`) counts as no value
+        $query = $request->query('query');
+        $sort = $request->query('sort');
+        $query = CommunityMemberQuery::searchText(is_string($query) ? $query : '');
+        $sort = KnowiiMemberSort::forApi(is_string($sort) ? $sort : null);
+        $page = Pagination::fromRequest($request)->apply(CommunityMemberQuery::for($community, $query, $sort));
 
         return self::success('Members', $page['metadata'], $page['items']->toResourceCollection(MemberWithRoleResource::class));
     }

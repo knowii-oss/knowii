@@ -84,6 +84,14 @@ test('the template of the privacy policy tells about the answers to events, with
         ->toContain('Answers to events: {{retention.event_answers}} after the event, or until you leave the community.');
 });
 
+test('the template of the privacy policy tells who sees the member list of a community, and what an entry holds (#148)', function () {
+    $policy = File::get(legalTemplatesFolder().'/policy.md');
+
+    expect($policy)
+        ->toContain('The members of a community see its member list: your name, your username, your picture, your headline, your role and the date you joined.')
+        ->not->toContain('The owner and the administrators of a community see its member list.');
+});
+
 test('the imprint template keeps only its headings and the source code of the project', function () {
     $body = explode("\n---\n", File::get(legalTemplatesFolder().'/imprint.md'), 2)[1] ?? '';
     $lines = array_values(array_filter(array_map(trim(...), explode("\n", $body)), static fn (string $line): bool => $line !== ''));

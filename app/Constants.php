@@ -231,6 +231,17 @@ class Constants
     // Markdown preview requests (editor) per minute and per user
     public const int MARKDOWN_PREVIEWS_PER_MINUTE = 60;
 
+    // Member lists per minute and per user (#148, ADR 0056): the member directory, and the API list that the directory, the
+    // member management and the member fields read. A search sends one after each pause in the typing
+    public const int MEMBER_LISTS_PER_MINUTE = 60;
+
+    // The members of one page of the member directory (#148). WARNING: aligned with COMMUNITY_MEMBERS_PAGE_SIZE (constants.ts)
+    public const int COMMUNITY_MEMBERS_PAGE_SIZE = 20;
+
+    // The search text of a member list: the server keeps its first characters (#148). WARNING: aligned with
+    // MEMBER_SEARCH_MAX_LENGTH (constants.ts)
+    public const int MEMBER_SEARCH_MAX_LENGTH = 100;
+
     // Posts created per minute and per user
     public const int POSTS_PER_MINUTE = 5;
 

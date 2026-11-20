@@ -15,8 +15,14 @@ vi.mock('@inertiajs/react', () => ({
   router: { visit: vi.fn(), reload: vi.fn() },
 }));
 
+// The path to the page, as the layout gets it: the label and the address of each step
+const breadcrumb = vi.hoisted(() => ({ steps: [] as { label: string; href?: string }[] }));
+
 vi.mock('@/Layouts/AppLayout', () => ({
-  default: ({ children }: { children: React.ReactNode }) => <main>{children}</main>,
+  default: ({ children, breadcrumbItems }: { children: React.ReactNode; breadcrumbItems: { label: string; href?: string }[] }) => {
+    breadcrumb.steps = breadcrumbItems.map(({ label, href }) => (href === undefined ? { label } : { label, href }));
+    return <main>{children}</main>;
+  },
 }));
 
 vi.mock('@/Components/Spaces/CommunityShell', () => ({
@@ -51,11 +57,11 @@ const member: MemberProfile = {
   member_since: new Date('2026-11-01T10:00:00Z'),
 };
 
-function renderPage(changes: Partial<MemberProfile> = {}) {
+function renderPage(changes: Partial<MemberProfile> = {}, communityChanges: Partial<Community> = {}) {
   return render(
     <AppDataProvider>
       <MemberPage
-        community={community}
+        community={{ ...community, ...communityChanges }}
         spaceGroups={[]}
         member={{ ...member, ...changes }}
         messaging={{ isSelf: false, blockedByMe: false, canMessage: true }}
@@ -115,5 +121,29 @@ describe('the headline on the member page (#1688)', () => {
 
     const without = renderPage();
     expect((await axe.run(without.container)).violations.map((violation) => violation.id)).toEqual([]);
+  });
+});
+
+describe('the path to the member page (#148)', () => {
+  it('goes through the member directory: the community, "Members" with the address of the directory, then the name', () => {
+    renderPage();
+
+    expect(breadcrumb.steps).toEqual([
+      { label: 'Tests', href: '/communities.show/tests' },
+      { label: 'Members', href: '/members.index/tests' },
+      { label: 'Ada Lovelace' },
+    ]);
+  });
+
+  it('has no step "Members" in a personal community, which has one member and no link to the directory', () => {
+    renderPage({}, { visibility: 'personal' });
+
+    expect(breadcrumb.steps).toEqual([{ label: 'Tests', href: '/communities.show/tests' }, { label: 'Ada Lovelace' }]);
+  });
+
+  it.each(['private', 'public'] as const)('keeps the step "Members" in a %s community', (visibility) => {
+    renderPage({}, { visibility });
+
+    expect(breadcrumb.steps.map((step) => step.label)).toEqual(['Tests', 'Members', 'Ada Lovelace']);
   });
 });

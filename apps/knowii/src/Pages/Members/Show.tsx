@@ -4,6 +4,7 @@ import type { Community, MemberProfile, SocialMediaLinkProperty, SpaceGroup } fr
 import {
   COMMUNITY_URL,
   knowiiApiClient,
+  MEMBERS_URL,
   MESSAGES_URL,
   useAppData,
   safeHttpUrl,
@@ -11,7 +12,7 @@ import {
   SOCIAL_MEDIA_LINK_NAMES,
   socialMediaLinkPropertySchema,
 } from '@knowii/common';
-import { FaBan, FaEnvelope, FaLocationDot, FaPhone } from 'react-icons/fa6';
+import { FaBan, FaEnvelope, FaLocationDot, FaPhone, FaUsers } from 'react-icons/fa6';
 import AppLayout from '@/Layouts/AppLayout';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
@@ -55,6 +56,11 @@ export default function MemberPage({ community, spaceGroups, member, messaging }
       href: route(COMMUNITY_URL, { communitySlug: community.slug }),
       icon: <CommunityIcon visibility={community.visibility} />,
     },
+    // The member directory (#148): the way back to the list. Not in a personal community: it has one member, and its
+    // navigation has no link "Members"
+    ...(community.visibility === 'personal'
+      ? []
+      : [{ label: 'Members', href: route(MEMBERS_URL, { communitySlug: community.slug }), icon: <FaUsers aria-hidden="true" /> }]),
     { label: member.name },
   ];
 
