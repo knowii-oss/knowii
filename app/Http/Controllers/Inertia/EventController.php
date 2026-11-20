@@ -52,6 +52,9 @@ class EventController extends Controller
                 'canDelete' => Gate::check('delete', $event),
                 // A copy is a new event of the space: the right to change this one, and the right to create one
                 'canDuplicate' => Gate::check('update', $event) && Gate::check('contribute', $space),
+                // "Answers" (#1515): the owner, the admins and the host, never for a draft, never a moderator. No field
+                // of the event says it: the limit of places is null for the host of an event without a limit
+                'canViewAnswers' => Gate::check('viewAnswers', $event),
             ],
         ]);
     }

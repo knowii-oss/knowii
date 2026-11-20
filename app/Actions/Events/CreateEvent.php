@@ -15,6 +15,7 @@ use App\Models\Upload;
 use App\Models\User;
 use App\Rules\KnownTimeZone;
 use App\Rules\MaxMarkdownImages;
+use App\Rules\WholeNumber;
 use App\Support\CommunityRoles;
 use App\Support\EventTimes;
 use App\Support\Markdown;
@@ -128,8 +129,8 @@ class CreateEvent implements CreatesEvents
             'cover_upload_cuid' => ['sometimes', 'nullable', 'string'],
             'cover_alt' => ['sometimes', 'nullable', 'string', 'max:'.Constants::MAX_LENGTH_EVENT_COVER_ALT],
             // The limit of places (#1515): it counts the Yes answers. Null: no limit. A value under the number of Yes answers
-            // is accepted, and nobody is removed
-            'capacity' => ['sometimes', 'nullable', 'integer', 'min:'.Constants::MIN_EVENT_CAPACITY, 'max:'.Constants::MAX_EVENT_CAPACITY],
+            // is accepted, and nobody is removed. A number or a text of digits: `integer` alone takes `true` as 1
+            'capacity' => ['sometimes', 'nullable', 'bail', new WholeNumber, 'integer', 'min:'.Constants::MIN_EVENT_CAPACITY, 'max:'.Constants::MAX_EVENT_CAPACITY],
             // A replay will exist: members may answer "Replay only"
             'replay_expected' => ['sometimes', 'boolean'],
         ];

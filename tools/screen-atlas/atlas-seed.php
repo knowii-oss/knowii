@@ -29,6 +29,7 @@ use App\Actions\CommunityMembers\InviteCommunityMember;
 use App\Actions\Conversations\SendDirectMessage;
 use App\Actions\Conversations\StartConversation;
 use App\Actions\CourseMaterials\CreateCourseMaterial;
+use App\Actions\Events\AnswerEvent;
 use App\Actions\Events\CreateEvent;
 use App\Actions\Events\SetEventState;
 use App\Actions\Events\UpdateEvent;
@@ -71,6 +72,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Laravel\Fortify\Actions\EnableTwoFactorAuthentication;
+
+require_once __DIR__.'/atlas-shared.php';
 
 (function (): void {
     // Only for a development machine: the accounts have a known password
@@ -256,6 +259,16 @@ use Laravel\Fortify\Actions\EnableTwoFactorAuthentication;
         ]);
     };
 
+    // The answer of a member to an event (#1515), through the action: Yes, Replay only or No. Nothing when the member
+    // already answered (a cancelled event takes no answers, so a second run must not ask again)
+    $answer = static function (User $by, EventModel $event, string $value) use (&$made): void {
+        if ($event->answers()->where('user_id', $by->id)->exists()) {
+            return;
+        }
+        app(AnswerEvent::class)->answer($by, $event, ['answer' => $value]);
+        $made++;
+    };
+
     $accessGroup = static function (Community $community, User $by, string $name, string $description) use (&$made): AccessGroup {
         $found = $community->accessGroups()->where('name', $name)->first();
         if ($found !== null) {
@@ -333,6 +346,21 @@ use Laravel\Fortify\Actions\EnableTwoFactorAuthentication;
     // Two accounts for two screens: the "verify your email address" page and the two-factor challenge
     $unverified = $account('unverified', 'Uma Unverified', null, false);
     $twoFactor = $account('2fa', 'Tess Twofactor', 'atlas-2fa', true, $zone);
+    // More members of Atlas Garden (#1515): with the team, they are the answers of the events, and the names of the
+    // list "Answers". ATLAS_GROWER_COUNT (atlas-shared.php) is their number: the unseed removes as many
+    $growerNames = [
+        'Ana Almeida', 'Bruno Bauer', 'Chloe Claes', 'Daan Dekker', 'Elif Erdem', 'Finn Fabre', 'Greta Gallo', 'Hugo Hansen',
+        'Ines Ito', 'Jonas Jansen', 'Kira Kovac', 'Luca Lambert', 'Mila Moreau', 'Noor Nilsen', 'Otto Olsen', 'Pia Peeters',
+        'Quinn Quist', 'Rosa Ricci', 'Sven Sato', 'Tara Thys', 'Udo Ulrich', 'Vera Vos',
+    ];
+    if (count($growerNames) !== ATLAS_GROWER_COUNT) {
+        throw new LogicException('The seed names '.count($growerNames).' growers, and ATLAS_GROWER_COUNT is '.ATLAS_GROWER_COUNT);
+    }
+    $growers = [];
+    foreach ($growerNames as $index => $name) {
+        $key = sprintf('grower-%02d', $index + 1);
+        $growers[] = $account($key, $name, 'atlas-'.$key, true, $zone);
+    }
     if ($twoFactor->two_factor_secret === null) {
         app(EnableTwoFactorAuthentication::class)($twoFactor);
         // DIRECT WRITE: the confirmation needs a code of an authenticator app
@@ -364,6 +392,9 @@ use Laravel\Fortify\Actions\EnableTwoFactorAuthentication;
     }
     $join($garden, $owner, $tomas, 'member');
     $join($garden, $owner, $lena, 'member');
+    foreach ($growers as $grower) {
+        $join($garden, $owner, $grower, 'member');
+    }
 
     // Anybody with a verified address may join Atlas Garden: the public page shows "Join" to the new member
     if ($garden->joinPolicy()->value !== 'open') {
@@ -380,6 +411,7 @@ use Laravel\Fortify\Actions\EnableTwoFactorAuthentication;
         static fn (User $user): User => User::query()->findOrFail($user->id),
         [$owner, $admin, $moderator, $member, $tomas, $lena],
     );
+    $growers = array_map(static fn (User $user): User => User::query()->findOrFail($user->id), $growers);
     $garden = Community::query()->findOrFail($garden->id);
     $empty = Community::query()->findOrFail($empty->id);
 
@@ -649,10 +681,11 @@ use Laravel\Fortify\Actions\EnableTwoFactorAuthentication;
 
     // ---------------------------------------------------------------------------------------------------------------
     // 3b. Events (#1514): an event with a cover and a meeting address, one in a room, a cancelled one, a draft and a
-    // past one. No notification (Notify::silenced): the counts of the other pictures stay what they were
+    // past one. Then the events of the answers (#1515). No notification (Notify::silenced): the counts of the other
+    // pictures stay what they were
     // ---------------------------------------------------------------------------------------------------------------
 
-    $events = Notify::silenced(function () use ($garden, $owner, $moderator, $gardenEvents, $event, $upload): array {
+    $events = Notify::silenced(function () use ($garden, $owner, $admin, $moderator, $member, $tomas, $lena, $growers, $gardenEvents, $event, $answer, $upload): array {
         $cover = $upload($owner, $garden, 'Paper bags with seeds on a wooden table', 1600, 900, [255, 236, 179], [129, 199, 132]);
         $swap = $event($owner, $gardenEvents, $owner, 'Seed swap, online', 3, 18, [
             'body' => "Bring the seeds that you saved this year, and a short story about each one.\n\n## How it works\n\n1. Each person shows one seed and says where it grew.\n2. We write down who wants which seed.\n3. You send the seeds by post after the call.\n\nNew gardeners are welcome: you do not need seeds to join.",
@@ -680,7 +713,82 @@ use Laravel\Fortify\Actions\EnableTwoFactorAuthentication;
             'meeting_url' => 'https://example.com/atlas/meet/compost',
         ]);
 
-        return compact('swap', 'workshop', 'cancelled', 'draft', 'past');
+        // The answers (#1515). An event with a limit of 40 places, a replay, and a meeting address for the members who
+        // answer Yes: 12 Yes, 3 "Replay only" and 4 "No". The member of the atlas did not answer it
+        $answers = $event($owner, $gardenEvents, $owner, 'Winter sowing, question hour', 6, 19, [
+            'body' => 'Which seeds to sow in January, and how to keep them warm. Ask your questions in the call, or watch the replay.',
+            'meeting_url' => 'https://example.com/atlas/meet/winter-sowing',
+            'location_visibility' => 'going',
+            'capacity' => 40,
+            'replay_expected' => true,
+        ]);
+        foreach ([$admin, $moderator, $tomas, $lena, ...array_slice($growers, 0, 8)] as $going) {
+            $answer($going, $answers, 'yes');
+        }
+        foreach (array_slice($growers, 8, 3) as $later) {
+            $answer($later, $answers, 'replay');
+        }
+        foreach (array_slice($growers, 11, 4) as $away) {
+            $answer($away, $answers, 'no');
+        }
+        // The same kind of event, which the member of the atlas answered with Yes: the meeting address shows
+        $answered = $event($owner, $gardenEvents, $moderator, 'Balcony tour, online', 8, 18, [
+            'body' => 'Three members show their balcony in ten minutes each.',
+            'meeting_url' => 'https://example.com/atlas/meet/balcony-tour',
+            'location_visibility' => 'going',
+            'capacity' => 20,
+            'replay_expected' => true,
+        ]);
+        $answer($member, $answered, 'yes');
+        $answer($lena, $answered, 'yes');
+        // A full event: one place, and Tomas has it
+        $full = $event($owner, $gardenEvents, $moderator, 'Greenhouse visit', 12, 14, [
+            'body' => 'A visit of the greenhouse, one member at a time.',
+            'place' => 'Greenhouse 2, City garden, Brussels',
+            'capacity' => 1,
+        ]);
+        $answer($tomas, $full, 'yes');
+        // A cancelled event that the member of the atlas answered before the cancel: the answer stays, as text
+        $cancelledAnswered = $event($owner, $gardenEvents, $moderator, 'Tool repair evening', 9, 19, [
+            'body' => 'Bring a tool that needs a new handle or a sharp edge.',
+            'place' => 'Workshop, City garden, Brussels',
+        ]);
+        if ($cancelledAnswered->state->value === 'published') {
+            $answer($member, $cancelledAnswered, 'yes');
+            app(SetEventState::class)->setState($owner, $cancelledAnswered, ['state' => 'cancelled']);
+        }
+        // An event with more Yes answers than one page of the list "Answers" holds (20): 21 Yes, 3 "Replay only" and
+        // 4 "No", so the list shows "Load more". The member of the atlas answered No
+        $many = $event($owner, $gardenEvents, $owner, 'Spring plant sale, planning call', 10, 19, [
+            'body' => 'We plan the plant sale of the spring: who brings what, and who holds the table.',
+            'meeting_url' => 'https://example.com/atlas/meet/plant-sale',
+            'capacity' => 40,
+            'replay_expected' => true,
+        ]);
+        foreach ([$owner, $admin, $moderator, $tomas, $lena, ...array_slice($growers, 0, 16)] as $going) {
+            $answer($going, $many, 'yes');
+        }
+        foreach (array_slice($growers, 16, 3) as $later) {
+            $answer($later, $many, 'replay');
+        }
+        foreach ([$member, ...array_slice($growers, 19, 3)] as $away) {
+            $answer($away, $many, 'no');
+        }
+        // An event without a limit that the member of the atlas answered with "Replay only"
+        $replayOnly = $event($owner, $gardenEvents, $owner, 'Herb garden, first steps', 7, 18, [
+            'body' => 'Five herbs that grow in one pot. The call is recorded.',
+            'meeting_url' => 'https://example.com/atlas/meet/herbs',
+            'replay_expected' => true,
+        ]);
+        $answer($member, $replayOnly, 'replay');
+        // An event with one place that nobody answered: "1 place left", and an empty list "Answers"
+        $onePlace = $event($owner, $gardenEvents, $owner, 'Seed library visit', 9, 15, [
+            'body' => 'One member at a time visits the seed library.',
+            'place' => 'Seed library, City garden, Brussels',
+            'capacity' => 1,
+        ]);
+
+        return compact('swap', 'workshop', 'cancelled', 'draft', 'past', 'answers', 'answered', 'full', 'cancelledAnswered', 'many', 'replayOnly', 'onePlace');
     });
     $say('events ready');
 
@@ -800,7 +908,13 @@ use Laravel\Fortify\Actions\EnableTwoFactorAuthentication;
     DB::table('users')->where('id', $member->id)->update(['last_visit_on' => now('UTC')->subDays(9)->toDateString()]);
     // The events keep their distance from today (#1514), so that "Upcoming" and "Past" hold the same events on each run.
     // The action of the application moves them: a change of an event tells nobody
-    foreach (['swap' => [3, 18], 'workshop' => [10, 10], 'cancelled' => [5, 14], 'draft' => [20, 19], 'past' => [-7, 18]] as $key => [$days, $hour]) {
+    $distances = [
+        'swap' => [3, 18], 'workshop' => [10, 10], 'cancelled' => [5, 14], 'draft' => [20, 19], 'past' => [-7, 18],
+        // The events of the answers (#1515)
+        'answers' => [6, 19], 'answered' => [8, 18], 'full' => [12, 14], 'cancelledAnswered' => [9, 19],
+        'many' => [10, 19], 'replayOnly' => [7, 18], 'onePlace' => [9, 15],
+    ];
+    foreach ($distances as $key => [$days, $hour]) {
         app(UpdateEvent::class)->update($owner, $events[$key]->refresh(), ['starts_at' => $eventTime($days, $hour), 'ends_at' => $eventTime($days, $hour + 1), 'time_zone' => 'Europe/Brussels']);
     }
 
@@ -840,7 +954,14 @@ use Laravel\Fortify\Actions\EnableTwoFactorAuthentication;
             'quiz-after' => $refs['quizOne']->slug, 'quiz-before' => $refs['quizTwo']->slug,
         ],
         'resources' => ['guide' => $refs['guide']->slug],
-        'events' => ['next' => $events['swap']->slug, 'place' => $events['workshop']->slug, 'cancelled' => $events['cancelled']->slug, 'draft' => $events['draft']->slug, 'past' => $events['past']->slug],
+        'events' => [
+            'next' => $events['swap']->slug, 'place' => $events['workshop']->slug, 'cancelled' => $events['cancelled']->slug, 'draft' => $events['draft']->slug, 'past' => $events['past']->slug,
+            // The answers (#1515): an event with a limit and 19 answers, one that the member answered, a full one, and a
+            // cancelled one with an old answer of the member
+            'answers' => $events['answers']->slug, 'answered' => $events['answered']->slug, 'full' => $events['full']->slug, 'cancelled-answered' => $events['cancelledAnswered']->slug,
+            // One with 21 Yes answers ("Load more" in its list), one with "Replay only" of the member, one with no answer
+            'answers-many' => $events['many']->slug, 'replay-only' => $events['replayOnly']->slug, 'one-place' => $events['onePlace']->slug,
+        ],
         'conversations' => ['direct' => $direct->cuid, 'group' => $group->cuid, 'owner' => $direct2->cuid],
         'chat' => ['thread' => $refs['threadTwo']->cuid],
     ];

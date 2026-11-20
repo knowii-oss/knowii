@@ -3,6 +3,7 @@
 use App\Constants;
 use App\Enums\KnowiiCommunityMemberRole;
 use App\Enums\KnowiiEventLocationVisibility;
+use App\Enums\KnowiiEventState;
 use App\Enums\KnowiiSpacePostingPolicy;
 use App\Enums\KnowiiSpaceType;
 use App\Enums\KnowiiSpaceVisibility;
@@ -273,7 +274,7 @@ test('the event page gives the event with its description, its host and its spac
         ->where('space.cuid', $event->space->cuid)
         ->where('community.cuid', $this->c['community']->cuid)
         ->has('spaceGroups')
-        ->has('permissions', 4));
+        ->has('permissions', 5));
 });
 
 test('an event is only found in its own events space, and an address that names no event answers 404', function () {
@@ -298,8 +299,9 @@ test('an event with the slug "new" has its page, and the form of a new event kee
 });
 
 test('the permissions of the event page follow the policies, for each role', function (string $visibility, array $expected) {
-    $none = ['canUpdate' => false, 'canCancel' => false, 'canDelete' => false, 'canDuplicate' => false];
-    $all = ['canUpdate' => true, 'canCancel' => true, 'canDelete' => true, 'canDuplicate' => true];
+    // "Answers" (#1515) is for the owner, the admins and the host: never a moderator, also with the right to delete content
+    $none = ['canUpdate' => false, 'canCancel' => false, 'canDelete' => false, 'canDuplicate' => false, 'canViewAnswers' => false];
+    $all = ['canUpdate' => true, 'canCancel' => true, 'canDelete' => true, 'canDuplicate' => true, 'canViewAnswers' => true];
     $named = ['all' => $all, 'none' => $none];
 
     foreach ($expected as $reader => $rights) {
@@ -311,17 +313,35 @@ test('the permissions of the event page follow the policies, for each role', fun
     // Only the moderators create an event in the public space: the host, a plain member, cannot duplicate there
     'public' => ['public', [
         'owner' => 'all', 'admin' => 'all',
-        'moderator' => ['canUpdate' => false, 'canCancel' => true, 'canDelete' => true, 'canDuplicate' => false],
-        'host' => ['canUpdate' => true, 'canCancel' => true, 'canDelete' => true, 'canDuplicate' => false],
+        'moderator' => ['canUpdate' => false, 'canCancel' => true, 'canDelete' => true, 'canDuplicate' => false, 'canViewAnswers' => false],
+        'host' => ['canUpdate' => true, 'canCancel' => true, 'canDelete' => true, 'canDuplicate' => false, 'canViewAnswers' => true],
         'member' => 'none', 'outsider' => 'none', 'visitor' => 'none',
     ]],
     'members' => ['members', [
         'owner' => 'all', 'admin' => 'all',
-        'moderator' => ['canUpdate' => false, 'canCancel' => true, 'canDelete' => true, 'canDuplicate' => false],
+        'moderator' => ['canUpdate' => false, 'canCancel' => true, 'canDelete' => true, 'canDuplicate' => false, 'canViewAnswers' => false],
         'host' => 'all', 'member' => 'none',
     ]],
     'groups' => ['groups', ['owner' => 'all', 'admin' => 'all', 'host' => 'all']],
 ]);
+
+test('the page of a draft gives nobody the answers: not its host, not the owner, not an admin', function () {
+    foreach (['host', 'owner', 'admin'] as $reader) {
+        $props = evpProps(evpGet($reader, evpEventUrl($this->drafts['members']))->assertOk());
+
+        expect($props['permissions']['canViewAnswers'])->toBeFalse("{$reader} of a draft")
+            ->and($props['permissions']['canUpdate'])->toBeTrue("{$reader} of a draft");
+    }
+});
+
+test('the page of a cancelled event still gives its host the answers', function () {
+    $event = $this->published['members'];
+    $event->update(['state' => KnowiiEventState::Cancelled]);
+
+    expect(evpProps(evpGet('host', evpEventUrl($event))->assertOk())['permissions']['canViewAnswers'])->toBeTrue()
+        ->and(evpProps(evpGet('moderator', evpEventUrl($event))->assertOk())['permissions']['canViewAnswers'])->toBeFalse()
+        ->and(evpProps(evpGet('member', evpEventUrl($event))->assertOk())['permissions']['canViewAnswers'])->toBeFalse();
+});
 
 test('a host who left the community keeps no right on the event page', function () {
     $event = $this->published['public'];
@@ -330,7 +350,7 @@ test('a host who left the community keeps no right on the event page', function 
     $props = evpProps(evpGet('host', evpEventUrl($event))->assertOk());
 
     // An outsider now: the public space stays readable, without a right and without the meeting address
-    expect($props['permissions'])->toBe(['canUpdate' => false, 'canCancel' => false, 'canDelete' => false, 'canDuplicate' => false])
+    expect($props['permissions'])->toBe(['canUpdate' => false, 'canCancel' => false, 'canDelete' => false, 'canDuplicate' => false, 'canViewAnswers' => false])
         ->and($props['event']['meeting_url'])->toBeNull()
         ->and($props['event']['can_view_location'])->toBeFalse();
 });

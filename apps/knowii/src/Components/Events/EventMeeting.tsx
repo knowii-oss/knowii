@@ -6,7 +6,7 @@ import { buttonClasses } from '@/Components/ui';
 import { EVENT_WORDS } from './event-words';
 
 export interface EventMeetingProps {
-  event: Pick<SpaceEvent, 'can_view_location' | 'meeting_url' | 'place'>;
+  event: Pick<SpaceEvent, 'can_view_location' | 'meeting_url' | 'place' | 'can_answer'>;
   /**
    * The reader is a member of the community (a signed-in person who is not one reads a public space like a visitor)
    */
@@ -20,7 +20,9 @@ export interface EventMeetingProps {
  * With them: "Join the meeting" (only an absolute http or https address becomes a link; it opens in a new tab and says
  * so), the place as text, or "Meeting address to come" when both are empty. The link stays for a cancelled and for a
  * past event: a member may need it. Without them: a visitor reads who the address is for and gets "Sign in"; a
- * signed-in person who is not a member reads the sentence alone; a member reads that it is for the host and the team.
+ * signed-in person who is not a member reads the sentence alone; a member reads that it is for the members who answer
+ * Yes (#1515), or who answered Yes when the event takes no answers any more. A member who answers Yes gets the address
+ * with the next event that the page receives: nothing is computed here.
  */
 export function EventMeeting({ event, isMember }: EventMeetingProps) {
   const isVisitor = useIsVisitor();
@@ -59,7 +61,7 @@ export function EventMeeting({ event, isMember }: EventMeetingProps) {
           <SignInPrompt>{EVENT_WORDS.signIn}</SignInPrompt>
         </>
       ) : (
-        <p>{isMember ? EVENT_WORDS.meetingForHostAndTeam : EVENT_WORDS.meetingForMembers}</p>
+        <p>{isMember ? (event.can_answer ? EVENT_WORDS.meetingForYes : EVENT_WORDS.meetingForYesClosed) : EVENT_WORDS.meetingForMembers}</p>
       )}
     </section>
   );

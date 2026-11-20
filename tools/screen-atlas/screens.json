@@ -2032,6 +2032,67 @@
     },
     {
       "area": "events",
+      "screen": "event-answer",
+      "state": "none",
+      "name": "Event page, a member who did not answer",
+      "path": "/community/{garden}/space/{spaces.events}/event/{events.answers}",
+      "roles": ["member"],
+      "component": "Pages/Events/Show.tsx",
+      "note": "A limit of 40 places, a replay, and a meeting address for the members who answer Yes: the group, who sees the answer, \"28 places left\" and the meeting sentence."
+    },
+    {
+      "area": "events",
+      "screen": "event-answer",
+      "state": "yes",
+      "name": "Event page, a member who answered Yes",
+      "path": "/community/{garden}/space/{spaces.events}/event/{events.answered}",
+      "roles": ["member"],
+      "component": "Pages/Events/Show.tsx",
+      "note": "\"Yes\" is checked, \"Clear my answer\" shows, and the member reads \"Join the meeting\"."
+    },
+    {
+      "area": "events",
+      "screen": "event-answer",
+      "state": "full",
+      "name": "Event page, a full event",
+      "path": "/community/{garden}/space/{spaces.events}/event/{events.full}",
+      "roles": ["member"],
+      "component": "Pages/Events/Show.tsx",
+      "note": "One place, taken by another member: \"Yes\" cannot be chosen, and the line says \"Full\"."
+    },
+    {
+      "area": "events",
+      "screen": "event-answer",
+      "state": "closed",
+      "name": "Event page, a cancelled event with an old answer",
+      "path": "/community/{garden}/space/{spaces.events}/event/{events.cancelled-answered}",
+      "roles": ["member"],
+      "component": "Pages/Events/Show.tsx",
+      "note": "The member answered Yes before the cancel: \"Your answer: Yes\" as text, and no group."
+    },
+    {
+      "area": "events",
+      "screen": "event-answer",
+      "state": "answers-dialog",
+      "name": "Event page, the answers for the host",
+      "path": "/community/{garden}/space/{spaces.events}/event/{events.answers}",
+      "roles": ["owner"],
+      "component": "Pages/Events/Show.tsx",
+      "steps": [["click", "role=button[name=\"Answers\"]"], ["waitDialog"], ["waitFor", "role=list[name=\"Members who answered Yes\"]"]]
+    },
+    {
+      "area": "events",
+      "screen": "form",
+      "state": "limit",
+      "name": "Event form, an event with a limit",
+      "path": "/community/{garden}/space/{spaces.events}/event/{events.answers}/edit",
+      "roles": ["owner"],
+      "component": "Pages/Events/Form.tsx",
+      "note": "\"Members who answer Yes\" is chosen, the limit is 40 with \"12 members answered Yes.\" under it, and \"A replay will exist\" is ticked.",
+      "steps": [["waitFor", "text=12 members answered Yes."]]
+    },
+    {
+      "area": "events",
       "screen": "event",
       "state": "actions-menu",
       "name": "Event, menu of actions open",

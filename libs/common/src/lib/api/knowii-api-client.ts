@@ -77,6 +77,9 @@ import {
   COMMUNITY_SPACE_EVENT_API_PATH,
   COMMUNITY_SPACE_EVENT_STATE_API_PATH,
   COMMUNITY_SPACE_EVENT_DUPLICATE_API_PATH,
+  COMMUNITY_SPACE_EVENT_ANSWER_API_PATH,
+  COMMUNITY_SPACE_EVENT_ANSWERS_API_PATH,
+  EVENT_ANSWERS_PER_PAGE,
   SPACE_API_PARAM_EVENT,
   EVENTS_PER_PAGE,
   MARKDOWN_PREVIEW_API_PATH,
@@ -132,10 +135,12 @@ import type {
 import { accessGroupMemberSchema, accessGroupSchema, accessGroupSpaceGroupSchema } from '../types/access-group.schema';
 import { HttpStatus } from '../types/http-status.intf';
 import type { ApiResult } from './api-result';
-import { apiPageRequest, apiPath, apiRequest, fieldErrors } from './api-result';
+import { apiPageRequest, apiPageRequestWith, apiPath, apiRequest, fieldErrors } from './api-result';
 import type { EventRequest, EventScope, EventUpdateRequest } from './communities/event-request.schema';
 import type { EventState, SpaceEvent } from '../types/event.schema';
 import { eventSchema } from '../types/event.schema';
+import type { EventAnswer, EventAnswerCounts, EventAnswerMember, EventAnswerValue } from '../types/event-answer.schema';
+import { eventAnswerCountsSchema, eventAnswerMemberSchema, eventAnswerSchema } from '../types/event-answer.schema';
 import type { Space, SpaceCreateInput, SpaceForm, SpaceGroup, SpaceGroupForm } from '../types/space.schema';
 import { spaceGroupSchema, spaceSchema } from '../types/space.schema';
 import type { Author, Paginated, Pagination, Post, PostCreateInput, PostForm } from '../types/post.schema';
@@ -667,6 +672,73 @@ export const knowiiApiClient = {
           null,
           'Failed to delete the event.',
         ),
+      /**
+       * The answer of the reader to an event (#1515): Yes, Replay only or No. Only a member of the community has one
+       * (403 for another person). A cancelled event, an event that ended and a draft refuse a change with their words
+       * (422), and a new Yes on a full event answers 422, "This event is full."
+       */
+      answer: {
+        /**
+         * `answer` is null when the member did not answer
+         */
+        get: (communityCuid: string, spaceCuid: string, eventCuid: string): Promise<ApiResult<EventAnswer>> =>
+          apiRequest(
+            'get',
+            eventsPath(communityCuid, spaceCuid, eventCuid, COMMUNITY_SPACE_EVENT_ANSWER_API_PATH),
+            eventAnswerSchema,
+            'Failed to load your answer.',
+          ),
+        /**
+         * Replaces the answer of the reader. The result holds no place count and no meeting address: get the event again
+         */
+        set: (communityCuid: string, spaceCuid: string, eventCuid: string, answer: EventAnswerValue): Promise<ApiResult<EventAnswer>> =>
+          apiRequest(
+            'put',
+            eventsPath(communityCuid, spaceCuid, eventCuid, COMMUNITY_SPACE_EVENT_ANSWER_API_PATH),
+            eventAnswerSchema,
+            'Failed to save your answer.',
+            { answer },
+          ),
+        /**
+         * Removes the answer of the reader (204, also when there was none)
+         */
+        clear: (communityCuid: string, spaceCuid: string, eventCuid: string): Promise<ApiResult<undefined>> =>
+          apiRequest(
+            'delete',
+            eventsPath(communityCuid, spaceCuid, eventCuid, COMMUNITY_SPACE_EVENT_ANSWER_API_PATH),
+            null,
+            'Failed to save your answer.',
+          ),
+      },
+      /**
+       * Who answered an event, for its host, the owner and the admins (403 for the others, #1515)
+       */
+      answers: {
+        /**
+         * A page of the members who answered Yes, or Replay only, by name, with the numbers of the three answers in
+         * `counts`. The members who answered No are never named.
+         */
+        list: async (
+          communityCuid: string,
+          spaceCuid: string,
+          eventCuid: string,
+          answer: Exclude<EventAnswerValue, 'no'> = 'yes',
+          limit: number = EVENT_ANSWERS_PER_PAGE,
+          offset = 0,
+        ): Promise<ApiResult<Paginated<EventAnswerMember> & { counts: EventAnswerCounts }>> => {
+          const result = await apiPageRequestWith(
+            `${eventsPath(communityCuid, spaceCuid, eventCuid, COMMUNITY_SPACE_EVENT_ANSWERS_API_PATH)}?${new URLSearchParams({ answer, limit: String(limit), offset: String(offset) }).toString()}`,
+            eventAnswerMemberSchema,
+            z.object({ counts: eventAnswerCountsSchema }),
+            'Failed to load the answers.',
+          );
+          if (!result.ok) {
+            return result;
+          }
+          const { items, pagination, metadata } = result.data;
+          return { ok: true, message: result.message, data: { items, pagination, counts: metadata.counts } };
+        },
+      },
     },
     /**
      * The messages of chat spaces and their threads (#1185)

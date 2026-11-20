@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { afterEach, vi } from 'vitest';
-import { apiPath, apiRequest } from './api-result';
+import { apiPageRequest, apiPageRequestWith, apiPath, apiRequest } from './api-result';
 
 function respond(status: number, body?: unknown) {
   vi.spyOn(globalThis, 'fetch').mockResolvedValue(
@@ -40,6 +40,47 @@ describe('apiRequest', () => {
 
     vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('offline'));
     expect(await apiRequest('get', '/api', null, 'Failed')).toEqual({ ok: false, status: 0, message: 'Failed', errors: {} });
+  });
+});
+
+describe('apiPageRequest', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  const pagination = { limit: 20, offset: 0, previousOffset: null, nextOffset: 20, currentPage: 1, pageCount: 3, totalCount: 45 };
+  const item = z.object({ name: z.string() });
+
+  it('gives the items and the pagination of a page', async () => {
+    respond(200, { message: 'Items', data: [{ name: 'A' }], metadata: { pagination, counts: { yes: 1 } } });
+
+    expect(await apiPageRequest('/api', item, 'Failed')).toEqual({
+      ok: true,
+      message: 'Items',
+      data: { items: [{ name: 'A' }], pagination },
+    });
+  });
+
+  it('gives the other keys of the metadata when a schema names them (#1515)', async () => {
+    respond(200, { message: 'Answers', data: [{ name: 'A' }], metadata: { pagination, counts: { yes: 12, replay: 3, no: 4 } } });
+    const counts = z.object({ counts: z.object({ yes: z.number(), replay: z.number(), no: z.number() }) });
+
+    expect(await apiPageRequestWith('/api', item, counts, 'Failed')).toEqual({
+      ok: true,
+      message: 'Answers',
+      data: { items: [{ name: 'A' }], pagination, metadata: { counts: { yes: 12, replay: 3, no: 4 } } },
+    });
+  });
+
+  it('fails without throwing when the named keys are missing, and keeps the message and the status of a refusal', async () => {
+    const counts = z.object({ counts: z.object({ yes: z.number() }) });
+    respond(200, { message: 'Answers', data: [], metadata: { pagination } });
+    expect(await apiPageRequestWith('/api', item, counts, 'Failed')).toMatchObject({ ok: false, status: 200, message: 'Failed' });
+
+    respond(403, { message: 'This action is unauthorized.' });
+    expect(await apiPageRequestWith('/api', item, counts, 'Failed')).toMatchObject({
+      ok: false,
+      status: 403,
+      message: 'This action is unauthorized.',
+    });
   });
 });
 

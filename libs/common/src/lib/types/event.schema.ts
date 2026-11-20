@@ -77,6 +77,8 @@ export interface EventPermissions {
   canDelete: boolean;
   // The right to change this event, and the right to create one in the space
   canDuplicate: boolean;
+  // Read who answered Yes and Replay only (#1515): the owner, the admins and the host, never for a draft, never a moderator
+  canViewAnswers: boolean;
 }
 
 /**

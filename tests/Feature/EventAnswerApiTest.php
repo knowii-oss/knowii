@@ -676,6 +676,40 @@ test('with a token, the limit of an event needs event-answers:read; the places f
     expect(eaaCall(User::findOrFail($this->c['host']->id), 'GET', eaaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $this->event))->json('data.capacity'))->toBe(78);
 });
 
+test('the limit is a whole number in the request: every other value is a field error, on a create and on a change', function (mixed $wrong) {
+    $input = ['title' => 'With a limit', 'starts_at' => '2026-11-18T17:00:00+01:00', 'ends_at' => '2026-11-18T18:00:00+01:00', 'time_zone' => 'Europe/Brussels'];
+    $before = EventModel::query()->count();
+
+    eaaCall('owner', 'POST', eaaEvents($this->space), [...$input, 'capacity' => $wrong])->assertStatus(400)->assertJsonCount(1, 'errors.capacity')->assertJsonPath('errors.capacity.0', 'The capacity field must be an integer.');
+    eaaCall('host', 'PATCH', eaaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $this->event), ['capacity' => $wrong])->assertStatus(400)->assertJsonCount(1, 'errors.capacity')->assertJsonPath('errors.capacity.0', 'The capacity field must be an integer.');
+
+    // Nothing is stored: the boolean true is not a limit of 1
+    expect(EventModel::query()->count())->toBe($before)
+        ->and($this->event->fresh()->capacity)->toBe(EAA_CAPACITY);
+})->with([
+    'true' => [true],
+    'false' => [false],
+    'a number with a fraction' => [12.5],
+    'a text with a fraction' => ['12.5'],
+    'a word' => ['abc'],
+    'a list' => [[]],
+]);
+
+test('the limit passes as a number, as a text of digits like the other whole numbers of the API, and as null', function () {
+    $input = ['title' => 'With a limit', 'starts_at' => '2026-11-18T17:00:00+01:00', 'ends_at' => '2026-11-18T18:00:00+01:00', 'time_zone' => 'Europe/Brussels'];
+    $event = eaaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $this->event);
+
+    eaaCall('owner', 'POST', eaaEvents($this->space), [...$input, 'capacity' => 12])->assertCreated()->assertJsonPath('data.capacity', 12);
+    eaaCall('owner', 'POST', eaaEvents($this->space), [...$input, 'capacity' => '12'])->assertCreated()->assertJsonPath('data.capacity', 12);
+    eaaCall('owner', 'POST', eaaEvents($this->space), [...$input, 'capacity' => null])->assertCreated()->assertJsonPath('data.capacity', null);
+
+    eaaCall('host', 'PATCH', $event, ['capacity' => 12])->assertOk()->assertJsonPath('data.capacity', 12);
+    eaaCall('host', 'PATCH', $event, ['capacity' => '13'])->assertOk()->assertJsonPath('data.capacity', 13);
+    expect($this->event->fresh()->capacity)->toBe(13);
+    eaaCall('host', 'PATCH', $event, ['capacity' => null])->assertOk()->assertJsonPath('data.capacity', null);
+    expect($this->event->fresh()->capacity)->toBeNull();
+});
+
 test('event-answers:read exists and is not in the default set of a new token', function () {
     expect(Jetstream::$permissions)->toContain('event-answers:read')
         ->and(Jetstream::$defaultPermissions)->not->toContain('event-answers:read')->not->toContain('events:write')->toContain('events:read');

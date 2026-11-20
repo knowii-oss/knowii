@@ -1,12 +1,15 @@
 import { z } from 'zod';
 import {
+  MAX_EVENT_CAPACITY,
   MAX_LENGTH_EVENT_BODY,
   MAX_LENGTH_EVENT_COVER_ALT,
   MAX_LENGTH_EVENT_MEETING_URL,
   MAX_LENGTH_EVENT_PLACE,
   MAX_LENGTH_EVENT_TITLE,
+  MIN_EVENT_CAPACITY,
   MIN_LENGTH_EVENT_TITLE,
 } from '../../constants';
+import { eventLocationVisibilitySchema } from '../../types/event.schema';
 import { safeHttpUrl } from '../../utils/safe-url.fn';
 
 /**
@@ -56,9 +59,41 @@ const meetingUrlSchema = z
   .refine((value) => value === '' || safeHttpUrl(value) !== null, { error: 'Use an address that starts with http:// or https://' });
 
 /**
+ * What a wrong limit of places says, next to its field
+ */
+export const EVENT_CAPACITY_ERROR = `Use a whole number from ${MIN_EVENT_CAPACITY} to ${MAX_EVENT_CAPACITY}, or leave the field empty`;
+
+/**
+ * The limit of places as the host types it (#1515): an empty text (no limit), or a whole number from 1 to 5 000, in
+ * digits only ("1.5", "1e2" and "abc" are refused)
+ */
+const capacityTextSchema = z
+  .string()
+  .trim()
+  .refine(
+    (value) => {
+      if (value === '') {
+        return true;
+      }
+      const limit = Number(value);
+      return /^\d+$/.test(value) && limit >= MIN_EVENT_CAPACITY && limit <= MAX_EVENT_CAPACITY;
+    },
+    { error: EVENT_CAPACITY_ERROR },
+  );
+
+/**
+ * The limit of places of a request: the number of the text that the host typed, or null for an empty text (no limit)
+ */
+export function eventCapacityOf(text: string): number | null {
+  const value = text.trim();
+  return value === '' ? null : Number(value);
+}
+
+/**
  * What the host types in the form of an event (#1514, design 4.2 and 6.3): the texts, and the start and the end as the
  * native date and time fields give them, in the chosen zone. The form turns the dates and the times into the instants of
- * `eventRequestSchema` (`zonedDateTimeToIso`). `end_date` is empty while the end is on the day of the start.
+ * `eventRequestSchema` (`zonedDateTimeToIso`). `end_date` is empty while the end is on the day of the start. The limit
+ * of places is a text: empty means no limit (#1515).
  * WARNING: aligned with CreateEvent::rules()
  */
 export const eventFormSchema = z.object({
@@ -72,13 +107,18 @@ export const eventFormSchema = z.object({
   time_zone: z.string().min(1, { error: 'Choose a time zone' }),
   meeting_url: meetingUrlSchema,
   place: placeSchema,
+  // Who sees the meeting address and the place: every member, or the members who answer Yes
+  location_visibility: eventLocationVisibilitySchema,
+  capacity: capacityTextSchema,
+  // "A replay will exist": "Replay only" is then an answer
+  replay_expected: z.boolean(),
 });
 export type EventForm = z.infer<typeof eventFormSchema>;
 
 /**
  * What the API takes to create an event (#1513, ADR 0053). The start and the end carry the offset of the zone; the
- * server checks it. No `location_visibility`: the form has no field for it, so it is never sent (a new event gets
- * `members`, a change keeps the stored value).
+ * server checks it. `location_visibility`, `capacity` and `replay_expected` (#1515) are optional: a new event without
+ * them gets `members`, no limit and no replay, and a change keeps the stored values.
  * WARNING: aligned with CreateEvent.php
  */
 export const eventRequestSchema = z.object({
@@ -99,6 +139,11 @@ export const eventRequestSchema = z.object({
   state: z.enum(['draft', 'published']).optional(),
   // With `published`: tells the members now. For the people who can moderate the space
   notify_now: z.boolean().optional(),
+  // `going`: the meeting address and the place are for the members who answer Yes, the host, the owner and the admins
+  location_visibility: eventLocationVisibilitySchema.optional(),
+  // The limit of places, which counts the Yes answers. Null: no limit
+  capacity: z.number().int().min(MIN_EVENT_CAPACITY).max(MAX_EVENT_CAPACITY).nullable().optional(),
+  replay_expected: z.boolean().optional(),
 });
 export type EventRequest = z.infer<typeof eventRequestSchema>;
 

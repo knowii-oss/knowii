@@ -3,7 +3,9 @@ import type { Community, SpaceEvent } from '@knowii/common';
 import { EVENT_URL } from '@knowii/common';
 import { FaBan, FaRegCalendar } from 'react-icons/fa6';
 import { Badge, Card, CardBody, CardHeader } from '@/Components/ui';
+import { useNow } from './event-state';
 import { EVENT_WORDS } from './event-words';
+import { EventAnswerBadges } from './EventAnswerBadges';
 import { EventTime } from './EventTime';
 
 export interface NextEventsProps {
@@ -21,10 +23,12 @@ export interface NextEventsProps {
 /**
  * "Next events" on the home and on the public page of a community (#1514, design 6.7 points 1 and 3): up to 3 lines,
  * each with the title as a link to the event and the time in the zone of the reader. A cancelled event stays in the
- * list with its label, so that a member who planned to come reads the news. No event, no block. The list is the one of
- * the page load: it does not change live.
+ * list with its label, so that a member who planned to come reads the news. A member also reads their answer and the
+ * places that are left, as labels (#1515); a visitor gets none. No event, no block. The list is the one of the page
+ * load: it does not change live.
  */
 export function NextEvents({ community, events, showSpace = false }: NextEventsProps) {
+  const now = useNow();
   // An event without its space cannot be linked: the server always gives it here
   const lines = events.filter((event) => event.space !== undefined);
   if (lines.length === 0) {
@@ -50,6 +54,7 @@ export function NextEvents({ community, events, showSpace = false }: NextEventsP
                     {EVENT_WORDS.cancelled}
                   </Badge>
                 )}
+                <EventAnswerBadges event={event} now={now} />
               </p>
               <p className="text-sm">
                 <EventTime start={event.starts_at} end={event.ends_at} form="short" />

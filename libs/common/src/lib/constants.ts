@@ -174,6 +174,8 @@ export const MIN_EVENT_CAPACITY = 1;
 export const MAX_EVENT_CAPACITY = 5000;
 // The events of one page of the list of an events space (#1514). WARNING: aligned with SpaceController::EVENTS_PER_PAGE
 export const EVENTS_PER_PAGE = 20;
+// The names of one load of the list of the answers of an event, for its host, the owner and the admins (#1515)
+export const EVENT_ANSWERS_PER_PAGE = 20;
 // "Next events" on the home and on the public page of a community (#1514). WARNING: aligned with Constants::NEXT_EVENTS
 export const NEXT_EVENTS = 3;
 // Chat messages (#1185). WARNING: aligned with Constants.php

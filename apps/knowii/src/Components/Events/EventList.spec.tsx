@@ -648,6 +648,145 @@ describe('the list of an events space (#1514, design 6.1 and 11.3)', () => {
     });
   });
 
+  describe('the labels of the answer and of the places (#1515, rules 29 to 33)', () => {
+    const card = (title: string) => screen.getByRole('article', { name: title });
+    const labels = (title: string) =>
+      Array.from(card(title).querySelectorAll('span.rounded-md.border.text-xs')).map((badge) => badge.textContent);
+
+    it('writes the answer of the member on its card, after the state, on every event that they answered (rules 29 and 30)', () => {
+      renderList({
+        events: [
+          eventFixture('e1', 'Said yes', { my_answer: 'yes' }),
+          eventFixture('e2', 'Said replay', { my_answer: 'replay', replay_expected: true }),
+          eventFixture('e3', 'Said no', { my_answer: 'no' }),
+          eventFixture('e4', 'Called off', { state: 'cancelled', can_answer: false, my_answer: 'yes' }),
+          eventFixture('e5', 'Not answered'),
+        ],
+      });
+
+      expect(labels('Said yes')).toEqual(['You said Yes']);
+      expect(labels('Said replay')).toEqual(['You said Replay only']);
+      expect(labels('Said no')).toEqual(['You said No']);
+      // The state first, then the answer: a cancelled event keeps it
+      expect(labels('Called off')).toEqual(['Cancelled', 'You said Yes']);
+      expect(labels('Not answered')).toEqual([]);
+      // "You said Yes" has a check icon that a screen reader skips: the words carry the meaning
+      const yes = within(card('Said yes')).getByText('You said Yes').closest('span.rounded-md.border.text-xs');
+      expect(yes?.querySelector('svg')).not.toBeNull();
+    });
+
+    it('keeps the answer on a past event', () => {
+      renderList({
+        scope: 'past',
+        events: [eventFixture('e1', 'Last week', { is_past: true, can_answer: false, my_answer: 'replay', places_left: 3 })],
+      });
+
+      // An event that is over shows no places
+      expect(labels('Last week')).toEqual(['You said Replay only']);
+    });
+
+    it('writes the places that are left when the event has a limit, in the neutral color for every number (rule 31)', () => {
+      renderList({
+        events: [
+          eventFixture('e1', 'Many places', { places_left: 28 }),
+          eventFixture('e2', 'One place', { places_left: 1 }),
+          eventFixture('e3', 'No place', { places_left: 0, my_answer: 'yes' }),
+          eventFixture('e4', 'No limit', { places_left: null }),
+          eventFixture('e5', 'Called off', { state: 'cancelled', can_answer: false, places_left: 5 }),
+          eventFixture('e6', 'A draft', { state: 'draft', can_answer: false, places_left: 5 }),
+        ],
+      });
+
+      expect(labels('Many places')).toEqual(['28 places left']);
+      expect(labels('One place')).toEqual(['1 place left']);
+      expect(labels('No place')).toEqual(['You said Yes', 'Full']);
+      expect(labels('No limit')).toEqual([]);
+      // Only a published event that is not over takes answers
+      expect(labels('Called off')).toEqual(['Cancelled']);
+      expect(labels('A draft')).toEqual(['Draft']);
+      const classes = ['28 places left', '1 place left', 'Full'].map(
+        (words) => screen.getByText(words).closest('span.rounded-md.border.text-xs')?.className,
+      );
+      expect(new Set(classes).size).toBe(1);
+      expect(classes[0]).toContain('border-border-strong');
+    });
+
+    it('shows no label to a visitor: the server gives them no answer and no places (rule 32)', () => {
+      const answers = [
+        vi.spyOn(knowiiApiClient.communities.events.answer, 'get'),
+        vi.spyOn(knowiiApiClient.communities.events.answer, 'set'),
+        vi.spyOn(knowiiApiClient.communities.events.answer, 'clear'),
+        vi.spyOn(knowiiApiClient.communities.events.answers, 'list'),
+      ];
+      renderList({
+        visitor: true,
+        events: [eventFixture('e1', 'Weekly review', { my_answer: null, can_answer: false, places_left: null, replay_expected: true })],
+      });
+
+      expect(labels('Weekly review')).toEqual([]);
+      // No request of the answers for a visitor (rule 61)
+      for (const call of answers) {
+        expect(call).not.toHaveBeenCalled();
+      }
+    });
+
+    it('has no answer control on a card: a member answers on the page of the event (rule 33)', () => {
+      renderList({ events: [eventFixture('e1', 'Weekly review', { places_left: 28, replay_expected: true })] });
+
+      expect(within(card('Weekly review')).queryByRole('radio')).toBeNull();
+      expect(within(card('Weekly review')).queryByRole('button')).toBeNull();
+      expect(within(card('Weekly review')).getAllByRole('link')).toHaveLength(1);
+    });
+
+    it('gets the event again when its places changed, and its card says the new number (rule 57)', async () => {
+      const get = vi
+        .spyOn(knowiiApiClient.communities.events, 'get')
+        .mockResolvedValueOnce({ ok: true, message: '', data: eventFixture('e1', 'Weekly review', { places_left: 27 }) })
+        .mockResolvedValueOnce({ ok: true, message: '', data: eventFixture('e1', 'Weekly review', { places_left: 0 }) });
+      renderList({
+        events: [
+          eventFixture('e1', 'Weekly review', { places_left: 28 }),
+          eventFixture('e2', 'Workshop', at('2026-11-20T16:00:00.000000Z')),
+        ],
+      });
+      // The signal names the event only: no member
+      const places = () =>
+        act(() => emitSocketEvent(channel, 'space.event.answers.changed', { space_cuid: 's1', event_cuid: 'e1', author_cuid: null }));
+
+      places();
+      expect(await within(card('Weekly review')).findByText('27 places left')).toBeInTheDocument();
+      expect(get).toHaveBeenCalledWith('c1', 's1', 'e1');
+
+      places();
+      expect(await within(card('Weekly review')).findByText('Full')).toBeInTheDocument();
+      expect(titles()).toEqual(['Weekly review', 'Workshop']);
+      expect(get).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not listen to the places for a visitor', () => {
+      const get = vi.spyOn(knowiiApiClient.communities.events, 'get');
+      renderList({ visitor: true });
+
+      act(() => emitSocketEvent(channel, 'space.event.answers.changed', { space_cuid: 's1', event_cuid: 'e1', author_cuid: null }));
+
+      expect(get).not.toHaveBeenCalled();
+    });
+
+    it('has no automated violation with the labels (axe)', async () => {
+      const { container } = renderList({
+        events: [
+          eventFixture('e1', 'Said yes', { my_answer: 'yes', places_left: 0 }),
+          eventFixture('e2', 'Said replay', { my_answer: 'replay', replay_expected: true, places_left: 28 }),
+          eventFixture('e3', 'Called off', { state: 'cancelled', can_answer: false, my_answer: 'no' }),
+        ],
+      });
+
+      const results = await axe.run(container, { rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
+
+      expect(results.violations.map((violation) => violation.id)).toEqual([]);
+    });
+  });
+
   describe('accessibility (design 11.6)', () => {
     it.each(['a member', 'a visitor'])('has no automated violation for %s (axe)', async (reader) => {
       const { container } = renderList({

@@ -8,17 +8,22 @@ export type SaveState = { status: 'idle' } | { status: 'saving' } | { status: 's
 
 export interface SaveStatusProps {
   state: SaveState;
+  /**
+   * What the status says after a save, in place of "Saved": the saved value in words ("Saved: Yes")
+   */
+  savedText?: string | undefined;
   className?: string | undefined;
 }
 
 /**
  * The status of a setting that saves at once, next to its control (#1569): "Saving", then "Saved", or the error when
- * the save fails (the control shows the old value again).
+ * the save fails (the control shows the old value again). `savedText` replaces "Saved" when the control has several
+ * values and the reader must hear which one was saved ("Saved: Yes").
  *
  * A polite live region that stays in the page, also when it is empty, so that a screen reader reads each change. It
  * keeps the height of one line, so the page does not move when the text comes and goes.
  */
-export function SaveStatus({ state, className }: SaveStatusProps) {
+export function SaveStatus({ state, savedText = 'Saved', className }: SaveStatusProps) {
   return (
     <p
       role="status"
@@ -42,7 +47,7 @@ export function SaveStatus({ state, className }: SaveStatusProps) {
       {state.status === 'saved' && (
         <>
           <FaCheck aria-hidden="true" className="size-3.5 shrink-0 text-success" />
-          Saved
+          {savedText}
         </>
       )}
       {state.status === 'error' && (

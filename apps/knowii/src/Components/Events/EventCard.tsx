@@ -2,6 +2,7 @@ import { Link } from '@inertiajs/react';
 import type { SpaceEvent } from '@knowii/common';
 import { Card, CoverImage } from '@/Components/ui';
 import { EVENT_WORDS } from './event-words';
+import { EventAnswerBadges } from './EventAnswerBadges';
 import { EventStateBadges } from './EventStateBadges';
 import { EventTime } from './EventTime';
 
@@ -17,7 +18,8 @@ export interface EventCardProps {
 /**
  * An event in the list of its space (#1514, design 6.1 point 4): the cover in a 16:9 box, the title as a heading that
  * links to the event, the time in the zone of the reader, and the host. On a narrow list the cover is above the title;
- * on a wide one it is next to it. The states are text labels.
+ * on a wide one it is next to it. The states are text labels, and so are the answer of the reader and the places that
+ * are left (#1515). A card has no answer control: a member answers on the page of the event.
  */
 export function EventCard({ event, href, now }: EventCardProps) {
   const headingId = `event-${event.cuid}-title`;
@@ -29,6 +31,7 @@ export function EventCard({ event, href, now }: EventCardProps) {
       <div className="flex min-w-0 flex-col gap-2">
         <div className="flex flex-wrap items-center gap-2 empty:hidden">
           <EventStateBadges event={event} now={now} />
+          <EventAnswerBadges event={event} now={now} />
         </div>
         <h2 id={headingId} className="text-lg font-extrabold wrap-anywhere">
           <Link
