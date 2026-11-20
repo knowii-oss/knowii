@@ -9,7 +9,7 @@ Knowii is free and open source (AGPL). You can install it on your own server. Th
 | Linux server with root access | Ubuntu 24.04 LTS recommended | Other distributions work, but the commands in this guide are for Ubuntu.       |
 | PHP (CLI and FPM)             | 8.5                          | The required version is in `composer.json`. See the extensions below.          |
 | Composer                      | 2                            |                                                                                |
-| Node.js and npm               | Node.js 24, npm 11           | Only to build the front-end assets. The Node.js version is in `.nvmrc`.        |
+| Node.js and npm               | Node.js 26, npm 11           | Only to build the front-end assets. The Node.js version is in `.nvmrc`.        |
 | PostgreSQL                    | 18                           | The development version is in `docker-compose.yml`.                            |
 | Web server                    | nginx (or equivalent)        | Serves the application and proxies the WebSocket server, both over HTTPS.      |
 | Email provider                | Any                          | Resend by default. Any Laravel mailer works (SMTP, Postmark, Amazon SES, ...). |
