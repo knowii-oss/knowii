@@ -69,6 +69,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Trusted Hosts
+    |--------------------------------------------------------------------------
+    |
+    | The application answers only for its own host names: the host of the application URL above, the loopback names
+    | (localhost, 127.0.0.1 and [::1]) and the names of this comma-separated list, for example www.example.com. A name
+    | matches as a whole, in any letter case and with any port. Another host name gets the answer 400, except in the
+    | local environment (SELF_HOSTING.md). Empty (default): no other name.
+    |
+    */
+
+    'trusted_hosts' => env('TRUSTED_HOSTS', ''),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

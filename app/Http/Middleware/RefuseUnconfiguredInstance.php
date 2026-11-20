@@ -15,25 +15,49 @@ use Throwable;
  * to set (#1653, ADR 0055). It runs before every middleware of the application: every address answers so, the health
  * address too, so that a deployment that waits for a healthy application fails instead of serving pages that name nobody.
  * The log gets the message once a minute, not once for each refused request.
+ *
+ * The same answer, in every environment except the local one, for an instance whose APP_URL is not a full address: the
+ * application takes its own host name from it (AnswerOnlyForOwnHostNames).
  */
 class RefuseUnconfiguredInstance
 {
+    /**
+     * The answer for an instance whose APP_URL is empty or has no scheme
+     */
+    public const string NO_ADDRESS_MESSAGE = 'This instance is not configured. Set APP_URL to the full public address, for example https://app.example.com. See SELF_HOSTING.md.';
+
     /**
      * @param  Closure(Request): Response  $next
      */
     final public function handle(Request $request, Closure $next): Response
     {
-        $missing = InstanceValues::missing();
-        if ($missing === []) {
+        $message = self::reason();
+        if ($message === null) {
             return $next($request);
         }
 
-        $message = InstanceValues::notConfiguredMessage($missing);
         if (self::firstOfTheMinute()) {
             Log::critical($message);
         }
 
         return response($message, 503, ['Content-Type' => 'text/plain; charset=UTF-8', 'Cache-Control' => 'no-store']);
+    }
+
+    /**
+     * The text for the operator when the instance is not configured, or null when it is
+     */
+    private static function reason(): ?string
+    {
+        $missing = InstanceValues::missing();
+        if ($missing !== []) {
+            return InstanceValues::notConfiguredMessage($missing);
+        }
+
+        if (! app()->isLocal() && AnswerOnlyForOwnHostNames::ownName() === null) {
+            return self::NO_ADDRESS_MESSAGE;
+        }
+
+        return null;
     }
 
     /**
