@@ -7,7 +7,7 @@ services:
         BASE_IMAGE: '${SAIL_BASE_IMAGE:-ubuntu:24.04@sha256:73b999393d07f2bf65a40373778a44dc9a6d54ad7718d29247d8ff9413c4d6a8}'
         WWWGROUP: '${WWWGROUP}'
         # Force a specific node version
-        NODE_VERSION: '24'
+        NODE_VERSION: '26'
     image: sail-8.5/app
     extra_hosts:
       - 'host.docker.internal:host-gateway'
