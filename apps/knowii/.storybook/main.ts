@@ -24,8 +24,10 @@ async function withoutLaravelPlugins(plugins: PluginOption[]): Promise<PluginOpt
 }
 
 const config: StorybookConfig = {
-  // The stories sit next to their component (#657)
-  stories: ['../src/**/*.stories.tsx'],
+  // The documentation pages (Components/ui/docs/<Name>.mdx) and the stories, which sit next to their component (#657).
+  // A page holds text, links and doc blocks only: a live example in a page is a story of a story file. Only the folder
+  // of the toolkit is loaded: catalogue.spec.ts, stories.spec.tsx and the guard read the same folder
+  stories: ['../src/Components/ui/**/*.mdx', '../src/Components/ui/**/*.stories.tsx'],
   addons: ['@storybook/addon-a11y', '@storybook/addon-docs'],
   framework: {
     name: '@storybook/react-vite',
@@ -39,6 +41,9 @@ const config: StorybookConfig = {
   core: {
     disableTelemetry: true,
     disableWhatsNewNotifications: true,
+    // The catalogue is public (the page site of the repository): the built site holds no project.json, the file with
+    // data about the tools of the build
+    disableProjectJson: true,
     // The dev server listens on 0.0.0.0 in the container. This list keeps the check of the Host header on:
     // only http://localhost:6006 reaches it
     allowedHosts: ['localhost'],

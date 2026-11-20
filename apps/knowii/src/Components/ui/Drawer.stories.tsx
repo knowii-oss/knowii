@@ -1,7 +1,7 @@
 import type { MouseEvent } from 'react';
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
+import { expect, fireEvent, fn, userEvent, waitFor, within } from 'storybook/test';
 import { FaSeedling } from 'react-icons/fa6';
 import { Button } from './Button';
 import type { DrawerProps } from './Drawer';
@@ -9,8 +9,8 @@ import { Drawer } from './Drawer';
 
 const TRIGGER_NAME = 'Open the menu';
 
-// Outside the application, a link of the menu must not leave the story: a click on it stops the visit. The drawer
-// renders in a portal, but its events go up the React tree to this handler.
+// Outside the application, a link of the menu must not leave the story: a click on it stops the visit. The handler
+// sits on the navigation itself, inside the panel: a click in the panel does not go up to the wrapper of the story.
 function stopVisit(event: MouseEvent): void {
   if (event.target instanceof Element && event.target.closest('a')) {
     event.preventDefault();
@@ -23,7 +23,7 @@ function focusedElement(document: Document): HTMLElement | null {
 
 function SpaceLinks() {
   return (
-    <nav aria-label="Spaces">
+    <nav aria-label="Spaces" onClick={stopVisit}>
       <ul className="flex flex-col gap-1">
         {['Vegetables', 'Herbs', 'Fruit trees', 'Seeds to share'].map((name) => (
           <li key={name}>
@@ -46,7 +46,7 @@ function SpaceLinks() {
 function DrawerWithTrigger({ open: openAtStart, onClose, ...args }: DrawerProps) {
   const [open, setOpen] = useState(openAtStart);
   return (
-    <div onClick={stopVisit}>
+    <div>
       <Button onClick={() => setOpen(true)}>{TRIGGER_NAME}</Button>
       <Drawer
         {...args}
@@ -146,8 +146,9 @@ export const CloseButton: Story = {
     await userEvent.click(trigger);
     const drawer = await within(document.body).findByRole('dialog', { name: 'Atlas Garden' });
 
+    // Outside the application a link must not leave the story: the click is stopped (the result is false)
     const address = document.location.href;
-    await userEvent.click(within(drawer).getByRole('link', { name: 'Herbs' }));
+    await expect(await fireEvent.click(within(drawer).getByRole('link', { name: 'Herbs' }))).toBe(false);
     await expect(document.location.href).toBe(address);
 
     await userEvent.click(within(drawer).getByRole('button', { name: 'Close menu' }));
