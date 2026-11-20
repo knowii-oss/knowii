@@ -27,6 +27,7 @@ use Illuminate\Notifications\Notifiable;
  * @property ?string $username
  * @property string $name
  * @property ?string $email
+ * @property ?string $headline
  * @property ?string $bio
  * @property ?string $location
  * @property ?string $phone
@@ -72,6 +73,7 @@ use Illuminate\Notifications\Notifiable;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereCuid($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereEmail($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereHeadline($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereLocation($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereName($value)

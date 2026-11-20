@@ -42,7 +42,7 @@ function userExportFixture(): array
     Storage::fake(UpdateAvatar::disk());
 
     $member = User::factory()->create(['email' => 'member@example.com', 'name' => 'Marie Member', 'email_verified_at' => now()]);
-    $profile = UserProfile::factory()->create(['user_id' => $member->id, 'name' => 'Marie Member', 'bio' => 'I grow tomatoes', 'location' => 'Brussels', 'phone' => '+32 000 00 00']);
+    $profile = UserProfile::factory()->create(['user_id' => $member->id, 'name' => 'Marie Member', 'headline' => 'Grows tomatoes on a balcony', 'bio' => 'I grow tomatoes', 'location' => 'Brussels', 'phone' => '+32 000 00 00']);
     $other = User::factory()->create(['email' => 'other@example.com']);
     $owner = User::factory()->create(['email' => 'owner@example.com']);
 
@@ -133,10 +133,11 @@ test('the export holds the account, the profile, the membership, the content and
         ->and($account['account']['two_factor_authentication'])->toBeFalse()
         ->and($account['account']['show_online_status'])->toBeTrue()
         ->and($account['account']['avatar'])->toBe('files/avatar.png')
+        ->and($account['profile']['headline'])->toBe('Grows tomatoes on a balcony')
         ->and($account['profile']['bio'])->toBe('I grow tomatoes')
         ->and($account['profile']['location'])->toBe('Brussels')
         ->and($account['profile']['phone'])->toBe('+32 000 00 00')
-        ->and($account['profile']['field_visibility'])->toBeArray()->toHaveKey('phone')
+        ->and($account['profile']['field_visibility'])->toBeArray()->toHaveKey('phone')->toHaveKey('headline')
         ->and($memberships['memberships'])->toHaveCount(1)
         ->and($memberships['memberships'][0]['community'])->toBe($f['community']->cuid)
         ->and($memberships['memberships'][0]['community_slug'])->toBe($f['community']->slug)
@@ -244,6 +245,20 @@ test('a member without a profile, avatar or content gets an export too', functio
     expect($account['account']['avatar'])->toBeNull()
         ->and($account['profile'])->toBe([])
         ->and(json_decode($files['posts.json'], true)['posts'])->toBe([]);
+});
+
+test('the export of a member without a headline holds the key with null, and the choice for it (#1688)', function () {
+    Storage::fake('local');
+    $user = User::factory()->withUserProfile()->create();
+    $user->profile->forceFill(['field_visibility' => ['headline' => false]])->save();
+
+    $account = json_decode(runUserExport($user)['account.json'], true);
+
+    expect($account['format_version'])->toBe(1)
+        ->and($account['profile'])->toHaveKey('headline')
+        ->and($account['profile']['headline'])->toBeNull()
+        ->and($account['profile']['field_visibility']['headline'])->toBeFalse()
+        ->and(array_search('headline', array_keys($account['profile']), true))->toBe(array_search('username', array_keys($account['profile']), true) + 1);
 });
 
 test('retention:prune deletes an old user export and keeps a recent one', function () {

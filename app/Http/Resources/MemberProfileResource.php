@@ -39,6 +39,8 @@ class MemberProfileResource extends AbstractKnowiiJsonResource
             'name' => $this->name,
             'username' => $this->username,
             'avatar_url' => $this->avatar_url,
+            // One line under the name (#1688): empty unless the member wrote one and shows it
+            'headline' => $profile?->showsField('headline') ? (string) $profile->headline : '',
             'bio' => $profile?->showsField('bio') ? (string) $profile->bio : '',
             'location' => $profile?->showsField('location') ? (string) $profile->location : '',
             // Hidden unless the member shows it

@@ -25,3 +25,8 @@ A member page shows the bio, the location and the links of a member to the other
 
 1. One switch for the whole profile: too coarse; members want to show a website and hide a location.
 2. A choice per community: more control, but a matrix of fields and communities that few members would manage. Can come later on top of this one.
+
+## Update of 2026-11-20 (#1688)
+
+1. The headline (`user_profiles.headline`, one line of plain text) joins the fields of point 1, with the default "shown". A profile that stored its choices before the headline existed takes that default.
+2. `MemberWithRoleResource` applies the choices too: an entry of a member list (the member list of the API, the answer of a role change, the team of the page "About") holds the headline only when the member shows it. A hidden headline and no headline give the same empty text, for every reader: the owner, an admin and a moderator get what a member gets.

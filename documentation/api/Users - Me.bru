@@ -15,5 +15,5 @@ headers {
 }
 
 docs {
-  The signed-in user (#1145): cuid, name, username, email, email_verified_at, two_factor_enabled and the profile. Other members never get the account fields of a user.
+  The signed-in user (#1145): cuid, name, username, email, email_verified_at, two_factor_enabled and the profile. The profile holds every field of the member, also the hidden ones: the headline (#1688, one line of plain text, an empty text when there is none), the bio, the location, the phone and the links, and field_visibility, the choice of the member for each of these fields (ADR 0020). Other members never get the account fields of a user.
 }

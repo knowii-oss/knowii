@@ -24,7 +24,7 @@ use Laravel\Sanctum\Sanctum;
  */
 
 const PUBLIC_PAGE_FORBIDDEN_KEYS = [
-    'email', 'phone', 'bio', 'access_groups', 'moderator_permissions', 'member_count', 'users_count', 'team', 'members',
+    'email', 'phone', 'bio', 'headline', 'access_groups', 'moderator_permissions', 'member_count', 'users_count', 'team', 'members',
     'direct_messages_enabled', 'unread_direct_messages', 'userProfile', 'field_visibility', 'online_status', 'show_online_status',
     'unread_count',
 ];
@@ -38,7 +38,7 @@ function publicPageCommunity(string $kind): void
     $test = test();
     $test->c = communityWithMembers();
     $test->author = $test->c['member'];
-    $test->author->profile->forceFill(['bio' => 'SECRET-BIO-OF-THE-AUTHOR', 'phone' => 'SECRET-PHONE-OF-THE-AUTHOR'])->save();
+    $test->author->profile->forceFill(['bio' => 'SECRET-BIO-OF-THE-AUTHOR', 'phone' => 'SECRET-PHONE-OF-THE-AUTHOR', 'headline' => 'SECRET-HEADLINE-OF-THE-AUTHOR'])->save();
     $test->kind = $kind;
     $community = $test->c['community'];
 
@@ -144,7 +144,8 @@ function publicPageAssertNoLeak(array $data, string $reader): void
 
     expect(array_intersect(publicPageKeysOf($scanned), PUBLIC_PAGE_FORBIDDEN_KEYS))->toBe([], 'a field of the "never" list reaches the reader');
     foreach ([
-        $test->author->email, $test->author->profile->email, 'SECRET-BIO-OF-THE-AUTHOR', 'SECRET-PHONE-OF-THE-AUTHOR', 'SECRET-CHAT-LINE',
+        $test->author->email, $test->author->profile->email, 'SECRET-BIO-OF-THE-AUTHOR', 'SECRET-PHONE-OF-THE-AUTHOR', 'SECRET-HEADLINE-OF-THE-AUTHOR',
+        'SECRET-CHAT-LINE',
         'SECRET-MEMBERS-SPACE', 'SECRET-GROUPS-SPACE', 'SECRET-MEMBERS-CHAT', 'SECRET-PUBLIC-CHAT', 'SECRET-ACCESS-GROUP', 'SECRET-POST-OF-',
         $test->c['owner']->email, $test->c['admin']->email, $test->c['moderator']->email, $test->c['owner']->username, $test->c['admin']->username,
         $test->c['moderator']->username, $test->c['owner']->name, $test->c['admin']->name, $test->c['moderator']->name,

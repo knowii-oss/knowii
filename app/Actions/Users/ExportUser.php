@@ -160,6 +160,7 @@ final class ExportUser implements ExportsUsers
                 'cuid' => $profile->cuid,
                 'name' => $profile->name,
                 'username' => $profile->username,
+                'headline' => $profile->headline,
                 'email' => $profile->email,
                 'bio' => $profile->bio,
                 'location' => $profile->location,

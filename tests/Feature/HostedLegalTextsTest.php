@@ -352,6 +352,13 @@ test('the privacy policy names the events and what they hold in the content of a
     );
 });
 
+test('the privacy policy names the headline in the fields of the profile (#1688, approved 2026-11-20)', function () {
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('updated', '2026-11-20')
+        ->where('html', fn (string $html) => str_contains($html, 'Profile: what you choose to add (headline, bio, location, phone number, links to your sites and social accounts), and which of these fields other members see. Your phone number is hidden by default.'))
+    );
+});
+
 test('the privacy policy tells about the answers to events, who sees them and how long they stay (#1515, approved 2026-11-17)', function () {
     config(['retention.event_answers_days' => 90]);
 

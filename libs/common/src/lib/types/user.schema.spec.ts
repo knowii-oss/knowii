@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { currentUserSchema, PROFILE_VISIBILITY_FIELDS, resolveProfileFieldVisibility } from './user.schema';
+import { SOCIAL_MEDIA_LINK_PROPERTIES } from './social-media-link.schema';
+import { currentUserSchema, PROFILE_VISIBILITY_FIELDS, resolveProfileFieldVisibility, userProfileSchema } from './user.schema';
 
 describe('resolveProfileFieldVisibility (#1076)', () => {
   it('shows every field but the phone by default', () => {
@@ -17,6 +18,30 @@ describe('resolveProfileFieldVisibility (#1076)', () => {
     expect(visibility.phone).toBe(true);
     expect(visibility.bio).toBe(false);
     expect(visibility).not.toHaveProperty('is_admin');
+  });
+});
+
+describe('the headline of a profile (#1688)', () => {
+  it('is one of the fields with a choice, shown by default', () => {
+    expect(PROFILE_VISIBILITY_FIELDS).toContain('headline');
+    expect(resolveProfileFieldVisibility(null).headline).toBe(true);
+    expect(resolveProfileFieldVisibility(undefined).headline).toBe(true);
+    // Choices that were stored before the headline existed
+    expect(resolveProfileFieldVisibility({ bio: false, phone: true }).headline).toBe(true);
+  });
+
+  it('keeps a stored choice', () => {
+    expect(resolveProfileFieldVisibility({ headline: false }).headline).toBe(false);
+    expect(resolveProfileFieldVisibility({ headline: true, bio: false })).toMatchObject({ headline: true, bio: false });
+  });
+
+  it('is in the profile of the member, null when there is none', () => {
+    const links = Object.fromEntries(SOCIAL_MEDIA_LINK_PROPERTIES.map((property) => [property, null]));
+    const base = { name: 'Ada Lovelace', username: 'ada', bio: null, location: null, phone: null, ...links };
+
+    expect(userProfileSchema.parse({ ...base, headline: null }).headline).toBeNull();
+    expect(userProfileSchema.parse({ ...base, headline: 'Product designer' }).headline).toBe('Product designer');
+    expect(userProfileSchema.safeParse(base).success).toBe(false);
   });
 });
 

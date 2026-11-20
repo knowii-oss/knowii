@@ -15,7 +15,7 @@ final class ProfileFieldVisibility
      */
     public static function fields(): array
     {
-        return ['bio', 'location', 'phone', ...Constants::SOCIAL_MEDIA_LINK_PROPERTIES];
+        return ['headline', 'bio', 'location', 'phone', ...Constants::SOCIAL_MEDIA_LINK_PROPERTIES];
     }
 
     /**

@@ -54,6 +54,8 @@ test('deleting an account deletes the profile and the personal data (#1261)', fu
     Storage::fake('public');
     $user = User::factory()->withUserProfile()->withPersonalCommunity()->create();
     $profileId = $user->profile->id;
+    // The headline is personal data of the profile (#1688): a text that no other row holds
+    $user->profile->forceFill(['headline' => 'HEADLINE-OF-THE-DELETED-ACCOUNT'])->save();
     $ownCommunity = $user->ownedCommunities()->firstOrFail();
     $other = Community::factory()->create();
     $other->users()->attach($user, ['role' => KnowiiCommunityMemberRole::Member]);
@@ -69,6 +71,7 @@ test('deleting an account deletes the profile and the personal data (#1261)', fu
     expect(User::query()->whereKey($user->id)->exists())->toBeFalse()
         ->and(UserProfile::query()->whereKey($profileId)->exists())->toBeFalse()
         ->and(UserProfile::query()->where('email', $user->email)->exists())->toBeFalse()
+        ->and(DB::table('user_profiles')->where('headline', 'like', '%HEADLINE-OF-THE-DELETED-ACCOUNT%')->exists())->toBeFalse()
         ->and(Community::query()->whereKey($ownCommunity->id)->exists())->toBeFalse()
         ->and($other->users()->whereKey($user->id)->exists())->toBeFalse()
         ->and(CommunityInvitation::query()->where('email', $user->email)->exists())->toBeFalse()

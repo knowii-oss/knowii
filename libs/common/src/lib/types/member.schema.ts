@@ -8,6 +8,9 @@ export const memberProfileSchema = z.object({
   name: z.string(),
   username: z.string(),
   avatar_url: z.string().nullable().optional(),
+  // One line of plain text under the name (#1688): empty unless the member wrote one and shows it. The default is for a
+  // page that was built before the field
+  headline: z.string().default(''),
   bio: z.string(),
   location: z.string(),
   // Empty unless the member shows it (#1076)
@@ -63,6 +66,8 @@ export const communityMemberSchema = z.object({
   name: z.string(),
   username: z.string(),
   avatar_url: z.string().nullable().optional(),
+  // One line of plain text under the name (#1688): empty unless the member wrote one and shows it (ADR 0020)
+  headline: z.string().default(''),
   role: communityRoleSchema,
   // Inertia props and JSON are not parsed into dates everywhere: keep the ISO string
   member_since: z.string().nullable(),
