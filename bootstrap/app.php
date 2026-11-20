@@ -12,6 +12,8 @@ use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RecordLastVisit;
 use App\Http\Middleware\RefuseUnconfiguredInstance;
 use App\Http\Middleware\RequireTokenAbility;
+use App\Support\InstanceValues;
+use App\Support\LegalPages;
 use App\Traits\ApiResponses;
 use Bepsvpt\SecureHeaders\SecureHeadersMiddleware;
 use Illuminate\Auth\AuthenticationException;
@@ -317,7 +319,13 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             if (! app()->environment(['local', 'testing']) && in_array($response->getStatusCode(), [500, 503, 404, 403])) {
-                return Inertia::render('Error', ['status' => $response->getStatusCode()])->toResponse($request)->setStatusCode($response->getStatusCode());
+                // The two values of the footer, also when the failure came before the shared props (maintenance mode, a
+                // middleware that failed): they read only the configuration and the folder of the legal texts
+                return Inertia::render('Error', [
+                    'status' => $response->getStatusCode(),
+                    'instance' => static fn (): array => InstanceValues::pageProp(),
+                    'legalPages' => static fn (): array => LegalPages::available(),
+                ])->toResponse($request)->setStatusCode($response->getStatusCode());
             }
 
             if ($response->getStatusCode() === 419) {

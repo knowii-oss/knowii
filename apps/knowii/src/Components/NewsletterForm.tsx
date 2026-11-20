@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { FaAt, FaCircleCheck } from 'react-icons/fa6';
 import { useRoute } from 'ziggy-js';
 import { z } from 'zod';
-import { knowiiApiClient, PRIVACY_POLICY_URL, WAITLIST_HONEYPOT_FIELD, waitlistEmailSchema } from '@knowii/common';
+import { knowiiApiClient, PRIVACY_POLICY_URL, useTypedPage, WAITLIST_HONEYPOT_FIELD, waitlistEmailSchema } from '@knowii/common';
 import InputError from '@/Components/InputError';
 import { Button, TextInput, Turnstile } from '@/Components/ui';
 
@@ -25,10 +25,12 @@ interface NewsletterFormProps {
 /**
  * The newsletter form of the footer (#938): an EmailOctopus list behind Turnstile, a honeypot, a rate limit and a double
  * opt-in. The Turnstile widget loads only when the member starts to use the form, so pages do not
- * call Cloudflare for a form that nobody uses.
+ * call Cloudflare for a form that nobody uses. The consent text names the privacy policy only when the instance has one
+ * (the shared prop `legalPages`, #1653).
  */
 export default function NewsletterForm({ turnstileSiteKey, defaultEmail }: NewsletterFormProps) {
   const route = useRoute();
+  const hasPrivacyPolicy = (useTypedPage().props.legalPages ?? []).includes('privacy-policy');
   const [botCheckStarted, setBotCheckStarted] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   // A Turnstile token works once: a new key mounts a new widget after each attempt
@@ -123,11 +125,17 @@ export default function NewsletterForm({ turnstileSiteKey, defaultEmail }: Newsl
       <InputError id="newsletter-email-error" className="mt-2" message={form.formState.errors.email?.message} />
       {/* Consent is informed when the address is given (GDPR art. 7 and 13, #1346). Approved text */}
       <p id="newsletter-consent" className="mt-2 text-xs text-muted">
-        By subscribing, you agree to receive the Knowii newsletter by email. You can unsubscribe in every email. See the{' '}
-        <a href={route(PRIVACY_POLICY_URL)} className="simple-link">
-          privacy policy
-        </a>
-        .
+        By subscribing, you agree to receive the Knowii newsletter by email. You can unsubscribe in every email.
+        {hasPrivacyPolicy && (
+          <>
+            {' '}
+            See the{' '}
+            <a href={route(PRIVACY_POLICY_URL)} className="simple-link">
+              privacy policy
+            </a>
+            .
+          </>
+        )}
       </p>
 
       {/* Honeypot: hidden from people and from screen readers, bots fill it in */}

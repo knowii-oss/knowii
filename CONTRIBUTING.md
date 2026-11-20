@@ -25,7 +25,7 @@ What a pull request must respect (the template of a pull request asks for each p
 
 1. A new route checks its policy, and an API route names its token ability (`documentation/architecture/roles-and-permissions.md`).
 2. New personal data has a retention period, a line in the member export and a line in the privacy policy (data rules 8 and 10 of `documentation/conventions/rules.md`).
-3. A new third-party service that receives personal data is in `config/legal.php` (data rule 9).
+3. A new third-party service that receives personal data is in `deploy/knowii.net/legal/subprocessors.json` when the hosted instance uses it, and `SELF_HOSTING.md` tells an operator to list it in its own file (data rule 9).
 4. No secret in a file, a test, a log or a commit: use obviously fake values in tests (`example.com` addresses, `test-` prefixes).
 5. Member content is rendered by the server (`App\Support\Markdown`, raw HTML escaped and unsafe links removed, ADR 0013) and shown with `MarkdownContent`: no other `dangerouslySetInnerHTML`. No inline script or style: the Content Security Policy refuses them.
 
@@ -58,6 +58,7 @@ For the host-based setup:
 - Run `sail up` to start the Sail containers
 - Run `sail artisan migrate` to run the DB migrations in the Sail containers
 - Run `sail down` to stop sail
+- A local instance has no legal page until you give it texts (`SELF_HOSTING.md`, "Legal pages"): the application serves only the files of `storage/app/legal/`, which Git ignores. To get the six pages with the neutral templates, run `mkdir -p storage/app/legal && cp resources/legal-templates/*.md storage/app/legal/ && cp resources/legal-templates/subprocessors.example.json storage/app/legal/subprocessors.json`
 
 Necessary environment keys for development:
 

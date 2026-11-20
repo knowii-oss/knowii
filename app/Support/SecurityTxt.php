@@ -52,7 +52,11 @@ final class SecurityTxt
         }
 
         $lines[] = 'Canonical: '.url(self::PATH);
-        $lines[] = 'Policy: '.(self::httpsUrl(self::configText('security_txt.policy')) ?? route('security.show'));
+        // The configured address, else the security page when the instance has its text (#1653), else no line
+        $policy = self::httpsUrl(self::configText('security_txt.policy')) ?? (LegalPages::exists('security') ? route('security.show') : null);
+        if ($policy !== null) {
+            $lines[] = 'Policy: '.$policy;
+        }
 
         return implode("\n", $lines)."\n";
     }

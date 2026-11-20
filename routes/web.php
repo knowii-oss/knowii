@@ -152,7 +152,8 @@ Route::get('/contact', static function (): InertiaResponse {
 
     return Inertia::render('Contact');
 });
-// The legal pages (#904): one controller, one Markdown file per page (App\Support\LegalPages)
+// The legal pages (#904): one controller, one Markdown file per page (App\Support\LegalPages). Every route stays registered,
+// for the route cache and for the route names of the front end: a page without a file answers 404 in the controller (#1653)
 foreach (array_keys(LegalPages::PAGES) as $legalPage) {
     Route::get('/'.$legalPage, [LegalPageController::class, 'show'])->defaults('page', $legalPage)->name($legalPage.'.show');
 }

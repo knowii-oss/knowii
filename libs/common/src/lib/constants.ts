@@ -38,6 +38,14 @@ export const IMPRINT_URL = 'imprint.show';
 export const CONTENT_POLICY_URL = 'content-policy.show';
 export const SECURITY_URL = 'security.show';
 
+/**
+ * The slugs of the legal pages (#1653, ADR 0055): the address of a page, and the prefix of its route name. An instance has
+ * a page only when it has the text of that page: the shared prop `legalPages` lists the ones that exist.
+ * WARNING: aligned with LegalPages::PAGES (back-end)
+ */
+export const LEGAL_PAGE_SLUGS = ['privacy-policy', 'terms-of-service', 'dpa', 'imprint', 'content-policy', 'security'] as const;
+export type LegalPageSlug = (typeof LEGAL_PAGE_SLUGS)[number];
+
 // User profile
 export const USER_PROFILE_URL = 'profile.show';
 // The notification settings of the member (#1497)

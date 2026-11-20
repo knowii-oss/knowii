@@ -1,13 +1,16 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import NewsletterForm from './NewsletterForm';
 
 const subscribe = vi.fn();
+// The legal texts of the instance (#1653): a test sets the ones that exist, or removes the prop
+const shared = vi.hoisted((): { legalPages?: string[] } => ({}));
 
 vi.mock('@knowii/common', async (importOriginal) => ({
   ...(await importOriginal<Record<string, unknown>>()),
   knowiiApiClient: { newsletter: { subscribe: (...args: unknown[]) => subscribe(...args) } },
+  useTypedPage: () => ({ props: shared }),
 }));
 vi.mock('ziggy-js', () => ({ useRoute: () => (name: string) => `/${name}` }));
 // Turnstile gives a token as soon as it is mounted
@@ -19,6 +22,10 @@ vi.mock('@/Components/ui/Turnstile', () => ({
 }));
 
 describe('NewsletterForm', () => {
+  beforeEach(() => {
+    shared.legalPages = ['privacy-policy', 'terms-of-service'];
+  });
+
   it('loads the bot check only when the member starts to use the form (#938)', async () => {
     render(<NewsletterForm turnstileSiteKey="site-key" />);
     expect(screen.queryByTestId('turnstile')).toBeNull();
@@ -54,5 +61,24 @@ describe('NewsletterForm', () => {
     );
     expect(screen.getByRole('link', { name: 'privacy policy' })).toHaveAttribute('href', '/privacy-policy.show');
     expect(screen.getByRole('textbox', { name: 'Email address' })).toHaveAccessibleDescription(consent.textContent ?? '');
+  });
+
+  it('keeps the consent text and names no privacy policy when the instance has none, and without the prop (#1653)', () => {
+    for (const legalPages of [['terms-of-service', 'imprint'], [], undefined]) {
+      if (legalPages) {
+        shared.legalPages = legalPages;
+      } else {
+        delete shared.legalPages;
+      }
+      const { unmount } = render(<NewsletterForm turnstileSiteKey="site-key" />);
+
+      const consent = screen.getByText(/By subscribing, you agree to receive the Knowii newsletter by email/);
+      expect(consent.textContent).toBe(
+        'By subscribing, you agree to receive the Knowii newsletter by email. You can unsubscribe in every email.',
+      );
+      expect(screen.queryByRole('link', { name: 'privacy policy' })).toBeNull();
+      expect(screen.getByRole('textbox', { name: 'Email address' })).toHaveAccessibleDescription(consent.textContent ?? '');
+      unmount();
+    }
   });
 });

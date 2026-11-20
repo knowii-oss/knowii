@@ -29,6 +29,7 @@ use App\Models\User;
 use App\Models\UserEntitlement;
 use App\Models\UserIdentity;
 use App\Support\JsonExportFile;
+use App\Support\LegalPages;
 use Carbon\CarbonInterface;
 use Generator;
 use Illuminate\Database\Eloquent\Model;
@@ -925,7 +926,8 @@ final class ExportUser implements ExportsUsers
         $lines[] = '1. What other members wrote: their posts and comments, and the messages that they wrote in your conversations. This file names a post or a conversation of someone else only by its cuid and its title.';
         $lines[] = '2. Your password hash, your two-factor secret and recovery codes, the value of your API tokens, the data of your sessions and the "remember me" token. They protect your account, and Knowii cannot show them in a readable form.';
         $lines[] = '3. The internal numeric identifiers and the HTML that Knowii derives from the Markdown.';
-        $lines[] = '4. Logs and backups. They hold the identifier of your account at most, and they expire as the privacy policy says.';
+        // The instance can have no privacy policy (#1653): then the sentence does not point to one
+        $lines[] = '4. Logs and backups. They hold the identifier of your account at most, and they expire'.(LegalPages::exists('privacy-policy') ? ' as the privacy policy says.' : ' after a time.');
 
         return implode("\n", $lines)."\n";
     }

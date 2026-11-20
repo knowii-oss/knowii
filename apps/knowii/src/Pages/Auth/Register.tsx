@@ -52,6 +52,10 @@ export default function RegisterPage({ turnstileSiteKey = null }: Props) {
   });
   // A Turnstile token works once: a new key mounts a new widget after each attempt
   const [turnstileKey, setTurnstileKey] = useState(0);
+  // The box of the terms names only the legal texts that the instance has (#1653): both, one, or none
+  const legalPages = page.props.legalPages ?? [];
+  const hasTerms = legalPages.includes('terms-of-service');
+  const hasPrivacyPolicy = legalPages.includes('privacy-policy');
 
   const submit: FormEventHandler = (e) => {
     e.preventDefault();
@@ -157,15 +161,21 @@ export default function RegisterPage({ turnstileSiteKey = null }: Props) {
                   disabled={form.processing}
                 />
                 <label htmlFor="terms" className="text-sm text-muted">
-                  {/* 16 is the minimum age of the terms. No date of birth: the checkbox is enough (#1350) */}I am 16 or older and I agree
-                  to the{' '}
-                  <a target="_blank" rel="noreferrer" href={route(TERMS_OF_SERVICE_URL)} className="simple-link">
-                    Terms of Service
-                  </a>{' '}
-                  and{' '}
-                  <a target="_blank" rel="noreferrer" href={route(PRIVACY_POLICY_URL)} className="simple-link">
-                    Privacy Policy
-                  </a>
+                  {/* 16 is the minimum age of the terms. No date of birth: the checkbox is enough (#1350). The sentence
+                      names the texts that exist: without one, only the age stays (#1653) */}
+                  I am 16 or older
+                  {(hasTerms || hasPrivacyPolicy) && ' and I agree to the '}
+                  {hasTerms && (
+                    <a target="_blank" rel="noreferrer" href={route(TERMS_OF_SERVICE_URL)} className="simple-link">
+                      Terms of Service
+                    </a>
+                  )}
+                  {hasTerms && hasPrivacyPolicy && ' and '}
+                  {hasPrivacyPolicy && (
+                    <a target="_blank" rel="noreferrer" href={route(PRIVACY_POLICY_URL)} className="simple-link">
+                      Privacy Policy
+                    </a>
+                  )}
                 </label>
               </div>
               <InputError className="mt-2" message={form.errors.terms} />

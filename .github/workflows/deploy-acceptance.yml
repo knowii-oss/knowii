@@ -9,14 +9,19 @@ name: Deploy acceptance
 # you use it in a step.
 #   Variables
 #     ACCEPTANCE_PATH   Folder of the compose project on the server (holds compose.production.yaml and .env)
+#     LEGAL_TEXTS_DIR   Folder of this repository with the legal texts of the instance (the .md files and
+#                       subprocessors.json), for example deploy/knowii.net/legal. Empty: no text is copied, and the
+#                       instance keeps the texts of its volume (#1653, ADR 0055)
 #   Secrets
 #     (none yet: the secrets of the connection are chosen in #1172 step J, then listed here)
 #
 # What the deployment does, in order:
-#   1. Resolve the image tag (main, a sha-<short> tag, or a version) and the image name of this repository.
+#   1. Check out the repository (for the legal texts), resolve the image tag (main, a sha-<short> tag, or a version)
+#      and the image name of this repository, and check the folder of the legal texts.
 #   2. Connect to the server (TODO).
-#   3. Remember the tag that runs now (the roll back target), pull the new image and start the stack with it.
-#      The app service runs the migrations at start.
+#   3. Remember the tag that runs now (the roll back target), pull the new image, copy the legal texts into the
+#      storage volume (storage/app/legal, the only place that the application reads them from), and start the stack
+#      with the new image. The app service runs the migrations at start.
 #   4. Wait for the stack to be healthy, then run the deep check: php artisan app:health.
 #   5. On failure: start the previous tag again and run the deep check on it.
 
@@ -43,6 +48,12 @@ jobs:
     environment: acceptance
     timeout-minutes: 20
     steps:
+      # The legal texts of the instance are files of this repository (LEGAL_TEXTS_DIR): the image holds no deploy/ folder.
+      # The texts are the ones of the ref that this workflow runs on
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
       - name: Resolve the image
         id: image
         env:
@@ -57,10 +68,29 @@ jobs:
           echo "image=ghcr.io/${repository}:${TAG}" >> "${GITHUB_OUTPUT}"
           echo "Deploying ghcr.io/${repository}:${TAG}"
 
+      # The folder is used in a command on the runner: refuse anything that is not a plain relative path, like the tag
+      - name: Check the folder of the legal texts
+        env:
+          LEGAL_TEXTS_DIR: ${{ vars.LEGAL_TEXTS_DIR }}
+        run: |
+          set -euo pipefail
+          if [ -z "${LEGAL_TEXTS_DIR}" ]; then
+            echo "LEGAL_TEXTS_DIR is empty: no legal text is copied."
+            exit 0
+          fi
+          case "${LEGAL_TEXTS_DIR}" in
+            *[!A-Za-z0-9._/-]*|*..*|/*|.|./*) echo "::error::Invalid folder of the legal texts: ${LEGAL_TEXTS_DIR}"; exit 1 ;;
+          esac
+          if [ ! -d "${GITHUB_WORKSPACE}/${LEGAL_TEXTS_DIR}" ]; then
+            echo "::error::The folder of the legal texts is not in the repository: ${LEGAL_TEXTS_DIR}"
+            exit 1
+          fi
+
       # TODO(#1172 step J): decide how this job reaches the server. Options discussed: a runner on the server that pulls,
       # a webhook on the server behind the access check, or a short-lived key over the private network. Until then this
       # step fails, so nothing can run by mistake. When it is decided, this step writes $RUNNER_TEMP/remote.sh: a script
-      # that runs its arguments on the server (for example over SSH) and exits with their exit code.
+      # that runs its arguments on the server (for example over SSH) and exits with their exit code. The script must
+      # pass its standard input to the command on the server: the copy of the legal texts sends a tar archive through it.
       - name: Connect to the server
         run: |
           echo "::error::The connection to the server is not decided yet, see #1172 step J."
@@ -71,6 +101,7 @@ jobs:
         env:
           IMAGE: ${{ steps.image.outputs.image }}
           ACCEPTANCE_PATH: ${{ vars.ACCEPTANCE_PATH }}
+          LEGAL_TEXTS_DIR: ${{ vars.LEGAL_TEXTS_DIR }}
         run: |
           set -euo pipefail
           remote="${RUNNER_TEMP}/remote.sh"
@@ -78,6 +109,11 @@ jobs:
           previous="$("${remote}" "cat '${ACCEPTANCE_PATH}/.deployed-image' 2>/dev/null || true")"
           echo "previous=${previous}" >> "${GITHUB_OUTPUT}"
           "${remote}" "cd '${ACCEPTANCE_PATH}' && KNOWII_IMAGE='${IMAGE}' docker compose -f compose.production.yaml pull"
+          # The legal texts go into the storage volume before the new image starts (#1653, SELF_HOSTING.md, "Docker",
+          # "Update"): the application reads them only from storage/app/legal, and a page without a file answers 404
+          if [ -n "${LEGAL_TEXTS_DIR}" ]; then
+            tar -c -C "${GITHUB_WORKSPACE}/${LEGAL_TEXTS_DIR}" . | "${remote}" "cd '${ACCEPTANCE_PATH}' && KNOWII_IMAGE='${IMAGE}' docker compose -f compose.production.yaml run --rm --no-deps -T --entrypoint sh app -c 'mkdir -p /app/storage/app/legal && tar -x -C /app/storage/app/legal'"
+          fi
           "${remote}" "cd '${ACCEPTANCE_PATH}' && KNOWII_IMAGE='${IMAGE}' docker compose -f compose.production.yaml up -d --remove-orphans"
 
       - name: Wait for the stack and run the deep check

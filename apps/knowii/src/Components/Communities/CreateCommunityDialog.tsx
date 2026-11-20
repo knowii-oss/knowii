@@ -15,6 +15,7 @@ import {
   MIN_ACTION_TIME,
   sleep,
   useAppData,
+  useTypedPage,
   DEFAULT_TEXTAREA_ROWS,
   DPA_URL,
 } from '@knowii/common';
@@ -40,6 +41,8 @@ export default function CreateCommunityDialog(props: CreateCommunityDialogProps)
   const [loading, setLoading] = useState(false);
   const { showToast } = useAppData();
   const route = useRoute();
+  // An instance without the text of the agreement shows none, and the server records none (#1653)
+  const hasDpa = (useTypedPage().props.legalPages ?? []).includes('dpa');
 
   const form = useForm<NewCommunity>({
     resolver: zodResolver(newCommunitySchema),
@@ -221,8 +224,9 @@ export default function CreateCommunityDialog(props: CreateCommunityDialogProps)
           </div>
 
           {/* A shared community holds the data of other people: the owner accepts the DPA (GDPR art. 28, #1353). Approved
-              texts: the first line is the decision of the owner of #1576 */}
-          {visibility !== 'personal' && (
+              texts: the first line is the decision of the owner of #1576. Both lines name the agreement: they show only
+              when the instance has its text (#1653) */}
+          {visibility !== 'personal' && hasDpa && (
             <>
               <p className="mt-4 text-xs text-muted">You will hold the data of your members; this agreement says how.</p>
               <p id="create-community-dpa" className="mt-1 text-xs text-muted">

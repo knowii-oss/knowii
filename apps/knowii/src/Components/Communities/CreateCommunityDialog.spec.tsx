@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { router } from '@inertiajs/react';
+import type * as Inertia from '@inertiajs/react';
 import type { Community } from '@knowii/common';
 import { AppDataProvider, COMMUNITY_VISIBILITY_DESCRIPTIONS, knowiiApiClient } from '@knowii/common';
 import { Toaster } from '@/Components/ui';
@@ -9,6 +10,12 @@ import CreateCommunityDialog from './CreateCommunityDialog';
 
 vi.mock('ziggy-js', () => ({
   useRoute: () => (name: string, params?: Record<string, string>) => (params ? `/${name}/${Object.values(params).join('/')}` : `/${name}`),
+}));
+// The legal texts of the instance (#1653): a test sets the ones that exist, or removes the prop
+const shared = vi.hoisted((): { legalPages?: string[] } => ({}));
+vi.mock('@inertiajs/react', async (importOriginal) => ({
+  ...(await importOriginal<typeof Inertia>()),
+  usePage: () => ({ props: shared }),
 }));
 
 function renderDialog() {
@@ -26,6 +33,7 @@ function renderDialog() {
 describe('CreateCommunityDialog', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    shared.legalPages = ['privacy-policy', 'terms-of-service', 'dpa'];
   });
 
   it('checks the name once after the typing pauses and says when it is available (#1136)', async () => {
@@ -90,6 +98,54 @@ describe('CreateCommunityDialog', () => {
 
     expect(screen.queryByText(/you accept the/)).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'data processing agreement' })).not.toBeInTheDocument();
+  });
+
+  it('hides the two lines about the agreement when the instance has no agreement text, and without the prop (#1653)', async () => {
+    for (const legalPages of [['privacy-policy', 'terms-of-service'], [], undefined]) {
+      if (legalPages) {
+        shared.legalPages = legalPages;
+      } else {
+        delete shared.legalPages;
+      }
+      const { unmount } = render(
+        <AppDataProvider>
+          <CreateCommunityDialog visible onHide={vi.fn()} onCommunityCreated={vi.fn()} />
+        </AppDataProvider>,
+      );
+
+      // A shared community is selected: the lines would show with the text
+      expect(screen.getByRole('radio', { name: /Private/ })).toBeChecked();
+      expect(screen.queryByText('You will hold the data of your members; this agreement says how.')).not.toBeInTheDocument();
+      expect(screen.queryByText(/you accept the/)).not.toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'data processing agreement' })).not.toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole('radio', { name: /Public/ }));
+      expect(screen.queryByText(/agreement/)).not.toBeInTheDocument();
+      unmount();
+    }
+  });
+
+  it('creates a shared community on an instance without an agreement text (#1653)', async () => {
+    shared.legalPages = [];
+    vi.spyOn(knowiiApiClient.communities, 'isNameAvailable').mockResolvedValue({ ok: true, message: '', data: { available: true } });
+    const create = vi.spyOn(knowiiApiClient.communities, 'create').mockResolvedValue({
+      type: 'success',
+      category: 'business',
+      message: 'Community created',
+      data: { cuid: 'c1', name: 'Gardeners', slug: 'gardeners', description: '', visibility: 'private' } as Community,
+    } as Awaited<ReturnType<typeof knowiiApiClient.communities.create>>);
+    vi.spyOn(router, 'visit').mockImplementation(() => undefined);
+    renderDialog();
+
+    await userEvent.type(screen.getByLabelText('Name'), 'Gardeners');
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Go ahead!' })).toBeEnabled());
+    const form = screen.getByLabelText('Name').closest('form');
+    if (!form) {
+      throw new Error('form not found');
+    }
+    fireEvent.submit(form);
+
+    await waitFor(() => expect(create).toHaveBeenCalledWith({ name: 'Gardeners', description: '', visibility: 'private' }));
   });
 
   it('selects "Private" first and shows the approved text of the selected choice under the switch (#1576)', async () => {

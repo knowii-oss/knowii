@@ -4,18 +4,24 @@ use App\Constants;
 
 /*
 |--------------------------------------------------------------------------
-| Legal facts of the instance: the operator, its contact address and the sub-processors (#904, #1653)
+| Legal facts of the instance: the operator, its contact address and the folder of its legal texts (#904, #1653)
 |--------------------------------------------------------------------------
 |
-| The privacy policy and the data processing agreement show the sub-processors through the {{subprocessors}}
-| placeholder. A pull request that adds a third-party service that receives personal data (an AI provider, an email
-| or analytics service, a storage) adds it here (rule 9 of the data rules in documentation/conventions/rules.md).
-| The DPA promises 14 days of notice to the community owners before a new sub-processor applies. A sub-processor that only an
-| optional feature uses (an AI feature that each owner turns on) sets 'feature': it needs no notice, and the table says so.
+| The code holds no legal text and no sub-processor (ADR 0055). An instance keeps both in the folder 'path':
+| storage/app/legal/, which an update never overwrites. It holds one Markdown file for each legal page (policy.md,
+| terms.md, dpa.md, imprint.md, content-policy.md, security.md) and subprocessors.json. A page without a file answers
+| 404, and what links to it is hidden (App\Support\LegalPages). The folder has no environment name on purpose: every
+| instance uses the same place. The repository holds neutral templates for an operator, which nothing serves. The texts
+| of the hosted instance are in deploy/, and its deploy copies them. See SELF_HOSTING.md, "Legal pages".
 |
-| 'scope' says whose data a sub-processor receives (#1352): 'community' for the data of the communities (the operator
-| is the processor: the DPA lists it), 'platform' for the data of the accounts, the waitlist, the newsletter and the
-| statistics (the operator is the controller: only the privacy policy lists it). Without a scope, both pages list it.
+| subprocessors.json is a JSON list of objects: 'name', 'country', 'purpose', 'safeguard', 'scope' and, for a
+| sub-processor that only an optional feature uses (an AI feature that each owner turns on), 'feature'. The privacy
+| policy and the data processing agreement show the list through the {{subprocessors}} placeholder. 'scope' says whose
+| data a sub-processor receives (#1352): 'community' for the data of the communities (the operator is the processor: the
+| DPA lists it), 'platform' for the data of the accounts, the waitlist, the newsletter and the statistics (the operator
+| is the controller: only the privacy policy lists it). Without a scope, both pages list it. A pull request that adds a
+| third-party service that receives personal data follows rule 9 of the data rules in
+| documentation/conventions/rules.md.
 |
 */
 
@@ -44,43 +50,8 @@ return [
     */
     'contact_email' => $required('LEGAL_CONTACT_EMAIL', Constants::INSTANCE_PLACEHOLDER_CONTACT_EMAIL),
 
-    'subprocessors' => [
-        [
-            'name' => 'Hetzner Online GmbH',
-            'country' => 'Germany',
-            'purpose' => 'Hosting of the servers: application, database, uploaded files',
-            'safeguard' => 'European Union',
-            'scope' => ['platform', 'community'],
-        ],
-        [
-            'name' => 'Cloudflare, Inc.',
-            'country' => 'United States',
-            'purpose' => 'DNS, proxy and TLS for all traffic (IP addresses), Turnstile bot checks, storage of the encrypted backups',
-            'safeguard' => 'EU-US Data Privacy Framework',
-            'scope' => ['platform', 'community'],
-        ],
-        [
-            'name' => 'Resend, Inc.',
-            'country' => 'United States',
-            'purpose' => 'Emails of the service: sign-in links, address verification, invitations',
-            // Certified under the Data Privacy Framework since 2025; its data processing addendum keeps the standard
-            // contractual clauses as the fallback, like the one of Cloudflare (#1347)
-            'safeguard' => 'EU-US Data Privacy Framework',
-            'scope' => ['platform', 'community'],
-        ],
-        [
-            'name' => 'EmailOctopus Ltd',
-            'country' => 'United Kingdom',
-            'purpose' => 'The waitlist and the newsletter',
-            'safeguard' => 'Adequacy decision of the European Commission',
-            'scope' => ['platform'],
-        ],
-        [
-            'name' => 'Plausible Insights OÜ',
-            'country' => 'Estonia',
-            'purpose' => 'Audience statistics without cookies, through a Cloudflare Worker proxy, without personal data stored',
-            'safeguard' => 'European Union',
-            'scope' => ['platform'],
-        ],
-    ],
+    /*
+    | The folder of the legal texts and of subprocessors.json. No fallback: a file that is not there does not exist.
+    */
+    'path' => storage_path('app/legal'),
 ];

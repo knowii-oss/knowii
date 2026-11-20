@@ -25,3 +25,6 @@ tests/Fixtures/
 
 # Local runtime data (ignored by Git)
 storage/
+
+# The legal texts of a hosted instance: not one byte of them changes without the owner (#1653)
+/deploy/*/legal/

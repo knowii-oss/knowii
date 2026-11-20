@@ -18,13 +18,21 @@ The owner decided on 2026-11-18 (the comment of #1653):
 3. The legal texts of the hosted instance leave `resources/markdown/` for a folder of this repository (`deploy/`), which the deploy copies. The guard test of #1643 skips that folder.
 4. The other values (publisher, contact, footer and social links, structured data) come from configuration and are hidden when empty. The shared JSON file keeps only the data of the project, `humans.txt` names the project, the seeder reads the address of its first user from the environment. No setup wizard: `SELF_HOSTING.md` gets one table of every instance value.
 
-The work has two parts. This record covers both decisions, and the first part builds decisions 1 and 4. The second part (the legal texts, decisions 2 and 3) follows in its own pull request and adds its details here.
+The work has two parts. This record covers both decisions, and the first part builds decisions 1 and 4. The second part (the legal texts, decisions 2 and 3) has its own pull request: its details are in "The legal texts" below.
+
+The owner approved the second part on 2026-11-19 (the second comment of #1653):
+
+1. The six texts of the hosted instance (`policy.md`, `terms.md`, `dpa.md`, `imprint.md`, `content-policy.md`, `security.md`) move from `resources/markdown/` to `deploy/knowii.net/legal/` with `git mv` and no word change.
+2. The list of sub-processors leaves `config/legal.php` for a `subprocessors.json` file beside the texts, with the same words.
+3. Seven neutral templates are added; the owner reads them before the merge.
+4. `SECURITY.md` gets the new path of the security page.
+5. A missing legal text: the sign-up names only the texts that exist (with none, the box keeps "I am 16 or older"), and a community can be created without a data processing agreement file (no agreement is recorded).
 
 ## Decision
 
 ### The two required values
 
-1. `config/legal.php` holds `operator` (`LEGAL_OPERATOR`) and `contact_email` (`LEGAL_CONTACT_EMAIL`). No default names an operator or an address. The sub-processors stay in this file until the second part.
+1. `config/legal.php` holds `operator` (`LEGAL_OPERATOR`) and `contact_email` (`LEGAL_CONTACT_EMAIL`). No default names an operator or an address. The sub-processors stayed in this file until the second part (decision 29).
 2. A value that is empty or blank is not set (`KEY=` in `.env` gives an empty text, not a default). When a value is not set and `APP_ENV` is not `production`, the configuration uses a placeholder: `Constants::INSTANCE_PLACEHOLDER_OPERATOR` (`Example Operator`) and `Constants::INSTANCE_PLACEHOLDER_CONTACT_EMAIL` (`contact@example.com`). In production a value that is not set stays empty.
 3. `App\Support\InstanceValues::missing()` returns the environment names to set. Outside production the list is empty. In production a value is missing when it is empty, when it equals its placeholder in any letter case (a copied example file must not pass), or, for the address, when it is not an email address.
 4. The message is one text, with the missing names joined by " and ": `This instance is not configured. Set LEGAL_OPERATOR and LEGAL_CONTACT_EMAIL in the environment. See SELF_HOSTING.md, section "Instance values".`
@@ -71,8 +79,58 @@ The work has two parts. This record covers both decisions, and the first part bu
 ### The guard
 
 22. `tests/Unit/InstanceNeutralNamesTest.php` also refuses the operator, its founder, its company number, its street address and a host of the hosted instance.
-23. It reads `app`, `config`, `database`, `lang`, `routes`, `resources/views`, `apps/knowii/src`, `libs/common/src` and `tests`, and the files `public/humans.txt`, `.env.example` and `.env.production.example`. It skips no file. It never reads `deploy/`: a test checks that no entry starts with `deploy`.
-24. One exception until the second part: `tests/Feature/LegalPagesTest.php`, which checks the words of the hosted texts. `resources/markdown/` is not read yet.
+23. It reads `app`, `config`, `database`, `lang`, `routes`, `resources/views`, `apps/knowii/src`, `libs/common/src` and `tests`, and the files `public/humans.txt`, `.env.example` and `.env.production.example`. It skips no file. It never reads `deploy/`: a test checks that no entry starts with `deploy`. The second part widens it (decision 47).
+24. One exception until the second part: `tests/Feature/LegalPagesTest.php`, which checks the words of the hosted texts. `resources/markdown/` is not read yet. The second part removes the exception (decision 47).
+
+### The legal texts
+
+The second part of the work (decisions 2 and 3 of 2026-11-18, and the five decisions of 2026-11-19).
+
+The source of the texts:
+
+25. The slugs and the files do not change: `privacy-policy` is `policy.md`, `terms-of-service` is `terms.md`, `dpa` is `dpa.md`, `imprint` is `imprint.md`, `content-policy` is `content-policy.md`, `security` is `security.md`. A seventh file, `subprocessors.json`, holds the sub-processors.
+26. `config/legal.php` gets `path`, with the value `storage_path('app/legal')` and no environment name. `App\Support\LegalPages` reads only `config('legal.path')`. The fallback to `resource_path('markdown')` is gone.
+27. `LegalPages::exists(string $page): bool` says whether a page has a file. `LegalPages::available(): list<string>` returns the slugs with a file, in the order of `LegalPages::PAGES`. `updated()` returns null when the file is missing or when `updated` is not a date written `YYYY-MM-DD`.
+28. The six routes stay registered: the route cache and the route names of the front end need them. `LegalPageController` answers 404 when the file is missing. It checks at each request, so a file that is copied later is served without a restart.
+29. `LegalPages::subprocessors()` reads `subprocessors.json` of the same folder: a JSON list of objects with the keys `name`, `country`, `purpose`, `safeguard`, `scope`, and `feature` when an optional feature uses the service. A missing file gives an empty list. A file that is not a JSON list gives an empty list and one warning in the log. An entry that is not an object is left out. `config/legal.php` holds no sub-processor any more. The table header, the sentence of an optional feature and the scope filter keep their code. The class got no new `mixed`.
+30. Three new placeholders: `{{operator}}` (`InstanceValues::operator()`), `{{contact}}` (`InstanceValues::contactEmail()`) and `{{site}}` (the host of `config('app.url')`). The others stay (`{{retention.<period>}}`, `{{subprocessors}}`, `{{subprocessors.community}}`, `{{cookies.session}}`, `{{sign_in_provider}}`). An unknown placeholder stays visible.
+
+The move:
+
+31. The six files moved with `git mv` from `resources/markdown/` to `deploy/knowii.net/legal/`, with the same names and not one changed byte, the places that name the host of that instance included. `resources/markdown/` no longer exists.
+32. `deploy/knowii.net/legal/subprocessors.json` holds the five entries that `config/legal.php` held, in their order and with the same words. `deploy/knowii.net/README.md` says what the folder is, gives the commands of decision 45, and keeps the note about the transfer safeguard of one entry (#1347).
+33. The proof of the move: the six pages render to the same HTML before and after (a SHA-256 hash of each one, with the same environment), and `git diff -M100%` shows six renames without a changed line.
+34. `SECURITY.md` names the new path of the security page, `deploy/knowii.net/legal/security.md`. No other word of it changed.
+
+The templates:
+
+35. `resources/legal-templates/` holds seven files: the six names of decision 25 and `subprocessors.example.json` (two entries with invented names). Each text is made from the hosted text and keeps every sentence that this decision does not name. Its front matter has `title` and `draft: true`, and no `updated` line. The name of the operator is `{{operator}}`, its contact address is `{{contact}}` (in a `mailto:` link too), the site is `{{site}}`. What only the operator knows is a mark `[TODO: what to write]`: the street address, the company and tax numbers, the contact person, the country, the law and the courts, the supervisory authority, the languages of a report, the price. In `policy.md` the sentences about the statistics and the bot check get the mark "keep only if you use it". In `imprint.md` only the headings and "Source code" stay, and each other body is a mark. In `security.md` what the code does stays, and what one server set-up does (the country, the host, the network, the backups) is a mark. The placeholders of the platform stay.
+36. The templates are never served: no file of `app/`, `config/` or `routes/` names their folder, and `tests/Feature/LegalTemplatesTest.php` checks it.
+
+A missing text:
+
+37. `HandleInertiaRequests` shares `legalPages` lazily: `LegalPages::available()`. `InertiaSharedProps` has `legalPages?: LegalPageSlug[]`, and `constants.ts` has `LEGAL_PAGE_SLUGS`, aligned with `LegalPages::PAGES` (a WARNING comment on both sides, and a test). Without the prop, no text exists.
+38. `buildFooterLinkGroups(instance, legalPages)`: the "Legal" column holds only the pages that exist, and is left out when none exists. The compact footer follows.
+39. The box of the terms of the sign-up page (`Register.tsx`). With both texts: the sentence that it had. With one text: "I am 16 or older and I agree to the" and that one link. With none: "I am 16 or older". The box and the server validation of `terms` do not change.
+40. The text under the sign-in button of the provider (`OpenIdConnectButton.tsx`). With both texts: the sentence that it had. With one: "... you are 16 or older and you agree to the" and that one link, then a full stop. With none: "If you have no account yet, this creates one: you are 16 or older."
+41. `CreateCommunityDialog.tsx` hides its two lines about the agreement without `dpa`. `CreateCommunity` sets `dpa_accepted_at` and `dpa_version` only when the community is shared and `LegalPages::exists('dpa')`. Else both are null, and the community is created.
+42. `NewsletterForm.tsx` shows "See the privacy policy." only with `privacy-policy`.
+43. The invitation email: its last sentence, "Your rights are in the privacy policy: :link.", is its own translated text in the same paragraph, shown only with `privacy-policy`. With the text, the email reads as before.
+44. `SecurityTxt`: the `Policy` line is `SECURITY_TXT_POLICY` when it is set, else the security page when `security` exists, else there is no line.
+
+The deploy:
+
+45. The release before this one already reads `storage/app/legal/<file>.md` before its own file. So an operator copies the texts before the update, and no page answers 404 at any moment. That release ignores `subprocessors.json`. `SELF_HOSTING.md` and `deploy/knowii.net/README.md` give the commands, in this order:
+    1. Host-based, the hosted instance, once, before the update: `git fetch`, then `mkdir -p storage/app/legal && git archive <new ref> deploy/knowii.net/legal | tar -x --strip-components=3 -C storage/app/legal`. Then, for every later update, directly after the line of its deploy script that gets the new code: `mkdir -p storage/app/legal && cp deploy/knowii.net/legal/*.md deploy/knowii.net/legal/subprocessors.json storage/app/legal/`.
+    2. Host-based, another operator, before the update: each legal page that it wants is a file in `storage/app/legal/`, with its own `subprocessors.json`. To start from the templates: `git archive <new ref> resources/legal-templates | tar -x --strip-components=2 -C storage/app/legal`, then it renames the example file, replaces every mark, adds `updated`, and sets `draft: false`. Then the commands of step 8.
+    3. Docker: `storage/app` is the volume `storage`, and the image holds no `deploy/` folder. Before `pull`, from the folder of the Compose file: `tar -c -C <folder of your texts> . | docker compose -f compose.production.yaml run --rm --no-deps -T --entrypoint sh app -c 'mkdir -p /app/storage/app/legal && tar -x -C /app/storage/app/legal'`. Then "Update". The Compose file, the image and the entrypoint need no change.
+46. `.github/workflows/deploy-acceptance.yml` (a skeleton: its connection step still fails on purpose) checks the repository out and runs the command of decision 45.3 between `pull` and `up`, through `remote.sh`, which must pass its standard input. The folder comes from the environment variable `LEGAL_TEXTS_DIR` (for example `deploy/knowii.net/legal`; empty: no copy). A value with a character outside `A-Za-z0-9._/-` or with `..` is refused, like a wrong tag.
+
+The guard:
+
+47. `tests/Unit/InstanceNeutralNamesTest.php` reads `resources` in place of `resources/views`, so the templates too. Its exception list is empty. It skips exactly one file, `tests/Feature/HostedLegalTextsTest.php`, which points `legal.path` at `deploy/knowii.net/legal` and keeps every check of the words of the hosted texts (it is skipped when a fork deletes that folder). The guard still never reads `deploy/`. The other tests of the legal pages read neutral fixtures (`tests/Fixtures/legal`): `Tests\TestCase::setUp()` sets `legal.path` to that folder, and no test reads or writes `storage/app/legal/`.
+
+Not decided here, and not built: texts in the database, an administration screen, a command that installs the templates, and a check that refuses a text with a `[TODO:` mark (the draft notice shows).
 
 ## Consequences
 
@@ -82,6 +140,10 @@ The work has two parts. This record covers both decisions, and the first part bu
 4. A test that switches to production (`detectEnvironment`) configures the instance first (`configuredInstance()` in `tests/Pest.php`): the placeholders of the test environment count as not set in production.
 5. A new value that describes one instance is a key of `config/instance.php` (or `config/legal.php` when the law requires it), a row of the table of `SELF_HOSTING.md`, and a line of both example files. It never gets a default that names an operator, an address or a host. The guard fails when one comes back.
 6. A wrong entry of a list value is logged each time the value is read, like a wrong contact of `security.txt`: an operator sees it in the log until the value is fixed.
+7. The update to the release with the second part needs a copy first: an instance that is updated without its texts in `storage/app/legal/` answers 404 on every legal page, and hides what names them (decisions 37 to 44). The instance still starts: a missing text is not a refusal. `SELF_HOSTING.md` says it in "Legal pages", in step 8 and in "Docker", and the commit of the second part is marked as a breaking change.
+8. An instance that served the texts of the repository until now served the texts of another operator. After the update it serves only its own.
+9. The hosted instance gets its texts from `deploy/knowii.net/legal/` at each deploy. A change of a hosted text is still a reviewed pull request (`.github/CODEOWNERS` names `/deploy/` and `/resources/legal-templates/`), and it reaches the site with the next deploy.
+10. A new third-party service that receives personal data goes into `deploy/knowii.net/legal/subprocessors.json` when the hosted instance uses it, and `SELF_HOSTING.md` tells an operator to list it in its own file (data rule 9).
 
 ## Alternatives considered
 

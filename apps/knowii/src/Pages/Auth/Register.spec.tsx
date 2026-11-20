@@ -29,9 +29,11 @@ vi.mock('ziggy-js', () => ({ useRoute: () => (name: string) => `/${name}` }));
 vi.mock('@/Components/Footer', () => ({ default: () => null }));
 // A test turns the terms checkbox on
 const jetstream = vi.hoisted(() => ({ hasTermsAndPrivacyPolicyFeature: false }));
+// The legal texts of the instance (#1653): a test sets the ones that exist, or removes the prop
+const shared = vi.hoisted((): { legalPages?: string[] } => ({ legalPages: ['privacy-policy', 'terms-of-service'] }));
 vi.mock('@knowii/common', async (importOriginal) => ({
   ...(await importOriginal<typeof Common>()),
-  useTypedPage: () => ({ props: { jetstream } }),
+  useTypedPage: () => ({ props: { jetstream, ...shared } }),
 }));
 // The widget of Cloudflare cannot load in tests: a button stands for a solved check
 vi.mock('@/Components/ui', async (importOriginal) => ({
@@ -120,5 +122,93 @@ describe('RegisterPage', () => {
     } finally {
       jetstream.hasTermsAndPrivacyPolicyFeature = false;
     }
+  });
+
+  describe('the box of the terms and the legal texts of the instance (#1653)', () => {
+    const renderWith = (legalPages: string[] | undefined) => {
+      jetstream.hasTermsAndPrivacyPolicyFeature = true;
+      if (legalPages) {
+        shared.legalPages = legalPages;
+      } else {
+        delete shared.legalPages;
+      }
+      return render(<RegisterPage turnstileSiteKey={null} />);
+    };
+    const restore = () => {
+      jetstream.hasTermsAndPrivacyPolicyFeature = false;
+      shared.legalPages = ['privacy-policy', 'terms-of-service'];
+    };
+
+    it('names the terms and the privacy policy when the instance has both', () => {
+      try {
+        renderWith(['privacy-policy', 'terms-of-service', 'dpa', 'imprint', 'content-policy', 'security']);
+
+        expect(
+          screen.getByRole('checkbox', { name: 'I am 16 or older and I agree to the Terms of Service and Privacy Policy' }),
+        ).toBeRequired();
+      } finally {
+        restore();
+      }
+    });
+
+    it('names only the terms when the instance has no privacy policy', () => {
+      try {
+        renderWith(['terms-of-service']);
+
+        expect(screen.getByRole('checkbox', { name: 'I am 16 or older and I agree to the Terms of Service' })).toBeRequired();
+        expect(screen.getByRole('link', { name: 'Terms of Service' })).toHaveAttribute('href', '/terms-of-service.show');
+        expect(screen.queryByRole('link', { name: 'Privacy Policy' })).toBeNull();
+      } finally {
+        restore();
+      }
+    });
+
+    it('names only the privacy policy when the instance has no terms', () => {
+      try {
+        renderWith(['privacy-policy', 'security']);
+
+        expect(screen.getByRole('checkbox', { name: 'I am 16 or older and I agree to the Privacy Policy' })).toBeRequired();
+        expect(screen.getByRole('link', { name: 'Privacy Policy' })).toHaveAttribute('href', '/privacy-policy.show');
+        expect(screen.queryByRole('link', { name: 'Terms of Service' })).toBeNull();
+      } finally {
+        restore();
+      }
+    });
+
+    it('keeps the box with the minimum age alone when the instance has neither, and without the prop', () => {
+      for (const legalPages of [['imprint', 'dpa'], [], undefined]) {
+        try {
+          const { unmount } = renderWith(legalPages);
+
+          // The box stays required: the server still validates it
+          expect(screen.getByRole('checkbox', { name: 'I am 16 or older' })).toBeRequired();
+          expect(screen.queryByRole('link', { name: 'Terms of Service' })).toBeNull();
+          expect(screen.queryByRole('link', { name: 'Privacy Policy' })).toBeNull();
+          expect(screen.queryByText(/I agree/)).toBeNull();
+          unmount();
+        } finally {
+          restore();
+        }
+      }
+    });
+
+    it('sends the box in every case', async () => {
+      try {
+        renderWith([]);
+        const sent = posts.length;
+
+        await userEvent.type(screen.getByLabelText('Name'), 'Ada Lovelace');
+        await userEvent.type(screen.getByLabelText('Email'), 'ada@example.com');
+        await userEvent.type(screen.getByLabelText('Password', { exact: true }), 'A-strong-password-2026!');
+        await userEvent.type(screen.getByLabelText('Confirm password'), 'A-strong-password-2026!');
+        await userEvent.click(screen.getByRole('checkbox', { name: 'I am 16 or older' }));
+        await userEvent.click(screen.getByRole('button', { name: 'Register' }));
+
+        expect(posts).toHaveLength(sent + 1);
+        expect(posts.at(-1)?.[1]).toMatchObject({ name: 'Ada Lovelace', terms: true });
+      } finally {
+        restore();
+      }
+    });
   });
 });

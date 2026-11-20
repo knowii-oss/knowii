@@ -4,6 +4,7 @@ namespace App\Mail;
 
 use App\Models\CommunityInvitation as CommunityInvitationModel;
 use App\Models\User;
+use App\Support\LegalPages;
 use App\Support\Retention;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -15,7 +16,8 @@ use Illuminate\Support\Facades\URL;
  *
  * The person did not give us their address (GDPR art. 14): the footer says who invited them, who sends the email,
  * where the address comes from, when it is deleted, and where their rights are (#1345). The inviter is not stored on
- * the invitation: the email only shows their name.
+ * the invitation: the email only shows their name. The sentence about the rights names the privacy policy: it shows only
+ * when the instance has that text (#1653).
  */
 class CommunityInvitation extends Mailable
 {
@@ -37,7 +39,8 @@ class CommunityInvitation extends Mailable
             'inviterName' => $this->inviter->name,
             'operator' => config('legal.operator'),
             'deletedAfter' => Retention::periods()['expired_invitations'],
-            'privacyPolicyUrl' => route('privacy-policy.show'),
+            // Null when the instance has no privacy policy (#1653): the email then leaves the sentence out
+            'privacyPolicyUrl' => LegalPages::exists('privacy-policy') ? route('privacy-policy.show') : null,
         ])->subject(__('You are invited to :community on Knowii', ['community' => $this->invitation->community->name]));
     }
 }

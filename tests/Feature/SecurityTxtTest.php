@@ -82,6 +82,41 @@ test('security.txt names the optional pages only when they are https addresses',
         ->and($body)->not->toContain(route('security.show'));
 });
 
+test('security.txt names the security page only when the instance has its text (#1653)', function () {
+    config(['security_txt.contacts' => ['mailto:security@example.com'], 'security_txt.expires' => '2027-06-30T00:00:00Z']);
+
+    expect((string) $this->get('/.well-known/security.txt')->getContent())->toContain('Policy: '.route('security.show')."\n");
+
+    $this->useLegalFolder(legalTextsWithout('security.md'));
+
+    // The other pages do not count: the line is gone, and the file stays valid
+    expect((string) $this->get('/.well-known/security.txt')->assertOk()->getContent())->toBe(implode("\n", [
+        'Contact: mailto:security@example.com',
+        'Expires: 2027-06-30T00:00:00Z',
+        'Preferred-Languages: en',
+        'Canonical: '.url('/.well-known/security.txt'),
+    ])."\n");
+});
+
+test('security.txt names the configured policy page with or without the text of the security page (#1653)', function () {
+    config(['security_txt.contacts' => ['mailto:security@example.com'], 'security_txt.policy' => 'https://example.com/security-policy']);
+
+    expect((string) $this->get('/.well-known/security.txt')->getContent())->toContain("Policy: https://example.com/security-policy\n");
+
+    $this->useLegalFolder();
+
+    $body = (string) $this->get('/.well-known/security.txt')->getContent();
+    expect($body)->toContain("Policy: https://example.com/security-policy\n")
+        ->and(substr_count($body, 'Policy:'))->toBe(1);
+});
+
+test('security.txt has no policy line when the configured address is not https and the instance has no security page (#1653)', function () {
+    config(['security_txt.contacts' => ['mailto:security@example.com'], 'security_txt.policy' => 'http://example.com/security-policy']);
+    $this->useLegalFolder();
+
+    expect((string) $this->get('/.well-known/security.txt')->getContent())->not->toContain('Policy:');
+});
+
 test('the old address at the root leads to the one of /.well-known/', function () {
     config(['security_txt.contacts' => ['mailto:security@example.com']]);
 

@@ -1,6 +1,6 @@
 # Security policy
 
-How Knowii protects the data of its communities: https://app.knowii.net/security (also `resources/markdown/security.md` in this repository). This file says how to report a security problem and what happens then.
+How Knowii protects the data of its communities: https://app.knowii.net/security (also `deploy/knowii.net/legal/security.md` in this repository). This file says how to report a security problem and what happens then.
 
 ## Report a vulnerability
 

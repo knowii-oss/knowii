@@ -1,0 +1,37 @@
+[
+  {
+    "name": "Hetzner Online GmbH",
+    "country": "Germany",
+    "purpose": "Hosting of the servers: application, database, uploaded files",
+    "safeguard": "European Union",
+    "scope": ["platform", "community"]
+  },
+  {
+    "name": "Cloudflare, Inc.",
+    "country": "United States",
+    "purpose": "DNS, proxy and TLS for all traffic (IP addresses), Turnstile bot checks, storage of the encrypted backups",
+    "safeguard": "EU-US Data Privacy Framework",
+    "scope": ["platform", "community"]
+  },
+  {
+    "name": "Resend, Inc.",
+    "country": "United States",
+    "purpose": "Emails of the service: sign-in links, address verification, invitations",
+    "safeguard": "EU-US Data Privacy Framework",
+    "scope": ["platform", "community"]
+  },
+  {
+    "name": "EmailOctopus Ltd",
+    "country": "United Kingdom",
+    "purpose": "The waitlist and the newsletter",
+    "safeguard": "Adequacy decision of the European Commission",
+    "scope": ["platform"]
+  },
+  {
+    "name": "Plausible Insights OÜ",
+    "country": "Estonia",
+    "purpose": "Audience statistics without cookies, through a Cloudflare Worker proxy, without personal data stored",
+    "safeguard": "European Union",
+    "scope": ["platform"]
+  }
+]

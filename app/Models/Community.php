@@ -37,7 +37,7 @@ use Illuminate\Support\Facades\DB;
  * @property bool $direct_messages_enabled The owner turns direct messages off (#1186)
  * @property KnowiiCommunityJoinPolicy $join_policy Who can join: by invitation or open (#1486)
  * @property bool $indexing_enabled Search engines may index the public spaces: off by default (#1487)
- * @property ?Carbon $dpa_accepted_at When the owner accepted the data processing agreement; null for a personal community (#1353)
+ * @property ?Carbon $dpa_accepted_at When the owner accepted the data processing agreement; null for a personal community (#1353), and when the instance had no agreement text (#1653)
  * @property ?Carbon $dpa_version The `updated` date of the agreement at that time; null when it is not known (#1353)
  * @property Carbon $created_at
  * @property Carbon $updated_at

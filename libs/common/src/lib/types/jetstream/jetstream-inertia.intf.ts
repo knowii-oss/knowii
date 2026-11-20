@@ -1,3 +1,4 @@
+import type { LegalPageSlug } from '../../constants';
 import type { DateTime } from '../date-time.intf';
 import type { Nullable } from '../nullable.intf';
 import type { SocialMediaLinkProperty } from '../social-media-link.schema';
@@ -51,6 +52,11 @@ export type InertiaSharedProps<T = NonNullable<unknown>> = T & {
    * The values of this instance (#1653): the contact address, the publisher, the footer and the social links
    */
   instance?: InstancePageProp;
+  /**
+   * The legal pages that this instance has a text for (#1653), in the order of LEGAL_PAGE_SLUGS. Another page answers 404,
+   * so nothing links to it. Without the prop no text exists: no link, and no sentence that names a text.
+   */
+  legalPages?: LegalPageSlug[];
 };
 
 /**

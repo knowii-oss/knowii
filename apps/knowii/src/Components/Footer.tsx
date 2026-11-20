@@ -45,13 +45,16 @@ function slug(title: string): string {
  * What names one instance comes from the shared prop `instance` (#1653): the publisher and the note of the bottom line,
  * the mail icon (the contact address), the social icons and the links of the "Community" column. Each one is hidden when
  * the instance does not set it, and all of them without the prop. The repository icon is the one of the project: it stays.
+ *
+ * The "Legal" column and the links of the compact variant hold only the legal pages that the instance has a text for (the
+ * shared prop `legalPages`, #1653): none of them without a text, and none without the prop.
  */
 export default function Footer({ variant = 'full' }: Props) {
   const page = useTypedPage();
   const newsletter = page.props.newsletter;
   const year = new Date().getFullYear();
   const instance = page.props.instance;
-  const linkGroups = buildFooterLinkGroups(instance);
+  const linkGroups = buildFooterLinkGroups(instance, page.props.legalPages);
   const legal = linkGroups.find((group) => group.title === 'Legal');
   const contactEmail = instance?.contactEmail ?? '';
 
