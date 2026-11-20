@@ -4,7 +4,7 @@ import { Link, router, usePage } from '@inertiajs/react';
 import type { Community, Space, SpaceGroup } from '@knowii/common';
 import { communityOnlineChannel, knowiiApiClient, MESSAGES_URL, SPACE_URL, usePresence, useSocket, useTypedPage } from '@knowii/common';
 import { FaBars, FaEnvelope } from 'react-icons/fa6';
-import { Button, cn, Drawer, isCurrentUrl } from '@/Components/ui';
+import { Button, cn, CountBadge, Drawer, isCurrentUrl } from '@/Components/ui';
 import { OnlineMembers } from '@/Components/Presence/OnlineMembers';
 import { SpaceNavigation } from './SpaceNavigation';
 
@@ -157,12 +157,7 @@ function MessagesLink({ href, active, unread, onNavigate }: { href: string; acti
     >
       <FaEnvelope aria-hidden="true" className="w-5 shrink-0" />
       <span className="grow">Messages</span>
-      {unread > 0 && (
-        <span className="shrink-0 rounded-full bg-secondary px-1.5 text-xs font-bold text-white">
-          {unread}
-          <span className="sr-only"> unread</span>
-        </span>
-      )}
+      <CountBadge count={unread} label="unread" />
     </Link>
   );
 }

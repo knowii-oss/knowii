@@ -2,7 +2,7 @@ import { Link } from '@inertiajs/react';
 import type { Space, SpaceGroup } from '@knowii/common';
 import { safeHttpUrl, SPACE_TYPE_LABELS } from '@knowii/common';
 import { FaArrowUpRightFromSquare, FaLock, FaUserLock } from 'react-icons/fa6';
-import { cn } from '@/Components/ui';
+import { cn, CountBadge, Dot } from '@/Components/ui';
 
 export interface SpaceNavigationProps {
   spaceGroups: SpaceGroup[];
@@ -96,18 +96,10 @@ export function SpaceNavigation({ spaceGroups, activeSpaceCuid, getSpaceHref, on
                       {space.notification_level !== 'none' && space.has_new === true && (
                         // The dot has a border in the color of the text: it keeps its shape in forced colors and has a contrast of
                         // 3:1 or more in both themes. The text alternative is part of the name of the link
-                        <span className="shrink-0">
-                          <span aria-hidden="true" className="block size-2.5 rounded-full border-2 border-current bg-secondary" />
-                          <span className="sr-only">, New content</span>
-                        </span>
+                        <Dot tone="new" label=", New content" className="shrink-0" />
                       )}
                       {/* Chat spaces (#1185): the messages that the member did not read, only at the level Everything (#1476) */}
-                      {!active && space.notification_level === 'all' && (space.unread_count ?? 0) > 0 && (
-                        <span className="shrink-0 rounded-full bg-secondary px-1.5 text-xs font-bold text-white">
-                          {space.unread_count}
-                          <span className="sr-only"> unread</span>
-                        </span>
-                      )}
+                      {!active && space.notification_level === 'all' && <CountBadge count={space.unread_count ?? 0} label="unread" />}
                       <VisibilityIcon space={space} />
                     </Link>
                   </li>

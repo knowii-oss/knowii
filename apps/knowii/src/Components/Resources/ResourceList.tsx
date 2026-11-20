@@ -3,7 +3,7 @@ import type { Community, CommunityResource, Identifiable, Paginated, Space } fro
 import { knowiiApiClient, RESOURCE_URL, RESOURCES_PER_PAGE, useAppData, useSocket } from '@knowii/common';
 import { FaPlus } from 'react-icons/fa6';
 import { SignInPrompt, useIsVisitor } from '@/Components/Reader/Reader';
-import { Button, EmptyState } from '@/Components/ui';
+import { Button, EmptyState, LoadMoreButton } from '@/Components/ui';
 import { CreateResourceDialog } from './CreateResourceDialog';
 import { ResourceCard } from './ResourceCard';
 
@@ -128,11 +128,9 @@ export function ResourceList({ community, space, initialResources, canContribute
       )}
 
       {nextOffset !== null && (
-        <div className="flex justify-center">
-          <Button variant="secondary" onClick={loadMore} loading={loading}>
-            Load more resources
-          </Button>
-        </div>
+        <LoadMoreButton onClick={() => void loadMore()} loading={loading}>
+          Load more resources
+        </LoadMoreButton>
       )}
 
       {canContribute && (

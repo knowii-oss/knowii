@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from '@inertiajs/react';
 import type { PresenceMember } from '@knowii/common';
 import { MEMBER_URL } from '@knowii/common';
-import { Avatar, Drawer, TextInput } from '@/Components/ui';
+import { Avatar, Dot, Drawer, TextInput } from '@/Components/ui';
 
 export interface OnlineListPanelProps {
   open: boolean;
@@ -56,7 +56,7 @@ export function OnlineListPanel({ open, onClose, title, communitySlug, members }
                 >
                   <span className="relative inline-flex">
                     <Avatar name={member.name} imageUrl={member.avatar_url} size="sm" />
-                    <span aria-hidden="true" className="absolute right-0 bottom-0 size-2.5 rounded-full bg-success ring-2 ring-surface" />
+                    <Dot tone="online" className="absolute right-0 bottom-0" />
                   </span>
                   <span className="flex min-w-0 flex-col">
                     <span className="truncate font-bold">{member.name}</span>

@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react';
 import type { PresenceMember } from '@knowii/common';
 import { MEMBER_URL } from '@knowii/common';
-import { Avatar, cn } from '@/Components/ui';
+import { Avatar, cn, Dot } from '@/Components/ui';
 
 export interface PresenceAvatarsProps {
   communitySlug: string;
@@ -33,7 +33,7 @@ export function PresenceAvatars({ communitySlug, members, max = 12, className, l
             className="relative inline-flex rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             <Avatar name={member.name} imageUrl={member.avatar_url} size="sm" />
-            <span aria-hidden="true" className="absolute right-0 bottom-0 size-2.5 rounded-full bg-success ring-2 ring-surface" />
+            <Dot tone="online" className="absolute right-0 bottom-0" />
             <span className="sr-only">{member.name}</span>
           </Link>
         </li>

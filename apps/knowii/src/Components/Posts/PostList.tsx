@@ -3,7 +3,7 @@ import type { Community, Paginated, Post, Space, SpaceContentPayload } from '@kn
 import { knowiiApiClient, POST_URL, POSTS_PER_PAGE, useAppData, useSocket } from '@knowii/common';
 import { FaArrowUp, FaPen } from 'react-icons/fa6';
 import { SignInPrompt, useIsVisitor } from '@/Components/Reader/Reader';
-import { Button, EmptyState, ErrorBoundary } from '@/Components/ui';
+import { Button, EmptyState, ErrorBoundary, LoadMoreButton } from '@/Components/ui';
 import { PostCard } from './PostCard';
 import { PostComposer } from './PostComposer';
 
@@ -184,11 +184,9 @@ export function PostList({
       )}
 
       {nextOffset !== null && (
-        <div className="flex justify-center">
-          <Button variant="secondary" onClick={loadMore} loading={loading}>
-            Load more posts
-          </Button>
-        </div>
+        <LoadMoreButton onClick={() => void loadMore()} loading={loading}>
+          Load more posts
+        </LoadMoreButton>
       )}
 
       <PostComposer

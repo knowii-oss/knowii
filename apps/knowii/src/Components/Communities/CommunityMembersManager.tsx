@@ -23,7 +23,19 @@ import {
   useAppData,
 } from '@knowii/common';
 import { FaMagnifyingGlass, FaUserLock, FaUserMinus, FaUserPlus, FaUsers, FaXmark } from 'react-icons/fa6';
-import { Avatar, Button, Card, CardBody, CardHeader, Dialog, EmptyState, RelativeTime, Select, TextInput } from '@/Components/ui';
+import {
+  Avatar,
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  Dialog,
+  EmptyState,
+  LoadMoreButton,
+  RelativeTime,
+  Select,
+  TextInput,
+} from '@/Components/ui';
 import InputLabel from '@/Components/InputLabel';
 import InputError from '@/Components/InputError';
 
@@ -335,11 +347,9 @@ export function CommunityMembersManager({
           )}
 
           {pagination?.nextOffset != null && (
-            <div className="flex justify-center">
-              <Button variant="secondary" loading={loading} onClick={() => void loadMembers(pagination.nextOffset ?? 0, query.trim())}>
-                Load more
-              </Button>
-            </div>
+            <LoadMoreButton loading={loading} onClick={() => void loadMembers(pagination.nextOffset ?? 0, query.trim())}>
+              Load more
+            </LoadMoreButton>
           )}
         </CardBody>
       </Card>

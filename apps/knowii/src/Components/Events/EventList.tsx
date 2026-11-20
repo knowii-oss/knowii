@@ -15,7 +15,7 @@ import {
 } from '@knowii/common';
 import { FaPlus } from 'react-icons/fa6';
 import { useIsVisitor } from '@/Components/Reader/Reader';
-import { Button, EmptyState, ErrorBoundary, LinkButton, LinkTabs, useFocusAfterRender } from '@/Components/ui';
+import { EmptyState, ErrorBoundary, LinkButton, LinkTabs, LoadMoreButton, useFocusAfterRender } from '@/Components/ui';
 import { comparePast, compareUpcoming, useNow } from './event-state';
 import { EVENT_WORDS } from './event-words';
 import { EventCard } from './EventCard';
@@ -291,11 +291,9 @@ function EventCards({ community, space, initialEvents, scope, sectionRef, emptyA
       )}
 
       {nextOffset !== null && (
-        <div className="flex justify-center">
-          <Button variant="secondary" onClick={() => void loadMore()} loading={loading}>
-            {scope === 'past' ? EVENT_WORDS.loadOlder : EVENT_WORDS.loadMore}
-          </Button>
-        </div>
+        <LoadMoreButton onClick={() => void loadMore()} loading={loading}>
+          {scope === 'past' ? EVENT_WORDS.loadOlder : EVENT_WORDS.loadMore}
+        </LoadMoreButton>
       )}
     </>
   );
