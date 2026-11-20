@@ -4,6 +4,7 @@ namespace Tests;
 
 use App\Support\SafeUrl;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 
 abstract class TestCase extends BaseTestCase
@@ -37,6 +38,9 @@ abstract class TestCase extends BaseTestCase
         $this->legalFolders = [];
 
         SafeUrl::resolveUsing(null);
+
+        // The host names that the application answers for are set at each request: a test starts without any
+        Request::setTrustedHosts([]);
 
         parent::tearDown();
     }

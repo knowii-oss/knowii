@@ -33,12 +33,13 @@ The application needs four long-running processes (the web server, the queue wor
 10. `/up` stays the cheap check of the proxy and of Compose: it answers from the framework without touching the database.
 11. `php artisan app:health` is the deep check that a deployment waits on: the database answers, every migration ran, the cache works, the queue connection works, Reverb answers. It exits with 1 when a check fails. It runs on the command line, so it shows no detail to the internet. The `reverb` service uses `app:health --only=reverb` as its health check; the `queue` and `scheduler` services check that their process runs.
 12. `TRUSTED_PROXIES` (`config/app.php`) tells Laravel which proxies to trust for `X-Forwarded-*`. The default is none.
+13. The application answers only for its own host names: the host of `APP_URL`, the names of `TRUSTED_HOSTS` (`config/app.php`, default none) and the loopback names, which the health check of the `app` service uses. Another host name gets the answer `400`, and the log names it at most once a minute, except in the local environment (`App\Http\Middleware\AnswerOnlyForOwnHostNames`). Every address that the application builds has a host name of that configuration (the host of `APP_URL`, or the name of `TRUSTED_HOSTS` that the request came by, with the port of `APP_URL` when it is not the default one) and the scheme of the request, and from a trusted proxy the application reads only `X-Forwarded-For`, `X-Forwarded-Host`, `X-Forwarded-Port` and `X-Forwarded-Proto`. `APP_URL` must be a full address: without a host in it, every address answers `503`, the health check too.
 
 ### The workflows
 
-13. `image.yml` builds the image on every pull request (no push, with a cache, and a small smoke test) and, on a push to `main`, builds it again and, only when the repository variable `PUBLISH_IMAGE` is `true` (not set by default), pushes `ghcr.io/<owner>/<repo>:main` and `:sha-<short>` with the permissions `contents: read` and `packages: write`.
-14. `deploy-acceptance.yml` is manual (`workflow_dispatch`), behind the GitHub environment `acceptance`. It is a skeleton: resolve the tag, connect, pull, start, run `app:health`, roll back to the previous tag on failure. The connection step fails on purpose until the owner chooses how GitHub Actions reaches the server (#1172 step J).
-15. `deploy.yml` is removed. The `production` branch mechanism it drove is not used by this decision.
+14. `image.yml` builds the image on every pull request (no push, with a cache, and a small smoke test) and, on a push to `main`, builds it again and, only when the repository variable `PUBLISH_IMAGE` is `true` (not set by default), pushes `ghcr.io/<owner>/<repo>:main` and `:sha-<short>` with the permissions `contents: read` and `packages: write`.
+15. `deploy-acceptance.yml` is manual (`workflow_dispatch`), behind the GitHub environment `acceptance`. It is a skeleton: resolve the tag, connect, pull, start, run `app:health`, roll back to the previous tag on failure. The connection step fails on purpose until the owner chooses how GitHub Actions reaches the server (#1172 step J).
+16. `deploy.yml` is removed. The `production` branch mechanism it drove is not used by this decision.
 
 ## Consequences
 

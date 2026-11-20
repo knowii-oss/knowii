@@ -257,6 +257,10 @@ class AppServiceProvider extends ServiceProvider
             TrustProxies::at(trim($trustedProxies) === '*' ? '*' : array_map('trim', explode(',', $trustedProxies)));
         }
 
+        // From a trusted proxy, the application reads the address of the client, the host name, the port and the scheme, and
+        // no other value. The list holds for every way to trust a proxy, so it is set also when TRUSTED_PROXIES is empty
+        TrustProxies::withHeaders(Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_HOST | Request::HEADER_X_FORWARDED_PORT | Request::HEADER_X_FORWARDED_PROTO);
+
         // Register singletons implementing contracts (cfr \App\Contracts)
         app()->singleton(VerifiesUsernameAvailability::class, VerifyUsernameAvailability::class);
         app()->singleton(CreatesCommunities::class, CreateCommunity::class);

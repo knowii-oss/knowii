@@ -6,6 +6,7 @@ use App\Exceptions\NoAccessException;
 use App\Exceptions\TechnicalException;
 use App\Http\Middleware\AddRobotsHeader;
 use App\Http\Middleware\AddViteContentSecurityPolicyNonce;
+use App\Http\Middleware\AnswerOnlyForOwnHostNames;
 use App\Http\Middleware\AuthenticateIfPresent;
 use App\Http\Middleware\EnsureRequestIsJson;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -25,6 +26,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Middleware\HandleCors;
+use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -50,6 +52,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // every middleware of the application and of the framework that reads a session, a cookie or the database, so that
         // every address answers so, the health address too. Only a middleware that a package prepends later runs before it
         $middleware->prepend(RefuseUnconfiguredInstance::class);
+
+        // The application answers only for its own host names (APP_URL, TRUSTED_HOSTS and the loopback names), with a 400
+        // for another one: right after the middleware that trusts the proxies, so that it reads the host name that the
+        // proxy gives, and before every middleware that reads a session, a cookie or the database
+        $middleware->insertAfter(TrustProxies::class, AnswerOnlyForOwnHostNames::class);
 
         $middleware->web(append: [
             HandleInertiaRequests::class,
