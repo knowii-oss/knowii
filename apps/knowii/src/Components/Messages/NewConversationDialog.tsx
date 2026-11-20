@@ -8,10 +8,9 @@ import {
   useAppData,
 } from '@knowii/common';
 import { FaPaperPlane } from 'react-icons/fa6';
-import InputError from '@/Components/InputError';
 import { useMentionSource } from '@/Components/Members/use-mention-source';
 import { useImageUploader } from '@/Components/Uploads/use-image-uploader';
-import { Button, Dialog, MarkdownEditor } from '@/Components/ui';
+import { Button, Dialog, InputError, MarkdownEditor } from '@/Components/ui';
 import { MemberPicker } from './MemberPicker';
 
 export interface NewConversationDialogProps {

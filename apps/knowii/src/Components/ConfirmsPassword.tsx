@@ -4,9 +4,7 @@ import axios from 'axios';
 import { useRoute } from 'ziggy-js';
 import { PASSWORD_CONFIRM_URL, PASSWORD_CONFIRMATION_URL } from '@knowii/common';
 import { FaLock } from 'react-icons/fa';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import { Button, Dialog, PasswordInput } from '@/Components/ui';
+import { Button, Dialog, InputError, InputLabel, PasswordInput } from '@/Components/ui';
 
 interface Props {
   title?: string;

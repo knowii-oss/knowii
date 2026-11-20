@@ -5,8 +5,7 @@ import { FaAt, FaCircleCheck } from 'react-icons/fa6';
 import { useRoute } from 'ziggy-js';
 import { z } from 'zod';
 import { knowiiApiClient, PRIVACY_POLICY_URL, useTypedPage, WAITLIST_HONEYPOT_FIELD, waitlistEmailSchema } from '@knowii/common';
-import InputError from '@/Components/InputError';
-import { Button, TextInput, Turnstile } from '@/Components/ui';
+import { Button, InputError, TextInput, Turnstile } from '@/Components/ui';
 
 const newsletterFormSchema = z.object({
   email: waitlistEmailSchema,

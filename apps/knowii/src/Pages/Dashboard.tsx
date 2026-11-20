@@ -3,14 +3,13 @@ import { useCallback, useState } from 'react';
 import CommunityBox from '@/Components/Communities/CommunityBox';
 import type { Community, CommunityVisibility, Identifiable } from '@knowii/common';
 import { COMMUNITY_URL, communityVisibilityOptions, useSocket } from '@knowii/common';
-import CardGroup from '@/Components/CardGroup';
 import { useImmer } from 'use-immer';
 import { useRoute } from 'ziggy-js';
 import CreateCommunityDialog from '@/Components/Communities/CreateCommunityDialog';
 import { FaHome, FaSearch } from 'react-icons/fa';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
 import type { BreadcrumbItem } from '@/Components/ui';
-import { Button, Select, TextInput } from '@/Components/ui';
+import { Button, CardGroup, Select, TextInput } from '@/Components/ui';
 
 const visibilityFilterOptions = communityVisibilityOptions.map((option) => ({
   value: option.visibility,

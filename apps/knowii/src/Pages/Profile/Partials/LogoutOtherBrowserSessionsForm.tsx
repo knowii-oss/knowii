@@ -6,8 +6,7 @@ import type { FormEventHandler } from 'react';
 import { useRef, useState } from 'react';
 import ActionSection from '@/Components/ActionSection';
 import { FaDesktop, FaLock, FaMobile } from 'react-icons/fa';
-import InputError from '@/Components/InputError';
-import { Button, Dialog, PasswordInput } from '@/Components/ui';
+import { Button, Dialog, InputError, PasswordInput } from '@/Components/ui';
 
 interface Props {
   sessions: Session[];

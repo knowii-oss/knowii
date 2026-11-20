@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { FaLock } from 'react-icons/fa';
-import InputError from '@/Components/InputError';
 import ActionSection from '@/Components/ActionSection';
-import { Button, Dialog, Spinner, TextInput } from '@/Components/ui';
+import { Button, Dialog, InputError, Spinner, TextInput } from '@/Components/ui';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';

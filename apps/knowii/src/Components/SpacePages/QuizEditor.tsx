@@ -17,9 +17,18 @@ import {
   quizFormValues,
   useAppData,
 } from '@knowii/common';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import { Button, Checkbox, Dialog, DialogCloseButton, Radio, SegmentedControl, Textarea, TextInput } from '@/Components/ui';
+import {
+  Button,
+  Checkbox,
+  Dialog,
+  DialogCloseButton,
+  InputError,
+  InputLabel,
+  Radio,
+  SegmentedControl,
+  Textarea,
+  TextInput,
+} from '@/Components/ui';
 
 export interface QuizEditorProps {
   open: boolean;

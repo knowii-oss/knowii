@@ -2,14 +2,12 @@ import { Link, useForm, Head } from '@inertiajs/react';
 import type { FormEventHandler } from 'react';
 import { useState } from 'react';
 import AuthenticationCard from '@/Components/AuthenticationCard';
-import InputLabel from '@/Components/InputLabel';
-import InputError from '@/Components/InputError';
 import { useRoute } from 'ziggy-js';
 import { FORGOT_PASSWORD_URL, LOGIN_LINK_STORE_URL, LOGIN_URL, REGISTER_URL } from '@knowii/common';
 import { FaAt, FaLock } from 'react-icons/fa';
 import Footer from '@/Components/Footer';
 import OpenIdConnectButton from '@/Components/Auth/OpenIdConnectButton';
-import { Button, Checkbox, PasswordInput, TextInput } from '@/Components/ui';
+import { Button, Checkbox, InputError, InputLabel, PasswordInput, TextInput } from '@/Components/ui';
 
 interface LoginFormData {
   email: string;

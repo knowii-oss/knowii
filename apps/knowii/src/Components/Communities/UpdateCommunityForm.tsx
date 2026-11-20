@@ -11,9 +11,7 @@ import {
   useAppData,
 } from '@knowii/common';
 import { FaCircleInfo } from 'react-icons/fa6';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import { Button, Card, CardBody, CardHeader, SegmentedControl, Textarea, TextInput } from '@/Components/ui';
+import { Button, Card, CardBody, CardHeader, InputError, InputLabel, SegmentedControl, Textarea, TextInput } from '@/Components/ui';
 import CommunityIcon from './CommunityIcon';
 import { CommunityNameStatus } from './CommunityNameStatus';
 import { useCommunityNameAvailability } from './use-community-name-availability';

@@ -24,10 +24,8 @@ import { useRoute } from 'ziggy-js';
 import type { FormEventHandler } from 'react';
 import { useEffect, useState } from 'react';
 import FormSection from '@/Components/FormSection';
-import InputLabel from '@/Components/InputLabel';
 import { FaAt, FaBookReader, FaMapMarkerAlt, FaPassport, FaPhone, FaUser } from 'react-icons/fa';
-import InputError from '@/Components/InputError';
-import { Button, Checkbox, Collapsible, Textarea, TextInput } from '@/Components/ui';
+import { Button, Checkbox, Collapsible, InputError, InputLabel, Textarea, TextInput } from '@/Components/ui';
 
 interface Props {
   user: CurrentUser;

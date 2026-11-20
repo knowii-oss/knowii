@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import type { CommunityResource, ResourceLevel, ResourceType } from '@knowii/common';
 import { knowiiApiClient, resourceLevelSchemaOptions, resourceTypeSchemaOptions, useAppData } from '@knowii/common';
-import InputLabel from '@/Components/InputLabel';
-import { Button, Select } from '@/Components/ui';
+import { Button, InputLabel, Select } from '@/Components/ui';
 
 const typeOptions = resourceTypeSchemaOptions.map((option) => ({ value: option.type, label: option.name }));
 const levelOptions = resourceLevelSchemaOptions.map((option) => ({ value: option.level, label: option.name, icon: option.icon }));

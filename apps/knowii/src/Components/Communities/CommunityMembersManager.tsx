@@ -31,13 +31,13 @@ import {
   CardHeader,
   Dialog,
   EmptyState,
+  InputError,
+  InputLabel,
   LoadMoreButton,
   RelativeTime,
   Select,
   TextInput,
 } from '@/Components/ui';
-import InputLabel from '@/Components/InputLabel';
-import InputError from '@/Components/InputError';
 
 export interface CommunityMembersManagerProps {
   communityCuid: string;

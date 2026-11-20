@@ -4,9 +4,8 @@ import { FaLock } from 'react-icons/fa';
 import type { CommunityMember } from '@knowii/common';
 import { knowiiApiClient, useAppData } from '@knowii/common';
 import ActionSection from '@/Components/ActionSection';
-import InputError from '@/Components/InputError';
 import type { SelectOption } from '@/Components/ui';
-import { Button, Dialog, PasswordInput, Select, Spinner } from '@/Components/ui';
+import { Button, Dialog, InputError, PasswordInput, Select, Spinner } from '@/Components/ui';
 
 interface Props {
   communityCuid: string;

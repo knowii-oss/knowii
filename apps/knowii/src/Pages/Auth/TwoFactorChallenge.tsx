@@ -6,9 +6,7 @@ import { TWO_FACTOR_LOGIN_URL } from '@knowii/common';
 import { FaKey } from 'react-icons/fa';
 import AuthenticationCard from '@/Components/AuthenticationCard';
 import Footer from '@/Components/Footer';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import { Button, TextInput } from '@/Components/ui';
+import { Button, InputError, InputLabel, TextInput } from '@/Components/ui';
 
 /**
  * The second step of the sign-in for an account with two-factor authentication (#690): the code of the authenticator

@@ -6,6 +6,7 @@ import CommunityIcon from '@/Components/Communities/CommunityIcon';
 import { AccessGroupsManager } from '@/Components/Communities/AccessGroupsManager';
 import { router } from '@inertiajs/react';
 import type { BreadcrumbItem } from '@/Components/ui';
+import { Divider } from '@/Components/ui';
 import { FaGear } from 'react-icons/fa6';
 import DeleteCommunityForm from '@/Pages/Communities/Partials/DeleteCommunityForm';
 import TransferOwnershipForm from '@/Pages/Communities/Partials/TransferOwnershipForm';
@@ -16,7 +17,6 @@ import { JoinPolicySetting } from '@/Components/Communities/JoinPolicySetting';
 import { ModeratorPermissionsForm } from '@/Components/Communities/ModeratorPermissionsForm';
 import { CommunityMembersManager } from '@/Components/Communities/CommunityMembersManager';
 import { UpdateCommunityForm } from '@/Components/Communities/UpdateCommunityForm';
-import Separator from '@/Components/Separator';
 import { useCallback, useState } from 'react';
 
 interface Props {
@@ -101,9 +101,9 @@ export default function CommunitySettingsPage(props: Props) {
       {props.permissions.canUpdateCommunity && (
         <>
           <UpdateCommunityForm community={props.community} onSaved={() => router.reload({ only: ['community'] })} />
-          <Separator />
+          <Divider className="my-10" />
           <DirectMessagesSetting community={props.community} onSaved={() => router.reload({ only: ['community'] })} />
-          <Separator />
+          <Divider className="my-10" />
         </>
       )}
 
@@ -111,7 +111,7 @@ export default function CommunitySettingsPage(props: Props) {
       {props.permissions.canManageJoinPolicy === true && props.community.visibility !== 'personal' && (
         <>
           <JoinPolicySetting community={props.community} onSaved={() => router.reload({ only: ['community'] })} />
-          <Separator />
+          <Divider className="my-10" />
         </>
       )}
 
@@ -119,7 +119,7 @@ export default function CommunitySettingsPage(props: Props) {
       {props.permissions.canManageIndexing === true && props.community.visibility !== 'personal' && (
         <>
           <IndexingSetting community={props.community} onSaved={() => router.reload({ only: ['community'] })} />
-          <Separator />
+          <Divider className="my-10" />
         </>
       )}
 
@@ -134,14 +134,14 @@ export default function CommunitySettingsPage(props: Props) {
 
       {props.permissions.canManageModeratorPermissions && (
         <>
-          {props.permissions.canManageSpaces && <Separator />}
+          {props.permissions.canManageSpaces && <Divider className="my-10" />}
           <ModeratorPermissionsForm community={props.community} />
         </>
       )}
 
       {canManageMembers && (
         <>
-          {(props.permissions.canManageSpaces || props.permissions.canManageModeratorPermissions) && <Separator />}
+          {(props.permissions.canManageSpaces || props.permissions.canManageModeratorPermissions) && <Divider className="my-10" />}
           <CommunityMembersManager
             communityCuid={props.community.cuid}
             communitySlug={props.community.slug}
@@ -154,14 +154,16 @@ export default function CommunitySettingsPage(props: Props) {
 
       {canSeeAccessGroups && (
         <>
-          {(props.permissions.canManageSpaces || props.permissions.canManageModeratorPermissions || canManageMembers) && <Separator />}
+          {(props.permissions.canManageSpaces || props.permissions.canManageModeratorPermissions || canManageMembers) && (
+            <Divider className="my-10" />
+          )}
           <AccessGroupsManager communityCuid={props.community.cuid} permissions={props.permissions} refreshKey={accessGroupsVersion} />
         </>
       )}
 
       {props.permissions.canTransferOwnership && (
         <>
-          <Separator />
+          <Divider className="my-10" />
           <TransferOwnershipForm
             communityCuid={props.community.cuid}
             communityName={props.community.name}
@@ -172,7 +174,7 @@ export default function CommunitySettingsPage(props: Props) {
       )}
 
       {(props.permissions.canManageSpaces || props.permissions.canManageModeratorPermissions || canManageMembers || canSeeAccessGroups) &&
-        props.permissions.canDeleteCommunity && <Separator />}
+        props.permissions.canDeleteCommunity && <Divider className="my-10" />}
 
       {props.permissions.canDeleteCommunity && (
         <DeleteCommunityForm communityCuid={props.community.cuid} communityName={props.community.name} />

@@ -4,7 +4,6 @@ import { useTypedPage } from '@knowii/common';
 import UpdateProfileInformationForm from '@/Pages/Profile/Partials/UpdateProfileInformationForm';
 import UpdateAvatarForm from '@/Pages/Profile/Partials/UpdateAvatarForm';
 import OnlineStatusForm from '@/Pages/Profile/Partials/OnlineStatusForm';
-import Separator from '@/Components/Separator';
 import UpdatePasswordForm from '@/Pages/Profile/Partials/UpdatePasswordForm';
 import TwoFactorAuthenticationForm from '@/Pages/Profile/Partials/TwoFactorAuthenticationForm';
 import LogoutOtherBrowserSessionsForm from '@/Pages/Profile/Partials/LogoutOtherBrowserSessionsForm';
@@ -12,6 +11,7 @@ import DeleteUserForm from '@/Pages/Profile/Partials/DeleteUserForm';
 import ConnectedAccountsForm from '@/Pages/Profile/Partials/ConnectedAccountsForm';
 import EntitlementsCard from '@/Pages/Profile/Partials/EntitlementsCard';
 import type { BreadcrumbItem } from '@/Components/ui';
+import { Divider } from '@/Components/ui';
 import { breadcrumbHome } from '../../Components/BreadcrumbHome';
 import { FaUser } from 'react-icons/fa';
 
@@ -37,48 +37,48 @@ export default function UserProfile(props: Props) {
       {page.props.auth.user && (
         <>
           <UpdateAvatarForm name={page.props.auth.user.name} avatarUrl={page.props.auth.user.avatar_url} />
-          <Separator />
+          <Divider className="my-10" />
         </>
       )}
 
       {page.props.jetstream.canUpdateProfileInformation && page.props.auth.user && (
         <UpdateProfileInformationForm user={page.props.auth.user} />
       )}
-      <Separator />
+      <Divider className="my-10" />
 
       {page.props.auth.user && (
         <>
           <OnlineStatusForm showOnlineStatus={page.props.auth.user.show_online_status !== false} />
-          <Separator />
+          <Divider className="my-10" />
         </>
       )}
 
       {page.props.jetstream.canUpdatePassword && <UpdatePasswordForm />}
-      <Separator />
+      <Divider className="my-10" />
 
       {page.props.jetstream.canManageTwoFactorAuthentication && (
         <>
           <TwoFactorAuthenticationForm requiresConfirmation={props.confirmsTwoFactorAuthentication} />
-          <Separator />
+          <Divider className="my-10" />
         </>
       )}
 
       {props.connectedAccounts !== undefined && (
         <>
           <ConnectedAccountsForm accounts={props.connectedAccounts} hasPassword={props.hasPassword ?? true} />
-          <Separator />
+          <Divider className="my-10" />
         </>
       )}
 
       {props.entitlements !== undefined && (
         <>
           <EntitlementsCard entitlements={props.entitlements} />
-          <Separator />
+          <Divider className="my-10" />
         </>
       )}
 
       <LogoutOtherBrowserSessionsForm sessions={props.sessions} />
-      <Separator />
+      <Divider className="my-10" />
 
       {page.props.jetstream.hasAccountDeletionFeatures && <DeleteUserForm deletion={props.accountDeletion} />}
     </AppLayout>
