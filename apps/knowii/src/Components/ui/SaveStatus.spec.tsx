@@ -24,6 +24,18 @@ describe('SaveStatus (#1569)', () => {
     expect(status).toHaveTextContent('Saved');
   });
 
+  it('says the saved value in place of "Saved" when it gets the words (#1515)', () => {
+    const { rerender } = render(<SaveStatus state={{ status: 'saved' }} savedText="Saved: Yes" />);
+    const status = screen.getByRole('status');
+    expect(status).toHaveTextContent('Saved: Yes');
+
+    // The words are for the saved state only
+    rerender(<SaveStatus state={{ status: 'saving' }} savedText="Saved: Yes" />);
+    expect(status).toHaveTextContent('Saving');
+    rerender(<SaveStatus state={{ status: 'idle' }} savedText="Saved: Yes" />);
+    expect(status).toHaveTextContent('');
+  });
+
   it('says the error in the danger text color', () => {
     render(<SaveStatus state={{ status: 'error', message: 'Failed to save who can join.' }} />);
 

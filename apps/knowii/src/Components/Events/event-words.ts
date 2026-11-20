@@ -1,6 +1,20 @@
+import type { EventAnswerValue } from '@knowii/common';
+
 /**
- * The words of the screens of events (#1514, ADR 0053), in one place. A text marked [Q] is a text where the design
- * is silent: the owner confirmed these words on 2026-11-20. A word changes here, and nowhere else. The specs read these values.
+ * The three answers, in the words of the design (3.6)
+ */
+const ANSWER_NAMES: Record<EventAnswerValue, string> = { yes: 'Yes', replay: 'Replay only', no: 'No' };
+
+/**
+ * "12 members", "1 member"
+ */
+const members = (count: number) => (count === 1 ? '1 member' : `${count} members`);
+
+/**
+ * The words of the screens of events (#1514, #1515, ADR 0053), in one place. A text marked [Q] is a text where the
+ * design is silent: the owner confirmed these words on 2026-11-20. A text marked [W] is a text of the screens of the
+ * answers (#1515) that the design does not give: a proposal that waits for the owner. A word changes here, and nowhere
+ * else. The specs read these values.
  */
 export const EVENT_WORDS = {
   // The list of an events space (design 6.1)
@@ -50,8 +64,51 @@ export const EVENT_WORDS = {
   meetingToCome: 'Meeting address to come',
   meetingForMembers: 'The meeting address is for members.',
   signIn: 'Sign in',
-  // [Q] A member of an event whose address is for the people who go (the answers come with slice E2)
-  meetingForHostAndTeam: 'The meeting address is for the host and the team.',
+  // [W] A member of an event whose address is for the members who answer Yes, while the event takes answers
+  meetingForYes: 'The meeting address is for the members who answer Yes.',
+  // [W] The same member, when the event takes no answers any more (cancelled, over)
+  meetingForYesClosed: 'The meeting address is for the members who answered Yes.',
+
+  // The answer of a member (#1515, design 3.6, 6.4 and 11.4)
+  yourAnswer: 'Your answer',
+  answerNames: ANSWER_NAMES,
+  // What the status says after a save: "Saved: Yes"
+  saved: (answer: EventAnswerValue) => `Saved: ${ANSWER_NAMES[answer]}`,
+  // Who sees the answer (design 10.1 point 3, in the words of the approved policy sentence: question 4 of the E2 brief)
+  answerPrivacy: 'The host and the team see your answer (Yes or Replay only). Other members do not.',
+  signInToAnswer: 'Sign in to answer',
+  // [W] A radio cannot be unchecked: a button clears the answer
+  clearAnswer: 'Clear my answer',
+  // [W] What the status says after a clear
+  answerCleared: 'Answer cleared',
+  // The question before a member with a Yes on a full event leaves it (the words of the owner, 2026-11-20)
+  giveUpPlaceQuestion: 'Give up your place?',
+  giveUpPlaceExplanation: 'This event is full. If you change your answer, another member can take your place.',
+  giveUpPlaceConfirm: 'Give up my place',
+  keepPlace: 'Keep my place',
+  // [W] The old answer of a member, as text, on an event that takes no answers: "Your answer: Yes"
+  oldAnswer: (answer: EventAnswerValue) => `Your answer: ${ANSWER_NAMES[answer]}`,
+  // The places that are left, with a limit (design 7.6 point 4). [W] "1 place left"
+  placesLeft: (count: number) => (count === 1 ? '1 place left' : `${count} places left`),
+  full: 'Full',
+
+  // The labels of a card and of "Next events" (design 6.1 point 4). [W] "You said Replay only" and "You said No"
+  youSaid: (answer: EventAnswerValue) => `You said ${ANSWER_NAMES[answer]}`,
+
+  // "Answers", for the host, the owner and the admins (design 6.4 point 3)
+  answers: 'Answers',
+  // [W] Everything of the dialog below
+  answersDescription: 'The host, the owner and the admins see this list. Other members do not.',
+  answersFilter: 'Answers to show',
+  // "Yes (12)", "Replay only (3)"
+  answersOf: (answer: EventAnswerValue, count: number) => `${ANSWER_NAMES[answer]} (${count})`,
+  placesTaken: (taken: number, limit: number) => `${taken} of ${limit} places taken`,
+  answeredNo: (count: number) => (count === 0 ? 'No member answered No.' : `${members(count)} answered No.`),
+  nobodyAnswered: (answer: EventAnswerValue) => `Nobody answered ${ANSWER_NAMES[answer]} yet`,
+  // For screen readers, while the names load
+  answersLoading: 'Loading the answers',
+  // The name of the list of the members: "Members who answered Yes"
+  answersList: (answer: EventAnswerValue) => `Members who answered ${ANSWER_NAMES[answer]}`,
 
   // The actions of the event page. [Q] The design puts the menu in the form, which a moderator cannot open
   edit: 'Edit',
@@ -123,8 +180,25 @@ export const EVENT_WORDS = {
   tooLong: (hours: number) => `An event lasts ${hours} hours at most`,
   fieldMeetingUrl: 'Meeting address',
   meetingUrlHint: 'An address that starts with https://. Only members see it.',
+  // [W] The hint when the address is for the members who answer Yes
+  meetingUrlHintGoing: 'An address that starts with https://. Only members who answer Yes see it.',
   fieldPlace: 'Place',
   placeHint: 'For an event in a room. Only members see it.',
+  // [W]
+  placeHintGoing: 'For an event in a room. Only members who answer Yes see it.',
+  // The three fields of the answers (#1515, design 6.3 point 2). [W] Every text below, except "A replay will exist"
+  fieldLocationVisibility: 'Who sees the meeting address and the place',
+  locationVisibilityMembers: 'Every member',
+  locationVisibilityGoing: 'Members who answer Yes',
+  locationVisibilityGoingHint: 'The host, the owner and the admins always see them.',
+  fieldCapacity: 'Limit of places',
+  capacityHint: 'Leave empty for no limit. Only the Yes answers take a place.',
+  // "12 members answered Yes.", under the limit of a published or cancelled event
+  answeredYes: (count: number) => `${members(count)} answered Yes.`,
+  // The same line when the typed limit is under that number: a hint, the save is not stopped
+  answeredYesOverLimit: (count: number) => `${members(count)} answered Yes. Nobody is removed. No other member can answer Yes.`,
+  replayExpected: 'A replay will exist',
+  replayExpectedHint: 'Members can then answer Replay only.',
   fieldHost: 'Host',
   hostHint: 'One member. Type a name, then choose with the arrows and Enter.',
   hostPlaceholder: 'Name or username',

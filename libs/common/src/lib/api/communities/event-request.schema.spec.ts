@@ -6,7 +6,15 @@ import {
   MAX_LENGTH_EVENT_PLACE,
   MAX_LENGTH_EVENT_TITLE,
 } from '../../constants';
-import { EVENT_SCOPES, eventFormSchema, eventRequestSchema, eventScopeSchema, eventUpdateRequestSchema } from './event-request.schema';
+import {
+  EVENT_CAPACITY_ERROR,
+  EVENT_SCOPES,
+  eventCapacityOf,
+  eventFormSchema,
+  eventRequestSchema,
+  eventScopeSchema,
+  eventUpdateRequestSchema,
+} from './event-request.schema';
 
 const form = {
   title: 'Weekly review office hour',
@@ -19,6 +27,9 @@ const form = {
   time_zone: 'Europe/Brussels',
   meeting_url: 'https://meet.example.com/abc',
   place: '',
+  location_visibility: 'members',
+  capacity: '',
+  replay_expected: false,
 };
 
 const request = {
@@ -61,6 +72,9 @@ describe('eventFormSchema (#1514, design 6.3)', () => {
       time_zone: '',
       meeting_url: 'meet.example.com/abc',
       place: 'x'.repeat(MAX_LENGTH_EVENT_PLACE + 1),
+      location_visibility: 'members',
+      capacity: '',
+      replay_expected: false,
     });
 
     expect(messagesOf(result)).toEqual({
@@ -94,6 +108,30 @@ describe('eventFormSchema (#1514, design 6.3)', () => {
       messagesOf(eventFormSchema.safeParse({ ...form, meeting_url: `https://example.com/${'x'.repeat(MAX_LENGTH_EVENT_MEETING_URL)}` })),
     ).toEqual({ meeting_url: 'The address is too long (maximum 2048 characters)' });
   });
+
+  it('takes who sees the meeting address, the limit of places and the replay choice (#1515)', () => {
+    const parsed = eventFormSchema.parse({ ...form, location_visibility: 'going', capacity: ' 40 ', replay_expected: true });
+
+    expect(parsed).toMatchObject({ location_visibility: 'going', capacity: '40', replay_expected: true });
+    expect(eventFormSchema.safeParse({ ...form, location_visibility: 'everyone' }).success).toBe(false);
+    expect(eventFormSchema.safeParse({ ...form, replay_expected: 'yes' }).success).toBe(false);
+  });
+
+  it('accepts an empty limit, and a whole number from 1 to 5000 in digits', () => {
+    for (const limit of ['', '   ', '1', '40', '5000']) {
+      expect(eventFormSchema.safeParse({ ...form, capacity: limit }).success).toBe(true);
+    }
+    for (const limit of ['0', '5001', '1.5', 'abc', '-3', '1e2', '12 places', '0x10']) {
+      expect(messagesOf(eventFormSchema.safeParse({ ...form, capacity: limit }))).toEqual({ capacity: EVENT_CAPACITY_ERROR });
+    }
+    expect(EVENT_CAPACITY_ERROR).toBe('Use a whole number from 1 to 5000, or leave the field empty');
+  });
+
+  it('reads the limit of a request from the text: null for an empty text', () => {
+    expect(eventCapacityOf('')).toBeNull();
+    expect(eventCapacityOf('  ')).toBeNull();
+    expect(eventCapacityOf(' 40 ')).toBe(40);
+  });
 });
 
 describe('eventRequestSchema (#1514, ADR 0053)', () => {
@@ -114,18 +152,32 @@ describe('eventRequestSchema (#1514, ADR 0053)', () => {
     expect(eventRequestSchema.safeParse({ ...request, state: 'cancelled' }).success).toBe(false);
   });
 
-  it('never carries who sees the meeting address: the form has no field for it', () => {
-    const parsed = eventRequestSchema.parse({ ...request, location_visibility: 'going' });
+  it('takes who sees the meeting address, the limit of places and the replay choice, all optional (#1515)', () => {
+    const parsed = eventRequestSchema.parse({ ...request, location_visibility: 'going', capacity: 40, replay_expected: true });
+
+    expect(parsed).toMatchObject({ location_visibility: 'going', capacity: 40, replay_expected: true });
+    // Absent: the server keeps `members`, no limit and no replay
+    expect(Object.keys(eventRequestSchema.parse(request))).not.toContain('capacity');
+    // Null removes the limit
+    expect(eventRequestSchema.parse({ ...request, capacity: null }).capacity).toBeNull();
+    for (const limit of [0, 5001, 1.5, '40']) {
+      expect(eventRequestSchema.safeParse({ ...request, capacity: limit }).success).toBe(false);
+    }
+    expect(eventRequestSchema.safeParse({ ...request, location_visibility: 'everyone' }).success).toBe(false);
+    expect(eventRequestSchema.safeParse({ ...request, replay_expected: 'yes' }).success).toBe(false);
+  });
+
+  it('carries the three fields in a change, and never a state: the state has its own call', () => {
     const changed = eventUpdateRequestSchema.parse({
       title: 'A better title',
       location_visibility: 'going',
+      capacity: null,
+      replay_expected: false,
       state: 'published',
       notify_now: true,
     });
 
-    expect(Object.keys(parsed)).not.toContain('location_visibility');
-    // A change carries no state either: the state has its own call
-    expect(changed).toEqual({ title: 'A better title' });
+    expect(changed).toEqual({ title: 'A better title', location_visibility: 'going', capacity: null, replay_expected: false });
   });
 
   it('accepts a change of one field', () => {

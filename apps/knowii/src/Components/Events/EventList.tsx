@@ -47,9 +47,10 @@ export interface EventListProps {
  * keeps the focus, and the status says which list opened and how many events it holds. Only the cards and their state
  * start again (`EventCards` has the scope as its key).
  *
- * Live (ADR 0053 point 9, never for a visitor): the space channel names an event that was published, changed or removed.
- * The list gets that one event again and inserts, replaces or removes its card; an event that the reader may no longer
- * see (403, 404) goes. A card that has the focus gives it to the next card before it goes.
+ * Live (ADR 0053 point 9, never for a visitor): the space channel names an event that was published, changed or removed,
+ * or whose places changed (#1515). The list gets that one event again and inserts, replaces or removes its card; an
+ * event that the reader may no longer see (403, 404) goes. A card that has the focus gives it to the next card before
+ * it goes.
  */
 export function EventList({ community, space, initialEvents, scope, canContribute }: EventListProps) {
   const sectionRef = useRef<HTMLElement>(null);
@@ -229,7 +230,8 @@ function EventCards({ community, space, initialEvents, scope, sectionRef, emptyA
     channel,
     // A visitor gets a static page: no connection (#1387, ADR 0044 point 13)
     enabled: !isVisitor,
-    event: ['space.event.created', 'space.event.updated', 'space.event.deleted'],
+    // `answers.changed` (#1515): the places of an event with a limit changed, and its card says "28 places left" or "Full"
+    event: ['space.event.created', 'space.event.updated', 'space.event.deleted', 'space.event.answers.changed'],
     callback: (_name, payload) => {
       const { event_cuid: eventCuid } = payload as SpaceContentPayload;
       // `space.event.deleted` too: it also says that an event went back to draft, and its host, the owner and the

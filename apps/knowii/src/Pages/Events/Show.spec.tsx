@@ -59,10 +59,17 @@ beforeAll(() => {
   Object.defineProperty(globalThis, 'route', { value: eventsRoute, writable: true });
 });
 
-const NONE: EventPermissions = { canUpdate: false, canCancel: false, canDelete: false, canDuplicate: false };
-const ALL: EventPermissions = { canUpdate: true, canCancel: true, canDelete: true, canDuplicate: true };
-// A moderator with the right to delete content: cancels and deletes the events of others, and does not edit them
-const MODERATOR: EventPermissions = { canUpdate: false, canCancel: true, canDelete: true, canDuplicate: false };
+const NONE: EventPermissions = { canUpdate: false, canCancel: false, canDelete: false, canDuplicate: false, canViewAnswers: false };
+// The host, the owner and the admins: they also read the answers (#1515)
+const ALL: EventPermissions = { canUpdate: true, canCancel: true, canDelete: true, canDuplicate: true, canViewAnswers: true };
+// A moderator with the right to delete content: cancels and deletes the events of others, does not edit them, and does
+// not read the answers
+const MODERATOR: EventPermissions = { canUpdate: false, canCancel: true, canDelete: true, canDuplicate: false, canViewAnswers: false };
+
+// What a load asks of the router (#1515): the event alone, or every prop. Each load also gives its callbacks (the cancel
+// function, the end), so the options are never the bare object
+const EVENT_ALONE = expect.objectContaining({ only: ['event'] });
+const WHOLE_PAGE = expect.not.objectContaining({ only: expect.anything() });
 
 type Reader = 'member' | 'outsider' | 'visitor';
 
@@ -311,11 +318,238 @@ describe('the page of an event (#1514, design 6.2)', () => {
       expect(within(block()).queryByRole('link')).toBeNull();
     });
 
-    it('tells a member of a "going" event that the address is for the host and the team', () => {
-      renderPage(withBody({ can_view_location: false, meeting_url: null, place: null, location_visibility: 'going' }));
+    // For the members who answer Yes: the server cut the address and the place (#1515)
+    const going = (changes: Record<string, unknown> = {}) =>
+      withBody({ can_view_location: false, meeting_url: null, place: null, location_visibility: 'going', ...changes });
 
-      expect(within(block()).getByText('The meeting address is for the host and the team.')).toBeInTheDocument();
+    it('tells a member of a "going" event that the address is for the members who answer Yes (rule 26)', () => {
+      renderPage(going());
+
+      expect(within(block()).getByText('The meeting address is for the members who answer Yes.')).toBeInTheDocument();
       expect(within(block()).queryByRole('link')).toBeNull();
+      expect(screen.queryByText(/for the host and the team/)).toBeNull();
+    });
+
+    it.each([
+      ['a cancelled event', { state: 'cancelled', can_answer: false }],
+      ['an event that ended', { is_past: true, can_answer: false }],
+    ])('says "answered Yes" when the event takes no answers any more: %s (rule 26)', (_name, changes) => {
+      renderPage(going({ ...changes, my_answer: 'no' }));
+
+      expect(within(block()).getByText('The meeting address is for the members who answered Yes.')).toBeInTheDocument();
+    });
+
+    it('shows "Join the meeting" and the place after a Yes, when the page gets the event again, and the sentence after a "No" (rule 27)', async () => {
+      const set = vi
+        .spyOn(knowiiApiClient.communities.events.answer, 'set')
+        .mockImplementation((_c, _s, _e, answer) => Promise.resolve({ ok: true, message: '', data: { answer, updated_at: new Date() } }));
+      const { rerender } = renderPage(going({ places_left: 28 }));
+      const page = (event: SpaceEvent) => (
+        <AppDataProvider>
+          <EventPage community={eventsCommunity} space={eventsSpace} spaceGroups={[]} event={event} permissions={NONE} />
+          <Toaster />
+        </AppDataProvider>
+      );
+
+      await userEvent.click(screen.getByRole('radio', { name: 'Yes' }));
+      await waitFor(() => expect(shared.reload).toHaveBeenCalledWith(EVENT_ALONE));
+      expect(set).toHaveBeenCalledWith('c1', 's1', 'e1', 'yes');
+      // The block shows only what it received: nothing changes before the server gives the event again
+      expect(within(block()).queryByRole('link')).toBeNull();
+
+      // The answer of the load: the server now gives the address and the place to this member
+      rerender(
+        page(
+          withBody({
+            location_visibility: 'going',
+            my_answer: 'yes',
+            places_left: 27,
+            can_view_location: true,
+            meeting_url: 'https://meet.example.com/abc',
+            place: 'Room 2',
+          }),
+        ),
+      );
+      expect(within(block()).getByRole('link', { name: /Join the meeting/ })).toHaveAttribute('href', 'https://meet.example.com/abc');
+      expect(within(block()).getByText('Room 2')).toBeInTheDocument();
+      expect(screen.getByText('27 places left')).toBeInTheDocument();
+
+      // "No": the server cuts them again
+      rerender(page(going({ my_answer: 'no', places_left: 28 })));
+      expect(within(block()).queryByRole('link')).toBeNull();
+      expect(within(block()).getByText('The meeting address is for the members who answer Yes.')).toBeInTheDocument();
+    });
+
+    it('changes nothing for a visitor and for a person who is not a member of a "going" event (rule 28)', () => {
+      const forOthers = going({ can_answer: false });
+      const { unmount } = renderPage(forOthers, { reader: 'visitor' });
+      expect(within(block()).getByText('The meeting address is for members.')).toBeInTheDocument();
+      expect(within(block()).getByRole('link', { name: 'Sign in' })).toBeInTheDocument();
+      unmount();
+
+      renderPage(forOthers, { reader: 'outsider' });
+      expect(within(block()).getByText('The meeting address is for members.')).toBeInTheDocument();
+      expect(within(block()).queryByRole('link')).toBeNull();
+    });
+  });
+
+  describe('the answer of the reader (#1515, rules 1, 11, 13 and 61)', () => {
+    const answerCalls = () => [
+      vi.spyOn(knowiiApiClient.communities.events.answer, 'get'),
+      vi.spyOn(knowiiApiClient.communities.events.answer, 'set'),
+      vi.spyOn(knowiiApiClient.communities.events.answer, 'clear'),
+      vi.spyOn(knowiiApiClient.communities.events.answers, 'list'),
+    ];
+
+    it('puts the answer group after the host and before the meeting block (rule 1)', () => {
+      renderPage(withBody({ replay_expected: true, places_left: 28 }));
+
+      const host = screen.getByRole('heading', { level: 2, name: 'Host' });
+      const group = screen.getByRole('radiogroup', { name: 'Your answer' });
+      const meeting = screen.getByRole('heading', { level: 2, name: 'Meeting' });
+      expect(host.compareDocumentPosition(group) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(group.compareDocumentPosition(meeting) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(screen.getByText('28 places left')).toBeInTheDocument();
+    });
+
+    it('loads the event alone after a save, and no other prop (rule 11)', async () => {
+      vi.spyOn(knowiiApiClient.communities.events.answer, 'set').mockResolvedValue({
+        ok: true,
+        message: '',
+        data: { answer: 'no', updated_at: new Date() },
+      });
+      renderPage(withBody());
+
+      await userEvent.click(screen.getByRole('radio', { name: 'No' }));
+
+      await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Saved: No'));
+      expect(shared.reload).toHaveBeenCalledTimes(1);
+      expect(shared.reload).toHaveBeenCalledWith(EVENT_ALONE);
+    });
+
+    it.each([404, 403])(
+      'loads the whole page again when a save answers %i: the server decides what the reader sees (rule 13)',
+      async (status) => {
+        vi.spyOn(knowiiApiClient.communities.events.answer, 'set').mockResolvedValue({ ok: false, status, message: 'Gone', errors: {} });
+        renderPage(withBody());
+
+        await userEvent.click(screen.getByRole('radio', { name: 'Yes' }));
+
+        await waitFor(() => expect(shared.reload).toHaveBeenCalledTimes(1));
+        expect(shared.reload).toHaveBeenCalledWith(WHOLE_PAGE);
+      },
+    );
+
+    it('gives a visitor "Sign in to answer" and sends no request to the routes of the answers (rules 19 and 61)', () => {
+      const calls = answerCalls();
+
+      renderPage(withBody({ can_view_location: false, meeting_url: null, can_answer: false, replay_expected: true }), {
+        reader: 'visitor',
+      });
+
+      expect(screen.getByRole('heading', { level: 2, name: 'Your answer' })).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Sign in to answer' })).toHaveAttribute('href', '/login');
+      expect(screen.queryByRole('radio')).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Answers' })).toBeNull();
+      for (const call of calls) {
+        expect(call).not.toHaveBeenCalled();
+      }
+    });
+
+    it('gives a person who is not a member no answer group and sends no request (rules 20 and 61)', () => {
+      const calls = answerCalls();
+
+      renderPage(withBody({ can_view_location: false, meeting_url: null, can_answer: false }), { reader: 'outsider' });
+
+      expect(screen.queryByText('Your answer')).toBeNull();
+      expect(screen.queryByRole('radio')).toBeNull();
+      for (const call of calls) {
+        expect(call).not.toHaveBeenCalled();
+      }
+    });
+
+    it('sends no request when the page of a member shows: the answer comes with the event (rule 21)', () => {
+      const calls = answerCalls();
+
+      renderPage(withBody({ my_answer: 'yes' }), { permissions: ALL });
+
+      expect(screen.getByRole('radio', { name: 'Yes' })).toBeChecked();
+      for (const call of calls) {
+        expect(call).not.toHaveBeenCalled();
+      }
+    });
+  });
+
+  describe('"Answers" (#1515, rules 34 and 35)', () => {
+    const answers = (yes: number) => ({
+      ok: true as const,
+      message: '',
+      data: {
+        items: [{ cuid: 'u2', name: 'Bea Bell', username: 'bea', avatar_url: null }],
+        pagination: { limit: 20, offset: 0, previousOffset: null, nextOffset: null, currentPage: 1, pageCount: 1, totalCount: yes },
+        counts: { yes, replay: 0, no: 0 },
+      },
+    });
+
+    it.each([
+      ['the host, the owner and the admins', ALL, true],
+      ['a moderator who is not the host', MODERATOR, false],
+      ['a member', NONE, false],
+      // The host of a draft changes it, and a draft has no answers to read
+      ['the host of a draft', { ...ALL, canViewAnswers: false }, false],
+    ])('shows the button "Answers" next to "Edit" only with the right: %s', (_name, permissions, shown) => {
+      renderPage(withBody(), { permissions });
+
+      const button = screen.queryByRole('button', { name: 'Answers' });
+      expect(button !== null).toBe(shown);
+      if (button) {
+        const edit = screen.getByRole('link', { name: 'Edit' });
+        expect(edit.parentElement).toBe(button.parentElement);
+      }
+    });
+
+    it('shows no button to a visitor and to a person who is not a member', () => {
+      const { unmount } = renderPage(withBody({ can_view_location: false, meeting_url: null, can_answer: false }), { reader: 'visitor' });
+      expect(screen.queryByRole('button', { name: 'Answers' })).toBeNull();
+      unmount();
+
+      renderPage(withBody({ can_view_location: false, meeting_url: null, can_answer: false }), { reader: 'outsider' });
+      expect(screen.queryByRole('button', { name: 'Answers' })).toBeNull();
+    });
+
+    it.each(['{Enter}', ' '])('opens the dialog with the key "%s", and Escape gives the focus back to the button', async (key) => {
+      const list = vi.spyOn(knowiiApiClient.communities.events.answers, 'list').mockResolvedValue(answers(1));
+      renderPage(withBody(), { permissions: ALL });
+      const button = screen.getByRole('button', { name: 'Answers' });
+      expect(list).not.toHaveBeenCalled();
+
+      button.focus();
+      await userEvent.keyboard(key);
+
+      const dialog = await screen.findByRole('dialog', { name: 'Answers' });
+      expect(dialog).toHaveAccessibleDescription('The host, the owner and the admins see this list. Other members do not.');
+      expect(await within(dialog).findByRole('link', { name: 'Bea Bell' })).toHaveAttribute('href', '/community/tests/member/bea');
+      expect(list).toHaveBeenCalledWith('c1', 's1', 'e1', 'yes', 20, 0);
+
+      await userEvent.keyboard('{Escape}');
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+      await waitFor(() => expect(button).toHaveFocus());
+    });
+
+    it('closes the dialog and loads the page again when the list is no longer for the reader (rule 42)', async () => {
+      vi.spyOn(knowiiApiClient.communities.events.answers, 'list').mockResolvedValue({
+        ok: false,
+        status: 403,
+        message: 'This action is unauthorized.',
+        errors: {},
+      });
+      renderPage(withBody(), { permissions: ALL });
+
+      await userEvent.click(screen.getByRole('button', { name: 'Answers' }));
+
+      await waitFor(() => expect(shared.reload).toHaveBeenCalledTimes(1));
+      expect(shared.reload).toHaveBeenCalledWith(WHOLE_PAGE);
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     });
   });
 
@@ -593,8 +827,315 @@ describe('the page of an event (#1514, design 6.2)', () => {
       renderPage(withBody({ can_view_location: false, meeting_url: null }), { reader: 'visitor' });
 
       emit('space.event.updated', 'e1');
+      emit('space.event.answers.changed', 'e1');
 
       expect(shared.reload).not.toHaveBeenCalled();
+    });
+
+    describe('the places changed (#1515, rules 55 and 56)', () => {
+      // The signal names the event only: no member
+      const places = (eventCuid: string) =>
+        act(() => emitSocketEvent(channel, 'space.event.answers.changed', { space_cuid: 's1', event_cuid: eventCuid, author_cuid: null }));
+
+      it('loads the event alone again for this event, and nothing for another event (rule 55)', () => {
+        renderPage(withBody({ places_left: 28 }));
+
+        places('e2');
+        expect(shared.reload).not.toHaveBeenCalled();
+
+        places('e1');
+        expect(shared.reload).toHaveBeenCalledTimes(1);
+        expect(shared.reload).toHaveBeenCalledWith(EVENT_ALONE);
+      });
+
+      it('keeps the dialog "Answers" open, the focus, the status and the alert of the answer group (rule 55)', async () => {
+        vi.spyOn(knowiiApiClient.communities.events.answers, 'list').mockResolvedValue({
+          ok: true,
+          message: '',
+          data: {
+            items: [{ cuid: 'u2', name: 'Bea Bell', username: 'bea', avatar_url: null }],
+            pagination: { limit: 20, offset: 0, previousOffset: null, nextOffset: null, currentPage: 1, pageCount: 1, totalCount: 1 },
+            counts: { yes: 1, replay: 0, no: 0 },
+          },
+        });
+        vi.spyOn(knowiiApiClient.communities.events.answer, 'set').mockResolvedValue({
+          ok: false,
+          status: 422,
+          message: 'This event is full.',
+          errors: {},
+        });
+        const { rerender } = renderPage(withBody({ places_left: 1 }), { permissions: ALL });
+        const page = (event: SpaceEvent) => (
+          <AppDataProvider>
+            <EventPage community={eventsCommunity} space={eventsSpace} spaceGroups={[]} event={event} permissions={ALL} />
+            <Toaster />
+          </AppDataProvider>
+        );
+
+        // A refused Yes: the alert of the group is there, and the focus is in the group
+        await userEvent.click(screen.getByRole('radio', { name: 'Yes' }));
+        const alert = () => screen.getAllByRole('alert').find((element) => element.textContent === 'This event is full.');
+        await waitFor(() => expect(alert()).toBeDefined());
+        const focused = document.activeElement;
+        shared.reload.mockClear();
+
+        places('e1');
+        // The server gives the event again: no place is left
+        rerender(page(withBody({ places_left: 0 })));
+
+        expect(shared.reload).toHaveBeenCalledTimes(1);
+        expect(shared.reload).toHaveBeenCalledWith(EVENT_ALONE);
+        expect(alert()).toBeDefined();
+        expect(document.activeElement).toBe(focused);
+        expect(screen.getByText('Full')).toBeInTheDocument();
+
+        // The dialog stays open over the same signal
+        await userEvent.click(screen.getByRole('button', { name: 'Answers' }));
+        const dialog = await screen.findByRole('dialog', { name: 'Answers' });
+        expect(await within(dialog).findByRole('link', { name: 'Bea Bell' })).toBeInTheDocument();
+        const inDialog = document.activeElement;
+        places('e1');
+        rerender(page(withBody({ places_left: 0, updated_at: '2026-11-11T08:00:00.000000Z' })));
+        expect(screen.getByRole('dialog', { name: 'Answers' })).toBeInTheDocument();
+        expect(within(dialog).getByRole('link', { name: 'Bea Bell' })).toBeInTheDocument();
+        expect(document.activeElement).toBe(inDialog);
+      });
+
+      it('keeps "Saved: Yes" in the status of the group when the signal comes after the save (rule 55)', async () => {
+        vi.spyOn(knowiiApiClient.communities.events.answer, 'set').mockResolvedValue({
+          ok: true,
+          message: '',
+          data: { answer: 'yes', updated_at: new Date() },
+        });
+        renderPage(withBody({ places_left: 28 }));
+
+        await userEvent.click(screen.getByRole('radio', { name: 'Yes' }));
+        await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Saved: Yes'));
+        places('e1');
+
+        expect(screen.getByRole('status')).toHaveTextContent('Saved: Yes');
+        expect(screen.getByRole('radio', { name: 'Yes' })).toHaveFocus();
+      });
+
+      it('saves nothing when the signal comes while the question "Give up your place?" is open: the event loads, the question stays', async () => {
+        const set = vi.spyOn(knowiiApiClient.communities.events.answer, 'set').mockResolvedValue({
+          ok: true,
+          message: '',
+          data: { answer: 'no', updated_at: new Date() },
+        });
+        const { rerender } = renderPage(withBody({ places_left: 0, my_answer: 'yes' }));
+
+        // A member with a Yes on a full event leaves it: the page asks first
+        await userEvent.click(screen.getByRole('radio', { name: 'No' }));
+        const dialog = await screen.findByRole('dialog', { name: 'Give up your place?' });
+        expect(set).not.toHaveBeenCalled();
+
+        // Another member left: a place is free. The page gets the event, and sends no answer by itself
+        places('e1');
+        rerender(
+          <AppDataProvider>
+            <EventPage
+              community={eventsCommunity}
+              space={eventsSpace}
+              spaceGroups={[]}
+              event={withBody({ places_left: 1, my_answer: 'yes' })}
+              permissions={NONE}
+            />
+            <Toaster />
+          </AppDataProvider>,
+        );
+        expect(shared.reload).toHaveBeenCalledTimes(1);
+        expect(shared.reload).toHaveBeenCalledWith(EVENT_ALONE);
+        expect(set).not.toHaveBeenCalled();
+        expect(screen.getByRole('dialog', { name: 'Give up your place?' })).toBe(dialog);
+
+        // The member confirms: one save, then one load of the event
+        await userEvent.click(within(dialog).getByRole('button', { name: 'Give up my place' }));
+        expect(set).toHaveBeenCalledTimes(1);
+        expect(set).toHaveBeenCalledWith('c1', 's1', 'e1', 'no');
+        await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Saved: No'));
+        expect(shared.reload).toHaveBeenCalledTimes(2);
+        expect(shared.reload).toHaveBeenLastCalledWith(EVENT_ALONE);
+      });
+
+      it('does one load, after the save, when the signal comes while the answer is saved (rule 56)', async () => {
+        let answer: (result: { ok: true; message: string; data: { answer: 'yes'; updated_at: Date } }) => void = () => undefined;
+        vi.spyOn(knowiiApiClient.communities.events.answer, 'set').mockImplementation(
+          () =>
+            new Promise((resolve) => {
+              answer = resolve;
+            }),
+        );
+        renderPage(withBody({ places_left: 28 }));
+
+        await userEvent.click(screen.getByRole('radio', { name: 'Yes' }));
+        // The server sends the signal of this very answer before it answers the request
+        places('e1');
+        expect(shared.reload).not.toHaveBeenCalled();
+
+        await act(async () => answer({ ok: true, message: '', data: { answer: 'yes', updated_at: new Date() } }));
+
+        expect(shared.reload).toHaveBeenCalledTimes(1);
+        expect(shared.reload).toHaveBeenCalledWith(EVENT_ALONE);
+
+        // A signal after the save is a change of another member: the event loads again
+        places('e1');
+        expect(shared.reload).toHaveBeenCalledTimes(2);
+      });
+    });
+  });
+
+  describe('one load at a time (#1515): an older event never lands after a newer one', () => {
+    const channel = 'community.c1.space.s1';
+    const signal = (name: string) =>
+      act(() =>
+        emitSocketEvent(channel, name, { space_cuid: 's1', event_cuid: 'e1', author_cuid: name.endsWith('changed') ? null : 'someone' }),
+      );
+    const places = () => signal('space.event.answers.changed');
+
+    interface LoadOptions {
+      only?: string[];
+      onCancelToken?: (token: { cancel: () => void }) => void;
+      onSuccess?: () => void;
+      onFinish?: () => void;
+    }
+    interface Load {
+      options: LoadOptions;
+      cancelled: boolean;
+      ended: boolean;
+    }
+    // The loads that the page started, in their order
+    const loads: Load[] = [];
+    const load = (index: number) => loads[index] as Load;
+
+    beforeEach(() => {
+      loads.length = 0;
+      // The router as Inertia 3.11 runs a load (`Request.send` and `Request.cancel` of @inertiajs/core): it gives the
+      // cancel function before `reload` returns, and a cancelled load is aborted and ends (onFinish) without a success
+      shared.reload.mockImplementation((options: LoadOptions = {}) => {
+        const started: Load = { options, cancelled: false, ended: false };
+        loads.push(started);
+        options.onCancelToken?.({
+          cancel: () => {
+            if (started.ended) {
+              return;
+            }
+            started.cancelled = true;
+            started.ended = true;
+            options.onFinish?.();
+          },
+        });
+      });
+    });
+    afterEach(() => {
+      shared.reload.mockReset();
+    });
+
+    const page = (event: SpaceEvent) => (
+      <AppDataProvider>
+        <EventPage community={eventsCommunity} space={eventsSpace} spaceGroups={[]} event={event} permissions={NONE} />
+        <Toaster />
+      </AppDataProvider>
+    );
+    /**
+     * The answer of the server to a load arrives: the page gets its event, but never from a load that was cancelled
+     */
+    const land = (started: Load, rerender: (tree: React.ReactElement) => void, event: SpaceEvent) => {
+      if (started.cancelled || started.ended) {
+        return false;
+      }
+      act(() => rerender(page(event)));
+      started.ended = true;
+      started.options.onSuccess?.();
+      started.options.onFinish?.();
+      return true;
+    };
+    const slowSave = () => {
+      let answer: (result: { ok: true; message: string; data: { answer: 'yes'; updated_at: Date } }) => void = () => undefined;
+      vi.spyOn(knowiiApiClient.communities.events.answer, 'set').mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            answer = resolve;
+          }),
+      );
+      return async () => act(async () => answer({ ok: true, message: '', data: { answer: 'yes', updated_at: new Date() } }));
+    };
+
+    it('cancels load A when a save starts, starts load B after the save, and only B lands', async () => {
+      const endSave = slowSave();
+      const { rerender } = renderPage(withBody({ places_left: 28 }));
+
+      // Load A: the places changed. The server reads the event before the answer of the reader exists
+      places();
+      expect(loads).toHaveLength(1);
+      expect(load(0).options.only).toEqual(['event']);
+      expect(load(0).cancelled).toBe(false);
+
+      // The save starts: A is cancelled, and no load starts while the save runs
+      await userEvent.click(screen.getByRole('radio', { name: 'Yes' }));
+      expect(load(0).cancelled).toBe(true);
+      places();
+      expect(loads).toHaveLength(1);
+
+      // The save ends: load B starts
+      await endSave();
+      expect(loads).toHaveLength(2);
+      expect(load(1).options.only).toEqual(['event']);
+      expect(load(1).cancelled).toBe(false);
+
+      // A holds the event of before the answer. It arrives last and never lands; B lands
+      expect(land(load(1), rerender, withBody({ my_answer: 'yes', places_left: 27 }))).toBe(true);
+      expect(land(load(0), rerender, withBody({ my_answer: null, places_left: 28 }))).toBe(false);
+      expect(screen.getByRole('radio', { name: 'Yes' })).toBeChecked();
+      expect(screen.getByText('27 places left')).toBeInTheDocument();
+      expect(screen.getByRole('status')).toHaveTextContent('Saved: Yes');
+    });
+
+    it('cancels the load that runs when a new load starts, and leaves a load that ended alone', () => {
+      const { rerender } = renderPage(withBody({ places_left: 28 }));
+
+      places();
+      places();
+      expect(loads).toHaveLength(2);
+      expect(load(0).cancelled).toBe(true);
+      expect(load(1).cancelled).toBe(false);
+
+      // The second load lands: the next one has nothing to cancel
+      expect(land(load(1), rerender, withBody({ places_left: 27 }))).toBe(true);
+      places();
+      expect(loads).toHaveLength(3);
+      expect(load(1).cancelled).toBe(false);
+      expect(load(2).cancelled).toBe(false);
+    });
+
+    it('loads the whole page in place of a load of the whole page that it cancelled, until one lands', () => {
+      const { rerender } = renderPage(withBody({ places_left: 28 }));
+
+      // The event changed: every prop. Then the places changed: the event alone would lose the other props
+      signal('space.event.updated');
+      expect(load(0).options.only).toBeUndefined();
+      places();
+      expect(load(0).cancelled).toBe(true);
+      expect(load(1).options.only).toBeUndefined();
+
+      // The whole page landed: the next load of the places is of the event alone
+      expect(land(load(1), rerender, withBody({ places_left: 27 }))).toBe(true);
+      places();
+      expect(load(2).options.only).toEqual(['event']);
+    });
+
+    it('does one load of the whole page after the save, when the event changed while the answer was saved', async () => {
+      const endSave = slowSave();
+      renderPage(withBody({ places_left: 28 }));
+
+      await userEvent.click(screen.getByRole('radio', { name: 'Yes' }));
+      signal('space.event.updated');
+      places();
+      expect(loads).toHaveLength(0);
+
+      await endSave();
+      expect(loads).toHaveLength(1);
+      expect(load(0).options.only).toBeUndefined();
     });
   });
 
@@ -610,8 +1151,16 @@ describe('the page of an event (#1514, design 6.2)', () => {
     };
 
     it.each([
-      ['the host of a draft', withBody({ state: 'draft', cover, cover_alt: 'The team' }), { permissions: ALL }],
-      ['a member of a cancelled event', withBody({ state: 'cancelled', place: 'Room 2' }), {}],
+      ['the host of a draft', withBody({ state: 'draft', cover, cover_alt: 'The team', can_answer: false }), { permissions: ALL }],
+      ['a member of a cancelled event', withBody({ state: 'cancelled', place: 'Room 2', can_answer: false, my_answer: 'yes' }), {}],
+      ['a member who did not answer an event with a limit and a replay', withBody({ replay_expected: true, places_left: 28 }), {}],
+      [
+        'a member who answered Yes on a "going" event',
+        withBody({ replay_expected: true, places_left: 27, my_answer: 'yes', location_visibility: 'going' }),
+        {},
+      ],
+      ['a member of a full event', withBody({ replay_expected: true, places_left: 0 }), {}],
+      ['the host of a published event, with "Answers"', withBody({ capacity: 40, places_left: 28 }), { permissions: ALL }],
       ['a visitor', withBody({ can_view_location: false, meeting_url: null, place: null, host: null }), { reader: 'visitor' as const }],
       [
         'an outsider of a past event',

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, router } from '@inertiajs/react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,15 +18,18 @@ import {
   ACCEPTED_IMAGE_TYPES,
   browserTimeZone,
   EVENT_URL,
+  eventCapacityOf,
   eventFormSchema,
   formatEventRange,
   instantToZonedDateTime,
   knowiiApiClient,
+  MAX_EVENT_CAPACITY,
   MAX_EVENT_DURATION_HOURS,
   MAX_LENGTH_EVENT_COVER_ALT,
   MAX_LENGTH_EVENT_PLACE,
   MAX_LENGTH_EVENT_TITLE,
   MAX_UPLOAD_SIZE_BYTES,
+  MIN_EVENT_CAPACITY,
   POST_EDITOR_ROWS,
   readsTheSameInZones,
   SPACE_URL,
@@ -151,7 +154,23 @@ function startValues(event: SpaceEvent | null, defaultZone: string): EventFormVa
     time_zone: event?.time_zone ?? defaultZone,
     meeting_url: event?.meeting_url ?? '',
     place: event?.place ?? '',
+    location_visibility: event?.location_visibility ?? 'members',
+    // Empty: no limit
+    capacity: typeof event?.capacity === 'number' ? String(event.capacity) : '',
+    replay_expected: event?.replay_expected ?? false,
   };
+}
+
+/**
+ * The limit that a text of the field means, or null: an empty text, and a text that is no limit
+ */
+function limitOf(text: string): number | null {
+  const value = text.trim();
+  if (!/^\d+$/.test(value)) {
+    return null;
+  }
+  const limit = Number(value);
+  return limit >= MIN_EVENT_CAPACITY && limit <= MAX_EVENT_CAPACITY ? limit : null;
 }
 
 /**
@@ -167,8 +186,9 @@ function storedChoice(date: string, time: string, zone: string, offsetMinutes: n
 
 /**
  * The form of the host of an event (#1514, ADR 0053, design 4.2, 6.3 and 11.1): the title, the description, the cover,
- * "When" (native date and time fields, and the zone in a list that filters), the meeting address, the place and the
- * host. It is a page, not a dialog. Every save goes through the API.
+ * "When" (native date and time fields, and the zone in a list that filters), the meeting address, the place, who sees
+ * them, the limit of places, "A replay will exist" (#1515) and the host. It is a page, not a dialog. Every save goes
+ * through the API.
  *
  * The times. The host types a date and a time in a zone; the form sends the instant with the offset of the zone at
  * that time, and the zone. A status under the fields repeats what was typed, in words, with the zone and its offset,
@@ -181,8 +201,11 @@ function storedChoice(date: string, time: string, zone: string, offsetMinutes: n
  * form follows the event that the server answered after each one: when a later request fails, its buttons are the ones
  * of the state that the event really has, and the message says what was saved.
  *
- * No field for who sees the meeting address: until members can answer, the other value would hide the address from
- * every member. The form never sends that field, so a change keeps the stored value.
+ * The answers (#1515, design 6.3 point 2 and 7.6 point 5). "Who sees the meeting address and the place": every member,
+ * or the members who answer Yes, and the hints of the two fields follow the choice. "Limit of places": empty means no
+ * limit, and only the Yes answers take a place. The form of a published or cancelled event reads the number of Yes
+ * answers once, and says it under the limit. A limit under that number is accepted: nobody is removed, and the line
+ * says so when the person leaves the field. "A replay will exist" offers the answer "Replay only".
  */
 export function EventForm({ community, space, event, timeZones, permissions, currentUser }: EventFormProps) {
   const { showToast } = useAppData();
@@ -257,6 +280,29 @@ export function EventForm({ community, space, event, timeZones, permissions, cur
   const [host, setHost] = useState<Author[]>(() => (event ? (event.host ? [event.host] : []) : [currentUser]));
   const [hostError, setHostError] = useState<string | null>(null);
 
+  // The number of Yes answers of a published or cancelled event, read once. Null: not read, a draft, a new event
+  const [yesCount, setYesCount] = useState<number | null>(null);
+  // The limit as it was when the person left its field: the line under it follows this copy, never each key
+  const [checkedCapacity, setCheckedCapacity] = useState(initial.capacity);
+  useEffect(() => {
+    // A new event and a draft have no answers. The people who open this form may read the answers of the event
+    if (event === null || event.state === 'draft') {
+      return;
+    }
+    let closed = false;
+    void knowiiApiClient.communities.events.answers.list(community.cuid, space.cuid, event.cuid, 'yes', 1, 0).then((result) => {
+      // A failure shows no line and no error: the number is a help, the save does not need it
+      if (!closed && result.ok) {
+        setYesCount(result.data.counts.yes);
+      }
+    });
+    return () => {
+      closed = true;
+    };
+    // Once, for the event of the form: `Form.tsx` gives another event another form
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [notifyNow, setNotifyNow] = useState(false);
   const [busy, setBusy] = useState<Intent | null>(null);
   const busyRef = useRef(false);
@@ -329,7 +375,19 @@ export function EventForm({ community, space, event, timeZones, permissions, cur
     }
   };
 
-  const [startTime, endTime, coverAlt] = useWatch({ control: form.control, name: ['start_time', 'end_time', 'cover_alt'] });
+  const [startTime, endTime, coverAlt, locationVisibility] = useWatch({
+    control: form.control,
+    name: ['start_time', 'end_time', 'cover_alt', 'location_visibility'],
+  });
+  const forGoing = locationVisibility === 'going';
+  // "12 members answered Yes.", and what a limit under that number means. Nothing without a Yes answer
+  const checkedLimit = limitOf(checkedCapacity);
+  const yesLine =
+    yesCount === null || yesCount === 0
+      ? ''
+      : checkedLimit !== null && checkedLimit < yesCount
+        ? EVENT_WORDS.answeredYesOverLimit(yesCount)
+        : EVENT_WORDS.answeredYes(yesCount);
   const endTimeNotAfterStart = endsOnAnotherDay(startTime, endTime);
   const showEndDate = endTimeNotAfterStart || keepsEndDate;
 
@@ -382,6 +440,9 @@ export function EventForm({ community, space, event, timeZones, permissions, cur
       time_zone: 'time_zone',
       meeting_url: 'meeting_url',
       place: 'place',
+      location_visibility: 'location_visibility',
+      capacity: 'capacity',
+      replay_expected: 'replay_expected',
     };
     let shown = false;
     for (const [name, field] of Object.entries(fields)) {
@@ -427,6 +488,7 @@ export function EventForm({ community, space, event, timeZones, permissions, cur
     setHostError(null);
     setCoverError(null);
     setChecked(whenOf(values));
+    setCheckedCapacity(values.capacity);
     const times = resolve(whenOf(values), startChoice, endChoice);
     if (!times.startInstant || !times.endInstant || times.order !== null) {
       // A time that the zone skips, a question without an answer, an end before the start: nothing is sent
@@ -451,12 +513,19 @@ export function EventForm({ community, space, event, timeZones, permissions, cur
       cover_upload_cuid: cover?.cuid ?? null,
       cover_alt: values.cover_alt === '' ? null : values.cover_alt,
     };
+    // Who sees the meeting address, the limit of places (null: no limit) and the replay choice
+    const answerFields = {
+      location_visibility: values.location_visibility,
+      capacity: eventCapacityOf(values.capacity),
+      replay_expected: values.replay_expected,
+    };
     const tellNow = intent === 'publish' && permissions.canNotifyNow && notifyNow;
 
     let saved: SpaceEvent;
     if (current === null) {
       const request: EventRequest = {
         ...fields,
+        ...answerFields,
         // Absent: the person who creates the event is its host
         ...(chosenHost.cuid === currentUser.cuid ? {} : { host_cuid: chosenHost.cuid }),
         state: intent === 'publish' ? 'published' : 'draft',
@@ -499,6 +568,15 @@ export function EventForm({ community, space, event, timeZones, permissions, cur
       }
       if ((fields.cover_alt ?? '') !== before.cover_alt) {
         changes.cover_alt = fields.cover_alt;
+      }
+      if (answerFields.location_visibility !== current.location_visibility) {
+        changes.location_visibility = answerFields.location_visibility;
+      }
+      if (answerFields.capacity !== current.capacity) {
+        changes.capacity = answerFields.capacity;
+      }
+      if (answerFields.replay_expected !== current.replay_expected) {
+        changes.replay_expected = answerFields.replay_expected;
       }
       const hostChanged = chosenHost.cuid !== current.host?.cuid;
       // The owner and the admins change every event, whoever its host is: the new host goes with the other changes. A
@@ -836,7 +914,7 @@ export function EventForm({ community, space, event, timeZones, permissions, cur
           {...form.register('meeting_url')}
         />
         <p id="event-meeting-url-hint" className="mt-1 text-xs text-muted">
-          {EVENT_WORDS.meetingUrlHint}
+          {forGoing ? EVENT_WORDS.meetingUrlHintGoing : EVENT_WORDS.meetingUrlHint}
         </p>
         <InputError id="event-meeting-url-error" className="mt-2" message={errors.meeting_url?.message} />
       </div>
@@ -852,9 +930,103 @@ export function EventForm({ community, space, event, timeZones, permissions, cur
           {...form.register('place')}
         />
         <p id="event-place-hint" className="mt-1 text-xs text-muted">
-          {EVENT_WORDS.placeHint}
+          {forGoing ? EVENT_WORDS.placeHintGoing : EVENT_WORDS.placeHint}
         </p>
         <InputError id="event-place-error" className="mt-2" message={errors.place?.message} />
+      </div>
+
+      <fieldset
+        className="flex flex-col gap-1"
+        aria-describedby={describedBy(
+          forGoing && 'event-location-visibility-hint',
+          errors.location_visibility && 'event-location-visibility-error',
+        )}
+      >
+        <legend className="mb-1 text-sm font-bold text-primary">{EVENT_WORDS.fieldLocationVisibility}</legend>
+        <Controller
+          name="location_visibility"
+          control={form.control}
+          render={({ field }) => (
+            <>
+              {(['members', 'going'] as const).map((value) => (
+                <label key={value} className="flex min-h-11 cursor-pointer items-center gap-3 md:min-h-0 md:py-1">
+                  <Radio
+                    name={field.name}
+                    value={value}
+                    checked={field.value === value}
+                    onChange={() => field.onChange(value)}
+                    onBlur={field.onBlur}
+                  />
+                  {value === 'members' ? EVENT_WORDS.locationVisibilityMembers : EVENT_WORDS.locationVisibilityGoing}
+                </label>
+              ))}
+            </>
+          )}
+        />
+        {/* Shows with "Members who answer Yes". Always in the page and in the accessibility tree (empty, it takes no room,
+            but it is never `display: none`), so that a screen reader reads it when it comes */}
+        <p id="event-location-visibility-hint" role="status" aria-live="polite" className="text-xs text-muted empty:sr-only">
+          {forGoing ? EVENT_WORDS.locationVisibilityGoingHint : ''}
+        </p>
+        <InputError id="event-location-visibility-error" className="mt-1" message={errors.location_visibility?.message} />
+      </fieldset>
+
+      <div>
+        <InputLabel htmlFor="event-capacity">{EVENT_WORDS.fieldCapacity}</InputLabel>
+        <TextInput
+          id="event-capacity"
+          // Digits in a text field: a native number field gives an empty value for a text that is no number, and an
+          // empty value means "no limit"
+          type="text"
+          inputMode="numeric"
+          autoComplete="off"
+          wrapperClassName="mt-1 max-w-40"
+          invalid={!!errors.capacity}
+          aria-describedby={describedBy(
+            'event-capacity-hint',
+            yesLine !== '' && 'event-capacity-status',
+            errors.capacity && 'event-capacity-error',
+          )}
+          {...form.register('capacity', { onBlur: () => afterPress(() => setCheckedCapacity(form.getValues('capacity'))) })}
+        />
+        <p id="event-capacity-hint" className="mt-1 text-xs text-muted">
+          {EVENT_WORDS.capacityHint}
+        </p>
+        {/* "12 members answered Yes.", and what a limit under that number means: a hint, never an error. Always in the
+            page and in the accessibility tree. It changes when the field is left, never at each key */}
+        <p
+          id="event-capacity-status"
+          role="status"
+          aria-live="polite"
+          data-slot="event-capacity-status"
+          className="mt-1 text-sm empty:sr-only"
+        >
+          {yesLine}
+        </p>
+        <InputError id="event-capacity-error" className="mt-2" message={errors.capacity?.message} />
+      </div>
+
+      <div>
+        <label className="flex min-h-11 cursor-pointer items-center gap-3 md:min-h-0">
+          <Controller
+            name="replay_expected"
+            control={form.control}
+            render={({ field }) => (
+              <Checkbox
+                name={field.name}
+                checked={field.value}
+                onChange={(changeEvent) => field.onChange(changeEvent.target.checked)}
+                onBlur={field.onBlur}
+                aria-describedby={describedBy('event-replay-hint', errors.replay_expected && 'event-replay-error')}
+              />
+            )}
+          />
+          <span className="text-sm font-bold">{EVENT_WORDS.replayExpected}</span>
+        </label>
+        <p id="event-replay-hint" className="mt-1 text-xs text-muted">
+          {EVENT_WORDS.replayExpectedHint}
+        </p>
+        <InputError id="event-replay-error" className="mt-2" message={errors.replay_expected?.message} />
       </div>
 
       <div>

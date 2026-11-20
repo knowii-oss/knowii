@@ -112,17 +112,37 @@ export async function apiPageRequest<T>(
   failureMessage: string,
   signal?: AbortSignal,
 ): Promise<ApiResult<Paginated<T>>> {
+  const result = await apiPageRequestWith(url, itemSchema, z.object({}), failureMessage, signal);
+  return result.ok ? { ok: true, message: result.message, data: { items: result.data.items, pagination: result.data.pagination } } : result;
+}
+
+/**
+ * `apiPageRequest()` for a list whose `metadata` holds more than the pagination (the numbers of the answers of an event,
+ * #1515): `metadataSchema` names the other keys, and the result holds them in `metadata`.
+ */
+export async function apiPageRequestWith<T, M>(
+  url: string,
+  itemSchema: z.ZodType<T>,
+  metadataSchema: z.ZodType<M>,
+  failureMessage: string,
+  signal?: AbortSignal,
+): Promise<ApiResult<Paginated<T> & { metadata: M }>> {
   const answer = await callApi('get', url, failureMessage, undefined, signal);
   if (!answer.ok) {
     return answer;
   }
 
-  const parsed = z
+  const envelope = z
     .object({ data: z.array(itemSchema), metadata: z.object({ pagination: paginationSchema }) })
     .safeParse(answer.envelope ?? {});
-  if (!parsed.success) {
+  const metadata = metadataSchema.safeParse(answer.envelope?.['metadata']);
+  if (!envelope.success || !metadata.success) {
     return { ok: false, status: answer.status, message: failureMessage, errors: {} };
   }
 
-  return { ok: true, message: answer.message, data: { items: parsed.data.data, pagination: parsed.data.metadata.pagination } };
+  return {
+    ok: true,
+    message: answer.message,
+    data: { items: envelope.data.data, pagination: envelope.data.metadata.pagination, metadata: metadata.data },
+  };
 }

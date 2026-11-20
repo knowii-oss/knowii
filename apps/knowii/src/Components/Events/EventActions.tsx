@@ -2,10 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { router } from '@inertiajs/react';
 import type { Community, EventPermissions, EventState, Space, SpaceEvent } from '@knowii/common';
 import { EVENT_EDIT_URL, knowiiApiClient, SPACE_URL, useAppData } from '@knowii/common';
-import { FaEllipsis, FaPen } from 'react-icons/fa6';
+import { FaEllipsis, FaPen, FaUsers } from 'react-icons/fa6';
 import { Button, Dialog, DropdownMenu, DropdownMenuItem, dropdownMenuItemClasses, LinkButton } from '@/Components/ui';
 import { startsInTheFuture } from './event-state';
 import { EVENT_WORDS } from './event-words';
+import { EventAnswersDialog } from './EventAnswersDialog';
 
 export interface EventActionsProps {
   community: Community;
@@ -27,12 +28,17 @@ type Action = 'publish' | 'cancel' | 'publish-again' | 'draft' | 'duplicate' | '
  * and "Delete". Each entry shows only when the state of the event and the rights of the reader allow it: a moderator
  * cancels and deletes the event of another host, and cannot edit it. A cancel and a delete ask first. Every change
  * goes through the API; a refusal of the server shows as an alert, with its words.
+ *
+ * "Answers" (#1515, design 6.4 point 3) is next to "Edit" for the readers of the answers (`permissions.canViewAnswers`:
+ * the host, the owner and the admins, never for a draft, never a moderator). It opens the list in a dialog.
  */
 export function EventActions({ community, space, event, permissions, now, onChanged }: EventActionsProps) {
   const { showToast } = useAppData();
   const [busy, setBusy] = useState<Action | null>(null);
   const busyRef = useRef(false);
   const [confirming, setConfirming] = useState<'cancel' | 'delete' | null>(null);
+  // The dialog "Answers" is open. A load of the page (a live update) keeps it open
+  const [showingAnswers, setShowingAnswers] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -62,7 +68,7 @@ export function EventActions({ community, space, event, permissions, now, onChan
   const canBackToDraft = event.state === 'published' && permissions.canUpdate && startsInTheFuture(event, now);
   const hasMenu = canCancel || canPublishAgain || canBackToDraft || permissions.canDuplicate || permissions.canDelete;
 
-  if (!permissions.canUpdate && !hasMenu) {
+  if (!permissions.canUpdate && !permissions.canViewAnswers && !hasMenu) {
     return null;
   }
 
@@ -137,6 +143,16 @@ export function EventActions({ community, space, event, permissions, now, onChan
             {EVENT_WORDS.edit}
           </LinkButton>
         )}
+        {permissions.canViewAnswers && (
+          <Button
+            variant="secondary"
+            className="h-11 md:h-10"
+            leftIcon={<FaUsers aria-hidden="true" />}
+            onClick={() => setShowingAnswers(true)}
+          >
+            {EVENT_WORDS.answers}
+          </Button>
+        )}
         {canPublish && (
           <Button loading={busy === 'publish'} onClick={() => void setState('publish', 'published', EVENT_WORDS.eventPublished)}>
             {EVENT_WORDS.publish}
@@ -203,6 +219,17 @@ export function EventActions({ community, space, event, permissions, now, onChan
       <div role="alert" data-slot="event-actions-error" className="text-sm font-bold text-danger-text empty:sr-only">
         {error}
       </div>
+
+      {permissions.canViewAnswers && (
+        <EventAnswersDialog
+          open={showingAnswers}
+          onClose={() => setShowingAnswers(false)}
+          community={community}
+          space={space}
+          event={event}
+          onGone={onChanged}
+        />
+      )}
 
       <Dialog
         open={confirming === 'cancel'}

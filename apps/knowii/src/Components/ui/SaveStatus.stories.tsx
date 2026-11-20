@@ -5,7 +5,8 @@ import { SaveStatus } from './SaveStatus';
 /**
  * The status of a setting that saves at once, next to its control (a `Switch`, a choice of radios): "Saving", then
  * "Saved", or the error when the save fails, and then the control shows the old value again. Keep it in the page also
- * when it is empty (idle): a screen reader reads only the changes of a region that was there before.
+ * when it is empty (idle): a screen reader reads only the changes of a region that was there before. `savedText` says
+ * the value that was saved ("Saved: Yes") when the control has more than two values.
  *
  * Accessibility: a polite live region (role="status"). It keeps the height of one line, so the page does not move. The
  * icons are hidden from screen readers: the text says it all.
@@ -39,6 +40,13 @@ export const Saved: Story = {
   args: { state: { status: 'saved' } },
   play: async ({ canvasElement }) => {
     await expect(within(canvasElement).getByRole('status')).toHaveTextContent('Saved');
+  },
+};
+
+export const SavedWithTheValue: Story = {
+  args: { state: { status: 'saved' }, savedText: 'Saved: Yes' },
+  play: async ({ canvasElement }) => {
+    await expect(within(canvasElement).getByRole('status')).toHaveTextContent('Saved: Yes');
   },
 };
 

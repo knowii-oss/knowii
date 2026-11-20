@@ -1,9 +1,7 @@
-import { Link } from '@inertiajs/react';
 import type { Author } from '@knowii/common';
-import { MEMBER_URL } from '@knowii/common';
 import { useIsVisitor } from '@/Components/Reader/Reader';
-import { Avatar } from '@/Components/ui';
 import { EVENT_WORDS } from './event-words';
+import { EventMemberLine } from './EventMemberLine';
 
 export interface EventHostProps {
   /**
@@ -30,24 +28,8 @@ export function EventHost({ host, communitySlug, isMember }: EventHostProps) {
         {EVENT_WORDS.host}
       </h2>
       {host ? (
-        <p className="flex items-center gap-3">
-          <Avatar name={host.name} imageUrl={host.avatar_url} size="md" />
-          <span className="flex min-w-0 flex-col">
-            {isMember && !isVisitor ? (
-              <Link
-                href={route(MEMBER_URL, { communitySlug, username: host.username })}
-                className="touch-target rounded font-bold underline hover:no-underline focus-visible:outline-2 focus-visible:outline-primary"
-              >
-                {host.name}
-              </Link>
-            ) : (
-              <span className="font-bold">{host.name}</span>
-            )}
-            <span className="text-sm text-muted">
-              <span className="sr-only">username</span> <span aria-hidden="true">@</span>
-              {host.username}
-            </span>
-          </span>
+        <p>
+          <EventMemberLine member={host} communitySlug={communitySlug} link={isMember && !isVisitor} />
         </p>
       ) : (
         <p className="font-bold">{EVENT_WORDS.deletedMember}</p>

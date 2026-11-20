@@ -127,12 +127,27 @@ const saved = (changes: Record<string, unknown> = {}) => ({
   data: eventFixture('e1', 'Weekly review office hour', changes),
 });
 
+/**
+ * What the list of the answers gives the form: the number of Yes answers, in `counts`
+ */
+const yesAnswers = (yes: number) => ({
+  ok: true as const,
+  message: '',
+  data: {
+    items: [],
+    pagination: { limit: 1, offset: 0, previousOffset: null, nextOffset: null, currentPage: 1, pageCount: 1, totalCount: yes },
+    counts: { yes, replay: 0, no: 0 },
+  },
+});
+const capacityStatus = () => document.querySelector('[data-slot="event-capacity-status"]') as HTMLElement;
+
 // Each key in the list of the zones renders up to 50 entries: seconds on a busy machine
 describe('the form of the host of an event (#1514, design 4.2, 6.3 and 11.1)', { timeout: 30_000 }, () => {
   let create: MockInstance<typeof knowiiApiClient.communities.events.create>;
   let update: MockInstance<typeof knowiiApiClient.communities.events.update>;
   let setState: MockInstance<typeof knowiiApiClient.communities.events.setState>;
   let upload: MockInstance<typeof knowiiApiClient.communities.uploads.image>;
+  let answersList: MockInstance<typeof knowiiApiClient.communities.events.answers.list>;
 
   beforeEach(() => {
     // Only the clock of `new Date()`: the current year decides whether a date names its year
@@ -157,6 +172,8 @@ describe('the form of the host of an event (#1514, design 4.2, 6.3 and 11.1)', {
         created_at: new Date(),
       },
     });
+    // The number of Yes answers of a published or cancelled event (#1515): none, unless a test says so
+    answersList = vi.spyOn(knowiiApiClient.communities.events.answers, 'list').mockResolvedValue(yesAnswers(0));
     vi.spyOn(knowiiApiClient.communities.members, 'search').mockResolvedValue([GRACE]);
     vi.spyOn(knowiiApiClient.markdown, 'preview').mockResolvedValue('<p>Preview</p>');
   });
@@ -179,6 +196,11 @@ describe('the form of the host of an event (#1514, design 4.2, 6.3 and 11.1)', {
         'Time zone',
         'Meeting address',
         'Place',
+        // The three fields of the answers (#1515), after "Place" and before "Host"
+        'Every member',
+        'Members who answer Yes',
+        'Limit of places',
+        'A replay will exist',
         'Host',
       ];
       // The label of the zone names its field and the button of its list
@@ -207,15 +229,6 @@ describe('the form of the host of an event (#1514, design 4.2, 6.3 and 11.1)', {
       expect(within(group).getByLabelText('Start time')).toHaveAttribute('type', 'time');
       expect(within(group).getByLabelText('End time')).toHaveAttribute('type', 'time');
       expect(within(group).getByRole('combobox', { name: 'Time zone' })).toBeInTheDocument();
-    });
-
-    it('has no field for who sees the address, for a limit of places or for a replay', () => {
-      renderForm({ permissions: OWNER });
-
-      for (const name of [/who sees/i, /visib/i, /limit|places|capacity/i, /replay/i]) {
-        expect(screen.queryByLabelText(name)).toBeNull();
-        expect(screen.queryByRole('group', { name })).toBeNull();
-      }
     });
 
     it('names the reader as the host of a new event', () => {
@@ -629,6 +642,10 @@ describe('the form of the host of an event (#1514, design 4.2, 6.3 and 11.1)', {
           place: 'Room 2',
           cover_upload_cuid: null,
           cover_alt: null,
+          // The three fields of the answers, as a new form starts (#1515)
+          location_visibility: 'members',
+          capacity: null,
+          replay_expected: false,
           state: 'draft',
         },
       ]);
@@ -646,7 +663,8 @@ describe('the form of the host of an event (#1514, design 4.2, 6.3 and 11.1)', {
       await waitFor(() => expect(create).toHaveBeenCalledTimes(1));
       expect(create.mock.calls[0]?.[2]).toMatchObject({ state: 'published' });
       expect(create.mock.calls[0]?.[2]).not.toHaveProperty('notify_now');
-      expect(create.mock.calls[0]?.[2]).not.toHaveProperty('location_visibility');
+      // A new form sends the three fields of the answers as they start (#1515)
+      expect(create.mock.calls[0]?.[2]).toMatchObject({ location_visibility: 'members', capacity: null, replay_expected: false });
       expect(await screen.findByText('Event published')).toBeInTheDocument();
       expect(shared.visit).toHaveBeenCalledWith('/community/tests/space/office-hours/event/the-slug-of-the-server');
     });
@@ -845,7 +863,7 @@ describe('the form of the host of an event (#1514, design 4.2, 6.3 and 11.1)', {
       await user.click(await screen.findByRole('option', { name: /Grace Hopper/ }));
     };
 
-    it('sends only what changed, and never who sees the address', async () => {
+    it('sends only what changed, and none of the three fields of the answers when they did not change', async () => {
       renderForm({ event: published() });
       fill('Title', 'A better title');
 
@@ -1225,8 +1243,343 @@ describe('the form of the host of an event (#1514, design 4.2, 6.3 and 11.1)', {
     });
   });
 
+  describe('the three fields of the answers (#1515, rules 45 to 54)', () => {
+    const published = (changes: Record<string, unknown> = {}) =>
+      eventFixture('e1', 'Weekly review', { body: 'Bring questions', host: ME, ...changes });
+    const visibility = () => screen.getByRole('group', { name: 'Who sees the meeting address and the place' });
+    const limit = () => screen.getByLabelText<HTMLInputElement>('Limit of places');
+    const replay = () => screen.getByRole<HTMLInputElement>('checkbox', { name: 'A replay will exist' });
+
+    it('puts them after "Place" and before "Host", in their order (rule 45)', () => {
+      renderForm();
+
+      const order = [screen.getByLabelText('Place'), visibility(), limit(), replay(), screen.getByRole('combobox', { name: 'Host' })];
+      for (let index = 1; index < order.length; index++) {
+        expect(
+          (order[index - 1] as HTMLElement).compareDocumentPosition(order[index] as HTMLElement) & Node.DOCUMENT_POSITION_FOLLOWING,
+        ).toBeTruthy();
+      }
+    });
+
+    it('asks who sees the meeting address in a fieldset with two radios, and starts a new event with "Every member" (rule 46)', () => {
+      renderForm();
+
+      expect(visibility().tagName).toBe('FIELDSET');
+      expect(visibility().querySelector('legend')).toHaveTextContent('Who sees the meeting address and the place');
+      const radios = within(visibility()).getAllByRole('radio');
+      expect(radios.map((radio) => radio.closest('label')?.textContent)).toEqual(['Every member', 'Members who answer Yes']);
+      expect(within(visibility()).getByRole('radio', { name: 'Every member' })).toBeChecked();
+      expect(screen.queryByText('The host, the owner and the admins always see them.')).toBeNull();
+    });
+
+    it('starts an edit with the stored choice, and says who always sees them with "Members who answer Yes" (rule 46)', async () => {
+      renderForm({ event: published({ location_visibility: 'going' }) });
+
+      expect(within(visibility()).getByRole('radio', { name: 'Members who answer Yes' })).toBeChecked();
+      const hint = screen.getByText('The host, the owner and the admins always see them.');
+      // A polite status that describes the group: it is read when it comes, and when the focus enters the group
+      expect(hint).toHaveAttribute('role', 'status');
+      expect(visibility()).toHaveAccessibleDescription('The host, the owner and the admins always see them.');
+
+      await userEvent.click(within(visibility()).getByRole('radio', { name: 'Every member' }));
+      expect(screen.queryByText('The host, the owner and the admins always see them.')).toBeNull();
+      // The region stays in the page, empty
+      expect(hint).toBeInTheDocument();
+      expect(hint).toBeEmptyDOMElement();
+    });
+
+    it('moves the choice with the arrow keys: one tab stop for the two radios (rule 46)', async () => {
+      renderForm();
+
+      within(visibility()).getByRole('radio', { name: 'Every member' }).focus();
+      await userEvent.keyboard('{ArrowDown}');
+
+      expect(within(visibility()).getByRole('radio', { name: 'Members who answer Yes' })).toBeChecked();
+      expect(within(visibility()).getByRole('radio', { name: 'Members who answer Yes' })).toHaveFocus();
+      await userEvent.tab();
+      expect(limit()).toHaveFocus();
+    });
+
+    it('writes the hints of "Meeting address" and "Place" for the choice (rule 47)', async () => {
+      renderForm();
+      const address = screen.getByLabelText('Meeting address');
+      const place = screen.getByLabelText('Place');
+      expect(address).toHaveAccessibleDescription('An address that starts with https://. Only members see it.');
+      expect(place).toHaveAccessibleDescription('For an event in a room. Only members see it.');
+
+      await userEvent.click(within(visibility()).getByRole('radio', { name: 'Members who answer Yes' }));
+
+      expect(address).toHaveAccessibleDescription('An address that starts with https://. Only members who answer Yes see it.');
+      expect(place).toHaveAccessibleDescription('For an event in a room. Only members who answer Yes see it.');
+    });
+
+    it('has a field "Limit of places" with its label and its hint, empty for a new event (rule 48)', () => {
+      renderForm();
+
+      expect(limit()).toHaveValue('');
+      expect(limit()).toHaveAttribute('inputmode', 'numeric');
+      expect(limit()).toHaveAccessibleDescription('Leave empty for no limit. Only the Yes answers take a place.');
+      expect(screen.getByText('Limit of places').tagName).toBe('LABEL');
+    });
+
+    it.each(['0', '5001', '1.5', 'abc'])('refuses the limit "%s" next to its field, and sends nothing (rule 48)', async (value) => {
+      renderForm();
+      fillTimes();
+      fill('Limit of places', value);
+
+      await userEvent.click(screen.getByRole('button', { name: 'Save as draft' }));
+
+      const error = await screen.findByText('Use a whole number from 1 to 5000, or leave the field empty');
+      expect(error).toHaveAttribute('role', 'alert');
+      expect(limit()).toHaveAttribute('aria-invalid', 'true');
+      expect(limit().getAttribute('aria-describedby')).toContain(error.id);
+      expect(create).not.toHaveBeenCalled();
+      expect(formError()).toHaveTextContent(EVENT_WORDS.fixTheFields);
+    });
+
+    it.each([
+      ['1', 1],
+      ['5000', 5000],
+      [' 40 ', 40],
+    ])('accepts the limit "%s" and sends it as a number (rule 48)', async (value, sent) => {
+      renderForm();
+      fillTimes();
+      fill('Limit of places', value);
+
+      await userEvent.click(screen.getByRole('button', { name: 'Save as draft' }));
+
+      await waitFor(() => expect(create).toHaveBeenCalledTimes(1));
+      expect(create.mock.calls[0]?.[2]).toMatchObject({ capacity: sent });
+    });
+
+    it('sends no request for the Yes answers of a new event and of a draft, and shows no line (rule 49)', async () => {
+      const { unmount } = renderForm();
+      expect(answersList).not.toHaveBeenCalled();
+      expect(capacityStatus()).toBeEmptyDOMElement();
+      unmount();
+
+      renderForm({ event: published({ state: 'draft', can_answer: false }) });
+      await act(async () => undefined);
+      expect(answersList).not.toHaveBeenCalled();
+      expect(capacityStatus()).toBeEmptyDOMElement();
+    });
+
+    it.each([
+      [0, ''],
+      [1, '1 member answered Yes.'],
+      [12, '12 members answered Yes.'],
+    ])('reads the number of Yes answers of a published event one time, and says it under the limit: %i (rule 49)', async (yes, words) => {
+      answersList.mockResolvedValue(yesAnswers(yes));
+      renderForm({ event: published({ capacity: 40 }) });
+
+      await waitFor(() => expect(answersList).toHaveBeenCalledTimes(1));
+      expect(answersList).toHaveBeenCalledWith('c1', 's1', 'e1', 'yes', 1, 0);
+      await waitFor(() => expect(capacityStatus().textContent).toBe(words));
+      // A polite status that is in the page from the start, and a part of the description of the field when it says something
+      expect(capacityStatus()).toHaveAttribute('role', 'status');
+      expect(limit()).toHaveAccessibleDescription(
+        `Leave empty for no limit. Only the Yes answers take a place.${words === '' ? '' : ` ${words}`}`,
+      );
+
+      // A change of the form sends no second request
+      fill('Title', 'A better title');
+      fill('Limit of places', '50');
+      expect(answersList).toHaveBeenCalledTimes(1);
+    });
+
+    it('reads the Yes answers of a cancelled event too (rule 49)', async () => {
+      answersList.mockResolvedValue(yesAnswers(3));
+      renderForm({ event: published({ state: 'cancelled', can_answer: false }) });
+
+      await waitFor(() => expect(capacityStatus()).toHaveTextContent('3 members answered Yes.'));
+    });
+
+    it('shows no line and no error when the number cannot be read (rule 49)', async () => {
+      answersList.mockResolvedValue({ ok: false, status: 500, message: 'Failed to load the answers.', errors: {} });
+      renderForm({ event: published({ capacity: 40 }) });
+
+      await waitFor(() => expect(answersList).toHaveBeenCalledTimes(1));
+      await act(async () => undefined);
+      expect(capacityStatus()).toBeEmptyDOMElement();
+      expect(screen.queryByText('Failed to load the answers.')).toBeNull();
+      expect(screen.queryByRole('alert', { name: /answers/ })).toBeNull();
+      expect(formError()).toBeEmptyDOMElement();
+    });
+
+    it('says what a limit under the number of Yes answers means, as a hint, and saves it (rule 50)', async () => {
+      answersList.mockResolvedValue(yesAnswers(12));
+      renderForm({ event: published({ capacity: 40 }) });
+      await waitFor(() => expect(capacityStatus()).toHaveTextContent('12 members answered Yes.'));
+
+      // While the person types, the line waits: it changes when the field is left
+      fill('Limit of places', '10', false);
+      expect(capacityStatus().textContent).toBe('12 members answered Yes.');
+      fireEvent.blur(limit());
+
+      expect(capacityStatus().textContent).toBe('12 members answered Yes. Nobody is removed. No other member can answer Yes.');
+      // A hint in the polite status, not an error
+      expect(limit()).not.toHaveAttribute('aria-invalid', 'true');
+      expect(screen.queryByText('Use a whole number from 1 to 5000, or leave the field empty')).toBeNull();
+
+      await userEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+      await waitFor(() => expect(update).toHaveBeenCalledWith('c1', 's1', 'e1', { capacity: 10 }));
+    });
+
+    it.each([
+      ['the same number', '12'],
+      ['a larger number', '13'],
+      ['no limit', ''],
+      ['a text that is no limit', 'abc'],
+    ])('keeps the plain line for %s (rule 50)', async (_name, value) => {
+      answersList.mockResolvedValue(yesAnswers(12));
+      renderForm({ event: published({ capacity: 10 }) });
+      // The stored limit is under the number of Yes answers: the form says so when it opens
+      await waitFor(() => expect(capacityStatus()).toHaveTextContent('Nobody is removed.'));
+
+      fill('Limit of places', value);
+
+      expect(capacityStatus().textContent).toBe('12 members answered Yes.');
+    });
+
+    it('has the checkbox "A replay will exist" with its hint, not ticked for a new event (rule 51)', async () => {
+      renderForm();
+
+      expect(replay()).not.toBeChecked();
+      expect(replay()).toHaveAccessibleDescription('Members can then answer Replay only.');
+
+      await userEvent.click(screen.getByText('A replay will exist'));
+      expect(replay()).toBeChecked();
+    });
+
+    it('sends the three fields with a new event (rule 52)', async () => {
+      renderForm();
+      fillTimes();
+      await userEvent.click(within(visibility()).getByRole('radio', { name: 'Members who answer Yes' }));
+      fill('Limit of places', '40');
+      await userEvent.click(replay());
+
+      await userEvent.click(screen.getByRole('button', { name: 'Publish' }));
+
+      await waitFor(() => expect(create).toHaveBeenCalledTimes(1));
+      expect(create.mock.calls[0]?.[2]).toMatchObject({
+        location_visibility: 'going',
+        capacity: 40,
+        replay_expected: true,
+        state: 'published',
+      });
+    });
+
+    it.each([
+      ['who sees the meeting address', { location_visibility: 'going' }],
+      ['the limit', { capacity: 25 }],
+      ['the replay choice', { replay_expected: true }],
+    ] as const)('sends only %s when it is the one that changed (rule 52)', async (_name, change) => {
+      renderForm({ event: published({ capacity: 40 }) });
+
+      if ('location_visibility' in change) {
+        await userEvent.click(within(visibility()).getByRole('radio', { name: 'Members who answer Yes' }));
+      } else if ('capacity' in change) {
+        fill('Limit of places', '25');
+      } else {
+        await userEvent.click(replay());
+      }
+      await userEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+
+      await waitFor(() => expect(update).toHaveBeenCalledWith('c1', 's1', 'e1', change));
+    });
+
+    it('sends an empty limit as null, and nothing when the limit was already empty (rule 52)', async () => {
+      const { unmount } = renderForm({ event: published({ capacity: 40, location_visibility: 'going', replay_expected: true }) });
+      expect(limit()).toHaveValue('40');
+      fill('Limit of places', '');
+
+      await userEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+
+      await waitFor(() => expect(update).toHaveBeenCalledWith('c1', 's1', 'e1', { capacity: null }));
+      unmount();
+      update.mockClear();
+
+      renderForm({ event: published({ capacity: null }) });
+      await userEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+      await waitFor(() => expect(update).toHaveBeenCalledWith('c1', 's1', 'e1', {}));
+    });
+
+    it('shows a field error of the server next to each of the three fields (rule 53)', async () => {
+      update.mockResolvedValue({
+        ok: false,
+        status: 400,
+        message: 'The provided data is invalid',
+        errors: {
+          capacity: ['The capacity field must not be greater than 5000.'],
+          location_visibility: ['The selected location visibility is invalid.'],
+          replay_expected: ['The replay expected field must be true or false.'],
+        },
+      });
+      renderForm({ event: published() });
+      fill('Limit of places', '50');
+
+      await userEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+
+      const capacityError = await screen.findByText('The capacity field must not be greater than 5000.');
+      expect(limit().getAttribute('aria-describedby')).toContain(capacityError.id);
+      expect(limit()).toHaveAttribute('aria-invalid', 'true');
+      expect(within(visibility()).getByText('The selected location visibility is invalid.')).toHaveAttribute('role', 'alert');
+      const replayError = screen.getByText('The replay expected field must be true or false.');
+      expect(replay().getAttribute('aria-describedby')).toContain(replayError.id);
+      // Each error is next to its field: nothing above the buttons
+      expect(formError()).toBeEmptyDOMElement();
+      expect(shared.visit).not.toHaveBeenCalled();
+    });
+
+    it('shows the limit and the replay choice of a copy: the server copied them (rule 54)', () => {
+      // The form of the draft that "Duplicate" made
+      renderForm({
+        event: published({ state: 'draft', can_answer: false, capacity: 40, replay_expected: true, location_visibility: 'going' }),
+      });
+
+      expect(limit()).toHaveValue('40');
+      expect(replay()).toBeChecked();
+      expect(within(visibility()).getByRole('radio', { name: 'Members who answer Yes' })).toBeChecked();
+    });
+
+    it('listens to no live signal: nothing changes what the host typed (rule 58)', async () => {
+      const { emitSocketEvent } = await import('@/test-utils/fake-echo');
+      answersList.mockResolvedValue(yesAnswers(12));
+      renderForm({ event: published({ capacity: 40 }) });
+      await waitFor(() => expect(capacityStatus()).toHaveTextContent('12 members answered Yes.'));
+      fill('Limit of places', '30');
+
+      act(() =>
+        emitSocketEvent('community.c1.space.s1', 'space.event.answers.changed', { space_cuid: 's1', event_cuid: 'e1', author_cuid: null }),
+      );
+      act(() =>
+        emitSocketEvent('community.c1.space.s1', 'space.event.updated', { space_cuid: 's1', event_cuid: 'e1', author_cuid: 'someone' }),
+      );
+
+      expect(limit()).toHaveValue('30');
+      expect(answersList).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('accessibility (design 11.6)', () => {
     const rules = { 'color-contrast': { enabled: false }, region: { enabled: false } };
+
+    it('has no automated violation with the three fields of the answers: a limit under the Yes answers, and a wrong limit (axe)', async () => {
+      answersList.mockResolvedValue(yesAnswers(12));
+      const { container } = renderForm({
+        event: eventFixture('e1', 'Weekly review', { host: ME, capacity: 10, replay_expected: true, location_visibility: 'going' }),
+        permissions: OWNER,
+      });
+      await waitFor(() => expect(capacityStatus()).toHaveTextContent('Nobody is removed.'));
+
+      expect((await axe.run(container, { rules })).violations.map((violation) => violation.id)).toEqual([]);
+
+      fill('Limit of places', '0');
+      await userEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+      await screen.findByText('Use a whole number from 1 to 5000, or leave the field empty');
+
+      expect((await axe.run(container, { rules })).violations.map((violation) => violation.id)).toEqual([]);
+    });
 
     it('has no automated violation for a new event, for a moderator (axe)', async () => {
       const { container } = renderForm({ permissions: MODERATOR });

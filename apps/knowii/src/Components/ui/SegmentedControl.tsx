@@ -6,11 +6,24 @@ export interface SegmentedControlOption<V extends string> {
   value: V;
   label: string;
   icon?: ReactNode;
+  /**
+   * The option cannot be chosen now (a full event). Its radio gets `aria-disabled`, keeps the focus and stays in the
+   * arrow order, and the control ignores a change to it. Say why in a text next to the control, and name that text in
+   * `describedBy`. Never for the option that is the value.
+   */
+  ariaDisabled?: boolean | undefined;
+  /**
+   * Id of the text that describes this option alone, for example why it cannot be chosen
+   */
+  describedBy?: string | undefined;
 }
 
 export interface SegmentedControlProps<V extends string> {
   options: readonly SegmentedControlOption<V>[];
-  value: V;
+  /**
+   * The chosen option. Null: no choice yet, no radio is checked, and the first radio is the tab stop of the group.
+   */
+  value: V | null;
   onChange: (value: V) => void;
   onBlur?: () => void;
   /**
@@ -18,6 +31,11 @@ export interface SegmentedControlProps<V extends string> {
    */
   name?: string;
   disabled?: boolean;
+  /**
+   * A change of the choice is being saved: the group gets `aria-busy`. The radios stay enabled and keep the focus; the
+   * caller decides what a change does meanwhile.
+   */
+  busy?: boolean | undefined;
   /**
    * Classes of the outer element: the group, or the group and its description when there is one
    */
@@ -38,6 +56,11 @@ export interface SegmentedControlProps<V extends string> {
 /**
  * Single choice between a few options, shown side by side. Built on native radio inputs:
  * Tab moves into the group and the arrow keys change the choice.
+ *
+ * `value` null shows no choice. An option with `ariaDisabled` stays in the group for the keyboard and never becomes the
+ * choice. `busy` marks the group while a change is saved, without `disabled`: the focus stays where it is.
+ *
+ * Forced colors: the fill of the chosen option is lost there, so its label gets a border in the system color `Highlight`.
  */
 export function SegmentedControl<V extends string>({
   options,
@@ -46,6 +69,7 @@ export function SegmentedControl<V extends string>({
   onBlur,
   name,
   disabled = false,
+  busy = false,
   className,
   'aria-labelledby': ariaLabelledBy,
   'aria-label': ariaLabel,
@@ -63,18 +87,25 @@ export function SegmentedControl<V extends string>({
       aria-label={ariaLabel}
       aria-describedby={hasDescription ? descriptionId : undefined}
       aria-disabled={disabled || undefined}
+      aria-busy={busy || undefined}
       className={cn('inline-flex flex-wrap gap-1 rounded-lg border border-border-strong bg-well p-1', !hasDescription && className)}
     >
       {options.map((option) => {
         const checked = option.value === value;
+        // Not the option that is the value: it must stay the choice
+        const unavailable = option.ariaDisabled === true && !checked;
         return (
           <label
             key={option.value}
             className={cn(
               'flex cursor-pointer items-center gap-2 rounded-md px-3 py-1.5 text-sm font-bold text-muted transition-colors select-none',
-              'hover:text-primary has-checked:bg-secondary has-checked:text-white has-checked:[&_svg]:text-white',
+              'has-checked:bg-secondary has-checked:text-white has-checked:[&_svg]:text-white',
+              // Forced colors remove the fill, and the radio is for screen readers only: a border marks the choice. Every
+              // label has the border, in the color of the page, so the choice moves nothing
+              'forced-colors:border-2 forced-colors:border-[color:Canvas] forced-colors:has-checked:border-[color:Highlight]',
               'has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-primary',
-              disabled && 'cursor-not-allowed opacity-60',
+              !unavailable && 'hover:text-primary',
+              (disabled || unavailable) && 'cursor-not-allowed opacity-60',
             )}
           >
             <input
@@ -84,7 +115,14 @@ export function SegmentedControl<V extends string>({
               value={option.value}
               checked={checked}
               disabled={disabled}
-              onChange={() => onChange(option.value)}
+              aria-disabled={unavailable || undefined}
+              aria-describedby={option.describedBy}
+              // The browser checks the radio before this runs. Without a change of `value`, React shows the old choice again
+              onChange={() => {
+                if (!unavailable) {
+                  onChange(option.value);
+                }
+              }}
               onBlur={onBlur}
             />
             {option.icon && <span aria-hidden="true">{option.icon}</span>}
