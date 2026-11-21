@@ -10,6 +10,7 @@ use App\Http\Controllers\Inertia\EmailChangeController;
 use App\Http\Controllers\Inertia\EventController;
 use App\Http\Controllers\Inertia\MagicLinkController;
 use App\Http\Controllers\Inertia\MemberController;
+use App\Http\Controllers\Inertia\MyEventsController;
 use App\Http\Controllers\Inertia\NotificationSettingsController;
 use App\Http\Controllers\Inertia\NotificationsPageController;
 use App\Http\Controllers\Inertia\OpenIdConnectController;
@@ -58,6 +59,9 @@ Route::middleware([
 
     // The page "Notifications": Needs you, Following, Earlier, and the "Catch up" cards (#1476)
     Route::get('/notifications', [NotificationsPageController::class, 'index'])->name('notifications.index');
+
+    // The page "My events": the events that the member answered Yes or Replay only, and the ones they host (#1515)
+    Route::get('/events', [MyEventsController::class, 'index'])->name('events.index');
 
     // The notification settings of the member: the level of each space (#1497)
     Route::get('/user/notifications', [NotificationSettingsController::class, 'show'])->name('profile.notifications');

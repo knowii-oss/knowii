@@ -7,6 +7,7 @@ use App\Enums\KnowiiEventLocationVisibility;
 use App\Enums\KnowiiEventState;
 use App\Http\Resources\EventResource;
 use App\Support\CommunityRoles;
+use App\Support\SpaceReaders;
 use App\Traits\GeneratesCuid;
 use App\Traits\UsesUploads;
 use Carbon\Carbon;
@@ -70,6 +71,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method TResource toResource<TResource of \Illuminate\Http\Resources\Json\JsonResource = \App\Http\Resources\EventResource>(class-string<TResource>|null $resourceClass = null)
  * @method static Builder<static>|Event findSimilarSlugs(string $attribute, array<string, scalar|list<string>|null> $config, string $slug)
  * @method static Builder<static>|Event past()
+ * @method static Builder<static>|Event readableBy(\App\Models\User $user)
  * @method static Builder<static>|Event upcoming()
  * @method static Builder<static>|Event visibleTo(?\App\Models\User $user, \App\Models\Community $community)
  * @method static Builder<static>|Event whereBody($value)
@@ -318,6 +320,20 @@ class Event extends Model
                 $inner->orWhere('host_id', $user->id);
             }
         });
+    }
+
+    /**
+     * The events of the spaces that one user can read today as a member of their community (#1515, "My events"): the
+     * reading rule of SpacePolicy::view for the database (App\Support\SpaceReaders, the rule of the answers that count).
+     * A person who is not a member of the community gets none, also in a public space. It says nothing of the state: the
+     * caller decides which drafts the user may see.
+     *
+     * @param  Builder<Event>  $query
+     * @return Builder<Event>
+     */
+    final public function scopeReadableBy(Builder $query, User $user): Builder
+    {
+        return $query->whereExists(SpaceReaders::exists('events.space_id', $user->id));
     }
 
     /**

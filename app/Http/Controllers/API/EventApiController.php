@@ -217,9 +217,12 @@ class EventApiController extends Controller
         return self::deleted();
     }
 
+    /**
+     * One event with what its resource names: the host, the cover, its space and its community (#1515)
+     */
     private static function loaded(Event $event): Event
     {
-        return $event->load([...self::RELATIONS, 'space']);
+        return $event->load([...self::RELATIONS, 'space', 'community']);
     }
 
     /**

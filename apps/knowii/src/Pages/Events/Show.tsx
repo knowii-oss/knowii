@@ -5,6 +5,7 @@ import { COMMUNITY_URL, SPACE_TYPE_LABELS, SPACE_URL, useSocket, useTypedPage } 
 import AppLayout from '@/Layouts/AppLayout';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
+import { AddToCalendar } from '@/Components/Events/AddToCalendar';
 import { EventActions } from '@/Components/Events/EventActions';
 import { EventAnswer } from '@/Components/Events/EventAnswer';
 import { EventHost } from '@/Components/Events/EventHost';
@@ -37,8 +38,8 @@ interface Props {
 
 /**
  * The page of an event of an events space (#1514, #1515, ADR 0053, design 6.2). In this order: the title (the only h1),
- * the state as text, the cover, the date in the zone of the reader, the host, the answer of the reader, where it
- * happens, and the description. A visitor and a person who is not a member read it in a public space, without the
+ * the state as text, the cover, the date in the zone of the reader, "Add to calendar" for a member (#1515), the host,
+ * the answer of the reader, where it happens, and the description. A visitor and a person who is not a member read it in a public space, without the
  * meeting address: the server cuts it.
  *
  * Live (never for a visitor): when the space channel says that this event was published, changed or went away, the
@@ -173,6 +174,9 @@ export default function EventPage({ community, space, spaceGroups, event, permis
           {event.cover && <CoverImage src={event.cover.url} alt={event.cover_alt ?? ''} loading="eager" />}
 
           <EventWhen start={event.starts_at} end={event.ends_at} timeZone={event.time_zone} />
+
+          {/* The calendar file (#1515): for a member, never for a draft. Its name is its words: the title is the heading */}
+          <AddToCalendar communityCuid={community.cuid} spaceCuid={space.cuid} event={event} isMember={isMember} />
 
           <EventHost host={event.host} communitySlug={community.slug} isMember={isMember} />
 

@@ -109,10 +109,12 @@ test('a moderator creates, reads, changes, publishes, duplicates and deletes an 
         ->assertJsonPath('data.body_html', '<p>Bring <strong>questions</strong></p>')
         ->assertJsonPath('data.host.cuid', $this->c['moderator']->cuid)
         ->assertJsonPath('data.space.cuid', $space->cuid)
+        // The community of the event (#1515)
+        ->assertJsonPath('data.community.cuid', $this->c['community']->cuid)
         ->assertJsonPath('data.cover', null);
     expect(array_keys((array) $created->json('data')))->toBe([
         'cuid', 'title', 'slug', 'state', 'starts_at', 'ends_at', 'time_zone', 'is_past', 'location_visibility', 'can_view_location',
-        'meeting_url', 'place', 'my_answer', 'can_answer', 'replay_expected', 'places_left', 'capacity', 'cover', 'cover_alt', 'host', 'space', 'body', 'body_html', 'created_at', 'updated_at',
+        'meeting_url', 'place', 'my_answer', 'can_answer', 'replay_expected', 'places_left', 'capacity', 'cover', 'cover_alt', 'host', 'space', 'community', 'body', 'body_html', 'created_at', 'updated_at',
     ]);
     $event = EventModel::query()->where('cuid', $created->json('data.cuid'))->firstOrFail();
 

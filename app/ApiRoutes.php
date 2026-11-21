@@ -108,6 +108,9 @@ final class ApiRoutes
     // The entitlement keys of the current user at the sign-in provider (#1386, ADR 0047)
     public const USER_ENTITLEMENTS = 'user/entitlements';
 
+    // "My events" (#1515, ADR 0053): the events that the current member answered Yes or Replay only, and the ones they host
+    public const USER_EVENTS = 'user/events';
+
     public const AUTH_LOGIN = 'auth/login';
 
     public const PING = 'ping';
@@ -178,6 +181,9 @@ final class ApiRoutes
     public const COMMUNITY_SPACE_EVENT_ANSWER = self::COMMUNITY_SPACE_EVENT.'/answer';
 
     public const COMMUNITY_SPACE_EVENT_ANSWERS = self::COMMUNITY_SPACE_EVENT.'/answers';
+
+    // The calendar file of an event, for a member (#1515, ADR 0053): one iCalendar file, built at each request
+    public const COMMUNITY_SPACE_EVENT_CALENDAR_FILE = self::COMMUNITY_SPACE_EVENT.'/calendar-file';
 
     // The upcoming events of every events space that the reader can read (#1513)
     public const COMMUNITY_EVENTS = self::COMMUNITY.'/events';

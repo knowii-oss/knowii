@@ -311,4 +311,38 @@ describe('the calls of events (#1514, ADR 0053)', () => {
       expect(await knowiiApiClient.communities.events.answers.list('c1', 's1', 'e1')).toMatchObject({ ok: false, status: 403 });
     });
   });
+
+  it('gives the address of the calendar file of an event (#1515): a link downloads it, no request runs', () => {
+    const fetchMock = answer({});
+
+    expect(knowiiApiClient.communities.events.calendarFileUrl('c1', 's1', 'e1')).toBe(
+      '/api/v1/communities/c1/spaces/s1/events/e1/calendar-file',
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('lists a page of "My events" with the scope, the limit and the offset, each event with its community (#1515)', async () => {
+    const community = { cuid: 'c1', slug: 'example-community', name: 'Example community' };
+    const fetchMock = answer({ message: 'My events', data: [{ ...event, community }], metadata: { pagination } });
+
+    const result = await knowiiApiClient.users.events.list('past', 20, 40);
+
+    expect(callOf(fetchMock).url).toBe('/api/v1/user/events?scope=past&limit=20&offset=40');
+    expect(callOf(fetchMock).options.method).toBe('GET');
+    expect(result.ok && result.data.items[0]?.community).toEqual(community);
+    expect(result.ok && result.data.pagination.nextOffset).toBe(20);
+  });
+
+  it('lists the first 20 upcoming events of "My events" by default, and gives the message of a refusal', async () => {
+    const fetchMock = answer({ data: [], metadata: { pagination: { ...pagination, nextOffset: null, totalCount: 0 } } });
+
+    const result = await knowiiApiClient.users.events.list('upcoming');
+
+    expect(callOf(fetchMock).url).toBe('/api/v1/user/events?scope=upcoming&limit=20&offset=0');
+    expect(result.ok && result.data.items).toEqual([]);
+
+    answer({ message: 'Unauthenticated.' }, 401);
+    const refused = await knowiiApiClient.users.events.list('upcoming');
+    expect(refused.ok).toBe(false);
+  });
 });

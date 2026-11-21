@@ -158,6 +158,44 @@ describe('the page of an event (#1514, design 6.2)', () => {
     });
   });
 
+  describe('"Add to calendar" (#1515, E2c rules 27 to 33)', () => {
+    it('comes right after the time and before the host, as a link to the calendar file with its words as its name', async () => {
+      const { container } = renderPage(withBody());
+
+      const time = screen.getByText('Wednesday 18 November, 11:00 to 12:00 Eastern Standard Time');
+      const link = screen.getByRole('link', { name: 'Add to calendar' });
+      const host = screen.getByRole('heading', { level: 2, name: 'Host' });
+      expect(time.compareDocumentPosition(link) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(link.compareDocumentPosition(host) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(link).toHaveAttribute('href', '/api/v1/communities/c1/spaces/s1/events/e1/calendar-file');
+      expect(link).toHaveAttribute('download');
+      expect((await axe.run(container)).violations).toEqual([]);
+    });
+
+    it('stays for a member on a cancelled event and on an event that ended', () => {
+      const { unmount } = renderPage(withBody({ state: 'cancelled', can_answer: false }));
+      expect(screen.getByRole('link', { name: 'Add to calendar' })).toBeInTheDocument();
+      unmount();
+
+      renderPage(
+        withBody({ is_past: true, can_answer: false, starts_at: '2026-11-03T16:00:00.000000Z', ends_at: '2026-11-03T17:00:00.000000Z' }),
+      );
+      expect(screen.getByRole('link', { name: 'Add to calendar' })).toBeInTheDocument();
+    });
+
+    it('is not there for a visitor, for a person who is not a member, and for every reader of a draft', () => {
+      for (const reader of ['visitor', 'outsider'] as const) {
+        const { unmount } = renderPage(withBody({ can_view_location: false, meeting_url: null, can_answer: false }), { reader });
+        expect(screen.queryByRole('link', { name: 'Add to calendar' })).toBeNull();
+        expect(screen.queryByText('Add to calendar')).toBeNull();
+        unmount();
+      }
+
+      renderPage(withBody({ state: 'draft', can_answer: false }), { permissions: ALL });
+      expect(screen.queryByRole('link', { name: 'Add to calendar' })).toBeNull();
+    });
+  });
+
   describe('the times (rules 10, 11 and 12)', () => {
     it('is a time element with the UTC start, in the zone of the account, with the time of the host when it reads differently', () => {
       renderPage(withBody());

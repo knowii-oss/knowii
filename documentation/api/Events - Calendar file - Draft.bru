@@ -1,0 +1,19 @@
+meta {
+  name: Events - Calendar file - Draft
+  type: http
+  seq: 203
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of an events space>/events/<cuid of a draft that you host>/calendar-file
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: text/calendar
+}
+
+docs {
+  A draft has no calendar file (#1515): its host, the owner and the admins get 422, "This event is a draft. It has no calendar file.", as the JSON error of the API. The other members get 404, the body of an event that does not exist.
+}

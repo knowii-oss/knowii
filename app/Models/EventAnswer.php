@@ -2,10 +2,9 @@
 
 namespace App\Models;
 
-use App\Enums\KnowiiCommunityMemberRole;
 use App\Enums\KnowiiEventAnswer;
-use App\Enums\KnowiiSpaceVisibility;
 use App\Http\Resources\EventAnswerResource;
+use App\Support\SpaceReaders;
 use App\Traits\GeneratesCuid;
 use Carbon\Carbon;
 use Database\Factories\EventAnswerFactory;
@@ -15,7 +14,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Query\Builder as QueryBuilder;
-use Illuminate\Database\Query\JoinClause;
 
 /**
  * The answer of one member to one event (#1515, ADR 0053): Yes, Replay only or No. One row per member and event; no row
@@ -117,9 +115,8 @@ class EventAnswer extends Model
      * places that are left, the limit, the list and the counts of the host, and "nobody answered" of the return to
      * draft. The database decides, with one condition for all the rows: no row is loaded to be checked.
      *
-     * The reading rule of a space for a member, as SpacePolicy::view decides it, written for the database: the owner or
-     * a row in `community_members`; then a space that is not "groups", or the owner, an admin, or a member of an access
-     * group of the space or of its space group (ADR 0025, ADR 0041). EventAnswersTest holds the two forms together.
+     * The reading rule of a space for a member is App\Support\SpaceReaders, the one form of SpacePolicy::view for the
+     * database, with the member of each row. EventAnswersTest holds the two forms together.
      *
      * @param  Builder<EventAnswer>  $query
      * @return Builder<EventAnswer>
@@ -129,34 +126,8 @@ class EventAnswer extends Model
         return $query->whereExists(static function (QueryBuilder $event): void {
             $event->selectRaw('1')
                 ->from('events')
-                ->join('spaces', 'spaces.id', '=', 'events.space_id')
-                ->join('communities', 'communities.id', '=', 'events.community_id')
-                ->leftJoin('community_members', static function (JoinClause $join): void {
-                    $join->on('community_members.community_id', '=', 'communities.id')->on('community_members.user_id', '=', 'event_answers.user_id');
-                })
                 ->whereColumn('events.id', 'event_answers.event_id')
-                // A member of the community
-                ->where(static function (QueryBuilder $member): void {
-                    $member->whereColumn('communities.owner_id', 'event_answers.user_id')->orWhereNotNull('community_members.id');
-                })
-                // Who can read the space
-                ->where(static function (QueryBuilder $reader): void {
-                    $reader->whereIn('spaces.visibility', [KnowiiSpaceVisibility::Public->value, KnowiiSpaceVisibility::Members->value])
-                        ->orWhereColumn('communities.owner_id', 'event_answers.user_id')
-                        ->orWhere('community_members.role', KnowiiCommunityMemberRole::Admin->value)
-                        ->orWhereExists(static function (QueryBuilder $group): void {
-                            $group->selectRaw('1')
-                                ->from('access_group_members')
-                                ->whereColumn('access_group_members.user_id', 'event_answers.user_id')
-                                ->where(static function (QueryBuilder $opening): void {
-                                    $opening->whereIn('access_group_members.access_group_id', static function (QueryBuilder $ofSpace): void {
-                                        $ofSpace->select('access_group_id')->from('access_group_space')->whereColumn('access_group_space.space_id', 'spaces.id');
-                                    })->orWhereIn('access_group_members.access_group_id', static function (QueryBuilder $ofSpaceGroup): void {
-                                        $ofSpaceGroup->select('access_group_id')->from('access_group_space_group')->whereColumn('access_group_space_group.space_group_id', 'spaces.space_group_id');
-                                    });
-                                });
-                        });
-                });
+                ->whereExists(SpaceReaders::exists('events.space_id', 'event_answers.user_id'));
         });
     }
 }

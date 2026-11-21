@@ -1,0 +1,19 @@
+meta {
+  name: Events - My events - Past
+  type: http
+  seq: 205
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/user/events?scope=past&answer=yes
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Your events that ended, the newest start first (#1515), here only the ones that you answered Yes. A wrong scope gives 400, "Use upcoming or past"; a wrong answer gives 400, "Use yes, replay or host". Ability events:read.
+}

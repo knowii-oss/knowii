@@ -255,6 +255,9 @@ class Constants
     // Answers to events, and clears of an answer, per member (#1515)
     public const int EVENT_ANSWERS_PER_MINUTE = 30;
 
+    // The calendar files of events (#1515): a member adds a few events to a calendar, a script reads more, not hundreds
+    public const int CALENDAR_FILES_PER_MINUTE = 30;
+
     // Starts and ends of a sign-in with the OpenID Connect provider per minute and per IP address (#1385)
     public const int OIDC_REQUESTS_PER_MINUTE = 10;
 

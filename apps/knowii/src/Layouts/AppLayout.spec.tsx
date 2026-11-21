@@ -7,6 +7,7 @@ import AppLayout from './AppLayout';
 const page = vi.hoisted(() => ({
   user: null as { cuid: string; name: string; email: string; avatar_url: string | null; time_zone?: string | null } | null,
   catchUp: null as { since: string } | null,
+  url: '/community/tests',
 }));
 
 vi.mock('@inertiajs/react', () => ({
@@ -24,7 +25,7 @@ vi.mock('@inertiajs/react', () => ({
       jetstream: { flash: {}, hasApiFeatures: true },
       newsletter: { enabled: false, turnstileSiteKey: null },
     },
-    url: '/community/tests',
+    url: page.url,
   }),
 }));
 vi.mock('ziggy-js', () => ({ useRoute: () => (name: string) => `/${name}` }));
@@ -195,5 +196,49 @@ describe('AppLayout for a member (#1476)', () => {
     expect(readKeptText({ account: 'u1', kind: 'page', place: 'p1' })).toBeNull();
     expect(readKeptText({ account: 'u2', kind: 'post', place: 's1' })).not.toBeNull();
     window.localStorage.clear();
+  });
+
+  it('has the entry "My events" after "Catch up" and before "Edit profile" (#1515)', async () => {
+    page.user = member;
+    page.catchUp = { since: '2026-11-01' };
+    vi.spyOn(knowiiApiClient.notifications, 'count').mockResolvedValue({ ok: true, message: '', data: { count: 0, messages: 0 } });
+    renderLayout();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Open the user menu' }));
+
+    const entry = await screen.findByRole('menuitem', { name: 'My events' });
+    expect(entry).toHaveAttribute('href', '/events.index');
+    expect(entry).not.toHaveAttribute('aria-current');
+    expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
+      'Catch up',
+      'My events',
+      'Edit profile',
+      'Notification settings',
+      'API tokens',
+      'Log out',
+    ]);
+  });
+
+  it('gives "My events" to every account, first when "Catch up" is not there, and marks it on its page and on its past list (#1515)', async () => {
+    page.user = member;
+    page.catchUp = null;
+    vi.spyOn(knowiiApiClient.notifications, 'count').mockResolvedValue({ ok: true, message: '', data: { count: 0, messages: 0 } });
+    for (const url of ['/events.index', '/events.index?scope=past']) {
+      page.url = url;
+      const { unmount } = render(
+        <AppDataProvider>
+          <AppLayout browserPageTitle="My events">
+            <p>Content</p>
+          </AppLayout>
+        </AppDataProvider>,
+      );
+
+      await userEvent.click(screen.getByRole('button', { name: 'Open the user menu' }));
+
+      expect(await screen.findByRole('menuitem', { name: 'My events' })).toHaveAttribute('aria-current', 'page');
+      expect(screen.getAllByRole('menuitem')[0]).toHaveTextContent('My events');
+      unmount();
+    }
+    page.url = '/community/tests';
   });
 });

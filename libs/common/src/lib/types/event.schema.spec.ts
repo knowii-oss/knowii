@@ -95,4 +95,12 @@ describe('eventSchema (#1513)', () => {
     expect(eventSchema.safeParse({ ...fromServer, state: 'past' }).success).toBe(false);
     expect(eventSchema.safeParse({ ...fromServer, location_visibility: 'everyone' }).success).toBe(false);
   });
+
+  it('reads the community of an event when the read gives it, and an event without it (#1515)', () => {
+    const community = { cuid: 'c1', slug: 'example-community', name: 'Example community' };
+
+    expect(eventSchema.parse({ ...fromServer, community }).community).toEqual(community);
+    expect(eventSchema.parse(fromServer).community).toBeUndefined();
+    expect(eventSchema.safeParse({ ...fromServer, community: { cuid: 'c1' } }).success).toBe(false);
+  });
 });
