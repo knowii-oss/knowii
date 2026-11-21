@@ -93,6 +93,8 @@ test('every write operation documents its request body', function () {
         'PUT /v1/communities/{community}/spaces/{space}/visit',
         // Duplicate an event (#1513): the event is in the path
         'POST /v1/communities/{community}/spaces/{space}/events/{event}/duplicate',
+        // Send the link of a change of the email address again (#1706): the change waits on the account
+        'POST /v1/user/email-change/resend',
     ];
     $withoutBody = [];
     foreach (openApiDocument()['paths'] as $path => $operations) {

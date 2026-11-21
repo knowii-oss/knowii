@@ -163,6 +163,8 @@ describe('the errors of the server in the profile form (#1688)', () => {
 
     await userEvent.clear(email);
     await userEvent.type(email, 'taken@example.com');
+    // A change of the address asks for the current password (#1706)
+    await userEvent.type(screen.getByLabelText('Current password'), 'the-password');
     await userEvent.click(saveButton());
     expect(await screen.findByRole('alert')).toHaveTextContent(EMAIL_ERROR);
     expect(saveIsOff()).toBe(true);
@@ -176,7 +178,7 @@ describe('the errors of the server in the profile form (#1688)', () => {
     await userEvent.click(saveButton());
 
     await waitFor(() => expect(server.requests).toHaveLength(2));
-    expect(server.requests[1]?.data).toMatchObject({ email: 'free@example.com' });
+    expect(server.requests[1]?.data).toMatchObject({ email: 'free@example.com', current_password: 'the-password' });
   });
 
   it('removes the errors with "Reset", which puts the stored values back', async () => {

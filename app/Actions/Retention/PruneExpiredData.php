@@ -8,6 +8,7 @@ use App\Models\CommunityInvitation;
 use App\Models\Event;
 use App\Models\EventAnswer;
 use App\Models\Notification;
+use App\Models\User;
 use App\Support\Retention;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
@@ -28,6 +29,8 @@ use Laravel\Sanctum\PersonalAccessToken;
  *   some days after they were written
  * - answers of members to events (#1515, ADR 0053), some days after the end of their event
  * - community exports (zip files of `php artisan communities:export`, #1353) after their retention period
+ * - a new email address that waits for its confirmation (#1706, ADR 0058), some days after the request: the address and
+ *   the time of the request are cleared, the account stays
  * - cache entries after their expiry (sign-in link tokens, rate limit counters by IP address), when the cache is the
  *   database: an expired entry stays in the table until someone reads its key again
  */
@@ -79,6 +82,7 @@ final class PruneExpiredData implements PrunesExpiredData
                 $dryRun
             ),
             'exports' => $this->pruneExports($dryRun),
+            'pending_emails' => $this->prunePendingEmails($dryRun),
         ];
 
         Log::info($dryRun ? 'Expired data found' : 'Expired data deleted', $counts);
@@ -105,6 +109,19 @@ final class PruneExpiredData implements PrunesExpiredData
         }
 
         return $deleted;
+    }
+
+    /**
+     * A change of the email address that was never confirmed (#1706): the account keeps its address, and the pending one goes
+     */
+    private function prunePendingEmails(bool $dryRun): int
+    {
+        $query = User::query()
+            ->where(fn ($pending) => $pending->whereNotNull('pending_email')->orWhereNotNull('pending_email_requested_at'))
+            ->where(fn ($old) => $old->whereNull('pending_email_requested_at')->orWhere('pending_email_requested_at', '<=', now()->subDays(Retention::pendingEmailDays())))
+            ->toBase();
+
+        return $dryRun ? $query->count() : $query->update(['pending_email' => null, 'pending_email_requested_at' => null]);
     }
 
     private function pruneCache(bool $dryRun): int

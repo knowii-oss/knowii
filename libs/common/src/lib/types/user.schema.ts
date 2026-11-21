@@ -17,6 +17,9 @@ export const currentUserSchema = z.object({
   notification_popups: z.boolean().optional(),
   two_factor_confirmed_at: z.coerce.date().nullable(),
   email_verified_at: z.coerce.date().nullable(),
+  // #1706: the new address that waits for its confirmation, and the time of the request. Null when none. Only the member reads it
+  pending_email: z.email().nullable().optional(),
+  pending_email_requested_at: z.coerce.date().nullable().optional(),
   created_at: z.coerce.date(),
   updated_at: z.coerce.date(),
 });

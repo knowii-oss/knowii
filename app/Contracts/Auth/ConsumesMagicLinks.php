@@ -4,6 +4,10 @@ namespace App\Contracts\Auth;
 
 use App\Models\User;
 
+/**
+ * A link is valid for the address that it was sent to (ADR 0058): when the account has another address now, the link gives
+ * no account.
+ */
 interface ConsumesMagicLinks
 {
     /**

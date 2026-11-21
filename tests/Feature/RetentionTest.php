@@ -55,6 +55,7 @@ test('the periods of the privacy policy come from the configuration (ADR 0030)',
         ->and($periods['notifications_read'])->toBe('60 days')
         ->and($periods['notifications_unread'])->toBe('90 days')
         ->and($periods['event_answers'])->toBe('90 days')
+        ->and($periods['pending_email'])->toBe('7 days')
         ->and($periods['logs'])->toBe('14 days')
         ->and($periods['waitlist'])->toBe('12 months')
         ->and($periods['inactive_contacts'])->toBe('30 days')
@@ -141,7 +142,7 @@ test('the dry run of the retention prune deletes nothing (#1306)', function () {
     $old = invitationCreatedDaysAgo($community, 60);
 
     $this->artisan('retention:prune', ['--dry-run' => true])
-        ->expectsTable(['Data', 'To delete'], [['invitations', 1], ['api_tokens', 0], ['failed_jobs', 0], ['password_reset_tokens', 0], ['sessions', 0], ['cache', 0], ['notifications', 0], ['event_answers', 0], ['exports', 0]])
+        ->expectsTable(['Data', 'To delete'], [['invitations', 1], ['api_tokens', 0], ['failed_jobs', 0], ['password_reset_tokens', 0], ['sessions', 0], ['cache', 0], ['notifications', 0], ['event_answers', 0], ['exports', 0], ['pending_emails', 0]])
         ->assertSuccessful();
 
     expect(CommunityInvitation::query()->whereKey($old->id)->exists())->toBeTrue();
@@ -293,4 +294,23 @@ test('the dry run of the mailing list prune deletes nothing (#77)', function () 
         ->assertSuccessful();
 
     Http::assertNotSent(fn (Request $r) => $r->method() === 'DELETE');
+});
+
+test('a new email address that waits for its confirmation is removed 7 days after the request, the account stays (#1706)', function () {
+    Storage::fake('local');
+    $this->travelTo(Carbon\Carbon::parse('2026-11-21 10:00:00'));
+    $old = User::factory()->create(['email' => 'old-request@example.com', 'pending_email' => 'old-request.new@example.com', 'pending_email_requested_at' => now()->subDays(7)]);
+    $recent = User::factory()->create(['email' => 'recent-request@example.com', 'pending_email' => 'recent-request.new@example.com', 'pending_email_requested_at' => now()->subDays(6)]);
+
+    expect(Retention::pendingEmailDays())->toBe(7);
+
+    $this->artisan('retention:prune', ['--dry-run' => true])->assertSuccessful();
+    expect($old->fresh()->getRawOriginal('pending_email'))->toBe('old-request.new@example.com');
+
+    $this->artisan('retention:prune')->assertSuccessful();
+    expect($old->fresh())->not->toBeNull()
+        ->and($old->fresh()->email)->toBe('old-request@example.com')
+        ->and($old->fresh()->getRawOriginal('pending_email'))->toBeNull()
+        ->and($old->fresh()->getRawOriginal('pending_email_requested_at'))->toBeNull()
+        ->and($recent->fresh()->getRawOriginal('pending_email'))->toBe('recent-request.new@example.com');
 });

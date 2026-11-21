@@ -29,6 +29,7 @@ The sign-in provider of this site: {{sign_in_provider}}.
 7. Backups: {{retention.backups_daily}} daily, {{retention.backups_weekly}} weekly and {{retention.backups_monthly}} monthly, for up to {{retention.backups_longest}}.
 8. Notifications: {{retention.notifications_read}} after you read them, {{retention.notifications_unread}} when you never read them.
 9. Answers to events: {{retention.event_answers}} after the event.
+10. A new email address that you asked for: until you confirm it or cancel it, or for {{retention.pending_email}} at most.
 
 ## 4. Cookies
 

@@ -3,23 +3,41 @@
 namespace App\Actions\Fortify;
 
 use App\Constants;
+use App\Contracts\Users\ChangesEmailAddresses;
 use App\Contracts\Users\VerifiesUsernameAvailability;
 use App\Exceptions\TechnicalException;
 use App\Models\User;
 use App\Models\UserProfile;
+use App\Rules\FreeEmailAddress;
 use App\Rules\KnownTimeZone;
+use App\Support\EmailChangeBudget;
 use App\Support\ProfileFieldVisibility;
 use App\Support\ProfileHeadline;
 use App\Support\TimeZones;
+use Closure;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\UpdatesUserProfileInformation;
+use SensitiveParameter;
 
 class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 {
     /**
      * Validate and update the given user's profile information.
+     *
+     * A change of the email address (#1706, ADR 0058), compared without regard to the case:
+     * 1. An account with a verified address keeps it. The new address waits for its confirmation (ChangesEmailAddresses):
+     *    the link goes to it, and the account has it only when the link is opened.
+     * 2. An account whose address was never verified changes it at once, as a correction, and the address check goes to the
+     *    new address. Its other fields do not change until the address is verified.
+     * 3. The current password confirms the change when the account has one.
+     * 4. Each change counts in the budget of the mails of a change of the address (EmailChangeBudget), with "Send the link
+     *    again".
+     * The same address in another case is no change: the account keeps the stored address.
      *
      * @param  array<mixed>  $input
      *
@@ -34,12 +52,36 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             $input['headline'] = ProfileHeadline::clean($input['headline']);
         }
 
+        $newAddress = is_string($input['email'] ?? null) ? trim($input['email']) : null;
+        $changesAddress = $newAddress !== null && mb_strtolower($newAddress) !== mb_strtolower($user->email);
+        $checksPassword = $changesAddress && $user->hasPassword();
+
+        // A few wrong passwords a minute, as the deletion of the account: a session that someone else holds cannot guess it
+        $passwordKey = 'email-change-password:'.$user->cuid;
+        if ($checksPassword && RateLimiter::tooManyAttempts($passwordKey, Constants::EMAIL_CHANGES_PER_MINUTE)) {
+            throw ValidationException::withMessages(['current_password' => __('Too many tries. Please wait a minute, then try again.')])->errorBag('updateProfileInformation');
+        }
+        // Each change of the address sends a mail: one budget with "Send the link again" (#1706, ADR 0058)
+        if ($changesAddress && EmailChangeBudget::isUsedUpBy($user)) {
+            throw ValidationException::withMessages(['email' => __('Too many tries. Please wait a minute, then try again.')])->errorBag('updateProfileInformation');
+        }
+
         // WARNING: Those rules must remain aligned with those in CreateNewUser.php
         $validator = Validator::make($input, [
             'name' => ['string', 'max:'.Constants::MAX_LENGTH_USER_NAME],
             // WARNING: Those rules must remain aligned with those in VerifyUsernameAvailability.php and with the client-side usernameSchema
             'username' => ['string', 'min:'.Constants::MIN_LENGTH_USER_USERNAME, 'max:'.Constants::MAX_LENGTH_USER_USERNAME, 'regex:'.Constants::ALLOWED_USER_USERNAME_CHARACTERS_REGEX],
-            'email' => ['required', 'email', 'max:'.Constants::MAX_LENGTH_USER_EMAIL, Rule::unique('users')->ignore($user->id)],
+            // No other account has the address, without regard to the case (the sign-in link and the provider find an
+            // account by its address that way). A pending address of another account does not count
+            'email' => ['required', 'email', 'max:'.Constants::MAX_LENGTH_USER_EMAIL, new FreeEmailAddress($user->id)],
+            // The current password confirms a change of the address (#1706), when the account has one (an account that a
+            // provider made has none). The other fields need no password
+            ...($checksPassword ? ['current_password' => ['required', 'string', static function (string $attribute, mixed $value, Closure $fail) use ($user, $passwordKey): void {
+                if (! is_string($value) || ! Hash::check($value, (string) $user->password)) {
+                    RateLimiter::hit($passwordKey, 60);
+                    $fail(__('The provided password does not match your current password.'));
+                }
+            }]] : []),
             // Only when the member sends the field (#1688): a request without it keeps the stored headline
             'headline' => ['sometimes', 'nullable', 'string', 'max:'.Constants::MAX_LENGTH_USER_HEADLINE],
             'bio' => ['nullable', 'string', 'max:'.Constants::MAX_LENGTH_USER_BIO],
@@ -55,27 +97,36 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 
         $validator->validateWithBag('updateProfileInformation');
 
-        /** @var array{name: string|null, username: string|null, email: string, bio: string|null, location: string|null, phone: string|null, headline?: string|null, field_visibility?: array<string, mixed>, time_zone?: string|null} $input */
+        /** @var array{name: string|null, username: string|null, email: string, current_password?: string, bio: string|null, location: string|null, phone: string|null, headline?: string|null, field_visibility?: array<string, mixed>, time_zone?: string|null} $input */
         $input = $validator->validated();
+
+        if ($changesAddress) {
+            EmailChangeBudget::count($user);
+        }
 
         $userProfile = $user->profile;
 
         // WARNING: Profile information updates are NOT allowed until the user has verified their email address
         // This is important to avoid abuse of the system where users register using a mail they don't own to take over an unclaimed user profile, and try to modify it
+        // The address itself is the exception (#1706): a person who typed it wrong corrects it, and the address check goes
+        // to the corrected address
         if (! $user->hasVerifiedEmail()) {
+            if ($changesAddress) {
+                $this->correctUnverifiedAddress($user, trim($input['email']), $input['current_password'] ?? null);
+            }
+
             return;
         }
 
         // Handle user account updates
-        \DB::transaction(function () use ($user, $userProfile, $input) {
+        \DB::transaction(function () use ($user, $userProfile, $input, $changesAddress) {
             if (isset($input['username'])) {
                 $this->updateUsername($user, $userProfile, $input['username']);
             }
 
-            if ($input['email'] !== $user->email) {
-                $this->updateVerifiedUser($user, $userProfile, $input);
-            } else {
-                $this->updatedUnverifiedUser($user, $userProfile, $input);
+            // The new address waits for its confirmation (#1706, ADR 0058): the account keeps the verified address of now
+            if ($changesAddress) {
+                app(ChangesEmailAddresses::class)->request($user, trim($input['email']));
             }
 
             // Handle name update
@@ -117,43 +168,54 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     }
 
     /**
-     * Update the given verified user's profile information.
+     * The correction of an address that was never verified (#1706): it applies at once, and the address check goes to the
+     * new address. There is no pending address for such an account. In one transaction, on the row of the account read
+     * again and locked: the password is checked against that row, and the correction applies only while the row still has
+     * no verified address. A row that another proof verified in between changes nothing: no pending change is made and no
+     * mail goes, and the request ends without an error. Returns whether the correction applied; the model holds the stored
+     * values after the call.
      *
-     * @param  array<mixed>  $input
+     * @throws ValidationException
      */
-    final public function updateVerifiedUser(User $user, UserProfile $userProfile, array $input): void
+    final public function correctUnverifiedAddress(User $user, string $address, #[SensitiveParameter] ?string $password): bool
     {
+        try {
+            $applied = DB::transaction(static function () use ($user, $address, $password): bool {
+                // The row as it is stored now, locked until the commit
+                $account = User::query()->lockForUpdate()->findOrFail($user->id);
+                if ($account->hasVerifiedEmail()) {
+                    return false;
+                }
+                if ($account->hasPassword() && (! is_string($password) || ! Hash::check($password, (string) $account->password))) {
+                    throw ValidationException::withMessages(['current_password' => __('The provided password does not match your current password.')])->errorBag('updateProfileInformation');
+                }
 
-        // Update the user account
-        $user->forceFill([
-            'email' => $input['email'],
-            'email_verified_at' => null,
-        ])->save();
+                $previous = $account->email;
+                $account->forceFill([
+                    'email' => $address,
+                    'email_verified_at' => null,
+                    'pending_email' => null,
+                    'pending_email_requested_at' => null,
+                ])->save();
+                // Keep the user profile in sync
+                $account->profile()->update(['email' => $address]);
+                // A reset link of the address of before has no use any more
+                DB::table('password_reset_tokens')->where('email', $previous)->delete();
 
-        // Keep the user profile in sync
-        $userProfile->forceFill([
-            'email' => $input['email'],
-        ])->save();
+                return true;
+            });
+        } catch (UniqueConstraintViolationException) {
+            // Another account took the address between the check and the write: the error of the check, never an error page
+            throw ValidationException::withMessages(FreeEmailAddress::takenMessages())->errorBag('updateProfileInformation');
+        }
 
-        $user->sendEmailVerificationNotification();
-    }
+        // The caller goes on with the stored values
+        $user->refresh();
+        if ($applied) {
+            $user->sendEmailVerificationNotification();
+        }
 
-    /**
-     * Updated the given unverified user's profile information
-     *
-     * @param  array<mixed>  $input
-     */
-    final public function updatedUnverifiedUser(User $user, UserProfile $userProfile, array $input): void
-    {
-        // Update the user account
-        $user->forceFill([
-            'email' => $input['email'],
-        ])->save();
-
-        // Keep the user profile in sync
-        $userProfile->forceFill([
-            'email' => $input['email'],
-        ])->save();
+        return $applied;
     }
 
     /**

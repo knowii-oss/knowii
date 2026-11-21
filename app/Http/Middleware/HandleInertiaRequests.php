@@ -7,7 +7,9 @@ use App\Support\InstanceValues;
 use App\Support\LegalPages;
 use App\Support\Newsletter;
 use App\Support\OpenIdConnect;
+use Closure;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
 
@@ -77,6 +79,18 @@ class HandleInertiaRequests extends Middleware
             // The bell shows the name of the community on each notification when the member is in more than one (#1484).
             // The closure keeps the user of this moment: a later middleware can change who the request answers for
             $retVal['communityCount'] = fn () => $user->communities()->count();
+
+            // The account of the page is the one of Jetstream (its middleware shared it before this one), with the change of
+            // the email address that waits (#1706, ADR 0058): both columns are hidden from every serialization, so they are
+            // added here, for the member only
+            $account = Inertia::getShared('auth.user');
+            $retVal['auth'] = [
+                'user' => static function () use ($account, $user): ?array {
+                    $value = $account instanceof Closure ? $account() : $account;
+
+                    return is_array($value) ? [...$value, ...$user->ownPendingEmailChange()] : null;
+                },
+            ];
         }
 
         return $retVal;

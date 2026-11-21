@@ -599,21 +599,27 @@ test('"Resend verification email" holds the landing of its session, and none wit
         ->and(landingOfTheLink(landingLinkOfTheMail()))->toBeNull();
 });
 
-test('a change of address in the profile holds the landing of its session, and none without one', function () {
+test('a correction of an address that was never verified holds the landing of its session, and a verified member gets no address check', function () {
     $c = landingCommunity();
-    $member = $c['member'];
+    $grace = landingGrace();
 
-    $this->actingAs($member)->withSession(['url.intended' => URL::to(LANDING_SPACE)])
-        ->put('/user/profile-information', ['name' => $member->name, 'email' => 'first-new-address@example.com'])->assertSessionHasNoErrors();
-    expect($member->fresh()?->hasVerifiedEmail())->toBeFalse()
+    // An address that was never verified changes at once, and the address check goes to it (#1706, ADR 0058)
+    $this->actingAs($grace)->withSession(['url.intended' => URL::to(LANDING_SPACE)])
+        ->put('/user/profile-information', ['name' => $grace->name, 'email' => 'first-new-address@example.com', 'current_password' => 'password'])->assertSessionHasNoErrors();
+    expect($grace->fresh()?->email)->toBe('first-new-address@example.com')
+        ->and($grace->fresh()?->hasVerifiedEmail())->toBeFalse()
         ->and(landingOfTheLink(landingLinkOfTheMail()))->toBe(LANDING_SPACE);
 
-    $member->forceFill(['email_verified_at' => now()])->save();
+    // A verified member keeps the verified address: the new one waits for the link of its own mail, not the address check
+    $member = $c['member'];
+    $member->forceFill(['email' => 'member-of-the-harbour@example.com'])->save();
     session()->forget('url.intended');
     $this->actingAs($member->fresh())
-        ->put('/user/profile-information', ['name' => $member->name, 'email' => 'second-new-address@example.com'])->assertSessionHasNoErrors();
-    expect(landingLinkOfTheMail())->toContain('/email/verify/')
-        ->and(landingOfTheLink(landingLinkOfTheMail()))->toBeNull();
+        ->put('/user/profile-information', ['name' => $member->name, 'email' => 'second-new-address@example.com', 'current_password' => 'password'])->assertSessionHasNoErrors();
+    expect($member->fresh()?->hasVerifiedEmail())->toBeTrue()
+        ->and($member->fresh()?->email)->toBe('member-of-the-harbour@example.com')
+        ->and(landingAddressOfTheMail('/user/email-change/'))->not->toBe('')
+        ->and(landingLinkOfTheMail())->toBe('');
 });
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -1227,9 +1233,10 @@ test('a sign-in link that was asked from another place lands on the dashboard', 
 
 test('a sign-in link that was stored without a landing still signs in, and lands on the dashboard', function () {
     $c = landingCommunity();
-    // The entry of a link that was sent before the landing existed: the id of the account under the hash of the token
+    // The entry of a link, without the entry of a landing beside it: the account and the HMAC of the address that the link
+    // was sent to, under the hash of the token (ADR 0058)
     $token = str_repeat('k', 64);
-    Cache::put('magic-link:'.hash('sha256', $token), $c['outsider']->id, now()->addMinutes(MagicLinks::VALIDITY_MINUTES));
+    Cache::put('magic-link:'.hash('sha256', $token), ['user' => $c['outsider']->id, 'address' => hash_hmac('sha256', $c['outsider']->email, config()->string('app.key'))], now()->addMinutes(MagicLinks::VALIDITY_MINUTES));
 
     $this->post('/login/link/'.$token)->assertRedirect(route('dashboard'));
     $this->assertAuthenticatedAs($c['outsider']);

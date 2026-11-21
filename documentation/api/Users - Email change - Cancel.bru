@@ -1,0 +1,19 @@
+meta {
+  name: Users - Email change - Cancel
+  type: http
+  seq: 201
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/user/email-change
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Cancels a change of the email address that waits for its confirmation (#1706, ADR 0058): pending_email becomes null, the link of the mail does not work any more, and the account keeps its address. Nothing happens when no change waits. Returns the current user. Needs user:write. A few calls a minute.
+}

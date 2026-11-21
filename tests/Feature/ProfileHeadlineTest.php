@@ -3,6 +3,7 @@
 use App\ApiRoutes;
 use App\Constants;
 use App\Enums\KnowiiCommunityMemberRole;
+use App\Mail\ConfirmNewEmailAddress;
 use App\Models\Community;
 use App\Models\User;
 use App\Support\ProfileFieldVisibility;
@@ -553,9 +554,10 @@ test('no broadcast, notification, mail or log line holds the headline (#1688)', 
     $logger->pushHandler($log);
     Log::info('The log of this test is read');
 
-    // The member saves a headline with a new address (the one save of the form that sends a notification), other members
-    // read it, and the owner changes the role of the member (the one answer with a headline that also broadcasts)
-    headlineSave($this->member, ['email' => 'another-address@example.com', 'headline' => HEADLINE_PROBE, 'field_visibility' => ['headline' => true]])
+    // The member saves a headline with a new address (the one save of the form that sends a mail: the link of the new
+    // address, #1706), other members read it, and the owner changes the role of the member (the one answer with a headline
+    // that also broadcasts)
+    headlineSave($this->member, ['email' => 'another-address@example.com', 'current_password' => 'password', 'headline' => HEADLINE_PROBE, 'field_visibility' => ['headline' => true]])
         ->assertSessionHasNoErrors();
     expect(headlineOf($this->member))->toBe(HEADLINE_PROBE);
     headlineMemberPage($this->reader, $this->member, $this->community)->assertOk();
@@ -574,14 +576,19 @@ test('no broadcast, notification, mail or log line holds the headline (#1688)', 
             method_exists($sent['notification'], 'toMail') && ($mail = $sent['notification']->toMail($sent['notifiable'])) instanceof MailMessage ? (string) $mail->render() : null,
         ]);
 
+    // The mails: the link of the new address, as the person reads it
+    $mails = Mail::queued(ConfirmNewEmailAddress::class)->map(fn (ConfirmNewEmailAddress $mail) => [$mail, (string) $mail->render()]);
+
     expect($broadcasts)->not->toBeEmpty()
-        ->and($notifications)->not->toBeEmpty()
+        ->and($mails)->toHaveCount(1)
+        ->and(print_r($mails->all(), true))->not->toContain('HEADLINE-PROBE')
         ->and($log->hasInfoThatContains('The log of this test is read'))->toBeTrue()
         ->and(print_r($broadcasts->all(), true))->not->toContain('HEADLINE-PROBE')
         ->and(print_r($notifications->all(), true))->not->toContain('HEADLINE-PROBE')
         ->and(print_r(DB::table('notifications')->get()->all(), true))->not->toContain('HEADLINE-PROBE')
         ->and(print_r($log->getRecords(), true))->not->toContain('HEADLINE-PROBE');
-    Mail::assertNothingOutgoing();
+    Mail::assertNothingSent();
+    Mail::assertQueuedCount(1);
 });
 
 // ---------------------------------------------------------------------------------------------------------------------

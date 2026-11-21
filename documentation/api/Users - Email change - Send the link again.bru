@@ -1,0 +1,19 @@
+meta {
+  name: Users - Email change - Send the link again
+  type: http
+  seq: 200
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/user/email-change/resend
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  A change of the email address applies after the new address is confirmed (#1706, ADR 0058): the profile form asks for it, the account keeps its address, and a link goes to the new address (pending_email in GET /api/v1/user). This sends a new link to the pending address. No password is needed. The change keeps the time of its request and waits the period of the privacy policy at most (7 days by default). Without a change that waits, the answer is a validation error. Returns the current user. Needs user:write. 6 calls a minute, shared with the changes of the address in the profile form.
+}

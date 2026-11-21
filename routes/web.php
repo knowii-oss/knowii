@@ -6,6 +6,7 @@ use App\Http\Controllers\Inertia\CommunityResourceController;
 use App\Http\Controllers\Inertia\ConversationController;
 use App\Http\Controllers\Inertia\DashboardController;
 use App\Http\Controllers\Inertia\DeleteAccountController;
+use App\Http\Controllers\Inertia\EmailChangeController;
 use App\Http\Controllers\Inertia\EventController;
 use App\Http\Controllers\Inertia\MagicLinkController;
 use App\Http\Controllers\Inertia\MemberController;
@@ -110,6 +111,19 @@ Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
 ])->delete('/user', [DeleteAccountController::class, 'destroy'])->name('current-user.destroy');
+
+// A change of the email address applies after the new address is confirmed (#1706, ADR 0058). The link of the mail is signed
+// and temporary, and needs a session of the account of the link (another account gets 403, as with the address check). The
+// two buttons of the profile form. One limiter for the three, shared with the API
+Route::middleware([
+    'auth:sanctum',
+    config('jetstream.auth_session'),
+    'throttle:email-changes',
+])->group(function () {
+    Route::get('/user/email-change/{userCuid}/{hash}', [EmailChangeController::class, 'confirm'])->middleware('signed')->name('email-change.confirm');
+    Route::post('/user/email-change/resend', [EmailChangeController::class, 'resend'])->name('email-change.resend');
+    Route::delete('/user/email-change', [EmailChangeController::class, 'cancel'])->name('email-change.cancel');
+});
 
 // Sign in with a link sent by email (#703, ADR 0023)
 Route::middleware('guest')->group(function () {

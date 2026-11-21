@@ -182,6 +182,9 @@ final class ExportUser implements ExportsUsers
                 'username' => $user->username,
                 'email' => $user->email,
                 'email_verified_at' => $this->date($user->email_verified_at),
+                // A new address that waits for its confirmation (#1706, ADR 0058), as it is stored, with the time of the request
+                'pending_email' => is_string($pending = $user->getRawOriginal('pending_email')) ? $pending : null,
+                'pending_email_requested_at' => $this->date($user->pending_email_requested_at),
                 'two_factor_authentication' => $user->two_factor_confirmed_at !== null,
                 'show_online_status' => $user->showsOnlineStatus(),
                 // Where I am (#1476, ADR 0048): the zone that the member chose, the date of the last visit (nobody else reads it) and

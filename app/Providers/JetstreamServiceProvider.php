@@ -40,6 +40,8 @@ class JetstreamServiceProvider extends ServiceProvider
         Jetstream::inertia()->whenRendering('Profile/Show', $this->withConnectedAccounts(...));
         // The deletion section: which proof the account needs, and the result of a new sign-in (#1521, ADR 0052)
         Jetstream::inertia()->whenRendering('Profile/Show', $this->withAccountDeletion(...));
+        // The profile form asks for the current password with a change of the email address when the account has one (#1706)
+        Jetstream::inertia()->whenRendering('Profile/Show', $this->withPasswordFlag(...));
     }
 
     /**
@@ -75,6 +77,20 @@ class JetstreamServiceProvider extends ServiceProvider
         ];
 
         return $data;
+    }
+
+    /**
+     * The prop `accountHasPassword` of the profile page, with or without a provider: the profile form asks for the current
+     * password with a change of the email address when the account has one (#1706, ADR 0058)
+     *
+     * @param  array<string, bool|string|array<array-key, scalar|array<array-key, scalar|null>|null>|null>  $data
+     * @return array<string, bool|string|array<array-key, scalar|array<array-key, scalar|null>|null>|null>
+     */
+    final public function withPasswordFlag(Request $request, array $data): array
+    {
+        $user = $request->user();
+
+        return $user instanceof User ? [...$data, 'accountHasPassword' => $user->hasPassword()] : $data;
     }
 
     /**
