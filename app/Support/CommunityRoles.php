@@ -36,27 +36,59 @@ final class CommunityRoles
      */
     public static function withKnownAdmins(Community $community, array $userIds, Closure $callback)
     {
-        $before = self::$knownAdmins[$community->id] ?? null;
-        // Nested calls for the same members (a check inside a check) do not ask again
-        if ($before !== null && array_diff_key(array_flip($userIds), $before) === []) {
+        return self::withKnownAdminsIn([$community], $userIds, $callback);
+    }
+
+    /**
+     * The same for the members of several communities, with one query for all the communities and all the members: the
+     * communities of a page of "My events" (#1515), whatever their number.
+     *
+     * @template TReturn
+     *
+     * @param  array<array-key, Community>  $communities
+     * @param  list<int>  $userIds
+     * @param  Closure(): TReturn  $callback
+     * @return TReturn
+     */
+    public static function withKnownAdminsIn(array $communities, array $userIds, Closure $callback)
+    {
+        // The status of before of each community to read now, by community id. Nested calls for the same members (a check
+        // inside a check) do not ask again
+        $missing = [];
+        foreach ($communities as $community) {
+            $before = self::$knownAdmins[$community->id] ?? null;
+            if ($before === null || array_diff_key(array_flip($userIds), $before) !== []) {
+                $missing[$community->id] = $before;
+            }
+        }
+        if ($missing === []) {
             return $callback();
         }
 
-        $roles = DB::table('community_members')->where('community_id', $community->id)->whereIn('user_id', $userIds)->pluck('role', 'user_id');
-        $known = [];
-        foreach ($userIds as $userId) {
-            $known[$userId] = $roles->get($userId) === KnowiiCommunityMemberRole::Admin->value;
+        $admins = [];
+        $rows = DB::table('community_members')->whereIn('community_id', array_keys($missing))->whereIn('user_id', $userIds)->get(['community_id', 'user_id', 'role']);
+        foreach ($rows as $row) {
+            if (is_numeric($row->community_id) && is_numeric($row->user_id) && $row->role === KnowiiCommunityMemberRole::Admin->value) {
+                $admins[(int) $row->community_id][(int) $row->user_id] = true;
+            }
         }
-
-        self::$knownAdmins[$community->id] = $known + ($before ?? []);
+        foreach ($missing as $communityId => $before) {
+            $known = [];
+            foreach ($userIds as $userId) {
+                $known[$userId] = $admins[$communityId][$userId] ?? false;
+            }
+            self::$knownAdmins[$communityId] = $known + ($before ?? []);
+        }
 
         try {
             return $callback();
         } finally {
-            if ($before === null) {
-                unset(self::$knownAdmins[$community->id]);
-            } else {
-                self::$knownAdmins[$community->id] = $before;
+            foreach ($missing as $communityId => $before) {
+                if ($before === null) {
+                    unset(self::$knownAdmins[$communityId]);
+                } else {
+                    self::$knownAdmins[$communityId] = $before;
+                }
             }
         }
     }

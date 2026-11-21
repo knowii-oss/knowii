@@ -2094,6 +2094,44 @@
     {
       "area": "events",
       "screen": "event",
+      "state": "add-to-calendar",
+      "name": "Event page, a member with Add to calendar",
+      "path": "/community/{garden}/space/{spaces.events}/event/{events.answered}",
+      "roles": ["member"],
+      "component": "Pages/Events/Show.tsx",
+      "note": "\"Add to calendar\" is under the time and before the host: a plain link that downloads the calendar file of the event."
+    },
+    {
+      "area": "events",
+      "screen": "my-events",
+      "state": "full",
+      "name": "My events, upcoming",
+      "path": "/events",
+      "roles": ["member", "owner"],
+      "component": "Pages/Events/Index.tsx",
+      "note": "The member answered Yes, Replay only, and Yes to a cancelled event, hosts one event and has a draft: the labels, \"You host\" and \"Add to calendar\" on every row that is not a draft."
+    },
+    {
+      "area": "events",
+      "screen": "my-events",
+      "state": "past",
+      "name": "My events, past",
+      "path": "/events?scope=past",
+      "roles": ["member", "owner"],
+      "component": "Pages/Events/Index.tsx"
+    },
+    {
+      "area": "events",
+      "screen": "my-events",
+      "state": "empty",
+      "name": "My events, empty",
+      "path": "/events",
+      "roles": ["new-member"],
+      "component": "Pages/Events/Index.tsx"
+    },
+    {
+      "area": "events",
+      "screen": "event",
       "state": "actions-menu",
       "name": "Event, menu of actions open",
       "path": "/community/{garden}/space/{spaces.events}/event/{events.next}",

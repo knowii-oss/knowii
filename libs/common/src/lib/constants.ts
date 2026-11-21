@@ -88,6 +88,8 @@ export const EVENT_CREATE_URL = 'events.create';
 export const EVENT_EDIT_URL = 'events.edit';
 // The query parameter of the page of an events space that chooses "Upcoming" or "Past". WARNING: aligned with SpaceController.php
 export const EVENTS_SCOPE_QUERY_PARAM = 'scope';
+// The page "My events" of the member (#1515): the events that they answered Yes or Replay only, and the ones they host
+export const MY_EVENTS_URL = 'events.index';
 
 // Authentication
 export const LOGIN_URL = 'login';
@@ -272,6 +274,8 @@ export const USER_BLOCKS_API_PATH = `${API_BASE_PATH}/user/blocks`;
 // The provider accounts that the member connected (#1385, ADR 0045)
 export const USER_IDENTITIES_API_PATH = `${API_BASE_PATH}/user/identities`;
 export const USER_FREQUENT_EMOJI_API_PATH = `${API_BASE_PATH}/user/frequent-emoji`;
+// "My events" of the member, in all their communities (#1515). WARNING: aligned with ApiRoutes::USER_EVENTS
+export const USER_EVENTS_API_PATH = `${API_BASE_PATH}/user/events`;
 export const COMMUNITY_API_BASE_PATH = `${API_BASE_PATH}/communities`;
 // Whether a shared community can take a name (#1136). WARNING: aligned with ApiRoutes.php
 export const COMMUNITY_API_IS_NAME_AVAILABLE_PATH = `${COMMUNITY_API_BASE_PATH}/is-name-available`;
@@ -320,6 +324,8 @@ export const COMMUNITY_SPACE_EVENT_DUPLICATE_API_PATH = `${COMMUNITY_SPACE_EVENT
 // The answer of the member to an event, and the answers that the host and the team read (#1515)
 export const COMMUNITY_SPACE_EVENT_ANSWER_API_PATH = `${COMMUNITY_SPACE_EVENT_API_PATH}/answer`;
 export const COMMUNITY_SPACE_EVENT_ANSWERS_API_PATH = `${COMMUNITY_SPACE_EVENT_API_PATH}/answers`;
+// The calendar file of an event, for a member (#1515): a plain link downloads it
+export const COMMUNITY_SPACE_EVENT_CALENDAR_FILE_API_PATH = `${COMMUNITY_SPACE_EVENT_API_PATH}/calendar-file`;
 export const COMMUNITY_EVENTS_API_PATH = `${COMMUNITY_API_PATH}/events`;
 // Messages of chat spaces (#1185)
 export const SPACE_API_PARAM_MESSAGE = '{messageCuid}';

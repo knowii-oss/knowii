@@ -793,7 +793,18 @@ require_once __DIR__.'/atlas-shared.php';
             'capacity' => 1,
         ]);
 
-        return compact('swap', 'workshop', 'cancelled', 'draft', 'past', 'answers', 'answered', 'full', 'cancelledAnswered', 'many', 'replayOnly', 'onePlace');
+        // "My events" of the member of the atlas (#1515): with the Yes, the "Replay only" and the cancelled event with a Yes
+        // above, an event that the member hosts and a draft of the member
+        $memberHosts = $event($owner, $gardenEvents, $member, 'Balcony seed exchange', 4, 17, [
+            'body' => 'The member shows the seeds of the balcony and takes your questions.',
+            'meeting_url' => 'https://example.com/atlas/meet/balcony-seeds',
+        ]);
+        $memberDraft = $event($owner, $gardenEvents, $member, 'Rain barrel workshop, to plan', 15, 18, [
+            'body' => 'A draft of the member: the date is not sure yet.',
+            'state' => 'draft',
+        ]);
+
+        return compact('swap', 'workshop', 'cancelled', 'draft', 'past', 'answers', 'answered', 'full', 'cancelledAnswered', 'many', 'replayOnly', 'onePlace', 'memberHosts', 'memberDraft');
     });
     $say('events ready');
 
@@ -918,6 +929,8 @@ require_once __DIR__.'/atlas-shared.php';
         // The events of the answers (#1515)
         'answers' => [6, 19], 'answered' => [8, 18], 'full' => [12, 14], 'cancelledAnswered' => [9, 19],
         'many' => [10, 19], 'replayOnly' => [7, 18], 'onePlace' => [9, 15],
+        // "My events" (#1515)
+        'memberHosts' => [4, 17], 'memberDraft' => [15, 18],
     ];
     foreach ($distances as $key => [$days, $hour]) {
         app(UpdateEvent::class)->update($owner, $events[$key]->refresh(), ['starts_at' => $eventTime($days, $hour), 'ends_at' => $eventTime($days, $hour + 1), 'time_zone' => 'Europe/Brussels']);
@@ -966,6 +979,8 @@ require_once __DIR__.'/atlas-shared.php';
             'answers' => $events['answers']->slug, 'answered' => $events['answered']->slug, 'full' => $events['full']->slug, 'cancelled-answered' => $events['cancelledAnswered']->slug,
             // One with 21 Yes answers ("Load more" in its list), one with "Replay only" of the member, one with no answer
             'answers-many' => $events['many']->slug, 'replay-only' => $events['replayOnly']->slug, 'one-place' => $events['onePlace']->slug,
+            // "My events" (#1515): an event that the member hosts, and a draft of the member
+            'member-hosts' => $events['memberHosts']->slug, 'member-draft' => $events['memberDraft']->slug,
         ],
         'conversations' => ['direct' => $direct->cuid, 'group' => $group->cuid, 'owner' => $direct2->cuid],
         'chat' => ['thread' => $refs['threadTwo']->cuid],

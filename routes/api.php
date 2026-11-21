@@ -14,6 +14,7 @@ use App\Http\Controllers\API\ConversationApiController;
 use App\Http\Controllers\API\CourseMaterialApiController;
 use App\Http\Controllers\API\EventAnswerApiController;
 use App\Http\Controllers\API\EventApiController;
+use App\Http\Controllers\API\EventCalendarFileApiController;
 use App\Http\Controllers\API\IndexingApiController;
 use App\Http\Controllers\API\JoinPolicyApiController;
 use App\Http\Controllers\API\LessonProgressApiController;
@@ -38,6 +39,7 @@ use App\Http\Controllers\API\UploadApiController;
 use App\Http\Controllers\API\UserApiController;
 use App\Http\Controllers\API\UserBlockApiController;
 use App\Http\Controllers\API\UserEntitlementApiController;
+use App\Http\Controllers\API\UserEventApiController;
 use App\Http\Controllers\API\UserIdentityApiController;
 use Illuminate\Support\Facades\Route;
 
@@ -112,6 +114,9 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
         Route::delete(ApiRoutes::USER_IDENTITY, [UserIdentityApiController::class, 'destroy'])->middleware('ability:identities:write');
         // What the sign-in provider says the member owns (#1386, ADR 0047): own data only, the ability is not in the default set
         Route::get(ApiRoutes::USER_ENTITLEMENTS, [UserEntitlementApiController::class, 'index'])->middleware('ability:entitlements:read');
+        // "My events" (#1515, ADR 0053): the events that the member answered Yes or Replay only, and the ones they host, in all
+        // their communities. Only the events of the spaces that the member can read today
+        Route::get(ApiRoutes::USER_EVENTS, [UserEventApiController::class, 'index'])->middleware('ability:events:read');
         Route::post(ApiRoutes::USERS_IS_USERNAME_AVAILABLE, [UserApiController::class, 'isUsernameAvailable'])->middleware('ability:user:read');
 
         // The communities of the current member (#828)
@@ -218,6 +223,9 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::put(ApiRoutes::COMMUNITY_SPACE_EVENT_ANSWER, [EventAnswerApiController::class, 'update'])->middleware('ability:events:write')->middleware('throttle:event-answers');
             Route::delete(ApiRoutes::COMMUNITY_SPACE_EVENT_ANSWER, [EventAnswerApiController::class, 'destroy'])->middleware('ability:events:write')->middleware('throttle:event-answers');
             Route::get(ApiRoutes::COMMUNITY_SPACE_EVENT_ANSWERS, [EventAnswerApiController::class, 'index'])->middleware('ability:event-answers:read');
+            // The calendar file of an event (#1515, ADR 0053): for a member, built at each request, never stored. A browser opens it
+            // with a plain link: a refusal is the JSON error of the API, never a page saved as the file
+            Route::get(ApiRoutes::COMMUNITY_SPACE_EVENT_CALENDAR_FILE, [EventCalendarFileApiController::class, 'show'])->middleware(['json-refusals', 'ability:events:read', 'throttle:calendar-files']);
 
             // Comments on resources (#1034)
             Route::post(ApiRoutes::COMMUNITY_SPACE_RESOURCE_COMMENTS, [CommunityResourceCommentApiController::class, 'store'])->middleware('ability:resources:write')->middleware('throttle:comments');

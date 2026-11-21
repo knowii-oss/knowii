@@ -206,3 +206,16 @@ test('the routes of the answers to events are documented, with the limit of plac
             ->and($properties['location_visibility']['description'] ?? '')->toContain('the members who answer Yes');
     }
 });
+
+test('the calendar file of an event and "My events" are documented, the file as text/calendar with its refusals (#1515)', function () {
+    $paths = openApiDocument()['paths'];
+    $file = $paths['/v1/communities/{community}/spaces/{space}/events/{event}/calendar-file']['get'] ?? [];
+    $mine = $paths['/v1/user/events']['get'] ?? [];
+
+    expect(array_keys($file['responses'][200]['content'] ?? []))->toBe(['text/calendar; charset=utf-8'])
+        ->and($file['responses'][200]['content']['text/calendar; charset=utf-8']['schema']['type'] ?? null)->toBe('string')
+        ->and(array_keys($file['responses'][200]['headers'] ?? []))->toContain('Content-Disposition', 'X-Content-Type-Options', 'Cache-Control')
+        ->and(array_keys($file['responses'] ?? []))->toContain(401, 403, 404, 422, 429)
+        ->and(array_column($mine['parameters'] ?? [], 'name'))->toContain('scope', 'answer', 'limit', 'offset')
+        ->and(array_keys($mine['responses'] ?? []))->toContain(200, 400, 401, 403);
+});

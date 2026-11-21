@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Community;
 use App\Models\Event;
 use App\Models\Space;
 use App\Models\Upload;
@@ -81,6 +82,8 @@ class EventResource extends AbstractKnowiiJsonResource
             // Null when the account of the host was deleted ("Deleted member")
             'host' => $this->whenLoaded('host', fn (?User $host) => $host?->toResource(AuthorResource::class), null),
             'space' => $this->whenLoaded('space', fn (Space $space) => ['cuid' => $space->cuid, 'slug' => $space->slug, 'name' => $space->name]),
+            // The community of the event, when a read loaded it (#1515): "My events" names it. A reader of the event knows it
+            'community' => $this->whenLoaded('community', fn (Community $community) => ['cuid' => $community->cuid, 'slug' => $community->slug, 'name' => $community->name]),
             'body' => $this->serializeLargeFields ? $event->body : null,
             'body_html' => $this->serializeLargeFields ? $event->body_html : null,
             'created_at' => $event->created_at,

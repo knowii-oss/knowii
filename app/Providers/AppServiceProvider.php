@@ -425,6 +425,11 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(Constants::EVENT_ANSWERS_PER_MINUTE)->by(self::rateLimitKey($request));
         });
 
+        // The calendar files of events (#1515): per member, like the answers
+        RateLimiter::for('calendar-files', static function (Request $request) {
+            return Limit::perMinute(Constants::CALENDAR_FILES_PER_MINUTE)->by(self::rateLimitKey($request));
+        });
+
         RateLimiter::for('comments', static function (Request $request) {
             return Limit::perMinute(Constants::COMMENTS_PER_MINUTE)->by(self::rateLimitKey($request));
         });

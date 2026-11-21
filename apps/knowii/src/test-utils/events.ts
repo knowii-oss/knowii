@@ -55,6 +55,8 @@ export function eventFixture(cuid: string, title: string, changes: Partial<Recor
     cover_alt: null,
     host: { cuid: 'u1', name: 'Ada Lovelace', username: 'ada', avatar_url: null },
     space: { cuid: 's1', slug: 'office-hours', name: 'Office hours' },
+    // The community of the event, as "My events" gets it (#1515)
+    community: { cuid: 'c1', slug: 'tests', name: 'Tests' },
     body: null,
     body_html: null,
     created_at: '2026-11-10T10:00:00.000000Z',
@@ -83,6 +85,8 @@ export function eventsRoute(name: string, params: Record<string, string> = {}): 
       return space;
     case 'communities.show':
       return `/community/${params['communitySlug']}`;
+    case 'events.index':
+      return '/events';
     case 'members.show':
       return `/community/${params['communitySlug']}/member/${params['username']}`;
     default:

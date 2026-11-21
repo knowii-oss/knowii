@@ -7,6 +7,7 @@ use App\Exceptions\TechnicalException;
 use App\Http\Middleware\AddRobotsHeader;
 use App\Http\Middleware\AddViteContentSecurityPolicyNonce;
 use App\Http\Middleware\AnswerOnlyForOwnHostNames;
+use App\Http\Middleware\AnswerRefusalsInJson;
 use App\Http\Middleware\AuthenticateIfPresent;
 use App\Http\Middleware\EndOutdatedSessions;
 use App\Http\Middleware\EnsureRequestIsJson;
@@ -106,11 +107,18 @@ return Application::configure(basePath: dirname(__DIR__))
         // bindings of the route
         $middleware->prependToPriorityList(AuthenticatesRequests::class, EndOutdatedSessions::class);
 
+        // A file of the API that a browser opens with a plain link (#1515): its refusals are the JSON errors of the API,
+        // also the end of an outdated session and the sign-in check, so the browser never saves a page or the sign-in page
+        // as the file. Before EndOutdatedSessions, which comes before the sign-in check (above)
+        $middleware->prependToPriorityList(EndOutdatedSessions::class, AnswerRefusalsInJson::class);
+
         // Token abilities on the API routes (ADR 0022, #689): `ability:a,b` passes with any of them
         $middleware->alias([
             'ability' => RequireTokenAbility::class,
             // The routes that visitors may read (#1387, ADR 0044)
             'auth.optional' => AuthenticateIfPresent::class,
+            // A file that a browser opens with a plain link (#1515)
+            'json-refusals' => AnswerRefusalsInJson::class,
         ]);
 
         // Might need this later if we still get redirects with the API

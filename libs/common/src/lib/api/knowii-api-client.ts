@@ -5,6 +5,7 @@ import {
   USER_AVATAR_API_PATH,
   USER_BLOCKS_API_PATH,
   USER_FREQUENT_EMOJI_API_PATH,
+  USER_EVENTS_API_PATH,
   CONVERSATION_API_PARAM_CONVERSATION,
   COMMUNITY_CONVERSATIONS_API_PATH,
   COMMUNITY_CONVERSATION_API_PATH,
@@ -79,6 +80,7 @@ import {
   COMMUNITY_SPACE_EVENT_DUPLICATE_API_PATH,
   COMMUNITY_SPACE_EVENT_ANSWER_API_PATH,
   COMMUNITY_SPACE_EVENT_ANSWERS_API_PATH,
+  COMMUNITY_SPACE_EVENT_CALENDAR_FILE_API_PATH,
   EVENT_ANSWERS_PER_PAGE,
   SPACE_API_PARAM_EVENT,
   EVENTS_PER_PAGE,
@@ -711,6 +713,13 @@ export const knowiiApiClient = {
             'Failed to save your answer.',
           ),
       },
+      /**
+       * The address that downloads the calendar file of an event (#1515): a plain link with `download`, signed by the
+       * session of the browser. The server checks the access again and gives the meeting address only to a reader who
+       * may see it
+       */
+      calendarFileUrl: (communityCuid: string, spaceCuid: string, eventCuid: string): string =>
+        eventsPath(communityCuid, spaceCuid, eventCuid, COMMUNITY_SPACE_EVENT_CALENDAR_FILE_API_PATH),
       /**
        * Who answered an event, for its host, the owner and the admins (403 for the others, #1515)
        */
@@ -1562,6 +1571,19 @@ export const knowiiApiClient = {
         apiRequest('put', `${USER_BLOCKS_API_PATH}/${encodeURIComponent(userCuid)}`, null, 'Failed to block the member.'),
       unblock: (userCuid: string): Promise<ApiResult<unknown>> =>
         apiRequest('delete', `${USER_BLOCKS_API_PATH}/${encodeURIComponent(userCuid)}`, null, 'Failed to unblock the member.'),
+    },
+    /**
+     * "My events" of the current member (#1515): the events that they answered Yes or Replay only and the ones they host,
+     * in all their communities. `upcoming`: their drafts first, then the next start first. `past`: the newest start
+     * first. Each event carries its space and its community. No description in a list.
+     */
+    events: {
+      list: (scope: EventScope, limit: number = EVENTS_PER_PAGE, offset = 0): Promise<ApiResult<Paginated<SpaceEvent>>> =>
+        apiPageRequest(
+          `${USER_EVENTS_API_PATH}?${new URLSearchParams({ scope, limit: String(limit), offset: String(offset) }).toString()}`,
+          eventSchema,
+          'Failed to load your events.',
+        ),
     },
     /**
      * The provider accounts that the current member connected (#1385). The sign-in itself is a browser flow

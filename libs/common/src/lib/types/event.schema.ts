@@ -57,6 +57,8 @@ export const eventSchema = z.object({
   // Null when the account of the host was deleted ("Deleted member")
   host: authorSchema.nullable(),
   space: z.object({ cuid: z.string(), slug: z.string(), name: z.string() }).optional(),
+  // The community of the event, when the read gives it (#1515): "My events" names it on its rows
+  community: z.object({ cuid: z.string(), slug: z.string(), name: z.string() }).optional(),
   body: z.string().nullable(),
   body_html: z.string().nullable(),
   created_at: z.coerce.date(),

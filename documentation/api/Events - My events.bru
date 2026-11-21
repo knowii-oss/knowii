@@ -1,0 +1,19 @@
+meta {
+  name: Events - My events
+  type: http
+  seq: 204
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/user/events?limit=10&offset=0
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  "My events" (#1515): the events that you answered Yes or Replay only (published or cancelled) and the events that you host (also your drafts), in all your communities, only in the spaces that you can read today. scope is upcoming (the default: your drafts first, then the next start first) or past; answer is yes, replay or host (default: all of them). Each event carries its space and its community, without the description. Offset pagination. Ability events:read.
+}

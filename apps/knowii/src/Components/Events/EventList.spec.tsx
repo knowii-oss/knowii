@@ -126,6 +126,41 @@ describe('the list of an events space (#1514, design 6.1 and 11.3)', () => {
   });
 
   describe('the cards (rule 15)', () => {
+    it('keeps the card of the list of a space as before #1515: a cover, no line above the title, no action, no "You host"', () => {
+      const cover = {
+        cuid: 'up1',
+        url: '/uploads/cover.webp',
+        mime_type: 'image/webp',
+        width: 1600,
+        height: 900,
+        size_bytes: 1000,
+        alt: 'x',
+      };
+      renderList({
+        events: [
+          eventFixture('e1', 'Weekly review', {
+            cover,
+            cover_alt: 'The room',
+            host: { cuid: 'me', name: 'Me', username: 'me', avatar_url: null },
+          }),
+        ],
+      });
+
+      const card = screen.getByRole('article', { name: 'Weekly review' });
+      expect(within(card).getByRole('img', { name: 'The room' })).toHaveAttribute('src', '/uploads/cover.webp');
+      expect(within(card).queryByText('Office hours')).toBeNull();
+      expect(within(card).queryByText(/Tests/)).toBeNull();
+      expect(within(card).queryByRole('link', { name: /Add to calendar/ })).toBeNull();
+      expect(within(card).queryByText(EVENT_WORDS.youHost)).toBeNull();
+      // The title and the host line, as before
+      expect(
+        within(card)
+          .getAllByRole('link')
+          .map((link) => link.textContent),
+      ).toEqual(['Weekly review']);
+      expect(within(card).getByText('Hosted by Me')).toBeInTheDocument();
+    });
+
     it('is a real list: each card is a list item with a heading that links to the page of the event', () => {
       renderList();
 

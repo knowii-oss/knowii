@@ -13,8 +13,8 @@ const members = (count: number) => (count === 1 ? '1 member' : `${count} members
 /**
  * The words of the screens of events (#1514, #1515, ADR 0053), in one place. A text marked [Q] is a text where the
  * design is silent: the owner confirmed these words on 2026-11-20. A text marked [W] is a text of the screens of the
- * answers (#1515) that the design does not give: a proposal that waits for the owner. A word changes here, and nowhere
- * else. The specs read these values.
+ * answers, of the calendar file and of "My events" (#1515) that the design does not give: a proposal that waits for the
+ * owner. A word changes here, and nowhere else. The specs read these values.
  */
 export const EVENT_WORDS = {
   // The list of an events space (design 6.1)
@@ -224,4 +224,21 @@ export const EVENT_WORDS = {
 
   // "Next events" on the home and on the public page of a community (design 6.7)
   nextEvents: 'Next events',
+
+  // The calendar file of an event (#1515, design 6.5)
+  addToCalendar: 'Add to calendar',
+  // [W] On a row of a list, the title follows the visible words in the name of the link: "Add to calendar: Weekly review"
+  addToCalendarOfTitle: (title: string) => `: ${title}`,
+
+  // "My events" (#1515, design 6.8)
+  myEvents: 'My events',
+  // [W] The sentence under the title of the page
+  myEventsIntro: 'The events that you answered Yes or Replay only, and the events that you host.',
+  // [W] The label of an event that the reader hosts (the design writes "I host")
+  youHost: 'You host',
+  // [W] The line above the title of a row: "Example community, Office hours", or the space alone in one community
+  myEventsContext: (community: string | null, space: string) => (community === null ? space : `${community}, ${space}`),
+  // [W] The texts of the two empty lists of "My events"
+  myEventsEmptyUpcomingDescription: 'The events that you answer Yes or Replay only, and the events that you host, show here.',
+  myEventsEmptyPastDescription: 'Your events that ended show here.',
 } as const;

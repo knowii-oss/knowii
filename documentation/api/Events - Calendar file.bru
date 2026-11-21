@@ -1,0 +1,19 @@
+meta {
+  name: Events - Calendar file
+  type: http
+  seq: 202
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of an events space>/events/<cuid of an event>/calendar-file
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: text/calendar
+}
+
+docs {
+  The calendar file of an event (#1515): one iCalendar file (RFC 5545, text/calendar; charset=utf-8) as an attachment named <slug>-<date>.ics, with one VEVENT in UTC: UID (the cuid of the event), DTSTAMP, DTSTART, DTEND, SUMMARY, DESCRIPTION (the first 300 characters of the description and the address of the page), LOCATION, URL, SEQUENCE and STATUS (CONFIRMED or CANCELLED). The meeting address and the place are in it only when you may see them, as in Events - Get. For the members of the community: 401 without an account, 404 for an event that you may not see, 403 for a person who is not a member, 422 for a draft, 429 after 30 files a minute. Ability events:read. A calendar application cannot subscribe to it.
+}

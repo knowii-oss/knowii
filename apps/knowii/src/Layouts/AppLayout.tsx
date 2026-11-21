@@ -7,6 +7,7 @@ import {
   HOME_URL,
   LOGIN_URL,
   LOGOUT_URL,
+  MY_EVENTS_URL,
   NOTIFICATIONS_URL,
   REGISTER_URL,
   removeKeptTextsOfAccount,
@@ -16,7 +17,7 @@ import {
   useTypedPage,
 } from '@knowii/common';
 import { useRoute } from 'ziggy-js';
-import { FaBars, FaBell, FaHome, FaKey, FaRegClock, FaSignOutAlt, FaUser } from 'react-icons/fa';
+import { FaBars, FaBell, FaHome, FaKey, FaRegCalendar, FaRegClock, FaSignOutAlt, FaUser } from 'react-icons/fa';
 import PageHeader from '@/Components/PageHeader';
 import ApplicationMark from '@/Components/ApplicationMark';
 import Footer from '@/Components/Footer';
@@ -169,6 +170,18 @@ export default function AppLayout(props: Props) {
                     </Link>
                   </DropdownMenuItem>
                 )}
+                {/* "My events" (#1515): the events that the member answered and the ones they host, in all their communities */}
+                <DropdownMenuItem>
+                  <Link
+                    href={route(MY_EVENTS_URL)}
+                    preserveState={true}
+                    aria-current={isCurrentUrl(route(MY_EVENTS_URL), page.url) ? 'page' : undefined}
+                    className={cn(dropdownMenuItemClasses, 'aria-[current=page]:bg-overlay/10 aria-[current=page]:font-bold')}
+                  >
+                    <FaRegCalendar aria-hidden="true" className="text-muted" />
+                    My events
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem>
                   <Link
                     href={route(USER_PROFILE_URL)}
