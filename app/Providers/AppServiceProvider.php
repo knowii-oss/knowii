@@ -103,6 +103,7 @@ use App\Actions\Spaces\UpdateSpace;
 use App\Actions\Uploads\BuildUploadSizes;
 use App\Actions\Uploads\UploadImage;
 use App\Actions\Users\BlockMember;
+use App\Actions\Users\ChangeEmailAddress;
 use App\Actions\Users\DeleteMemberContent;
 use App\Actions\Users\ExportUser;
 use App\Actions\Users\RecordLastVisit;
@@ -214,6 +215,7 @@ use App\Contracts\Spaces\UpdatesSpaces;
 use App\Contracts\Uploads\BuildsUploadSizes;
 use App\Contracts\Uploads\UploadsImages;
 use App\Contracts\Users\BlocksMembers;
+use App\Contracts\Users\ChangesEmailAddresses;
 use App\Contracts\Users\DeletesAccounts;
 use App\Contracts\Users\DeletesMemberContent;
 use App\Contracts\Users\ExportsUsers;
@@ -225,6 +227,7 @@ use App\Contracts\Users\UpdatesTimeZones;
 use App\Contracts\Users\VerifiesUsernameAvailability;
 use App\Http\Controllers\Inertia\MemberController;
 use App\Models\User;
+use App\Support\EmailChangeBudget;
 use App\Support\MailSettings;
 use App\Support\ReverbPresenceChannels;
 use Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider;
@@ -365,6 +368,8 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(TracksSpaceVisits::class, TrackSpaceVisits::class);
         app()->singleton(BuildsCatchUp::class, BuildCatchUp::class);
         app()->singleton(UpdatesTimeZones::class, UpdateTimeZone::class);
+        // A change of the email address applies after the new address is confirmed (#1706, ADR 0058)
+        app()->singleton(ChangesEmailAddresses::class, ChangeEmailAddress::class);
         app()->singleton(UpdatesNotificationSettings::class, UpdateNotificationSettings::class);
         app()->singleton(RecordsLastVisits::class, RecordLastVisit::class);
         // Sign in with an OpenID Connect provider (#1385, ADR 0045)
@@ -464,6 +469,10 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('account-deletions', static function (Request $request) {
             return Limit::perMinute(Constants::ACCOUNT_DELETIONS_PER_MINUTE)->by(self::rateLimitKey($request));
         });
+
+        // The link of a change of the email address (#1706, ADR 0058): send it again, cancel the change, open the link. One
+        // budget for the web and the API, which the profile form shares for each change of the address: a new link is a mail
+        RateLimiter::for(EmailChangeBudget::LIMITER, static fn (Request $request) => EmailChangeBudget::limit($request));
 
         // Quiz attempts (#1335): the server grades each one
         RateLimiter::for('quiz-attempts', static function (Request $request) {

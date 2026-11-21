@@ -228,6 +228,10 @@ class Constants
     // Deletions of the own account through the API (#1492) per minute and per user: each one checks the password
     public const int ACCOUNT_DELETIONS_PER_MINUTE = 3;
 
+    // The link of a change of the email address (#1706): send it again, cancel the change, open it. Per minute and per user,
+    // for the web and the API together. A link is a mail
+    public const int EMAIL_CHANGES_PER_MINUTE = 6;
+
     // Markdown preview requests (editor) per minute and per user
     public const int MARKDOWN_PREVIEWS_PER_MINUTE = 60;
 

@@ -52,6 +52,10 @@ return [
     // deletes the expired entries when the cache is the database. The stored entitlement keys follow the link to the
     // provider and the account: there is no period.
 
+    // A new email address that waits for its confirmation (#1706, ADR 0058) counts this many days at most. After that it does
+    // not count any more, and the `pending_emails` step of retention:prune removes it, with the time of the request
+    'pending_email_days' => (int) env('RETENTION_PENDING_EMAIL_DAYS', 7),
+
     // EmailOctopus: a waitlist contact is deleted this many months after the signup
     'waitlist_months' => (int) env('RETENTION_WAITLIST_MONTHS', 12),
 

@@ -66,4 +66,17 @@ describe('the own account (#1476)', () => {
     expect(currentUserSchema.parse({ ...base, time_zone: null }).time_zone).toBeNull();
     expect(currentUserSchema.parse(base).time_zone).toBeUndefined();
   });
+
+  it('holds the new email address that waits for its confirmation (#1706), null or absent when none', () => {
+    const pending = currentUserSchema.parse({
+      ...base,
+      pending_email: 'ada.new@example.com',
+      pending_email_requested_at: '2026-11-21T10:00:00Z',
+    });
+    expect(pending.pending_email).toBe('ada.new@example.com');
+    expect(pending.pending_email_requested_at?.toISOString()).toBe('2026-11-21T10:00:00.000Z');
+    expect(currentUserSchema.parse({ ...base, pending_email: null, pending_email_requested_at: null }).pending_email).toBeNull();
+    expect(currentUserSchema.parse(base).pending_email).toBeUndefined();
+    expect(currentUserSchema.safeParse({ ...base, pending_email: 'not-an-address' }).success).toBe(false);
+  });
 });

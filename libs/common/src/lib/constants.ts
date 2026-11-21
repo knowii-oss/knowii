@@ -119,6 +119,9 @@ export const PASSWORD_UPDATE_URL = 'password.update';
 export const FORGOT_PASSWORD_URL = 'password.request';
 // URL for sending email verification requests
 export const EMAIL_VERIFICATION_URL = 'verification.send';
+// A change of the email address that waits for its confirmation (#1706): send the link again, cancel the change
+export const EMAIL_CHANGE_RESEND_URL = 'email-change.resend';
+export const EMAIL_CHANGE_CANCEL_URL = 'email-change.cancel';
 export const EMAIL_VERIFICATION_STATUS_LINK_SENT = 'verification-link-sent';
 export const DESTROY_OTHER_BROWSER_SESSIONS_URL = 'other-browser-sessions.destroy';
 export const DELETE_USER_URL = 'current-user.destroy';

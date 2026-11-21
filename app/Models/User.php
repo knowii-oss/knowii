@@ -6,6 +6,7 @@ use App\Actions\Users\UpdateAvatar;
 use App\Http\Resources\UserResource;
 use App\Notifications\VerifyEmailAddress;
 use App\Support\Landing;
+use App\Support\Retention;
 use App\Traits\GeneratesCuid;
 use App\Traits\HasCommunities;
 use Carbon\Carbon;
@@ -44,6 +45,8 @@ use TaylorNetwork\UsernameGenerator\GeneratesUsernames;
  * @property ?Carbon $last_visit_on The date of the last visit, without an hour (#1476). Nobody reads it: hidden from every serialization
  * @property bool $notification_popups Whether the app shows pop-ups for the lines that need the member (#1476)
  * @property ?Carbon $email_verified_at
+ * @property ?string $pending_email The new address that the member asked for, until it is confirmed or cancelled (#1706, ADR 0058). Null when none, and when it waited for more than Retention::pendingEmailDays() days. Hidden from every serialization: only the member reads it (User::ownPendingEmailChange())
+ * @property ?Carbon $pending_email_requested_at The time of the request of the pending address (#1706). Hidden from every serialization
  * @property ?string $password Null for an account without a password (created by an OpenID Connect provider, or its password was removed, #1385)
  * @property ?Carbon $deletion_signed_in_at The time of the new sign-in at the provider that proves the intent to delete an account without a password (#1521, ADR 0052). Null when none, or when a deletion used it. Hidden from every serialization
  * @property ?string $two_factor_secret
@@ -150,6 +153,42 @@ class User extends Authenticatable implements MustVerifyEmail
         });
     }
 
+    /**
+     * The pending address of a change of the email address (#1706, ADR 0058), or null: none, or it waited for more than
+     * Retention::pendingEmailDays() days (retention:prune removes it later). Every read gets this value: the code, the own
+     * resource and the account of the page. A query may select some columns only: a missing column counts as null.
+     *
+     * @return Attribute<?string, never>
+     */
+    protected function pendingEmail(): Attribute
+    {
+        return Attribute::get(function (): ?string {
+            $value = $this->attributes['pending_email'] ?? null;
+            $requestedAt = $this->attributes['pending_email_requested_at'] ?? null;
+            if (! is_string($value) || $requestedAt === null) {
+                return null;
+            }
+
+            return $this->asDateTime($requestedAt)->greaterThan(now()->subDays(Retention::pendingEmailDays())) ? $value : null;
+        });
+    }
+
+    /**
+     * The change of the email address that waits, for the member only (#1706, ADR 0058): the own resource and the account
+     * of the page add it, because both columns are hidden from every serialization. After the period both are null.
+     *
+     * @return array{pending_email: ?string, pending_email_requested_at: ?Carbon}
+     */
+    final public function ownPendingEmailChange(): array
+    {
+        $pending = $this->pending_email;
+
+        return [
+            'pending_email' => $pending,
+            'pending_email_requested_at' => $pending !== null ? $this->pending_email_requested_at : null,
+        ];
+    }
+
     protected $hidden = [
         // avatar_url is shown instead
         'avatar_path',
@@ -161,6 +200,10 @@ class User extends Authenticatable implements MustVerifyEmail
         'last_visit_on',
         // The proof of a deletion (#1521, ADR 0052): only the server reads it
         'deletion_signed_in_at',
+        // A change of the email address that waits (#1706, ADR 0058): only the member reads it, through
+        // ownPendingEmailChange()
+        'pending_email',
+        'pending_email_requested_at',
         'two_factor_recovery_codes',
         'two_factor_secret',
     ];
@@ -174,6 +217,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
+            'pending_email_requested_at' => 'datetime',
             'password' => 'hashed',
             'show_online_status' => 'boolean',
             'notification_popups' => 'boolean',
@@ -291,7 +335,34 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * The mail of the address check, for the sign-up, "Resend verification email" and a change of the address. Its link
+     * Marks the address as verified, in one conditional write (#1706, ADR 0058): only while the stored row still has the
+     * address of this model and no verified address. A model that was read before a change of the address, or before
+     * another proof verified it, writes nothing. Returns whether it wrote; the model holds the new values only then.
+     */
+    final public function markEmailAsVerified(): bool
+    {
+        $address = $this->getRawOriginal('email');
+        if (! $this->exists || ! is_string($address)) {
+            return false;
+        }
+
+        $now = $this->freshTimestamp();
+        $written = static::query()
+            ->whereKey($this->getKey())
+            ->where('email', $address)
+            ->whereNull('email_verified_at')
+            ->update(['email_verified_at' => $now, 'updated_at' => $now]) === 1;
+        if ($written) {
+            $this->forceFill(['email_verified_at' => $now, 'updated_at' => $now]);
+            $this->syncOriginalAttributes(['email_verified_at', 'updated_at']);
+        }
+
+        return $written;
+    }
+
+    /**
+     * The mail of the address check, for the sign-up, "Resend verification email" and the correction of an address that was
+     * never verified (a change of a verified address waits for its own link, #1706, ADR 0058). Its link
      * carries the page of a community that the session of the request holds, if any (#1612, ADR 0057): the link lands
      * there, also in another browser.
      */

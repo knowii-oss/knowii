@@ -77,6 +77,14 @@ final class Retention
         return self::int('retention.event_answers_days', 90);
     }
 
+    /**
+     * A new email address waits for its confirmation this many days at most (#1706, ADR 0058)
+     */
+    public static function pendingEmailDays(): int
+    {
+        return self::int('retention.pending_email_days', 7);
+    }
+
     public static function logDays(): int
     {
         return self::int('logging.channels.daily.days', 14);
@@ -126,6 +134,7 @@ final class Retention
             'notifications_read' => self::count(self::notificationsReadDays(), 'day'),
             'notifications_unread' => self::count(self::notificationsUnreadDays(), 'day'),
             'event_answers' => self::count(self::eventAnswersDays(), 'day'),
+            'pending_email' => self::count(self::pendingEmailDays(), 'day'),
             'logs' => self::count(self::logDays(), 'day'),
             'waitlist' => self::count(self::waitlistMonths(), 'month'),
             'inactive_contacts' => self::count(self::inactiveContactsDays(), 'day'),

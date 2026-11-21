@@ -1,0 +1,74 @@
+# 0058. A change of the email address applies after its confirmation
+
+- Status: Accepted
+- Date: 2026-11-21
+- Issue: #1706
+- Pull request: #1707
+- Amends: [0057](0057-the-landing-after-the-address-check-travels-in-the-link.md) (point 11: a change of the address of a verified account sends no address check any more)
+
+## Context
+
+Before this decision, a change of the email address in the profile applied at once. The account had the new address, without a verified address, and the mail of the address check went to it. The change asked for no password. A person who made a typing error could not correct it: the profile form changes nothing for an account without a verified address, so the address stayed wrong until somebody verified it.
+
+The owner decided on 2026-11-21 that a change of the email address applies only after the person opens the link that is sent to the new address. The account keeps its current, verified address until then, and every mail goes there.
+
+## Decision
+
+### The request
+
+1. Two nullable columns on `users`: `pending_email` (the new address, with the length rule of `email`) and `pending_email_requested_at` (the time of the request). Both are null when no change waits.
+2. `App\Actions\Fortify\UpdateUserProfileInformation` compares the address of the form with the current one without regard to the case. The same address in another case is no change: the account keeps the stored address, and nothing is asked or sent.
+3. For an account with a verified address, a new address is never written to `email`. The action validates it (the format, the length, and no other account has it as `email`, compared without regard to the case: `App\Rules\FreeEmailAddress`; a pending address of another account does not count), and the contract `App\Contracts\Users\ChangesEmailAddresses` (bound to `App\Actions\Users\ChangeEmailAddress`) keeps it in `pending_email` with the time, and sends the link to the new address. `email` and `email_verified_at` do not change. A new request replaces the pending address of before, and the link of that address stops working.
+4. The current password confirms a change of the address when the account has one (`User::hasPassword()`), with the error of the framework for a wrong password ("The provided password does not match your current password.", field `current_password`). A few wrong passwords a minute (`Constants::EMAIL_CHANGES_PER_MINUTE`), then the form says to wait. An account without a password (an account that a provider made, [ADR 0045](0045-openid-connect-sign-in.md)) needs none. The other fields of the profile need no password.
+5. An account whose address was never verified (`email_verified_at` is null) corrects the address at once: the new address is written to `email`, the mail of the address check goes to it, and there is no pending address. Its other fields still do not change before the address check. The password is asked here too when the account has one. The correction runs in one transaction, on the row of the account read again with `lockForUpdate()`: the password is checked against that row, and the correction applies only while that row still has no verified address. A row that was verified in between (by the link of the address check, or by another proof of the address) changes nothing: no pending change is made, no mail goes, and the request ends without an error. The password reset tokens of the address of before are deleted. A write that the unique index refuses gets the validation error of a taken address.
+
+### The link
+
+6. The link is a signed, temporary route (`email-change.confirm`, `GET /user/email-change/{userCuid}/{hash}`) that lives `auth.verification.expire` minutes (60), as the link of the address check. It holds the cuid of the account and an HMAC-SHA256 of the pending address with the key of the application: the link tells nothing about the address, and the link of a replaced or cancelled address does not match.
+7. The route needs a session of the account (`auth:sanctum` and the session check of Jetstream), as the link of the address check. A person who is not signed in signs in first, and comes back to the link. A session of another account gets 403. A link with a changed hash or account fails its signature (403), and so does a link after its time.
+8. Opening the link runs `ChangesEmailAddresses::confirm()`. In one transaction, on the row of the account read again with `lockForUpdate()`, it checks that a pending address waits and that the hash of the link is the hash of that address. Else nothing changes, and the profile page says that the link does not work any more: a link of an address that was replaced does not cancel the newer request. Then it checks that no other account uses the address as `email` now (without regard to the case). Else the change is not applied, the pending address is removed, and the profile page says so. Then `email` becomes the pending address, `email_verified_at` is the time of now, the pending address and its time are cleared, the copy of the address in the profile follows, and the password reset tokens of the address of before are deleted. A write that the unique index of `email` refuses counts as an address that another account took.
+9. After the commit, a notice goes to the address of before. It says that the address of the account changed, shows the new address masked (`a***@example.com`), and tells the person to contact the administrators of the site (with the contact address of the instance when it has one) if they did not make the change.
+10. The person lands on the profile page with the result as a message of the page (`flash.banner`): success, or one of the two errors of point 8.
+
+### Send again, cancel, the period
+
+11. "Send the link again" sends a new link to the pending address, without a password: the request was confirmed with it. The pending address keeps the time of its request. "Cancel the change" removes the pending address. The profile form uses the web routes (`POST /user/email-change/resend`, `DELETE /user/email-change`), which answer with a message of the page. The API has the same two (`POST /api/v1/user/email-change/resend`, `DELETE /api/v1/user/email-change`, ability `user:write`), which return the current user. The four routes and the link share the limiter `email-changes` (`Constants::EMAIL_CHANGES_PER_MINUTE`, 6 per account and minute), and so does each request of the profile form that changes the address or corrects an address that was never verified, also with the right password (`App\Support\EmailChangeBudget`). Over the budget, the profile form gets "Too many tries. Please wait a minute, then try again." on the address, and the routes answer 429.
+12. A pending address waits `retention.pending_email_days` days at most (`RETENTION_PENDING_EMAIL_DAYS`, 7 by default, read by `App\Support\Retention::pendingEmailDays()`). After that, `User::pendingEmail()` (the accessor of `pending_email`) reads null: the line goes from the form, the link changes nothing and "Send the link again" is refused. The step `pending_emails` of `retention:prune` clears the address and its time later (data rule 8). The privacy policy names the period with the placeholder `{{retention.pending_email}}`, as the other periods.
+
+### Who sees the pending address
+
+13. Both columns are hidden from every serialization of the model (`$hidden`). The member sees them: in the account of the page (`auth.user.pending_email` and `auth.user.pending_email_requested_at`, added by `HandleInertiaRequests`), in the own resource (`UserResource`, for the account itself only, as `email`), both through `User::ownPendingEmailChange()`, so both read null after the period, and in the own data export (as it is stored, with the time). No other resource, prop or answer holds them.
+14. The privacy policy and its template name it in section 2, point 1, with the period as a placeholder. The owner approves the words before the merge.
+
+### The mails
+
+15. The two mails are account mails of level 0 ([ADR 0054](0054-email-delivery-the-mail-queue-the-budget-bounces-and-the-one-click-stop.md), point 1): plain mailables (`App\Mail\ConfirmNewEmailAddress`, `App\Mail\EmailAddressChanged`) on the `default` queue, never held. The link mail and the line "Change of the email address asked" come after the commit of the request. The log lines hold the cuid of the account, never an address.
+
+### The screen
+
+16. The profile form shows, while a change waits: "Confirm your new email address. We sent a link to {pending}.", with the buttons "Send the link again" and "Cancel the change". The field "Current password" shows when the email field holds another address and the account has a password (the profile page gets the prop `accountHasPassword`). The email field stays open for an account whose address was never verified, so that it can correct the address.
+
+### One address per account, and the address check
+
+17. An address belongs to one account without regard to the case: a unique index on `lower(email)` (migration `2026_11_21_091000_make_user_email_addresses_unique_without_case`), beside the index of `email`. The sign-up and the profile form check it with `App\Rules\FreeEmailAddress`, and a write of `email` that the index refuses (two requests at the same moment) gets the validation error of the framework for a taken address ("The email has already been taken."), never an error page. In the sign-up, the name of the index that refuses the write tells it (`users_email_unique` or `users_email_lower_unique`): another value that a write of the sign-up finds taken (the username, the cuid, the slug of the personal community) gets the error of a sign-up that did not work ("We could not create this account. Please try again.", `CreateNewUser::NOT_CREATED_MESSAGE`, the words of a sign-up that the bot check refuses), never the error of a taken address. A database in which two accounts have one address in two cases stops the migration with their cuids: the migration deletes and changes nothing, and an operator gives one account another address first.
+18. The link of the address check verifies the address in one conditional write (`User::markEmailAsVerified()`: only while the row has the address of the model of the request and no verified address), and returns whether it wrote. A link whose account has another address now, or was verified a moment before, verifies nothing, and the answer is the one of a link of another address (403). A new account that a provider proved is verified in its first write.
+19. A sign-in link ([ADR 0023](0023-sign-in-links.md)) works for the address that it was sent to. The cache entry of a link holds the account and an HMAC-SHA256 of the address that got the mail, with the key of the application (never the address itself, and nothing that a list of addresses can match without the key). `App\Actions\Auth\MagicLinks` gives no account for a link when the account has another address now (after a correction of point 5, or a change of point 8), and for an entry in another shape. So a sign-in link verifies only the address that it was sent to.
+
+## Consequences
+
+1. A verified account never loses its verified address by a change of the address: `email_verified_at` stays until the new address is verified. "Not verified" now means "never verified".
+2. A typing error in a new address costs nothing: the account keeps its address, the person cancels or asks again.
+3. A reset link that was sent to an address of before stops working when the address changes: it looks for the account by its address, and the tokens of the address of before are deleted.
+4. The address check of [ADR 0057](0057-the-landing-after-the-address-check-travels-in-the-link.md) is sent for the sign-up, "Resend verification email" and the correction of an address that was never verified, no longer for a change of a verified address. The link of a change of address carries no landing: it lands on the profile page.
+5. A person who loses the session between the request and the link signs in with the address of now, then opens the link.
+6. A sign-in link that was sent to an address of before stops working when the address of the account changes (point 19). The person asks for a new link, which goes to the address of now.
+7. The sign-in links that were sent before this change is deployed no longer work (point 19: the entry has another shape). The person gets the words of a link that expired, and asks for a new one. A link lives 15 minutes.
+8. Tests: `tests/Feature/EmailChangeTest.php` (the rules of the request, the link, the two buttons on the web and the API, the budget, the period, the export, who sees the address, the correction of an address that was never verified with a model of before, the address check with a model of before, a sign-in link after a correction and the entry of a link, one address per account without regard to the case and the migration), `tests/Feature/RetentionTest.php` (the step of `retention:prune`), `tests/Feature/HostedLegalTextsTest.php` (the sentence of the privacy policy), and the specs of `UpdateProfileInformationForm`.
+
+## Alternatives considered
+
+1. The change at once, as before, with a password: the account would still have an address that nobody verified, and lose the verified one.
+2. A table of pending changes: one pending address per account is enough, and a new request replaces it.
+3. A fixed number of days in the words of the privacy policy: the policy would not follow an operator who changes the period, against data rule 8. The period is a value of `config/retention.php` with a placeholder, as the other periods.
+4. The link of a replaced address cancels the newer request too: an old mail would undo a newer choice of the person.
+5. The address itself, or a plain hash of it, in the cache entry of a sign-in link: a copy of personal data that the check does not need, or a value that a list of addresses can match. The HMAC with the key of the application is enough.

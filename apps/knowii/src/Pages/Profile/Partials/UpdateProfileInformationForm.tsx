@@ -19,24 +19,35 @@ import {
   USER_PHONE_REGEX,
   USER_PROFILE_BIO_TEXTAREA_ROWS,
   EMAIL_VERIFICATION_URL,
+  EMAIL_CHANGE_RESEND_URL,
+  EMAIL_CHANGE_CANCEL_URL,
 } from '@knowii/common';
-import { Link, useForm } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
 import type { FormEventHandler } from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import FormSection from '@/Components/FormSection';
-import { FaAt, FaBookReader, FaIdBadge, FaMapMarkerAlt, FaPassport, FaPhone, FaUser } from 'react-icons/fa';
-import { Button, Checkbox, Collapsible, InputError, InputLabel, Textarea, TextInput } from '@/Components/ui';
+import { FaAt, FaBookReader, FaIdBadge, FaLock, FaMapMarkerAlt, FaPassport, FaPhone, FaUser } from 'react-icons/fa';
+import { Button, Checkbox, Collapsible, InputError, InputLabel, PasswordInput, Textarea, TextInput } from '@/Components/ui';
 
 interface Props {
   user: CurrentUser;
+  // Whether the account has a password (#1706): the form asks for it with a change of the email address. Absent: yes
+  hasPassword?: boolean | undefined;
 }
 
 type UpdateProfileInformationFormData = Omit<
   CurrentUser,
-  'created_at' | 'updated_at' | 'email_verified_at' | 'cuid' | 'two_factor_enabled' | 'two_factor_confirmed_at'
+  | 'created_at'
+  | 'updated_at'
+  | 'email_verified_at'
+  | 'cuid'
+  | 'two_factor_enabled'
+  | 'two_factor_confirmed_at'
+  | 'pending_email'
+  | 'pending_email_requested_at'
 > &
-  Omit<UserProfile, 'username' | 'field_visibility'> & { field_visibility: ProfileFieldVisibility };
+  Omit<UserProfile, 'username' | 'field_visibility'> & { field_visibility: ProfileFieldVisibility; current_password: string };
 
 /**
  * "Visible to members" under a profile field (#1076, ADR 0020): the member chooses what the other members see
@@ -86,7 +97,40 @@ export default function UpdateProfileInformationForm(props: Props) {
     ...props.user,
     ...userProfileFieldsToInclude,
     field_visibility: resolveProfileFieldVisibility(storedFieldVisibility),
+    current_password: '',
   });
+
+  // A change of the email address applies after the new address is confirmed (#1706, ADR 0058). The same address in
+  // another case is no change. The current password confirms a change when the account has one
+  const storedEmail = props.user.email;
+  const pendingEmail = props.user.pending_email ?? null;
+  const pendingRequestedAt = props.user.pending_email_requested_at ?? null;
+  const emailChanged = form.data.email.trim().toLowerCase() !== storedEmail.toLowerCase();
+  const asksForPassword = emailChanged && props.hasPassword !== false;
+  const emailRef = useRef<HTMLInputElement>(null);
+  const [emailChangeAction, setEmailChangeAction] = useState<'resend' | 'cancel' | null>(null);
+
+  // After a save, the field holds the address of the account again: a new address waits in the line under the field
+  useEffect(() => {
+    form.setData('email', storedEmail);
+    form.setData('current_password', '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storedEmail, pendingEmail, String(pendingRequestedAt)]);
+
+  const resendEmailChange = () => {
+    setEmailChangeAction('resend');
+    router.post(route(EMAIL_CHANGE_RESEND_URL), {}, { preserveScroll: true, onFinish: () => setEmailChangeAction(null) });
+  };
+
+  const cancelEmailChange = () => {
+    setEmailChangeAction('cancel');
+    router.delete(route(EMAIL_CHANGE_CANCEL_URL), {
+      preserveScroll: true,
+      onFinish: () => setEmailChangeAction(null),
+      // The line and its buttons go: the focus goes to the email field
+      onSuccess: () => emailRef.current?.focus(),
+    });
+  };
 
   const visibilityToggle = (field: ProfileVisibilityField, fieldLabel: string) => (
     <VisibleToMembers
@@ -263,6 +307,7 @@ export default function UpdateProfileInformationForm(props: Props) {
           icon={<FaAt />}
           wrapperClassName="mt-1"
           id="email"
+          ref={emailRef}
           type="email"
           value={form.data.email}
           onChange={(e) => {
@@ -271,9 +316,26 @@ export default function UpdateProfileInformationForm(props: Props) {
           }}
           autoComplete="username"
           required
-          disabled={form.processing || userEmailNotVerified}
+          // An address that was never verified can be corrected (#1706): the address check goes to the new address
+          disabled={form.processing}
         />
         <InputError className="mt-2" message={form.errors.email} />
+
+        {pendingEmail !== null && (
+          <div className="mt-2 text-sm">
+            <p>
+              Confirm your new email address. We sent a link to <strong className="break-words">{pendingEmail}</strong>.
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Button variant="secondary" size="sm" loading={emailChangeAction === 'resend'} onClick={resendEmailChange}>
+                Send the link again
+              </Button>
+              <Button variant="secondary" size="sm" loading={emailChangeAction === 'cancel'} onClick={cancelEmailChange}>
+                Cancel the change
+              </Button>
+            </div>
+          </div>
+        )}
 
         {userEmailNotVerified ? (
           <div>
@@ -297,6 +359,30 @@ export default function UpdateProfileInformationForm(props: Props) {
           </div>
         ) : null}
       </div>
+
+      {/* The current password confirms a change of the email address (#1706) */}
+      {asksForPassword && (
+        <div className="col-span-6 sm:col-span-4">
+          <InputLabel htmlFor="email_current_password">Current password</InputLabel>
+          <PasswordInput
+            icon={<FaLock />}
+            wrapperClassName="mt-1"
+            id="email_current_password"
+            name="current_password"
+            value={form.data.current_password}
+            onChange={(e) => {
+              form.setData('current_password', e.target.value);
+              form.clearErrors('current_password');
+            }}
+            required
+            autoComplete="current-password"
+            disabled={form.processing}
+            invalid={Boolean(form.errors.current_password)}
+            aria-describedby={form.errors.current_password ? 'email_current_password-error' : undefined}
+          />
+          <InputError id="email_current_password-error" className="mt-2" message={form.errors.current_password} />
+        </div>
+      )}
 
       {/* Username */}
       <div className="col-span-6 sm:col-span-4">

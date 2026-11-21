@@ -33,6 +33,12 @@ const form = vi.hoisted(() => ({
   reset: vi.fn<() => void>(),
 }));
 
+// The two buttons of a change of the email address (#1706): web routes of the profile, through the router of Inertia
+const routerCalls = vi.hoisted(() => ({
+  post: vi.fn<(url: string, data: Record<string, unknown>, options: Record<string, unknown>) => void>(),
+  delete: vi.fn<(url: string, options: Record<string, unknown>) => void>(),
+}));
+
 vi.mock('@knowii/common', async (importOriginal) => ({
   ...(await importOriginal<typeof Common>()),
   useTypedPage: () => page,
@@ -42,6 +48,7 @@ vi.mock('@inertiajs/react', async () => {
   const { useState } = await import('react');
   return {
     Link: (props: { href: string; children: ReactNode }) => <a href={props.href}>{props.children}</a>,
+    router: routerCalls,
     useForm: (initial: Record<string, unknown>) => {
       const [data, setData] = useState(initial);
       return {
@@ -81,19 +88,23 @@ const PRIVACY_TEXT =
 
 const HEADLINE_SWITCH = 'Visible to the members of my communities, Headline';
 
-function renderForm(account: CurrentUser = user) {
+function renderForm(account: CurrentUser = user, hasPassword?: boolean) {
   return render(
     <AppDataProvider>
-      <UpdateProfileInformationForm user={account} />
+      <UpdateProfileInformationForm user={account} hasPassword={hasPassword} />
     </AppDataProvider>,
   );
 }
+
+const PENDING_LINE = 'Confirm your new email address. We sent a link to ada.new@example.com.';
 
 afterEach(() => {
   page.props.userProfile = { ...profile };
   form.errors = {};
   form.put.mockClear();
   form.reset.mockClear();
+  routerCalls.post.mockClear();
+  routerCalls.delete.mockClear();
 });
 
 describe('UpdateProfileInformationForm', () => {
@@ -234,5 +245,124 @@ describe('the headline of the profile form (#1688)', () => {
     expect(
       (await axe.run(withError.container, { rules: { region: { enabled: false } } })).violations.map((violation) => violation.id),
     ).toEqual([]);
+  });
+});
+
+describe('a change of the email address (#1706)', () => {
+  it('shows no line and no password field while no change waits', () => {
+    renderForm();
+
+    expect(screen.queryByText(/Confirm your new email address/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Send the link again' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cancel the change' })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Current password')).not.toBeInTheDocument();
+  });
+
+  it('shows the line of a change that waits, with the pending address, under the email field', () => {
+    renderForm({ ...user, pending_email: 'ada.new@example.com', pending_email_requested_at: new Date('2026-11-21T10:00:00Z') });
+
+    const line = screen.getByText((_, element) => element?.tagName === 'P' && element.textContent === PENDING_LINE);
+    expect(line).toBeInTheDocument();
+    // The field keeps the address of the account: the change applies after the link
+    const email = screen.getByRole('textbox', { name: 'Email' });
+    expect(email).toHaveValue('ada@example.com');
+    expect(email.compareDocumentPosition(line) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(line.compareDocumentPosition(screen.getByRole('textbox', { name: 'Username' })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('"Send the link again" posts to its route, without a password', async () => {
+    renderForm({ ...user, pending_email: 'ada.new@example.com', pending_email_requested_at: new Date('2026-11-21T10:00:00Z') });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Send the link again' }));
+
+    expect(routerCalls.post).toHaveBeenCalledTimes(1);
+    expect(routerCalls.post.mock.calls[0]?.[0]).toBe('/route/email-change.resend');
+    expect(routerCalls.post.mock.calls[0]?.[1]).toEqual({});
+    expect(routerCalls.post.mock.calls[0]?.[2]).toMatchObject({ preserveScroll: true });
+    expect(routerCalls.delete).not.toHaveBeenCalled();
+    expect(form.put).not.toHaveBeenCalled();
+  });
+
+  it('"Cancel the change" deletes the change, and gives the focus to the email field after it', async () => {
+    renderForm({ ...user, pending_email: 'ada.new@example.com', pending_email_requested_at: new Date('2026-11-21T10:00:00Z') });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel the change' }));
+
+    expect(routerCalls.delete).toHaveBeenCalledTimes(1);
+    expect(routerCalls.delete.mock.calls[0]?.[0]).toBe('/route/email-change.cancel');
+    const options = routerCalls.delete.mock.calls[0]?.[1] as { preserveScroll: boolean; onSuccess: () => void };
+    expect(options.preserveScroll).toBe(true);
+    options.onSuccess();
+    expect(screen.getByRole('textbox', { name: 'Email' })).toHaveFocus();
+  });
+
+  it('asks for the current password when the email field holds another address, and sends it', async () => {
+    renderForm();
+    const email = screen.getByRole('textbox', { name: 'Email' });
+
+    await userEvent.clear(email);
+    await userEvent.type(email, 'ada.new@example.com');
+    const password = screen.getByLabelText('Current password');
+    expect(password).toHaveAttribute('type', 'password');
+    expect(password).toHaveAttribute('autocomplete', 'current-password');
+    expect(password).toBeRequired();
+    // After the email field
+    expect(email.compareDocumentPosition(password) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    await userEvent.type(password, 'the-password');
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(form.put.mock.calls[0]?.[1]).toMatchObject({ email: 'ada.new@example.com', current_password: 'the-password' });
+  });
+
+  it('asks for no password for the same address in another case, and for an account without a password', async () => {
+    const first = renderForm();
+    const email = screen.getByRole('textbox', { name: 'Email' });
+    await userEvent.clear(email);
+    await userEvent.type(email, 'ADA@Example.com');
+    expect(screen.queryByLabelText('Current password')).not.toBeInTheDocument();
+    first.unmount();
+
+    renderForm(user, false);
+    const field = screen.getByRole('textbox', { name: 'Email' });
+    await userEvent.clear(field);
+    await userEvent.type(field, 'ada.new@example.com');
+    expect(screen.queryByLabelText('Current password')).not.toBeInTheDocument();
+  });
+
+  it('shows the error of a wrong password under the password field', async () => {
+    form.errors = { current_password: 'The provided password does not match your current password.' };
+    renderForm();
+    const email = screen.getByRole('textbox', { name: 'Email' });
+
+    await userEvent.clear(email);
+    await userEvent.type(email, 'ada.new@example.com');
+
+    const password = screen.getByLabelText('Current password');
+    expect(password).toHaveAttribute('aria-invalid', 'true');
+    expect(password).toHaveAccessibleDescription('The provided password does not match your current password.');
+  });
+
+  it('lets an account whose address was never verified correct the address, and keeps the other fields closed', () => {
+    renderForm({ ...user, email_verified_at: null });
+
+    expect(screen.getByRole('textbox', { name: 'Email' })).toBeEnabled();
+    expect(screen.getByRole('textbox', { name: 'Name' })).toBeDisabled();
+  });
+
+  it('has no automated violation (axe) with a change that waits and the password field', async () => {
+    const view = renderForm({
+      ...user,
+      pending_email: 'ada.new@example.com',
+      pending_email_requested_at: new Date('2026-11-21T10:00:00Z'),
+    });
+    const email = screen.getByRole('textbox', { name: 'Email' });
+    await userEvent.clear(email);
+    await userEvent.type(email, 'ada.other@example.com');
+
+    expect(screen.getByLabelText('Current password')).toBeInTheDocument();
+    expect((await axe.run(view.container, { rules: { region: { enabled: false } } })).violations.map((violation) => violation.id)).toEqual(
+      [],
+    );
   });
 });

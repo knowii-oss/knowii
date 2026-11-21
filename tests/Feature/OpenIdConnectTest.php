@@ -887,6 +887,9 @@ test('the account that the provider created has no password: nothing signs in wi
 });
 
 test('an address that two accounts have (they differ by case only) is refused, never guessed', function () {
+    // The unique index on lower(email) (ADR 0058) refuses a second account with the address in another case: the check
+    // stays for a database without it
+    DB::statement('DROP INDEX users_email_lower_unique');
     oidcMember('ada@example.com');
     oidcMember('ADA@example.com');
 

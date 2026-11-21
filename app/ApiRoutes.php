@@ -100,6 +100,11 @@ final class ApiRoutes
 
     public const USER_IDENTITY = self::USER_IDENTITIES.'/{'.self::PARAM_IDENTITY_CUID.'}';
 
+    // A change of the email address that waits for its confirmation (#1706, ADR 0058): cancel it, or send its link again
+    public const USER_EMAIL_CHANGE = 'user/email-change';
+
+    public const USER_EMAIL_CHANGE_RESEND = 'user/email-change/resend';
+
     // The entitlement keys of the current user at the sign-in provider (#1386, ADR 0047)
     public const USER_ENTITLEMENTS = 'user/entitlements';
 

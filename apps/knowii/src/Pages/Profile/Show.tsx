@@ -21,6 +21,9 @@ interface Props {
   // Only when the instance has an OpenID Connect provider (#1385)
   connectedAccounts?: ConnectedAccount[];
   hasPassword?: boolean;
+  // Whether the account has a password, with or without a provider: the profile form asks for it with a change of the
+  // email address (#1706)
+  accountHasPassword?: boolean;
   // Only when the instance reads entitlements and the member connected the provider account (#1386)
   entitlements?: AccountEntitlements;
   // Which proof the deletion of the account needs, and the result of a new sign-in (#1521)
@@ -42,7 +45,7 @@ export default function UserProfile(props: Props) {
       )}
 
       {page.props.jetstream.canUpdateProfileInformation && page.props.auth.user && (
-        <UpdateProfileInformationForm user={page.props.auth.user} />
+        <UpdateProfileInformationForm user={page.props.auth.user} hasPassword={props.accountHasPassword} />
       )}
       <Divider className="my-10" />
 

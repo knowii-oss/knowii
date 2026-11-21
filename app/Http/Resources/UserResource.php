@@ -29,6 +29,10 @@ class UserResource extends AbstractKnowiiJsonResource
             'avatar_url' => $this->avatar_url,
             'email' => $this->when($isSelf, fn () => $this->email),
             'email_verified_at' => $this->when($isSelf, fn () => $this->email_verified_at),
+            // #1706: the new address that waits for its confirmation, and the time of the request. Null when none, and after the
+            // period. Both columns are hidden from every serialization: only this resource and the account of the page add them
+            'pending_email' => $this->when($isSelf, fn () => $this->ownPendingEmailChange()['pending_email']),
+            'pending_email_requested_at' => $this->when($isSelf, fn () => $this->ownPendingEmailChange()['pending_email_requested_at']),
             'two_factor_enabled' => $this->when($isSelf, fn () => $this->two_factor_confirmed_at !== null),
             // #1187: whether the other members see when this member is online
             'show_online_status' => $this->when($isSelf, fn () => $this->showsOnlineStatus()),

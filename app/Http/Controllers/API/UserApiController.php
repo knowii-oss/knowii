@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 namespace App\Http\Controllers\API;
 
+use App\Contracts\Users\ChangesEmailAddresses;
 use App\Contracts\Users\DeletesAccounts;
 use App\Contracts\Users\UpdatesAvatars;
 use App\Contracts\Users\UpdatesNotificationSettings;
@@ -121,6 +122,37 @@ class UserApiController extends Controller
         $user = app(UpdatesNotificationSettings::class)->update($request->user() ?? throw new AuthenticationException, $request->only(['popups']));
 
         return self::success('Notification settings updated', null, $user->refresh()->load('profile')->toResource());
+    }
+
+    /**
+     * Send the link of a change of the email address again (#1706, ADR 0058). A change of the address applies after the
+     * new address is confirmed: the profile form asks for it, and the link goes to the new address. This sends a new link
+     * to it; the change keeps the time of its request, and it waits the period of the privacy policy at most (7 days by
+     * default). No password is needed. Shares a budget of 6 a minute with the changes of the address. Without a change
+     * that waits, the answer is a validation error. Returns the current user, with `pending_email`.
+     *
+     * @throws AuthenticationException
+     * @throws ValidationException
+     */
+    final public function resendEmailChange(Request $request): JsonResponse
+    {
+        $user = app(ChangesEmailAddresses::class)->resend($request->user() ?? throw new AuthenticationException);
+
+        return self::success('Link sent again', null, $user->refresh()->load('profile')->toResource());
+    }
+
+    /**
+     * Cancel a change of the email address that waits for its confirmation (#1706, ADR 0058): the pending address goes,
+     * and its link does not work any more. The account keeps its address. Nothing happens when no change waits. Returns
+     * the current user, with `pending_email` null.
+     *
+     * @throws AuthenticationException
+     */
+    final public function cancelEmailChange(Request $request): JsonResponse
+    {
+        $user = app(ChangesEmailAddresses::class)->cancel($request->user() ?? throw new AuthenticationException);
+
+        return self::success('Change of the email address cancelled', null, $user->refresh()->load('profile')->toResource());
     }
 
     /**

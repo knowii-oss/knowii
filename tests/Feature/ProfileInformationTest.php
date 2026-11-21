@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 
 test('profile information can be updated', function () {
-    $this->actingAs($user = User::factory()->withUserProfile()->create());
+    $this->actingAs($user = User::factory()->withUserProfile()->create(['email' => 'test@example.com']));
 
     $this->put('/user/profile-information', [
         'email' => 'test@example.com',
@@ -18,8 +18,23 @@ test('profile information can be updated', function () {
         ->email->toEqual('test@example.com');
 });
 
+test('a new email address in the profile waits for its confirmation (#1706): the account keeps its address', function () {
+    $this->actingAs($user = User::factory()->withUserProfile()->create(['email' => 'test@example.com']));
+
+    $this->put('/user/profile-information', [
+        'email' => 'new@example.com',
+        'current_password' => 'password',
+        'name' => 'Test Name',
+    ])->assertSessionHasNoErrors();
+
+    expect($user->fresh())
+        ->name->toEqual('Test Name')
+        ->email->toEqual('test@example.com')
+        ->pending_email->toEqual('new@example.com');
+});
+
 test('username can be updated via profile information', function () {
-    $this->actingAs($user = User::factory()->withUserProfile()->create());
+    $this->actingAs($user = User::factory()->withUserProfile()->create(['email' => 'test@example.com']));
 
     $this->put('/user/profile-information', [
         'email' => 'test@example.com',

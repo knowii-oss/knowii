@@ -61,6 +61,17 @@ test('the privacy policy shows the retention periods of the configuration (ADR 0
     );
 });
 
+test('the privacy policy names the new email address that waits for its confirmation, with the period of the configuration (#1706)', function () {
+    $sentence = 'the date you verified your email address, and a new email address that you asked for, with the date you asked, until you confirm it or cancel it, or for %s at most';
+
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, sprintf($sentence, '7 days'))));
+
+    config(['retention.pending_email_days' => 3]);
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, sprintf($sentence, '3 days'))));
+});
+
 test('the imprint names the publisher, the responsible person, the contact and the host (#903)', function () {
     $this->get('/imprint')->assertInertia(fn ($page) => $page
         ->where('html', fn (string $html) => str_contains($html, 'DeveloPassion SRL')

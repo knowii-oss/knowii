@@ -102,6 +102,10 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
         Route::get(ApiRoutes::USER_BLOCKS, [UserBlockApiController::class, 'index'])->middleware('ability:user:read');
         Route::put(ApiRoutes::USER_BLOCK, [UserBlockApiController::class, 'store'])->middleware('ability:user:write');
         Route::delete(ApiRoutes::USER_BLOCK, [UserBlockApiController::class, 'destroy'])->middleware('ability:user:write');
+        // A change of the email address that waits for its confirmation (#1706, ADR 0058): cancel it, or send its link again.
+        // The change itself is asked in the profile form, and its link opens in a browser. The limiter of the web buttons
+        Route::delete(ApiRoutes::USER_EMAIL_CHANGE, [UserApiController::class, 'cancelEmailChange'])->middleware('ability:user:write')->middleware('throttle:email-changes');
+        Route::post(ApiRoutes::USER_EMAIL_CHANGE_RESEND, [UserApiController::class, 'resendEmailChange'])->middleware('ability:user:write')->middleware('throttle:email-changes');
         // The provider accounts that the member connected (#1385, ADR 0045). Own rows only: the row of another member gives a
         // 404. The abilities are not in the default set of a new token
         Route::get(ApiRoutes::USER_IDENTITIES, [UserIdentityApiController::class, 'index'])->middleware('ability:identities:read');

@@ -7,13 +7,14 @@ use App\Enums\KnowiiCommunityVisibility;
 use App\Knowii;
 use App\Models\Community;
 use App\Models\User;
+use App\Rules\FreeEmailAddress;
 use App\Support\TimeZones;
 use App\Support\Turnstile;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 use Laravel\Jetstream\Jetstream;
@@ -21,6 +22,18 @@ use Laravel\Jetstream\Jetstream;
 class CreateNewUser implements CreatesNewUsers
 {
     use PasswordValidationRules;
+
+    /**
+     * The error of a sign-up that did not work, for a reason that the form does not name
+     */
+    public const string NOT_CREATED_MESSAGE = 'We could not create this account. Please try again.';
+
+    /**
+     * The unique indexes of the address of an account: the one of `email`, and the one of `lower(email)` (#1706, ADR 0058)
+     *
+     * @var list<string>
+     */
+    private const array ADDRESS_INDEXES = ['users_email_unique', 'users_email_lower_unique'];
 
     /**
      * Create a newly registered user.
@@ -34,7 +47,8 @@ class CreateNewUser implements CreatesNewUsers
         // WARNING: Those rules must remain aligned with those in UpdateUserProfileInformation.php
         $validator = Validator::make($input, [
             'name' => ['required', 'string', 'max:'.Constants::MAX_LENGTH_USER_NAME],
-            'email' => ['required', 'email', 'max:'.Constants::MAX_LENGTH_USER_EMAIL, Rule::unique('users')],
+            // No other account has the address, without regard to the case (#1706, ADR 0058)
+            'email' => ['required', 'email', 'max:'.Constants::MAX_LENGTH_USER_EMAIL, new FreeEmailAddress],
             'password' => $this->passwordRules(),
             'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature() ? ['accepted', 'required'] : '',
             // Bot checks (#737): the Turnstile token when the instance has Turnstile keys, and a honeypot
@@ -46,7 +60,7 @@ class CreateNewUser implements CreatesNewUsers
 
         if (filled($input[Constants::SIGNUP_HONEYPOT_FIELD] ?? null)) {
             Log::notice('Sign-up refused: the honeypot field is filled');
-            throw ValidationException::withMessages(['email' => 'We could not create this account. Please try again.']);
+            throw ValidationException::withMessages(['email' => self::NOT_CREATED_MESSAGE]);
         }
 
         // Instances without Turnstile keys (self-hosted, development) have no bot check on the sign-up
@@ -63,7 +77,19 @@ class CreateNewUser implements CreatesNewUsers
         /** @var array{name: string, email: string, password: string, terms: string} $input */
         $input = $validator->validated();
 
-        return $this->createAccount($input['name'], $input['email'], $input['password'], false, $timeZone);
+        try {
+            return $this->createAccount($input['name'], $input['email'], $input['password'], false, $timeZone);
+        } catch (UniqueConstraintViolationException $e) {
+            // Another sign-up took the address between the check and the write: the error of the check, never an error page.
+            // The name of the index tells which value was taken. Any other value (the username, the cuid, the slug of the
+            // personal community) gets the error of a sign-up that did not work, never the error of a taken address
+            if (in_array($e->index, self::ADDRESS_INDEXES, true)) {
+                throw ValidationException::withMessages(FreeEmailAddress::takenMessages());
+            }
+
+            Log::warning('Sign-up refused: a unique value was taken at the write', ['index' => $e->index]);
+            throw ValidationException::withMessages(['email' => self::NOT_CREATED_MESSAGE]);
+        }
     }
 
     /**
@@ -81,16 +107,19 @@ class CreateNewUser implements CreatesNewUsers
         $username = Knowii::generateRandomUsername($name);
 
         return DB::transaction(function () use ($username, $name, $email, $password, $emailVerified, $timeZone) {
-            return tap(User::create([
+            $user = new User([
                 'name' => $name,
                 'username' => $username,
                 'email' => $email,
                 'password' => $password === null ? null : Hash::make($password),
-            ]), function (User $user) use ($emailVerified, $timeZone) {
-                // Not mass assignable: only this path and the sign-in links set it
-                if ($emailVerified) {
-                    $user->markEmailAsVerified();
-                }
+            ]);
+            // Not mass assignable. A new account that the provider proved is verified from its first write
+            if ($emailVerified) {
+                $user->forceFill(['email_verified_at' => now()]);
+            }
+            $user->save();
+
+            return tap($user, function (User $user) use ($timeZone) {
                 if ($timeZone !== null) {
                     $user->forceFill(['time_zone' => $timeZone])->save();
                 }

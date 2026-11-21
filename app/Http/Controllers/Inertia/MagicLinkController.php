@@ -52,9 +52,19 @@ class MagicLinkController extends Controller
             return redirect()->route('login')->with('status', 'This sign-in link expired or was already used. Ask for a new one.');
         }
 
-        // The link proves that the member reads this inbox
+        // The link proves that the member reads this inbox: its entry matched the address of the account (MagicLinks, ADR
+        // 0058). The address check writes only while the account has the address that was read here and no verified address
+        // (User::markEmailAsVerified(), ADR 0058): when it writes nothing, the account is read again. An account that
+        // another proof verified a moment before signs in as usual; an account with another address now gets the answer of
+        // a link that does not work
         if (! $user->hasVerifiedEmail()) {
-            $user->markEmailAsVerified();
+            $address = $user->email;
+            if (! $user->markEmailAsVerified()) {
+                $user->refresh();
+                if (! $user->hasVerifiedEmail() || mb_strtolower($user->email) !== mb_strtolower($address)) {
+                    return redirect()->route('login')->with('status', 'This sign-in link expired or was already used. Ask for a new one.');
+                }
+            }
         }
 
         // A link replaces the password, never the second factor: the challenge of Fortify comes next. Nothing of the account
