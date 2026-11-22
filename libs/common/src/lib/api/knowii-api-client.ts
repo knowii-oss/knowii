@@ -44,6 +44,13 @@ import {
   COMMUNITY_API_PARAM_INVITATION,
   COMMUNITY_MODERATOR_PERMISSIONS_API_PATH,
   COMMUNITY_ACCESS_GROUPS_API_PATH,
+  COMMUNITY_INVITE_LINKS_API_PATH,
+  COMMUNITY_INVITE_LINK_API_PATH,
+  COMMUNITY_INVITE_LINK_USES_API_PATH,
+  COMMUNITY_API_PARAM_INVITE_LINK,
+  INVITE_LINK_API_PATH,
+  INVITE_LINK_MEMBERSHIP_API_PATH,
+  INVITE_LINK_API_PARAM_TOKEN,
   COMMUNITY_MEMBER_TAGS_API_PATH,
   COMMUNITY_MEMBER_TAG_API_PATH,
   COMMUNITY_MEMBER_TAG_MEMBERS_API_PATH,
@@ -126,6 +133,8 @@ import {
   COMMUNITY_SPACE_MESSAGE_MUTE_API_PATH,
 } from '../constants';
 import type { PingResponse } from './ping-response.schema';
+import type { InviteLink, InviteLinkForm, InviteLinkOpening, InviteLinkUpdate, InviteLinkUse } from '../types/invite-link.schema';
+import { inviteLinkOpeningSchema, inviteLinkSchema, inviteLinkUseSchema } from '../types/invite-link.schema';
 import { pingResponseSchema } from './ping-response.schema';
 import type { CreateCommunityResponse } from './communities/create-community-response.schema';
 import { createCommunityResponseSchema } from './communities/create-community-response.schema';
@@ -252,6 +261,9 @@ const memberTagPath = (communityCuid: string, tagCuid: string, path = COMMUNITY_
     [COMMUNITY_API_PARAM_MEMBER_TAG]: tagCuid,
     [COMMUNITY_API_PARAM_MEMBER]: memberCuid,
   });
+const inviteLinkPath = (communityCuid: string, linkCuid: string, path = COMMUNITY_INVITE_LINK_API_PATH) =>
+  apiPath(path, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [COMMUNITY_API_PARAM_INVITE_LINK]: linkCuid });
+const inviteLinkTokenPath = (token: string, path = INVITE_LINK_API_PATH) => apiPath(path, { [INVITE_LINK_API_PARAM_TOKEN]: token });
 const postsPath = (communityCuid: string, spaceCuid: string, postCuid = '', path = COMMUNITY_SPACE_POSTS_API_PATH) =>
   apiPath(path, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE]: spaceCuid, [SPACE_API_PARAM_POST]: postCuid });
 
@@ -1497,6 +1509,44 @@ export const knowiiApiClient = {
           ),
       },
     },
+    inviteLinks: {
+      /**
+       * The invite links of the community, newest first (#1391, ADR 0062): the owner and the admins only.
+       */
+      list: (communityCuid: string): Promise<ApiResult<InviteLink[]>> =>
+        apiRequest(
+          'get',
+          communityPath(COMMUNITY_INVITE_LINKS_API_PATH, communityCuid),
+          z.array(inviteLinkSchema),
+          'Failed to load the invite links.',
+        ),
+      create: (communityCuid: string, input: InviteLinkForm): Promise<ApiResult<InviteLink>> =>
+        apiRequest(
+          'post',
+          communityPath(COMMUNITY_INVITE_LINKS_API_PATH, communityCuid),
+          inviteLinkSchema,
+          'Failed to create the invite link.',
+          input,
+        ),
+      show: (communityCuid: string, linkCuid: string): Promise<ApiResult<InviteLink>> =>
+        apiRequest('get', inviteLinkPath(communityCuid, linkCuid), inviteLinkSchema, 'Failed to load the invite link.'),
+      /**
+       * Change the fields of the input only: the lists replace the old ones, null clears the end and the maximum
+       */
+      update: (communityCuid: string, linkCuid: string, input: InviteLinkUpdate): Promise<ApiResult<InviteLink>> =>
+        apiRequest('patch', inviteLinkPath(communityCuid, linkCuid), inviteLinkSchema, 'Failed to save the invite link.', input),
+      remove: (communityCuid: string, linkCuid: string): Promise<ApiResult<void>> =>
+        apiRequest('delete', inviteLinkPath(communityCuid, linkCuid), null, 'Failed to delete the invite link.'),
+      /**
+       * A page of who joined through the link, newest first
+       */
+      uses: (communityCuid: string, linkCuid: string, limit: number, offset: number): Promise<ApiResult<Paginated<InviteLinkUse>>> =>
+        apiPageRequest(
+          `${inviteLinkPath(communityCuid, linkCuid, COMMUNITY_INVITE_LINK_USES_API_PATH)}?limit=${limit}&offset=${offset}`,
+          inviteLinkUseSchema,
+          'Failed to load who joined through the invite link.',
+        ),
+    },
     accessGroups: {
       /**
        * The access groups of the community, by name, with their counts (#1241).
@@ -1609,6 +1659,19 @@ export const knowiiApiClient = {
       whoReacted: (target: ReactionTarget): Promise<ApiResult<WhoReacted>> =>
         apiRequest('get', reactionsPath(target), whoReactedSchema, 'Failed to load the reactions.'),
     },
+  },
+  inviteLinks: {
+    /**
+     * What an invite link opens, for the person who has it (#1391, ADR 0062): the community and the state. A link that does
+     * not work gives one error (404).
+     */
+    open: (token: string): Promise<ApiResult<InviteLinkOpening>> =>
+      apiRequest('get', inviteLinkTokenPath(token), inviteLinkOpeningSchema, 'Failed to open the invite link.'),
+    /**
+     * Join the community of the link, as a member. Answers the community as a member sees it.
+     */
+    join: (token: string): Promise<ApiResult<Community>> =>
+      apiRequest('post', inviteLinkTokenPath(token, INVITE_LINK_MEMBERSHIP_API_PATH), communitySchema, 'Failed to join the community.'),
   },
   resources: {
     /**

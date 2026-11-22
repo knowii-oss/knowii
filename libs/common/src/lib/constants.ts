@@ -468,6 +468,19 @@ export const MAX_LENGTH_ACCESS_GROUP_NAME = 64;
 export const MAX_LENGTH_ACCESS_GROUP_DESCRIPTION = 500;
 // WARNING: aligned with MAX_ACCESS_GROUPS_PER_COMMUNITY (Constants.php)
 export const MAX_ACCESS_GROUPS_PER_COMMUNITY = 50;
+// Invite links (#1391, ADR 0062). WARNING: aligned with ApiRoutes.php and Constants.php
+export const COMMUNITY_INVITE_LINKS_API_PATH = `${COMMUNITY_API_PATH}/invite-links`;
+export const COMMUNITY_API_PARAM_INVITE_LINK = '{inviteLinkCuid}';
+export const COMMUNITY_INVITE_LINK_API_PATH = `${COMMUNITY_INVITE_LINKS_API_PATH}/${COMMUNITY_API_PARAM_INVITE_LINK}`;
+export const COMMUNITY_INVITE_LINK_USES_API_PATH = `${COMMUNITY_INVITE_LINK_API_PATH}/uses`;
+export const INVITE_LINK_API_PARAM_TOKEN = '{inviteLinkToken}';
+export const INVITE_LINK_API_PATH = `${API_BASE_PATH}/invite-links/${INVITE_LINK_API_PARAM_TOKEN}`;
+export const INVITE_LINK_MEMBERSHIP_API_PATH = `${INVITE_LINK_API_PATH}/membership`;
+export const MIN_LENGTH_INVITE_LINK_NAME = 2;
+export const MAX_LENGTH_INVITE_LINK_NAME = 64;
+export const MAX_INVITE_LINKS_PER_COMMUNITY = 50;
+export const MAX_INVITE_LINK_USES = 10000;
+export const INVITE_LINK_READS_PER_MINUTE = 20;
 export const MENTION_SUGGESTIONS_LIMIT = 8;
 
 // Image uploads (#1178)

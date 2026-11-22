@@ -43,6 +43,11 @@ return [
     // with the event, with the account, and when the member leaves the community
     'event_answers_days' => (int) env('RETENTION_EVENT_ANSWERS_DAYS', 90),
 
+    // The record of a join through an invite link (#1391, ADR 0062): the link, the member and the date, deleted this many
+    // days after the join. It also goes when the member leaves the community or is removed, with the link and with the
+    // account. The count of the link stays
+    'invite_link_uses_days' => (int) env('RETENTION_INVITE_LINK_USES_DAYS', 365),
+
     // Where I am (#1476, ADR 0048) has no period of its own: `users.time_zone` lives with the account, `users.last_visit_on` is one
     // date that each visit replaces, and the rows of `space_visits` are replaced at each visit and go with the membership (a member
     // who leaves or is removed) and with the account. Nothing accumulates, so `retention:prune` has no step for them.

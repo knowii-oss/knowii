@@ -49,6 +49,13 @@ final class InvitationGrants
     public const string NO_SUCH_MEMBER_TAG = 'No member tag of the community matches';
 
     /**
+     * The first words of the message of a list that is too long: an invitation, or an invite link (#1391)
+     */
+    public const string HOLDER_INVITATION = 'An invitation';
+
+    public const string HOLDER_INVITE_LINK = 'An invite link';
+
+    /**
      * The most items of a list as it comes in, duplicates included: twice the limit of the list
      */
     public const int MAX_RAW_ACCESS_GROUPS = 2 * Constants::MAX_ACCESS_GROUPS_PER_COMMUNITY;
@@ -59,12 +66,13 @@ final class InvitationGrants
      * Read and check both lists for the person who gives them. The models come sorted by name without the case.
      *
      * @param  array<mixed>  $input
+     * @param  string  $holder  What holds the lists, as the first words of the message of a list that is too long
      * @return array{access_groups: Collection<int, AccessGroup>, member_tags: Collection<int, MemberTag>}
      *
      * @throws AuthorizationException
      * @throws ValidationException
      */
-    public static function read(User $user, Community $community, array $input): array
+    public static function read(User $user, Community $community, array $input, string $holder = self::HOLDER_INVITATION): array
     {
         // The raw lists are capped before their items are read: twice the limit leaves room for duplicates
         /** @var array{access_groups?: list<string>|null, member_tags?: list<string>|null} $validated */
@@ -74,18 +82,18 @@ final class InvitationGrants
             self::FIELD_MEMBER_TAGS => ['sometimes', 'nullable', 'array', 'list', 'max:'.self::MAX_RAW_MEMBER_TAGS],
             self::FIELD_MEMBER_TAGS.'.*' => ['string', 'max:255'],
         ], [
-            self::FIELD_ACCESS_GROUPS.'.max' => self::tooManyAccessGroups(),
-            self::FIELD_MEMBER_TAGS.'.max' => self::tooManyMemberTags(),
+            self::FIELD_ACCESS_GROUPS.'.max' => self::tooManyAccessGroups($holder),
+            self::FIELD_MEMBER_TAGS.'.max' => self::tooManyMemberTags($holder),
         ])->validate();
 
         $groupCuids = self::cuids($validated[self::FIELD_ACCESS_GROUPS] ?? null);
         $tagCuids = self::cuids($validated[self::FIELD_MEMBER_TAGS] ?? null);
 
         if (count($groupCuids) > Constants::MAX_ACCESS_GROUPS_PER_COMMUNITY) {
-            throw ValidationException::withMessages([self::FIELD_ACCESS_GROUPS => self::tooManyAccessGroups()]);
+            throw ValidationException::withMessages([self::FIELD_ACCESS_GROUPS => self::tooManyAccessGroups($holder)]);
         }
         if (count($tagCuids) > Constants::MAX_MEMBER_TAGS_PER_MEMBER) {
-            throw ValidationException::withMessages([self::FIELD_MEMBER_TAGS => self::tooManyMemberTags()]);
+            throw ValidationException::withMessages([self::FIELD_MEMBER_TAGS => self::tooManyMemberTags($holder)]);
         }
 
         if ($groupCuids !== [] && ! self::mayGiveAccessGroups($user, $community)) {
@@ -227,14 +235,14 @@ final class InvitationGrants
         return ! $token instanceof PersonalAccessToken || $token->can($ability);
     }
 
-    private static function tooManyAccessGroups(): string
+    private static function tooManyAccessGroups(string $holder): string
     {
-        return 'An invitation holds at most '.Constants::MAX_ACCESS_GROUPS_PER_COMMUNITY.' access groups';
+        return $holder.' holds at most '.Constants::MAX_ACCESS_GROUPS_PER_COMMUNITY.' access groups';
     }
 
-    private static function tooManyMemberTags(): string
+    private static function tooManyMemberTags(string $holder): string
     {
-        return 'An invitation holds at most '.Constants::MAX_MEMBER_TAGS_PER_MEMBER.' tags';
+        return $holder.' holds at most '.Constants::MAX_MEMBER_TAGS_PER_MEMBER.' tags';
     }
 
     /**

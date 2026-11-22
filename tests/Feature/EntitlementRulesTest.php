@@ -4,6 +4,7 @@ use App\ApiRoutes;
 use App\Contracts\CommunityMembers\JoinsCommunities;
 use App\Contracts\Entitlements\RefreshesEntitlements;
 use App\Contracts\Entitlements\SyncsEntitlementRules;
+use App\Contracts\InviteLinks\JoinsCommunitiesThroughInviteLinks;
 use App\Contracts\Users\DeletesAccounts;
 use App\Enums\KnowiiCommunityJoinPolicy;
 use App\Enums\KnowiiCommunityMemberRole;
@@ -17,6 +18,7 @@ use App\Models\AccessGroup;
 use App\Models\AccessGroupMember;
 use App\Models\AccessGroupRule;
 use App\Models\Community;
+use App\Models\InviteLink;
 use App\Models\Space;
 use App\Models\SpaceGroup;
 use App\Models\User;
@@ -26,6 +28,7 @@ use App\Support\AccessGroupMemberships;
 use App\Support\SpaceTree;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Gate;
@@ -581,6 +584,21 @@ test('a person who joins by themselves a community with rules gets the groups of
     expect($row?->by_rule)->toBeTrue()->and($row?->manual)->toBeFalse()
         ->and($this->provider->reads)->toHaveCount(1)
         ->and(entCanView($this->c['outsider']))->toBeTrue();
+});
+
+test('a person who joins through an invite link a community with rules gets the groups of their entitlements, and the link never gives a group that a rule feeds (#1391)', function () {
+    entRule($this->group, 'example.paid');
+    entGrant($this->provider, 'sub-out', ['example.paid']);
+    entIdentity($this->c['outsider'], 'sub-out');
+    $link = InviteLink::factory()->create(['community_id' => $this->c['community']->id]);
+    // Saved on the link before the rule existed: the join does not give it by hand
+    DB::table('invite_link_access_groups')->insert(['invite_link_id' => $link->id, 'access_group_id' => $this->group->id]);
+
+    app(JoinsCommunitiesThroughInviteLinks::class)->join($this->c['outsider'], $link->token);
+
+    $row = entRow($this->group, $this->c['outsider']);
+    expect($row?->by_rule)->toBeTrue()->and($row?->manual)->toBeFalse()
+        ->and($this->provider->reads)->toHaveCount(1);
 });
 
 test('a person who accepts an invitation to a community with rules gets the groups of their entitlements (#1386)', function () {

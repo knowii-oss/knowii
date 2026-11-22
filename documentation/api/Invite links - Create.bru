@@ -1,0 +1,30 @@
+meta {
+  name: Invite links - Create
+  type: http
+  seq: 221
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/invite-links
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Course buyers",
+    "access_groups": ["<access group cuid>"],
+    "member_tags": ["<member tag cuid>"],
+    "expires_at": "2026-12-31T23:00:00Z",
+    "max_uses": 100
+  }
+}
+
+docs {
+  Creates an invite link (#1391): owner and admins. The name holds 2 to 64 characters on one line, for the managers only. The link gives the role member, and the access groups and the member tags of the lists (cuids of the community, 50 groups and 20 tags at most). A group that a rule on an entitlement feeds is refused. Without active the link is on; without expires_at (an ISO 8601 time with its zone, in the future) and max_uses (1 to 10000) it has no end and no maximum. Returns 201 with the link and its address. A community has at most 50 links (422 after that). Token ability: invite-links:write, and groups:write for groups, member-tags:write for tags.
+}

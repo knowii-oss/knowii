@@ -17,6 +17,8 @@ use App\Http\Controllers\API\EventApiController;
 use App\Http\Controllers\API\EventCalendarFileApiController;
 use App\Http\Controllers\API\IndexingApiController;
 use App\Http\Controllers\API\InvitationImportApiController;
+use App\Http\Controllers\API\InviteLinkApiController;
+use App\Http\Controllers\API\InviteLinkJoinApiController;
 use App\Http\Controllers\API\JoinPolicyApiController;
 use App\Http\Controllers\API\LessonProgressApiController;
 use App\Http\Controllers\API\LoginApiController;
@@ -345,6 +347,20 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::post(ApiRoutes::COMMUNITY_INVITATION_IMPORT_RESEND, [InvitationImportApiController::class, 'resend'])->middleware('ability:invitations:write')->middleware('throttle:invitation-imports');
             Route::delete(ApiRoutes::COMMUNITY_INVITATION_IMPORT, [InvitationImportApiController::class, 'destroy'])->middleware('ability:invitations:write');
         });
+
+        // Invite links (#1391, ADR 0062): the routes of the owner and the admins. scopeBindings: a link of another community
+        // gives a 404. The abilities are not in the default set of a new token
+        Route::scopeBindings()->group(function () {
+            Route::get(ApiRoutes::COMMUNITY_INVITE_LINKS, [InviteLinkApiController::class, 'index'])->middleware('ability:invite-links:read');
+            Route::post(ApiRoutes::COMMUNITY_INVITE_LINKS, [InviteLinkApiController::class, 'store'])->middleware('ability:invite-links:write');
+            Route::get(ApiRoutes::COMMUNITY_INVITE_LINK, [InviteLinkApiController::class, 'show'])->middleware('ability:invite-links:read');
+            Route::patch(ApiRoutes::COMMUNITY_INVITE_LINK, [InviteLinkApiController::class, 'update'])->middleware('ability:invite-links:write');
+            Route::delete(ApiRoutes::COMMUNITY_INVITE_LINK, [InviteLinkApiController::class, 'destroy'])->middleware('ability:invite-links:write');
+            Route::get(ApiRoutes::COMMUNITY_INVITE_LINK_USES, [InviteLinkApiController::class, 'uses'])->middleware('ability:invite-links:read');
+        });
+        // The person who opens an invite link: what it opens, and the join. Every link that does not work gives one 404
+        Route::get(ApiRoutes::INVITE_LINK, [InviteLinkJoinApiController::class, 'show'])->middleware('ability:communities:read')->middleware('throttle:invite-links');
+        Route::post(ApiRoutes::INVITE_LINK_MEMBERSHIP, [InviteLinkJoinApiController::class, 'join'])->middleware('ability:communities:write')->middleware('throttle:joins');
 
         Route::post(ApiRoutes::MARKDOWN_PREVIEW, [MarkdownApiController::class, 'preview'])->middleware('ability:posts:read')->middleware('throttle:markdown-preview');
     });

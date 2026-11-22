@@ -13,6 +13,8 @@ use App\Models\CommunityResource;
 use App\Models\Conversation;
 use App\Models\InvitationImport;
 use App\Models\InvitationImportRow;
+use App\Models\InviteLink;
+use App\Models\InviteLinkUse;
 use App\Models\MemberTag;
 use App\Models\Notification;
 use App\Models\NotificationFollow;
@@ -26,6 +28,7 @@ use App\Models\User;
 use App\Models\UserProfile;
 use App\Support\InvitationGrants;
 use App\Support\MemberTagAssignments;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -423,4 +426,28 @@ test('the export lists the invitation emails that the account sent, with the com
         ['community' => null, 'created_at' => '2026-11-18T11:00:00+00:00'],
     ])
         ->and($files['README.txt'])->toContain('your sessions and the invitation emails that you sent in the last days (the community and the time)');
+});
+
+test('the export lists the joins of the member through an invite link, with the name of the link, after the join blocks, and never its token (#1391)', function () {
+    $this->travelTo(CarbonImmutable::parse('2026-11-23T10:00:00Z'));
+    $f = userExportFixture();
+    $link = InviteLink::factory()->create(['community_id' => $f['community']->id, 'name' => 'Qxexport Course buyers']);
+    $foreign = InviteLink::factory()->create(['community_id' => $f['community']->id, 'name' => 'Qxexport Other link']);
+    InviteLinkUse::query()->create(['invite_link_id' => $link->id, 'user_id' => $f['member']->id]);
+    InviteLinkUse::query()->create(['invite_link_id' => $foreign->id, 'user_id' => $f['other']->id]);
+
+    $files = runUserExport($f['member']);
+    $memberships = json_decode($files['memberships.json'], true);
+    $keys = array_keys($memberships);
+
+    expect(array_search('invite_link_uses', $keys, true))->toBe(array_search('join_blocks', $keys, true) + 1)
+        ->and($memberships['invite_link_uses'])->toBe([[
+            'community' => $f['community']->cuid,
+            'community_slug' => $f['community']->slug,
+            'invite_link' => $link->cuid,
+            'invite_link_name' => 'Qxexport Course buyers',
+            'joined_at' => '2026-11-23T10:00:00+00:00',
+        ]])
+        ->and(implode("\n", $files))->not->toContain($link->token)->not->toContain($link->token_hash)->not->toContain('Qxexport Other link')
+        ->and($files['README.txt'])->toContain('the invite links through which you joined a community');
 });

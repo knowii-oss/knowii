@@ -46,6 +46,8 @@ A personal API token (created on the "API tokens" page of the user menu) has abi
 | `member-tags:write` | Create, rename, recolor and delete member tags, put them on members and take them off (not in the default set) |
 | `invitations:read`  | Read the imports of invitations and their rows, with the email addresses (not in the default set)              |
 | `invitations:write` | Invite many people from a file: upload, send, send again, delete an import (not in the default set). A single invitation keeps `communities:write` |
+| `invite-links:read`  | Read the invite links of a community and who joined through them (not in the default set) |
+| `invite-links:write` | Create, change and delete the invite links of a community (not in the default set) |
 | `identities:read`   | Read the provider accounts that you connected to sign in: the issuer, a label and the dates, never the identifier at the provider (not in the default set) |
 | `identities:write`  | Disconnect a provider account (not in the default set)                |
 | `entitlements:read` | Read the entitlement keys that the sign-in provider reported for you and the date of the last check (not in the default set) |
@@ -179,6 +181,23 @@ An owner, an admin or a moderator with `manage_members` invites many people with
 | `DELETE /v1/communities/{community}/invitation-imports/{import}` | A preview: the uploader, the owner, the admins. A sent import: the owner and the admins; its invitations stay; 422 while a row waits for its mail and until 24 hours after the last row went to the queue (the text gives the date). 204 |
 
 The abilities are `invitations:read` and `invitations:write`. A quote opens a quoted cell only as the first character of a cell, and a quote that is still open at the end of the file refuses the file. The upload, the confirm and the send again are limited to 5 a minute per person. A preview older than 24 hours answers 404. A row is refused for one reason, the first of: `extra_cells`, `cell_too_long`, `invalid_email`, `duplicate_in_file` (`detail`: the earlier row), `unknown_role`, `role_not_allowed`, `access_groups_not_allowed`, `unknown_access_group` and `ambiguous_access_group` (`detail`: the name), `tags_not_allowed`, `unknown_tag` (`detail`: the name), `too_many_tags`, `already_member`, `removed_by_manager`, `pending_invitation` (`detail`: the end of the invitation). The confirm checks every valid row again. The mails go out on the mail queue at the pace of the provider; a row whose mail the budget holds is `held`, and "send again" with `not_sent` sends it later. The record of an import is deleted 37 days after its confirm (as an invitation), a preview 24 hours after the upload.
+
+## Invite links
+
+An invite link is an address that the owner and the admins of a community share ([ADR 0062](../adr/0062-invite-links-a-shared-link-to-join-a-community-with-set-access-groups-and-tags.md), #1391). Any signed-in person with a verified address who opens it can join the community as a member, with the access groups and the member tags of the link, in a community by invitation as in an open one. A link has a `name` (2 to 64 characters, for the managers only), `active`, an optional `expires_at` and `max_uses` (1 to 10000), and `status`: `off`, else `ended`, else `full`, else `active`. Only `active` lets a person join. `url` is the address to share, with its token; only the managers get it. A community has at most 50 links. The groups and the tags follow the rules of an invitation (cuids of the community, 50 and 20 at most; `groups:write` and `member-tags:write` for a token), and a group that a rule on an entitlement feeds is refused. The refusals of the routes of the managers come in this order: 404 (a link of another community), 403, 400 for a field, then the limit (422).
+
+| Route | What it does |
+| ----- | ------------ |
+| `GET /v1/communities/{community}/invite-links` | The links, newest first, no pagination. Owner and admins. Ability `invite-links:read` |
+| `POST /v1/communities/{community}/invite-links` | Create a link: `name`, `active`, `expires_at` (an ISO 8601 time with its zone, in the future), `max_uses`, `access_groups`, `member_tags`. 201 with the link and its `url`. Ability `invite-links:write` |
+| `GET /v1/communities/{community}/invite-links/{inviteLink}` | One link. Ability `invite-links:read` |
+| `PATCH /v1/communities/{community}/invite-links/{inviteLink}` | Change the fields of the request; the lists replace the old ones, `null` clears the end and the maximum. A maximum at or below the count makes the link full. Ability `invite-links:write` |
+| `DELETE /v1/communities/{community}/invite-links/{inviteLink}` | Delete the link: it stops at once, the list of who joined goes, the members stay with their groups and tags. 204. Ability `invite-links:write` |
+| `GET /v1/communities/{community}/invite-links/{inviteLink}/uses` | Who joined through the link, newest first: `member` (an author) and `joined_at`, with `limit` and `offset`. Ability `invite-links:read` |
+| `GET /v1/invite-links/{token}` | For the person who has the link: `community` (its public shape, or the shape of a member for a member) and `state` (`join`, `member` or `blocked`). 20 reads a minute per person. Ability `communities:read` |
+| `POST /v1/invite-links/{token}/membership` | Join through the link. 201 with the community as a member sees it. 422 for a member ("You are already a member of this community") and for a person whom a manager removed (the text of the block): nothing changes for them. Limited with the joins of open communities. Ability `communities:write` |
+
+A link that does not work (an unknown token, a link that is off, ended, full or deleted, a link of a personal community) gives the same 404 on both routes of the person: "This invite link does not work. Ask the person who gave it to you for a new one." The answers of the person never hold the name of the link, its groups, its tags or its counts. A join is recorded (the link, the member, the date) for the managers, and the record goes when the member leaves, with the link, with the account, or 365 days after the join (`RETENTION_INVITE_LINK_USES_DAYS`).
 
 ## Who can join
 

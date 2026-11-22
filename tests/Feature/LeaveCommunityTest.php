@@ -8,6 +8,8 @@ use App\Events\CommunityMembers\CommunityMembersChanged;
 use App\Exceptions\BusinessException;
 use App\Models\AccessGroup;
 use App\Models\Community;
+use App\Models\InviteLink;
+use App\Models\InviteLinkUse;
 use App\Models\MemberTag;
 use App\Models\Post;
 use App\Models\Space;
@@ -161,4 +163,28 @@ test('a member who leaves, or whom a manager removes, loses the tags of that com
     expect($tag->members()->pluck('users.id')->all())->toBe([$this->c['admin']->id])
         ->and($hidden->members()->pluck('users.id')->all())->toBe([$this->c['admin']->id])
         ->and($otherTag->members()->count())->toBe(2);
+});
+
+test('a member who leaves, or whom a manager removes, loses the records of the invite links of that community only (#1391)', function () {
+    $community = $this->c['community'];
+    $link = InviteLink::factory()->create(['community_id' => $community->id]);
+    $other = Community::factory()->create(['owner_id' => $this->c['outsider']->id, 'visibility' => KnowiiCommunityVisibility::Private]);
+    $other->users()->attach([$this->c['member']->id => ['role' => 'member'], $this->c['moderator']->id => ['role' => 'member']]);
+    $otherLink = InviteLink::factory()->create(['community_id' => $other->id]);
+    foreach (['member', 'moderator', 'admin'] as $who) {
+        InviteLinkUse::query()->create(['invite_link_id' => $link->id, 'user_id' => $this->c[$who]->id]);
+    }
+    InviteLinkUse::query()->create(['invite_link_id' => $otherLink->id, 'user_id' => $this->c['member']->id]);
+    InviteLinkUse::query()->create(['invite_link_id' => $otherLink->id, 'user_id' => $this->c['moderator']->id]);
+
+    // A leave
+    $this->actingAs($this->c['member'])->deleteJson(membershipPath($community))->assertNoContent();
+    // A removal
+    app('auth')->forgetGuards();
+    $this->actingAs($this->c['owner'])
+        ->deleteJson(ApiRoutes::path(ApiRoutes::COMMUNITY_MEMBER, [ApiRoutes::PARAM_COMMUNITY => $community->cuid, ApiRoutes::PARAM_MEMBER => $this->c['moderator']->cuid]))
+        ->assertNoContent();
+
+    expect(InviteLinkUse::query()->where('invite_link_id', $link->id)->pluck('user_id')->all())->toBe([$this->c['admin']->id])
+        ->and(InviteLinkUse::query()->where('invite_link_id', $otherLink->id)->count())->toBe(2);
 });

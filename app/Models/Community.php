@@ -47,6 +47,7 @@ use Illuminate\Support\Facades\DB;
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Space> $spaces
  * @property-read \Illuminate\Database\Eloquent\Collection<int, CommunityInvitation> $communityInvitations
  * @property-read \Illuminate\Database\Eloquent\Collection<int, InvitationImport> $invitationImports
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, InviteLink> $inviteLinks
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CommunityResource> $communityResources
  * @property-read ?int $community_invitations_count
  * @property-read User $owner
@@ -323,6 +324,16 @@ class Community extends Model
     }
 
     /**
+     * The invite links of the community (#1391, ADR 0062). Named after the route parameter, for the scoped binding
+     *
+     * @return HasMany<InviteLink, covariant $this>
+     */
+    final public function inviteLinks(): HasMany
+    {
+        return $this->hasMany(InviteLink::class);
+    }
+
+    /**
      * Get all the spaces of the community.
      *
      * @return HasMany<Space, covariant $this>
@@ -395,6 +406,11 @@ class Community extends Model
         DB::table('member_tag_members')
             ->where('user_id', $user->id)
             ->whereIn('member_tag_id', $this->memberTags()->select('id'))
+            ->delete();
+        // Nor the record of a join through one of its invite links (#1391, ADR 0062): the count of the link stays
+        DB::table('invite_link_uses')
+            ->where('user_id', $user->id)
+            ->whereIn('invite_link_id', $this->inviteLinks()->select('id'))
             ->delete();
         // Nor a course progress in it (#1304, ADR 0034)
         DB::table('lesson_progress')->where('community_id', $this->id)->where('user_id', $user->id)->delete();

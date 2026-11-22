@@ -73,6 +73,12 @@ final class ApiRoutes
     // Named after Community::memberTags() for the scoped binding (#1389)
     public const PARAM_MEMBER_TAG = 'memberTag';
 
+    // Named after Community::inviteLinks() for the scoped binding (#1391)
+    public const PARAM_INVITE_LINK = 'inviteLink';
+
+    // The token of an invite link, in the path of the routes of the person who opens it (#1391)
+    public const PARAM_INVITE_LINK_TOKEN = 'inviteLinkToken';
+
     // Named after the route parameter of the notification routes
     public const PARAM_NOTIFICATION = 'notification';
 
@@ -311,6 +317,17 @@ final class ApiRoutes
     public const COMMUNITY_MEMBER_TAG_MEMBERS = self::COMMUNITY_MEMBER_TAG.'/members';
 
     public const COMMUNITY_MEMBER_TAG_MEMBER = self::COMMUNITY_MEMBER_TAG_MEMBERS.'/{'.self::PARAM_MEMBER.'}';
+
+    // Invite links (#1391, ADR 0062): the routes of the managers, then the routes of the person who opens a link
+    public const COMMUNITY_INVITE_LINKS = self::COMMUNITY.'/invite-links';
+
+    public const COMMUNITY_INVITE_LINK = self::COMMUNITY_INVITE_LINKS.'/{'.self::PARAM_INVITE_LINK.'}';
+
+    public const COMMUNITY_INVITE_LINK_USES = self::COMMUNITY_INVITE_LINK.'/uses';
+
+    public const INVITE_LINK = 'invite-links/{'.self::PARAM_INVITE_LINK_TOKEN.'}';
+
+    public const INVITE_LINK_MEMBERSHIP = self::INVITE_LINK.'/membership';
 
     // Direct messages (#1186, ADR 0028)
     public const COMMUNITY_CONVERSATIONS = self::COMMUNITY.'/conversations';

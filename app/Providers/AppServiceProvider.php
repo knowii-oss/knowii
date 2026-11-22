@@ -66,6 +66,10 @@ use App\Actions\InvitationImports\CreateInvitationImport;
 use App\Actions\InvitationImports\DeleteInvitationImport;
 use App\Actions\InvitationImports\ResendInvitationImport;
 use App\Actions\InvitationImports\SendInvitationImportMails;
+use App\Actions\InviteLinks\CreateInviteLink;
+use App\Actions\InviteLinks\DeleteInviteLink;
+use App\Actions\InviteLinks\JoinCommunityThroughInviteLink;
+use App\Actions\InviteLinks\UpdateInviteLink;
 use App\Actions\Mail\CheckMailBudget;
 use App\Actions\Mail\RecordSentEmails;
 use App\Actions\Mail\ResendMailUsage;
@@ -188,6 +192,10 @@ use App\Contracts\InvitationImports\CreatesInvitationImports;
 use App\Contracts\InvitationImports\DeletesInvitationImports;
 use App\Contracts\InvitationImports\ResendsInvitationImports;
 use App\Contracts\InvitationImports\SendsInvitationImportMails;
+use App\Contracts\InviteLinks\CreatesInviteLinks;
+use App\Contracts\InviteLinks\DeletesInviteLinks;
+use App\Contracts\InviteLinks\JoinsCommunitiesThroughInviteLinks;
+use App\Contracts\InviteLinks\UpdatesInviteLinks;
 use App\Contracts\Mail\ChecksMailBudgets;
 use App\Contracts\Mail\ReadsMailUsage;
 use App\Contracts\Mail\RecordsSentEmails;
@@ -339,6 +347,11 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(ResendsInvitationImports::class, ResendInvitationImport::class);
         app()->singleton(DeletesInvitationImports::class, DeleteInvitationImport::class);
         app()->singleton(SendsInvitationImportMails::class, SendInvitationImportMails::class);
+        // Invite links (#1391, ADR 0062)
+        app()->singleton(CreatesInviteLinks::class, CreateInviteLink::class);
+        app()->singleton(UpdatesInviteLinks::class, UpdateInviteLink::class);
+        app()->singleton(DeletesInviteLinks::class, DeleteInviteLink::class);
+        app()->singleton(JoinsCommunitiesThroughInviteLinks::class, JoinCommunityThroughInviteLink::class);
         // Member tags (#1389, ADR 0060)
         app()->singleton(CreatesMemberTags::class, CreateMemberTag::class);
         app()->singleton(UpdatesMemberTags::class, UpdateMemberTag::class);
@@ -514,6 +527,12 @@ class AppServiceProvider extends ServiceProvider
         // A person joins an open community (#1486)
         RateLimiter::for('joins', static function (Request $request) {
             return Limit::perMinute(Constants::JOINS_PER_MINUTE)->by(self::rateLimitKey($request));
+        });
+
+        // The reads of an invite link (#1391, ADR 0062): its page and the API read of the person, per account or per IP address
+        // of a visitor. The join itself uses `joins`
+        RateLimiter::for('invite-links', static function (Request $request) {
+            return Limit::perMinute(Constants::INVITE_LINK_READS_PER_MINUTE)->by(self::rateLimitKey($request));
         });
 
         RateLimiter::for('ownership-transfers', static function (Request $request) {

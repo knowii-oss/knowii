@@ -239,6 +239,20 @@ class Constants
     // The tags of one member in one community. An invitation or an invite link holds as many at most (#1390, #1391)
     public const int MAX_MEMBER_TAGS_PER_MEMBER = 20;
 
+    // Invite links (#1391, ADR 0062). WARNING: aligned with constants.ts. The name column holds 64 characters
+    public const int MIN_LENGTH_INVITE_LINK_NAME = 2;
+
+    public const int MAX_LENGTH_INVITE_LINK_NAME = 64;
+
+    // The links of one community, whatever their state
+    public const int MAX_INVITE_LINKS_PER_COMMUNITY = 50;
+
+    // The largest maximum number of joins of one link
+    public const int MAX_INVITE_LINK_USES = 10000;
+
+    // The reads of a link (the page and the API read of the person) per minute, per account or per IP address of a visitor
+    public const int INVITE_LINK_READS_PER_MINUTE = 20;
+
     // Lifetimes of a personal API token, in days, or "never" (#1267, ADR 0022)
     // WARNING: aligned with API_TOKEN_EXPIRY_CHOICES (jetstream-inertia.intf.ts)
     public const array API_TOKEN_EXPIRY_CHOICES = ['30', '90', '365', 'never'];

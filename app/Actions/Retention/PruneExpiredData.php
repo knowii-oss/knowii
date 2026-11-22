@@ -9,6 +9,7 @@ use App\Models\CommunityInvitation;
 use App\Models\Event;
 use App\Models\EventAnswer;
 use App\Models\InvitationImport;
+use App\Models\InviteLinkUse;
 use App\Models\Notification;
 use App\Models\User;
 use App\Support\InvitationMailCaps;
@@ -34,6 +35,7 @@ use Laravel\Sanctum\PersonalAccessToken;
  * - notifications (#1474): the rows that the member read, some days after they read them, and the rows that they never read,
  *   some days after they were written
  * - answers of members to events (#1515, ADR 0053), some days after the end of their event
+ * - the records of the joins through an invite link (#1391, ADR 0062), some days after the join
  * - community exports (zip files of `php artisan communities:export`, #1353) after their retention period
  * - a new email address that waits for its confirmation (#1706, ADR 0058), some days after the request: the address and
  *   the time of the request are cleared, the account stays
@@ -100,6 +102,11 @@ final class PruneExpiredData implements PrunesExpiredData
                 EventAnswer::query()
                     ->whereIn('event_id', Event::query()->where('ends_at', '<', now()->subDays(Retention::eventAnswersDays()))->select('id'))
                     ->toBase(),
+                $dryRun
+            ),
+            // Who joined through an invite link (#1391, ADR 0062): the count of the link stays
+            'invite_link_uses' => $this->apply(
+                InviteLinkUse::query()->where('created_at', '<', now()->subDays(Retention::inviteLinkUsesDays()))->toBase(),
                 $dryRun
             ),
             'exports' => $this->pruneExports($dryRun),

@@ -1,0 +1,19 @@
+meta {
+  name: Invite links - Show
+  type: http
+  seq: 222
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/invite-links/<invite link cuid>
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  One invite link (#1391), with every field of the list. Owner and admins. A link of another community gives a 404. Token ability: invite-links:read.
+}
