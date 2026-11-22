@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, router } from '@inertiajs/react';
-import type { Community, MemberProfile, SocialMediaLinkProperty, SpaceGroup } from '@knowii/common';
+import type { Community, MemberProfile, MemberTag, SocialMediaLinkProperty, SpaceGroup } from '@knowii/common';
 import {
   COMMUNITY_URL,
   knowiiApiClient,
@@ -19,12 +19,15 @@ import CommunityIcon from '@/Components/Communities/CommunityIcon';
 import { CommunityShell } from '@/Components/Spaces/CommunityShell';
 import type { BreadcrumbItem } from '@/Components/ui';
 import { Avatar, Button, buttonClasses, Card, RelativeTime } from '@/Components/ui';
+import { MemberTagList } from '@/Components/Members/MemberTagList';
 
 interface Props {
   // WARNING: aligned with MemberController.php
   community: Community;
   spaceGroups: SpaceGroup[];
   member: MemberProfile;
+  // The member tags that the reader may see, by name (#1389, ADR 0060). The member gets what another member gets
+  memberTags?: MemberTag[];
   // Direct messages (#1186)
   messaging: { isSelf: boolean; blockedByMe: boolean; canMessage: boolean };
 }
@@ -32,7 +35,7 @@ interface Props {
 /**
  * The profile of a member, as the other members of the community see it (mentions link here).
  */
-export default function MemberPage({ community, spaceGroups, member, messaging }: Props) {
+export default function MemberPage({ community, spaceGroups, member, memberTags = [], messaging }: Props) {
   const { showToast } = useAppData();
   const [busy, setBusy] = useState(false);
 
@@ -81,6 +84,7 @@ export default function MemberPage({ community, spaceGroups, member, messaging }
               <h1 id="member-name" className="text-2xl font-extrabold">
                 {member.name}
               </h1>
+              <MemberTagList tags={memberTags} className="my-1" />
               {/* The headline (#1688) is plain text: never HTML, Markdown or a link. A long word breaks, and nothing is cut */}
               {member.headline && <p className="wrap-anywhere">{member.headline}</p>}
               <p className="text-muted">@{member.username}</p>

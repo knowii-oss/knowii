@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use App\Models\User;
 use App\Models\UserProfile;
+use App\Support\MemberTagsOfMembers;
 use DateTimeInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -11,7 +12,8 @@ use Illuminate\Support\Carbon;
 /**
  * A member of a community with their role (#1242). Not named CommunityMemberResource: it wraps a User, not the
  * CommunityMember pivot. The user comes from CommunityMemberQuery, which adds
- * `community_role` and `community_member_since`, and loads the profile for the headline (#1688).
+ * `community_role` and `community_member_since`, and loads the profile for the headline (#1688). Its tags (#1389, ADR
+ * 0060) are the ones that MemberTagsOfMembers::attach() put on the user for the reader: none when nothing did.
  *
  * @mixin User
  */
@@ -28,6 +30,8 @@ class MemberWithRoleResource extends AbstractKnowiiJsonResource
         $memberSince = $this->getAttribute('community_member_since');
         /** @var UserProfile|null $profile Users created outside the registration may have no profile */
         $profile = $this->profile;
+        /** @var User $user */
+        $user = $this->resource;
 
         return [
             'cuid' => $this->cuid,
@@ -38,6 +42,8 @@ class MemberWithRoleResource extends AbstractKnowiiJsonResource
             'headline' => $profile?->showsField('headline') ? (string) $profile->headline : '',
             'role' => is_string($role) ? $role : '',
             'member_since' => is_string($memberSince) || $memberSince instanceof DateTimeInterface ? Carbon::parse($memberSince) : null,
+            // The tags that the reader may see, by name (#1389, ADR 0060)
+            'tags' => MemberTagsOfMembers::of($user)->toResourceCollection(),
         ];
     }
 }

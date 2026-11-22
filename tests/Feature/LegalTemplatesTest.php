@@ -92,6 +92,16 @@ test('the template of the privacy policy tells who sees the member list of a com
         ->not->toContain('The owner and the administrators of a community see its member list.');
 });
 
+test('the template of the privacy policy tells about the member tags, who sees them and how long they stay (#1389)', function () {
+    $policy = File::get(legalTemplatesFolder().'/policy.md');
+
+    expect($policy)
+        ->toContain('your access groups, the tags that the managers of a community put on you, the lessons')
+        ->toContain('The managers of a community can put tags on you, for example "Founder". A tag is a short name and holds no other text.')
+        ->toContain('The members of a community see the tags that its managers chose to show, on your profile and in the member list there. The owner, the administrators and the moderators who manage members see all your tags in that community. Your data export lists all of them.')
+        ->toContain('15. Tags: until a manager removes the tag, you leave the community, or you delete your account.');
+});
+
 test('the imprint template keeps only its headings and the source code of the project', function () {
     $body = explode("\n---\n", File::get(legalTemplatesFolder().'/imprint.md'), 2)[1] ?? '';
     $lines = array_values(array_filter(array_map(trim(...), explode("\n", $body)), static fn (string $line): bool => $line !== ''));

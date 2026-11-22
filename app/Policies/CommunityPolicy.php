@@ -166,6 +166,34 @@ class CommunityPolicy
     }
 
     /**
+     * Create, rename, recolor, change the visibility of and delete the member tags (#1389, ADR 0060): owner and admins.
+     * Each of these acts at once on every member who has the tag.
+     */
+    final public function manageMemberTags(User $user, Community $community): bool
+    {
+        return CommunityRoles::isOwnerOrAdmin($user, $community);
+    }
+
+    /**
+     * Put a member tag on a member and take it off (#1389): owner, admins, and moderators with the "manage members"
+     * right. The role hierarchy of #1242 does not apply: a tag gives no right, so a moderator tags any member, themself
+     * too. The invitations and the invite links that carry tags use the same rule (#1390, #1391).
+     */
+    final public function assignMemberTags(User $user, Community $community): bool
+    {
+        return CommunityRoles::allows($user, $community, KnowiiModeratorPermission::ManageMembers);
+    }
+
+    /**
+     * See every member tag, those of the managers included, with their member counts (#1389): the same people as those
+     * who assign them. Another member sees the tags of the members only (MemberTagsOfMembers).
+     */
+    final public function viewMemberTags(User $user, Community $community): bool
+    {
+        return CommunityRoles::allows($user, $community, KnowiiModeratorPermission::ManageMembers);
+    }
+
+    /**
      * Determine whether the user can delete the model.
      */
     final public function delete(User $user, Community $community): bool

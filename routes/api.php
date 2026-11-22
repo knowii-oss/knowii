@@ -21,6 +21,7 @@ use App\Http\Controllers\API\LessonProgressApiController;
 use App\Http\Controllers\API\LoginApiController;
 use App\Http\Controllers\API\MarkdownApiController;
 use App\Http\Controllers\API\MemberApiController;
+use App\Http\Controllers\API\MemberTagApiController;
 use App\Http\Controllers\API\ModeratorPermissionApiController;
 use App\Http\Controllers\API\NewsletterApiController;
 use App\Http\Controllers\API\NotificationApiController;
@@ -313,6 +314,17 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::put(ApiRoutes::COMMUNITY_ACCESS_GROUP_RULES, [AccessGroupApiController::class, 'setRules'])->middleware('ability:groups:write');
             Route::get(ApiRoutes::COMMUNITY_SPACE_GROUP_ACCESS_GROUPS, [SpaceGroupApiController::class, 'accessGroups'])->middleware('ability:groups:read');
             Route::put(ApiRoutes::COMMUNITY_SPACE_GROUP_ACCESS_GROUPS, [SpaceGroupApiController::class, 'setAccessGroups'])->middleware('ability:groups:write');
+        });
+
+        // Member tags (#1389, ADR 0060). scopeBindings: a tag of another community gives a 404
+        Route::scopeBindings()->group(function () {
+            Route::get(ApiRoutes::COMMUNITY_MEMBER_TAGS, [MemberTagApiController::class, 'index'])->middleware('ability:member-tags:read');
+            Route::post(ApiRoutes::COMMUNITY_MEMBER_TAGS, [MemberTagApiController::class, 'store'])->middleware('ability:member-tags:write');
+            Route::patch(ApiRoutes::COMMUNITY_MEMBER_TAG, [MemberTagApiController::class, 'update'])->middleware('ability:member-tags:write');
+            Route::delete(ApiRoutes::COMMUNITY_MEMBER_TAG, [MemberTagApiController::class, 'destroy'])->middleware('ability:member-tags:write');
+            Route::get(ApiRoutes::COMMUNITY_MEMBER_TAG_MEMBERS, [MemberTagApiController::class, 'members'])->middleware('ability:member-tags:read');
+            Route::post(ApiRoutes::COMMUNITY_MEMBER_TAG_MEMBERS, [MemberTagApiController::class, 'addMember'])->middleware('ability:member-tags:write');
+            Route::delete(ApiRoutes::COMMUNITY_MEMBER_TAG_MEMBER, [MemberTagApiController::class, 'removeMember'])->middleware('ability:member-tags:write');
         });
 
         // Invitations (#1242). scopeBindings: an invitation of another community gives a 404

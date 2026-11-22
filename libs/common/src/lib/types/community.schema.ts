@@ -149,4 +149,10 @@ export interface CommunityPermissions {
   canViewAccessGroups: boolean;
   // Owner and admins of a community that the instance lists give a group by entitlement keys (#1386, ADR 0047)
   canManageEntitlementRules?: boolean;
+
+  // Member tags (#1389, ADR 0060): the owner and the admins define them, the people who manage members put them on
+  // members and see every tag
+  canManageMemberTags: boolean;
+  canAssignMemberTags: boolean;
+  canViewMemberTags: boolean;
 }

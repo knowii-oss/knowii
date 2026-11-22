@@ -446,7 +446,7 @@ test('each entry of the member list holds the headline that its member shows (#1
         ->and($entries->firstWhere('cuid', $this->member->cuid)['headline'])->toBe(HEADLINE_PROBE)
         ->and($entries->firstWhere('cuid', $this->c['admin']->cuid)['headline'])->toBe('The headline of the admin')
         ->and($entries->firstWhere('cuid', $this->c['owner']->cuid)['headline'])->toBe('')
-        ->and(array_keys($entries->firstWhere('cuid', $this->member->cuid)))->toEqualCanonicalizing(['cuid', 'name', 'username', 'avatar_url', 'role', 'member_since', 'headline']);
+        ->and(array_keys($entries->firstWhere('cuid', $this->member->cuid)))->toEqualCanonicalizing(['cuid', 'name', 'username', 'avatar_url', 'role', 'member_since', 'headline', 'tags']);
 })->with(['reader', 'owner']);
 
 test('the member list holds nothing of a hidden headline, also for the owner (#1688)', function (string $viewer) {
@@ -534,10 +534,11 @@ test('the member list reads the headlines with the same number of queries for 3 
     $three = $count(3);
     $thirty = $count(30);
 
-    // The 4 queries: the community, the number of members, the members of the page, and the profiles of these members.
-    // The last one is the query that the headline adds (3 before #1688): one for the whole page, whatever its size
-    expect($three)->toBe(4)
-        ->and($thirty)->toBe(4);
+    // The 5 queries: the community, the number of members, the members of the page, the profiles of these members, and
+    // their member tags (#1389). The profiles are the query that the headline adds (3 before #1688): one for the whole
+    // page, whatever its size
+    expect($three)->toBe(5)
+        ->and($thirty)->toBe(5);
 });
 
 // ---------------------------------------------------------------------------------------------------------------------

@@ -12,6 +12,7 @@ use App\Http\Resources\MemberWithRoleResource;
 use App\Models\Community;
 use App\Models\User;
 use App\Support\CommunityMemberQuery;
+use App\Support\MemberTagsOfMembers;
 use App\Support\Pagination;
 use App\Traits\ApiResponses;
 use Dedoc\Scramble\Attributes\BodyParameter;
@@ -32,7 +33,9 @@ class MemberApiController extends Controller
 
     /**
      * List the members of the community with their role. Without `sort`: owner first, then admins, moderators and
-     * members. With a query: the members whose username, or a word of their name, starts with it. Limited per minute.
+     * members. With a query: the members whose username, or a word of their name, starts with it. Each entry holds the
+     * member tags that the caller may see (`tags`, by name): every tag for the people who manage the members, the tags
+     * that the managers show to the members for another member. Limited per minute.
      */
     #[QueryParameter('query', description: 'Beginning of the username or of a word of the name. The server keeps its first 100 characters. Empty: every member', type: 'string', example: 'ada')]
     #[QueryParameter('sort', description: 'The order. role: owner, admins, moderators, members, each by username. name: the name from A to Z. newest: the date of joining, the newest first. Any other value: role', type: "'role'|'name'|'newest'", default: 'role', example: 'name')]
@@ -48,6 +51,8 @@ class MemberApiController extends Controller
         $query = CommunityMemberQuery::searchText(is_string($query) ? $query : '');
         $sort = KnowiiMemberSort::forApi(is_string($sort) ? $sort : null);
         $page = Pagination::fromRequest($request)->apply(CommunityMemberQuery::for($community, $query, $sort));
+        // One query for the tags of the whole page (#1389, ADR 0060)
+        MemberTagsOfMembers::attach($community, $page['items'], $request->user());
 
         return self::success('Members', $page['metadata'], $page['items']->toResourceCollection(MemberWithRoleResource::class));
     }
@@ -65,6 +70,7 @@ class MemberApiController extends Controller
 
         /** @var User $updated */
         $updated = CommunityMemberQuery::for($community)->where('users.cuid', $member)->firstOrFail();
+        MemberTagsOfMembers::attach($community, [$updated], $request->user());
 
         return self::success('Role changed', null, $updated->toResource(MemberWithRoleResource::class));
     }

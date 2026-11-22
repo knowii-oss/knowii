@@ -84,3 +84,4 @@ Do not write an ADR for a bug fix, a refactor that keeps the structure, or a fea
 | [0057](0057-the-landing-after-the-address-check-travels-in-the-link.md)                 | The landing after the address check travels in the link                    | Accepted |
 | [0058](0058-a-change-of-the-email-address-applies-after-its-confirmation.md)            | A change of the email address applies after its confirmation               | Accepted |
 | [0059](0059-the-first-proof-of-an-address-takes-the-account-over.md)                    | The first proof of an address takes the account over                       | Accepted |
+| [0060](0060-member-tags-labels-on-members.md)                                           | Member tags: labels on members, for the members or for the managers only   | Accepted |

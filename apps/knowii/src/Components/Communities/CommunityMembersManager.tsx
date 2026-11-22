@@ -10,6 +10,7 @@ import type {
   CommunityMember,
   CommunityPermissions,
   CommunityRole,
+  MemberTag,
   Pagination,
 } from '@knowii/common';
 import {
@@ -22,7 +23,7 @@ import {
   MEMBER_URL,
   useAppData,
 } from '@knowii/common';
-import { FaMagnifyingGlass, FaUserLock, FaUserMinus, FaUserPlus, FaUsers, FaXmark } from 'react-icons/fa6';
+import { FaMagnifyingGlass, FaTags, FaUserLock, FaUserMinus, FaUserPlus, FaUsers, FaXmark } from 'react-icons/fa6';
 import {
   Avatar,
   Button,
@@ -38,6 +39,8 @@ import {
   Select,
   TextInput,
 } from '@/Components/ui';
+import { MemberTagList } from '@/Components/Members/MemberTagList';
+import { MemberTagsDialog } from './MemberTagsDialog';
 
 export interface CommunityMembersManagerProps {
   communityCuid: string;
@@ -46,11 +49,16 @@ export interface CommunityMembersManagerProps {
    * The role of the current user: the screen offers only the roles below it (#1242)
    */
   currentRole: CommunityRole;
-  permissions: Pick<CommunityPermissions, 'canAddCommunityMembers' | 'canUpdateCommunityMembers' | 'canRemoveCommunityMembers'>;
+  permissions: Pick<CommunityPermissions, 'canAddCommunityMembers' | 'canUpdateCommunityMembers' | 'canRemoveCommunityMembers'> &
+    Partial<Pick<CommunityPermissions, 'canAssignMemberTags'>>;
   /**
    * Changes when the members or the invitations changed elsewhere (real-time event): the lists load again
    */
   refreshKey?: number;
+  /**
+   * After a tag was put on a member or taken off (#1389): the section "Member tags" counts again
+   */
+  onMemberTagsChanged?: () => void;
 }
 
 const SEARCH_DELAY_MS = 250;
@@ -65,6 +73,7 @@ export function CommunityMembersManager({
   currentRole,
   permissions,
   refreshKey = 0,
+  onMemberTagsChanged,
 }: CommunityMembersManagerProps) {
   const { showToast } = useAppData();
   const roles = grantableRoles(currentRole);
@@ -78,6 +87,8 @@ export function CommunityMembersManager({
   const [joinBlocks, setJoinBlocks] = useState<CommunityJoinBlock[]>([]);
   const [pendingRemoval, setPendingRemoval] = useState<CommunityMember | null>(null);
   const [busy, setBusy] = useState(false);
+  // The member whose tags the dialog shows (#1389)
+  const [taggedMember, setTaggedMember] = useState<CommunityMember | null>(null);
   const requestId = useRef(0);
 
   const loadMembers = useCallback(
@@ -233,6 +244,12 @@ export function CommunityMembersManager({
     showToast({ severity: 'success', summary: `Invitation to ${invitation.email} cancelled` });
   };
 
+  const changeTags = (memberCuid: string, tags: MemberTag[]) => {
+    setMembers((current) => current.map((item) => (item.cuid === memberCuid ? { ...item, tags } : item)));
+    setTaggedMember((current) => (current?.cuid === memberCuid ? { ...current, tags } : current));
+    onMemberTagsChanged?.();
+  };
+
   const roleOptions = roles.map((role) => ({ value: role, label: COMMUNITY_ROLE_LABELS[role] }));
 
   return (
@@ -307,7 +324,7 @@ export function CommunityMembersManager({
                 return (
                   <li key={member.cuid} className="flex flex-wrap items-center gap-3 py-3">
                     <Avatar name={member.name} imageUrl={member.avatar_url} size="sm" />
-                    <div className="flex min-w-0 flex-1 flex-col">
+                    <div className="flex min-w-0 flex-1 basis-48 flex-col">
                       <Link
                         href={route(MEMBER_URL, { communitySlug, username: member.username })}
                         className="truncate font-bold text-primary hover:underline"
@@ -315,7 +332,20 @@ export function CommunityMembersManager({
                         {member.name}
                       </Link>
                       <span className="truncate text-sm text-muted">@{member.username}</span>
+                      <MemberTagList tags={member.tags} className="mt-1" />
                     </div>
+                    {permissions.canAssignMemberTags === true && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        iconOnly
+                        aria-label={`Tags of ${member.name}`}
+                        title={`Tags of ${member.name}`}
+                        onClick={() => setTaggedMember(member)}
+                      >
+                        <FaTags aria-hidden="true" />
+                      </Button>
+                    )}
                     {canChangeRole ? (
                       <Select<AssignableCommunityRole>
                         className="w-40"
@@ -423,6 +453,10 @@ export function CommunityMembersManager({
             </p>
           </CardBody>
         </Card>
+      )}
+
+      {permissions.canAssignMemberTags === true && (
+        <MemberTagsDialog communityCuid={communityCuid} member={taggedMember} onClose={() => setTaggedMember(null)} onChange={changeTags} />
       )}
 
       <Dialog

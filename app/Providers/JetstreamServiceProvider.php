@@ -185,6 +185,9 @@ class JetstreamServiceProvider extends ServiceProvider
             // Access groups (#1241, ADR 0025): a sync token from another system needs groups:write only
             'groups:read',
             'groups:write',
+            // Member tags (#1389, ADR 0060): never in the default set, a token that syncs tags must not manage paid groups
+            'member-tags:read',
+            'member-tags:write',
         ];
 
         Jetstream::permissions($allPermissions);

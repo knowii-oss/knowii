@@ -1,0 +1,26 @@
+meta {
+  name: Member tags - Update
+  type: http
+  seq: 208
+}
+
+patch {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/member-tags/<tag cuid>
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "visibility": "members"
+  }
+}
+
+docs {
+  Renames a member tag, or changes its color or its visibility (#1389): owner and admins. Only the fields of the request change; a rename keeps the members of the tag. A change to members shows the tag on every member who has it. A tag with the visibility managers answers 404 to a caller who does not see every tag. Token ability: member-tags:write.
+}

@@ -8,10 +8,12 @@ use App\Events\CommunityMembers\CommunityMembersChanged;
 use App\Exceptions\BusinessException;
 use App\Models\AccessGroup;
 use App\Models\Community;
+use App\Models\MemberTag;
 use App\Models\Post;
 use App\Models\Space;
 use App\Models\SpaceGroup;
 use App\Models\User;
+use App\Support\MemberTagAssignments;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Event;
 use Laravel\Sanctum\Sanctum;
@@ -131,4 +133,32 @@ test('the action refuses the owner and outsiders by itself (#1338, ADR 0006)', f
 
     expect(fn () => $action->leave($this->c['owner'], $this->c['community']))->toThrow(BusinessException::class);
     expect(fn () => $action->leave($this->c['outsider'], $this->c['community']))->toThrow(AuthorizationException::class);
+});
+
+test('a member who leaves, or whom a manager removes, loses the tags of that community only (#1389)', function () {
+    $community = $this->c['community'];
+    $tag = MemberTag::factory()->forMembers()->create(['community_id' => $community->id, 'name' => 'Founder']);
+    $hidden = MemberTag::factory()->forManagers()->create(['community_id' => $community->id, 'name' => 'Onboarded']);
+    // Another community of the same people is not touched
+    $other = Community::factory()->create(['owner_id' => $this->c['outsider']->id, 'visibility' => KnowiiCommunityVisibility::Private]);
+    $other->users()->attach([$this->c['member']->id => ['role' => 'member'], $this->c['moderator']->id => ['role' => 'member']]);
+    $otherTag = MemberTag::factory()->forMembers()->create(['community_id' => $other->id, 'name' => 'Founder']);
+    foreach (['member', 'moderator', 'admin'] as $who) {
+        MemberTagAssignments::add($tag, $this->c[$who]);
+        MemberTagAssignments::add($hidden, $this->c[$who]);
+    }
+    MemberTagAssignments::add($otherTag, $this->c['member']);
+    MemberTagAssignments::add($otherTag, $this->c['moderator']);
+
+    // A leave
+    $this->actingAs($this->c['member'])->deleteJson(membershipPath($community))->assertNoContent();
+    // A removal
+    app('auth')->forgetGuards();
+    $this->actingAs($this->c['owner'])
+        ->deleteJson(ApiRoutes::path(ApiRoutes::COMMUNITY_MEMBER, [ApiRoutes::PARAM_COMMUNITY => $community->cuid, ApiRoutes::PARAM_MEMBER => $this->c['moderator']->cuid]))
+        ->assertNoContent();
+
+    expect($tag->members()->pluck('users.id')->all())->toBe([$this->c['admin']->id])
+        ->and($hidden->members()->pluck('users.id')->all())->toBe([$this->c['admin']->id])
+        ->and($otherTag->members()->count())->toBe(2);
 });

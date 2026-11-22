@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { BADGE_COLORS } from './Components/ui/Badge';
 
 // Read from the disk: Vitest gives an empty string for a CSS import, also with ?raw
 const styles = readFileSync(`${import.meta.dirname}/styles.css`, 'utf8');
@@ -30,6 +31,14 @@ interface Pair {
 
 const ALL_SURFACES = ['background', 'surface', 'surface-elevated', 'well'] as const;
 
+// The palette of the member tags (#1389, ADR 0060): the border and the mark of a Badge, never text (WCAG 1.4.11)
+const TAG_PAIRS: readonly Pair[] = BADGE_COLORS.map((color) => ({
+  token: `tag-${color}`,
+  surfaces: ALL_SURFACES,
+  min: CONTROL_BORDER,
+  usedBy: 'the border and the mark of a member tag (#1389)',
+}));
+
 const PAIRS: Record<Theme, readonly Pair[]> = {
   dark: [
     { token: 'primary', surfaces: ALL_SURFACES, min: TEXT, usedBy: 'all text' },
@@ -43,6 +52,7 @@ const PAIRS: Record<Theme, readonly Pair[]> = {
       min: CONTROL_BORDER,
       usedBy: 'fields, check boxes, the stepper, dashed boxes (#1648)',
     },
+    ...TAG_PAIRS,
   ],
   light: [
     { token: 'primary', surfaces: ALL_SURFACES, min: TEXT, usedBy: 'all text' },
@@ -51,6 +61,7 @@ const PAIRS: Record<Theme, readonly Pair[]> = {
     { token: 'danger-text', surfaces: ALL_SURFACES, min: TEXT, usedBy: 'error messages' },
     { token: 'success', surfaces: ALL_SURFACES, min: TEXT, usedBy: 'status messages, quiz results on the well (#1648)' },
     { token: 'border-strong', surfaces: ['well'], min: CONTROL_BORDER, usedBy: 'fields, check boxes, radio buttons' },
+    ...TAG_PAIRS,
   ],
 };
 
@@ -129,6 +140,10 @@ function gradientStops(theme: Theme): Color[] {
 describe.each<Theme>(['dark', 'light'])('the contrast of the %s theme', (theme) => {
   it('reads the tokens from styles.css', () => {
     expect(tokens[theme].size).toBeGreaterThan(10);
+    // The light theme sets its own palette of tags: none comes from the dark one
+    BADGE_COLORS.forEach((color) =>
+      expect(declarations(block(theme === 'dark' ? '@theme {' : "[data-theme='light'] {")).has(`tag-${color}`), color).toBe(true),
+    );
     ALL_SURFACES.forEach((surface) => expect(token(theme, surface).alpha, surface).toBe(1));
   });
 

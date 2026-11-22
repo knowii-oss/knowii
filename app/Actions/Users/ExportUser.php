@@ -101,6 +101,7 @@ final class ExportUser implements ExportsUsers
                     'memberships' => $this->memberships($user),
                     'owned_communities' => $this->ownedCommunities($user),
                     'access_groups' => $this->accessGroups($user),
+                    'member_tags' => $this->memberTags($user),
                     'invitations' => $this->invitations($user),
                     'join_blocks' => $this->joinBlocks($user),
                 ]],
@@ -281,6 +282,25 @@ final class ExportUser implements ExportsUsers
                 // Where the membership comes from (#1386, ADR 0047): added by hand, given by an entitlement rule, or both
                 'added_by_hand' => $this->pivotFlag($group, 'manual'),
                 'given_by_rule' => $this->pivotFlag($group, 'by_rule'),
+            ];
+        }
+    }
+
+    /**
+     * The tags that the managers of a community put on the member (#1389, ADR 0060), of both visibilities: the member
+     * reads here also the tags that no screen shows them. No other person is named.
+     *
+     * @return Generator<int, Row>
+     */
+    private function memberTags(User $user): Generator
+    {
+        foreach ($user->memberTags()->orderBy('member_tags.id')->get() as $tag) {
+            yield [
+                'cuid' => $tag->cuid,
+                'name' => $tag->name,
+                'visibility' => $tag->visibility->value,
+                ...$this->place($tag->community_id, null),
+                'tagged_at' => $this->pivotDate($tag),
             ];
         }
     }
@@ -930,7 +950,7 @@ final class ExportUser implements ExportsUsers
         ];
         $descriptions = [
             'account.json' => 'your account and your profile, with the choice of who sees each profile field, and the accounts of other providers that you connected to sign in (the provider, your identifier there and the dates), with the entitlement keys that the provider reported for you and the date of the last check, your time zone, the date of your last visit (a date, no hour) and your choice of pop-ups',
-            'memberships.json' => 'your communities and your role, the communities you own, your access groups (and whether you were added by hand or by an entitlement rule), the invitations sent to your email address and the communities where a manager removed you and where you cannot join again by yourself',
+            'memberships.json' => 'your communities and your role, the communities you own, your access groups (and whether you were added by hand or by an entitlement rule), the tags that the managers of a community put on you (the name, who sees it: the members or the managers only, and the date), the invitations sent to your email address and the communities where a manager removed you and where you cannot join again by yourself',
             'activity.json' => 'the lessons you marked as done, your quiz results, your answers to events (the event by its identifier and its title, and your answer: yes, replay only or no), what you read in chat spaces and conversations, the members you blocked, where you were mentioned, your notifications (kind, community, the items by identifier and the dates, never a text), the threads that you follow or muted and the level that you chose for each space, the date when you last visited each space, your API tokens and your sessions',
             'posts.json' => 'your posts (Markdown)',
             'comments.json' => 'your comments (Markdown), with the cuid and the title of what they answer',

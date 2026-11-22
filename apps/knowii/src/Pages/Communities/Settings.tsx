@@ -16,6 +16,7 @@ import { IndexingSetting } from '@/Components/Communities/IndexingSetting';
 import { JoinPolicySetting } from '@/Components/Communities/JoinPolicySetting';
 import { ModeratorPermissionsForm } from '@/Components/Communities/ModeratorPermissionsForm';
 import { CommunityMembersManager } from '@/Components/Communities/CommunityMembersManager';
+import { MemberTagsManager } from '@/Components/Communities/MemberTagsManager';
 import { UpdateCommunityForm } from '@/Components/Communities/UpdateCommunityForm';
 import { useCallback, useState } from 'react';
 
@@ -69,6 +70,12 @@ export default function CommunitySettingsPage(props: Props) {
   });
 
   const canManageMembers = props.permissions.canAddCommunityMembers;
+
+  // Member tags (#1389): no event tells the page, so each section tells the other one. A tag put on a member changes
+  // the counts of the tags; a renamed or deleted tag changes the rows of the members
+  const [memberTagsVersion, setMemberTagsVersion] = useState(0);
+  const [membersTagsVersion, setMembersTagsVersion] = useState(0);
+  const canSeeMemberTags = props.permissions.canViewMemberTags;
 
   // The access groups changed (#1241): the list loads again
   const [accessGroupsVersion, setAccessGroupsVersion] = useState(0);
@@ -147,16 +154,32 @@ export default function CommunitySettingsPage(props: Props) {
             communitySlug={props.community.slug}
             currentRole={props.currentRole}
             permissions={props.permissions}
-            refreshKey={membersVersion}
+            refreshKey={membersVersion + membersTagsVersion}
+            onMemberTagsChanged={() => setMemberTagsVersion((version) => version + 1)}
+          />
+        </>
+      )}
+
+      {canSeeMemberTags && (
+        <>
+          {(props.permissions.canManageSpaces || props.permissions.canManageModeratorPermissions || canManageMembers) && (
+            <Divider className="my-10" />
+          )}
+          <MemberTagsManager
+            communityCuid={props.community.cuid}
+            permissions={props.permissions}
+            refreshKey={memberTagsVersion}
+            onChanged={() => setMembersTagsVersion((version) => version + 1)}
           />
         </>
       )}
 
       {canSeeAccessGroups && (
         <>
-          {(props.permissions.canManageSpaces || props.permissions.canManageModeratorPermissions || canManageMembers) && (
-            <Divider className="my-10" />
-          )}
+          {(props.permissions.canManageSpaces ||
+            props.permissions.canManageModeratorPermissions ||
+            canManageMembers ||
+            canSeeMemberTags) && <Divider className="my-10" />}
           <AccessGroupsManager communityCuid={props.community.cuid} permissions={props.permissions} refreshKey={accessGroupsVersion} />
         </>
       )}
@@ -173,7 +196,11 @@ export default function CommunitySettingsPage(props: Props) {
         </>
       )}
 
-      {(props.permissions.canManageSpaces || props.permissions.canManageModeratorPermissions || canManageMembers || canSeeAccessGroups) &&
+      {(props.permissions.canManageSpaces ||
+        props.permissions.canManageModeratorPermissions ||
+        canManageMembers ||
+        canSeeMemberTags ||
+        canSeeAccessGroups) &&
         props.permissions.canDeleteCommunity && <Divider className="my-10" />}
 
       {props.permissions.canDeleteCommunity && (

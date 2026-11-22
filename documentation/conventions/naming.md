@@ -21,6 +21,7 @@ Names are in English. One concept has one name everywhere: in the database, the 
 | host           | organizer, owner (of an event) | The one member named on an event (`host_id`)                                                                 |
 | reaction       | like, vote                     | A fixed emoji reaction by a member                                                                           |
 | mention        | tag, ping                      | `@username` in a text                                                                                        |
+| member tag     | label, badge, tag (alone)      | A label that the managers of a community put on a member, "Founder" (`App\Models\MemberTag`, ADR 0060)       |
 | upload         | attachment, file               | A file a member sent (images first)                                                                          |
 
 ## PHP

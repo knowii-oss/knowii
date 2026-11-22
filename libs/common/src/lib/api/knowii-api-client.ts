@@ -38,6 +38,11 @@ import {
   COMMUNITY_API_PARAM_INVITATION,
   COMMUNITY_MODERATOR_PERMISSIONS_API_PATH,
   COMMUNITY_ACCESS_GROUPS_API_PATH,
+  COMMUNITY_MEMBER_TAGS_API_PATH,
+  COMMUNITY_MEMBER_TAG_API_PATH,
+  COMMUNITY_MEMBER_TAG_MEMBERS_API_PATH,
+  COMMUNITY_MEMBER_TAG_MEMBER_API_PATH,
+  COMMUNITY_API_PARAM_MEMBER_TAG,
   COMMUNITY_ACCESS_GROUP_API_PATH,
   COMMUNITY_ACCESS_GROUP_MEMBERS_API_PATH,
   COMMUNITY_ACCESS_GROUP_RULES_API_PATH,
@@ -135,6 +140,8 @@ import type {
   AccessGroupSpaceGroup,
 } from '../types/access-group.schema';
 import { accessGroupMemberSchema, accessGroupSchema, accessGroupSpaceGroupSchema } from '../types/access-group.schema';
+import type { MemberTag, MemberTagForm, MemberTagMemberInput } from '../types/member-tag.schema';
+import { memberTagSchema } from '../types/member-tag.schema';
 import { HttpStatus } from '../types/http-status.intf';
 import type { ApiResult } from './api-result';
 import { apiPageRequest, apiPageRequestWith, apiPath, apiRequest, fieldErrors } from './api-result';
@@ -221,6 +228,12 @@ const accessGroupPath = (communityCuid: string, groupCuid: string, path = COMMUN
   apiPath(path, {
     [SPACE_API_PARAM_COMMUNITY]: communityCuid,
     [COMMUNITY_API_PARAM_ACCESS_GROUP]: groupCuid,
+    [COMMUNITY_API_PARAM_MEMBER]: memberCuid,
+  });
+const memberTagPath = (communityCuid: string, tagCuid: string, path = COMMUNITY_MEMBER_TAG_API_PATH, memberCuid = '') =>
+  apiPath(path, {
+    [SPACE_API_PARAM_COMMUNITY]: communityCuid,
+    [COMMUNITY_API_PARAM_MEMBER_TAG]: tagCuid,
     [COMMUNITY_API_PARAM_MEMBER]: memberCuid,
   });
 const postsPath = (communityCuid: string, spaceCuid: string, postCuid = '', path = COMMUNITY_SPACE_POSTS_API_PATH) =>
@@ -1316,6 +1329,60 @@ export const knowiiApiClient = {
         } catch {
           return [];
         }
+      },
+    },
+    memberTags: {
+      /**
+       * The member tags of the community, by name (#1389, ADR 0060): every tag with its member count for the people who
+       * manage the members, the tags of the members without a count for another member.
+       */
+      list: (communityCuid: string): Promise<ApiResult<MemberTag[]>> =>
+        apiRequest(
+          'get',
+          communityPath(COMMUNITY_MEMBER_TAGS_API_PATH, communityCuid),
+          z.array(memberTagSchema),
+          'Failed to load the member tags.',
+        ),
+      create: (communityCuid: string, input: MemberTagForm): Promise<ApiResult<MemberTag>> =>
+        apiRequest(
+          'post',
+          communityPath(COMMUNITY_MEMBER_TAGS_API_PATH, communityCuid),
+          memberTagSchema,
+          'Failed to create the tag.',
+          input,
+        ),
+      update: (communityCuid: string, tagCuid: string, input: Partial<MemberTagForm>): Promise<ApiResult<MemberTag>> =>
+        apiRequest('patch', memberTagPath(communityCuid, tagCuid), memberTagSchema, 'Failed to save the tag.', input),
+      remove: (communityCuid: string, tagCuid: string): Promise<ApiResult<void>> =>
+        apiRequest('delete', memberTagPath(communityCuid, tagCuid), null, 'Failed to delete the tag.'),
+      members: {
+        /**
+         * A page of the members who have the tag, by name (the people who manage the members only).
+         */
+        list: (communityCuid: string, tagCuid: string, limit: number, offset: number): Promise<ApiResult<Paginated<Author>>> =>
+          apiPageRequest(
+            `${memberTagPath(communityCuid, tagCuid, COMMUNITY_MEMBER_TAG_MEMBERS_API_PATH)}?limit=${limit}&offset=${offset}`,
+            authorSchema,
+            'Failed to load the members of the tag.',
+          ),
+        /**
+         * Put the tag on a member, named by cuid or username. Twice changes nothing.
+         */
+        add: (communityCuid: string, tagCuid: string, input: MemberTagMemberInput): Promise<ApiResult<Author>> =>
+          apiRequest(
+            'post',
+            memberTagPath(communityCuid, tagCuid, COMMUNITY_MEMBER_TAG_MEMBERS_API_PATH),
+            authorSchema,
+            'Failed to put the tag on the member.',
+            input,
+          ),
+        remove: (communityCuid: string, tagCuid: string, memberCuid: string): Promise<ApiResult<void>> =>
+          apiRequest(
+            'delete',
+            memberTagPath(communityCuid, tagCuid, COMMUNITY_MEMBER_TAG_MEMBER_API_PATH, memberCuid),
+            null,
+            'Failed to take the tag off the member.',
+          ),
       },
     },
     accessGroups: {

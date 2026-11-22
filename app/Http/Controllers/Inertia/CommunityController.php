@@ -13,11 +13,13 @@ use App\Models\User;
 use App\Support\CommunityMemberQuery;
 use App\Support\CommunityRoles;
 use App\Support\EventAnswers;
+use App\Support\MemberTagsOfMembers;
 use App\Support\NoAccess;
 use App\Support\OidcEntitlements;
 use App\Support\PublicCommunity;
 use App\Support\SpaceTree;
 use App\Support\UpcomingEvents;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Routing\Controller;
@@ -120,10 +122,23 @@ class CommunityController extends Controller
         return Jetstream::inertia()->render($request, 'Communities/About', [
             'community' => $community->loadCount('users')->toResource()->withLargeFields(),
             'spaceGroups' => SpaceTree::for($community, $request->user())->toResourceCollection(),
-            'team' => CommunityMemberQuery::team($community)->limit(self::MAX_TEAM_MEMBERS)->get()->toResourceCollection(MemberWithRoleResource::class),
+            'team' => $this->team($request, $community)->toResourceCollection(MemberWithRoleResource::class),
             'permissions' => $this->getCommunityPermissions($community),
             'currentRole' => $this->currentRole($request, $community),
         ]);
+    }
+
+    /**
+     * The owner, the admins and the moderators, each with the member tags that the reader may see (#1389, ADR 0060)
+     *
+     * @return Collection<int, User>
+     */
+    private function team(Request $request, Community $community): Collection
+    {
+        $team = CommunityMemberQuery::team($community)->limit(self::MAX_TEAM_MEMBERS)->get();
+        MemberTagsOfMembers::attach($community, $team, $request->user());
+
+        return $team;
     }
 
     /**
@@ -171,6 +186,20 @@ class CommunityController extends Controller
      */
     private function getCommunityPermissions(Community $community): array
     {
+        $user = request()->user();
+        if (! $user instanceof User) {
+            return $this->permissionsOf($community);
+        }
+
+        // The admin status of the user is read once for the many checks below (each one asks whether the user is an admin)
+        return CommunityRoles::withKnownAdmins($community, [$user->id], fn (): array => $this->permissionsOf($community));
+    }
+
+    /**
+     * @return array<string,bool>
+     */
+    private function permissionsOf(Community $community): array
+    {
         // WARNING: The props passed here must remain aligned with the props defined in community.schema.ts
         return [
             'canManageCommunity' => Gate::check('manage', $community),
@@ -189,6 +218,10 @@ class CommunityController extends Controller
             'canManageAccessGroups' => Gate::check('manageAccessGroups', $community),
             'canManageAccessGroupMembers' => Gate::check('manageAccessGroupMembers', $community),
             'canViewAccessGroups' => Gate::check('viewAccessGroups', $community),
+            // Member tags (#1389, ADR 0060): the owner and the admins define them, the people who manage members put them on members
+            'canManageMemberTags' => Gate::check('manageMemberTags', $community),
+            'canAssignMemberTags' => Gate::check('assignMemberTags', $community),
+            'canViewMemberTags' => Gate::check('viewMemberTags', $community),
             // The entitlement keys that give an access group (#1386, ADR 0047): a listed community, and the people who manage the groups
             'canManageEntitlementRules' => OidcEntitlements::allows($community) && Gate::check('manageAccessGroups', $community),
         ];

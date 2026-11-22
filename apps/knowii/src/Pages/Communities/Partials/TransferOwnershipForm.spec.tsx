@@ -12,6 +12,7 @@ const member = (cuid: string, name: string, role: CommunityRole): CommunityMembe
   headline: '',
   role,
   member_since: '2026-11-01T10:00:00.000000Z',
+  tags: [],
 });
 
 const page = (items: CommunityMember[]): Paginated<CommunityMember> => ({

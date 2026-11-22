@@ -10,9 +10,11 @@ use App\Http\Resources\MemberWithRoleResource;
 use App\Models\Community;
 use App\Models\User;
 use App\Support\CommunityMemberQuery;
+use App\Support\MemberTagsOfMembers;
 use App\Support\NoAccess;
 use App\Support\Pagination;
 use App\Support\SpaceTree;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Resources\Json\ResourceCollection;
@@ -61,6 +63,8 @@ class MemberController extends Controller
             $sort = KnowiiMemberSort::forDirectory(is_string($sort) ? $sort : null);
             $search = CommunityMemberQuery::searchText(is_string($search) ? $search : '');
             $page = (new Pagination(Constants::COMMUNITY_MEMBERS_PAGE_SIZE, 0))->apply(CommunityMemberQuery::for($community, $search, $sort));
+            // The entries are those of the API list: their tags too, with one query for the page (#1389, ADR 0060)
+            MemberTagsOfMembers::attach($community, $page['items'], $request->user());
             $request->attributes->set(self::NO_MEMBER_LIST_ATTRIBUTE, false);
 
             return $list = [
@@ -86,7 +90,9 @@ class MemberController extends Controller
     }
 
     /**
-     * The profile of a member, as the other members of the community see it (mentions link here).
+     * The profile of a member, as the other members of the community see it (mentions link here). The member tags are
+     * those that the reader may see (#1389, ADR 0060): the member themself gets what another member gets, and reads the
+     * tags of the managers in the export of their data.
      */
     public function show(Request $request, string $communitySlug, string $username): Response
     {
@@ -108,6 +114,7 @@ class MemberController extends Controller
             'community' => $community->toResource()->withLargeFields(),
             'spaceGroups' => SpaceTree::for($community, $request->user())->toResourceCollection(),
             'member' => $member->toResource(MemberProfileResource::class),
+            'memberTags' => (MemberTagsOfMembers::for($community, [$member], $viewer)[$member->id] ?? new Collection)->toResourceCollection(),
             'messaging' => [
                 'isSelf' => $isSelf,
                 'blockedByMe' => $blockedByMe,

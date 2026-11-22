@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import axe from 'axe-core';
-import type { Community, MemberProfile } from '@knowii/common';
+import type { Community, MemberProfile, MemberTag } from '@knowii/common';
 import { AppDataProvider } from '@knowii/common';
 import MemberPage from './Show';
 
@@ -57,13 +57,14 @@ const member: MemberProfile = {
   member_since: new Date('2026-11-01T10:00:00Z'),
 };
 
-function renderPage(changes: Partial<MemberProfile> = {}, communityChanges: Partial<Community> = {}) {
+function renderPage(changes: Partial<MemberProfile> = {}, communityChanges: Partial<Community> = {}, memberTags: MemberTag[] = []) {
   return render(
     <AppDataProvider>
       <MemberPage
         community={{ ...community, ...communityChanges }}
         spaceGroups={[]}
         member={{ ...member, ...changes }}
+        memberTags={memberTags}
         messaging={{ isSelf: false, blockedByMe: false, canMessage: true }}
       />
     </AppDataProvider>,
@@ -145,5 +146,34 @@ describe('the path to the member page (#148)', () => {
     renderPage({}, { visibility });
 
     expect(breadcrumb.steps.map((step) => step.label)).toEqual(['Tests', 'Members', 'Ada Lovelace']);
+  });
+});
+
+describe('the member tags on the member page (#1389)', () => {
+  const tag = (cuid: string, name: string, visibility: MemberTag['visibility']): MemberTag => ({
+    cuid,
+    name,
+    color: 'purple',
+    visibility,
+    members_count: null,
+    created_at: '2026-11-22T10:00:00.000000Z',
+  });
+
+  it('shows the tags that the reader may see under the name', () => {
+    renderPage({ headline: 'Writes about engines' }, {}, [tag('t1', 'Founder', 'members'), tag('t2', 'Onboarded', 'managers')]);
+
+    expect(headerLines()).toEqual(['h1: Ada Lovelace', 'ul: FounderOnboarded (managers only)', 'p: Writes about engines', 'p: @ada']);
+    expect(screen.getByRole('list', { name: 'Tags' })).toBeInTheDocument();
+  });
+
+  it('shows no list without a tag', () => {
+    renderPage();
+
+    expect(screen.queryByRole('list', { name: 'Tags' })).not.toBeInTheDocument();
+  });
+
+  it('has no automated violation (axe), with tags', async () => {
+    const { container } = renderPage({}, {}, [tag('t1', 'Founder', 'members'), tag('t2', 'Onboarded', 'managers')]);
+    expect((await axe.run(container)).violations.map((violation) => violation.id)).toEqual([]);
   });
 });

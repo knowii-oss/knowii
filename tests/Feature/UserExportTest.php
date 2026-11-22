@@ -9,6 +9,7 @@ use App\Models\Comment;
 use App\Models\Community;
 use App\Models\CommunityResource;
 use App\Models\Conversation;
+use App\Models\MemberTag;
 use App\Models\Notification;
 use App\Models\NotificationFollow;
 use App\Models\NotificationSpaceLevel;
@@ -19,6 +20,7 @@ use App\Models\SpaceGroup;
 use App\Models\Upload;
 use App\Models\User;
 use App\Models\UserProfile;
+use App\Support\MemberTagAssignments;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -327,4 +329,32 @@ test('the export lists the follows and the levels of the member without any text
         ->and($activity['notification_levels'][0])->toMatchArray(['level' => 'none', 'community' => $f['community']->cuid, 'space' => $space->cuid])
         ->and(json_encode([$activity['notification_follows'], $activity['notification_levels']]))->not->toContain($other->username)->not->toContain($other->name)->not->toContain('Body written by the other member')
         ->and($files['README.txt'])->toContain('the threads that you follow or muted');
+});
+
+test('the export lists every member tag of the member, of both visibilities, and no other person (#1389)', function () {
+    $f = userExportFixture();
+    $shown = MemberTag::factory()->forMembers()->create(['community_id' => $f['community']->id, 'name' => 'Qxexport Founder', 'color' => 'purple']);
+    $hidden = MemberTag::factory()->forManagers()->create(['community_id' => $f['community']->id, 'name' => 'Qxexport Onboarded']);
+    $foreign = MemberTag::factory()->forMembers()->create(['community_id' => $f['community']->id, 'name' => 'Qxexport Other only']);
+    MemberTagAssignments::add($shown, $f['member']);
+    MemberTagAssignments::add($hidden, $f['member']);
+    MemberTagAssignments::add($shown, $f['other']);
+    MemberTagAssignments::add($foreign, $f['other']);
+
+    $files = runUserExport($f['member']);
+    $memberships = json_decode($files['memberships.json'], true);
+    $tags = collect($memberships['member_tags'])->keyBy('name');
+
+    expect(array_keys($memberships))->toContain('member_tags')
+        ->and(array_search('member_tags', array_keys($memberships), true))->toBe(array_search('access_groups', array_keys($memberships), true) + 1)
+        ->and($tags->keys()->sort()->values()->all())->toBe(['Qxexport Founder', 'Qxexport Onboarded'])
+        ->and($tags['Qxexport Onboarded']['visibility'])->toBe('managers')
+        ->and($tags['Qxexport Founder']['visibility'])->toBe('members')
+        ->and($tags['Qxexport Founder']['cuid'])->toBe($shown->cuid)
+        ->and($tags['Qxexport Founder']['community'])->toBe($f['community']->cuid)
+        ->and($tags['Qxexport Founder']['community_slug'])->toBe($f['community']->slug)
+        ->and($tags['Qxexport Founder']['tagged_at'])->not->toBeNull()
+        ->and(array_keys($tags['Qxexport Founder']))->toBe(['cuid', 'name', 'visibility', 'community', 'community_slug', 'tagged_at'])
+        ->and(json_encode($memberships['member_tags']))->not->toContain($f['other']->username)->not->toContain($f['other']->cuid)->not->toContain('Other only')
+        ->and($files['README.txt'])->toContain('the tags that the managers of a community put on you');
 });

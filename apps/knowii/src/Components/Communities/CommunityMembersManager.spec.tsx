@@ -28,6 +28,7 @@ const member = (cuid: string, name: string, role: CommunityRole): CommunityMembe
   headline: `The headline of ${name}`,
   role,
   member_since: '2026-11-01T10:00:00.000000Z',
+  tags: [],
 });
 
 const members = [
@@ -250,5 +251,64 @@ describe('removed members (#1486)', () => {
 
     await screen.findByRole('link', { name: 'Ursula' });
     expect(list).not.toHaveBeenCalled();
+  });
+});
+
+describe('the member tags of the member list (#1389)', () => {
+  const founder = {
+    cuid: 't1',
+    name: 'Founder',
+    color: 'purple',
+    visibility: 'members',
+    members_count: null,
+    created_at: '2026-11-22T10:00:00.000000Z',
+  } as const;
+
+  it('shows the tags of each member, and the button of their tags only with the right to assign them', async () => {
+    vi.spyOn(knowiiApiClient.communities.members, 'list').mockResolvedValue({
+      ok: true,
+      message: '',
+      data: page([member('o', 'Olivia', 'owner'), { ...member('u', 'Ursula', 'member'), tags: [founder] }]),
+    });
+    renderManager('owner', { ...allRights, canAssignMemberTags: false } as typeof allRights);
+
+    const list = await screen.findByRole('list', { name: 'Members' });
+    const ursula = (await within(list).findByRole('link', { name: 'Ursula' })).closest('li') as HTMLElement;
+    expect(within(ursula).getByRole('list', { name: 'Tags' })).toHaveTextContent('Founder');
+    expect(within(list).queryByRole('button', { name: 'Tags of Ursula' })).not.toBeInTheDocument();
+  });
+
+  it('opens the tags of one member, and the row follows a change', async () => {
+    vi.spyOn(knowiiApiClient.communities.memberTags, 'list').mockResolvedValue({
+      ok: true,
+      message: '',
+      data: [{ ...founder, members_count: 0 }],
+    });
+    vi.spyOn(knowiiApiClient.communities.memberTags.members, 'add').mockResolvedValue({
+      ok: true,
+      message: '',
+      data: { cuid: 'u', name: 'Ursula', username: 'ursula', avatar_url: null },
+    });
+    const onMemberTagsChanged = vi.fn();
+    render(
+      <AppDataProvider>
+        <CommunityMembersManager
+          communityCuid="c1"
+          communitySlug="tests"
+          currentRole="owner"
+          permissions={{ ...allRights, canAssignMemberTags: true }}
+          onMemberTagsChanged={onMemberTagsChanged}
+        />
+      </AppDataProvider>,
+    );
+
+    const list = await screen.findByRole('list', { name: 'Members' });
+    await userEvent.click(await within(list).findByRole('button', { name: 'Tags of Ursula' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Tags of Ursula' });
+    await userEvent.click(await within(dialog).findByRole('checkbox', { name: /Founder/ }));
+
+    const ursula = within(list).getByRole('link', { name: 'Ursula' }).closest('li') as HTMLElement;
+    await waitFor(() => expect(within(ursula).getByRole('list', { name: 'Tags' })).toHaveTextContent('Founder'));
+    expect(onMemberTagsChanged).toHaveBeenCalled();
   });
 });

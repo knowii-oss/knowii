@@ -15,7 +15,7 @@ headers {
 }
 
 docs {
-  The members of the community with their role (#1242). Each entry holds cuid, name, username, avatar_url, headline, role and member_since. The headline (#1688) is the line that the member wrote about themselves: empty unless the member shows it (ADR 0020), for every reader, the managers included.
+  The members of the community with their role (#1242). Each entry holds cuid, name, username, avatar_url, headline, role, member_since and tags. The headline (#1688) is the line that the member wrote about themselves: empty unless the member shows it (ADR 0020), for every reader, the managers included. tags (#1389, ADR 0060) lists the member tags that the caller may see, by name: every tag for the owner, the admins and the moderators with the manage members right, the tags with the visibility members for another member. An empty list when there is none. Token ability: communities:read.
 
   The sort parameter gives the order (#148, ADR 0056). role (the default, also without the parameter and with any other value): owner first, then admins, moderators and members, each by username. name: the name from A to Z without the case, then the username. newest: the date of joining, the newest first, then the username; the owner joined at the date of the community. The member directory of a community uses name and newest.
 

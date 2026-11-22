@@ -1,0 +1,28 @@
+meta {
+  name: Member tags - Create
+  type: http
+  seq: 207
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/member-tags
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Founder",
+    "color": "purple",
+    "visibility": "members"
+  }
+}
+
+docs {
+  Creates a member tag (#1389): owner and admins. The name holds 2 to 32 characters on one line, its spaces are trimmed and made single, and it is unique in the community without the case. Without a color the tag is gray; without a visibility it is for the managers only. Returns 201 with the tag. A community has at most 100 tags (422 after that). Token ability: member-tags:write.
+}

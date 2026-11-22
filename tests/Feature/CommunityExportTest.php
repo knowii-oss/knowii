@@ -10,12 +10,14 @@ use App\Models\Community;
 use App\Models\Conversation;
 use App\Models\Event;
 use App\Models\EventAnswer;
+use App\Models\MemberTag;
 use App\Models\Post;
 use App\Models\Reaction;
 use App\Models\Space;
 use App\Models\SpaceGroup;
 use App\Models\Upload;
 use App\Models\User;
+use App\Support\MemberTagAssignments;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -257,4 +259,30 @@ test('the export holds the limit of places and the replay choice of an event, an
             ->and(str_contains($contents, 'event_answers'))->toBeFalse($name)
             ->and(str_contains($contents, '"answer"'))->toBeFalse($name);
     }
+});
+
+test('the export holds the member tags of both visibilities with the cuids of their members, and none of another community (#1389)', function () {
+    $f = communityExportFixture();
+    $founder = MemberTag::factory()->forMembers()->create(['community_id' => $f['community']->id, 'name' => 'Founder', 'color' => 'purple']);
+    $onboarded = MemberTag::factory()->forManagers()->create(['community_id' => $f['community']->id, 'name' => 'Onboarded']);
+    MemberTagAssignments::add($founder, $f['owner']);
+    MemberTagAssignments::add($founder, $f['member']);
+    MemberTagAssignments::add($onboarded, $f['member']);
+    MemberTag::factory()->forMembers()->create(['name' => 'Qxelsewhere']);
+
+    $files = runCommunityExport($f['community']);
+    $community = json_decode($files['community.json'], true);
+    $tags = collect($community['member_tags'])->keyBy('name');
+
+    expect(array_search('member_tags', array_keys($community), true))->toBe(array_search('access_groups', array_keys($community), true) + 1)
+        ->and($tags->keys()->sort()->values()->all())->toBe(['Founder', 'Onboarded'])
+        ->and(array_keys($tags['Founder']))->toBe(['cuid', 'name', 'color', 'visibility', 'members', 'created_at'])
+        ->and($tags['Founder']['cuid'])->toBe($founder->cuid)
+        ->and($tags['Founder']['color'])->toBe('purple')
+        ->and($tags['Founder']['visibility'])->toBe('members')
+        ->and(collect($tags['Founder']['members'])->sort()->values()->all())->toBe(collect([$f['owner']->cuid, $f['member']->cuid])->sort()->values()->all())
+        ->and($tags['Onboarded']['visibility'])->toBe('managers')
+        ->and($tags['Onboarded']['members'])->toBe([$f['member']->cuid])
+        ->and($files['community.json'])->not->toContain('Qxelsewhere')
+        ->and($files['README.txt'])->toContain('member tags');
 });
