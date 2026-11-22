@@ -8,6 +8,7 @@ use App\Contracts\Auth\SendsMagicLinks;
 use App\Contracts\Auth\TakesOverUnverifiedAccounts;
 use App\Enums\KnowiiAddressProof;
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Support\Landing;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -59,15 +60,22 @@ class MagicLinkController extends Controller
         // password, the second factor, the sessions and the tokens of before go. No challenge follows then. The session of
         // this request stays: it becomes a session of the account only below, after the takeover. When the takeover finds
         // the address verified (another proof came first), the link goes on as for a verified account. When it finds
-        // another address (the address was corrected after the link was checked), the link proves nothing about the
-        // account: the answer of a link that does not work. A verified account keeps its verified address through a change
-        // of the address (ADR 0058): nothing of it changes here
+        // another address (the address was corrected after the link was checked), or no account (it was deleted after the
+        // link was checked), the link proves nothing about the account: the answer of a link that does not work. A verified
+        // account keeps its verified address through a change of the address (ADR 0058): nothing of it changes here
         if ($user->addressWasNeverVerified()) {
             // The address of the link: the entry of the link matched it (MagicLinks, ADR 0058)
             $provedAddress = $user->email;
-            if (! app(TakesOverUnverifiedAccounts::class)->takeOver($user, KnowiiAddressProof::SignInLink, $provedAddress) && ! $user->hasAddress($provedAddress)) {
+            if (! app(TakesOverUnverifiedAccounts::class)->takeOver($user, KnowiiAddressProof::SignInLink, $provedAddress)->provesTheAccount()) {
                 return redirect()->route('login')->with('status', 'This sign-in link expired or was already used. Ask for a new one.');
             }
+        }
+
+        // The account as it is stored now, read again by its key: an account that was deleted after the link was checked
+        // signs nobody in, and the answer is the one of a link that does not work
+        $user = User::query()->find($user->id);
+        if ($user === null) {
+            return redirect()->route('login')->with('status', 'This sign-in link expired or was already used. Ask for a new one.');
         }
 
         // A link replaces the password, never the second factor: the challenge of Fortify comes next. Nothing of the account

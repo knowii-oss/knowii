@@ -103,9 +103,9 @@ class SignInWithOpenIdConnect implements SignsInWithOpenIdConnect
         // of the address proved it at the provider, so the account is theirs now (decision of the owner, 2026-11-15, ADR
         // 0059). The takeover comes first: it removes the connections of before, and the connection of this person comes
         // after it. When the takeover finds the address verified (another proof came first), the account is connected as in
-        // case 3. When it finds another address (the rows are locked by their address, so this does not happen), the address
-        // of the provider takes its normal path again, once
-        if ($user->addressWasNeverVerified() && ! $this->takesOverAccounts->takeOver($user, KnowiiAddressProof::Provider, $email) && ! $user->hasAddress($email)) {
+        // case 3. When it finds another address or no account (the rows are locked by their address, so this does not
+        // happen), the address of the provider takes its normal path again, once
+        if ($user->addressWasNeverVerified() && ! $this->takesOverAccounts->takeOver($user, KnowiiAddressProof::Provider, $email)->provesTheAccount()) {
             if ($again) {
                 throw new OpenIdConnectException('conflict', 'We could not finish this sign-in. Please try again.');
             }

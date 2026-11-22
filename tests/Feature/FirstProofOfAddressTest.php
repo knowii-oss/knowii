@@ -9,6 +9,7 @@ use App\Contracts\Realtime\EndsLiveConnections;
 use App\Contracts\Users\DeletesAccounts;
 use App\Contracts\Users\UpdatesTimeZones;
 use App\Enums\KnowiiAddressProof;
+use App\Enums\KnowiiTakeOverResult;
 use App\Mail\MagicLink;
 use App\Models\User;
 use App\Models\UserEntitlement;
@@ -676,7 +677,7 @@ test('the change of the password and the steps of the second factor read the mod
     $stale = User::query()->findOrFail($user->id);
     $this->actingAs($stale);
 
-    expect(app(TakesOverUnverifiedAccounts::class)->takeOver($user, KnowiiAddressProof::SignInLink, FIRST_PROOF_EMAIL))->toBeTrue();
+    expect(app(TakesOverUnverifiedAccounts::class)->takeOver($user, KnowiiAddressProof::SignInLink, FIRST_PROOF_EMAIL))->toBe(KnowiiTakeOverResult::TookOver);
 
     expect(fn () => app(UpdatesUserPasswords::class)->update($stale, ['current_password' => FIRST_PROOF_PASSWORD, 'password' => FIRST_PROOF_NEW_PASSWORD, 'password_confirmation' => FIRST_PROOF_NEW_PASSWORD]))
         ->toThrow(ValidationException::class)
@@ -762,7 +763,7 @@ test('the takeover works on the stored row, read again and locked, and not on th
         'two_factor_confirmed_at' => Carbon::parse(FIRST_PROOF_VERIFIED_AT),
     ]);
 
-    expect(app(TakesOverUnverifiedAccounts::class)->takeOver($stale, KnowiiAddressProof::SignInLink, FIRST_PROOF_EMAIL))->toBeTrue();
+    expect(app(TakesOverUnverifiedAccounts::class)->takeOver($stale, KnowiiAddressProof::SignInLink, FIRST_PROOF_EMAIL))->toBe(KnowiiTakeOverResult::TookOver);
 
     $row = DB::table('users')->where('id', $user->id)->first();
     expect($row?->two_factor_secret)->toBeNull()
@@ -781,7 +782,7 @@ test('the takeover changes nothing of an account whose stored row has a verified
     $stale = User::query()->findOrFail($user->id);
     DB::table('users')->where('id', $user->id)->update(['email_verified_at' => Carbon::parse(FIRST_PROOF_VERIFIED_AT)]);
 
-    expect(app(TakesOverUnverifiedAccounts::class)->takeOver($stale, KnowiiAddressProof::SignInLink, FIRST_PROOF_EMAIL))->toBeFalse()
+    expect(app(TakesOverUnverifiedAccounts::class)->takeOver($stale, KnowiiAddressProof::SignInLink, FIRST_PROOF_EMAIL))->toBe(KnowiiTakeOverResult::AlreadyVerified)
         // The model of the caller holds the stored values
         ->and($stale->hasVerifiedEmail())->toBeTrue();
 
@@ -832,7 +833,7 @@ test('the takeover changes nothing of an account with a verified address', funct
     $user = firstProofAccount(verified: true)['user'];
     $before = $user->fresh();
 
-    expect(app(TakesOverUnverifiedAccounts::class)->takeOver($user, KnowiiAddressProof::PasswordReset, FIRST_PROOF_EMAIL, FIRST_PROOF_NEW_PASSWORD))->toBeFalse();
+    expect(app(TakesOverUnverifiedAccounts::class)->takeOver($user, KnowiiAddressProof::PasswordReset, FIRST_PROOF_EMAIL, FIRST_PROOF_NEW_PASSWORD))->toBe(KnowiiTakeOverResult::AlreadyVerified);
 
     $fresh = $user->fresh();
     expect($fresh->password)->toBe($before->password)
@@ -919,7 +920,7 @@ function firstProofStaleModelAfterATakeover(): array
 {
     $user = firstProofAccount(verified: false)['user'];
     $stale = User::query()->findOrFail($user->id);
-    expect(app(TakesOverUnverifiedAccounts::class)->takeOver(User::query()->findOrFail($user->id), KnowiiAddressProof::SignInLink, FIRST_PROOF_EMAIL))->toBeTrue();
+    expect(app(TakesOverUnverifiedAccounts::class)->takeOver(User::query()->findOrFail($user->id), KnowiiAddressProof::SignInLink, FIRST_PROOF_EMAIL))->toBe(KnowiiTakeOverResult::TookOver);
 
     return ['user' => $user, 'stale' => $stale];
 }
@@ -1016,7 +1017,7 @@ function firstProofAccountToDelete(): User
  */
 function firstProofTakeOver(int $id): void
 {
-    expect(app(TakesOverUnverifiedAccounts::class)->takeOver(User::query()->findOrFail($id), KnowiiAddressProof::SignInLink, FIRST_PROOF_EMAIL))->toBeTrue();
+    expect(app(TakesOverUnverifiedAccounts::class)->takeOver(User::query()->findOrFail($id), KnowiiAddressProof::SignInLink, FIRST_PROOF_EMAIL))->toBe(KnowiiTakeOverResult::TookOver);
 }
 
 test('a deletion whose password check read the row before a takeover deletes nothing: the error of a wrong password', function () {
@@ -1128,13 +1129,13 @@ test('the takeover needs the address that was proved: a row with another address
     $account = firstProofAccount(verified: false);
     $user = $account['user'];
 
-    expect(app(TakesOverUnverifiedAccounts::class)->takeOver($user, KnowiiAddressProof::Provider, 'another.address@example.org'))->toBeFalse()
+    expect(app(TakesOverUnverifiedAccounts::class)->takeOver($user, KnowiiAddressProof::Provider, 'another.address@example.org'))->toBe(KnowiiTakeOverResult::OtherAddress)
         // The model of the caller holds the values of the row
         ->and($user->email)->toBe(FIRST_PROOF_EMAIL);
     firstProofOnlyTheAddressChanged($account, FIRST_PROOF_EMAIL);
 
     // The address in another case is the address of the account
-    expect(app(TakesOverUnverifiedAccounts::class)->takeOver($user, KnowiiAddressProof::Provider, 'ADA@Example.com'))->toBeTrue()
+    expect(app(TakesOverUnverifiedAccounts::class)->takeOver($user, KnowiiAddressProof::Provider, 'ADA@Example.com'))->toBe(KnowiiTakeOverResult::TookOver)
         ->and($user->fresh()->hasVerifiedEmail())->toBeTrue();
 });
 
@@ -1146,7 +1147,7 @@ test('a proof of the address of before that comes after a correction takes nothi
     Notification::fake();
     app(UpdatesUserProfileInformation::class)->update(User::query()->findOrFail($user->id), ['name' => 'Ada Lovelace', 'email' => 'ada.corrected@example.org', 'current_password' => FIRST_PROOF_PASSWORD]);
 
-    expect(app(TakesOverUnverifiedAccounts::class)->takeOver($stale, KnowiiAddressProof::SignInLink, FIRST_PROOF_EMAIL))->toBeFalse()
+    expect(app(TakesOverUnverifiedAccounts::class)->takeOver($stale, KnowiiAddressProof::SignInLink, FIRST_PROOF_EMAIL))->toBe(KnowiiTakeOverResult::OtherAddress)
         ->and($stale->email)->toBe('ada.corrected@example.org');
     firstProofOnlyTheAddressChanged($account, 'ada.corrected@example.org');
 });
@@ -1177,6 +1178,178 @@ test('a password reset of the address of before, sent while a correction is stor
 
     $this->assertGuest();
     firstProofOnlyTheAddressChanged($account, 'ada.corrected@example.org');
+});
+
+test('a row with another address that is verified now is another address for the takeover, not a verified one', function () {
+    $account = firstProofAccount(verified: false);
+    $stale = User::query()->findOrFail($account['user']->id);
+    // A correction of the address, then the address check of the new address, after the proof read the account
+    DB::table('users')->where('id', $stale->id)->update(['email' => 'ada.corrected@example.org', 'email_verified_at' => '2026-11-20 09:30:00']);
+
+    expect(app(TakesOverUnverifiedAccounts::class)->takeOver($stale, KnowiiAddressProof::PasswordReset, FIRST_PROOF_EMAIL, FIRST_PROOF_NEW_PASSWORD))->toBe(KnowiiTakeOverResult::OtherAddress)
+        ->and(Hash::check(FIRST_PROOF_PASSWORD, (string) $account['user']->fresh()->password))->toBeTrue()
+        ->and($account['user']->fresh()->session_version)->toBe(0);
+});
+
+// ---------------------------------------------------------------------------------------------------------------------
+// A proof for an account that is gone
+// ---------------------------------------------------------------------------------------------------------------------
+
+/**
+ * The account is deleted in between: the deletion is stored, with a model of its own, right after the proof read the table
+ * (the account for a sign-in link and the provider, the token of the reset mail for a password reset)
+ */
+function firstProofTheAccountIsDeletedAfterTheReadOf(User $user, string $table): ArrayObject
+{
+    $done = new ArrayObject;
+    DB::listen(static function (QueryExecuted $query) use ($user, $table, $done): void {
+        if (count($done) === 0 && str_starts_with($query->sql, 'select * from "'.$table.'"')) {
+            $done[] = true;
+            Notification::fake();
+            app(DeletesAccounts::class)->delete(User::query()->findOrFail($user->id), ['password' => FIRST_PROOF_PASSWORD]);
+        }
+    });
+
+    return $done;
+}
+
+test('the takeover of an account that is gone changes nothing and says so: the model of the caller stays as it is', function () {
+    $user = firstProofAccount(verified: false)['user'];
+    $stale = User::query()->findOrFail($user->id);
+    User::query()->whereKey($user->id)->delete();
+
+    expect(app(TakesOverUnverifiedAccounts::class)->takeOver($stale, KnowiiAddressProof::SignInLink, FIRST_PROOF_EMAIL))->toBe(KnowiiTakeOverResult::Gone)
+        ->and($stale->exists)->toBeTrue()
+        ->and($stale->addressWasNeverVerified())->toBeTrue()
+        ->and(User::query()->whereKey($user->id)->exists())->toBeFalse();
+});
+
+test('a model of an account that is gone writes nothing when it is saved after the takeover', function () {
+    $user = firstProofAccount(verified: false)['user'];
+    $stale = User::query()->findOrFail($user->id);
+    User::query()->whereKey($user->id)->delete();
+
+    expect(app(TakesOverUnverifiedAccounts::class)->takeOver($stale, KnowiiAddressProof::SignInLink, FIRST_PROOF_EMAIL))->toBe(KnowiiTakeOverResult::Gone);
+    $stale->forceFill(['remember_token' => 'a-remember-token-after-the-takeover'])->save();
+
+    expect(User::query()->whereKey($user->id)->exists())->toBeFalse()
+        ->and(User::query()->count())->toBe(0);
+});
+
+test('a sign-in link of an account that is deleted before the link is used answers as a link that expired, and signs nobody in', function () {
+    $account = firstProofAccount(verified: false);
+    $token = firstProofSignInLink();
+    firstProofNewBrowser();
+    $deleted = firstProofTheAccountIsDeletedAfterTheReadOf($account['user'], 'users');
+
+    $this->post('/login/link/'.$token)
+        ->assertRedirect(route('login'))
+        ->assertSessionHas('status', 'This sign-in link expired or was already used. Ask for a new one.');
+
+    $this->assertGuest();
+    expect(count($deleted))->toBe(1)
+        ->and(User::query()->whereKey($account['user']->id)->exists())->toBeFalse()
+        ->and(User::query()->count())->toBe(0);
+});
+
+test('a sign-in link of a verified account that is deleted before the link is used answers as a link that expired, and signs nobody in', function () {
+    firstProofSessionDriver('database');
+    $user = firstProofAccount(verified: true)['user'];
+    // Without the second factor: the link signs in at once
+    $user->forceFill(['two_factor_secret' => null, 'two_factor_recovery_codes' => null, 'two_factor_confirmed_at' => null])->save();
+    $token = firstProofSignInLink();
+    firstProofNewBrowser();
+    $deleted = firstProofTheAccountIsDeletedAfterTheReadOf($user, 'users');
+
+    $this->post('/login/link/'.$token)
+        ->assertRedirect(route('login'))
+        ->assertSessionHas('status', 'This sign-in link expired or was already used. Ask for a new one.');
+
+    // No session holds the account: neither the session of this request nor a stored one
+    $this->assertGuest();
+    expect(count($deleted))->toBe(1)
+        ->and(User::query()->whereKey($user->id)->exists())->toBeFalse()
+        ->and(array_values(array_filter(array_keys(session()->all()), static fn (string $key): bool => str_starts_with($key, 'login_'))))->toBe([])
+        ->and(DB::table('sessions')->where('user_id', $user->id)->count())->toBe(0);
+});
+
+test('a sign-in link of a verified account with the second factor that is deleted before the link is used answers as a link that expired, and starts no challenge', function () {
+    $user = firstProofAccount(verified: true)['user'];
+    $token = firstProofSignInLink();
+    firstProofNewBrowser();
+    $deleted = firstProofTheAccountIsDeletedAfterTheReadOf($user, 'users');
+
+    $this->post('/login/link/'.$token)
+        ->assertRedirect(route('login'))
+        ->assertSessionHas('status', 'This sign-in link expired or was already used. Ask for a new one.')
+        ->assertSessionMissing('login.id');
+
+    $this->assertGuest();
+    expect(count($deleted))->toBe(1)
+        ->and(User::query()->whereKey($user->id)->exists())->toBeFalse();
+});
+
+test('a sign-in link of an account that is deleted after the takeover and before the sign-in answers as a link that expired, and signs nobody in', function () {
+    firstProofSessionDriver('database');
+    $user = firstProofAccount(verified: false)['user'];
+    // The takeover is stored, and its live connections end: the account is deleted then, before the link signs in
+    $ended = new ArrayObject;
+    app()->instance(EndsLiveConnections::class, new class($ended) implements EndsLiveConnections
+    {
+        public function __construct(private readonly ArrayObject $ended) {}
+
+        public function endFor(string $userCuid): void
+        {
+            $this->ended[] = $userCuid;
+            User::query()->where('cuid', $userCuid)->delete();
+        }
+    });
+    $token = firstProofSignInLink();
+    firstProofNewBrowser();
+
+    $this->post('/login/link/'.$token)
+        ->assertRedirect(route('login'))
+        ->assertSessionHas('status', 'This sign-in link expired or was already used. Ask for a new one.');
+
+    // The takeover took the account over; then no session holds the account, neither this one nor a stored one
+    $this->assertGuest();
+    expect($ended->getArrayCopy())->toBe([$user->cuid])
+        ->and(User::query()->whereKey($user->id)->exists())->toBeFalse()
+        ->and(array_values(array_filter(array_keys(session()->all()), static fn (string $key): bool => str_starts_with($key, 'login'))))->toBe([])
+        ->and(DB::table('sessions')->where('user_id', $user->id)->count())->toBe(0);
+});
+
+test('a password reset of an account that is deleted before the reset is stored answers as a token that does not work, and signs nobody in', function () {
+    $account = firstProofAccount(verified: false);
+    $token = firstProofResetToken($account['user']);
+    firstProofNewBrowser();
+    $deleted = firstProofTheAccountIsDeletedAfterTheReadOf($account['user'], 'password_reset_tokens');
+
+    $this->post('/reset-password', ['token' => $token, 'email' => FIRST_PROOF_EMAIL, 'password' => FIRST_PROOF_NEW_PASSWORD, 'password_confirmation' => FIRST_PROOF_NEW_PASSWORD])
+        ->assertRedirect()
+        ->assertSessionHasErrors(['email' => __(Password::INVALID_TOKEN)]);
+
+    $this->assertGuest();
+    expect(count($deleted))->toBe(1)
+        ->and(User::query()->whereKey($account['user']->id)->exists())->toBeFalse()
+        ->and(User::query()->count())->toBe(0);
+});
+
+test('the provider with the address of an account that is gone at the takeover takes the path of an address without an account: a new account', function () {
+    $account = firstProofAccount(verified: false);
+    firstProofFakeProvider(FIRST_PROOF_EMAIL);
+    $deleted = firstProofTheAccountIsDeletedAfterTheReadOf($account['user'], 'users');
+
+    firstProofSignInWithTheProvider()->assertRedirect();
+
+    $created = User::query()->sole();
+    expect(count($deleted))->toBe(1)
+        ->and($created->id)->not->toBe($account['user']->id)
+        ->and($created->email)->toBe(FIRST_PROOF_EMAIL)
+        ->and($created->hasVerifiedEmail())->toBeTrue()
+        ->and($created->password)->toBeNull()
+        ->and(UserIdentity::query()->where('user_id', $created->id)->where('issuer', FIRST_PROOF_ISSUER)->count())->toBe(1);
+    $this->assertAuthenticatedAs($created);
 });
 
 // ---------------------------------------------------------------------------------------------------------------------
