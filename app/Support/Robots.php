@@ -19,6 +19,11 @@ final class Robots
     private const string NOINDEX = 'noindex, nofollow';
 
     /**
+     * Pages that are never indexed, for any reader: the address and the page of an invite link (#1391, ADR 0062)
+     */
+    private const array NEVER_INDEXED_ROUTES = ['invite-links.open', 'invite-links.show'];
+
+    /**
      * The pages of a community that a visitor can read, with the types of space that each one may belong to. Every other
      * address of /community/ (about, members, messages, settings, ...) is never indexed.
      */
@@ -86,6 +91,10 @@ final class Robots
      */
     public static function forRequest(Request $request): string
     {
+        if ($request->routeIs(self::NEVER_INDEXED_ROUTES)) {
+            return self::NOINDEX;
+        }
+
         $isApi = $request->is('api/*');
         $authenticated = $request->user() !== null;
 

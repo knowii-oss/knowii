@@ -9,6 +9,7 @@ use App\Http\Controllers\Inertia\DeleteAccountController;
 use App\Http\Controllers\Inertia\EmailChangeController;
 use App\Http\Controllers\Inertia\EventController;
 use App\Http\Controllers\Inertia\InvitationImportController;
+use App\Http\Controllers\Inertia\InviteLinkController;
 use App\Http\Controllers\Inertia\MagicLinkController;
 use App\Http\Controllers\Inertia\MemberController;
 use App\Http\Controllers\Inertia\MyEventsController;
@@ -23,6 +24,7 @@ use App\Http\Controllers\RobotsController;
 use App\Http\Controllers\SecurityTxtController;
 use App\Http\Controllers\Webhooks\OidcEntitlementsWebhookController;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Models\InviteLink;
 use App\Support\InstanceValues;
 use App\Support\LegalPages;
 use App\Support\OidcEntitlements;
@@ -111,6 +113,30 @@ Route::middleware([
     // An event of an events space (#1514, ADR 0053): a visitor reads it in a public space, without its meeting address
     Route::get('/community/{communitySlug}/space/{spaceSlug}/event/{eventSlug}', [EventController::class, 'show'])->name('events.show');
 });
+
+// Invite links (#1391, ADR 0062). The address of a link keeps the hash of its token in the session and sends to the page of
+// the link, so the token does not stay in the address; both load no statistics script (App\Support\Analytics). The page is
+// for visitors too, and an account without a verified address goes to the address check, which keeps the page as the
+// intended address. It is not a landing (App\Support\Landing::ROUTES): Landing::KEPT_ROUTES keeps it, and its token never
+// goes in a mail. The address and the page each have their limiter, per account or per IP address of a visitor, so that
+// one opening counts once in each
+Route::get('/invite/{inviteLinkToken}', [InviteLinkController::class, 'open'])
+    ->where('inviteLinkToken', InviteLink::TOKEN_PATTERN)
+    ->middleware('throttle:invite-link-openings')
+    ->name('invite-links.open');
+Route::middleware([
+    'auth.optional',
+    config('jetstream.auth_session'),
+    'throttle:invite-links',
+])->group(function () {
+    Route::get('/invite', [InviteLinkController::class, 'show'])->name('invite-links.show');
+});
+// "Join" on the page of a link: a POST with the CSRF token that reads the link of the session, with the limiter of the joins
+Route::middleware([
+    'auth:sanctum',
+    config('jetstream.auth_session'),
+    'throttle:joins',
+])->post('/invite', [InviteLinkController::class, 'join'])->name('invite-links.join');
 
 // Delete the account (#1261, #1344): the same address and name as the Jetstream route, which cannot pass the option to
 // delete the content of the member. The routes of the application are registered last, so this one answers

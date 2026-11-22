@@ -46,7 +46,19 @@ final class InviteLinks
      */
     public static function usable(string $token): ?InviteLink
     {
-        $link = InviteLink::findByToken($token);
+        return self::usableLink(InviteLink::findByToken($token));
+    }
+
+    /**
+     * The same as usable(), for the sha256 of a token: the session of the page of a link keeps the hash only
+     */
+    public static function usableByHash(string $tokenHash): ?InviteLink
+    {
+        return self::usableLink(InviteLink::findByTokenHash($tokenHash));
+    }
+
+    private static function usableLink(?InviteLink $link): ?InviteLink
+    {
         if ($link === null || $link->status() !== KnowiiInviteLinkStatus::Active) {
             return null;
         }

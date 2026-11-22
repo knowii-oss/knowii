@@ -39,6 +39,16 @@ export interface InvitationGrantsPickerProps {
    * box of such a group is not in the choice, and the reason shows next to it.
    */
   accessGroupRefusal?: ((group: InvitationAccessGroup) => string | null) | undefined;
+  /**
+   * The words that name what holds the choice, in place of those of an invitation (an invite link, #1391): the text
+   * under the title of the dialog, and the text at the limit of the tags
+   */
+  description?: string | undefined;
+  tagLimitText?: ((limit: number) => string) | undefined;
+  /**
+   * The id of a text that describes the button (a warning under the picker)
+   */
+  'aria-describedby'?: string | undefined;
   className?: string | undefined;
 }
 
@@ -62,6 +72,9 @@ export function InvitationGrantsPicker({
   value,
   onChange,
   accessGroupRefusal,
+  description = INVITATION_WORDS.pickerDescription,
+  tagLimitText = INVITATION_WORDS.tagLimit,
+  'aria-describedby': describedBy,
   className,
 }: InvitationGrantsPickerProps) {
   const [open, setOpen] = useState(false);
@@ -99,14 +112,20 @@ export function InvitationGrantsPicker({
 
   return (
     <div className={className}>
-      <Button variant="secondary" aria-haspopup="dialog" leftIcon={<FaTags aria-hidden="true" />} onClick={() => setOpen(true)}>
+      <Button
+        variant="secondary"
+        aria-haspopup="dialog"
+        aria-describedby={describedBy}
+        leftIcon={<FaTags aria-hidden="true" />}
+        onClick={() => setOpen(true)}
+      >
         {count === 0 ? INVITATION_WORDS.pickerButton : INVITATION_WORDS.pickerButtonWithCount(count)}
       </Button>
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
         title={INVITATION_WORDS.pickerTitle}
-        description={INVITATION_WORDS.pickerDescription}
+        description={description}
         footer={<DialogCloseButton variant="primary">{INVITATION_WORDS.pickerDone}</DialogCloseButton>}
       >
         <div className="flex flex-col gap-6">
@@ -171,7 +190,7 @@ export function InvitationGrantsPicker({
                 })}
               </ul>
               <p id={`${id}-tag-limit`} role="status" aria-live="polite" className="mt-2 text-sm text-muted">
-                {atTagLimit ? INVITATION_WORDS.tagLimit(MAX_MEMBER_TAGS_PER_MEMBER) : ''}
+                {atTagLimit ? tagLimitText(MAX_MEMBER_TAGS_PER_MEMBER) : ''}
               </p>
             </fieldset>
           )}

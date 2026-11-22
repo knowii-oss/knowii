@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\InviteLink;
+
 /**
  * Plausible statistics are configuration, off by default (#1316): development, acceptance and self-hosted instances
  * send nothing to a statistics site.
@@ -53,4 +55,15 @@ test('the Content Security Policy allows the proxy only when analytics is config
         putenv('PLAUSIBLE_DOMAIN');
         putenv('PLAUSIBLE_PROXY_URL');
     }
+});
+
+test('the page of an invite link loads no statistics script, also when the instance sets the values (#1391)', function () {
+    config(['services.plausible.domain' => 'community.example.com', 'services.plausible.proxy_url' => 'https://stats.example.com']);
+    $link = InviteLink::factory()->create();
+
+    $this->get(route('invite-links.open', ['inviteLinkToken' => $link->token]))->assertRedirect(route('invite-links.show'));
+    $html = (string) $this->get(route('invite-links.show'))->assertOk()->getContent();
+
+    expect($html)->not->toContain('stats.example.com')->not->toContain('data-domain=')
+        ->and((string) $this->get('/')->getContent())->toContain('src="https://stats.example.com/content/script.js"');
 });

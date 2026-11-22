@@ -195,7 +195,10 @@ test('the routes of a landing are the named GET routes of the pages for visitors
     $routes = collect(Route::getRoutes()->getRoutes())
         ->filter(fn (RoutingRoute $route): bool => in_array('GET', $route->methods(), true)
             && in_array('web', $route->gatherMiddleware(), true)
-            && in_array('auth.optional', $route->gatherMiddleware(), true));
+            && in_array('auth.optional', $route->gatherMiddleware(), true)
+            // The page of an invite link (#1391, ADR 0062) is for visitors, and is not a landing: the person who signs up
+            // is not always the owner of the address, so its link never goes in a mail
+            && $route->getName() !== Landing::INVITE_LINK_ROUTE);
 
     expect($routes)->not->toBeEmpty()
         ->and($routes->map(fn (RoutingRoute $route): ?string => $route->getName())->values()->all())->toEqualCanonicalizing(Landing::ROUTES);
@@ -213,6 +216,22 @@ test('the routes of a landing are the named GET routes of the pages for visitors
             ->and(Landing::linkValueOf($path))->toBe(str_replace('/', '.', ltrim($path, '/')))
             ->and(Landing::pathOfLinkValue(Landing::linkValueOf($path)))->toBe($path);
     }
+});
+
+test('the group of the pages for visitors holds exactly the landings and the page of an invite link (#1391)', function () {
+    $names = collect(Route::getRoutes()->getRoutes())
+        ->filter(fn (RoutingRoute $route): bool => in_array('GET', $route->methods(), true)
+            && in_array('web', $route->gatherMiddleware(), true)
+            && in_array('auth.optional', $route->gatherMiddleware(), true))
+        ->map(fn (RoutingRoute $route): ?string => $route->getName())
+        ->values()
+        ->all();
+
+    expect($names)->toEqualCanonicalizing([...Landing::ROUTES, Landing::INVITE_LINK_ROUTE])
+        ->and(Landing::KEPT_ROUTES)->toBe([Landing::INVITATION_ROUTE, Landing::INVITE_LINK_ROUTE])
+        ->and(Landing::ROUTES)->not->toContain(Landing::INVITE_LINK_ROUTE)
+        ->and(Landing::pathOf(route(Landing::INVITE_LINK_ROUTE)))->toBeNull()
+        ->and(Landing::pathOf(route('invite-links.open', ['inviteLinkToken' => str_repeat('a', 40)])))->toBeNull();
 });
 
 test('a landing is the path of a page for visitors', function (string $address, string $path, string $route) {

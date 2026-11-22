@@ -258,6 +258,7 @@ use App\Contracts\Users\UpdatesOnlineStatus;
 use App\Contracts\Users\UpdatesTimeZones;
 use App\Contracts\Users\VerifiesUsernameAvailability;
 use App\Http\Controllers\Inertia\MemberController;
+use App\Http\Middleware\StartSessionWithoutTokenAddresses;
 use App\Models\User;
 use App\Support\EmailChangeBudget;
 use App\Support\MailSettings;
@@ -266,9 +267,13 @@ use App\Support\ReverbLiveConnections;
 use App\Support\ReverbPresenceChannels;
 use Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Contracts\Cache\Factory as CacheFactory;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
+use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Session\SessionManager;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -283,6 +288,15 @@ class AppServiceProvider extends ServiceProvider
         if ($this->app->isLocal()) {
             $this->app->register(IdeHelperServiceProvider::class);
         }
+
+        // The session middleware keeps no address that holds the token of an invite link as the previous address (#1391,
+        // ADR 0062). Bound in place of the middleware of the framework, built as the framework builds it (one instance, with
+        // the cache that blocks a session), so that the web group and the first-party requests of the API use it, and the
+        // middleware keeps its name and its place in the order of the middleware
+        $this->app->singleton(StartSession::class, static fn (Application $app): StartSession => new StartSessionWithoutTokenAddresses(
+            $app->make(SessionManager::class),
+            static fn (): CacheFactory => $app->make(CacheFactory::class),
+        ));
     }
 
     /**
@@ -532,6 +546,11 @@ class AppServiceProvider extends ServiceProvider
         // The reads of an invite link (#1391, ADR 0062): its page and the API read of the person, per account or per IP address
         // of a visitor. The join itself uses `joins`
         RateLimiter::for('invite-links', static function (Request $request) {
+            return Limit::perMinute(Constants::INVITE_LINK_READS_PER_MINUTE)->by(self::rateLimitKey($request));
+        });
+        // The address of an invite link, which sends to its page: a limiter of its own, so that one opening counts once here
+        // and once in `invite-links`
+        RateLimiter::for('invite-link-openings', static function (Request $request) {
             return Limit::perMinute(Constants::INVITE_LINK_READS_PER_MINUTE)->by(self::rateLimitKey($request));
         });
 

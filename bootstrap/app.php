@@ -4,6 +4,7 @@ use App\Exceptions\AlreadyAuthenticatedException;
 use App\Exceptions\BusinessException;
 use App\Exceptions\NoAccessException;
 use App\Exceptions\TechnicalException;
+use App\Http\Controllers\Inertia\InviteLinkController;
 use App\Http\Middleware\AddRobotsHeader;
 use App\Http\Middleware\AddViteContentSecurityPolicyNonce;
 use App\Http\Middleware\AnswerOnlyForOwnHostNames;
@@ -186,6 +187,12 @@ return Application::configure(basePath: dirname(__DIR__))
             {
                 use ApiResponses;
             })::notFoundIssue();
+        });
+
+        // An outdated session (ADR 0059) that opens an invite link: the intended address is the page of the link, never the
+        // address with the token (#1391, ADR 0062)
+        $exceptions->render(function (AuthenticationException $e, Request $request) {
+            return $request->routeIs('invite-links.open') ? InviteLinkController::afterAnOutdatedSession($request, $e) : null;
         });
 
         // Convert AuthenticationException instances to Knowii's error representation

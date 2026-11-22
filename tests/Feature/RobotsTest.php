@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\InviteLink;
 use App\Models\User;
 
 test('robots.txt refuses the AI crawlers and keeps crawlers out of member areas (#104)', function () {
@@ -62,4 +63,13 @@ test('an instance without indexing sends noindex on public pages too (#104)', fu
     config(['robots.allow_indexing' => false]);
 
     $this->get('/')->assertHeader('X-Robots-Tag', 'noindex, nofollow');
+});
+
+test('robots.txt blocks the addresses of the invite links, and their page answers noindex (#1391)', function () {
+    config(['robots.allow_indexing' => true]);
+    $link = InviteLink::factory()->create();
+
+    expect(explode("\n", (string) $this->get('/robots.txt')->getContent()))->toContain('Disallow: /invite$')->toContain('Disallow: /invite/')->not->toContain('Disallow: /invite');
+    $this->get(route('invite-links.open', ['inviteLinkToken' => $link->token]))->assertHeader('X-Robots-Tag', 'noindex, nofollow');
+    $this->get(route('invite-links.show'))->assertOk()->assertHeader('X-Robots-Tag', 'noindex, nofollow');
 });

@@ -45,6 +45,17 @@ final class Landing
     public const string INVITATION_ROUTE = 'community-invitations.accept';
 
     /**
+     * The page of an invite link (#1391, ADR 0062): the session that holds it keeps it. It is not a landing: its token is
+     * in the session, never in a link of a mail
+     */
+    public const string INVITE_LINK_ROUTE = 'invite-links.show';
+
+    /**
+     * The intended addresses that a link of the address check or a sign-in link never replaces
+     */
+    public const array KEPT_ROUTES = [self::INVITATION_ROUTE, self::INVITE_LINK_ROUTE];
+
+    /**
      * The name of the landing in the query of the link of the address check. Its value is the path with "." in the place of
      * "/" and without the first slash (linkValueOf): no character of it needs an escape in an address
      */
@@ -141,8 +152,8 @@ final class Landing
      * After the link of the address check proved who the person is: the page of the link becomes the intended address of
      * the session, and the answer of the address check goes there. It stops at the first point that applies:
      *
-     * 1. The session already holds a page of a community, or the link of an invitation: it wins (it is the newer intent of
-     *    this browser, and the flow of an invitation stays as it is).
+     * 1. The session already holds a page of a community, the link of an invitation or the page of an invite link: it wins
+     *    (it is the newer intent of this browser, and the flow of an invitation or of an invite link stays as it is).
      * 2. The text is not a landing.
      * 3. No community has the slug, or it is a personal community.
      * 4. The home of the community is the target.
@@ -210,7 +221,7 @@ final class Landing
         }
 
         $held = self::routeOf(self::intended($request));
-        if (self::pageOf($held) !== null || $held?->getName() === self::INVITATION_ROUTE) {
+        if (self::pageOf($held) !== null || in_array($held?->getName(), self::KEPT_ROUTES, true)) {
             return;
         }
 

@@ -250,7 +250,8 @@ class Constants
     // The largest maximum number of joins of one link
     public const int MAX_INVITE_LINK_USES = 10000;
 
-    // The reads of a link (the page and the API read of the person) per minute, per account or per IP address of a visitor
+    // The openings of a link, the reads of its page and the API reads of the person per minute, each in its own limiter, per
+    // account or per IP address of a visitor
     public const int INVITE_LINK_READS_PER_MINUTE = 20;
 
     // Lifetimes of a personal API token, in days, or "never" (#1267, ADR 0022)

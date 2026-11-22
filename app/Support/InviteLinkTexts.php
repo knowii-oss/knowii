@@ -25,6 +25,10 @@ final class InviteLinkTexts
 
     public const string BLOCKED = 'You cannot join this community by yourself. Ask its managers for an invitation.';
 
+    // The join of the page when this browser opened another invite link after the page loaded (another tab): the page
+    // now shows the newer link
+    public const string ANOTHER_LINK = 'This browser opened another invite link after this page loaded. This page now shows that link. To join through the first link, open it again.';
+
     // One answer for every link that does not work: unknown, off, ended, full, deleted, or of a personal community.
     // WARNING: aligned with INVITE_LINK_WORDS.unusableMessage (invite-link-words.ts)
     public const string UNUSABLE = 'This invite link does not work. Ask the person who gave it to you for a new one.';

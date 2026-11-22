@@ -132,3 +132,24 @@ describe('InvitationGrantsPicker (#1390)', () => {
     expect(box).toHaveAccessibleDescription('A rule gives this group');
   });
 });
+
+describe('InvitationGrantsPicker for an invite link (#1391)', () => {
+  it('takes the words of the holder and a description of its button', async () => {
+    render(
+      <>
+        <Harness
+          description="A person gets them when they join through the link."
+          tagLimitText={(limit) => `A link holds ${limit}`}
+          aria-describedby="warning"
+        />
+        <p id="warning">Anyone who has this link can join.</p>
+      </>,
+    );
+
+    const button = screen.getByRole('button', { name: INVITATION_WORDS.pickerButton });
+    expect(button).toHaveAccessibleDescription('Anyone who has this link can join.');
+    await userEvent.click(button);
+    expect(await screen.findByText('A person gets them when they join through the link.')).toBeInTheDocument();
+    expect(screen.queryByText(INVITATION_WORDS.pickerDescription)).toBeNull();
+  });
+});
