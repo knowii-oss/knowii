@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Inertia;
 
+use App\Enums\KnowiiCommunityVisibility;
 use App\Enums\KnowiiNoAccessKind;
 use App\Enums\KnowiiSpaceType;
 use App\Http\Resources\MemberWithRoleResource;
@@ -206,6 +207,8 @@ class CommunityController extends Controller
             'canManageSpaces' => Gate::check('manageSpaces', $community),
             'canManageModeratorPermissions' => Gate::check('manageModeratorPermissions', $community),
             'canManageJoinPolicy' => Gate::check('manageJoinPolicy', $community),
+            // Owner and admins, in a shared community (#1391, ADR 0062)
+            'canManageInviteLinks' => $community->visibility !== KnowiiCommunityVisibility::Personal && Gate::check('manageInviteLinks', $community),
             'canManageIndexing' => Gate::check('manageIndexing', $community),
             'canUpdateCommunity' => Gate::check('update', $community),
             'canDeleteCommunity' => Gate::check('delete', $community),

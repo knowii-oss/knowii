@@ -361,7 +361,7 @@ test('robots.txt no longer blocks the community pages as a whole, and still bloc
     $lines = explode("\n", $body);
 
     expect($lines)->not->toContain('Disallow: /community/');
-    foreach (['/api/', '/dashboard', '/user/', '/community/*/about', '/community/*/settings', '/community/*/member/', '/community/*/messages', '/login', '/register', '/auth/', '/invitations/', '/community-invitations/'] as $path) {
+    foreach (['/api/', '/dashboard', '/user/', '/community/*/about', '/community/*/settings', '/community/*/member/', '/community/*/messages', '/login', '/register', '/auth/', '/invitations/', '/community-invitations/', '/invite$', '/invite/'] as $path) {
         expect($lines)->toContain("Disallow: {$path}");
     }
     expect($lines)->toContain('Allow: /');

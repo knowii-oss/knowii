@@ -4,6 +4,7 @@
 - Date: 2026-11-20
 - Issue: #1612
 - Pull request: #1705
+- Extended by: [0062](0062-invite-links-a-shared-link-to-join-a-community-with-set-access-groups-and-tags.md) (the page of an invite link is kept in the session like the link of an invitation, `Landing::KEPT_ROUTES`, and is never a landing)
 
 ## Context
 

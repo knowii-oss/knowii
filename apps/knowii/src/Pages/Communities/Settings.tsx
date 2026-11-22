@@ -16,6 +16,7 @@ import { IndexingSetting } from '@/Components/Communities/IndexingSetting';
 import { JoinPolicySetting } from '@/Components/Communities/JoinPolicySetting';
 import { ModeratorPermissionsForm } from '@/Components/Communities/ModeratorPermissionsForm';
 import { CommunityMembersManager } from '@/Components/Communities/CommunityMembersManager';
+import { InviteLinksManager } from '@/Components/Communities/InviteLinksManager';
 import { MemberTagsManager } from '@/Components/Communities/MemberTagsManager';
 import { UpdateCommunityForm } from '@/Components/Communities/UpdateCommunityForm';
 import { useCallback, useState } from 'react';
@@ -70,6 +71,7 @@ export default function CommunitySettingsPage(props: Props) {
   });
 
   const canManageMembers = props.permissions.canAddCommunityMembers;
+  const canManageInviteLinks = props.permissions.canManageInviteLinks === true && props.community.visibility !== 'personal';
 
   // Member tags (#1389): no event tells the page, so each section tells the other one. A tag put on a member changes
   // the counts of the tags; a renamed or deleted tag changes the rows of the members
@@ -161,11 +163,26 @@ export default function CommunitySettingsPage(props: Props) {
         </>
       )}
 
-      {canSeeMemberTags && (
+      {/* Invite links (#1391, ADR 0062): the owner and the admins of a shared community, after the members */}
+      {canManageInviteLinks && (
         <>
           {(props.permissions.canManageSpaces || props.permissions.canManageModeratorPermissions || canManageMembers) && (
             <Divider className="my-10" />
           )}
+          <InviteLinksManager
+            communityCuid={props.community.cuid}
+            permissions={props.permissions}
+            refreshKey={accessGroupsVersion + memberTagsVersion + membersTagsVersion}
+          />
+        </>
+      )}
+
+      {canSeeMemberTags && (
+        <>
+          {(props.permissions.canManageSpaces ||
+            props.permissions.canManageModeratorPermissions ||
+            canManageMembers ||
+            canManageInviteLinks) && <Divider className="my-10" />}
           <MemberTagsManager
             communityCuid={props.community.cuid}
             permissions={props.permissions}

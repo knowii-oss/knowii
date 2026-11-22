@@ -22,6 +22,10 @@ return [
         '/community/*/member/',
         '/community/*/messages',
         '/community-invitations/',
+        // The page of an invite link and the address of a link (#1391): never in a search engine. Two lines, so that
+        // no other address that starts with /invite is blocked
+        '/invite$',
+        '/invite/',
         '/docs/',
         '/login',
         // The sign-in with an OpenID Connect provider (#1385): a crawler never starts a flow

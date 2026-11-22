@@ -91,13 +91,12 @@ export const inviteLinkOpeningSchema = z.object({
 export type InviteLinkOpening = z.infer<typeof inviteLinkOpeningSchema>;
 
 /**
- * The props of the page of a link (Pages/InviteLinks/Show.tsx). `community` and `token` are null when the link does not
- * work. WARNING: aligned with InviteLinkController.php
+ * The props of the page of a link (Pages/InviteLinks/Show.tsx): the community and the state only, never the token.
+ * `community` is null when the link does not work. WARNING: aligned with InviteLinkController.php
  */
 export interface InviteLinkPageProps {
   community: InviteLinkCommunity | null;
   state: InviteLinkPageState;
-  token: string | null;
 }
 
 /**

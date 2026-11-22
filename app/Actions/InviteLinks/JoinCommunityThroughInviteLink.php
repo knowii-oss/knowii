@@ -42,11 +42,40 @@ class JoinCommunityThroughInviteLink implements JoinsCommunitiesThroughInviteLin
      */
     final public function join(User $user, string $token): Community
     {
+        self::ensureVerified($user);
+
+        return self::joinThrough($user, InviteLink::findByToken($token));
+    }
+
+    /**
+     * The same join, for the sha256 of the token (the page of a link, whose session keeps the hash only)
+     *
+     * @throws BusinessException
+     * @throws InviteLinkUnusableException
+     */
+    final public function joinWithTokenHash(User $user, string $tokenHash): Community
+    {
+        self::ensureVerified($user);
+
+        return self::joinThrough($user, InviteLink::findByTokenHash($tokenHash));
+    }
+
+    /**
+     * @throws BusinessException
+     */
+    private static function ensureVerified(User $user): void
+    {
         if (! $user->hasVerifiedEmail()) {
             throw new BusinessException(InviteLinkTexts::VERIFY_EMAIL);
         }
+    }
 
-        $link = InviteLink::findByToken($token);
+    /**
+     * @throws BusinessException
+     * @throws InviteLinkUnusableException
+     */
+    private static function joinThrough(User $user, ?InviteLink $link): Community
+    {
         if ($link === null) {
             throw new InviteLinkUnusableException;
         }

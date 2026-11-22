@@ -1,10 +1,11 @@
 # 0062. Invite links: a shared link to join a community, with set access groups and tags
 
 - Status: Accepted
-- Date: 2026-11-23
+- Date: 2026-11-22
 - Issue: #1391
-- Extends: [0019](0019-community-invitations-by-email.md) (a second way in by invitation, for anyone who holds the link), [0044](0044-public-spaces-for-visitors.md) ("Who can join": a join through a link is a join by oneself)
-- Uses: [0061](0061-invitations-carry-access-groups-and-tags-and-come-from-a-file.md) (`InvitationGrants`, `JoinGrants`), [0060](0060-member-tags-labels-on-members.md) ("The contract for #1390 and #1391"), [0057](0057-the-landing-after-the-address-check-travels-in-the-link.md), [0047](0047-entitlement-rules-feed-access-groups.md), [0030](0030-retention-periods-enforced-by-scheduled-tasks.md)
+- Pull request: #1717
+- Extends: [0019](0019-community-invitations-by-email.md) (a second way in by invitation, for anyone who holds the link), [0044](0044-public-spaces-for-visitors.md) ("Who can join": a join through a link is a join by oneself), [0057](0057-the-landing-after-the-address-check-travels-in-the-link.md) (`Landing::KEPT_ROUTES`: the page of an invite link is kept like the link of an invitation)
+- Uses: [0061](0061-invitations-carry-access-groups-and-tags-and-come-from-a-file.md) (`InvitationGrants`, `JoinGrants`), [0060](0060-member-tags-labels-on-members.md) ("The contract for #1390 and #1391"), [0047](0047-entitlement-rules-feed-access-groups.md), [0030](0030-retention-periods-enforced-by-scheduled-tasks.md)
 
 ## Context
 

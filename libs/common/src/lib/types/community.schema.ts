@@ -132,6 +132,8 @@ export interface CommunityPermissions {
   canManageModeratorPermissions: boolean;
   // Owner and admins change who can join (#1486)
   canManageJoinPolicy?: boolean;
+  // Owner and admins manage the invite links of a shared community (#1391, ADR 0062)
+  canManageInviteLinks?: boolean;
   // Owner and admins let search engines index the public spaces (#1487)
   canManageIndexing?: boolean;
   canUpdateCommunity: boolean;

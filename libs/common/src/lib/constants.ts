@@ -57,6 +57,8 @@ export const USER_PROFILE_PASSWORD_UPDATE_URL = 'user-password.update';
 export const COMMUNITY_URL = 'communities.show';
 export const COMMUNITY_SETTINGS_URL = 'communities.settings';
 export const COMMUNITY_ABOUT_URL = 'communities.about';
+// "Join" on the page of an invite link (#1391): a POST that reads the link of the session. WARNING: aligned with routes/web.php
+export const INVITE_LINK_JOIN_URL = 'invite-links.join';
 // API tokens (#689): Jetstream routes
 export const API_TOKENS_URL = 'api-tokens.index';
 export const API_TOKENS_STORE_URL = 'api-tokens.store';

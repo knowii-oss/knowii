@@ -68,11 +68,6 @@ class InviteLink extends Model
     public const int TOKEN_LENGTH = 40;
 
     /**
-     * The address of a link is this prefix and the token. It holds no slug: a rename of the community keeps every link
-     */
-    public const string PATH_PREFIX = '/invite/';
-
-    /**
      * @var list<string>
      */
     protected $fillable = ['cuid', 'community_id', 'name', 'token_hash', 'token', 'active', 'expires_at', 'max_uses'];
@@ -162,7 +157,7 @@ class InviteLink extends Model
      */
     final public function url(): string
     {
-        return url(self::PATH_PREFIX.$this->token);
+        return route('invite-links.open', ['inviteLinkToken' => $this->token]);
     }
 
     /**
@@ -188,5 +183,18 @@ class InviteLink extends Model
         }
 
         return self::query()->where('token_hash', self::hashToken($token))->first();
+    }
+
+    /**
+     * The link of the sha256 of a token, or null: the session of the page of a link keeps the hash, never the token. A
+     * text that is not a hash finds nothing
+     */
+    public static function findByTokenHash(string $tokenHash): ?self
+    {
+        if (preg_match('/\A[0-9a-f]{64}\z/', $tokenHash) !== 1) {
+            return null;
+        }
+
+        return self::query()->where('token_hash', $tokenHash)->first();
     }
 }

@@ -11,10 +11,22 @@ namespace App\Support;
 final class Analytics
 {
     /**
+     * The routes of the pages that load no statistics script
+     *
+     * @var list<string>
+     */
+    public const array PAGES_WITHOUT_STATISTICS = ['invite-links.open', 'invite-links.show'];
+
+    /**
      * @return array{domain: string, script_url: string, api_url: string}|null
      */
     public static function plausible(): ?array
     {
+        // The pages of an invite link (#1391, ADR 0062) load no statistics script
+        if (request()->routeIs(self::PAGES_WITHOUT_STATISTICS)) {
+            return null;
+        }
+
         $domain = config('services.plausible.domain');
         $proxy = ContentSecurityPolicySources::origin(self::string(config('services.plausible.proxy_url')));
 
