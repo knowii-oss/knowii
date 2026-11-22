@@ -61,6 +61,11 @@ use App\Actions\Events\DeleteEvent;
 use App\Actions\Events\DuplicateEvent;
 use App\Actions\Events\SetEventState;
 use App\Actions\Events\UpdateEvent;
+use App\Actions\InvitationImports\ConfirmInvitationImport;
+use App\Actions\InvitationImports\CreateInvitationImport;
+use App\Actions\InvitationImports\DeleteInvitationImport;
+use App\Actions\InvitationImports\ResendInvitationImport;
+use App\Actions\InvitationImports\SendInvitationImportMails;
 use App\Actions\Mail\CheckMailBudget;
 use App\Actions\Mail\RecordSentEmails;
 use App\Actions\Mail\ResendMailUsage;
@@ -178,6 +183,11 @@ use App\Contracts\Events\DeletesEvents;
 use App\Contracts\Events\DuplicatesEvents;
 use App\Contracts\Events\SetsEventStates;
 use App\Contracts\Events\UpdatesEvents;
+use App\Contracts\InvitationImports\ConfirmsInvitationImports;
+use App\Contracts\InvitationImports\CreatesInvitationImports;
+use App\Contracts\InvitationImports\DeletesInvitationImports;
+use App\Contracts\InvitationImports\ResendsInvitationImports;
+use App\Contracts\InvitationImports\SendsInvitationImportMails;
 use App\Contracts\Mail\ChecksMailBudgets;
 use App\Contracts\Mail\ReadsMailUsage;
 use App\Contracts\Mail\RecordsSentEmails;
@@ -323,6 +333,12 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(DeletesAccessGroups::class, DeleteAccessGroup::class);
         app()->singleton(AddsAccessGroupMembers::class, AddAccessGroupMember::class);
         app()->singleton(RemovesAccessGroupMembers::class, RemoveAccessGroupMember::class);
+        // Invitations from a file (#1390, ADR 0061)
+        app()->singleton(CreatesInvitationImports::class, CreateInvitationImport::class);
+        app()->singleton(ConfirmsInvitationImports::class, ConfirmInvitationImport::class);
+        app()->singleton(ResendsInvitationImports::class, ResendInvitationImport::class);
+        app()->singleton(DeletesInvitationImports::class, DeleteInvitationImport::class);
+        app()->singleton(SendsInvitationImportMails::class, SendInvitationImportMails::class);
         // Member tags (#1389, ADR 0060)
         app()->singleton(CreatesMemberTags::class, CreateMemberTag::class);
         app()->singleton(UpdatesMemberTags::class, UpdateMemberTag::class);
@@ -484,6 +500,11 @@ class AppServiceProvider extends ServiceProvider
         // Each invitation sends an email (#1242)
         RateLimiter::for('invitations', static function (Request $request) {
             return Limit::perMinute(Constants::INVITATIONS_PER_MINUTE)->by(self::rateLimitKey($request));
+        });
+
+        // The upload, the confirm and the send again of an import of invitations from a file (#1390, ADR 0061)
+        RateLimiter::for('invitation-imports', static function (Request $request) {
+            return Limit::perMinute(Constants::INVITATION_IMPORTS_PER_MINUTE)->by(self::rateLimitKey($request));
         });
 
         RateLimiter::for('name-checks', static function (Request $request) {

@@ -116,6 +116,16 @@ export interface SpaceContentPayload {
 export const NOTIFICATION_EVENTS = ['notifications.changed'] as const;
 export type NotificationEvent = (typeof NOTIFICATION_EVENTS)[number];
 
+// An import of invitations from a file moved on (#1390): identifiers only, the page loads the import through the API.
+// WARNING: aligned with InvitationImportChanged.php
+export const INVITATION_IMPORT_EVENTS = ['invitation_imports.changed'] as const;
+export type InvitationImportEvent = (typeof INVITATION_IMPORT_EVENTS)[number];
+
+export interface InvitationImportChangedPayload {
+  community_cuid: string;
+  import_cuid: string;
+}
+
 type CommunityEvent = (typeof CommunityEvents)[keyof typeof CommunityEvents];
 type ResourceEvent = (typeof ResourceEvents)[keyof typeof ResourceEvents];
 
@@ -124,7 +134,8 @@ type CommunityChannelEvent = Exclude<CommunityEvent, typeof CommunityEvents.CREA
 // The resources of a resources space go to the channel of the space only (ADR 0015)
 type SpaceChannelEvent = ResourceEvent | SpaceContentEvent;
 
-type AllEvents = CommunitiesChannelEvent | CommunityChannelEvent | SpaceChannelEvent | ConversationEvent | NotificationEvent;
+type AllEvents =
+  CommunitiesChannelEvent | CommunityChannelEvent | SpaceChannelEvent | ConversationEvent | NotificationEvent | InvitationImportEvent;
 
 // Map events to their payload types
 type EventPayloadMap = {
@@ -145,6 +156,8 @@ type EventPayloadMap = {
   [K in ConversationEvent]: ConversationPayload;
 } & {
   [K in NotificationEvent]: NotificationsChangedPayload;
+} & {
+  [K in InvitationImportEvent]: InvitationImportChangedPayload;
 };
 
 // Define the hook options with improved type safety
@@ -155,7 +168,7 @@ type ChannelEvent<ChannelType extends Channel> = ChannelType['type'] extends 'co
     : ChannelType['type'] extends 'space'
       ? SpaceChannelEvent
       : ChannelType['type'] extends 'user'
-        ? ConversationEvent | NotificationEvent
+        ? ConversationEvent | NotificationEvent | InvitationImportEvent
         : ConversationEvent;
 
 type UseSocketOptions<ChannelType extends Channel, EventType extends ChannelEvent<ChannelType>> = {
@@ -199,7 +212,7 @@ const getAllEventsForChannelType = (channelType: Channel['type']): AllEvents[] =
   }
 
   if (channelType === 'user') {
-    return [...CONVERSATION_EVENTS, ...NOTIFICATION_EVENTS];
+    return [...CONVERSATION_EVENTS, ...NOTIFICATION_EVENTS, ...INVITATION_IMPORT_EVENTS];
   }
 
   if (channelType === 'conversation') {

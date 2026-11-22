@@ -64,6 +64,9 @@ final class ApiRoutes
     // Named after Community::communityInvitations() for the scoped binding
     public const PARAM_INVITATION = 'communityInvitation';
 
+    // Named after Community::invitationImports() for the scoped binding (#1390)
+    public const PARAM_INVITATION_IMPORT = 'invitationImport';
+
     // Named after Community::accessGroups() for the scoped binding (#1241)
     public const PARAM_ACCESS_GROUP = 'accessGroup';
 
@@ -269,6 +272,17 @@ final class ApiRoutes
     public const COMMUNITY_INVITATIONS = self::COMMUNITY.'/invitations';
 
     public const COMMUNITY_INVITATION = self::COMMUNITY_INVITATIONS.'/{'.self::PARAM_INVITATION.'}';
+
+    // Invitations from a file (#1390, ADR 0061)
+    public const COMMUNITY_INVITATION_IMPORTS = self::COMMUNITY.'/invitation-imports';
+
+    public const COMMUNITY_INVITATION_IMPORT = self::COMMUNITY_INVITATION_IMPORTS.'/{'.self::PARAM_INVITATION_IMPORT.'}';
+
+    public const COMMUNITY_INVITATION_IMPORT_ROWS = self::COMMUNITY_INVITATION_IMPORT.'/rows';
+
+    public const COMMUNITY_INVITATION_IMPORT_CONFIRM = self::COMMUNITY_INVITATION_IMPORT.'/confirm';
+
+    public const COMMUNITY_INVITATION_IMPORT_RESEND = self::COMMUNITY_INVITATION_IMPORT.'/resend';
 
     public const COMMUNITY_UPLOADS = self::COMMUNITY.'/uploads';
 

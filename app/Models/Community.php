@@ -46,6 +46,7 @@ use Illuminate\Support\Facades\DB;
  * @property-read \Illuminate\Database\Eloquent\Collection<int, SpaceGroup> $spaceGroups
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Space> $spaces
  * @property-read \Illuminate\Database\Eloquent\Collection<int, CommunityInvitation> $communityInvitations
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, InvitationImport> $invitationImports
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CommunityResource> $communityResources
  * @property-read ?int $community_invitations_count
  * @property-read User $owner
@@ -366,6 +367,16 @@ class Community extends Model
     final public function communityInvitations(): HasMany
     {
         return $this->hasMany(CommunityInvitation::class);
+    }
+
+    /**
+     * The imports of invitations from a file (#1390, ADR 0061). Named after the route parameter, for the scoped binding
+     *
+     * @return HasMany<InvitationImport, covariant $this>
+     */
+    final public function invitationImports(): HasMany
+    {
+        return $this->hasMany(InvitationImport::class);
     }
 
     /**

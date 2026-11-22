@@ -3,6 +3,8 @@
 use App\Actions\Communities\ExportCommunity;
 use App\Contracts\Communities\ExportsCommunities;
 use App\Enums\KnowiiCommunityMemberRole;
+use App\Enums\KnowiiInvitationImportOutcome;
+use App\Enums\KnowiiInvitationImportRefusal;
 use App\Enums\KnowiiSpaceType;
 use App\Models\AccessGroup;
 use App\Models\ChatMessage;
@@ -11,6 +13,8 @@ use App\Models\Community;
 use App\Models\Conversation;
 use App\Models\Event;
 use App\Models\EventAnswer;
+use App\Models\InvitationImport;
+use App\Models\InvitationImportRow;
 use App\Models\MemberTag;
 use App\Models\Post;
 use App\Models\Reaction;
@@ -301,4 +305,27 @@ test('each invitation of the export holds the cuids of the access groups and the
     expect($community['invitations'][0]['access_groups'])->toBe([$group->cuid])
         ->and($community['invitations'][0]['member_tags'])->toBe([$tag->cuid])
         ->and($files['README.txt'])->toContain('invitations (with the access groups and the member tags that each gives at the join)');
+});
+
+test('the export holds the imports of invitations with their rows, after the invitations (#1390)', function () {
+    $f = communityExportFixture();
+    $import = InvitationImport::factory()->done()->create(['community_id' => $f['community']->id, 'user_id' => $f['owner']->id]);
+    InvitationImportRow::factory()->refused(KnowiiInvitationImportRefusal::UnknownTag, 'Nope')->create(['invitation_import_id' => $import->id, 'row_number' => 3, 'email' => 'qx-row@example.com', 'member_tag_names' => ['Nope']]);
+    InvitationImportRow::factory()->outcome(KnowiiInvitationImportOutcome::Sent)->create(['invitation_import_id' => $import->id, 'row_number' => 2, 'email' => 'qx-sent@example.com']);
+    InvitationImport::factory()->create(['community_id' => Community::factory()->create()->id]);
+
+    $files = runCommunityExport($f['community']);
+    $community = json_decode($files['community.json'], true);
+    $keys = array_keys($community);
+
+    expect(array_search('invitation_imports', $keys, true))->toBe(array_search('invitations', $keys, true) + 1)
+        ->and($community['invitation_imports'])->toHaveCount(1)
+        ->and($community['invitation_imports'][0]['cuid'])->toBe($import->cuid)
+        ->and($community['invitation_imports'][0]['state'])->toBe('done')
+        ->and($community['invitation_imports'][0]['started_by'])->toBe($f['owner']->cuid)
+        ->and($community['invitation_imports'][0]['rows'])->toBe([
+            ['row_number' => 2, 'email' => 'qx-sent@example.com', 'role' => 'member', 'access_groups' => [], 'member_tags' => [], 'outcome' => 'sent', 'reason' => null],
+            ['row_number' => 3, 'email' => 'qx-row@example.com', 'role' => 'member', 'access_groups' => [], 'member_tags' => ['Nope'], 'outcome' => 'refused', 'reason' => 'unknown_tag'],
+        ])
+        ->and($files['README.txt'])->toContain('the imports of invitations from a file with their rows');
 });

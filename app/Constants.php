@@ -204,6 +204,22 @@ class Constants
     // The largest page of the pending invitations (#1390): a file adds up to 1000 of them. WARNING: aligned with constants.ts
     public const int MAX_INVITATIONS_PAGE_LIMIT = 1000;
 
+    // Invitations from a CSV file (#1390, ADR 0061). WARNING: aligned with constants.ts
+    // The data rows of one file, its size, its columns and the characters of one cell
+    public const int MAX_INVITATION_IMPORT_ROWS = 1000;
+
+    public const int MAX_INVITATION_IMPORT_KILOBYTES = 1024;
+
+    public const int MAX_INVITATION_IMPORT_COLUMNS = 20;
+
+    public const int MAX_INVITATION_IMPORT_CELL_LENGTH = 1000;
+
+    // "Invite again the people who did not join": this many days after the confirm at the earliest
+    public const int INVITATION_IMPORT_RESEND_AFTER_DAYS = 3;
+
+    // Uploads, confirms and sends again per minute and per user
+    public const int INVITATION_IMPORTS_PER_MINUTE = 5;
+
     // Access groups (#1241, ADR 0025). WARNING: aligned with access-group.schema.ts
     public const int MIN_LENGTH_ACCESS_GROUP_NAME = 2;
 
@@ -317,6 +333,15 @@ class Constants
     // tries of the worker: in that time a release by the rate limiter never fails it. After it, the mail is not sent late:
     // the worker fails the job
     public const int MAIL_NOTIFICATION_RETRY_HOURS = 2;
+
+    // One attempt of a job of the mail queue runs at most this long: the default timeout of `queue:work`, that the mail
+    // worker uses. SendInvitationImportMail sets it on the job, so the time holds also with another worker command
+    public const int MAIL_JOB_TIMEOUT_SECONDS = 60;
+
+    // A row of an import of invitations that stays `queued` counts as not sent (#1390, ADR 0061) this many minutes
+    // after the retries of its mail and one attempt of its job are over: a job that started before the end of its
+    // retries ends first
+    public const int INVITATION_IMPORT_STALE_MARGIN_MINUTES = 15;
 
     // mail:check-budget warns the operator once a month when this share of the monthly quota is used (design 6.14.12)
     public const int MAIL_BUDGET_ALERT_PERCENT = 80;

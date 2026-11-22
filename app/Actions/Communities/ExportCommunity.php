@@ -13,6 +13,8 @@ use App\Models\CommunityResource;
 use App\Models\Conversation;
 use App\Models\CourseMaterial;
 use App\Models\Event;
+use App\Models\InvitationImport;
+use App\Models\InvitationImportRow;
 use App\Models\LessonProgress;
 use App\Models\MemberTag;
 use App\Models\Page;
@@ -151,6 +153,7 @@ final class ExportCommunity implements ExportsCommunities
         return [
             'members' => $this->members($community),
             'invitations' => $this->invitations($community),
+            'invitation_imports' => $this->invitationImports($community),
             'join_blocks' => $this->joinBlocks($community),
             'access_groups' => $this->accessGroups($community),
             'member_tags' => $this->memberTags($community),
@@ -201,6 +204,38 @@ final class ExportCommunity implements ExportsCommunities
                 'access_groups' => $invitation->accessGroups->map(static fn (AccessGroup $group): string => $group->cuid)->values()->all(),
                 'member_tags' => $invitation->memberTags->map(static fn (MemberTag $tag): string => $tag->cuid)->values()->all(),
                 'created_at' => $this->date($invitation->created_at),
+            ];
+        }
+    }
+
+    /**
+     * The imports of invitations from a file (#1390, ADR 0061), with their rows: the record of who was invited and why a
+     * row was refused. The name of a person is never stored
+     *
+     * @return Generator<int, Row>
+     */
+    private function invitationImports(Community $community): Generator
+    {
+        foreach ($community->invitationImports()->with(['user', 'rows' => static fn ($query) => $query->orderBy('row_number')])->lazyById(self::CHUNK) as $import) {
+            /** @var InvitationImport $import */
+            yield [
+                'cuid' => $import->cuid,
+                'state' => $import->state->value,
+                'started_by' => $import->user?->cuid,
+                'default_role' => $import->default_role->value,
+                'created_at' => $this->date($import->created_at),
+                'confirmed_at' => $this->date($import->confirmed_at),
+                'finished_at' => $this->date($import->finished_at),
+                'resent_at' => $this->date($import->resent_at),
+                'rows' => $import->rows->map(static fn (InvitationImportRow $row): array => [
+                    'row_number' => $row->row_number,
+                    'email' => $row->email,
+                    'role' => $row->role?->value,
+                    'access_groups' => $row->access_group_names,
+                    'member_tags' => $row->member_tag_names,
+                    'outcome' => $row->outcome->value,
+                    'reason' => $row->reason?->value,
+                ])->values()->all(),
             ];
         }
     }
@@ -723,7 +758,7 @@ final class ExportCommunity implements ExportsCommunities
             '',
         ];
         $descriptions = [
-            'community.json' => 'the community, who can join it, its members, invitations (with the access groups and the member tags that each gives at the join), the people removed who cannot join again by themselves, access groups, member tags (the name, the color, who sees it and the members who have it), space groups and spaces',
+            'community.json' => 'the community, who can join it, its members, invitations (with the access groups and the member tags that each gives at the join), the imports of invitations from a file with their rows (the address, the role, the names of the groups and the tags, the result and the reason), the people removed who cannot join again by themselves, access groups, member tags (the name, the color, who sees it and the members who have it), space groups and spaces',
             'posts.json' => 'the posts (Markdown)',
             'comments.json' => 'the comments on posts and on resources (Markdown)',
             'pages.json' => 'the pages and the lessons (Markdown)',

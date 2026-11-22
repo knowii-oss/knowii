@@ -188,6 +188,10 @@ class JetstreamServiceProvider extends ServiceProvider
             // Member tags (#1389, ADR 0060): never in the default set, a token that syncs tags must not manage paid groups
             'member-tags:read',
             'member-tags:write',
+            // Invitations from a file (#1390, ADR 0061): never in the default set, the rows hold the addresses of people who
+            // are not members. A single invitation keeps communities:read and communities:write
+            'invitations:read',
+            'invitations:write',
         ];
 
         Jetstream::permissions($allPermissions);

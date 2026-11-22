@@ -20,6 +20,7 @@ import {
   COMMUNITY_ROLE_LABELS,
   communityInvitationFormSchema,
   grantableRoles,
+  INVITATION_IMPORTS_URL,
   INVITATIONS_PAGE_SIZE,
   knowiiApiClient,
   MEMBER_URL,
@@ -36,6 +37,7 @@ import {
   EmptyState,
   InputError,
   InputLabel,
+  LinkButton,
   LoadMoreButton,
   RelativeTime,
   Select,
@@ -541,6 +543,11 @@ export function CommunityMembersManager({
             <p role="status" aria-live="polite" className="sr-only">
               {invitationsStatus}
             </p>
+            <div className="mt-3">
+              <LinkButton variant="secondary" size="sm" href={route(INVITATION_IMPORTS_URL, { communitySlug })}>
+                {INVITATION_WORDS.importLink}
+              </LinkButton>
+            </div>
             <p className="mt-3 text-xs text-muted">
               Invitation links work for 7 days, only for an account with the invited email address. Invite again to send a new link.
             </p>

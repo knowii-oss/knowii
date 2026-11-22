@@ -1,0 +1,26 @@
+meta {
+  name: Invitation imports - Send again
+  type: http
+  seq: 218
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/invitation-imports/<cuid of an import>/resend
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "rows": "not_sent"
+  }
+}
+
+docs {
+  Sends the mails of a set of rows again (#1390), only rows whose invitation still exists. rows: not_sent (the held and the failed rows, and the rows queued for longer than 2 hours 16 minutes, at any time) or not_joined (the people who did not join: one time, 3 days after the send at the earliest; 422 before, and after it ran). The role of every row must be lower than the role of the caller. The checks of the mail of the confirm apply, with the daily caps of the community and of the caller. 422 "No row to send" for an empty set. 202 with the import. Token ability: invitations:write. Limited to 5 a minute.
+}

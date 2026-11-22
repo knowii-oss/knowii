@@ -44,15 +44,16 @@ type ApiAnswer =
   | { ok: false; status: number; message: string; errors: Record<string, string[]> };
 
 /**
- * Send one request to the Knowii API (session cookie, JSON) and read the envelope of the answer. Never throws.
+ * Send one request to the Knowii API (session cookie, JSON or a FormData) and read the envelope of the answer. Never throws.
  */
 async function callApi(method: ApiMethod, url: string, failureMessage: string, body?: unknown, signal?: AbortSignal): Promise<ApiAnswer> {
   try {
     const response = await fetch(url, {
       // fetch() uppercases GET, POST, DELETE... but not PATCH: servers reject a lowercase "patch" method
       method: method.toUpperCase(),
-      headers: jsonHeaders,
-      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      // A FormData body (a file, #1390) gets no Content-Type: the browser sets the multipart boundary
+      headers: body instanceof FormData ? { Accept: 'application/json' } : jsonHeaders,
+      ...(body === undefined ? {} : { body: body instanceof FormData ? body : JSON.stringify(body) }),
       ...(signal === undefined ? {} : { signal }),
     });
 

@@ -32,7 +32,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
 
 /*
- * An invitation carries access groups and member tags (#1390 part A): the create, the rights and the token
+ * An invitation carries access groups and member tags (#1390 part A, ADR 0061): the create, the rights and the token
  * abilities, the list, the join, and the table.
  */
 

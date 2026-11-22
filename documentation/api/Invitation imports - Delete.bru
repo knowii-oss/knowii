@@ -1,0 +1,19 @@
+meta {
+  name: Invitation imports - Delete
+  type: http
+  seq: 219
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/invitation-imports/<cuid of an import>
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Discards a preview (the person who uploaded it, the owner, the admins), or deletes the record of a sent import before its time (the owner and the admins): its invitations stay (#1390). 204. 422 for a sent import while a row waits for its mail, and until 24 hours after the last row went to the queue (the text gives the date). Token ability: invitations:write.
+}

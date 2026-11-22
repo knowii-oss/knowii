@@ -6,6 +6,7 @@
 - Pull request: #1677
 - Amends: [0042](0042-notifications.md) (point 26: the queue `mail` and its worker, which that record announced), [0046](0046-production-image-and-compose.md) (point 6: the service `queue-mail`)
 - Design: [email groundwork](../design/notifications/email-groundwork.md), sections 1, 2 and 8
+- Amended by: [0061](0061-invitations-carry-access-groups-and-tags-and-come-from-a-file.md) (point 1: the mail of an import of invitations from a file goes on the queue `mail`, with the limiter and a hold of its own; a single invitation is refused while the budget holds mail)
 
 ## Context
 

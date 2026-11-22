@@ -95,6 +95,8 @@ test('every write operation documents its request body', function () {
         'POST /v1/communities/{community}/spaces/{space}/events/{event}/duplicate',
         // Send the link of a change of the email address again (#1706): the change waits on the account
         'POST /v1/user/email-change/resend',
+        // Send a preview of invitations from a file (#1390): the import is in the path
+        'POST /v1/communities/{community}/invitation-imports/{invitationImport}/confirm',
     ];
     $withoutBody = [];
     foreach (openApiDocument()['paths'] as $path => $operations) {
@@ -218,4 +220,23 @@ test('the calendar file of an event and "My events" are documented, the file as 
         ->and(array_keys($file['responses'] ?? []))->toContain(401, 403, 404, 422, 429)
         ->and(array_column($mine['parameters'] ?? [], 'name'))->toContain('scope', 'answer', 'limit', 'offset')
         ->and(array_keys($mine['responses'] ?? []))->toContain(200, 400, 401, 403);
+});
+
+test('the routes of the invitations from a file are documented, the upload as a multipart body with its file (#1390)', function () {
+    $paths = openApiDocument()['paths'];
+    $base = '/v1/communities/{community}/invitation-imports';
+    $upload = $paths[$base]['post'] ?? [];
+    $content = $upload['requestBody']['content'] ?? [];
+    $schema = $content['multipart/form-data']['schema'] ?? ($content['application/json']['schema'] ?? []);
+
+    expect(array_keys($paths[$base] ?? []))->toContain('get', 'post')
+        ->and(array_keys($paths[$base.'/{invitationImport}'] ?? []))->toContain('get', 'delete')
+        ->and($paths)->toHaveKeys([$base.'/{invitationImport}/rows', $base.'/{invitationImport}/confirm', $base.'/{invitationImport}/resend'])
+        ->and(array_keys($content))->toContain('multipart/form-data')
+        ->and($schema['properties']['file']['format'] ?? null)->toBe('binary')
+        ->and($schema['required'] ?? [])->toContain('file')
+        ->and(array_column($paths[$base.'/{invitationImport}/rows']['get']['parameters'] ?? [], 'name'))->toContain('outcome', 'limit', 'offset')
+        // The confirm and the send again answer 202: the mails go out after the answer
+        ->and(array_keys($paths[$base.'/{invitationImport}/confirm']['post']['responses'] ?? []))->toContain(202)->not->toContain(200)
+        ->and(array_keys($paths[$base.'/{invitationImport}/resend']['post']['responses'] ?? []))->toContain(202)->not->toContain(200);
 });

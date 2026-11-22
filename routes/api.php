@@ -16,6 +16,7 @@ use App\Http\Controllers\API\EventAnswerApiController;
 use App\Http\Controllers\API\EventApiController;
 use App\Http\Controllers\API\EventCalendarFileApiController;
 use App\Http\Controllers\API\IndexingApiController;
+use App\Http\Controllers\API\InvitationImportApiController;
 use App\Http\Controllers\API\JoinPolicyApiController;
 use App\Http\Controllers\API\LessonProgressApiController;
 use App\Http\Controllers\API\LoginApiController;
@@ -332,6 +333,17 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::get(ApiRoutes::COMMUNITY_INVITATIONS, [CommunityInvitationApiController::class, 'index'])->middleware('ability:communities:read');
             Route::post(ApiRoutes::COMMUNITY_INVITATIONS, [CommunityInvitationApiController::class, 'store'])->middleware('ability:communities:write')->middleware('throttle:invitations');
             Route::delete(ApiRoutes::COMMUNITY_INVITATION, [CommunityInvitationApiController::class, 'destroy'])->middleware('ability:communities:write');
+        });
+
+        // Invitations from a file (#1390, ADR 0061). scopeBindings: an import of another community gives a 404
+        Route::scopeBindings()->group(function () {
+            Route::post(ApiRoutes::COMMUNITY_INVITATION_IMPORTS, [InvitationImportApiController::class, 'store'])->middleware('ability:invitations:write')->middleware('throttle:invitation-imports');
+            Route::get(ApiRoutes::COMMUNITY_INVITATION_IMPORTS, [InvitationImportApiController::class, 'index'])->middleware('ability:invitations:read');
+            Route::get(ApiRoutes::COMMUNITY_INVITATION_IMPORT, [InvitationImportApiController::class, 'show'])->middleware('ability:invitations:read');
+            Route::get(ApiRoutes::COMMUNITY_INVITATION_IMPORT_ROWS, [InvitationImportApiController::class, 'rows'])->middleware('ability:invitations:read');
+            Route::post(ApiRoutes::COMMUNITY_INVITATION_IMPORT_CONFIRM, [InvitationImportApiController::class, 'confirm'])->middleware('ability:invitations:write')->middleware('throttle:invitation-imports');
+            Route::post(ApiRoutes::COMMUNITY_INVITATION_IMPORT_RESEND, [InvitationImportApiController::class, 'resend'])->middleware('ability:invitations:write')->middleware('throttle:invitation-imports');
+            Route::delete(ApiRoutes::COMMUNITY_INVITATION_IMPORT, [InvitationImportApiController::class, 'destroy'])->middleware('ability:invitations:write');
         });
 
         Route::post(ApiRoutes::MARKDOWN_PREVIEW, [MarkdownApiController::class, 'preview'])->middleware('ability:posts:read')->middleware('throttle:markdown-preview');

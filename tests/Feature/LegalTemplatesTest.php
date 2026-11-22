@@ -110,6 +110,21 @@ test('the template of the privacy policy tells that an invitation can carry acce
         ->toContain('when a manager of a community invites you, they give us your email address, and they can choose the access groups and the tags that you get when you join.');
 });
 
+test('the template of the privacy policy tells about the invitations from a file and the legal basis of the invitations (#1390)', function () {
+    $policy = File::get(legalTemplatesFolder().'/policy.md');
+
+    expect($policy)
+        ->toContain('A manager can also invite many people at once with a file. We read the file one time and do not keep it. The record of that import keeps your address, whether the invitation went out, and why a row was refused.')
+        ->toContain('The record of an import from a file: deleted {{retention.invitation_imports}} after the invitations were sent, or {{retention.invitation_import_previews}} after the upload when nobody sent them.')
+        ->toContain('To send the invitations of a community: the legitimate interest of the community that invites you (art. 6(1)(f)); the owner of the community decides who is invited.');
+});
+
+test('the template of the privacy policy tells about the community and the time of each invitation email that an account sends (#1390)', function () {
+    $policy = File::get(legalTemplatesFolder().'/policy.md');
+
+    expect($policy)->toContain('and counters by IP address that limit the number of requests (rate limits) and, for each invitation email that you send, the community and the time, kept {{retention.invitation_mails}}, to limit the invitation emails of an account and of a community.');
+});
+
 test('the imprint template keeps only its headings and the source code of the project', function () {
     $body = explode("\n---\n", File::get(legalTemplatesFolder().'/imprint.md'), 2)[1] ?? '';
     $lines = array_values(array_filter(array_map(trim(...), explode("\n", $body)), static fn (string $line): bool => $line !== ''));

@@ -1,13 +1,17 @@
 <?php
 
+use App\Actions\DeleteUser;
 use App\Contracts\Reactions\TogglesReactions;
 use App\Enums\KnowiiCommunityMemberRole;
 use App\Enums\KnowiiSpaceType;
 use App\Events\Spaces\SpaceTreeChanged;
+use App\Exceptions\TechnicalException;
 use App\Models\Comment;
 use App\Models\Community;
 use App\Models\CommunityInvitation;
 use App\Models\CommunityResource;
+use App\Models\InvitationImport;
+use App\Models\InvitationImportRow;
 use App\Models\MemberTag;
 use App\Models\Post;
 use App\Models\Reaction;
@@ -17,6 +21,9 @@ use App\Models\Upload;
 use App\Models\User;
 use App\Models\UserProfile;
 use App\Support\MemberTagAssignments;
+use Illuminate\Contracts\Database\ConcurrencyErrorDetector;
+use Illuminate\Database\Connection;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
@@ -155,4 +162,44 @@ test('the deletion of an account with capitals in its address deletes the invita
     expect(User::query()->whereKey($user->id)->exists())->toBeFalse()
         ->and(CommunityInvitation::query()->whereKey($invitation->id)->exists())->toBeFalse()
         ->and(CommunityInvitation::query()->whereKey($other->id)->exists())->toBeTrue();
+});
+
+test('the deletion of an account deletes the rows of imports with its address in any case; an import that it uploaded stays without its author (#1390)', function () {
+    $user = User::factory()->withUserProfile()->create(['email' => 'Grace.Hopper@Example.com']);
+    $community = Community::factory()->create();
+    $uploaded = InvitationImport::factory()->done()->create(['community_id' => $community->id, 'user_id' => $user->id]);
+    $other = InvitationImport::factory()->done()->create(['community_id' => $community->id]);
+    $mine = InvitationImportRow::factory()->create(['invitation_import_id' => $other->id, 'row_number' => 2, 'email' => 'grace.hopper@example.com']);
+    $kept = InvitationImportRow::factory()->create(['invitation_import_id' => $other->id, 'row_number' => 3, 'email' => 'ada@example.com']);
+
+    $this->actingAs($user)->delete('/user', ['password' => 'password']);
+
+    expect(InvitationImportRow::query()->whereKey($mine->id)->exists())->toBeFalse()
+        ->and(InvitationImportRow::query()->whereKey($kept->id)->exists())->toBeTrue()
+        ->and($uploaded->fresh()?->user_id)->toBeNull();
+});
+
+test('a deadlock at the deletion of an owned community reaches the deletion of the account as a deadlock, so that its transaction can run again, and nothing is deleted (#1390)', function () {
+    $user = User::factory()->withUserProfile()->withPersonalCommunity()->create();
+    $community = $user->ownedCommunities()->firstOrFail();
+    DB::beforeExecuting(static function (string $query, array $bindings, Connection $connection): void {
+        if (str_starts_with($query, 'delete from "communities"')) {
+            throw new QueryException($connection->getName() ?? 'pgsql', $query, $bindings, new PDOException('SQLSTATE[40P01]: Deadlock detected: 7 ERROR:  deadlock detected'));
+        }
+    });
+
+    $thrown = null;
+    try {
+        app(DeleteUser::class)->delete($user);
+    } catch (Throwable $e) {
+        $thrown = $e;
+    }
+
+    // In the transaction of the test, the one of the deletion is nested: the framework gives the deadlock without a new
+    // attempt. Out of a test it is the outer one, and runs again (3 attempts in all)
+    expect($thrown)->toBeInstanceOf(Throwable::class)
+        ->and($thrown)->not->toBeInstanceOf(TechnicalException::class)
+        ->and(app(ConcurrencyErrorDetector::class)->causedByConcurrencyError($thrown))->toBeTrue()
+        ->and(User::query()->whereKey($user->id)->exists())->toBeTrue()
+        ->and(Community::query()->whereKey($community->id)->exists())->toBeTrue();
 });

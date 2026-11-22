@@ -14,6 +14,8 @@ final class MailSettings
 
     private const int HOLD_PERCENT_DEFAULT = 95;
 
+    private const int INVITATIONS_PER_DAY_DEFAULT = 1000;
+
     /**
      * The queue of the notification mail: MAIL_QUEUE, `mail` when it is empty
      */
@@ -50,6 +52,28 @@ final class MailSettings
     public static function holdPercent(): int
     {
         return max(1, min(100, self::integer('mail.budget.hold_percent', self::HOLD_PERCENT_DEFAULT)));
+    }
+
+    /**
+     * The invitation mails that one community sends in 24 hours: MAIL_INVITATIONS_PER_COMMUNITY_PER_DAY, at least 1,
+     * default 1000 (also for an empty or a wrong value)
+     */
+    public static function invitationsPerCommunityPerDay(): int
+    {
+        $cap = self::integer('mail.invitations.per_community_per_day', self::INVITATIONS_PER_DAY_DEFAULT);
+
+        return $cap >= 1 ? $cap : self::INVITATIONS_PER_DAY_DEFAULT;
+    }
+
+    /**
+     * The invitation mails that one account sends in 24 hours, over all its communities:
+     * MAIL_INVITATIONS_PER_ACCOUNT_PER_DAY, at least 1, default 1000 (also for an empty or a wrong value)
+     */
+    public static function invitationsPerAccountPerDay(): int
+    {
+        $cap = self::integer('mail.invitations.per_account_per_day', self::INVITATIONS_PER_DAY_DEFAULT);
+
+        return $cap >= 1 ? $cap : self::INVITATIONS_PER_DAY_DEFAULT;
     }
 
     /**

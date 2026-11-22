@@ -397,6 +397,21 @@ test('the privacy policy tells that an invitation can carry access groups and ta
     );
 });
 
+test('the privacy policy tells about the invitations from a file, their record and the legal basis of the invitations (#1390, approved 2026-11-22)', function () {
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, 'A manager can also invite many people at once with a file. We read the file one time and do not keep it. The record of that import keeps your address, whether the invitation went out, and why a row was refused.')
+            && str_contains($html, 'The record of an import from a file: deleted 37 days after the invitations were sent, or 24 hours after the upload when nobody sent them.')
+            && str_contains($html, 'To send the emails that the service needs (sign-in links, address verification): the contract. To send the invitations of a community: the legitimate interest of the community that invites you (art. 6(1)(f)); the owner of the community decides who is invited.')
+            && ! str_contains($html, 'address verification, invitations): the contract'))
+    );
+});
+
+test('the privacy policy tells about the community and the time of each invitation email that an account sends, and how long they stay (#1390, approved 2026-11-22)', function () {
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, 'and counters by IP address that limit the number of requests (rate limits) and, for each invitation email that you send, the community and the time, kept 2 days at most, to limit the invitation emails of an account and of a community.'))
+    );
+});
+
 test('the privacy policy tells about the answers to events, who sees them and how long they stay (#1515, approved 2026-11-17)', function () {
     config(['retention.event_answers_days' => 90]);
 

@@ -46,7 +46,7 @@ const byName = <T extends { name: string; cuid: string }>(items: readonly T[]): 
   [...items].sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()) || a.cuid.localeCompare(b.cuid));
 
 /**
- * The access groups and the member tags that a person gets when they join through an invitation (#1390), and
+ * The access groups and the member tags that a person gets when they join through an invitation (#1390, ADR 0061), and
  * later through an invite link (#1391): a secondary button with the count, and a dialog with one check box per group
  * and per tag, by name. A tag shows its color, and a tag of the managers the hidden words "managers only", as
  * `MemberTagList`. An invitation holds at most 20 tags: the 21st cannot be checked, and a polite status says why.

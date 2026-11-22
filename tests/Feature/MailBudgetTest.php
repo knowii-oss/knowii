@@ -341,6 +341,26 @@ test('the count of the provider wins over the count of this instance (#1477)', f
     Mail::assertQueued(MailBudgetAlert::class, fn (MailBudgetAlert $mail) => $mail->source === 'provider');
 });
 
+test('a read of the provider is stored on the month for the checks of the invitations; a failed read keeps the last one (#1390)', function () {
+    config(['mail.budget.monthly_quota' => 0]);
+    $reader = mailBudgetUseProvider(mailBudgetUsage(1200, 3000));
+    mailBudgetSent(10);
+
+    mailBudgetCheck();
+    $stored = fn () => (array) DB::table('mail_usage_months')->where('month', '2026-11-01')->first(['provider_limit', 'provider_used', 'provider_sent_count']);
+    expect($stored())->toBe(['provider_limit' => 3000, 'provider_used' => 1200, 'provider_sent_count' => 10]);
+
+    $reader->usage = null;
+    mailBudgetSent(15);
+    mailBudgetCheck();
+    expect($stored())->toBe(['provider_limit' => 3000, 'provider_used' => 1200, 'provider_sent_count' => 10]);
+
+    // A plan without a monthly limit stores none
+    $reader->usage = mailBudgetUsage(1300, null);
+    mailBudgetCheck();
+    expect($stored())->toBe(['provider_limit' => null, 'provider_used' => 1300, 'provider_sent_count' => 15]);
+});
+
 test('MAIL_MONTHLY_QUOTA wins over the limit of the provider (#1477)', function () {
     config(['mail.budget.monthly_quota' => 50000]);
     mailBudgetUseProvider(mailBudgetUsage(2900, 3000));

@@ -25,8 +25,8 @@ class AcceptCommunityInvitation implements AcceptsCommunityInvitations
      * address: a forwarded link does not work for another account. An expired invitation must be sent again. A personal
      * community has no other member: its invitation does not work.
      *
-     * The access groups and the member tags of the invitation are given in the transaction of the join (#1390),
-     * also to a person who is a member already, who keeps their role (JoinGrants). The transaction locks the
+     * The access groups and the member tags of the invitation are given in the transaction of the join (#1390,
+     * ADR 0061), also to a person who is a member already, who keeps their role (JoinGrants). The transaction locks the
      * community, then reads the invitation again and locks it: the role, the groups and the tags are the ones stored at
      * the join. An invitation that is gone meanwhile (cancelled, or replaced by a new one) gives the answer of a link
      * of an invitation that is gone (404); one that expired meanwhile gives the answer of an expired invitation.

@@ -3,6 +3,7 @@
 - Status: Accepted
 - Date: 2026-11-09
 - Issue: #1242
+- Amended by: [0061](0061-invitations-carry-access-groups-and-tags-and-come-from-a-file.md) (point 5: an import from a file renews an expired invitation and refuses a valid one; an import stores who uploaded it)
 
 ## Context
 

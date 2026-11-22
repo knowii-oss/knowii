@@ -15,6 +15,7 @@ use App\Models\CommunityMember;
 use App\Models\CommunityResource;
 use App\Models\Event;
 use App\Models\EventAnswer;
+use App\Models\InvitationImportRow;
 use App\Models\LessonProgress;
 use App\Models\MemberTag;
 use App\Models\Mention;
@@ -105,6 +106,7 @@ final class ExportUser implements ExportsUsers
                     'access_groups' => $this->accessGroups($user),
                     'member_tags' => $this->memberTags($user),
                     'invitations' => $this->invitations($user),
+                    'invitation_import_rows' => $this->invitationImportRows($user),
                     'join_blocks' => $this->joinBlocks($user),
                 ]],
                 'activity.json' => [[], [
@@ -121,6 +123,7 @@ final class ExportUser implements ExportsUsers
                     'space_visits' => $this->spaceVisits($user),
                     'api_tokens' => $this->apiTokens($user),
                     'sessions' => $this->sessions($user),
+                    'invitation_mails' => $this->invitationMails($user),
                 ]],
                 'posts.json' => [[], ['posts' => $this->posts($user)]],
                 'comments.json' => [[], ['comments' => $this->comments($user)]],
@@ -328,6 +331,27 @@ final class ExportUser implements ExportsUsers
                 'access_groups' => $invitation->accessGroups->map(static fn (AccessGroup $group): array => ['cuid' => $group->cuid, 'name' => $group->name])->values()->all(),
                 'member_tags' => $invitation->memberTags->map(static fn (MemberTag $tag): array => ['cuid' => $tag->cuid, 'name' => $tag->name])->values()->all(),
                 'created_at' => $this->date($invitation->created_at),
+            ];
+        }
+    }
+
+    /**
+     * The rows of the imports of invitations from a file with the address of the member, compared without the case (#1390,
+     * ADR 0061): the community, the date, the result and the reason. No name of another person
+     *
+     * @return Generator<int, Row>
+     */
+    private function invitationImportRows(User $user): Generator
+    {
+        $rows = InvitationImportRow::query()->whereRaw('lower(email) = lower(?)', [$user->email])->with('invitationImport');
+        foreach ($rows->lazyById(self::CHUNK) as $row) {
+            yield [
+                ...$this->place($row->invitationImport->community_id, null),
+                'email' => $row->email,
+                'outcome' => $row->outcome->value,
+                'reason' => $row->reason?->value,
+                'created_at' => $this->date($row->created_at),
+                'sent_at' => $this->date($row->sent_at),
             ];
         }
     }
@@ -602,6 +626,25 @@ final class ExportUser implements ExportsUsers
                 'last_activity_at' => is_int($activity) || (is_string($activity) && ctype_digit($activity))
                     ? Carbon::createFromTimestamp((int) $activity)->toIso8601String()
                     : null,
+            ];
+        }
+    }
+
+    /**
+     * The invitation emails that the account sent, as the daily caps count them (#1390, ADR 0061): the community and the
+     * time. A row stays Retention::invitationMailsDays() days at most
+     *
+     * @return Generator<int, Row>
+     */
+    private function invitationMails(User $user): Generator
+    {
+        foreach (DB::table('invitation_mails')->where('user_id', $user->id)->orderBy('created_at')->orderBy('id')->get(['community_id', 'created_at']) as $mail) {
+            $communityId = $mail->community_id;
+            $createdAt = $mail->created_at;
+
+            yield [
+                'community' => is_numeric($communityId) ? $this->place((int) $communityId, null)['community'] : null,
+                'created_at' => is_string($createdAt) ? $this->date(Carbon::parse($createdAt)) : null,
             ];
         }
     }
@@ -959,8 +1002,8 @@ final class ExportUser implements ExportsUsers
         ];
         $descriptions = [
             'account.json' => 'your account and your profile, with the choice of who sees each profile field, and the accounts of other providers that you connected to sign in (the provider, your identifier there and the dates), with the entitlement keys that the provider reported for you and the date of the last check, your time zone, the date of your last visit (a date, no hour) and your choice of pop-ups',
-            'memberships.json' => 'your communities and your role, the communities you own, your access groups (and whether you were added by hand or by an entitlement rule), the tags that the managers of a community put on you (the name, who sees it: the members or the managers only, and the date), the invitations sent to your email address (with the access groups and the member tags that each gives when you join) and the communities where a manager removed you and where you cannot join again by yourself',
-            'activity.json' => 'the lessons you marked as done, your quiz results, your answers to events (the event by its identifier and its title, and your answer: yes, replay only or no), what you read in chat spaces and conversations, the members you blocked, where you were mentioned, your notifications (kind, community, the items by identifier and the dates, never a text), the threads that you follow or muted and the level that you chose for each space, the date when you last visited each space, your API tokens and your sessions',
+            'memberships.json' => 'your communities and your role, the communities you own, your access groups (and whether you were added by hand or by an entitlement rule), the tags that the managers of a community put on you (the name, who sees it: the members or the managers only, and the date), the invitations sent to your email address (with the access groups and the member tags that each gives when you join), the rows of the imports of invitations from a file with your address (the community, the date, whether the invitation went out and why a row was refused) and the communities where a manager removed you and where you cannot join again by yourself',
+            'activity.json' => 'the lessons you marked as done, your quiz results, your answers to events (the event by its identifier and its title, and your answer: yes, replay only or no), what you read in chat spaces and conversations, the members you blocked, where you were mentioned, your notifications (kind, community, the items by identifier and the dates, never a text), the threads that you follow or muted and the level that you chose for each space, the date when you last visited each space, your API tokens, your sessions and the invitation emails that you sent in the last days (the community and the time)',
             'posts.json' => 'your posts (Markdown)',
             'comments.json' => 'your comments (Markdown), with the cuid and the title of what they answer',
             'pages.json' => 'the pages and lessons you wrote (Markdown)',

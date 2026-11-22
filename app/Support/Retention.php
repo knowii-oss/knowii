@@ -37,6 +37,33 @@ final class Retention
         return self::int('retention.expired_invitations_days', 30);
     }
 
+    /**
+     * An import of invitations from a file that nobody sent (#1390)
+     */
+    public static function invitationImportPreviewHours(): int
+    {
+        return self::int('retention.invitation_import_previews_hours', 24);
+    }
+
+    /**
+     * The record of a sent import lives as long as an invitation: the mail tells the person that the address is deleted
+     * that long after the invitation ends (#1390)
+     */
+    public static function invitationImportsDays(): int
+    {
+        return self::invitationValidityDays() + self::expiredInvitationsDays();
+    }
+
+    /**
+     * A row of `invitation_mails` (the community, the account and the time of an invitation mail) counts in the daily caps
+     * for InvitationMailCaps::WINDOW_HOURS, and the daily prune step deletes it after that: it stays this many days at
+     * most (#1390)
+     */
+    public static function invitationMailsDays(): int
+    {
+        return intdiv(InvitationMailCaps::WINDOW_HOURS, 24) + 1;
+    }
+
     public static function apiTokenDefaultDays(): int
     {
         return (int) Constants::API_TOKEN_DEFAULT_EXPIRY;
@@ -127,6 +154,9 @@ final class Retention
             'password_reset_link' => self::minutes(self::passwordResetMinutes()),
             'invitation' => self::count(self::invitationValidityDays(), 'day'),
             'expired_invitations' => self::count(self::expiredInvitationsDays(), 'day'),
+            'invitation_import_previews' => self::count(self::invitationImportPreviewHours(), 'hour'),
+            'invitation_imports' => self::count(self::invitationImportsDays(), 'day'),
+            'invitation_mails' => self::count(self::invitationMailsDays(), 'day').' at most',
             'api_token_default' => self::count(self::apiTokenDefaultDays(), 'day'),
             'expired_api_tokens' => self::count(self::expiredApiTokensDays(), 'day'),
             'failed_jobs' => self::count(self::failedJobsDays(), 'day'),
