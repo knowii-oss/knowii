@@ -1,0 +1,19 @@
+meta {
+  name: Invite links - List
+  type: http
+  seq: 220
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/invite-links
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The invite links of the community (#1391), newest first, without pagination (50 at most): the name, the address to share (url), the state (active, off, ended or full), the end, the maximum and the count of the joins, the access groups (with fed_by_rule) and the member tags that each gives. Owner and admins. Token ability: invite-links:read.
+}

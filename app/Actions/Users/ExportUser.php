@@ -16,6 +16,7 @@ use App\Models\CommunityResource;
 use App\Models\Event;
 use App\Models\EventAnswer;
 use App\Models\InvitationImportRow;
+use App\Models\InviteLinkUse;
 use App\Models\LessonProgress;
 use App\Models\MemberTag;
 use App\Models\Mention;
@@ -108,6 +109,7 @@ final class ExportUser implements ExportsUsers
                     'invitations' => $this->invitations($user),
                     'invitation_import_rows' => $this->invitationImportRows($user),
                     'join_blocks' => $this->joinBlocks($user),
+                    'invite_link_uses' => $this->inviteLinkUses($user),
                 ]],
                 'activity.json' => [[], [
                     'lessons_done' => $this->lessonsDone($user),
@@ -367,6 +369,24 @@ final class ExportUser implements ExportsUsers
             yield [
                 ...$this->place($block->community_id, null),
                 'removed_at' => $this->date($block->created_at),
+            ];
+        }
+    }
+
+    /**
+     * The joins of the member through an invite link (#1391, ADR 0062): the community, the link (its cuid and its name) and
+     * the date. Never the token nor the address of the link
+     *
+     * @return Generator<int, Row>
+     */
+    private function inviteLinkUses(User $user): Generator
+    {
+        foreach (InviteLinkUse::query()->where('user_id', $user->id)->with('inviteLink')->lazyById(self::CHUNK) as $use) {
+            yield [
+                ...$this->place($use->inviteLink->community_id, null),
+                'invite_link' => $use->inviteLink->cuid,
+                'invite_link_name' => $use->inviteLink->name,
+                'joined_at' => $this->date($use->created_at),
             ];
         }
     }
@@ -1002,7 +1022,7 @@ final class ExportUser implements ExportsUsers
         ];
         $descriptions = [
             'account.json' => 'your account and your profile, with the choice of who sees each profile field, and the accounts of other providers that you connected to sign in (the provider, your identifier there and the dates), with the entitlement keys that the provider reported for you and the date of the last check, your time zone, the date of your last visit (a date, no hour) and your choice of pop-ups',
-            'memberships.json' => 'your communities and your role, the communities you own, your access groups (and whether you were added by hand or by an entitlement rule), the tags that the managers of a community put on you (the name, who sees it: the members or the managers only, and the date), the invitations sent to your email address (with the access groups and the member tags that each gives when you join), the rows of the imports of invitations from a file with your address (the community, the date, whether the invitation went out and why a row was refused) and the communities where a manager removed you and where you cannot join again by yourself',
+            'memberships.json' => 'your communities and your role, the communities you own, your access groups (and whether you were added by hand or by an entitlement rule), the tags that the managers of a community put on you (the name, who sees it: the members or the managers only, and the date), the invitations sent to your email address (with the access groups and the member tags that each gives when you join), the rows of the imports of invitations from a file with your address (the community, the date, whether the invitation went out and why a row was refused), the communities where a manager removed you and where you cannot join again by yourself, and the invite links through which you joined a community (the community, the cuid and the name of the link, and the date)',
             'activity.json' => 'the lessons you marked as done, your quiz results, your answers to events (the event by its identifier and its title, and your answer: yes, replay only or no), what you read in chat spaces and conversations, the members you blocked, where you were mentioned, your notifications (kind, community, the items by identifier and the dates, never a text), the threads that you follow or muted and the level that you chose for each space, the date when you last visited each space, your API tokens, your sessions and the invitation emails that you sent in the last days (the community and the time)',
             'posts.json' => 'your posts (Markdown)',
             'comments.json' => 'your comments (Markdown), with the cuid and the title of what they answer',

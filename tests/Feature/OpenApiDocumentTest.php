@@ -97,6 +97,8 @@ test('every write operation documents its request body', function () {
         'POST /v1/user/email-change/resend',
         // Send a preview of invitations from a file (#1390): the import is in the path
         'POST /v1/communities/{community}/invitation-imports/{invitationImport}/confirm',
+        // Join through an invite link (#1391): the person is the signed-in account, the link is in the path
+        'POST /v1/invite-links/{inviteLinkToken}/membership',
     ];
     $withoutBody = [];
     foreach (openApiDocument()['paths'] as $path => $operations) {
@@ -239,4 +241,18 @@ test('the routes of the invitations from a file are documented, the upload as a 
         // The confirm and the send again answer 202: the mails go out after the answer
         ->and(array_keys($paths[$base.'/{invitationImport}/confirm']['post']['responses'] ?? []))->toContain(202)->not->toContain(200)
         ->and(array_keys($paths[$base.'/{invitationImport}/resend']['post']['responses'] ?? []))->toContain(202)->not->toContain(200);
+});
+
+test('the routes of the invite links are documented, the create with its required name and the list of who joined with its paging (#1391)', function () {
+    $paths = openApiDocument()['paths'];
+    $base = '/v1/communities/{community}/invite-links';
+    $create = $paths[$base]['post'] ?? [];
+
+    expect(array_keys($paths[$base] ?? []))->toContain('get', 'post')
+        ->and(array_keys($paths[$base.'/{inviteLink}'] ?? []))->toContain('get', 'patch', 'delete')
+        ->and($create['requestBody']['content']['application/json']['schema']['required'] ?? [])->toBe(['name'])
+        ->and(array_keys($create['requestBody']['content']['application/json']['schema']['properties'] ?? []))->toContain('name', 'active', 'expires_at', 'max_uses', 'access_groups', 'member_tags')
+        ->and(array_column($paths[$base.'/{inviteLink}/uses']['get']['parameters'] ?? [], 'name'))->toContain('limit', 'offset')
+        ->and(array_keys($paths['/v1/invite-links/{inviteLinkToken}'] ?? []))->toContain('get')
+        ->and(array_keys($paths['/v1/invite-links/{inviteLinkToken}/membership'] ?? []))->toContain('post');
 });

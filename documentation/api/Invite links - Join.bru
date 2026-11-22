@@ -1,0 +1,19 @@
+meta {
+  name: Invite links - Join
+  type: http
+  seq: 227
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/invite-links/<token of the link>/membership
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Joins the community of an invite link (#1391), as a member, with the access groups and the member tags of the link. Needs a verified email address. A member gets 422 "You are already a member of this community", a person whom a manager removed 422 with the text of the block: nothing changes for them. A link that does not work gives the 404 of the read. Returns 201 with the community as a member sees it. Limited per minute, with the joins of open communities. Token ability: communities:write.
+}

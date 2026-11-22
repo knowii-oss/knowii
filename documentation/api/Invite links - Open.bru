@@ -1,0 +1,19 @@
+meta {
+  name: Invite links - Open
+  type: http
+  seq: 226
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/invite-links/<token of the link>
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  What an invite link opens, for the person who has it (#1391): the community (its public shape, or the shape of a member for a member) and state: join, member or blocked (a manager removed you). Never the name of the link, its groups, its tags or its counts. A link that does not work (unknown, off, ended, full, deleted, of a personal community) gives one 404 with one message. 20 reads a minute. Token ability: communities:read.
+}

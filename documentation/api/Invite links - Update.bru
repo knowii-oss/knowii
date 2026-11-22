@@ -1,0 +1,26 @@
+meta {
+  name: Invite links - Update
+  type: http
+  seq: 223
+}
+
+patch {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/invite-links/<invite link cuid>
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "active": false
+  }
+}
+
+docs {
+  Changes an invite link (#1391): owner and admins. Only the fields of the request change; access_groups and member_tags replace the lists; null clears expires_at and max_uses. active false stops the link at once. A maximum at or below the count of the joins makes the link full. The people who joined before keep what they got. Token ability: invite-links:write.
+}

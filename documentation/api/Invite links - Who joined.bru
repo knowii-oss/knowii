@@ -1,0 +1,19 @@
+meta {
+  name: Invite links - Who joined
+  type: http
+  seq: 225
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/invite-links/<invite link cuid>/uses?limit=20&offset=0
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Who joined through the invite link (#1391), newest first: member (cuid, name, username, avatar_url) and joined_at. A member who left is not in the list, and stays in the count. Offset pagination (limit, offset). Owner and admins. Token ability: invite-links:read.
+}

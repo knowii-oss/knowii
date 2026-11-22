@@ -7,6 +7,8 @@ use App\Models\Event as EventModel;
 use App\Models\EventAnswer;
 use App\Models\InvitationImport;
 use App\Models\InvitationImportRow;
+use App\Models\InviteLink;
+use App\Models\InviteLinkUse;
 use App\Models\User;
 use App\Support\Retention;
 use Carbon\CarbonImmutable;
@@ -61,6 +63,7 @@ test('the periods of the privacy policy come from the configuration (ADR 0030)',
         ->and($periods['notifications_read'])->toBe('60 days')
         ->and($periods['notifications_unread'])->toBe('90 days')
         ->and($periods['event_answers'])->toBe('90 days')
+        ->and($periods['invite_link_uses'])->toBe('365 days')
         ->and($periods['pending_email'])->toBe('7 days')
         ->and($periods['logs'])->toBe('14 days')
         ->and($periods['waitlist'])->toBe('12 months')
@@ -355,4 +358,25 @@ test('the count of the daily caps of the invitation mails goes 24 hours after ea
         ->and(DB::table('invitation_mails')->count())->toBe(2)
         ->and(app(PrunesExpiredData::class)->prune()['invitation_mails'])->toBe(1)
         ->and(DB::table('invitation_mails')->pluck('created_at')->all())->toBe(['2026-11-17 10:00:01']);
+});
+
+test('the record of a join through an invite link goes 365 days after the join, and the count of the link stays (#1391)', function () {
+    Storage::fake('local');
+    $this->travelTo(CarbonImmutable::parse('2026-11-23T10:00:00Z'));
+    $link = InviteLink::factory()->create();
+    $link->forceFill(['uses_count' => 2])->save();
+    $old = InviteLinkUse::query()->create(['invite_link_id' => $link->id, 'user_id' => User::factory()->create()->id]);
+    $old->forceFill(['created_at' => now()->subDays(365)->subSecond()])->save();
+    $recent = InviteLinkUse::query()->create(['invite_link_id' => $link->id, 'user_id' => User::factory()->create()->id]);
+    $recent->forceFill(['created_at' => now()->subDays(365)->addSecond()])->save();
+
+    expect(app(PrunesExpiredData::class)->prune(dryRun: true)['invite_link_uses'])->toBe(1)
+        ->and(InviteLinkUse::query()->count())->toBe(2)
+        ->and(app(PrunesExpiredData::class)->prune()['invite_link_uses'])->toBe(1)
+        ->and(InviteLinkUse::query()->pluck('id')->all())->toBe([$recent->id])
+        ->and($link->fresh()?->uses_count)->toBe(2);
+
+    config(['retention.invite_link_uses_days' => 30]);
+    expect(Retention::periods()['invite_link_uses'])->toBe('30 days')
+        ->and(app(PrunesExpiredData::class)->prune()['invite_link_uses'])->toBe(1);
 });

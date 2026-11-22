@@ -31,6 +31,7 @@ The sign-in provider of this site: {{sign_in_provider}}.
 9. Answers to events: {{retention.event_answers}} after the event.
 10. A new email address that you asked for: until you confirm it or cancel it, or for {{retention.pending_email}} at most.
 11. Invitation emails that you send: the community and the time, kept {{retention.invitation_mails}}.
+12. Joins through an invite link: {{retention.invite_link_uses}} after you joined.
 
 ## 4. Cookies
 

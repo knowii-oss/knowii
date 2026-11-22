@@ -192,6 +192,9 @@ class JetstreamServiceProvider extends ServiceProvider
             // are not members. A single invitation keeps communities:read and communities:write
             'invitations:read',
             'invitations:write',
+            // Invite links (#1391, ADR 0062): never in the default set, a link opens the community to anyone who holds it
+            'invite-links:read',
+            'invite-links:write',
         ];
 
         Jetstream::permissions($allPermissions);

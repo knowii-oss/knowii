@@ -196,8 +196,11 @@ test('the migration of the member tags goes down and up again, and changes no ot
     $migration = require database_path('migrations/2026_11_22_100000_create_member_tags_tables.php');
     // The links of the invitations to the tags (#1390) come later and depend on the table: they go down first
     $invitationLinks = require database_path('migrations/2026_11_22_200000_create_community_invitation_grants_tables.php');
+    // The invite links (#1391) too
+    $inviteLinks = require database_path('migrations/2026_11_23_100000_create_invite_links_tables.php');
     MemberTagAssignments::add(MemberTag::factory()->create(['community_id' => $this->community->id]), $this->c['member']);
 
+    $inviteLinks->down();
     $invitationLinks->down();
     $migration->down();
     expect(Schema::hasTable('member_tags'))->toBeFalse()
@@ -206,6 +209,7 @@ test('the migration of the member tags goes down and up again, and changes no ot
 
     $migration->up();
     $invitationLinks->up();
+    $inviteLinks->up();
     expect(Schema::hasColumns('member_tags', ['id', 'cuid', 'community_id', 'name', 'color', 'visibility', 'created_at', 'updated_at']))->toBeTrue()
         ->and(Schema::getColumnListing('member_tag_members'))->toEqualCanonicalizing(['id', 'member_tag_id', 'user_id', 'created_at'])
         ->and(array_column(Schema::getIndexes('member_tag_members'), 'columns'))->toContain(['user_id'], ['member_tag_id', 'user_id'])

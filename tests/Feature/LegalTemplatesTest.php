@@ -106,8 +106,17 @@ test('the template of the privacy policy tells that an invitation can carry acce
     $policy = File::get(legalTemplatesFolder().'/policy.md');
 
     expect($policy)
-        ->toContain('the invitations sent to your email address, with the access groups and the tags that they give when you join, what you read')
+        ->toContain('the invitations sent to your email address, with the access groups and the tags that they give when you join,')
         ->toContain('when a manager of a community invites you, they give us your email address, and they can choose the access groups and the tags that you get when you join.');
+});
+
+test('the template of the privacy policy tells about the joins through an invite link (#1391)', function () {
+    $policy = File::get(legalTemplatesFolder().'/policy.md');
+
+    expect($policy)
+        ->toContain('the invitations sent to your email address, with the access groups and the tags that they give when you join, the invite link through which you joined a community, if you used one, and the date, what you read')
+        ->toContain('Your data export lists all of them. The owner and the administrators of a community see who joined it through each of its invite links.')
+        ->toContain('16. Joins through an invite link: {{retention.invite_link_uses}} after you joined, or until you leave the community, a manager deletes the link, or you delete your account.');
 });
 
 test('the template of the privacy policy tells about the invitations from a file and the legal basis of the invitations (#1390)', function () {

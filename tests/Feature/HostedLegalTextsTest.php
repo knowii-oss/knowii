@@ -392,8 +392,18 @@ test('the privacy policy tells about the member tags, who sees them and how long
 test('the privacy policy tells that an invitation can carry access groups and tags (#1390, approved 2026-11-22)', function () {
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
         ->where('updated', '2026-11-22')
-        ->where('html', fn (string $html) => str_contains($html, 'the invitations sent to your email address, with the access groups and the tags that they give when you join, what you read')
+        ->where('html', fn (string $html) => str_contains($html, 'the invitations sent to your email address, with the access groups and the tags that they give when you join,')
             && str_contains($html, 'when a manager of a community invites you, they give us your email address, and they can choose the access groups and the tags that you get when you join.'))
+    );
+});
+
+test('the privacy policy tells about the joins through an invite link, who sees them and how long they stay (#1391, approved 2026-11-22)', function () {
+    config(['retention.invite_link_uses_days' => 365]);
+
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, 'the invitations sent to your email address, with the access groups and the tags that they give when you join, the invite link through which you joined a community, if you used one, and the date, what you read')
+            && str_contains($html, 'Your data export lists all of them. The owner and the administrators of a community see who joined it through each of its invite links.')
+            && str_contains($html, 'Joins through an invite link: 365 days after you joined, or until you leave the community, a manager deletes the link, or you delete your account.'))
     );
 });
 

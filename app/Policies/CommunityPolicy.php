@@ -82,6 +82,16 @@ class CommunityPolicy
     }
 
     /**
+     * Manage the invite links (#1391, ADR 0062): owner and admins, like who can join. A link opens the community to anyone
+     * who holds it, and it can give paid groups. It covers the list, a read, a create, an update, a delete and the list of
+     * who joined. The actions also check the rights to give groups and tags (InvitationGrants).
+     */
+    final public function manageInviteLinks(User $user, Community $community): bool
+    {
+        return CommunityRoles::isOwnerOrAdmin($user, $community);
+    }
+
+    /**
      * Let search engines index the public spaces of the community (#1487, ADR 0044): owner and admins, like who can
      * join. The action refuses a personal community: it has no public space.
      */

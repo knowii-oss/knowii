@@ -12,6 +12,8 @@ use App\Models\CommunityInvitation;
 use App\Models\CommunityResource;
 use App\Models\InvitationImport;
 use App\Models\InvitationImportRow;
+use App\Models\InviteLink;
+use App\Models\InviteLinkUse;
 use App\Models\MemberTag;
 use App\Models\Post;
 use App\Models\Reaction;
@@ -202,4 +204,21 @@ test('a deadlock at the deletion of an owned community reaches the deletion of t
         ->and(app(ConcurrencyErrorDetector::class)->causedByConcurrencyError($thrown))->toBeTrue()
         ->and(User::query()->whereKey($user->id)->exists())->toBeTrue()
         ->and(Community::query()->whereKey($community->id)->exists())->toBeTrue();
+});
+
+test('a deleted account loses its records of the joins through invite links, and the links and their counts stay (#1391)', function () {
+    $user = User::factory()->withUserProfile()->create();
+    $other = User::factory()->withUserProfile()->create();
+    $community = Community::factory()->create();
+    $community->users()->attach([$user->id => ['role' => 'member'], $other->id => ['role' => 'member']]);
+    $link = InviteLink::factory()->create(['community_id' => $community->id]);
+    $link->forceFill(['uses_count' => 2])->save();
+    InviteLinkUse::query()->create(['invite_link_id' => $link->id, 'user_id' => $user->id]);
+    InviteLinkUse::query()->create(['invite_link_id' => $link->id, 'user_id' => $other->id]);
+
+    $this->actingAs($user)->delete('/user', ['password' => 'password']);
+
+    expect(User::query()->whereKey($user->id)->exists())->toBeFalse()
+        ->and(InviteLinkUse::query()->pluck('user_id')->all())->toBe([$other->id])
+        ->and($link->fresh()?->uses_count)->toBe(2);
 });

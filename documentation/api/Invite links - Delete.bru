@@ -1,0 +1,19 @@
+meta {
+  name: Invite links - Delete
+  type: http
+  seq: 224
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/invite-links/<invite link cuid>
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Deletes an invite link (#1391): owner and admins. It stops working at once, and the list of who joined through it goes. The members who joined through it stay, with their groups and tags. Returns 204. Token ability: invite-links:write.
+}

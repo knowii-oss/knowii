@@ -15,6 +15,8 @@ use App\Models\CourseMaterial;
 use App\Models\Event;
 use App\Models\InvitationImport;
 use App\Models\InvitationImportRow;
+use App\Models\InviteLink;
+use App\Models\InviteLinkUse;
 use App\Models\LessonProgress;
 use App\Models\MemberTag;
 use App\Models\Page;
@@ -157,6 +159,7 @@ final class ExportCommunity implements ExportsCommunities
             'join_blocks' => $this->joinBlocks($community),
             'access_groups' => $this->accessGroups($community),
             'member_tags' => $this->memberTags($community),
+            'invite_links' => $this->inviteLinks($community),
             'space_groups' => $this->spaceGroups($community),
             'spaces' => $this->spaces($community),
         ];
@@ -293,6 +296,37 @@ final class ExportCommunity implements ExportsCommunities
                 'visibility' => $tag->visibility->value,
                 'members' => $tag->members->map(static fn (User $member): string => $member->cuid)->values()->all(),
                 'created_at' => $this->date($tag->created_at),
+            ];
+        }
+    }
+
+    /**
+     * The invite links (#1391, ADR 0062), with what they give and who joined through them. Never the token, its hash or
+     * the address of a link: the export would give a working link
+     *
+     * @return Generator<int, Row>
+     */
+    private function inviteLinks(Community $community): Generator
+    {
+        $links = InviteLink::query()->where('community_id', $community->id)->with([
+            'accessGroups' => static fn ($query) => $query->orderBy('access_groups.id'),
+            'memberTags' => static fn ($query) => $query->orderBy('member_tags.id'),
+            'uses' => static fn ($query) => $query->with('user')->orderBy('created_at')->orderBy('id'),
+        ]);
+        foreach ($links->lazyById(self::CHUNK) as $link) {
+            /** @var InviteLink $link */
+            yield [
+                'cuid' => $link->cuid,
+                'name' => $link->name,
+                'status' => $link->status()->value,
+                'active' => $link->active,
+                'expires_at' => $this->date($link->expires_at),
+                'max_uses' => $link->max_uses,
+                'uses_count' => $link->uses_count,
+                'access_groups' => $link->accessGroups->map(static fn (AccessGroup $group): string => $group->cuid)->values()->all(),
+                'member_tags' => $link->memberTags->map(static fn (MemberTag $tag): string => $tag->cuid)->values()->all(),
+                'created_at' => $this->date($link->created_at),
+                'uses' => $link->uses->map(fn (InviteLinkUse $use): array => ['user' => $use->user->cuid, 'joined_at' => $this->date($use->created_at)])->values()->all(),
             ];
         }
     }
@@ -758,7 +792,7 @@ final class ExportCommunity implements ExportsCommunities
             '',
         ];
         $descriptions = [
-            'community.json' => 'the community, who can join it, its members, invitations (with the access groups and the member tags that each gives at the join), the imports of invitations from a file with their rows (the address, the role, the names of the groups and the tags, the result and the reason), the people removed who cannot join again by themselves, access groups, member tags (the name, the color, who sees it and the members who have it), space groups and spaces',
+            'community.json' => 'the community, who can join it, its members, invitations (with the access groups and the member tags that each gives at the join), the imports of invitations from a file with their rows (the address, the role, the names of the groups and the tags, the result and the reason), the people removed who cannot join again by themselves, access groups, member tags (the name, the color, who sees it and the members who have it), invite links (the name, the state, the end, the maximum and the count of the joins, the access groups and the member tags that each gives, and who joined through it and when; never the address of a link), space groups and spaces',
             'posts.json' => 'the posts (Markdown)',
             'comments.json' => 'the comments on posts and on resources (Markdown)',
             'pages.json' => 'the pages and the lessons (Markdown)',

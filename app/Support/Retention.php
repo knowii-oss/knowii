@@ -105,6 +105,14 @@ final class Retention
     }
 
     /**
+     * The record of a join through an invite link stays this many days after the join (#1391, ADR 0062)
+     */
+    public static function inviteLinkUsesDays(): int
+    {
+        return self::int('retention.invite_link_uses_days', 365);
+    }
+
+    /**
      * A new email address waits for its confirmation this many days at most (#1706, ADR 0058)
      */
     public static function pendingEmailDays(): int
@@ -164,6 +172,7 @@ final class Retention
             'notifications_read' => self::count(self::notificationsReadDays(), 'day'),
             'notifications_unread' => self::count(self::notificationsUnreadDays(), 'day'),
             'event_answers' => self::count(self::eventAnswersDays(), 'day'),
+            'invite_link_uses' => self::count(self::inviteLinkUsesDays(), 'day'),
             'pending_email' => self::count(self::pendingEmailDays(), 'day'),
             'logs' => self::count(self::logDays(), 'day'),
             'waitlist' => self::count(self::waitlistMonths(), 'month'),

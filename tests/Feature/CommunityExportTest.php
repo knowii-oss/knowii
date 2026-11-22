@@ -15,6 +15,8 @@ use App\Models\Event;
 use App\Models\EventAnswer;
 use App\Models\InvitationImport;
 use App\Models\InvitationImportRow;
+use App\Models\InviteLink;
+use App\Models\InviteLinkUse;
 use App\Models\MemberTag;
 use App\Models\Post;
 use App\Models\Reaction;
@@ -24,6 +26,7 @@ use App\Models\Upload;
 use App\Models\User;
 use App\Support\InvitationGrants;
 use App\Support\MemberTagAssignments;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -328,4 +331,44 @@ test('the export holds the imports of invitations with their rows, after the inv
             ['row_number' => 3, 'email' => 'qx-row@example.com', 'role' => 'member', 'access_groups' => [], 'member_tags' => ['Nope'], 'outcome' => 'refused', 'reason' => 'unknown_tag'],
         ])
         ->and($files['README.txt'])->toContain('the imports of invitations from a file with their rows');
+});
+
+test('the export holds the invite links after the member tags, with what they give and who joined, and no token, hash or address anywhere (#1391)', function () {
+    $f = communityExportFixture();
+    $this->travelTo(CarbonImmutable::parse('2026-11-23T10:00:00Z'));
+    $group = AccessGroup::query()->create(['community_id' => $f['community']->id, 'name' => 'Qxexport Cohort']);
+    $tag = MemberTag::factory()->create(['community_id' => $f['community']->id, 'name' => 'Qxexport Buyer']);
+    $link = InviteLink::factory()->create(['community_id' => $f['community']->id, 'name' => 'Qxexport Course buyers', 'max_uses' => 100, 'expires_at' => '2026-11-30T10:00:00Z']);
+    $link->accessGroups()->attach($group->id);
+    $link->memberTags()->attach($tag->id);
+    $link->forceFill(['uses_count' => 3])->save();
+    InviteLinkUse::query()->create(['invite_link_id' => $link->id, 'user_id' => $f['member']->id]);
+    $elsewhere = InviteLink::factory()->create(['community_id' => Community::factory()->create()->id, 'name' => 'Qxelsewhere link']);
+
+    $files = runCommunityExport($f['community']);
+    $community = json_decode($files['community.json'], true);
+    $keys = array_keys($community);
+
+    expect(array_search('invite_links', $keys, true))->toBe(array_search('member_tags', $keys, true) + 1)
+        ->and($community['invite_links'])->toBe([[
+            'cuid' => $link->cuid,
+            'name' => 'Qxexport Course buyers',
+            'status' => 'active',
+            'active' => true,
+            'expires_at' => '2026-11-30T10:00:00+00:00',
+            'max_uses' => 100,
+            'uses_count' => 3,
+            'access_groups' => [$group->cuid],
+            'member_tags' => [$tag->cuid],
+            'created_at' => '2026-11-23T10:00:00+00:00',
+            'uses' => [['user' => $f['member']->cuid, 'joined_at' => '2026-11-23T10:00:00+00:00']],
+        ]])
+        ->and($files['README.txt'])->toContain('invite links (the name, the state');
+    foreach ($files as $name => $content) {
+        expect($content)->not->toContain($link->token)
+            ->not->toContain($link->token_hash)
+            ->not->toContain('/invite/')
+            ->not->toContain($elsewhere->token)
+            ->not->toContain('Qxelsewhere');
+    }
 });
