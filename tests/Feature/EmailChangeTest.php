@@ -18,6 +18,7 @@ use App\Models\SpaceGroup;
 use App\Models\User;
 use App\Notifications\VerifyEmailAddress;
 use App\Support\Retention;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Support\Carbon;
@@ -884,6 +885,48 @@ test('a sign-up that another account wins at the write on another value gets the
         ->and(User::query()->where('email', 'grace@example.com')->exists())->toBeFalse();
     $this->assertGuest();
 });
+
+/**
+ * The database refuses the write of the new account with a unique violation, and names the index, or does not (a server
+ * whose messages are in another language: the framework then finds no name). With `$taken`, another account gets the
+ * address in another case after the check of a free address, before the write
+ */
+function emailChangeSignUpRefusedAtTheWrite(?string $index, bool $taken): void
+{
+    if ($taken) {
+        $done = new ArrayObject;
+        DB::listen(static function (QueryExecuted $query) use ($done): void {
+            if (count($done) === 0 && str_contains($query->sql, 'lower(email) = ?') && in_array('grace@example.com', $query->bindings, true)) {
+                $done[] = true;
+                DB::table('users')->insert(['cuid' => 'cuid-of-the-other-account', 'username' => 'the-other-account', 'name' => 'Other', 'email' => 'Grace@example.com', 'password' => 'x', 'created_at' => now(), 'updated_at' => now()]);
+            }
+        });
+    }
+    User::creating(static function (User $user) use ($index): void {
+        if ($user->email === 'grace@example.com') {
+            throw (new UniqueConstraintViolationException('pgsql', 'insert into "users"', [], new PDOException('duplicate key value', 23505)))->setIndex($index);
+        }
+    });
+}
+
+test('a sign-up that the database refuses at the write reads the taken value from the name of the index, or checks the address when the index has no name', function (?string $index, bool $taken, bool $addressError) {
+    emailChangeSignUpRefusedAtTheWrite($index, $taken);
+
+    $this->post('/register', ['name' => 'Grace Hopper', 'email' => 'grace@example.com', 'password' => EMAIL_CHANGE_PASSWORD, 'password_confirmation' => EMAIL_CHANGE_PASSWORD, 'terms' => true])
+        ->assertRedirect()
+        ->assertSessionHasErrors(['email' => $addressError ? __('validation.unique', ['attribute' => 'email']) : CreateNewUser::NOT_CREATED_MESSAGE]);
+
+    expect(session('errors')->get('email'))->toHaveCount(1)
+        ->and(User::query()->where('email', 'grace@example.com')->exists())->toBeFalse()
+        ->and(User::query()->where('email', 'Grace@example.com')->exists())->toBe($taken);
+    $this->assertGuest();
+})->with([
+    'the index of the address' => ['users_email_unique', false, true],
+    'the index of the address without regard to the case' => ['users_email_lower_unique', false, true],
+    'the index of the username' => ['users_username_unique', false, false],
+    'no name, and the address is taken in another case' => [null, true, true],
+    'no name, and the address is free' => [null, false, false],
+]);
 
 test('the database refuses a second account with the same address in another case', function () {
     emailChangeMember();

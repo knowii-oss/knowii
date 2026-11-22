@@ -82,8 +82,13 @@ class CreateNewUser implements CreatesNewUsers
         } catch (UniqueConstraintViolationException $e) {
             // Another sign-up took the address between the check and the write: the error of the check, never an error page.
             // The name of the index tells which value was taken. Any other value (the username, the cuid, the slug of the
-            // personal community) gets the error of a sign-up that did not work, never the error of a taken address
-            if (in_array($e->index, self::ADDRESS_INDEXES, true)) {
+            // personal community) gets the error of a sign-up that did not work, never the error of a taken address. The
+            // framework reads the name from the text of the error, in English: a server that writes its messages in another
+            // language gives no name, and the address is then checked again, as the rule of the form checks it
+            $addressTaken = $e->index === null
+                ? FreeEmailAddress::isTaken($input['email'])
+                : in_array($e->index, self::ADDRESS_INDEXES, true);
+            if ($addressTaken) {
                 throw ValidationException::withMessages(FreeEmailAddress::takenMessages());
             }
 

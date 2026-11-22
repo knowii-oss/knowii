@@ -6,6 +6,7 @@ use App\Contracts\Auth\TakesOverUnverifiedAccounts;
 use App\Contracts\Auth\UnlinksIdentities;
 use App\Contracts\Realtime\EndsLiveConnections;
 use App\Enums\KnowiiAddressProof;
+use App\Enums\KnowiiTakeOverResult;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -32,11 +33,13 @@ use SensitiveParameter;
  * 9. After the commit, the live connections of the account on the broadcaster end (EndsLiveConnections).
  *
  * The caller signs the person in after the call: a session that starts later holds the new version. The name, the
- * username, the profile and the personal community stay. The action changes nothing and returns false when the stored row
- * has a verified address (another proof of the same address came first: the caller goes on as for a verified account), or
- * when it has another address than the one that was proved (a correction of the address came in between: the proof is for
- * an address that the account no longer has, and the caller answers as for a link that does not work). The model of the
- * caller holds the values of the locked row in both cases.
+ * username, the profile and the personal community stay. The action returns what it did (KnowiiTakeOverResult), and it
+ * changes nothing when the stored row has another address than the one that was proved (OtherAddress: a correction of the
+ * address came in between, the proof is for an address that the account no longer has, and the caller answers as for a
+ * link that does not work), or a verified address (AlreadyVerified: another proof of the same address came first, and the
+ * caller goes on as for a verified account). The model of the caller holds the values of the locked row in both cases.
+ * When the account was deleted after the caller read it (Gone), the action changes nothing, the model of the caller stays
+ * as it is, and the caller answers as for a proof that does not work any more.
  *
  * Each write of the row checks the version of the sessions that its model read (User::setKeysForSaveQuery()): the takeover
  * writes on the locked row, so its write matches, and a model that a request read before the takeover writes nothing
@@ -49,13 +52,20 @@ class TakeOverUnverifiedAccount implements TakesOverUnverifiedAccounts
         private readonly EndsLiveConnections $endsLiveConnections,
     ) {}
 
-    final public function takeOver(User $user, KnowiiAddressProof $proof, string $provedAddress, #[SensitiveParameter] ?string $newPassword = null): bool
+    final public function takeOver(User $user, KnowiiAddressProof $proof, string $provedAddress, #[SensitiveParameter] ?string $newPassword = null): KnowiiTakeOverResult
     {
         $outcome = DB::transaction(function () use ($user, $provedAddress, $newPassword): array {
             // The row as it is stored now, locked until the commit: the action works on it, not on the model of the caller
-            $account = User::query()->lockForUpdate()->findOrFail($user->id);
-            if (! $account->addressWasNeverVerified() || ! $account->hasAddress($provedAddress)) {
-                return [false, $account->getAttributes()];
+            $account = User::query()->lockForUpdate()->find($user->id);
+            if ($account === null) {
+                // The account was deleted after the caller read it: there is nothing to take over
+                return [KnowiiTakeOverResult::Gone, null];
+            }
+            if (! $account->hasAddress($provedAddress)) {
+                return [KnowiiTakeOverResult::OtherAddress, $account->getAttributes()];
+            }
+            if (! $account->addressWasNeverVerified()) {
+                return [KnowiiTakeOverResult::AlreadyVerified, $account->getAttributes()];
             }
 
             $account->forceFill([
@@ -83,16 +93,20 @@ class TakeOverUnverifiedAccount implements TakesOverUnverifiedAccounts
                 $this->unlinksIdentities->unlink($account, $identity);
             }
 
-            return [true, $account->getAttributes()];
+            return [KnowiiTakeOverResult::TookOver, $account->getAttributes()];
         });
 
         // The caller goes on with the model that it holds: it gets the values of the locked row, also when nothing was taken
         // over, so that it decides on the state that the action saw
-        [$tookOver, $stored] = $outcome;
+        [$result, $stored] = $outcome;
+        if ($stored === null) {
+            // No row to give: the model of the caller stays as it is, and a write of it matches no row
+            return $result;
+        }
         $user->setRawAttributes($stored, true);
         $user->unsetRelations();
-        if (! $tookOver) {
-            return false;
+        if ($result !== KnowiiTakeOverResult::TookOver) {
+            return $result;
         }
 
         // When the takeover is stored (a caller can hold a transaction of its own): one line of the log, with the cuid only,
@@ -104,6 +118,6 @@ class TakeOverUnverifiedAccount implements TakesOverUnverifiedAccounts
             $endsLiveConnections->endFor($cuid);
         });
 
-        return true;
+        return KnowiiTakeOverResult::TookOver;
     }
 }
