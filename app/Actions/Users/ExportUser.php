@@ -4,6 +4,7 @@ namespace App\Actions\Users;
 
 use App\Constants;
 use App\Contracts\Users\ExportsUsers;
+use App\Models\AccessGroup;
 use App\Models\ChatMessage;
 use App\Models\ChatRead;
 use App\Models\Comment;
@@ -15,6 +16,7 @@ use App\Models\CommunityResource;
 use App\Models\Event;
 use App\Models\EventAnswer;
 use App\Models\LessonProgress;
+use App\Models\MemberTag;
 use App\Models\Mention;
 use App\Models\Notification;
 use App\Models\NotificationFollow;
@@ -306,18 +308,25 @@ final class ExportUser implements ExportsUsers
     }
 
     /**
-     * The invitations sent to the email address of the member
+     * The invitations sent to the email address of the member, compared without the case (an invitation stores the
+     * address in lower case, an account can hold capitals), with the access groups and the member tags that each gives at
+     * the join (#1390): both visibilities of a tag, the person has a right to their data (ADR 0060 decision 14)
      *
      * @return Generator<int, Row>
      */
     private function invitations(User $user): Generator
     {
-        foreach (CommunityInvitation::query()->where('email', $user->email)->lazyById(self::CHUNK) as $invitation) {
+        $invitations = CommunityInvitation::query()
+            ->whereRaw('lower(email) = lower(?)', [$user->email])
+            ->with(['accessGroups' => static fn ($query) => $query->orderByRaw('lower(access_groups.name)'), 'memberTags' => static fn ($query) => $query->orderByRaw('lower(member_tags.name)')]);
+        foreach ($invitations->lazyById(self::CHUNK) as $invitation) {
             yield [
                 'cuid' => $invitation->cuid,
                 ...$this->place($invitation->community_id, null),
                 'email' => $invitation->email,
                 'role' => $invitation->role->value,
+                'access_groups' => $invitation->accessGroups->map(static fn (AccessGroup $group): array => ['cuid' => $group->cuid, 'name' => $group->name])->values()->all(),
+                'member_tags' => $invitation->memberTags->map(static fn (MemberTag $tag): array => ['cuid' => $tag->cuid, 'name' => $tag->name])->values()->all(),
                 'created_at' => $this->date($invitation->created_at),
             ];
         }
@@ -950,7 +959,7 @@ final class ExportUser implements ExportsUsers
         ];
         $descriptions = [
             'account.json' => 'your account and your profile, with the choice of who sees each profile field, and the accounts of other providers that you connected to sign in (the provider, your identifier there and the dates), with the entitlement keys that the provider reported for you and the date of the last check, your time zone, the date of your last visit (a date, no hour) and your choice of pop-ups',
-            'memberships.json' => 'your communities and your role, the communities you own, your access groups (and whether you were added by hand or by an entitlement rule), the tags that the managers of a community put on you (the name, who sees it: the members or the managers only, and the date), the invitations sent to your email address and the communities where a manager removed you and where you cannot join again by yourself',
+            'memberships.json' => 'your communities and your role, the communities you own, your access groups (and whether you were added by hand or by an entitlement rule), the tags that the managers of a community put on you (the name, who sees it: the members or the managers only, and the date), the invitations sent to your email address (with the access groups and the member tags that each gives when you join) and the communities where a manager removed you and where you cannot join again by yourself',
             'activity.json' => 'the lessons you marked as done, your quiz results, your answers to events (the event by its identifier and its title, and your answer: yes, replay only or no), what you read in chat spaces and conversations, the members you blocked, where you were mentioned, your notifications (kind, community, the items by identifier and the dates, never a text), the threads that you follow or muted and the level that you chose for each space, the date when you last visited each space, your API tokens and your sessions',
             'posts.json' => 'your posts (Markdown)',
             'comments.json' => 'your comments (Markdown), with the cuid and the title of what they answer',

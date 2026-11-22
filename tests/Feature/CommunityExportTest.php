@@ -4,6 +4,7 @@ use App\Actions\Communities\ExportCommunity;
 use App\Contracts\Communities\ExportsCommunities;
 use App\Enums\KnowiiCommunityMemberRole;
 use App\Enums\KnowiiSpaceType;
+use App\Models\AccessGroup;
 use App\Models\ChatMessage;
 use App\Models\Comment;
 use App\Models\Community;
@@ -17,6 +18,7 @@ use App\Models\Space;
 use App\Models\SpaceGroup;
 use App\Models\Upload;
 use App\Models\User;
+use App\Support\InvitationGrants;
 use App\Support\MemberTagAssignments;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
@@ -285,4 +287,18 @@ test('the export holds the member tags of both visibilities with the cuids of th
         ->and($tags['Onboarded']['members'])->toBe([$f['member']->cuid])
         ->and($files['community.json'])->not->toContain('Qxelsewhere')
         ->and($files['README.txt'])->toContain('member tags');
+});
+
+test('each invitation of the export holds the cuids of the access groups and the member tags that it gives at the join (#1390)', function () {
+    $f = communityExportFixture();
+    $group = AccessGroup::query()->create(['community_id' => $f['community']->id, 'name' => 'Qxexport Paid']);
+    $tag = MemberTag::factory()->create(['community_id' => $f['community']->id, 'name' => 'Qxexport Founder']);
+    InvitationGrants::attach($f['community']->communityInvitations()->sole(), [$group], [$tag]);
+
+    $files = runCommunityExport($f['community']);
+    $community = json_decode($files['community.json'], true);
+
+    expect($community['invitations'][0]['access_groups'])->toBe([$group->cuid])
+        ->and($community['invitations'][0]['member_tags'])->toBe([$tag->cuid])
+        ->and($files['README.txt'])->toContain('invitations (with the access groups and the member tags that each gives at the join)');
 });

@@ -1,7 +1,16 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { CommunityInvitation, CommunityJoinBlock, CommunityMember, CommunityRole, Paginated } from '@knowii/common';
+import axe from 'axe-core';
+import type {
+  AccessGroup,
+  CommunityInvitation,
+  CommunityJoinBlock,
+  CommunityMember,
+  CommunityRole,
+  MemberTag,
+  Paginated,
+} from '@knowii/common';
 import { AppDataProvider, canActOnRole, grantableRoles, knowiiApiClient } from '@knowii/common';
 import { CommunityMembersManager } from './CommunityMembersManager';
 
@@ -38,17 +47,17 @@ const members = [
   member('u', 'Ursula', 'member'),
 ];
 
-const page = (items: CommunityMember[]): Paginated<CommunityMember> => ({
+const page = <T,>(items: T[], nextOffset: number | null = null): Paginated<T> => ({
   items,
   pagination: {
     limit: 20,
     offset: 0,
     previousOffset: null,
-    nextOffset: null,
+    nextOffset,
     currentPage: 1,
     pageCount: 1,
     totalCount: items.length,
-  } as Paginated<CommunityMember>['pagination'],
+  } as Paginated<T>['pagination'],
 });
 
 const invitation: CommunityInvitation = {
@@ -58,6 +67,8 @@ const invitation: CommunityInvitation = {
   created_at: new Date().toISOString(),
   expires_at: new Date().toISOString(),
   is_expired: false,
+  access_groups: [],
+  member_tags: [],
 };
 
 const allRights = { canAddCommunityMembers: true, canUpdateCommunityMembers: true, canRemoveCommunityMembers: true };
@@ -73,7 +84,7 @@ function renderManager(currentRole: CommunityRole, permissions = allRights) {
 beforeEach(() => {
   vi.restoreAllMocks();
   vi.spyOn(knowiiApiClient.communities.members, 'list').mockResolvedValue({ ok: true, message: '', data: page(members) });
-  vi.spyOn(knowiiApiClient.communities.invitations, 'list').mockResolvedValue({ ok: true, message: '', data: [invitation] });
+  vi.spyOn(knowiiApiClient.communities.invitations, 'list').mockResolvedValue({ ok: true, message: '', data: page([invitation]) });
   vi.spyOn(knowiiApiClient.communities.members, 'joinBlocks').mockResolvedValue({ ok: true, message: '', data: [] });
 });
 
@@ -160,7 +171,9 @@ describe('CommunityMembersManager', () => {
     expect(await screen.findByText('This person is already a member of the community')).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'Invite' }));
-    await waitFor(() => expect(create).toHaveBeenLastCalledWith('c1', { email: 'ada@example.com', role: 'member' }));
+    await waitFor(() =>
+      expect(create).toHaveBeenLastCalledWith('c1', { email: 'ada@example.com', role: 'member', access_groups: [], member_tags: [] }),
+    );
     await waitFor(() => expect(screen.getByLabelText('Invite by email')).toHaveValue(''));
   });
 
@@ -310,5 +323,119 @@ describe('the member tags of the member list (#1389)', () => {
     const ursula = within(list).getByRole('link', { name: 'Ursula' }).closest('li') as HTMLElement;
     await waitFor(() => expect(within(ursula).getByRole('list', { name: 'Tags' })).toHaveTextContent('Founder'));
     expect(onMemberTagsChanged).toHaveBeenCalled();
+  });
+});
+
+describe('CommunityMembersManager: the groups and the tags of an invitation (#1390)', () => {
+  const tag = (cuid: string, name: string, visibility: MemberTag['visibility']): MemberTag => ({
+    cuid,
+    name,
+    color: 'purple',
+    visibility,
+    members_count: 0,
+    created_at: '2026-11-22T10:00:00.000000Z',
+  });
+  const group = (cuid: string, name: string): AccessGroup => ({ cuid, name, description: '', created_at: '2026-11-22T10:00:00.000000Z' });
+  const grantRights = { ...allRights, canManageAccessGroupMembers: true, canAssignMemberTags: true };
+
+  beforeEach(() => {
+    vi.spyOn(knowiiApiClient.communities.accessGroups, 'list').mockResolvedValue({ ok: true, message: '', data: [group('g1', 'Paid')] });
+    vi.spyOn(knowiiApiClient.communities.memberTags, 'list').mockResolvedValue({
+      ok: true,
+      message: '',
+      data: [tag('t1', 'Founder', 'members'), tag('t2', 'Onboarded', 'managers')],
+    });
+  });
+
+  it('sends the chosen groups and tags with the invitation, then empties the picker', async () => {
+    const create = vi
+      .spyOn(knowiiApiClient.communities.invitations, 'create')
+      .mockResolvedValue({ ok: true, message: '', data: { ...invitation, email: 'ada@example.com', role: 'member' } });
+    render(
+      <AppDataProvider>
+        <CommunityMembersManager communityCuid="c1" communitySlug="tests" currentRole="owner" permissions={grantRights} />
+      </AppDataProvider>,
+    );
+
+    await userEvent.type(await screen.findByLabelText('Invite by email'), 'ada@example.com');
+    await userEvent.click(await screen.findByRole('button', { name: 'Access groups and tags' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Access groups and tags' });
+    await userEvent.click(within(dialog).getByRole('checkbox', { name: 'Paid' }));
+    await userEvent.click(within(dialog).getByRole('checkbox', { name: /^Onboarded ?\(managers only\)$/ }));
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Done' }));
+    // The dialog gives the focus back to its button after its leave transition: wait for it, so that the late return
+    // never meets the focus that the send puts in the email field
+    const pickerButton = await screen.findByRole('button', { name: 'Access groups and tags (2)' });
+    await waitFor(() => expect(pickerButton).toHaveFocus());
+
+    await userEvent.click(screen.getByRole('button', { name: 'Invite' }));
+
+    await waitFor(() =>
+      expect(create).toHaveBeenLastCalledWith('c1', {
+        email: 'ada@example.com',
+        role: 'member',
+        access_groups: ['g1'],
+        member_tags: ['t2'],
+      }),
+    );
+    expect(await screen.findByRole('button', { name: 'Access groups and tags' })).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByLabelText('Invite by email')).toHaveFocus());
+  });
+
+  it('shows the groups of a pending invitation as text and its tags as badges', async () => {
+    vi.spyOn(knowiiApiClient.communities.invitations, 'list').mockResolvedValue({
+      ok: true,
+      message: '',
+      data: page([{ ...invitation, access_groups: [{ cuid: 'g1', name: 'Paid' }], member_tags: [tag('t2', 'Onboarded', 'managers')] }]),
+    });
+    render(
+      <AppDataProvider>
+        <CommunityMembersManager communityCuid="c1" communitySlug="tests" currentRole="owner" permissions={grantRights} />
+      </AppDataProvider>,
+    );
+
+    const list = await screen.findByRole('list', { name: 'Pending invitations' });
+    expect(await within(list).findByText('Access groups: Paid')).toBeInTheDocument();
+    expect(within(within(list).getByRole('list', { name: 'Tags' })).getByText('Onboarded')).toBeInTheDocument();
+
+    const results = await axe.run(document.body, { rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
+    expect(results.violations).toEqual([]);
+  });
+
+  it('loads 20 more pending invitations, says how many, and puts the focus on the first new row', async () => {
+    // jsdom has no layout: the focus helper scrolls the row into view
+    Element.prototype.scrollIntoView = vi.fn();
+    const first = Array.from({ length: 20 }, (_, index) => ({ ...invitation, cuid: `i${index}`, email: `p${index}@example.com` }));
+    const list = vi
+      .spyOn(knowiiApiClient.communities.invitations, 'list')
+      .mockResolvedValueOnce({ ok: true, message: '', data: page(first, 20) })
+      .mockResolvedValueOnce({ ok: true, message: '', data: page([{ ...invitation, cuid: 'i20', email: 'p20@example.com' }]) });
+    render(
+      <AppDataProvider>
+        <CommunityMembersManager communityCuid="c1" communitySlug="tests" currentRole="owner" permissions={allRights} />
+      </AppDataProvider>,
+    );
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Load more' }));
+    await waitFor(() => expect(list).toHaveBeenLastCalledWith('c1', 20, 20));
+    expect(await screen.findByText('1 more loaded')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('p20@example.com').closest('li')).toHaveFocus());
+    expect(screen.queryByRole('button', { name: 'Load more' })).not.toBeInTheDocument();
+  });
+
+  it('shows no picker when the community has no group and no tag', async () => {
+    vi.spyOn(knowiiApiClient.communities.accessGroups, 'list').mockResolvedValue({ ok: true, message: '', data: [] });
+    vi.spyOn(knowiiApiClient.communities.memberTags, 'list').mockResolvedValue({ ok: true, message: '', data: [] });
+    render(
+      <AppDataProvider>
+        <CommunityMembersManager communityCuid="c1" communitySlug="tests" currentRole="owner" permissions={grantRights} />
+      </AppDataProvider>,
+    );
+
+    expect(await screen.findByLabelText('Invite by email')).toBeInTheDocument();
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(screen.queryByRole('button', { name: /Access groups and tags/ })).not.toBeInTheDocument();
   });
 });

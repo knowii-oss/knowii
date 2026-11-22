@@ -5,9 +5,14 @@ meta {
 }
 
 get {
-  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/invitations
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/invitations?limit=10&offset=0
   body: none
   auth: none
+}
+
+params:query {
+  limit: 10
+  offset: 0
 }
 
 headers {
@@ -15,5 +20,5 @@ headers {
 }
 
 docs {
-  The pending invitations of the community, newest first (#1242): email, role, created_at, expires_at, is_expired. Owner, admins, and moderators with the manage_members right.
+  The pending invitations of the community, newest first (#1242): email, role, created_at, expires_at, is_expired, and the access_groups (cuid, name) and member_tags (the tag) that each gives at the join, by name (#1390). Offset pagination (limit 10 by default, 1000 at most, offset; metadata.pagination). Owner, admins, and moderators with the manage_members right.
 }

@@ -389,6 +389,14 @@ test('the privacy policy tells about the member tags, who sees them and how long
     );
 });
 
+test('the privacy policy tells that an invitation can carry access groups and tags (#1390, approved 2026-11-22)', function () {
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('updated', '2026-11-22')
+        ->where('html', fn (string $html) => str_contains($html, 'the invitations sent to your email address, with the access groups and the tags that they give when you join, what you read')
+            && str_contains($html, 'when a manager of a community invites you, they give us your email address, and they can choose the access groups and the tags that you get when you join.'))
+    );
+});
+
 test('the privacy policy tells about the answers to events, who sees them and how long they stay (#1515, approved 2026-11-17)', function () {
     config(['retention.event_answers_days' => 90]);
 
@@ -421,7 +429,7 @@ test('the legal texts name the sign-in provider of the instance, and no product 
 
 test('the privacy policy describes the data that comes from other people (#1345)', function () {
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
-        ->where('html', fn (string $html) => str_contains($html, 'Data that we get from other people: when a manager of a community invites you, they give us your email address. When a member mentions you, that mention is content of the community.')));
+        ->where('html', fn (string $html) => str_contains($html, 'Data that we get from other people: when a manager of a community invites you, they give us your email address, and they can choose the access groups and the tags that you get when you join. When a member mentions you, that mention is content of the community.')));
 });
 
 test('the hosted instance has a text for every legal page, and its list of sub-processors (#1653)', function () {

@@ -409,6 +409,10 @@ export const COMMUNITY_JOIN_BLOCK_API_PATH = `${COMMUNITY_JOIN_BLOCKS_API_PATH}/
 export const COMMUNITY_INVITATIONS_API_PATH = `${COMMUNITY_API_PATH}/invitations`;
 export const COMMUNITY_API_PARAM_INVITATION = '{invitationCuid}';
 export const COMMUNITY_INVITATION_API_PATH = `${COMMUNITY_INVITATIONS_API_PATH}/${COMMUNITY_API_PARAM_INVITATION}`;
+// The largest page of the pending invitations (#1390). WARNING: aligned with MAX_INVITATIONS_PAGE_LIMIT (Constants.php)
+export const MAX_INVITATIONS_PAGE_LIMIT = 1000;
+// The pending invitations of the settings load this many at a time (#1390)
+export const INVITATIONS_PAGE_SIZE = 20;
 // The members of one page of the member management and of the member directory (#148). WARNING: aligned with
 // COMMUNITY_MEMBERS_PAGE_SIZE (Constants.php)
 export const COMMUNITY_MEMBERS_PAGE_SIZE = 20;
@@ -444,6 +448,8 @@ export const MAX_MEMBER_TAGS_PER_MEMBER = 20;
 export const MIN_LENGTH_ACCESS_GROUP_NAME = 2;
 export const MAX_LENGTH_ACCESS_GROUP_NAME = 64;
 export const MAX_LENGTH_ACCESS_GROUP_DESCRIPTION = 500;
+// WARNING: aligned with MAX_ACCESS_GROUPS_PER_COMMUNITY (Constants.php)
+export const MAX_ACCESS_GROUPS_PER_COMMUNITY = 50;
 export const MENTION_SUGGESTIONS_LIMIT = 8;
 
 // Image uploads (#1178)

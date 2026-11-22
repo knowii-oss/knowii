@@ -143,3 +143,16 @@ test('a deleted account loses every member tag, and the tags stay on the other m
         ->and($shown->members()->pluck('users.id')->all())->toBe([$other->id])
         ->and(MemberTag::query()->whereKey($hidden->id)->exists())->toBeTrue();
 });
+
+test('the deletion of an account with capitals in its address deletes the invitations of that address (#1390)', function () {
+    $user = User::factory()->withUserProfile()->create(['email' => 'Grace.Hopper@Example.com']);
+    $community = Community::factory()->create();
+    $invitation = $community->communityInvitations()->create(['email' => 'grace.hopper@example.com', 'role' => KnowiiCommunityMemberRole::Member]);
+    $other = $community->communityInvitations()->create(['email' => 'ada@example.com', 'role' => KnowiiCommunityMemberRole::Member]);
+
+    $this->actingAs($user)->delete('/user', ['password' => 'password']);
+
+    expect(User::query()->whereKey($user->id)->exists())->toBeFalse()
+        ->and(CommunityInvitation::query()->whereKey($invitation->id)->exists())->toBeFalse()
+        ->and(CommunityInvitation::query()->whereKey($other->id)->exists())->toBeTrue();
+});

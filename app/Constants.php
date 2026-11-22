@@ -201,6 +201,9 @@ class Constants
 
     public const int INVITATIONS_PER_MINUTE = 10;
 
+    // The largest page of the pending invitations (#1390): a file adds up to 1000 of them. WARNING: aligned with constants.ts
+    public const int MAX_INVITATIONS_PAGE_LIMIT = 1000;
+
     // Access groups (#1241, ADR 0025). WARNING: aligned with access-group.schema.ts
     public const int MIN_LENGTH_ACCESS_GROUP_NAME = 2;
 
