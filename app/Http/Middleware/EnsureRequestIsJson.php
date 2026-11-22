@@ -31,7 +31,7 @@ class EnsureRequestIsJson
     }
 
     /**
-     * File uploads are the only non-JSON bodies the API accepts, on the upload endpoints only (#1178, #109).
+     * File uploads are the only non-JSON bodies the API accepts, on the upload endpoints only (#1178, #109, #1390).
      */
     private static function acceptsFiles(Request $request): bool
     {
@@ -44,6 +44,8 @@ class EnsureRequestIsJson
             || ($request->isMethod('POST') && $request->is(str_replace(['{'.ApiRoutes::PARAM_COMMUNITY.'}', '{'.ApiRoutes::PARAM_SPACE.'}'], '*', ApiRoutes::path(ApiRoutes::COMMUNITY_SPACE_MATERIALS))))
             // The avatar of the current user (#109)
             || ($request->isMethod('POST') && $request->is(ApiRoutes::path(ApiRoutes::USER_AVATAR)))
+            // The CSV file of an import of invitations (#1390)
+            || ($request->isMethod('POST') && $request->is(str_replace('{'.ApiRoutes::PARAM_COMMUNITY.'}', '*', ApiRoutes::path(ApiRoutes::COMMUNITY_INVITATION_IMPORTS))))
         );
     }
 }

@@ -19,6 +19,11 @@ interface ChecksMailBudgets
     public function isHeld(): bool;
 
     /**
+     * The end of the hold of the notification mail, null when nothing is held now (#1390)
+     */
+    public function heldUntil(): ?CarbonImmutable;
+
+    /**
      * Holds the notification mail until this time (the provider refused a mail for a quota). A later hold stays.
      *
      * @param  string  $reason  The error type of the provider, for the log

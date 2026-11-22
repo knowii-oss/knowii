@@ -23,7 +23,8 @@ use Visus\Cuid2\Cuid2;
  *
  * - The quota: MAIL_MONTHLY_QUOTA, else the monthly limit of the provider, else none (the check does nothing more).
  * - The use: the monthly count of the provider when it could be read (it sees the other senders of the same team), else
- *   the count of this instance (`sent_count`).
+ *   the count of this instance (`sent_count`). A read of the provider is stored on the row (`provider_limit`,
+ *   `provider_used`, `provider_sent_count`) for the checks of an import of invitations (#1390).
  * - At 80%, once a month: a warning in the log and the alert mail to MAIL_ALERT_TO.
  * - At the hold percent: notification mail is held until the provider starts the count again (else the first day of the
  *   next month), with a second alert once a month. The daily limit of the provider holds until the next day, with a log
@@ -48,6 +49,16 @@ final class CheckMailBudget implements ChecksMailBudgets
         $quota = MailSettings::monthlyQuota() ?? self::positive($usage?->monthly->limit);
         $used = $usage !== null ? $usage->monthly->used : $row['sent_count'];
         $source = $usage !== null ? MailBudgetCheck::SOURCE_PROVIDER : MailBudgetCheck::SOURCE_LOCAL;
+
+        if ($usage !== null) {
+            // The checks of an import of invitations read the same quota and use until the next run (#1390)
+            DB::table('mail_usage_months')->where('id', $row['id'])->update([
+                'provider_limit' => self::positive($usage->monthly->limit),
+                'provider_used' => max(0, $usage->monthly->used),
+                'provider_sent_count' => $row['sent_count'],
+                'updated_at' => $now,
+            ]);
+        }
 
         if ($quota === null) {
             return new MailBudgetCheck($used, null, null, $source, $row['held_until']);
@@ -106,10 +117,19 @@ final class CheckMailBudget implements ChecksMailBudgets
 
     final public function isHeld(): bool
     {
+        return $this->heldUntil() !== null;
+    }
+
+    final public function heldUntil(): ?CarbonImmutable
+    {
         $now = CarbonImmutable::now('UTC');
         $heldUntil = DB::table('mail_usage_months')->where('month', $now->startOfMonth()->toDateString())->value('held_until');
+        if (! is_string($heldUntil)) {
+            return null;
+        }
+        $until = CarbonImmutable::parse($heldUntil, 'UTC');
 
-        return is_string($heldUntil) && CarbonImmutable::parse($heldUntil, 'UTC')->greaterThan($now);
+        return $until->greaterThan($now) ? $until : null;
     }
 
     final public function holdUntil(CarbonImmutable $until, string $reason): void

@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * An invitation carries access groups and member tags (#1390): the person gets them when they accept it. The
+ * An invitation carries access groups and member tags (#1390, ADR 0061): the person gets them when they accept it. The
  * migration only adds two link tables: it changes no existing row. A link has no cuid: no route and no answer names one
  * (as member_tag_members).
  */

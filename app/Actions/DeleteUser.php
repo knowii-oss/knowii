@@ -9,6 +9,7 @@ use App\Contracts\Users\DeletesMemberContent;
 use App\Enums\KnowiiAccountDeletionProof;
 use App\Exceptions\BusinessException;
 use App\Models\CommunityInvitation;
+use App\Models\InvitationImportRow;
 use App\Models\User;
 use App\Support\AccountDeletion;
 use Illuminate\Support\Facades\DB;
@@ -35,6 +36,12 @@ use Laravel\Jetstream\Contracts\DeletesUsers;
  */
 class DeleteUser implements DeletesAccounts, DeletesUsers
 {
+    /**
+     * The transaction of a deletion runs again after a deadlock, at most this many times in all: a write of the same
+     * account at the same time (an invitation mail of one of its communities) locks the rows in another order
+     */
+    private const int ATTEMPTS = 3;
+
     /**
      * Create a new action instance.
      */
@@ -71,7 +78,7 @@ class DeleteUser implements DeletesAccounts, DeletesUsers
 
             Log::info('Deleting user', ['user' => $cuid]);
             $this->remove($locked, $deleteContent);
-        });
+        }, self::ATTEMPTS);
 
         $this->afterRemoval($cuid);
     }
@@ -101,7 +108,7 @@ class DeleteUser implements DeletesAccounts, DeletesUsers
             $locked->forceFill(['deletion_signed_in_at' => null])->save();
             Log::info('Deleting user', ['user' => $cuid]);
             $this->remove($locked, $deleteContent);
-        });
+        }, self::ATTEMPTS);
 
         $this->afterRemoval($cuid);
     }
@@ -137,6 +144,8 @@ class DeleteUser implements DeletesAccounts, DeletesUsers
 
         // An invitation stores the address in lower case, an account can hold capitals: compared without the case
         CommunityInvitation::query()->whereRaw('lower(email) = lower(?)', [$email])->delete();
+        // The rows of the imports of invitations with this address (#1390); an import that the account uploaded stays, without its author
+        InvitationImportRow::query()->whereRaw('lower(email) = lower(?)', [$email])->delete();
         DB::table('password_reset_tokens')->where('email', $email)->delete();
         DB::table('sessions')->where('user_id', $user->id)->delete();
 

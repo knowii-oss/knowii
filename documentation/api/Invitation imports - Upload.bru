@@ -1,0 +1,26 @@
+meta {
+  name: Invitation imports - Upload
+  type: http
+  seq: 213
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/invitation-imports
+  body: multipartForm
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+body:multipart-form {
+  file: @file(path/to/invitations.csv)
+  default_role: member
+  ~access_groups[]: <cuid of an access group>
+  ~member_tags[]: <cuid of a member tag>
+}
+
+docs {
+  Uploads a CSV file of invitations (#1390, multipart/form-data): UTF-8, a header row with a column email, and the optional columns role, access_groups and tags (names separated by |). At most 1000 rows and 1 MB. The server reads the file one time and does not keep it. 201 with the import in preview: the counts, the ignored columns, and the defaults (default_role, access_groups, member_tags) that every row gets. A new upload deletes the older preview of the caller in this community. An error of the file is a 400 on file. Owner, admins, moderators with manage_members. Token ability: invitations:write. Limited to 5 a minute.
+}

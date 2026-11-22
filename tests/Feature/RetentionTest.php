@@ -5,8 +5,11 @@ use App\Models\Community;
 use App\Models\CommunityInvitation;
 use App\Models\Event as EventModel;
 use App\Models\EventAnswer;
+use App\Models\InvitationImport;
+use App\Models\InvitationImportRow;
 use App\Models\User;
 use App\Support\Retention;
+use Carbon\CarbonImmutable;
 use Illuminate\Console\Scheduling\Event;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Http\Client\Request;
@@ -48,6 +51,9 @@ test('the periods of the privacy policy come from the configuration (ADR 0030)',
         ->and($periods['password_reset_link'])->toBe('60 minutes')
         ->and($periods['invitation'])->toBe('7 days')
         ->and($periods['expired_invitations'])->toBe('30 days')
+        ->and($periods['invitation_import_previews'])->toBe('24 hours')
+        ->and($periods['invitation_imports'])->toBe('37 days')
+        ->and($periods['invitation_mails'])->toBe('2 days at most')
         ->and($periods['api_token_default'])->toBe('90 days')
         ->and($periods['expired_api_tokens'])->toBe('30 days')
         ->and($periods['failed_jobs'])->toBe('7 days')
@@ -142,7 +148,7 @@ test('the dry run of the retention prune deletes nothing (#1306)', function () {
     $old = invitationCreatedDaysAgo($community, 60);
 
     $this->artisan('retention:prune', ['--dry-run' => true])
-        ->expectsTable(['Data', 'To delete'], [['invitations', 1], ['api_tokens', 0], ['failed_jobs', 0], ['password_reset_tokens', 0], ['sessions', 0], ['cache', 0], ['notifications', 0], ['event_answers', 0], ['exports', 0], ['pending_emails', 0]])
+        ->expectsTable(['Data', 'To delete'], [['invitations', 1], ['invitation_imports', 0], ['invitation_mails', 0], ['api_tokens', 0], ['failed_jobs', 0], ['password_reset_tokens', 0], ['sessions', 0], ['cache', 0], ['notifications', 0], ['event_answers', 0], ['exports', 0], ['pending_emails', 0]])
         ->assertSuccessful();
 
     expect(CommunityInvitation::query()->whereKey($old->id)->exists())->toBeTrue();
@@ -313,4 +319,40 @@ test('a new email address that waits for its confirmation is removed 7 days afte
         ->and($old->fresh()->getRawOriginal('pending_email'))->toBeNull()
         ->and($old->fresh()->getRawOriginal('pending_email_requested_at'))->toBeNull()
         ->and($recent->fresh()->getRawOriginal('pending_email'))->toBe('recent-request.new@example.com');
+});
+
+test('a preview of invitations that nobody sent goes 24 hours after the upload, a sent import 37 days after its confirm, with its rows (#1390)', function () {
+    Storage::fake('local');
+    $this->travelTo(CarbonImmutable::parse('2026-11-18T10:00:00Z'));
+    $community = Community::factory()->create();
+    $oldPreview = InvitationImport::factory()->create(['community_id' => $community->id, 'created_at' => now()->subHours(24)->subSecond()]);
+    $youngPreview = InvitationImport::factory()->create(['community_id' => $community->id, 'created_at' => now()->subHours(24)->addSecond()]);
+    $oldSent = InvitationImport::factory()->sending()->create(['community_id' => $community->id, 'confirmed_at' => now()->subDays(37)->subSecond()]);
+    $youngSent = InvitationImport::factory()->done()->create(['community_id' => $community->id, 'confirmed_at' => now()->subDays(37)->addSecond()]);
+    InvitationImportRow::factory()->create(['invitation_import_id' => $oldSent->id]);
+
+    $this->artisan('retention:prune', ['--dry-run' => true])->assertSuccessful();
+    expect(InvitationImport::query()->count())->toBe(4);
+
+    expect(app(PrunesExpiredData::class)->prune()['invitation_imports'])->toBe(2)
+        ->and(InvitationImport::query()->pluck('id')->sort()->values()->all())->toBe([$youngPreview->id, $youngSent->id])
+        ->and(InvitationImportRow::query()->where('invitation_import_id', $oldSent->id)->exists())->toBeFalse();
+
+    config(['retention.invitation_import_previews_hours' => 48]);
+    expect(Retention::periods()['invitation_import_previews'])->toBe('48 hours');
+});
+
+test('the count of the daily caps of the invitation mails goes 24 hours after each mail (#1390)', function () {
+    Storage::fake('local');
+    $this->travelTo(CarbonImmutable::parse('2026-11-18T10:00:00Z'));
+    $community = Community::factory()->create();
+    DB::table('invitation_mails')->insert([
+        ['community_id' => $community->id, 'user_id' => null, 'created_at' => now()->subHours(24)->subSecond()],
+        ['community_id' => $community->id, 'user_id' => null, 'created_at' => now()->subHours(24)->addSecond()],
+    ]);
+
+    expect(app(PrunesExpiredData::class)->prune(dryRun: true)['invitation_mails'])->toBe(1)
+        ->and(DB::table('invitation_mails')->count())->toBe(2)
+        ->and(app(PrunesExpiredData::class)->prune()['invitation_mails'])->toBe(1)
+        ->and(DB::table('invitation_mails')->pluck('created_at')->all())->toBe(['2026-11-17 10:00:01']);
 });

@@ -4,12 +4,15 @@ use App\Actions\Users\ExportUser;
 use App\Actions\Users\UpdateAvatar;
 use App\Contracts\Users\ExportsUsers;
 use App\Enums\KnowiiCommunityMemberRole;
+use App\Enums\KnowiiInvitationImportOutcome;
 use App\Models\AccessGroup;
 use App\Models\ChatMessage;
 use App\Models\Comment;
 use App\Models\Community;
 use App\Models\CommunityResource;
 use App\Models\Conversation;
+use App\Models\InvitationImport;
+use App\Models\InvitationImportRow;
 use App\Models\MemberTag;
 use App\Models\Notification;
 use App\Models\NotificationFollow;
@@ -379,4 +382,45 @@ test('the export lists the invitations sent to the address, with their groups an
         ->and($invitations[0]['access_groups'])->toBe([['cuid' => $group->cuid, 'name' => 'Qxexport Paid']])
         ->and($invitations[0]['member_tags'])->toBe([['cuid' => $hidden->cuid, 'name' => 'Qxexport Onboarded']])
         ->and($files['README.txt'])->toContain('the invitations sent to your email address (with the access groups and the member tags that each gives when you join)');
+});
+
+test('the export lists the rows of the imports of invitations with the address of the member, in any case, and nothing of another person (#1390)', function () {
+    $f = userExportFixture();
+    $f['member']->forceFill(['email' => 'Member@Example.com'])->save();
+    $import = InvitationImport::factory()->done()->create(['community_id' => $f['community']->id, 'user_id' => $f['other']->id]);
+    InvitationImportRow::factory()->outcome(KnowiiInvitationImportOutcome::Sent)->create(['invitation_import_id' => $import->id, 'row_number' => 2, 'email' => 'member@example.com', 'sent_at' => now()]);
+    InvitationImportRow::factory()->create(['invitation_import_id' => $import->id, 'row_number' => 3, 'email' => 'someone-else@example.com']);
+
+    $files = runUserExport($f['member']);
+    $memberships = json_decode($files['memberships.json'], true);
+    $keys = array_keys($memberships);
+    $rows = $memberships['invitation_import_rows'];
+
+    expect(array_search('invitation_import_rows', $keys, true))->toBe(array_search('invitations', $keys, true) + 1)
+        ->and($rows)->toHaveCount(1)
+        ->and($rows[0]['email'])->toBe('member@example.com')
+        ->and($rows[0]['outcome'])->toBe('sent')
+        ->and($rows[0]['community'])->toBe($f['community']->cuid)
+        ->and(array_keys($rows[0]))->toBe(['community', 'community_slug', 'email', 'outcome', 'reason', 'created_at', 'sent_at'])
+        ->and(json_encode($rows))->not->toContain('someone-else')->not->toContain($f['other']->cuid)
+        ->and($files['README.txt'])->toContain('the rows of the imports of invitations from a file with your address');
+});
+
+test('the export lists the invitation emails that the account sent, with the community and the time, and none of another account (#1390)', function () {
+    $f = userExportFixture();
+    DB::table('invitation_mails')->insert([
+        ['community_id' => $f['community']->id, 'user_id' => $f['member']->id, 'created_at' => '2026-11-18 10:00:00'],
+        // The community is gone: the row stays for the cap of the account
+        ['community_id' => null, 'user_id' => $f['member']->id, 'created_at' => '2026-11-18 11:00:00'],
+        ['community_id' => $f['community']->id, 'user_id' => $f['other']->id, 'created_at' => '2026-11-18 12:00:00'],
+    ]);
+
+    $files = runUserExport($f['member']);
+    $activity = json_decode($files['activity.json'], true);
+
+    expect($activity['invitation_mails'])->toBe([
+        ['community' => $f['community']->cuid, 'created_at' => '2026-11-18T10:00:00+00:00'],
+        ['community' => null, 'created_at' => '2026-11-18T11:00:00+00:00'],
+    ])
+        ->and($files['README.txt'])->toContain('your sessions and the invitation emails that you sent in the last days (the community and the time)');
 });

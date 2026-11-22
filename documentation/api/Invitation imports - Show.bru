@@ -1,0 +1,19 @@
+meta {
+  name: Invitation imports - Show
+  type: http
+  seq: 215
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/invitation-imports/<cuid of an import>
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  One import of invitations (#1390): state (preview, sending, done), default_role, default_access_groups, default_member_tags, ignored_columns, counts (rows, valid, refused, queued, sent, held, failed, skipped, still_invited, not_sent: the rows that a send again of not_sent takes), started_by, created_at, confirmed_at, finished_at, resent_at, can_resend_not_joined_from, kept_until. A preview older than 24 hours answers 404. Token ability: invitations:read.
+}

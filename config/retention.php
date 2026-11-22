@@ -16,6 +16,11 @@ return [
     // An invitation is valid for 7 days (CommunityInvitation::VALIDITY_DAYS), then deleted this many days later
     'expired_invitations_days' => (int) env('RETENTION_EXPIRED_INVITATIONS_DAYS', 30),
 
+    // An import of invitations from a file (#1390, ADR 0061) that nobody sent is deleted this many hours after the upload.
+    // The record of a sent import follows the periods of the invitations: it is deleted the validity of an invitation
+    // plus expired_invitations_days after the confirm
+    'invitation_import_previews_hours' => (int) env('RETENTION_INVITATION_IMPORT_PREVIEWS_HOURS', 24),
+
     // A personal API token is deleted this many days after its expiry date
     'expired_api_tokens_days' => (int) env('RETENTION_EXPIRED_API_TOKENS_DAYS', 30),
 

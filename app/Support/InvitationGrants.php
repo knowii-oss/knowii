@@ -18,7 +18,7 @@ use Laravel\Sanctum\PersonalAccessToken;
 use Laravel\Sanctum\TransientToken;
 
 /**
- * The access groups and the member tags that a person gets when they join through an invitation (#1390), and
+ * The access groups and the member tags that a person gets when they join through an invitation (#1390, ADR 0061), and
  * later through an invite link (#1391). The one reader of the two input lists `access_groups` and `member_tags`: lists
  * of cuids of the same community, a duplicate counts once.
  *

@@ -413,6 +413,24 @@ export const COMMUNITY_INVITATION_API_PATH = `${COMMUNITY_INVITATIONS_API_PATH}/
 export const MAX_INVITATIONS_PAGE_LIMIT = 1000;
 // The pending invitations of the settings load this many at a time (#1390)
 export const INVITATIONS_PAGE_SIZE = 20;
+// Invitations from a file (#1390, ADR 0061). WARNING: aligned with ApiRoutes.php and Constants.php
+export const COMMUNITY_INVITATION_IMPORTS_API_PATH = `${COMMUNITY_API_PATH}/invitation-imports`;
+export const COMMUNITY_API_PARAM_INVITATION_IMPORT = '{invitationImport}';
+export const COMMUNITY_INVITATION_IMPORT_API_PATH = `${COMMUNITY_INVITATION_IMPORTS_API_PATH}/${COMMUNITY_API_PARAM_INVITATION_IMPORT}`;
+export const COMMUNITY_INVITATION_IMPORT_ROWS_API_PATH = `${COMMUNITY_INVITATION_IMPORT_API_PATH}/rows`;
+export const COMMUNITY_INVITATION_IMPORT_CONFIRM_API_PATH = `${COMMUNITY_INVITATION_IMPORT_API_PATH}/confirm`;
+export const COMMUNITY_INVITATION_IMPORT_RESEND_API_PATH = `${COMMUNITY_INVITATION_IMPORT_API_PATH}/resend`;
+export const MAX_INVITATION_IMPORT_ROWS = 1000;
+export const MAX_INVITATION_IMPORT_KILOBYTES = 1024;
+export const MAX_INVITATION_IMPORT_COLUMNS = 20;
+export const MAX_INVITATION_IMPORT_CELL_LENGTH = 1000;
+export const INVITATION_IMPORT_RESEND_AFTER_DAYS = 3;
+export const INVITATION_IMPORTS_PER_MINUTE = 5;
+// The web pages of the invitations from a file (routes/web.php)
+export const INVITATION_IMPORTS_URL = 'invitation-imports.index';
+export const INVITATION_IMPORT_URL = 'invitation-imports.show';
+// The file that the page "Invite from a file" offers as a template (public/templates)
+export const INVITATION_IMPORT_TEMPLATE_PATH = '/templates/invitations.csv';
 // The members of one page of the member management and of the member directory (#148). WARNING: aligned with
 // COMMUNITY_MEMBERS_PAGE_SIZE (Constants.php)
 export const COMMUNITY_MEMBERS_PAGE_SIZE = 20;

@@ -12,7 +12,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Gives the access groups and the member tags of an invitation (#1390), and later of an invite link (#1391), to
+ * Gives the access groups and the member tags of an invitation (#1390, ADR 0061), and later of an invite link (#1391), to
  * a person who becomes a member. The caller calls it inside the transaction of the join, after the attach: a failure
  * fails the whole join, and nothing stays. The caller reads the groups and the tags in that transaction with a shared
  * lock (as AcceptCommunityInvitation, or InvitationGrants::lockPresent), so a group or a tag that is gone is not given.

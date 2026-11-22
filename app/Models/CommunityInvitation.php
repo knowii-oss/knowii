@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 /**
  * Community invitations (#1242): an email address invited with a role. The link of the email is valid for
  * VALIDITY_DAYS days; inviting the same address again replaces the invitation. An invitation can carry access groups and
- * member tags that the person gets when they accept it (#1390).
+ * member tags that the person gets when they accept it (#1390, ADR 0061).
  *
  * @property-read int $id
  * @property-read string $cuid

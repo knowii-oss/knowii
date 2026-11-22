@@ -4,11 +4,14 @@ namespace App\Actions\Retention;
 
 use App\Actions\Communities\ExportCommunity;
 use App\Contracts\Retention\PrunesExpiredData;
+use App\Enums\KnowiiInvitationImportState;
 use App\Models\CommunityInvitation;
 use App\Models\Event;
 use App\Models\EventAnswer;
+use App\Models\InvitationImport;
 use App\Models\Notification;
 use App\Models\User;
+use App\Support\InvitationMailCaps;
 use App\Support\Retention;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +23,9 @@ use Laravel\Sanctum\PersonalAccessToken;
  * Deletes the data that Knowii keeps only for a time (ADR 0030, #1306), with the periods of App\Support\Retention:
  *
  * - community invitations, some days after they expire
+ * - imports of invitations from a file (#1390): a preview that nobody sent some hours after the upload, a sent import as
+ *   long as an invitation lives after its confirm
+ * - the count of the daily caps of the invitation mails (#1390): a row 24 hours after its mail went to the queue
  * - personal API tokens, some days after their expiry date
  * - failed background jobs (their payload can hold personal data)
  * - password reset tokens after their validity
@@ -41,6 +47,21 @@ final class PruneExpiredData implements PrunesExpiredData
         $counts = [
             'invitations' => $this->apply(
                 CommunityInvitation::query()->where('created_at', '<', now()->subDays(Retention::invitationValidityDays() + Retention::expiredInvitationsDays()))->toBase(),
+                $dryRun
+            ),
+            // A preview that nobody sent, and the record of a sent import as long as an invitation lives (#1390, ADR 0061). The
+            // rows go by the cascade
+            'invitation_imports' => $this->apply(
+                InvitationImport::query()
+                    ->where(fn ($query) => $query
+                        ->where(fn ($preview) => $preview->where('state', KnowiiInvitationImportState::Preview->value)->where('created_at', '<', now()->subHours(Retention::invitationImportPreviewHours())))
+                        ->orWhere('confirmed_at', '<', now()->subDays(Retention::invitationImportsDays())))
+                    ->toBase(),
+                $dryRun
+            ),
+            // The count of the daily caps of the invitation mails (#1390, ADR 0061): a row that counts no more
+            'invitation_mails' => $this->apply(
+                DB::table('invitation_mails')->where('created_at', '<', now()->subHours(InvitationMailCaps::WINDOW_HOURS)),
                 $dryRun
             ),
             'api_tokens' => $this->apply(

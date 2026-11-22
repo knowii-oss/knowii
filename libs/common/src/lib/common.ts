@@ -42,6 +42,7 @@ export * from './types/reaction.schema';
 export * from './types/member.schema';
 export * from './types/access-group.schema';
 export * from './types/member-tag.schema';
+export * from './types/invitation-import.schema';
 export * from './types/upload.schema';
 export * from './types/toast.intf';
 export * from './types/url.schema';

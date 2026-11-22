@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Support\ContentFiles;
 use Exception;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Contracts\Database\ConcurrencyErrorDetector;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
@@ -16,6 +17,9 @@ class DeleteCommunity implements DeletesCommunities
 {
     /**
      * Delete the given community.
+     *
+     * A deadlock or a serialization failure goes out as it is, so that the transaction of the caller can run again (the
+     * deletion of an account, DeleteUser). Any other error of the deletion becomes a TechnicalException.
      *
      * @throws TechnicalException
      * @throws ValidationException
@@ -30,6 +34,9 @@ class DeleteCommunity implements DeletesCommunities
         try {
             $community->purge();
         } catch (Exception $e) {
+            if (app(ConcurrencyErrorDetector::class)->causedByConcurrencyError($e)) {
+                throw $e;
+            }
             Log::warning('Failed to delete the community', ['exception' => $e]);
             throw new TechnicalException('Failed to delete the community', null, $e);
         }

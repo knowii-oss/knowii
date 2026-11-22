@@ -1,5 +1,11 @@
 import {
   COMMUNITY_API_BASE_PATH,
+  COMMUNITY_API_PARAM_INVITATION_IMPORT,
+  COMMUNITY_INVITATION_IMPORT_API_PATH,
+  COMMUNITY_INVITATION_IMPORT_CONFIRM_API_PATH,
+  COMMUNITY_INVITATION_IMPORT_RESEND_API_PATH,
+  COMMUNITY_INVITATION_IMPORT_ROWS_API_PATH,
+  COMMUNITY_INVITATION_IMPORTS_API_PATH,
   COMMUNITY_API_IS_NAME_AVAILABLE_PATH,
   COMMUNITY_OWNERSHIP_API_PATH,
   USER_AVATAR_API_PATH,
@@ -165,6 +171,14 @@ import { communitySpaceLevelSchema, spaceLevelSchema, threadFollowSchema } from 
 import type { PresenceMember } from '../types/presence.schema';
 import { presenceMemberSchema } from '../types/presence.schema';
 import type { Upload } from '../types/upload.schema';
+import type {
+  InvitationImport,
+  InvitationImportOutcome,
+  InvitationImportResendSet,
+  InvitationImportRow,
+  InvitationImportUpload,
+} from '../types/invitation-import.schema';
+import { invitationImportRowSchema, invitationImportSchema } from '../types/invitation-import.schema';
 import { uploadSchema } from '../types/upload.schema';
 import type { CommunityResource } from '../types/community-resource.schema';
 import type { Community, CommunityJoinPolicy, ModeratorPermissions, NewCommunity } from '../types/community.schema';
@@ -230,6 +244,8 @@ const accessGroupPath = (communityCuid: string, groupCuid: string, path = COMMUN
     [COMMUNITY_API_PARAM_ACCESS_GROUP]: groupCuid,
     [COMMUNITY_API_PARAM_MEMBER]: memberCuid,
   });
+const invitationImportPath = (path: string, communityCuid: string, importCuid: string) =>
+  apiPath(path, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [COMMUNITY_API_PARAM_INVITATION_IMPORT]: importCuid });
 const memberTagPath = (communityCuid: string, tagCuid: string, path = COMMUNITY_MEMBER_TAG_API_PATH, memberCuid = '') =>
   apiPath(path, {
     [SPACE_API_PARAM_COMMUNITY]: communityCuid,
@@ -1245,6 +1261,101 @@ export const knowiiApiClient = {
           }),
           null,
           'Failed to cancel the invitation.',
+        ),
+    },
+    invitationImports: {
+      /**
+       * Upload a CSV file of invitations (#1390, ADR 0061): the server reads it and answers the import in `preview`.
+       * The client never reads the file. Field errors come on `file`, `default_role`, `access_groups` and `member_tags`.
+       */
+      upload: (communityCuid: string, input: InvitationImportUpload): Promise<ApiResult<InvitationImport>> => {
+        const body = new FormData();
+        body.append('file', input.file);
+        body.append('default_role', input.default_role);
+        for (const cuid of input.access_groups) {
+          body.append('access_groups[]', cuid);
+        }
+        for (const cuid of input.member_tags) {
+          body.append('member_tags[]', cuid);
+        }
+        return apiRequest(
+          'post',
+          communityPath(COMMUNITY_INVITATION_IMPORTS_API_PATH, communityCuid),
+          invitationImportSchema,
+          'Failed to read the file.',
+          body,
+        );
+      },
+      /**
+       * A page of the imports of the community, newest first.
+       */
+      list: (communityCuid: string, limit: number, offset: number): Promise<ApiResult<Paginated<InvitationImport>>> =>
+        apiPageRequest(
+          `${communityPath(COMMUNITY_INVITATION_IMPORTS_API_PATH, communityCuid)}?limit=${limit}&offset=${offset}`,
+          invitationImportSchema,
+          'Failed to load the imports.',
+        ),
+      /**
+       * One import with its counts.
+       */
+      get: (communityCuid: string, importCuid: string): Promise<ApiResult<InvitationImport>> =>
+        apiRequest(
+          'get',
+          invitationImportPath(COMMUNITY_INVITATION_IMPORT_API_PATH, communityCuid, importCuid),
+          invitationImportSchema,
+          'Failed to load the import.',
+        ),
+      /**
+       * A page of the rows of an import, by their number in the file, with only these outcomes.
+       */
+      rows: (
+        communityCuid: string,
+        importCuid: string,
+        outcomes: readonly InvitationImportOutcome[],
+        limit: number,
+        offset: number,
+      ): Promise<ApiResult<Paginated<InvitationImportRow>>> => {
+        const query = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+        if (outcomes.length > 0) {
+          query.set('outcome', outcomes.join(','));
+        }
+        return apiPageRequest(
+          `${invitationImportPath(COMMUNITY_INVITATION_IMPORT_ROWS_API_PATH, communityCuid, importCuid)}?${query.toString()}`,
+          invitationImportRowSchema,
+          'Failed to load the rows.',
+        );
+      },
+      /**
+       * Send a preview: the person who uploaded it only. 202 with the import.
+       */
+      confirm: (communityCuid: string, importCuid: string): Promise<ApiResult<InvitationImport>> =>
+        apiRequest(
+          'post',
+          invitationImportPath(COMMUNITY_INVITATION_IMPORT_CONFIRM_API_PATH, communityCuid, importCuid),
+          invitationImportSchema,
+          'Failed to send the invitations.',
+          {},
+        ),
+      /**
+       * Send the mails of a set of rows again: the held and the failed rows, or the people who did not join.
+       */
+      resend: (communityCuid: string, importCuid: string, rows: InvitationImportResendSet): Promise<ApiResult<InvitationImport>> =>
+        apiRequest(
+          'post',
+          invitationImportPath(COMMUNITY_INVITATION_IMPORT_RESEND_API_PATH, communityCuid, importCuid),
+          invitationImportSchema,
+          'Failed to send the invitations again.',
+          { rows },
+        ),
+      /**
+       * Discard a preview, or delete the record of a sent import (its invitations stay).
+       */
+      remove: (communityCuid: string, importCuid: string): Promise<ApiResult<void>> =>
+        apiRequest(
+          'delete',
+          invitationImportPath(COMMUNITY_INVITATION_IMPORT_API_PATH, communityCuid, importCuid),
+          null,
+          'Failed to delete the import.',
         ),
     },
     members: {

@@ -8,6 +8,7 @@ use App\Http\Controllers\Inertia\DashboardController;
 use App\Http\Controllers\Inertia\DeleteAccountController;
 use App\Http\Controllers\Inertia\EmailChangeController;
 use App\Http\Controllers\Inertia\EventController;
+use App\Http\Controllers\Inertia\InvitationImportController;
 use App\Http\Controllers\Inertia\MagicLinkController;
 use App\Http\Controllers\Inertia\MemberController;
 use App\Http\Controllers\Inertia\MyEventsController;
@@ -68,6 +69,9 @@ Route::middleware([
 
     Route::get('/community/{communitySlug}/about', [CommunityController::class, 'about'])->name('communities.about');
     Route::get('/community/{communitySlug}/settings', [CommunityController::class, 'settings'])->name('communities.settings');
+    // Invitations from a file (#1390, ADR 0061): the upload and the earlier imports, then one import
+    Route::get('/community/{communitySlug}/settings/invitation-imports', [InvitationImportController::class, 'index'])->name('invitation-imports.index');
+    Route::get('/community/{communitySlug}/settings/invitation-imports/{importCuid}', [InvitationImportController::class, 'show'])->name('invitation-imports.show');
 
     // The link of an invitation email (#1242): signed and temporary
     Route::get('/community-invitations/{invitation}', [CommunityInvitationController::class, 'accept'])->middleware('signed')->name('community-invitations.accept');
