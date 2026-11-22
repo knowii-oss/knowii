@@ -155,6 +155,7 @@ export default function CommunitySettingsPage(props: Props) {
             currentRole={props.currentRole}
             permissions={props.permissions}
             refreshKey={membersVersion + membersTagsVersion}
+            grantsRefreshKey={accessGroupsVersion + membersTagsVersion}
             onMemberTagsChanged={() => setMemberTagsVersion((version) => version + 1)}
           />
         </>

@@ -4,6 +4,7 @@ use App\Actions\Users\ExportUser;
 use App\Actions\Users\UpdateAvatar;
 use App\Contracts\Users\ExportsUsers;
 use App\Enums\KnowiiCommunityMemberRole;
+use App\Models\AccessGroup;
 use App\Models\ChatMessage;
 use App\Models\Comment;
 use App\Models\Community;
@@ -20,6 +21,7 @@ use App\Models\SpaceGroup;
 use App\Models\Upload;
 use App\Models\User;
 use App\Models\UserProfile;
+use App\Support\InvitationGrants;
 use App\Support\MemberTagAssignments;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -357,4 +359,24 @@ test('the export lists every member tag of the member, of both visibilities, and
         ->and(array_keys($tags['Qxexport Founder']))->toBe(['cuid', 'name', 'visibility', 'community', 'community_slug', 'tagged_at'])
         ->and(json_encode($memberships['member_tags']))->not->toContain($f['other']->username)->not->toContain($f['other']->cuid)->not->toContain('Other only')
         ->and($files['README.txt'])->toContain('the tags that the managers of a community put on you');
+});
+
+test('the export lists the invitations sent to the address, with their groups and tags by name, for an address with capitals too (#1390)', function () {
+    $f = userExportFixture();
+    $member = $f['member'];
+    $member->forceFill(['email' => 'Member@Example.com'])->save();
+    $group = AccessGroup::query()->create(['community_id' => $f['community']->id, 'name' => 'Qxexport Paid']);
+    $hidden = MemberTag::factory()->forManagers()->create(['community_id' => $f['community']->id, 'name' => 'Qxexport Onboarded']);
+    $invitation = $f['community']->communityInvitations()->sole();
+    InvitationGrants::attach($invitation, [$group], [$hidden]);
+    $f['community']->communityInvitations()->create(['email' => 'someone-else@example.com', 'role' => 'member']);
+
+    $files = runUserExport($member);
+    $invitations = json_decode($files['memberships.json'], true)['invitations'];
+
+    expect($invitations)->toHaveCount(1)
+        ->and($invitations[0]['email'])->toBe('member@example.com')
+        ->and($invitations[0]['access_groups'])->toBe([['cuid' => $group->cuid, 'name' => 'Qxexport Paid']])
+        ->and($invitations[0]['member_tags'])->toBe([['cuid' => $hidden->cuid, 'name' => 'Qxexport Onboarded']])
+        ->and($files['README.txt'])->toContain('the invitations sent to your email address (with the access groups and the member tags that each gives when you join)');
 });

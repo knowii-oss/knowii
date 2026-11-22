@@ -8,10 +8,13 @@ use App\Http\Resources\CommunityInvitationResource;
 use App\Traits\GeneratesCuid;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Attributes\UseResource;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * Community invitations (#1242): an email address invited with a role. The link of the email is valid for
- * VALIDITY_DAYS days; inviting the same address again replaces the invitation.
+ * VALIDITY_DAYS days; inviting the same address again replaces the invitation. An invitation can carry access groups and
+ * member tags that the person gets when they accept it (#1390).
  *
  * @property-read int $id
  * @property-read string $cuid
@@ -21,6 +24,8 @@ use Illuminate\Database\Eloquent\Attributes\UseResource;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read Community $community
+ * @property-read Collection<int, AccessGroup> $accessGroups
+ * @property-read Collection<int, MemberTag> $memberTags
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityInvitation newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommunityInvitation newQuery()
@@ -74,6 +79,27 @@ class CommunityInvitation extends KnowiiCommunityInvitation
         return [
             'role' => KnowiiCommunityMemberRole::class,
         ];
+    }
+
+    /**
+     * The access groups that the person gets at the join, by hand (#1390). A deleted group leaves the invitation.
+     *
+     * @return BelongsToMany<AccessGroup, covariant $this>
+     */
+    final public function accessGroups(): BelongsToMany
+    {
+        return $this->belongsToMany(AccessGroup::class, 'community_invitation_access_groups');
+    }
+
+    /**
+     * The member tags that the person gets at the join (#1390, the contract of ADR 0060). A deleted tag leaves the
+     * invitation.
+     *
+     * @return BelongsToMany<MemberTag, covariant $this>
+     */
+    final public function memberTags(): BelongsToMany
+    {
+        return $this->belongsToMany(MemberTag::class, 'community_invitation_member_tags');
     }
 
     final public function getRouteKeyName(): string

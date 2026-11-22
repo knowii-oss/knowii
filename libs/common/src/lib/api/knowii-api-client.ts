@@ -1212,17 +1212,18 @@ export const knowiiApiClient = {
     },
     invitations: {
       /**
-       * The pending invitations, newest first (#1242).
+       * A page of the pending invitations, newest first (#1242), with the access groups and the member tags that each
+       * gives at the join (#1390).
        */
-      list: (communityCuid: string): Promise<ApiResult<CommunityInvitation[]>> =>
-        apiRequest(
-          'get',
-          communityPath(COMMUNITY_INVITATIONS_API_PATH, communityCuid),
-          z.array(communityInvitationSchema),
+      list: (communityCuid: string, limit: number, offset: number): Promise<ApiResult<Paginated<CommunityInvitation>>> =>
+        apiPageRequest(
+          `${communityPath(COMMUNITY_INVITATIONS_API_PATH, communityCuid)}?limit=${limit}&offset=${offset}`,
+          communityInvitationSchema,
           'Failed to load the invitations.',
         ),
       /**
-       * Invite an email address with a role, and send the invitation email (#1242).
+       * Invite an email address with a role, and send the invitation email (#1242). Optional access groups and member
+       * tags (cuids) are given at the join (#1390).
        */
       create: (communityCuid: string, input: CommunityInvitationForm): Promise<ApiResult<CommunityInvitation>> =>
         apiRequest(

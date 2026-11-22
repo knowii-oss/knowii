@@ -128,7 +128,8 @@ Member management (#1242) adds a rule on top of the abilities above. `CommunityR
 1. The ranks are owner 4, admin 3, moderator 2, member 1.
 2. A user acts only on a member with a lower rank: nobody changes or removes the owner, and nobody changes their own role.
 3. A user gives only a role with a lower rank than their own: only the owner makes admins, admins make moderators and members, moderators with `manage_members` invite and remove members only.
-4. The same rule applies to invitations: the role of an invitation is lower than the role of the person who sends or cancels it.
+4. The same rule applies to invitations: the role of an invitation is lower than the role of the person who sends or cancels it. A manager replaces an invitation only when they may give its role (an invitation that expired gives nothing, and any manager replaces it).
+5. An invitation that carries access groups or member tags (#1390) needs the right of each: `manageAccessGroupMembers` for the groups, `assignMemberTags` for the tags, and with a token `groups:write` and `member-tags:write`. The person gets them at the join; the role hierarchy does not apply to them.
 
 | Who                             | Acts on                     | Gives the roles          |
 | ------------------------------- | --------------------------- | ------------------------ |

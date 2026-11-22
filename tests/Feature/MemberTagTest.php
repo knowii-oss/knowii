@@ -194,14 +194,18 @@ test('a delete of a community deletes its tags and their links (#1389)', functio
 
 test('the migration of the member tags goes down and up again, and changes no other table (#1389)', function () {
     $migration = require database_path('migrations/2026_11_22_100000_create_member_tags_tables.php');
+    // The links of the invitations to the tags (#1390) come later and depend on the table: they go down first
+    $invitationLinks = require database_path('migrations/2026_11_22_200000_create_community_invitation_grants_tables.php');
     MemberTagAssignments::add(MemberTag::factory()->create(['community_id' => $this->community->id]), $this->c['member']);
 
+    $invitationLinks->down();
     $migration->down();
     expect(Schema::hasTable('member_tags'))->toBeFalse()
         ->and(Schema::hasTable('member_tag_members'))->toBeFalse()
         ->and(Community::query()->whereKey($this->community->id)->exists())->toBeTrue();
 
     $migration->up();
+    $invitationLinks->up();
     expect(Schema::hasColumns('member_tags', ['id', 'cuid', 'community_id', 'name', 'color', 'visibility', 'created_at', 'updated_at']))->toBeTrue()
         ->and(Schema::getColumnListing('member_tag_members'))->toEqualCanonicalizing(['id', 'member_tag_id', 'user_id', 'created_at'])
         ->and(array_column(Schema::getIndexes('member_tag_members'), 'columns'))->toContain(['user_id'], ['member_tag_id', 'user_id'])

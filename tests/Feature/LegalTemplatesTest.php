@@ -102,6 +102,14 @@ test('the template of the privacy policy tells about the member tags, who sees t
         ->toContain('15. Tags: until a manager removes the tag, you leave the community, or you delete your account.');
 });
 
+test('the template of the privacy policy tells that an invitation can carry access groups and tags (#1390)', function () {
+    $policy = File::get(legalTemplatesFolder().'/policy.md');
+
+    expect($policy)
+        ->toContain('the invitations sent to your email address, with the access groups and the tags that they give when you join, what you read')
+        ->toContain('when a manager of a community invites you, they give us your email address, and they can choose the access groups and the tags that you get when you join.');
+});
+
 test('the imprint template keeps only its headings and the source code of the project', function () {
     $body = explode("\n---\n", File::get(legalTemplatesFolder().'/imprint.md'), 2)[1] ?? '';
     $lines = array_values(array_filter(array_map(trim(...), explode("\n", $body)), static fn (string $line): bool => $line !== ''));

@@ -135,7 +135,8 @@ class DeleteUser implements DeletesAccounts, DeletesUsers
         // The profile holds the email, the name and every field of the member
         $user->profile()->delete();
 
-        CommunityInvitation::query()->where('email', $email)->delete();
+        // An invitation stores the address in lower case, an account can hold capitals: compared without the case
+        CommunityInvitation::query()->whereRaw('lower(email) = lower(?)', [$email])->delete();
         DB::table('password_reset_tokens')->where('email', $email)->delete();
         DB::table('sessions')->where('user_id', $user->id)->delete();
 

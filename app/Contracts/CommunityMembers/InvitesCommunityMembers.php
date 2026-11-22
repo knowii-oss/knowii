@@ -9,7 +9,8 @@ use App\Models\User;
 interface InvitesCommunityMembers
 {
     /**
-     * Invite an email address with a role, and send the invitation email.
+     * Invite an email address with a role, and send the invitation email. Optional `access_groups` and `member_tags`
+     * (lists of cuids) are given at the join (#1390).
      *
      * @param  array<mixed>  $input
      */

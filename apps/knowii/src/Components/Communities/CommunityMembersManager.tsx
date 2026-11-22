@@ -5,6 +5,7 @@ import { Link } from '@inertiajs/react';
 import type {
   AssignableCommunityRole,
   CommunityInvitation,
+  InvitationAccessGroup,
   CommunityInvitationForm,
   CommunityJoinBlock,
   CommunityMember,
@@ -19,6 +20,7 @@ import {
   COMMUNITY_ROLE_LABELS,
   communityInvitationFormSchema,
   grantableRoles,
+  INVITATIONS_PAGE_SIZE,
   knowiiApiClient,
   MEMBER_URL,
   useAppData,
@@ -38,9 +40,13 @@ import {
   RelativeTime,
   Select,
   TextInput,
+  useFocusAfterRender,
 } from '@/Components/ui';
 import { MemberTagList } from '@/Components/Members/MemberTagList';
 import { MemberTagsDialog } from './MemberTagsDialog';
+import type { InvitationGrants } from './InvitationGrantsPicker';
+import { InvitationGrantsPicker, NO_INVITATION_GRANTS } from './InvitationGrantsPicker';
+import { INVITATION_WORDS } from './invitation-words';
 
 export interface CommunityMembersManagerProps {
   communityCuid: string;
@@ -50,11 +56,16 @@ export interface CommunityMembersManagerProps {
    */
   currentRole: CommunityRole;
   permissions: Pick<CommunityPermissions, 'canAddCommunityMembers' | 'canUpdateCommunityMembers' | 'canRemoveCommunityMembers'> &
-    Partial<Pick<CommunityPermissions, 'canAssignMemberTags'>>;
+    Partial<Pick<CommunityPermissions, 'canAssignMemberTags' | 'canManageAccessGroupMembers'>>;
   /**
    * Changes when the members or the invitations changed elsewhere (real-time event): the lists load again
    */
   refreshKey?: number;
+  /**
+   * Changes when the access groups or the member tags of the community changed: the choices of the invitation form
+   * load again (#1390)
+   */
+  grantsRefreshKey?: number;
   /**
    * After a tag was put on a member or taken off (#1389): the section "Member tags" counts again
    */
@@ -73,6 +84,7 @@ export function CommunityMembersManager({
   currentRole,
   permissions,
   refreshKey = 0,
+  grantsRefreshKey = 0,
   onMemberTagsChanged,
 }: CommunityMembersManagerProps) {
   const { showToast } = useAppData();
@@ -84,6 +96,21 @@ export function CommunityMembersManager({
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
   const [invitations, setInvitations] = useState<CommunityInvitation[]>([]);
+  // The pending invitations load one page at a time (#1390): a file adds up to 1000 of them
+  const [invitationsNext, setInvitationsNext] = useState<number | null>(null);
+  const [loadingInvitations, setLoadingInvitations] = useState(false);
+  const [invitationsStatus, setInvitationsStatus] = useState('');
+  const invitationsRef = useRef<HTMLUListElement>(null);
+  const focusAfterRender = useFocusAfterRender();
+  // What the invitation gives at the join (#1390): the choices of the community, and the choice of the form
+  const canGiveAccessGroups = permissions.canManageAccessGroupMembers === true;
+  const canGiveMemberTags = permissions.canAssignMemberTags === true;
+  const [grantChoices, setGrantChoices] = useState<{ accessGroups: InvitationAccessGroup[]; memberTags: MemberTag[] }>({
+    accessGroups: [],
+    memberTags: [],
+  });
+  const [grants, setGrants] = useState<InvitationGrants>(NO_INVITATION_GRANTS);
+  const [grantsError, setGrantsError] = useState('');
   const [joinBlocks, setJoinBlocks] = useState<CommunityJoinBlock[]>([]);
   const [pendingRemoval, setPendingRemoval] = useState<CommunityMember | null>(null);
   const [busy, setBusy] = useState(false);
@@ -115,11 +142,39 @@ export function CommunityMembersManager({
     if (!permissions.canAddCommunityMembers) {
       return;
     }
-    const result = await knowiiApiClient.communities.invitations.list(communityCuid);
+    const result = await knowiiApiClient.communities.invitations.list(communityCuid, INVITATIONS_PAGE_SIZE, 0);
     if (result.ok) {
-      setInvitations(result.data);
+      setInvitations(result.data.items);
+      setInvitationsNext(result.data.pagination.nextOffset ?? null);
     }
   }, [communityCuid, permissions.canAddCommunityMembers]);
+
+  const loadMoreInvitations = async () => {
+    if (invitationsNext === null || loadingInvitations) {
+      return;
+    }
+    setLoadingInvitations(true);
+    const result = await knowiiApiClient.communities.invitations.list(communityCuid, INVITATIONS_PAGE_SIZE, invitationsNext);
+    setLoadingInvitations(false);
+    if (!result.ok) {
+      showToast({ severity: 'error', summary: result.message });
+      return;
+    }
+    // An invitation can move between two loads when the list changes on the server: never two rows for one invitation
+    const added = result.data.items.filter((item) => !invitations.some((shown) => shown.cuid === item.cuid));
+    setInvitations((current) => [...current, ...added.filter((item) => !current.some((shown) => shown.cuid === item.cuid))]);
+    setInvitationsNext(result.data.pagination.nextOffset ?? null);
+    setInvitationsStatus(INVITATION_WORDS.loaded(added.length));
+    const first = added[0];
+    if (first) {
+      // The button may go away with the last page: the reader continues on the first new row
+      focusAfterRender(() =>
+        Array.from(invitationsRef.current?.querySelectorAll<HTMLElement>('[data-invitation]') ?? []).find(
+          (row) => row.dataset['invitation'] === first.cuid,
+        ),
+      );
+    }
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => void loadMembers(0, query.trim()), query === '' ? 0 : SEARCH_DELAY_MS);
@@ -131,15 +186,39 @@ export function CommunityMembersManager({
       return;
     }
     let active = true;
-    void knowiiApiClient.communities.invitations.list(communityCuid).then((result) => {
+    void knowiiApiClient.communities.invitations.list(communityCuid, INVITATIONS_PAGE_SIZE, 0).then((result) => {
       if (active && result.ok) {
-        setInvitations(result.data);
+        setInvitations(result.data.items);
+        setInvitationsNext(result.data.pagination.nextOffset ?? null);
       }
     });
     return () => {
       active = false;
     };
   }, [communityCuid, permissions.canAddCommunityMembers, refreshKey]);
+
+  // The groups and the tags that an invitation can give (#1390): only for the people who may give them
+  useEffect(() => {
+    if (!canInvite || (!canGiveAccessGroups && !canGiveMemberTags)) {
+      return;
+    }
+    let active = true;
+    void Promise.all([
+      canGiveAccessGroups ? knowiiApiClient.communities.accessGroups.list(communityCuid) : null,
+      canGiveMemberTags ? knowiiApiClient.communities.memberTags.list(communityCuid) : null,
+    ]).then(([groups, tags]) => {
+      if (!active) {
+        return;
+      }
+      setGrantChoices({
+        accessGroups: groups?.ok ? groups.data.map((group) => ({ cuid: group.cuid, name: group.name })) : [],
+        memberTags: tags?.ok ? tags.data : [],
+      });
+    });
+    return () => {
+      active = false;
+    };
+  }, [communityCuid, canInvite, canGiveAccessGroups, canGiveMemberTags, grantsRefreshKey]);
 
   // The people whom a manager removed cannot join again by themselves (#1486): the managers of the members lift it
   const loadJoinBlocks = useCallback(async () => {
@@ -174,11 +253,19 @@ export function CommunityMembersManager({
   const { errors } = form.formState;
 
   const onInvite = form.handleSubmit(async (data) => {
-    const result = await knowiiApiClient.communities.invitations.create(communityCuid, data);
+    setGrantsError('');
+    const result = await knowiiApiClient.communities.invitations.create(communityCuid, {
+      ...data,
+      access_groups: grants.accessGroups,
+      member_tags: grants.memberTags,
+    });
     if (!result.ok) {
       for (const [field, messages] of Object.entries(result.errors)) {
         if ((field === 'email' || field === 'role') && messages[0]) {
           form.setError(field, { message: messages[0] });
+        }
+        if ((field === 'access_groups' || field === 'member_tags') && messages[0]) {
+          setGrantsError(messages[0]);
         }
       }
       if (Object.keys(result.errors).length === 0) {
@@ -190,6 +277,7 @@ export function CommunityMembersManager({
     // reset: the reset removes the fields until the next render, and setFocus finds no field then.
     form.setFocus('email');
     form.reset({ email: '', role: data.role });
+    setGrants(NO_INVITATION_GRANTS);
     showToast({ severity: 'success', summary: `Invitation sent to ${result.data.email}` });
     void loadInvitations();
   });
@@ -258,7 +346,12 @@ export function CommunityMembersManager({
         <CardHeader title={<span id="members-title">Members</span>} icon={<FaUsers aria-hidden="true" />} />
         <CardBody className="flex flex-col gap-6">
           {canInvite && (
-            <form onSubmit={onInvite} noValidate className="flex flex-col gap-3 sm:flex-row sm:items-start" aria-label="Invite a member">
+            <form
+              onSubmit={onInvite}
+              noValidate
+              className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start"
+              aria-label="Invite a member"
+            >
               <div className="flex-1">
                 <InputLabel htmlFor="invitation-email">Invite by email</InputLabel>
                 <Controller
@@ -296,9 +389,22 @@ export function CommunityMembersManager({
                 />
                 <InputError className="mt-2" message={errors.role?.message} />
               </div>
+              <InvitationGrantsPicker
+                className="sm:mt-7"
+                accessGroups={grantChoices.accessGroups}
+                memberTags={grantChoices.memberTags}
+                canGiveAccessGroups={canGiveAccessGroups}
+                canGiveMemberTags={canGiveMemberTags}
+                value={grants}
+                onChange={(value) => {
+                  setGrants(value);
+                  setGrantsError('');
+                }}
+              />
               <Button type="submit" className="sm:mt-7" loading={form.formState.isSubmitting} leftIcon={<FaUserPlus aria-hidden="true" />}>
                 Invite
               </Button>
+              {grantsError !== '' && <InputError className="basis-full" message={grantsError} />}
             </form>
           )}
 
@@ -391,15 +497,26 @@ export function CommunityMembersManager({
             {invitations.length === 0 ? (
               <p className="text-sm text-muted">No pending invitations.</p>
             ) : (
-              <ul className="flex flex-col divide-y divide-border" aria-label="Pending invitations">
+              <ul ref={invitationsRef} className="flex flex-col divide-y divide-border" aria-label="Pending invitations">
                 {invitations.map((invitation) => (
-                  <li key={invitation.cuid} className="flex flex-wrap items-center gap-3 py-3">
-                    <div className="flex min-w-0 flex-1 flex-col">
+                  <li
+                    key={invitation.cuid}
+                    data-invitation={invitation.cuid}
+                    tabIndex={-1}
+                    className="flex flex-wrap items-center gap-3 py-3 focus-visible:outline-2 focus-visible:outline-primary"
+                  >
+                    <div className="flex min-w-0 flex-1 basis-48 flex-col">
                       <span className="truncate font-bold">{invitation.email}</span>
                       <span className="text-sm text-muted">
                         {COMMUNITY_ROLE_LABELS[invitation.role]}, sent <RelativeTime date={invitation.created_at} />
                         {invitation.is_expired && <span className="ml-2 font-bold text-danger-text">Expired</span>}
                       </span>
+                      {invitation.access_groups.length > 0 && (
+                        <span className="text-sm break-words text-muted">
+                          {INVITATION_WORDS.pendingAccessGroups(invitation.access_groups.map((group) => group.name).join(', '))}
+                        </span>
+                      )}
+                      <MemberTagList tags={invitation.member_tags} className="mt-1" />
                     </div>
                     {roles.includes(invitation.role) && (
                       <Button
@@ -416,6 +533,14 @@ export function CommunityMembersManager({
                 ))}
               </ul>
             )}
+            {invitationsNext !== null && (
+              <LoadMoreButton className="mt-3" loading={loadingInvitations} onClick={() => void loadMoreInvitations()}>
+                {INVITATION_WORDS.loadMore}
+              </LoadMoreButton>
+            )}
+            <p role="status" aria-live="polite" className="sr-only">
+              {invitationsStatus}
+            </p>
             <p className="mt-3 text-xs text-muted">
               Invitation links work for 7 days, only for an account with the invited email address. Invite again to send a new link.
             </p>

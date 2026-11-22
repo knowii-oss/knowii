@@ -193,10 +193,13 @@ final class ExportCommunity implements ExportsCommunities
      */
     private function invitations(Community $community): Generator
     {
-        foreach ($community->communityInvitations()->lazyById(self::CHUNK) as $invitation) {
+        foreach ($community->communityInvitations()->with(['accessGroups', 'memberTags'])->lazyById(self::CHUNK) as $invitation) {
             yield [
                 'email' => $invitation->email,
                 'role' => $invitation->role->value,
+                // What the person gets at the join (#1390): the cuids of the groups and the tags of this export
+                'access_groups' => $invitation->accessGroups->map(static fn (AccessGroup $group): string => $group->cuid)->values()->all(),
+                'member_tags' => $invitation->memberTags->map(static fn (MemberTag $tag): string => $tag->cuid)->values()->all(),
                 'created_at' => $this->date($invitation->created_at),
             ];
         }
@@ -720,7 +723,7 @@ final class ExportCommunity implements ExportsCommunities
             '',
         ];
         $descriptions = [
-            'community.json' => 'the community, who can join it, its members, invitations, the people removed who cannot join again by themselves, access groups, member tags (the name, the color, who sees it and the members who have it), space groups and spaces',
+            'community.json' => 'the community, who can join it, its members, invitations (with the access groups and the member tags that each gives at the join), the people removed who cannot join again by themselves, access groups, member tags (the name, the color, who sees it and the members who have it), space groups and spaces',
             'posts.json' => 'the posts (Markdown)',
             'comments.json' => 'the comments on posts and on resources (Markdown)',
             'pages.json' => 'the pages and the lessons (Markdown)',

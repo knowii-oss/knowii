@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { memberTagSchema } from './member-tag.schema';
+import { MAX_ACCESS_GROUPS_PER_COMMUNITY, MAX_MEMBER_TAGS_PER_MEMBER } from '../constants';
 
 /**
  * What a member shows to the other members of a community. WARNING: aligned with MemberProfileResource.php
@@ -105,7 +106,17 @@ export const communityJoinBlockSchema = z.object({
 export type CommunityJoinBlock = z.infer<typeof communityJoinBlockSchema>;
 
 /**
- * A pending invitation (#1242). WARNING: aligned with CommunityInvitationResource.php
+ * An access group that an invitation gives at the join (#1390): its cuid and its name
+ */
+export const invitationAccessGroupSchema = z.object({
+  cuid: z.string(),
+  name: z.string(),
+});
+export type InvitationAccessGroup = z.infer<typeof invitationAccessGroupSchema>;
+
+/**
+ * A pending invitation (#1242). WARNING: aligned with CommunityInvitationResource.php. The access groups and the member
+ * tags that it gives at the join (#1390), by name: an empty list for a reader who may not see them.
  */
 export const communityInvitationSchema = z.object({
   cuid: z.string(),
@@ -114,11 +125,16 @@ export const communityInvitationSchema = z.object({
   created_at: z.string(),
   expires_at: z.string(),
   is_expired: z.boolean(),
+  access_groups: z.array(invitationAccessGroupSchema),
+  member_tags: z.array(memberTagSchema),
 });
 export type CommunityInvitation = z.infer<typeof communityInvitationSchema>;
 
 export const communityInvitationFormSchema = z.object({
   email: z.email({ error: 'Enter a valid email address' }).max(255),
   role: assignableCommunityRoleSchema,
+  // Cuids of the access groups and the member tags that the person gets at the join (#1390)
+  access_groups: z.array(z.string()).max(MAX_ACCESS_GROUPS_PER_COMMUNITY).optional(),
+  member_tags: z.array(z.string()).max(MAX_MEMBER_TAGS_PER_MEMBER).optional(),
 });
 export type CommunityInvitationForm = z.infer<typeof communityInvitationFormSchema>;
