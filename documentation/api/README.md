@@ -42,9 +42,27 @@ A personal API token (created on the "API tokens" page of the user menu) has abi
 | `event-answers:read` | Read who answered the events that you host or manage: the names of Yes and of Replay only, the counts, and the limit of places (`capacity`) of these events (not in the default set). Your own answer needs `events:read` |
 | `groups:read`       | Read access groups and their members                                  |
 | `groups:write`      | Manage access groups and their members (a sync from another system)   |
+| `member-tags:read`  | Read the member tags of a community and the members who have them (not in the default set). The member list holds the tags of each member with `communities:read` |
+| `member-tags:write` | Create, rename, recolor and delete member tags, put them on members and take them off (not in the default set) |
 | `identities:read`   | Read the provider accounts that you connected to sign in: the issuer, a label and the dates, never the identifier at the provider (not in the default set) |
 | `identities:write`  | Disconnect a provider account (not in the default set)                |
 | `entitlements:read` | Read the entitlement keys that the sign-in provider reported for you and the date of the last check (not in the default set) |
+
+## Member tags
+
+A member tag is a label that the managers of a community put on its members, for example "Founder" ([ADR 0060](../adr/0060-member-tags-labels-on-members.md), #1389). Its visibility is `members` (the members of the community see it on the members who have it) or `managers` (the default: only the owner, the admins and the moderators with the manage members right). A tag of the managers does not exist for another caller: it is in no list, and each route below answers 404 for it, with the body of a cuid that does not exist, also for a token without the abilities of the tags. The refusals of a write come in this order: 404, 403, 400 for a wrong field, then the limit (422).
+
+| Method and path | What it does |
+|---|---|
+| `GET /communities/{community}/member-tags` | The tags, by name. A manager gets every tag with `members_count`; another member gets the tags of the members with `members_count` null. Ability `member-tags:read` |
+| `POST /communities/{community}/member-tags` | Create a tag: `name` (2 to 32 characters, one line, no invisible format character, unique without the case), `color` (`gray` by default, `red`, `orange`, `yellow`, `green`, `teal`, `blue`, `purple`), `visibility` (`managers` by default, or `members`). 100 tags per community at most. Owner and admins. Ability `member-tags:write` |
+| `PATCH /communities/{community}/member-tags/{tag}` | Change the fields of the request. Owner and admins. Ability `member-tags:write` |
+| `DELETE /communities/{community}/member-tags/{tag}` | Delete the tag: every member who has it loses it. 204. Owner and admins. Ability `member-tags:write` |
+| `GET /communities/{community}/member-tags/{tag}/members` | The members who have the tag, by name, as authors, with `limit` and `offset`. Managers only, for both visibilities. Ability `member-tags:read` |
+| `POST /communities/{community}/member-tags/{tag}/members` | Put the tag on a member: exactly one of `member` (user cuid) or `username`, never `email`. Twice changes nothing (200). 20 tags per member and community at most. Managers. Ability `member-tags:write` |
+| `DELETE /communities/{community}/member-tags/{tag}/members/{member}` | Take the tag off: 204, or 404 for a member without the tag. Managers. Ability `member-tags:write` |
+
+Each entry of `GET /communities/{community}/members` holds `tags`: the tags of the member that the caller may see, by name. Nothing tells a member that a tag was put on them or taken off. A member reads all their own tags, of both visibilities, in the export of their data.
 
 ## Entitlements of the sign-in provider
 

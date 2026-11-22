@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { memberTagSchema } from './member-tag.schema';
 
 /**
  * What a member shows to the other members of a community. WARNING: aligned with MemberProfileResource.php
@@ -71,6 +72,8 @@ export const communityMemberSchema = z.object({
   role: communityRoleSchema,
   // Inertia props and JSON are not parsed into dates everywhere: keep the ISO string
   member_since: z.string().nullable(),
+  // The member tags that the reader may see, by name (#1389, ADR 0060). The default is for a page built before the field
+  tags: z.array(memberTagSchema).default([]),
 });
 export type CommunityMember = z.infer<typeof communityMemberSchema>;
 

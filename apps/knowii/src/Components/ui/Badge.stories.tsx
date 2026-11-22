@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, userEvent, within } from 'storybook/test';
-import { FaBan, FaCircleCheck, FaCircleInfo, FaPen, FaTowerBroadcast, FaTriangleExclamation } from 'react-icons/fa6';
-import { Badge } from './Badge';
+import { FaBan, FaCircleCheck, FaCircleInfo, FaLock, FaPen, FaTowerBroadcast, FaTriangleExclamation } from 'react-icons/fa6';
+import type { BadgeColor } from './Badge';
+import { BADGE_COLORS, Badge } from './Badge';
 
 /**
  * A short text label on an item: its state ("Draft", "Cancelled", "Happening now") or its kind. Use it next to the
@@ -10,8 +11,11 @@ import { Badge } from './Badge';
  *
  * Not a button and not a link: for an action, use a `Button`. Not the status of a save (`SaveStatus`).
  *
- * Accessibility: a `span` with its text, without a role and without the focus. The icon is hidden from screen readers.
- * Never give a meaning by the variant alone.
+ * A label that people name (a member tag) takes a `color` of the palette of eight in place of the variant: the border
+ * and a small mark before the text. The color only tells the labels apart.
+ *
+ * Accessibility: a `span` with its text, without a role and without the focus. The icon and the mark of the color are
+ * hidden from screen readers. Never give a meaning by the variant or the color alone.
  */
 const meta = {
   component: Badge,
@@ -117,4 +121,85 @@ export const LongTextOnPhone: Story = {
     children: 'Moved to the greenhouse of the school because of the rain of this week',
   },
   globals: { viewport: { value: 'phone', isRotated: false } },
+};
+
+const COLOR_NAMES: Record<BadgeColor, string> = {
+  gray: 'Volunteer',
+  red: 'Board',
+  orange: 'Speaker',
+  yellow: 'Early bird',
+  green: 'Onboarded',
+  teal: 'Mentor',
+  blue: 'Staff',
+  purple: 'Founder',
+};
+
+/**
+ * One color of the palette: the border and the mark take it, the text keeps the color of all text
+ */
+function colorStory(color: BadgeColor, theme: 'dark' | 'light'): Story {
+  return {
+    args: { color, children: COLOR_NAMES[color] },
+    globals: { theme },
+    play: async ({ canvasElement }) => {
+      const text = within(canvasElement).getByText(COLOR_NAMES[color]);
+      const badge = text.parentElement;
+      await expect(badge).toHaveClass(`border-tag-${color}`);
+      const mark = badge?.querySelector('[data-badge-mark]');
+      await expect(mark).toHaveClass(`bg-tag-${color}`);
+      await expect(mark).toHaveAttribute('aria-hidden', 'true');
+      // The mark adds no word: the text says it all
+      await expect(badge).toHaveTextContent(new RegExp(`^${COLOR_NAMES[color]}$`));
+      await expect(text).toHaveClass('min-w-0');
+    },
+  };
+}
+
+export const ColorGray: Story = colorStory('gray', 'dark');
+export const ColorRed: Story = colorStory('red', 'dark');
+export const ColorOrange: Story = colorStory('orange', 'dark');
+export const ColorYellow: Story = colorStory('yellow', 'dark');
+export const ColorGreen: Story = colorStory('green', 'dark');
+export const ColorTeal: Story = colorStory('teal', 'dark');
+export const ColorBlue: Story = colorStory('blue', 'dark');
+export const ColorPurple: Story = colorStory('purple', 'dark');
+export const ColorGrayLight: Story = colorStory('gray', 'light');
+export const ColorRedLight: Story = colorStory('red', 'light');
+export const ColorOrangeLight: Story = colorStory('orange', 'light');
+export const ColorYellowLight: Story = colorStory('yellow', 'light');
+export const ColorGreenLight: Story = colorStory('green', 'light');
+export const ColorTealLight: Story = colorStory('teal', 'light');
+export const ColorBlueLight: Story = colorStory('blue', 'light');
+export const ColorPurpleLight: Story = colorStory('purple', 'light');
+
+/**
+ * The eight colors on the four surfaces of the theme (switch the theme in the toolbar). A label with an icon keeps the
+ * mark of its color first, and the icon in the color of secondary text.
+ */
+export const PaletteOnEverySurface: Story = {
+  render: () => (
+    <div className="grid gap-2">
+      {(['bg-background', 'bg-surface', 'bg-surface-elevated', 'bg-well'] as const).map((surface) => (
+        <p key={surface} className={`flex flex-wrap items-center gap-2 rounded-md p-3 ${surface}`} data-surface={surface}>
+          {BADGE_COLORS.map((color) => (
+            <Badge key={color} color={color}>
+              {COLOR_NAMES[color]}
+            </Badge>
+          ))}
+          <Badge color="green" icon={<FaLock />}>
+            Managers only label
+          </Badge>
+        </p>
+      ))}
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const rows = canvasElement.querySelectorAll('[data-surface]');
+    await expect(rows).toHaveLength(4);
+    for (const row of rows) {
+      await expect(row.querySelectorAll('[data-badge-mark]')).toHaveLength(BADGE_COLORS.length + 1);
+    }
+    const locked = within(canvasElement).getAllByText('Managers only label')[0];
+    await expect(locked?.parentElement?.querySelector('svg')?.closest('[aria-hidden="true"]')).toHaveClass('text-muted');
+  },
 };

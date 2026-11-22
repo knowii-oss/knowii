@@ -210,6 +210,16 @@ class Constants
 
     public const int MAX_ACCESS_GROUPS_PER_COMMUNITY = 50;
 
+    // Member tags (#1389, ADR 0060). WARNING: aligned with constants.ts. The name column holds 32 characters
+    public const int MIN_LENGTH_MEMBER_TAG_NAME = 2;
+
+    public const int MAX_LENGTH_MEMBER_TAG_NAME = 32;
+
+    public const int MAX_MEMBER_TAGS_PER_COMMUNITY = 100;
+
+    // The tags of one member in one community. An invitation or an invite link holds as many at most (#1390, #1391)
+    public const int MAX_MEMBER_TAGS_PER_MEMBER = 20;
+
     // Lifetimes of a personal API token, in days, or "never" (#1267, ADR 0022)
     // WARNING: aligned with API_TOKEN_EXPIRY_CHOICES (jetstream-inertia.intf.ts)
     public const array API_TOKEN_EXPIRY_CHOICES = ['30', '90', '365', 'never'];

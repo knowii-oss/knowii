@@ -1,0 +1,19 @@
+meta {
+  name: Member tags - List
+  type: http
+  seq: 206
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/member-tags
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The member tags of the community, by name (#1389, ADR 0060). Every member of the community. The owner, the admins and the moderators with the manage members right get every tag, with members_count; another member gets the tags with the visibility members, with members_count null. Each tag holds cuid, name, color (gray, red, orange, yellow, green, teal, blue or purple), visibility (members or managers), members_count and created_at. No pagination: a community has at most 100 tags. Token ability: member-tags:read.
+}

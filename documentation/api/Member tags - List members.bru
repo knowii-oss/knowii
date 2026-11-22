@@ -1,0 +1,19 @@
+meta {
+  name: Member tags - List members
+  type: http
+  seq: 210
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/member-tags/<tag cuid>/members?limit=20&offset=0
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The members who have the tag, by name (#1389), as authors (cuid, name, username, avatar_url). Owner, admins, moderators with the manage members right, for both visibilities. Offset pagination (limit, offset). Token ability: member-tags:read.
+}

@@ -6,6 +6,7 @@ use App\Enums\KnowiiCommunityMemberRole;
 use App\Models\AccessGroup;
 use App\Models\Community;
 use App\Models\CommunityMember;
+use App\Models\MemberTag;
 use App\Models\Space;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -16,6 +17,7 @@ use Illuminate\Support\Collection;
  * @property-read Collection<int, Community> $ownedCommunities
  * @property-read Collection<int, Community> $communities
  * @property-read \Illuminate\Database\Eloquent\Collection<int, AccessGroup> $accessGroups
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, MemberTag> $memberTags
  * @property Community $personalCommunity
  */
 trait HasCommunities
@@ -68,6 +70,17 @@ trait HasCommunities
     final public function accessGroups(): BelongsToMany
     {
         return $this->belongsToMany(AccessGroup::class, 'access_group_members')->withPivot('created_at', 'manual', 'by_rule');
+    }
+
+    /**
+     * The member tags of the user, in all communities, of both visibilities (#1389, ADR 0060): for the export of the
+     * member. An answer to another reader goes through MemberTagsOfMembers.
+     *
+     * @return BelongsToMany<MemberTag, covariant $this>
+     */
+    final public function memberTags(): BelongsToMany
+    {
+        return $this->belongsToMany(MemberTag::class, 'member_tag_members')->withPivot('created_at');
     }
 
     /**

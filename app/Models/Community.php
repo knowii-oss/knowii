@@ -312,6 +312,16 @@ class Community extends Model
     }
 
     /**
+     * The member tags of the community (#1389, ADR 0060). Every answer reads them through MemberTagsOfMembers.
+     *
+     * @return HasMany<MemberTag, covariant $this>
+     */
+    final public function memberTags(): HasMany
+    {
+        return $this->hasMany(MemberTag::class);
+    }
+
+    /**
      * Get all the spaces of the community.
      *
      * @return HasMany<Space, covariant $this>
@@ -369,6 +379,11 @@ class Community extends Model
         DB::table('access_group_members')
             ->where('user_id', $user->id)
             ->whereIn('access_group_id', $this->accessGroups()->select('id'))
+            ->delete();
+        // Nor a tag of it (#1389, ADR 0060): a member who comes back starts with none
+        DB::table('member_tag_members')
+            ->where('user_id', $user->id)
+            ->whereIn('member_tag_id', $this->memberTags()->select('id'))
             ->delete();
         // Nor a course progress in it (#1304, ADR 0034)
         DB::table('lesson_progress')->where('community_id', $this->id)->where('user_id', $user->id)->delete();

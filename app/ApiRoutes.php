@@ -67,6 +67,9 @@ final class ApiRoutes
     // Named after Community::accessGroups() for the scoped binding (#1241)
     public const PARAM_ACCESS_GROUP = 'accessGroup';
 
+    // Named after Community::memberTags() for the scoped binding (#1389)
+    public const PARAM_MEMBER_TAG = 'memberTag';
+
     // Named after the route parameter of the notification routes
     public const PARAM_NOTIFICATION = 'notification';
 
@@ -285,6 +288,15 @@ final class ApiRoutes
 
     // The entitlement keys that give an access group (#1386, ADR 0047)
     public const COMMUNITY_ACCESS_GROUP_RULES = self::COMMUNITY_ACCESS_GROUP.'/rules';
+
+    // Member tags (#1389, ADR 0060)
+    public const COMMUNITY_MEMBER_TAGS = self::COMMUNITY.'/member-tags';
+
+    public const COMMUNITY_MEMBER_TAG = self::COMMUNITY_MEMBER_TAGS.'/{'.self::PARAM_MEMBER_TAG.'}';
+
+    public const COMMUNITY_MEMBER_TAG_MEMBERS = self::COMMUNITY_MEMBER_TAG.'/members';
+
+    public const COMMUNITY_MEMBER_TAG_MEMBER = self::COMMUNITY_MEMBER_TAG_MEMBERS.'/{'.self::PARAM_MEMBER.'}';
 
     // Direct messages (#1186, ADR 0028)
     public const COMMUNITY_CONVERSATIONS = self::COMMUNITY.'/conversations';

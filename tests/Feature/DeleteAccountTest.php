@@ -8,6 +8,7 @@ use App\Models\Comment;
 use App\Models\Community;
 use App\Models\CommunityInvitation;
 use App\Models\CommunityResource;
+use App\Models\MemberTag;
 use App\Models\Post;
 use App\Models\Reaction;
 use App\Models\Space;
@@ -15,6 +16,7 @@ use App\Models\SpaceGroup;
 use App\Models\Upload;
 use App\Models\User;
 use App\Models\UserProfile;
+use App\Support\MemberTagAssignments;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
@@ -121,4 +123,23 @@ test('the logs of an account deletion keep only the cuid (#1261)', function () {
 
     Log::shouldHaveReceived('info')->with('Deleting user', ['user' => $user->cuid])->once();
     Log::shouldHaveReceived('info')->with('User deleted', ['user' => $user->cuid])->once();
+});
+
+test('a deleted account loses every member tag, and the tags stay on the other members (#1389)', function () {
+    $user = User::factory()->withUserProfile()->create();
+    $other = User::factory()->withUserProfile()->create();
+    $community = Community::factory()->create();
+    $community->users()->attach([$user->id => ['role' => 'member'], $other->id => ['role' => 'member']]);
+    $shown = MemberTag::factory()->forMembers()->create(['community_id' => $community->id, 'name' => 'Founder']);
+    $hidden = MemberTag::factory()->forManagers()->create(['community_id' => $community->id, 'name' => 'Onboarded']);
+    MemberTagAssignments::add($shown, $user);
+    MemberTagAssignments::add($hidden, $user);
+    MemberTagAssignments::add($shown, $other);
+
+    $this->actingAs($user)->delete('/user', ['password' => 'password']);
+
+    expect(User::query()->whereKey($user->id)->exists())->toBeFalse()
+        ->and(DB::table('member_tag_members')->where('user_id', $user->id)->exists())->toBeFalse()
+        ->and($shown->members()->pluck('users.id')->all())->toBe([$other->id])
+        ->and(MemberTag::query()->whereKey($hidden->id)->exists())->toBeTrue();
 });

@@ -10,8 +10,10 @@ use App\Events\CommunityMembers\CommunityMembersChanged;
 use App\Mail\CommunityOwnershipTransferred;
 use App\Models\AccessGroup;
 use App\Models\Community;
+use App\Models\MemberTag;
 use App\Models\User;
 use App\Support\CommunityRoles;
+use App\Support\MemberTagAssignments;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
@@ -222,4 +224,19 @@ test('the email names the community and the former owner (#1339)', function () {
     $mail->assertSeeInHtml($this->c['owner']->name, false);
     $mail->assertSeeInHtml(route('communities.settings', ['communitySlug' => $this->c['community']->slug]), false);
     expect($mail->build()->subject)->toContain($this->c['community']->name);
+});
+
+test('a transfer keeps the member tags of the former owner and of the new owner (#1389)', function () {
+    $community = $this->c['community'];
+    $founder = MemberTag::factory()->forMembers()->create(['community_id' => $community->id, 'name' => 'Founder']);
+    $staff = MemberTag::factory()->forManagers()->create(['community_id' => $community->id, 'name' => 'Staff']);
+    MemberTagAssignments::add($founder, $this->c['owner']);
+    MemberTagAssignments::add($staff, $this->c['owner']);
+    MemberTagAssignments::add($staff, $this->c['admin']);
+
+    $this->actingAs($this->c['owner'])->postJson(ownershipPath($community), ownershipBody($this->c['admin']))->assertOk();
+
+    expect($founder->members()->pluck('users.id')->all())->toBe([$this->c['owner']->id])
+        ->and($staff->members()->orderBy('users.id')->pluck('users.id')->all())->toBe(collect([$this->c['owner']->id, $this->c['admin']->id])->sort()->values()->all())
+        ->and(MemberTag::findByName($community->fresh(), 'founder')?->id)->toBe($founder->id);
 });

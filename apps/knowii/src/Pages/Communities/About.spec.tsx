@@ -53,8 +53,16 @@ const community = {
 } as Community;
 
 const team: CommunityMember[] = [
-  { cuid: 'o', name: 'Olivia', username: 'olivia', headline: 'Founder, grows food on a balcony', role: 'owner', member_since: null },
-  { cuid: 'm', name: 'Margaret', username: 'margaret', headline: '', role: 'moderator', member_since: null },
+  {
+    cuid: 'o',
+    name: 'Olivia',
+    username: 'olivia',
+    headline: 'Founder, grows food on a balcony',
+    role: 'owner',
+    member_since: null,
+    tags: [],
+  },
+  { cuid: 'm', name: 'Margaret', username: 'margaret', headline: '', role: 'moderator', member_since: null, tags: [] },
 ];
 
 const none: CommunityPermissions = {
@@ -69,6 +77,9 @@ const none: CommunityPermissions = {
   canManageAccessGroups: false,
   canManageAccessGroupMembers: false,
   canViewAccessGroups: false,
+  canManageMemberTags: false,
+  canAssignMemberTags: false,
+  canViewMemberTags: false,
 };
 
 function renderPage(currentRole: CommunityRole, permissions: Partial<CommunityPermissions> = {}) {

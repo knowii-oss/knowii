@@ -1,0 +1,26 @@
+meta {
+  name: Member tags - Add a member
+  type: http
+  seq: 211
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/member-tags/<tag cuid>/members
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "username": "ada-lovelace"
+  }
+}
+
+docs {
+  Puts the tag on a member of the community (#1389), named by exactly one of member (user cuid) or username; the owner counts as a member. Putting it twice changes nothing and answers 200. Someone who is not a member of the community gives a validation issue; an email field gives one too. A member has at most 20 tags in a community (422 after that). Nothing tells the member. Owner, admins, moderators with the manage members right, on any member, themselves too. Token ability: member-tags:write.
+}

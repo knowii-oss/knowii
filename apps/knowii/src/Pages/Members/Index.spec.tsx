@@ -97,6 +97,7 @@ const memberOf = (cuid: string, name: string, changes: Partial<CommunityMember> 
   headline: '',
   role: 'member',
   member_since: '2026-06-01T10:00:00.000000Z',
+  tags: [],
   ...changes,
 });
 

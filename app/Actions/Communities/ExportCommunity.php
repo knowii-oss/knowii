@@ -14,6 +14,7 @@ use App\Models\Conversation;
 use App\Models\CourseMaterial;
 use App\Models\Event;
 use App\Models\LessonProgress;
+use App\Models\MemberTag;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\Quiz;
@@ -152,6 +153,7 @@ final class ExportCommunity implements ExportsCommunities
             'invitations' => $this->invitations($community),
             'join_blocks' => $this->joinBlocks($community),
             'access_groups' => $this->accessGroups($community),
+            'member_tags' => $this->memberTags($community),
             'space_groups' => $this->spaceGroups($community),
             'spaces' => $this->spaces($community),
         ];
@@ -233,6 +235,26 @@ final class ExportCommunity implements ExportsCommunities
                 // The entitlement keys that give the group (#1386, ADR 0047): the setting of the community
                 'entitlement_keys' => $group->rules->map(static fn (AccessGroupRule $rule): string => $rule->entitlement_key)->sort()->values()->all(),
                 'created_at' => $this->date($group->created_at),
+            ];
+        }
+    }
+
+    /**
+     * The member tags (#1389, ADR 0060), of both visibilities, with the members who have them
+     *
+     * @return Generator<int, Row>
+     */
+    private function memberTags(Community $community): Generator
+    {
+        foreach (MemberTag::query()->where('community_id', $community->id)->with('members')->lazyById(self::CHUNK) as $tag) {
+            /** @var MemberTag $tag */
+            yield [
+                'cuid' => $tag->cuid,
+                'name' => $tag->name,
+                'color' => $tag->color->value,
+                'visibility' => $tag->visibility->value,
+                'members' => $tag->members->map(static fn (User $member): string => $member->cuid)->values()->all(),
+                'created_at' => $this->date($tag->created_at),
             ];
         }
     }
@@ -698,7 +720,7 @@ final class ExportCommunity implements ExportsCommunities
             '',
         ];
         $descriptions = [
-            'community.json' => 'the community, who can join it, its members, invitations, the people removed who cannot join again by themselves, access groups, space groups and spaces',
+            'community.json' => 'the community, who can join it, its members, invitations, the people removed who cannot join again by themselves, access groups, member tags (the name, the color, who sees it and the members who have it), space groups and spaces',
             'posts.json' => 'the posts (Markdown)',
             'comments.json' => 'the comments on posts and on resources (Markdown)',
             'pages.json' => 'the pages and the lessons (Markdown)',

@@ -64,6 +64,11 @@ use App\Actions\Events\UpdateEvent;
 use App\Actions\Mail\CheckMailBudget;
 use App\Actions\Mail\RecordSentEmails;
 use App\Actions\Mail\ResendMailUsage;
+use App\Actions\MemberTags\AddMemberTagMember;
+use App\Actions\MemberTags\CreateMemberTag;
+use App\Actions\MemberTags\DeleteMemberTag;
+use App\Actions\MemberTags\RemoveMemberTagMember;
+use App\Actions\MemberTags\UpdateMemberTag;
 use App\Actions\Newsletter\SubscribeToNewsletter;
 use App\Actions\Notifications\BuildCatchUp;
 use App\Actions\Notifications\ChooseSpaceLevels;
@@ -113,6 +118,7 @@ use App\Actions\Users\UpdateNotificationSettings;
 use App\Actions\Users\UpdateOnlineStatus;
 use App\Actions\Users\UpdateTimeZone;
 use App\Actions\Users\VerifyUsernameAvailability;
+use App\ApiRoutes;
 use App\Constants;
 use App\Contracts\AccessGroups\AddsAccessGroupMembers;
 use App\Contracts\AccessGroups\CreatesAccessGroups;
@@ -175,6 +181,11 @@ use App\Contracts\Events\UpdatesEvents;
 use App\Contracts\Mail\ChecksMailBudgets;
 use App\Contracts\Mail\ReadsMailUsage;
 use App\Contracts\Mail\RecordsSentEmails;
+use App\Contracts\MemberTags\AddsMemberTagMembers;
+use App\Contracts\MemberTags\CreatesMemberTags;
+use App\Contracts\MemberTags\DeletesMemberTags;
+use App\Contracts\MemberTags\RemovesMemberTagMembers;
+use App\Contracts\MemberTags\UpdatesMemberTags;
 use App\Contracts\Newsletter\SubscribesToNewsletter;
 use App\Contracts\Notifications\BuildsCatchUp;
 use App\Contracts\Notifications\ChoosesSpaceLevels;
@@ -232,6 +243,7 @@ use App\Http\Controllers\Inertia\MemberController;
 use App\Models\User;
 use App\Support\EmailChangeBudget;
 use App\Support\MailSettings;
+use App\Support\MemberTagsOfMembers;
 use App\Support\ReverbLiveConnections;
 use App\Support\ReverbPresenceChannels;
 use Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider;
@@ -240,6 +252,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -310,6 +323,15 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(DeletesAccessGroups::class, DeleteAccessGroup::class);
         app()->singleton(AddsAccessGroupMembers::class, AddAccessGroupMember::class);
         app()->singleton(RemovesAccessGroupMembers::class, RemoveAccessGroupMember::class);
+        // Member tags (#1389, ADR 0060)
+        app()->singleton(CreatesMemberTags::class, CreateMemberTag::class);
+        app()->singleton(UpdatesMemberTags::class, UpdateMemberTag::class);
+        app()->singleton(DeletesMemberTags::class, DeleteMemberTag::class);
+        app()->singleton(AddsMemberTagMembers::class, AddMemberTagMember::class);
+        app()->singleton(RemovesMemberTagMembers::class, RemoveMemberTagMember::class);
+        // A tag that the reader may not see answers 404 before the token abilities and the controller (here, not in a route
+        // file: the cached routes do not keep a binding)
+        Route::bind(ApiRoutes::PARAM_MEMBER_TAG, MemberTagsOfMembers::bindRoute(...));
         app()->singleton(SetsAccessGroupSpaceGroups::class, SetAccessGroupSpaceGroups::class);
         app()->singleton(SetsSpaceGroupAccessGroups::class, SetSpaceGroupAccessGroups::class);
         app()->singleton(AcceptsCommunityInvitations::class, AcceptCommunityInvitation::class);

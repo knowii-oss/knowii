@@ -1,0 +1,19 @@
+meta {
+  name: Member tags - Delete
+  type: http
+  seq: 209
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/member-tags/<tag cuid>
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Deletes a member tag (#1389): owner and admins. Every member who has it loses it; it cannot be undone. Returns 204. Token ability: member-tags:write.
+}
