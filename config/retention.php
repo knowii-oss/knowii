@@ -66,6 +66,14 @@ return [
     // not count any more, and the `pending_emails` step of retention:prune removes it, with the time of the request
     'pending_email_days' => (int) env('RETENTION_PENDING_EMAIL_DAYS', 7),
 
+    // Email delivery (#1478, ADR 0054): a row of the delivery log (the kind and the state of a sent mail, no text) and the id
+    // of a report of the mail provider are deleted this many days after they were written. A count of soft bounces that
+    // stopped nothing is deleted this many days after the last bounce. The stop of the notification email after a report
+    // has no period: it lives while the address stays (a change of the address or a delivery lifts it), and goes with the
+    // account. The groups that a member stopped live with the account
+    'mail_deliveries_days' => (int) env('RETENTION_MAIL_DELIVERIES_DAYS', 30),
+    'mail_webhook_events_days' => (int) env('RETENTION_MAIL_WEBHOOK_EVENTS_DAYS', 30),
+    'email_soft_bounces_days' => (int) env('RETENTION_EMAIL_SOFT_BOUNCES_DAYS', 90),
     // EmailOctopus: a waitlist contact is deleted this many months after the signup
     'waitlist_months' => (int) env('RETENTION_WAITLIST_MONTHS', 12),
 

@@ -149,6 +149,14 @@ return [
         'alert_to' => $list((string) env('MAIL_ALERT_TO', '')),
     ],
 
+    // Before a mail that a person asks for (the sign-in link, the password reset, the address check, the confirmation of a
+    // new address) to an address that the mail provider lists after a bounce or a complaint, the platform asks the provider
+    // to take the address off its list (#1478). At most this many times per address. A whole number of at least 1
+    'provider_removals' => [
+        'per_hour' => env('MAIL_PROVIDER_REMOVALS_PER_HOUR', 1),
+        'per_day' => env('MAIL_PROVIDER_REMOVALS_PER_DAY', 3),
+    ],
+
     // The daily caps of the invitation mails (#1390, #1713, ADR 0061): every invitation mail (a single invitation, a row
     // of an import, a send again) counts in all three, over the last 24 hours. A whole number of at least 1, else 1000
     'invitations' => [

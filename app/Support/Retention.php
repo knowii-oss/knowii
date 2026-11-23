@@ -120,6 +120,30 @@ final class Retention
         return self::int('retention.pending_email_days', 7);
     }
 
+    /**
+     * A row of the delivery log (#1478)
+     */
+    public static function mailDeliveriesDays(): int
+    {
+        return self::int('retention.mail_deliveries_days', 30);
+    }
+
+    /**
+     * The id of a report of the mail provider (#1478)
+     */
+    public static function mailWebhookEventsDays(): int
+    {
+        return self::int('retention.mail_webhook_events_days', 30);
+    }
+
+    /**
+     * A count of soft bounces that stopped nothing, after the last bounce (#1478)
+     */
+    public static function emailSoftBouncesDays(): int
+    {
+        return self::int('retention.email_soft_bounces_days', 90);
+    }
+
     public static function logDays(): int
     {
         return self::int('logging.channels.daily.days', 14);
@@ -174,6 +198,9 @@ final class Retention
             'event_answers' => self::count(self::eventAnswersDays(), 'day'),
             'invite_link_uses' => self::count(self::inviteLinkUsesDays(), 'day'),
             'pending_email' => self::count(self::pendingEmailDays(), 'day'),
+            'mail_deliveries' => self::count(self::mailDeliveriesDays(), 'day'),
+            'mail_webhook_events' => self::count(self::mailWebhookEventsDays(), 'day'),
+            'email_soft_bounces' => self::count(self::emailSoftBouncesDays(), 'day'),
             'logs' => self::count(self::logDays(), 'day'),
             'waitlist' => self::count(self::waitlistMonths(), 'month'),
             'inactive_contacts' => self::count(self::inactiveContactsDays(), 'day'),

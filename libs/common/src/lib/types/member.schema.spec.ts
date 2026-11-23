@@ -9,6 +9,8 @@ const invitation = {
   created_at: '2026-11-22T10:00:00.000000Z',
   expires_at: '2026-11-29T10:00:00.000000Z',
   is_expired: false,
+  bounced_at: null,
+  bounce_type: null,
   access_groups: [{ cuid: 'g1', name: 'Paid' }],
   member_tags: [
     {
@@ -35,6 +37,18 @@ describe('communityInvitationSchema (#1390)', () => {
     delete withoutTags['member_tags'];
     expect(communityInvitationSchema.safeParse(withoutGroups).success).toBe(false);
     expect(communityInvitationSchema.safeParse(withoutTags).success).toBe(false);
+  });
+});
+
+describe('the report of the mail provider on an invitation (#1478)', () => {
+  it('reads a hard or a soft bounce with its date, and refuses another type', () => {
+    expect(
+      communityInvitationSchema.parse({ ...invitation, bounced_at: '2026-11-23T10:00:00.000000Z', bounce_type: 'hard' }).bounce_type,
+    ).toBe('hard');
+    expect(
+      communityInvitationSchema.parse({ ...invitation, bounced_at: '2026-11-23T10:00:00.000000Z', bounce_type: 'soft' }).bounce_type,
+    ).toBe('soft');
+    expect(communityInvitationSchema.safeParse({ ...invitation, bounce_type: 'other' }).success).toBe(false);
   });
 });
 

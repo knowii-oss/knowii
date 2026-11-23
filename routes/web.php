@@ -22,6 +22,7 @@ use App\Http\Controllers\Inertia\SpaceController;
 use App\Http\Controllers\LegalPageController;
 use App\Http\Controllers\RobotsController;
 use App\Http\Controllers\SecurityTxtController;
+use App\Http\Controllers\Webhooks\MailWebhookController;
 use App\Http\Controllers\Webhooks\OidcEntitlementsWebhookController;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\InviteLink;
@@ -197,6 +198,21 @@ Route::post(OidcEntitlements::WEBHOOK_PATH, [OidcEntitlementsWebhookController::
     ])
     ->middleware('throttle:oidc-entitlements')
     ->name('oidc.entitlements.webhook');
+
+// The webhook of the mail provider (#1478, ADR 0054): bounces, complaints, its list and the deliveries. Public: no session, no
+// cookie, no CSRF token and no token ability, because the proof is the signature of the call. Limited per IP address. The route
+// answers 404 unless the instance has a usable RESEND_WEBHOOK_SECRET
+Route::post('/webhooks/resend', [MailWebhookController::class, 'store'])
+    ->withoutMiddleware([
+        EncryptCookies::class,
+        AddQueuedCookiesToResponse::class,
+        StartSession::class,
+        ShareErrorsFromSession::class,
+        PreventRequestForgery::class,
+        HandleInertiaRequests::class,
+    ])
+    ->middleware('throttle:mail-webhook')
+    ->name('mail.webhook');
 
 // The contact page shows the contact address of the instance (#1653): without an address, the page does not exist
 Route::get('/contact', static function (): InertiaResponse {

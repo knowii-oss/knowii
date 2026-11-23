@@ -9,8 +9,10 @@ use App\Contracts\InvitationImports\DeletesInvitationImports;
 use App\Contracts\InvitationImports\ResendsInvitationImports;
 use App\Contracts\InvitationImports\SendsInvitationImportMails;
 use App\Enums\KnowiiCommunityMemberRole;
+use App\Enums\KnowiiInvitationBounceType;
 use App\Enums\KnowiiInvitationImportOutcome;
 use App\Enums\KnowiiInvitationImportState;
+use App\Enums\KnowiiMailKind;
 use App\Enums\KnowiiModeratorPermission;
 use App\Events\CommunityMembers\CommunityMembersChanged;
 use App\Events\InvitationImports\InvitationImportChanged;
@@ -23,6 +25,7 @@ use App\Models\CommunityInvitation;
 use App\Models\CommunityJoinBlock;
 use App\Models\InvitationImport;
 use App\Models\InvitationImportRow;
+use App\Models\MailDelivery;
 use App\Models\MemberTag;
 use App\Models\User;
 use App\Support\InvitationGrants;
@@ -1252,4 +1255,27 @@ test('the migration of the imports goes down and up again, and changes no other 
         ->and($import->exists)->toBeTrue();
     expect(fn () => DB::table('invitation_import_rows')->insert(['cuid' => 'qxbadrow000000000000000a', 'invitation_import_id' => 1, 'row_number' => 2, 'email' => 'x', 'access_group_names' => '[]', 'member_tag_names' => '[]', 'outcome' => 'lost']))
         ->toThrow(QueryException::class);
+});
+
+test('the mail of a row has a row of the delivery log of its invitation; a send again clears the report of the mail provider (#1478)', function () {
+    $import = importSent($this->community, $this->c['owner'], ['qx-1@example.com']);
+    importRunWorker();
+
+    $invitation = CommunityInvitation::query()->where('email', 'qx-1@example.com')->sole();
+    $delivery = MailDelivery::query()->sole();
+    expect($delivery->kind)->toBe(KnowiiMailKind::Invitation)
+        ->and($delivery->community_invitation_id)->toBe($invitation->id)
+        ->and($delivery->user_id)->toBeNull();
+
+    $invitation->forceFill(['bounced_at' => now(), 'bounce_type' => KnowiiInvitationBounceType::Hard])->save();
+    $import->rows()->update(['outcome' => 'failed']);
+    $import->forceFill(['state' => 'done', 'finished_at' => now()])->save();
+    $this->travel(5)->minutes();
+    app(ResendsInvitationImports::class)->resend($this->c['owner'], $import, ['rows' => 'not_sent']);
+    importRunWorker();
+
+    $invitation->refresh();
+    expect($invitation->bounced_at)->toBeNull()
+        ->and($invitation->bounce_type)->toBeNull()
+        ->and(MailDelivery::query()->count())->toBe(2);
 });

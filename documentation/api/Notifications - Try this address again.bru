@@ -1,0 +1,19 @@
+meta {
+  name: Notifications - Try this address again
+  type: http
+  seq: 240
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/notifications/email-suppression
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Try this address again (#1478): the notification emails to the address of the account go again, also after a spam report, and the mail provider is asked, best effort, to take the address off its own list. If the next email does not arrive, the mail provider reports it and the emails stop again. Once an hour per account: the second call within the hour answers 429. Answers with the email status. Needs notifications:write.
+}

@@ -12,6 +12,7 @@ use App\Http\Controllers\API\CommunityResourceApiController;
 use App\Http\Controllers\API\CommunityResourceCommentApiController;
 use App\Http\Controllers\API\ConversationApiController;
 use App\Http\Controllers\API\CourseMaterialApiController;
+use App\Http\Controllers\API\EmailStatusApiController;
 use App\Http\Controllers\API\EventAnswerApiController;
 use App\Http\Controllers\API\EventApiController;
 use App\Http\Controllers\API\EventCalendarFileApiController;
@@ -291,6 +292,9 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
         Route::get(ApiRoutes::COMMUNITY_NOTIFICATION_LEVELS, [NotificationLevelApiController::class, 'index'])->middleware('ability:notifications:read');
         // The data of the "Catch up" card (#1476)
         Route::get(ApiRoutes::COMMUNITY_CATCH_UP, [CatchUpApiController::class, 'show'])->middleware('ability:notifications:read');
+        // The email status of the member and "Try this address again" (#1478, ADR 0054): own state only, once an hour for the lift
+        Route::get(ApiRoutes::NOTIFICATIONS_EMAIL_STATUS, [EmailStatusApiController::class, 'show'])->middleware('ability:notifications:read');
+        Route::delete(ApiRoutes::NOTIFICATIONS_EMAIL_SUPPRESSION, [EmailStatusApiController::class, 'destroySuppression'])->middleware('ability:notifications:write')->middleware('throttle:mail-suppression');
         Route::put(ApiRoutes::NOTIFICATION_READ, [NotificationApiController::class, 'read'])->middleware('ability:notifications:write');
         Route::post(ApiRoutes::NOTIFICATION_UNREAD, [NotificationApiController::class, 'unread'])->middleware('ability:notifications:write');
 

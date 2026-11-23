@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\HasDeliveryRow;
 use App\Support\MailBudgetCheck;
 use Carbon\CarbonImmutable;
 use Illuminate\Bus\Queueable;
@@ -15,7 +16,7 @@ use Illuminate\Queue\SerializesModels;
  */
 class MailBudgetAlert extends Mailable
 {
-    use Queueable, SerializesModels;
+    use HasDeliveryRow, Queueable, SerializesModels;
 
     public function __construct(
         public CarbonImmutable $month,

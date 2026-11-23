@@ -362,6 +362,12 @@ final class ApiRoutes
     // "I am caught up" (#1475): the open rows of "Following" are read
     public const NOTIFICATIONS_CAUGHT_UP = self::NOTIFICATIONS.'/caught-up';
 
+    // The email status of the current member (#1478, ADR 0054): the suppression of the address and the groups of email
+    public const NOTIFICATIONS_EMAIL_STATUS = self::NOTIFICATIONS.'/email-status';
+
+    // "Try this address again" (#1478)
+    public const NOTIFICATIONS_EMAIL_SUPPRESSION = self::NOTIFICATIONS.'/email-suppression';
+
     public const NOTIFICATION = self::NOTIFICATIONS.'/{'.self::PARAM_NOTIFICATION.'}';
 
     public const NOTIFICATION_READ = self::NOTIFICATION.'/read';

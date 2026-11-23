@@ -72,7 +72,7 @@ class Constants
 
     public const int MAX_LENGTH_SPACE_EMOJI = 16;
 
-    // Limits the size of a community navigation (Circle allows 40 spaces on our plan)
+    // Limits the size of a community navigation
     public const int MAX_SPACE_GROUPS_PER_COMMUNITY = 50;
 
     public const int MAX_SPACES_PER_COMMUNITY = 200;
@@ -316,6 +316,24 @@ class Constants
     // Calls of the sign-in provider to the entitlements webhook per minute and per IP address (#1386, ADR 0047). The provider
     // joins the changes of one person into one call, and retries with a growing delay
     public const int OIDC_ENTITLEMENT_EVENTS_PER_MINUTE = 120;
+
+    // Calls of the mail provider to its webhook per minute and per IP address (#1478, ADR 0054). Mail events come in bursts:
+    // a send to 400 members gives 400 deliveries in a minute. A call over the limit is retried later by the provider
+    public const int MAIL_WEBHOOK_EVENTS_PER_MINUTE = 600;
+
+    // The time of a webhook call of the mail provider may differ from the clock of the server by this many seconds at most
+    // (#1478): an older or a newer call is refused, so that a captured call cannot be sent again later
+    public const int MAIL_WEBHOOK_TOLERANCE_SECONDS = 300;
+
+    // The largest body of a webhook call of the mail provider (#1478): a real report is a few KB
+    public const int MAIL_WEBHOOK_MAX_BODY_BYTES = 262144;
+
+    // Soft bounces in a row (no delivery in between) that stop the notification email of an address, like a hard bounce (#1478)
+    public const int EMAIL_SOFT_BOUNCES_TO_SUPPRESS = 3;
+
+    // Calls of the stop link of a notification email per minute and per IP address, for its three routes together (#1478). The
+    // limit runs before the check of the signature
+    public const int MAIL_STOP_PER_ADDRESS_PER_MINUTE = 60;
 
     // An entitlement key (free text of a rule, or a key that the provider sends): letters, digits, dot, dash and underscore
     public const int MAX_LENGTH_ENTITLEMENT_KEY = 100;

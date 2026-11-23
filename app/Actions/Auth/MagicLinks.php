@@ -49,7 +49,7 @@ class MagicLinks implements ConsumesMagicLinks, SendsMagicLinks
             Cache::put(self::landingKey($token), $landing, now()->addMinutes(self::VALIDITY_MINUTES));
         }
 
-        Mail::to($user->email)->queue(new MagicLink($token));
+        Mail::to($user->email)->queue((new MagicLink($token))->recordDelivery($user));
         Log::info('Sign-in link sent', ['user' => $user->cuid]);
     }
 

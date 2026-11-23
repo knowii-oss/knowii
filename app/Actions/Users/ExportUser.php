@@ -13,14 +13,17 @@ use App\Models\CommunityInvitation;
 use App\Models\CommunityJoinBlock;
 use App\Models\CommunityMember;
 use App\Models\CommunityResource;
+use App\Models\EmailSuppression;
 use App\Models\Event;
 use App\Models\EventAnswer;
 use App\Models\InvitationImportRow;
 use App\Models\InviteLinkUse;
 use App\Models\LessonProgress;
+use App\Models\MailDelivery;
 use App\Models\MemberTag;
 use App\Models\Mention;
 use App\Models\Notification;
+use App\Models\NotificationEmailChoice;
 use App\Models\NotificationFollow;
 use App\Models\NotificationSpaceLevel;
 use App\Models\Page;
@@ -100,7 +103,11 @@ final class ExportUser implements ExportsUsers
 
         try {
             $json = [
-                'account.json' => [$this->accountHead($user), ['connected_accounts' => $this->connectedAccounts($user), 'entitlements' => $this->entitlements($user)]],
+                'account.json' => [$this->accountHead($user), [
+                    'connected_accounts' => $this->connectedAccounts($user),
+                    'entitlements' => $this->entitlements($user),
+                    'email_choices' => $this->emailChoices($user),
+                ]],
                 'memberships.json' => [[], [
                     'memberships' => $this->memberships($user),
                     'owned_communities' => $this->ownedCommunities($user),
@@ -126,6 +133,7 @@ final class ExportUser implements ExportsUsers
                     'api_tokens' => $this->apiTokens($user),
                     'sessions' => $this->sessions($user),
                     'invitation_mails' => $this->invitationMails($user),
+                    'mail_deliveries' => $this->mailDeliveries($user),
                 ]],
                 'posts.json' => [[], ['posts' => $this->posts($user)]],
                 'comments.json' => [[], ['comments' => $this->comments($user)]],
@@ -207,6 +215,8 @@ final class ExportUser implements ExportsUsers
                 'updated_at' => $this->date($user->updated_at),
             ],
             'profile' => $profileRow,
+            // The suppression of the notification email after a report of the mail provider (#1478, ADR 0054)
+            'email_delivery' => $this->emailDelivery($user),
         ];
     }
 
@@ -334,6 +344,9 @@ final class ExportUser implements ExportsUsers
                 'role' => $invitation->role->value,
                 'access_groups' => $invitation->accessGroups->map(static fn (AccessGroup $group): array => ['cuid' => $group->cuid, 'name' => $group->name])->values()->all(),
                 'member_tags' => $invitation->memberTags->map(static fn (MemberTag $tag): array => ['cuid' => $tag->cuid, 'name' => $tag->name])->values()->all(),
+                // A report of the mail provider on the invitation email (#1478): when, and `hard` or `soft`
+                'bounced_at' => $this->date($invitation->bounced_at),
+                'bounce_type' => $invitation->bounce_type?->value,
                 'created_at' => $this->date($invitation->created_at),
             ];
         }
@@ -672,6 +685,26 @@ final class ExportUser implements ExportsUsers
     }
 
     /**
+     * The delivery log of the emails to the account (#1478, ADR 0054): the kind, the state, the dates and the number that the
+     * mail provider gave each email. No address, no subject, no text: the log holds none
+     *
+     * @return Generator<int, Row>
+     */
+    private function mailDeliveries(User $user): Generator
+    {
+        foreach (MailDelivery::query()->where('user_id', $user->id)->lazyById(self::CHUNK) as $delivery) {
+            yield [
+                'cuid' => $delivery->cuid,
+                'kind' => $delivery->kind->value,
+                'status' => $delivery->status->value,
+                'provider_email_id' => $delivery->provider_email_id,
+                'sent_at' => $this->date($delivery->sent_at),
+                'created_at' => $this->date($delivery->created_at),
+            ];
+        }
+    }
+
+    /**
      * @return Generator<int, Row>
      */
     private function posts(User $user): Generator
@@ -933,6 +966,40 @@ final class ExportUser implements ExportsUsers
         return is_string($value) && $value !== '' ? Carbon::parse($value)->toIso8601String() : null;
     }
 
+    /**
+     * The suppression of the notification email (#1478, ADR 0054): the row of the account as it is stored, also a row that
+     * only counts soft bounces, or an empty object
+     *
+     * @return array{suppressed?: bool, reason?: string|null, since?: string|null, address?: string, soft_bounces?: int}
+     */
+    private function emailDelivery(User $user): array
+    {
+        $row = EmailSuppression::query()->where('user_id', $user->id)->first();
+        if ($row === null) {
+            return [];
+        }
+
+        return [
+            'suppressed' => $row->suppressed_at !== null,
+            'reason' => $row->reason?->value,
+            'since' => $this->date($row->suppressed_at),
+            'address' => $row->email,
+            'soft_bounces' => $row->soft_bounce_count,
+        ];
+    }
+
+    /**
+     * The notification email groups that the member stopped (#1478)
+     *
+     * @return list<array{group: string, state: string}>
+     */
+    private function emailChoices(User $user): array
+    {
+        return array_values(NotificationEmailChoice::query()->where('user_id', $user->id)->orderBy('id')->get()
+            ->map(static fn (NotificationEmailChoice $choice): array => ['group' => $choice->group->value, 'state' => $choice->state])
+            ->all());
+    }
+
     private function date(?CarbonInterface $date): ?string
     {
         return $date?->toIso8601String();
@@ -1025,9 +1092,9 @@ final class ExportUser implements ExportsUsers
             '',
         ];
         $descriptions = [
-            'account.json' => 'your account and your profile, with the choice of who sees each profile field, and the accounts of other providers that you connected to sign in (the provider, your identifier there and the dates), with the entitlement keys that the provider reported for you and the date of the last check, your time zone, the date of your last visit (a date, no hour), your choice to be in the member lists and your choice of pop-ups',
-            'memberships.json' => 'your communities and your role, the communities you own, your access groups (and whether you were added by hand or by an entitlement rule), the tags that the managers of a community put on you (the name, who sees it: the members or the managers only, and the date), the invitations sent to your email address (with the access groups and the member tags that each gives when you join), the rows of the imports of invitations from a file with your address (the community, the date, whether the invitation went out and why a row was refused), the communities where a manager removed you and where you cannot join again by yourself, and the invite links through which you joined a community (the community, the cuid and the name of the link, and the date)',
-            'activity.json' => 'the lessons you marked as done, your quiz results, your answers to events (the event by its identifier and its title, and your answer: yes, replay only or no), what you read in chat spaces and conversations, the members you blocked, where you were mentioned, your notifications (kind, community, the items by identifier and the dates, never a text), the threads that you follow or muted and the level that you chose for each space, the date when you last visited each space, your API tokens, your sessions and the invitation emails that you sent in the last days (the community and the time)',
+            'account.json' => 'your account and your profile, with the choice of who sees each profile field, and the accounts of other providers that you connected to sign in (the provider, your identifier there and the dates), with the entitlement keys that the provider reported for you and the date of the last check, your time zone, the date of your last visit (a date, no hour), your choice to be in the member lists and your choice of pop-ups, whether the notification emails to your address are stopped after a report of our mail provider (the reason, the date, the address and the count of temporary failures), and the groups of notification emails that you stopped',
+            'memberships.json' => 'your communities and your role, the communities you own, your access groups (and whether you were added by hand or by an entitlement rule), the tags that the managers of a community put on you (the name, who sees it: the members or the managers only, and the date), the invitations sent to your email address (with the access groups and the member tags that each gives when you join, and whether our mail provider reported that the invitation email could not be delivered), the rows of the imports of invitations from a file with your address (the community, the date, whether the invitation went out and why a row was refused), the communities where a manager removed you and where you cannot join again by yourself, and the invite links through which you joined a community (the community, the cuid and the name of the link, and the date)',
+            'activity.json' => 'the lessons you marked as done, your quiz results, your answers to events (the event by its identifier and its title, and your answer: yes, replay only or no), what you read in chat spaces and conversations, the members you blocked, where you were mentioned, your notifications (kind, community, the items by identifier and the dates, never a text), the threads that you follow or muted and the level that you chose for each space, the date when you last visited each space, your API tokens, your sessions, the invitation emails that you sent in the last days (the community and the time), and the record of each email that we sent you (its kind, its state, its dates and the number that our mail provider gave it, without its subject or its text)',
             'posts.json' => 'your posts (Markdown)',
             'comments.json' => 'your comments (Markdown) on posts, resources and events, with the cuid and the title of what they answer',
             'pages.json' => 'the pages and lessons you wrote (Markdown)',

@@ -16,7 +16,7 @@
   {
     "name": "Resend, Inc.",
     "country": "United States",
-    "purpose": "Emails of the service: sign-in links, address verification, invitations",
+    "purpose": "Emails of the service: sign-in links, address verification, invitations, and the reports of emails that could not be delivered or that were marked as spam",
     "safeguard": "EU-US Data Privacy Framework",
     "scope": ["platform", "community"]
   },

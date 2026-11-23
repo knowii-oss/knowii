@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Actions\Auth\MagicLinks;
+use App\Mail\Concerns\HasDeliveryRow;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Mail\Mailable;
@@ -13,7 +14,7 @@ use Illuminate\Queue\SerializesModels;
  */
 class MagicLink extends Mailable implements ShouldBeEncrypted
 {
-    use Queueable, SerializesModels;
+    use HasDeliveryRow, Queueable, SerializesModels;
 
     public function __construct(public string $token) {}
 

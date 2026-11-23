@@ -6,10 +6,13 @@ use App\Actions\Communities\ExportCommunity;
 use App\Contracts\Retention\PrunesExpiredData;
 use App\Enums\KnowiiInvitationImportState;
 use App\Models\CommunityInvitation;
+use App\Models\EmailSuppression;
 use App\Models\Event;
 use App\Models\EventAnswer;
 use App\Models\InvitationImport;
 use App\Models\InviteLinkUse;
+use App\Models\MailDelivery;
+use App\Models\MailWebhookEvent;
 use App\Models\Notification;
 use App\Models\User;
 use App\Support\InvitationMailCaps;
@@ -39,6 +42,9 @@ use Laravel\Sanctum\PersonalAccessToken;
  * - community exports (zip files of `php artisan communities:export`, #1353) after their retention period
  * - a new email address that waits for its confirmation (#1706, ADR 0058), some days after the request: the address and
  *   the time of the request are cleared, the account stays
+ * - the delivery log of the mail and the ids of the reports of the mail provider (#1478), some days after they were
+ *   written; a count of soft bounces that stopped nothing, some days after the last bounce, and a suppression row about
+ *   an address that the account does not have any more
  * - cache entries after their expiry (sign-in link tokens, rate limit counters by IP address), when the cache is the
  *   database: an expired entry stays in the table until someone reads its key again
  */
@@ -107,6 +113,25 @@ final class PruneExpiredData implements PrunesExpiredData
             // Who joined through an invite link (#1391, ADR 0062): the count of the link stays
             'invite_link_uses' => $this->apply(
                 InviteLinkUse::query()->where('created_at', '<', now()->subDays(Retention::inviteLinkUsesDays()))->toBase(),
+                $dryRun
+            ),
+            // Email delivery (#1478, ADR 0054): the delivery log and the ids of the reports of the mail provider
+            'mail_deliveries' => $this->apply(
+                MailDelivery::query()->where('created_at', '<', now()->subDays(Retention::mailDeliveriesDays()))->toBase(),
+                $dryRun
+            ),
+            'mail_webhook_events' => $this->apply(
+                MailWebhookEvent::query()->where('created_at', '<', now()->subDays(Retention::mailWebhookEventsDays()))->toBase(),
+                $dryRun
+            ),
+            // A count of soft bounces that stopped nothing, after its period, and a row about another address than the
+            // address of the account (it applies no more). A suppressed row of the current address stays
+            'email_suppressions' => $this->apply(
+                EmailSuppression::query()
+                    ->where(fn ($query) => $query
+                        ->where(fn ($counting) => $counting->whereNull('suppressed_at')->where('last_event_at', '<', now()->subDays(Retention::emailSoftBouncesDays())))
+                        ->orWhereNotExists(fn (Builder $same) => $same->select(DB::raw(1))->from('users')->whereColumn('users.id', 'email_suppressions.user_id')->whereRaw('lower(users.email) = email_suppressions.email')))
+                    ->toBase(),
                 $dryRun
             ),
             'exports' => $this->pruneExports($dryRun),

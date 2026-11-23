@@ -68,6 +68,8 @@ const invitation: CommunityInvitation = {
   created_at: new Date().toISOString(),
   expires_at: new Date().toISOString(),
   is_expired: false,
+  bounced_at: null,
+  bounce_type: null,
   access_groups: [],
   member_tags: [],
 };

@@ -198,7 +198,7 @@ final class CheckMailBudget implements ChecksMailBudgets
             }
 
             try {
-                Mail::to($address)->queue(new MailBudgetAlert(CarbonImmutable::parse($month, 'UTC'), $used, $quota, $percent, $source, $holdPercent, $heldUntil));
+                Mail::to($address)->queue((new MailBudgetAlert(CarbonImmutable::parse($month, 'UTC'), $used, $quota, $percent, $source, $holdPercent, $heldUntil))->recordDelivery());
             } catch (Throwable $exception) {
                 Log::error('The mail budget alert could not be queued', ['exception' => $exception::class]);
             }

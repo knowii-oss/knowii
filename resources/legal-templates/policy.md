@@ -23,9 +23,10 @@ Knowii is for people of 16 and older. We do not knowingly keep the data of young
 4. Your content: posts, comments, reactions, mentions, resources and their captured content, chat messages, direct messages, pages, lessons, events (their title, description, date, place, meeting address, replay link and notes), and uploaded images and their alternative text. Uploaded images are re-encoded on our server, which removes their metadata (location, camera).
 5. Technical data: the IP address and the browser of each session, the API tokens you create and the date of their last use, the token of the 'Remember me' option, your password reset requests until they expire, and counters by IP address that limit the number of requests (rate limits) and, for each invitation email that you send, the community and the time, kept {{retention.invitation_mails}}, to limit the invitation emails of an account and of a community.
 6. [TODO: keep only if you use it] Newsletter: your email address, if you join the newsletter.
-7. Data that we get from other people: when a manager of a community invites you, they give us your email address, and they can choose the access groups and the tags that you get when you join. When a member mentions you, that mention is content of the community. The managers of a community can put tags on you, for example "Founder". A tag is a short name and holds no other text. A manager can also invite many people at once with a file. We read the file one time and do not keep it. The record of that import keeps your address, whether the invitation went out, and why a row was refused.
+7. Data that we get from other people: when a manager of a community invites you, they give us your email address, and they can choose the access groups and the tags that you get when you join. When a member mentions you, that mention is content of the community. The managers of a community can put tags on you, for example "Founder". A tag is a short name and holds no other text. A manager can also invite many people at once with a file. We read the file one time and do not keep it. The record of that import keeps your address, whether the invitation went out, and why a row was refused. If an invitation email to your address cannot be delivered, we note it on the invitation, and the managers of the community see that the address could not be reached.
 8. [TODO: keep only if you use it] Audience statistics: page views, counted by Plausible without cookies and without a stored identifier. Our proxy at Cloudflare and Plausible see your IP address to count the view and do not keep it.
 9. Your answers to events (yes, replay only or no), until {{retention.event_answers}} after the event or until you leave the community. The host and the team of an event see who answered yes or replay only. They do not see when you open the meeting. We do not record who attends a meeting.
+10. Email delivery: for each email that we send you, the kind of email, its state (sent, held, skipped or failed), its date and the number that our mail provider gives it, without its subject or its text. When an email to your address cannot be delivered or is marked as spam, our mail provider sends us a report: we keep the report (its number, its kind and its date), and we stop the notification emails to that address, with the reason and the date. A temporary failure is counted, and 3 in a row stop the notification emails too. We also keep the groups of notification emails that you stopped with the link in an email.
 
 Your name, email address, username and password are required to create an account. Without them, we cannot give you one. Everything else is optional.
 
@@ -37,7 +38,8 @@ We do not use advertising or tracking cookies, and we do not sell personal data.
 2. To protect the platform (sign-in protection, rate limits, bot checks, logs, backups): our legitimate interest in a secure service (art. 6(1)(f)).
 3. [TODO: keep only if you use it] To send the newsletter emails: your consent (art. 6(1)(a)). You can unsubscribe in every email.
 4. To send the emails that the service needs (sign-in links, address verification): the contract. To send the invitations of a community: the legitimate interest of the community that invites you (art. 6(1)(f)); the owner of the community decides who is invited.
-5. [TODO: keep only if you use it] To know how many people visit the pages: our legitimate interest in improving the service (art. 6(1)(f)).
+5. To stop the emails to an address that does not accept them or that marked them as spam, to keep the groups of emails that you stopped, and to trace a report of our mail provider: our legitimate interest in sending email only where it arrives and where it is wanted (art. 6(1)(f)).
+6. [TODO: keep only if you use it] To know how many people visit the pages: our legitimate interest in improving the service (art. 6(1)(f)).
 
 ## 4. Who receives the data
 
@@ -48,6 +50,8 @@ What you post in a public space of a community can be read by anyone on the inte
 We use these sub-processors:
 
 {{subprocessors}}
+
+Our mail provider keeps its own list of addresses that did not accept an email or that marked one as spam, and sends nothing to them. When you ask for a sign-in link, a password reset or the check of an address, or when you choose to try your address again, we ask our mail provider to take your address off that list, a few times a day at most.
 
 [TODO: keep only if a provider of your list is outside the European Economic Area, and name the safeguard of each one] Some of them are in the United States. These transfers use the EU-US Data Privacy Framework or the standard contractual clauses of the European Commission. Write to {{contact}} for a copy of these safeguards.
 
@@ -73,6 +77,7 @@ When a member adds a link to a resources space, our server fetches the page to c
 14. Answers to events: {{retention.event_answers}} after the event, or until you leave the community.
 15. Tags: until a manager removes the tag, you leave the community, or you delete your account.
 16. Joins through an invite link: {{retention.invite_link_uses}} after you joined, or until you leave the community, a manager deletes the link, or you delete your account.
+17. Email delivery: the record of each email, {{retention.mail_deliveries}}. The reports of our mail provider, {{retention.mail_webhook_events}}. The stop of the notification emails after a report: until an email reaches the address again (not after a spam report), until you try the address again, until you change your address, or until you delete your account. A count of temporary failures that stopped nothing: {{retention.email_soft_bounces}} after the last failure. The groups of emails that you stopped: while your account exists.
 
 ## 6. Cookies
 

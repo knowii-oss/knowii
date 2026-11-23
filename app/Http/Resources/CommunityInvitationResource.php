@@ -29,6 +29,9 @@ class CommunityInvitationResource extends AbstractKnowiiJsonResource
             'created_at' => $this->created_at,
             'expires_at' => $this->expiresAt(),
             'is_expired' => $this->isExpired(),
+            // A report of the mail provider on the invitation email (#1478, ADR 0054): `hard` or `soft`, and when
+            'bounced_at' => $this->bounced_at,
+            'bounce_type' => $this->bounce_type?->value,
             'access_groups' => $this->relationLoaded('accessGroups')
                 ? $this->accessGroups->map(static fn (AccessGroup $group): array => ['cuid' => $group->cuid, 'name' => $group->name])->values()->all()
                 : [],

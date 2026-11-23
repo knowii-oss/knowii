@@ -1,14 +1,20 @@
 <?php
 
 use App\Contracts\Retention\PrunesExpiredData;
+use App\Enums\KnowiiEmailSuppressionReason;
+use App\Enums\KnowiiMailDeliveryStatus;
+use App\Enums\KnowiiMailKind;
 use App\Models\Community;
 use App\Models\CommunityInvitation;
+use App\Models\EmailSuppression;
 use App\Models\Event as EventModel;
 use App\Models\EventAnswer;
 use App\Models\InvitationImport;
 use App\Models\InvitationImportRow;
 use App\Models\InviteLink;
 use App\Models\InviteLinkUse;
+use App\Models\MailDelivery;
+use App\Models\MailWebhookEvent;
 use App\Models\User;
 use App\Support\Retention;
 use Carbon\CarbonImmutable;
@@ -379,4 +385,46 @@ test('the record of a join through an invite link goes 365 days after the join, 
     config(['retention.invite_link_uses_days' => 30]);
     expect(Retention::periods()['invite_link_uses'])->toBe('30 days')
         ->and(app(PrunesExpiredData::class)->prune()['invite_link_uses'])->toBe(1);
+});
+
+test('the delivery log and the reports of the mail provider go 30 days after they were written (#1478)', function () {
+    Storage::fake('local');
+    $this->travelTo(CarbonImmutable::parse('2026-11-23T10:00:00Z'));
+    $user = User::factory()->create();
+    foreach ([31, 29] as $days) {
+        $delivery = MailDelivery::query()->create(['kind' => KnowiiMailKind::AskedFor, 'user_id' => $user->id, 'status' => KnowiiMailDeliveryStatus::Sent]);
+        $delivery->forceFill(['created_at' => now()->subDays($days)])->save();
+        $event = MailWebhookEvent::query()->create(['provider_event_id' => 'msg_'.$days, 'type' => 'email.delivered']);
+        $event->forceFill(['created_at' => now()->subDays($days)])->save();
+    }
+
+    expect(app(PrunesExpiredData::class)->prune(dryRun: true))->toMatchArray(['mail_deliveries' => 1, 'mail_webhook_events' => 1])
+        ->and(MailDelivery::query()->count())->toBe(2)
+        ->and(app(PrunesExpiredData::class)->prune())->toMatchArray(['mail_deliveries' => 1, 'mail_webhook_events' => 1])
+        ->and(MailWebhookEvent::query()->pluck('provider_event_id')->all())->toBe(['msg_29'])
+        ->and(Retention::periods())->toMatchArray(['mail_deliveries' => '30 days', 'mail_webhook_events' => '30 days', 'email_soft_bounces' => '90 days']);
+});
+
+test('a count of soft bounces goes 90 days after the last bounce, and a row of another address goes; a suppressed row of the current address stays (#1478)', function () {
+    Storage::fake('local');
+    $this->travelTo(CarbonImmutable::parse('2026-11-23T10:00:00Z'));
+    $old = User::factory()->create(['email' => 'old@example.com']);
+    $recent = User::factory()->create(['email' => 'recent@example.com']);
+    $suppressed = User::factory()->create(['email' => 'Kept@example.com']);
+    $moved = User::factory()->create(['email' => 'moved@example.com']);
+    EmailSuppression::query()->create(['user_id' => $old->id, 'email' => 'old@example.com', 'soft_bounce_count' => 2, 'last_event_at' => now()->subDays(91)]);
+    EmailSuppression::query()->create(['user_id' => $recent->id, 'email' => 'recent@example.com', 'soft_bounce_count' => 1, 'last_event_at' => now()->subDays(89)]);
+    EmailSuppression::query()->create(['user_id' => $suppressed->id, 'email' => 'kept@example.com', 'reason' => KnowiiEmailSuppressionReason::HardBounce, 'suppressed_at' => now()->subYears(2), 'last_event_at' => now()->subYears(2)]);
+    EmailSuppression::query()->create(['user_id' => $moved->id, 'email' => 'moved.before@example.com', 'reason' => KnowiiEmailSuppressionReason::Complaint, 'suppressed_at' => now(), 'last_event_at' => now()]);
+
+    expect(app(PrunesExpiredData::class)->prune(dryRun: true)['email_suppressions'])->toBe(2)
+        ->and(EmailSuppression::query()->count())->toBe(4)
+        ->and(app(PrunesExpiredData::class)->prune()['email_suppressions'])->toBe(2)
+        ->and(EmailSuppression::query()->orderBy('email')->pluck('email')->all())->toBe(['kept@example.com', 'recent@example.com']);
+});
+
+test('the prune of the mail data runs on empty tables (#1478)', function () {
+    Storage::fake('local');
+
+    expect(app(PrunesExpiredData::class)->prune())->toMatchArray(['mail_deliveries' => 0, 'mail_webhook_events' => 0, 'email_suppressions' => 0]);
 });

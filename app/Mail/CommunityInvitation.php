@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\HasDeliveryRow;
 use App\Models\CommunityInvitation as CommunityInvitationModel;
 use App\Models\User;
 use App\Support\LegalPages;
@@ -21,7 +22,7 @@ use Illuminate\Support\Facades\URL;
  */
 class CommunityInvitation extends Mailable
 {
-    use Queueable, SerializesModels;
+    use HasDeliveryRow, Queueable, SerializesModels;
 
     public function __construct(public CommunityInvitationModel $invitation, public User $inviter) {}
 

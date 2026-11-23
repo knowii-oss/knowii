@@ -71,7 +71,10 @@ use App\Actions\InviteLinks\DeleteInviteLink;
 use App\Actions\InviteLinks\JoinCommunityThroughInviteLink;
 use App\Actions\InviteLinks\UpdateInviteLink;
 use App\Actions\Mail\CheckMailBudget;
+use App\Actions\Mail\LiftEmailSuppression;
+use App\Actions\Mail\ReceiveMailWebhook;
 use App\Actions\Mail\RecordSentEmails;
+use App\Actions\Mail\RemoveResendSuppression;
 use App\Actions\Mail\ResendMailUsage;
 use App\Actions\MemberTags\AddMemberTagMember;
 use App\Actions\MemberTags\CreateMemberTag;
@@ -198,8 +201,11 @@ use App\Contracts\InviteLinks\DeletesInviteLinks;
 use App\Contracts\InviteLinks\JoinsCommunitiesThroughInviteLinks;
 use App\Contracts\InviteLinks\UpdatesInviteLinks;
 use App\Contracts\Mail\ChecksMailBudgets;
+use App\Contracts\Mail\LiftsEmailSuppressions;
 use App\Contracts\Mail\ReadsMailUsage;
+use App\Contracts\Mail\ReceivesMailWebhooks;
 use App\Contracts\Mail\RecordsSentEmails;
+use App\Contracts\Mail\RemovesProviderSuppressions;
 use App\Contracts\MemberTags\AddsMemberTagMembers;
 use App\Contracts\MemberTags\CreatesMemberTags;
 use App\Contracts\MemberTags\DeletesMemberTags;
@@ -265,6 +271,7 @@ use App\Models\User;
 use App\Support\EmailChangeBudget;
 use App\Support\MailSettings;
 use App\Support\MemberTagsOfMembers;
+use App\Support\ProviderRemovals;
 use App\Support\ReverbLiveConnections;
 use App\Support\ReverbPresenceChannels;
 use Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider;
@@ -464,6 +471,10 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(RecordsSentEmails::class, RecordSentEmails::class);
         app()->singleton(ReadsMailUsage::class, ResendMailUsage::class);
         app()->singleton(ChecksMailBudgets::class, CheckMailBudget::class);
+        // Bounces, complaints and the suppression of an address (#1478, ADR 0054)
+        app()->singleton(ReceivesMailWebhooks::class, ReceiveMailWebhook::class);
+        app()->singleton(RemovesProviderSuppressions::class, RemoveResendSuppression::class);
+        app()->singleton(LiftsEmailSuppressions::class, LiftEmailSuppression::class);
 
         // Public newsletter endpoint (#938): a few requests per minute and per IP address
         RateLimiter::for('newsletter', static function (Request $request) {
@@ -518,6 +529,20 @@ class AppServiceProvider extends ServiceProvider
         // The change calls of the sign-in provider (#1386, ADR 0047): per IP address
         RateLimiter::for('oidc-entitlements', static function (Request $request) {
             return Limit::perMinute(Constants::OIDC_ENTITLEMENT_EVENTS_PER_MINUTE)->by('oidc-entitlements:'.$request->ip());
+        });
+
+        // The calls of the mail provider to its webhook (#1478, ADR 0054): per IP address
+        RateLimiter::for('mail-webhook', static function (Request $request) {
+            return Limit::perMinute(Constants::MAIL_WEBHOOK_EVENTS_PER_MINUTE)->by('mail-webhook:'.$request->ip());
+        });
+
+        // The removals of an address from the list of the mail provider (#1478, ADR 0054): per address, an hour and a day.
+        // App\Support\ProviderRemovals reads it with the address, not with a request
+        RateLimiter::for(ProviderRemovals::LIMITER, static fn (string $address) => ProviderRemovals::limits($address));
+
+        // "Try this address again" (#1478): once an hour per account
+        RateLimiter::for('mail-suppression', static function (Request $request) {
+            return Limit::perHour(1)->by('mail-suppression:'.self::rateLimitKey($request));
         });
 
         // Each sign-in link sends an email (#703): per address and IP, like the login

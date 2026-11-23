@@ -74,6 +74,8 @@ return [
 
     'resend' => [
         'key' => env('RESEND_KEY'),
+        // The signing secret of the webhook of Resend (whsec_...), #1478. Empty: the webhook route answers 404
+        'webhook_secret' => env('RESEND_WEBHOOK_SECRET'),
     ],
 
     'slack' => [
