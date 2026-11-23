@@ -8,6 +8,7 @@ use App\Enums\KnowiiSpaceType;
 use App\Models\Community;
 use App\Models\Event;
 use App\Models\Space;
+use App\Support\CommentThread;
 use App\Support\CommunityRoles;
 use App\Support\NoAccess;
 use App\Support\SpaceTree;
@@ -45,6 +46,8 @@ class EventController extends Controller
             'spaceGroups' => SpaceTree::for($community, $user)->toResourceCollection(),
             // The resource cuts the meeting address and the place for the readers who may not see them
             'event' => $event->toResource()->withLargeFields(),
+            // The comments of the event (#1516), for every reader of the event: a visitor of a public space too
+            'comments' => CommentThread::for($event)->toResourceCollection(),
             // All false for a visitor and for a person who is not a member (ADR 0044 point 8)
             'permissions' => [
                 'canUpdate' => Gate::check('update', $event),
@@ -55,6 +58,10 @@ class EventController extends Controller
                 // "Answers" (#1515): the owner, the admins and the host, never for a draft, never a moderator. No field
                 // of the event says it: the limit of places is null for the host of an event without a limit
                 'canViewAnswers' => Gate::check('viewAnswers', $event),
+                // The comments (#1516): a member who can see the event, never on a draft
+                'canComment' => Gate::check('comment', $event),
+                // Delete the comments of others, and their replies
+                'canModerate' => Gate::check('moderate', $space),
             ],
         ]);
     }

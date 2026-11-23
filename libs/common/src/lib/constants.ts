@@ -328,6 +328,10 @@ export const COMMUNITY_SPACE_EVENT_ANSWER_API_PATH = `${COMMUNITY_SPACE_EVENT_AP
 export const COMMUNITY_SPACE_EVENT_ANSWERS_API_PATH = `${COMMUNITY_SPACE_EVENT_API_PATH}/answers`;
 // The calendar file of an event, for a member (#1515): a plain link downloads it
 export const COMMUNITY_SPACE_EVENT_CALENDAR_FILE_API_PATH = `${COMMUNITY_SPACE_EVENT_API_PATH}/calendar-file`;
+// The comments of an event (#1516), as the comments of a resource. No reaction on the event itself
+export const COMMUNITY_SPACE_EVENT_COMMENTS_API_PATH = `${COMMUNITY_SPACE_EVENT_API_PATH}/comments`;
+export const COMMUNITY_SPACE_EVENT_COMMENT_API_PATH = `${COMMUNITY_SPACE_EVENT_COMMENTS_API_PATH}/{commentCuid}`;
+export const COMMUNITY_SPACE_EVENT_COMMENT_REACTIONS_API_PATH = `${COMMUNITY_SPACE_EVENT_COMMENT_API_PATH}/reactions`;
 export const COMMUNITY_EVENTS_API_PATH = `${COMMUNITY_API_PATH}/events`;
 // Messages of chat spaces (#1185)
 export const SPACE_API_PARAM_MESSAGE = '{messageCuid}';

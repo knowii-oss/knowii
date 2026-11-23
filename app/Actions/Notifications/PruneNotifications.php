@@ -106,6 +106,14 @@ final class PruneNotifications implements PrunesNotifications
         return $this->delete(Notification::query()->where('event_id', $event->id)->where('kind', KnowiiNotificationKind::EventNew->value));
     }
 
+    final public function forFormerHost(Event $event, int $formerHostId): int
+    {
+        return $this->delete(Notification::query()
+            ->where('user_id', $formerHostId)
+            ->where('kind', KnowiiNotificationKind::EventComment->value)
+            ->whereIn('comment_id', Comment::query()->select('id')->where('event_id', $event->id)));
+    }
+
     final public function forMutedSpace(User $member, Space $space): int
     {
         return $this->delete(Notification::query()->where('user_id', $member->id)->where('space_id', $space->id)->whereNull('read_at'));

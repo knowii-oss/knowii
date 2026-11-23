@@ -169,7 +169,7 @@ function flwList(User $user, string $query = 'level=2'): array
 
 test('the level 2 kinds are the six of "Following", with the reason that the client turns into a sentence', function () {
     expect(KnowiiNotificationKind::valuesOfLevel(2))->toBe(['thread_comment', 'thread_reply', 'space_post', 'space_chat', 'lesson_new', 'event_new'])
-        ->and(KnowiiNotificationKind::valuesOfLevel(1))->toBe(['post_comment', 'comment_reply', 'mention'])
+        ->and(KnowiiNotificationKind::valuesOfLevel(1))->toBe(['post_comment', 'comment_reply', 'mention', 'event_comment'])
         ->and(KnowiiNotificationKind::PostComment->reason())->toBe(KnowiiNotificationReason::WrotePost)
         ->and(KnowiiNotificationKind::CommentReply->reason())->toBe(KnowiiNotificationReason::WroteComment)
         ->and(KnowiiNotificationKind::Mention->reason())->toBe(KnowiiNotificationReason::Mentioned)

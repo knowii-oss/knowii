@@ -11,6 +11,7 @@ use App\Models\Comment;
 use App\Models\Community;
 use App\Models\CommunityResource;
 use App\Models\Conversation;
+use App\Models\Event;
 use App\Models\InvitationImport;
 use App\Models\InvitationImportRow;
 use App\Models\InviteLink;
@@ -287,6 +288,24 @@ test('retention:prune deletes an old user export and keeps a recent one', functi
 
 test('the export action is behind its contract', function () {
     expect(app(ExportsUsers::class))->toBeInstanceOf(ExportUser::class);
+});
+
+test('the export lists the comments of the member on events with the cuid and the title of the event (#1516)', function () {
+    $f = userExportFixture();
+    $events = Space::factory()->inGroup(SpaceGroup::query()->where('community_id', $f['community']->id)->firstOrFail())->create(['type' => 'events']);
+    $event = Event::factory()->inSpace($events)->hostedBy($f['other'])->create(['title' => 'Harvest office hour']);
+    $comment = Comment::factory()->onEvent($event)->create(['author_id' => $f['member']->id, 'body' => 'Thank you for the harvest tips']);
+
+    $files = runUserExport($f['member']);
+    $row = collect(json_decode($files['comments.json'], true)['comments'])->firstWhere('cuid', $comment->cuid);
+
+    expect($row)->toMatchArray([
+        'post' => null,
+        'resource' => null,
+        'event' => ['cuid' => $event->cuid, 'title' => 'Harvest office hour'],
+        'space' => $events->cuid,
+        'body' => 'Thank you for the harvest tips',
+    ])->and($files['README.txt'])->toContain('your comments (Markdown) on posts, resources and events');
 });
 
 test('the export lists the notifications of the member without any text or name of another member (#1474)', function () {

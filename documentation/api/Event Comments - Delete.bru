@@ -1,0 +1,26 @@
+meta {
+  name: Event Comments - Delete
+  type: http
+  seq: 232
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of an events space>/events/<cuid of an event>/comments/<comment cuid>
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "delete_replies": false
+  }
+}
+
+docs {
+  Deletes a comment of an event: its author or a moderator of the space, with the rules of `Comments - Delete` (#1565, ADR 0050). A comment that has replies of other people stays as a marker with every reply (200); any other comment goes with its replies (204). `delete_replies` true (moderators only, 403 for the others) deletes the comment and every reply under it. 404 for an event that you may not see. Ability events:write.
+}

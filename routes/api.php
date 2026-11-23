@@ -15,6 +15,7 @@ use App\Http\Controllers\API\CourseMaterialApiController;
 use App\Http\Controllers\API\EventAnswerApiController;
 use App\Http\Controllers\API\EventApiController;
 use App\Http\Controllers\API\EventCalendarFileApiController;
+use App\Http\Controllers\API\EventCommentApiController;
 use App\Http\Controllers\API\IndexingApiController;
 use App\Http\Controllers\API\InvitationImportApiController;
 use App\Http\Controllers\API\InviteLinkApiController;
@@ -87,6 +88,8 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
         Route::get(ApiRoutes::COMMUNITY_EVENTS, [EventApiController::class, 'community'])->middleware('ability:events:read');
         Route::get(ApiRoutes::COMMUNITY_SPACE_EVENTS, [EventApiController::class, 'index'])->middleware('ability:events:read');
         Route::get(ApiRoutes::COMMUNITY_SPACE_EVENT, [EventApiController::class, 'show'])->middleware('ability:events:read');
+        // The comments of an event (#1516): never of a draft for a visitor
+        Route::get(ApiRoutes::COMMUNITY_SPACE_EVENT_COMMENTS, [EventCommentApiController::class, 'index'])->middleware('ability:events:read');
     });
 
     // Every route names the token abilities that it needs (ADR 0022, #689). Session users pass every check
@@ -230,6 +233,12 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             // The calendar file of an event (#1515, ADR 0053): for a member, built at each request, never stored. A browser opens it
             // with a plain link: a refusal is the JSON error of the API, never a page saved as the file
             Route::get(ApiRoutes::COMMUNITY_SPACE_EVENT_CALENDAR_FILE, [EventCalendarFileApiController::class, 'show'])->middleware(['json-refusals', 'ability:events:read', 'throttle:calendar-files']);
+            // The comments of an event (#1516, ADR 0053), as the comments of a resource. No reaction on the event itself
+            Route::post(ApiRoutes::COMMUNITY_SPACE_EVENT_COMMENTS, [EventCommentApiController::class, 'store'])->middleware('ability:events:write')->middleware('throttle:comments');
+            Route::patch(ApiRoutes::COMMUNITY_SPACE_EVENT_COMMENT, [EventCommentApiController::class, 'update'])->middleware('ability:events:write');
+            Route::delete(ApiRoutes::COMMUNITY_SPACE_EVENT_COMMENT, [EventCommentApiController::class, 'destroy'])->middleware('ability:events:write');
+            Route::get(ApiRoutes::COMMUNITY_SPACE_EVENT_COMMENT_REACTIONS, [ReactionApiController::class, 'listEventComment'])->middleware('ability:events:read');
+            Route::post(ApiRoutes::COMMUNITY_SPACE_EVENT_COMMENT_REACTIONS, [ReactionApiController::class, 'toggleEventComment'])->middleware('ability:events:write')->middleware('throttle:reactions');
 
             // Comments on resources (#1034)
             Route::post(ApiRoutes::COMMUNITY_SPACE_RESOURCE_COMMENTS, [CommunityResourceCommentApiController::class, 'store'])->middleware('ability:resources:write')->middleware('throttle:comments');

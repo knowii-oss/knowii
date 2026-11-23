@@ -397,11 +397,13 @@ final class ExportCommunity implements ExportsCommunities
      */
     private function comments(Community $community): Generator
     {
-        foreach (Comment::query()->where('community_id', $community->id)->whereNull('deleted_at')->with(['post', 'communityResource', 'parent', 'author'])->lazyById(self::CHUNK) as $comment) {
+        foreach (Comment::query()->where('community_id', $community->id)->whereNull('deleted_at')->with(['post', 'communityResource', 'event', 'parent', 'author'])->lazyById(self::CHUNK) as $comment) {
             yield [
                 'cuid' => $comment->cuid,
                 'post' => $comment->post?->cuid,
                 'resource' => $comment->communityResource?->cuid,
+                // A comment on an event (#1516)
+                'event' => $comment->event?->cuid,
                 'parent' => $comment->parent?->cuid,
                 ...$this->person('author', $comment->author),
                 'body' => $comment->body,
@@ -794,7 +796,7 @@ final class ExportCommunity implements ExportsCommunities
         $descriptions = [
             'community.json' => 'the community, who can join it, its members, invitations (with the access groups and the member tags that each gives at the join), the imports of invitations from a file with their rows (the address, the role, the names of the groups and the tags, the result and the reason), the people removed who cannot join again by themselves, access groups, member tags (the name, the color, who sees it and the members who have it), invite links (the name, the state, the end, the maximum and the count of the joins, the access groups and the member tags that each gives, and who joined through it and when; never the address of a link), space groups and spaces',
             'posts.json' => 'the posts (Markdown)',
-            'comments.json' => 'the comments on posts and on resources (Markdown)',
+            'comments.json' => 'the comments on posts, on resources and on events (Markdown)',
             'pages.json' => 'the pages and the lessons (Markdown)',
             'events.json' => 'the events of the events spaces, with their description (Markdown), times, zone, meeting address and place',
             'chat-messages.json' => 'the messages of the chat spaces',

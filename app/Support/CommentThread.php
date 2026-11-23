@@ -4,11 +4,12 @@ namespace App\Support;
 
 use App\Models\Comment;
 use App\Models\CommunityResource;
+use App\Models\Event;
 use App\Models\Post;
 use Illuminate\Database\Eloquent\Collection;
 
 /**
- * The comments of a post or a resource (#1034) as shown on the page: top-level comments, oldest first, each with its
+ * The comments of a post, a resource (#1034) or an event (#1516) as shown on the page: top-level comments, oldest first, each with its
  * replies.
  */
 final class CommentThread
@@ -21,7 +22,7 @@ final class CommentThread
     /**
      * @return Collection<int, Comment>
      */
-    public static function for(Post|CommunityResource $subject): Collection
+    public static function for(Post|CommunityResource|Event $subject): Collection
     {
         return $subject->comments()
             ->whereNull('parent_id')

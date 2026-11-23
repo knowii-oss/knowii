@@ -691,20 +691,22 @@ final class ExportUser implements ExportsUsers
     }
 
     /**
-     * The comments of the member. The post or the resource that they answer shows its cuid and its title only.
+     * The comments of the member. The post, the resource or the event (#1516) that they answer shows its cuid and its
+     * title only.
      *
      * @return Generator<int, Row>
      */
     private function comments(User $user): Generator
     {
-        foreach (Comment::query()->where('author_id', $user->id)->with(['post.space', 'communityResource.space', 'parent'])->lazyById(self::CHUNK) as $comment) {
-            $space = $comment->post !== null ? $comment->post->space : $comment->communityResource?->space;
+        foreach (Comment::query()->where('author_id', $user->id)->with(['post.space', 'communityResource.space', 'event.space', 'parent'])->lazyById(self::CHUNK) as $comment) {
+            $space = $comment->post->space ?? $comment->communityResource->space ?? $comment->event?->space;
 
             yield [
                 'cuid' => $comment->cuid,
                 ...$this->place($comment->community_id, $space),
                 'post' => $comment->post === null ? null : ['cuid' => $comment->post->cuid, 'title' => $comment->post->title],
                 'resource' => $comment->communityResource === null ? null : ['cuid' => $comment->communityResource->cuid, 'name' => $comment->communityResource->name],
+                'event' => $comment->event === null ? null : ['cuid' => $comment->event->cuid, 'title' => $comment->event->title],
                 'parent' => $comment->parent?->cuid,
                 'body' => $comment->body,
                 'edited_at' => $this->date($comment->edited_at),
@@ -1025,7 +1027,7 @@ final class ExportUser implements ExportsUsers
             'memberships.json' => 'your communities and your role, the communities you own, your access groups (and whether you were added by hand or by an entitlement rule), the tags that the managers of a community put on you (the name, who sees it: the members or the managers only, and the date), the invitations sent to your email address (with the access groups and the member tags that each gives when you join), the rows of the imports of invitations from a file with your address (the community, the date, whether the invitation went out and why a row was refused), the communities where a manager removed you and where you cannot join again by yourself, and the invite links through which you joined a community (the community, the cuid and the name of the link, and the date)',
             'activity.json' => 'the lessons you marked as done, your quiz results, your answers to events (the event by its identifier and its title, and your answer: yes, replay only or no), what you read in chat spaces and conversations, the members you blocked, where you were mentioned, your notifications (kind, community, the items by identifier and the dates, never a text), the threads that you follow or muted and the level that you chose for each space, the date when you last visited each space, your API tokens, your sessions and the invitation emails that you sent in the last days (the community and the time)',
             'posts.json' => 'your posts (Markdown)',
-            'comments.json' => 'your comments (Markdown), with the cuid and the title of what they answer',
+            'comments.json' => 'your comments (Markdown) on posts, resources and events, with the cuid and the title of what they answer',
             'pages.json' => 'the pages and lessons you wrote (Markdown)',
             'events.json' => 'the events that you host, with their title, times, zone and state',
             'chat-messages.json' => 'your messages in chat spaces',

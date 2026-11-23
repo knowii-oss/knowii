@@ -59,6 +59,13 @@ interface PrunesNotifications
     public function forDraftEvent(Event $event): int;
 
     /**
+     * The event has another host (#1516): the rows "commented on your event" of the former host for this event go. They
+     * say "You host this event", which is not true any more, and their count would grow with the comments that the new
+     * host is told about.
+     */
+    public function forFormerHost(Event $event, int $formerHostId): int;
+
+    /**
      * The member muted the space (#1475): their open rows of that space go, at every level. The next ones are never written.
      */
     public function forMutedSpace(User $member, Space $space): int;

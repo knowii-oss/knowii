@@ -1,0 +1,20 @@
+meta {
+  name: Event Comments - List
+  type: http
+  seq: 228
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of an events space>/events/<cuid of an event>/comments
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The comments of an event (#1516), oldest first, each with its replies. metadata.totalCount counts the replies too. Get an event cuid with Events - List.
+  Public: in a public space this request works without a session and without a token for a published or cancelled event (the response carries the name, username and avatar of the authors, never more). Every other space, and a draft, answer 401 without an account. A signed-in person who may not see the event gets 404. Ability events:read.
+}

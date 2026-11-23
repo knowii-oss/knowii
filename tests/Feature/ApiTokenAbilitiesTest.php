@@ -109,5 +109,7 @@ test('the API routes that a visitor may call are these, all of them GET, limited
         'api/v1/communities/{community}/events',
         'api/v1/communities/{community}/spaces/{space}/events',
         'api/v1/communities/{community}/spaces/{space}/events/{event}',
+        // The comments of an event (#1516)
+        'api/v1/communities/{community}/spaces/{space}/events/{event}/comments',
     ]);
 });

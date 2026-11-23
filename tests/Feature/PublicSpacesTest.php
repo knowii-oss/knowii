@@ -80,6 +80,8 @@ beforeEach(function () {
         $this->eventsSpace[$key] = $events;
         $this->event[$key] = EventModel::factory()->inSpace($events)->hostedBy($this->author)
             ->create(['meeting_url' => 'https://meet.example.com/SECRET-MEETING-ADDRESS', 'place' => 'SECRET-PLACE-OF-THE-EVENT']);
+        // A comment on the event (#1516)
+        Comment::factory()->onEvent($this->event[$key])->create(['author_id' => $this->author->id, 'body' => 'A comment on the event', 'body_html' => '<p>A comment on the event</p>']);
     }
 
     $this->chat = [
@@ -465,6 +467,35 @@ test('API: a groups space answers a visitor 401, an outsider and a member outsid
     publicReadApiAs('member', $url)->assertForbidden();
     publicReadApiAs('owner', $url)->assertOk();
 })->with('public api reads');
+
+test('API: the comments of an event reach a visitor and an outsider in a public space only (#1516)', function (string $visibility, array $expected) {
+    $url = ApiRoutes::path(ApiRoutes::COMMUNITY_SPACE_EVENT_COMMENTS, [
+        ApiRoutes::PARAM_COMMUNITY => $this->c['community']->cuid,
+        ApiRoutes::PARAM_SPACE => $this->eventsSpace[$visibility]->cuid,
+        ApiRoutes::PARAM_EVENT => $this->event[$visibility]->cuid,
+    ]);
+
+    foreach ($expected as $reader => $status) {
+        $response = publicReadApiAs($reader, $url)->assertStatus($status);
+        expect(str_contains((string) $response->getContent(), 'A comment on the event'))->toBe($status === 200, "{$reader} in a {$visibility} space")
+            ->and((string) $response->getContent())->not->toContain('SECRET-BIO-OF-THE-AUTHOR');
+    }
+})->with([
+    'a public space' => ['public', ['visitor' => 200, 'outsider' => 200, 'member' => 200]],
+    // A signed-in person who may not see the event gets the answer of an event that does not exist
+    'a members space' => ['members', ['visitor' => 401, 'outsider' => 404, 'member' => 200]],
+    'a groups space' => ['groups', ['visitor' => 401, 'outsider' => 404, 'member' => 404, 'owner' => 200]],
+]);
+
+test('web: the page of an event of a public space gives its comments to a visitor (#1516)', function () {
+    app('auth')->forgetGuards();
+
+    $this->get(route('events.show', ['communitySlug' => $this->c['community']->slug, 'spaceSlug' => $this->eventsSpace['public']->slug, 'eventSlug' => $this->event['public']->slug]))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->has('comments', 1)
+            ->where('comments.0.body', 'A comment on the event')
+            ->where('permissions.canComment', false));
+});
 
 test('API: a public chat space is not given to a visitor, the space of an outsider is unchanged', function () {
     $url = ApiRoutes::path(ApiRoutes::COMMUNITY_SPACE, [ApiRoutes::PARAM_COMMUNITY => $this->c['community']->cuid, ApiRoutes::PARAM_SPACE => $this->chat['public']->cuid]);

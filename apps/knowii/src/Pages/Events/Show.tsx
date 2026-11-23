@@ -1,10 +1,11 @@
 import { useCallback, useMemo, useRef } from 'react';
 import { router } from '@inertiajs/react';
-import type { Community, EventPermissions, Space, SpaceContentPayload, SpaceEvent, SpaceGroup } from '@knowii/common';
+import type { Comment, Community, EventPermissions, Space, SpaceContentPayload, SpaceEvent, SpaceGroup } from '@knowii/common';
 import { COMMUNITY_URL, SPACE_TYPE_LABELS, SPACE_URL, useSocket, useTypedPage } from '@knowii/common';
 import AppLayout from '@/Layouts/AppLayout';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
+import { CommentSection } from '@/Components/Comments/CommentSection';
 import { AddToCalendar } from '@/Components/Events/AddToCalendar';
 import { EventActions } from '@/Components/Events/EventActions';
 import { EventAnswer } from '@/Components/Events/EventAnswer';
@@ -33,14 +34,17 @@ interface Props {
   spaceGroups: SpaceGroup[];
   // With its description. The server cut the meeting address and the place for a reader who may not see them
   event: SpaceEvent;
+  // The comments of the event (#1516), for every reader of the event
+  comments: Comment[];
   permissions: EventPermissions;
 }
 
 /**
  * The page of an event of an events space (#1514, #1515, ADR 0053, design 6.2). In this order: the title (the only h1),
  * the state as text, the cover, the date in the zone of the reader, "Add to calendar" for a member (#1515), the host,
- * the answer of the reader, where it happens, and the description. A visitor and a person who is not a member read it in a public space, without the
- * meeting address: the server cuts it.
+ * the answer of the reader, where it happens, the description, and after the article the comments (#1516). A visitor and
+ * a person who is not a member read it in a public space, without the meeting address: the server cuts it. A visitor
+ * reads the comments with the prompt to sign in.
  *
  * Live (never for a visitor): when the space channel says that this event was published, changed or went away, the
  * page loads again, and the server decides what the reader then sees. The changes that the reader makes here load the
@@ -51,7 +55,7 @@ interface Props {
  * cancels the one that runs, a save of the answer cancels it too, and no load starts while a save runs: the load after
  * the save brings what the server then holds. An older event never lands after a newer one.
  */
-export default function EventPage({ community, space, spaceGroups, event, permissions }: Props) {
+export default function EventPage({ community, space, spaceGroups, event, comments, permissions }: Props) {
   const user = useTypedPage().props.auth.user;
   const now = useNow();
   const isMember = community.is_member === true;
@@ -210,6 +214,18 @@ export default function EventPage({ community, space, spaceGroups, event, permis
             </section>
           )}
         </article>
+
+        {/* The comments come last, after the article (design 6.2 point 2), with their own live updates. A draft takes
+            no comments and never holds one: no section */}
+        {event.state !== 'draft' && (
+          <CommentSection
+            subject={{ communityCuid: community.cuid, spaceCuid: space.cuid, eventCuid: event.cuid }}
+            initialComments={comments}
+            currentUserCuid={user?.cuid ?? null}
+            canComment={permissions.canComment}
+            canModerate={permissions.canModerate}
+          />
+        )}
       </CommunityShell>
     </AppLayout>
   );

@@ -125,7 +125,7 @@ test('every kind has a level: the three kinds of the first slice are level 1, th
     foreach ([KnowiiNotificationKind::PostComment, KnowiiNotificationKind::CommentReply, KnowiiNotificationKind::Mention] as $kind) {
         expect($kind->level())->toBe(1);
     }
-    expect(KnowiiNotificationKind::valuesOfLevel(1))->toBe(['post_comment', 'comment_reply', 'mention'])
+    expect(KnowiiNotificationKind::valuesOfLevel(1))->toBe(['post_comment', 'comment_reply', 'mention', 'event_comment'])
         ->and(KnowiiNotificationKind::valuesOfLevel(2))->toBe(['thread_comment', 'thread_reply', 'space_post', 'space_chat', 'lesson_new', 'event_new'])
         ->and(KnowiiNotificationKind::valuesOfLevel(0))->toBe([])
         ->and(KnowiiNotificationKind::valuesOfLevel(3))->toBe([]);

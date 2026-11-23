@@ -3,12 +3,15 @@
 use App\ApiRoutes;
 use App\Contracts\Comments\CreatesComments;
 use App\Enums\KnowiiSpaceType;
+use App\Enums\KnowiiSpaceVisibility;
 use App\Events\Spaces\SpaceTreeChanged;
+use App\Models\AccessGroup;
 use App\Models\Comment;
 use App\Models\CommunityResource;
 use App\Models\Post;
 use App\Models\Space;
 use App\Models\SpaceGroup;
+use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Event;
 
@@ -118,3 +121,18 @@ test('the resource page carries its comments and the comment permissions (#1034)
             ->where('permissions.canComment', true)
             ->where('permissions.canModerate', false));
 });
+
+test('editing or deleting a comment of a resource needs the access to its space (#1516)', function (string $route) {
+    $space = Space::factory()->inGroup($this->space->spaceGroup)->create(['type' => KnowiiSpaceType::Resources, 'visibility' => KnowiiSpaceVisibility::Groups]);
+    $buyers = AccessGroup::query()->create(['community_id' => $this->c['community']->id, 'name' => 'Buyers']);
+    $space->accessGroups()->attach($buyers);
+    $buyers->members()->attach($this->c['member']->id);
+    $resource = CommunityResource::factory()->create(['space_id' => $space->id]);
+    $comment = app(CreatesComments::class)->create(User::query()->findOrFail($this->c['member']->id), $resource, ['body' => 'Mine']);
+
+    $buyers->members()->detach($this->c['member']->id);
+    $this->actingAs(User::query()->findOrFail($this->c['member']->id));
+
+    ($route === 'update' ? $this->patchJson(resourceCommentsPath($resource, $comment), ['body' => 'Changed']) : $this->deleteJson(resourceCommentsPath($resource, $comment)))->assertForbidden();
+    expect($comment->fresh()?->body)->toBe('Mine');
+})->with(['update', 'delete']);

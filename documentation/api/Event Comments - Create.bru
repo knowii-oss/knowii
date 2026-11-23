@@ -1,0 +1,24 @@
+meta {
+  name: Event Comments - Create
+  type: http
+  seq: 229
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of an events space>/events/<cuid of an event>/comments
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  { "body": "Thank you for the session, **great** questions!" }
+}
+
+docs {
+  Comments an event (Markdown): the members of the community who can see the event, on a published, cancelled or past event. 404 for an event that you may not see, 403 for a person who is not a member, 422 for a draft ("This event is a draft. It takes no comments."). A first-level comment tells the host. In a public space anyone on the internet reads the comment with the name and the picture of its author. Rate limited: 10 per minute. Ability events:write.
+}

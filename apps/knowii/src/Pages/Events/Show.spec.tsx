@@ -2,7 +2,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
-import type { Community, EventPermissions, SpaceEvent } from '@knowii/common';
+import type { Comment, Community, EventPermissions, SpaceEvent } from '@knowii/common';
 import { AppDataProvider, knowiiApiClient } from '@knowii/common';
 import { emitSocketEvent } from '@/test-utils/fake-echo';
 import { EVENT_TEST_NOW, eventFixture, eventsCommunity, eventsRoute, eventsSpace } from '@/test-utils/events';
@@ -59,12 +59,36 @@ beforeAll(() => {
   Object.defineProperty(globalThis, 'route', { value: eventsRoute, writable: true });
 });
 
-const NONE: EventPermissions = { canUpdate: false, canCancel: false, canDelete: false, canDuplicate: false, canViewAnswers: false };
+const NONE: EventPermissions = {
+  canUpdate: false,
+  canCancel: false,
+  canDelete: false,
+  canDuplicate: false,
+  canViewAnswers: false,
+  canComment: false,
+  canModerate: false,
+};
 // The host, the owner and the admins: they also read the answers (#1515)
-const ALL: EventPermissions = { canUpdate: true, canCancel: true, canDelete: true, canDuplicate: true, canViewAnswers: true };
+const ALL: EventPermissions = {
+  canUpdate: true,
+  canCancel: true,
+  canDelete: true,
+  canDuplicate: true,
+  canViewAnswers: true,
+  canComment: true,
+  canModerate: true,
+};
 // A moderator with the right to delete content: cancels and deletes the events of others, does not edit them, and does
 // not read the answers
-const MODERATOR: EventPermissions = { canUpdate: false, canCancel: true, canDelete: true, canDuplicate: false, canViewAnswers: false };
+const MODERATOR: EventPermissions = {
+  canUpdate: false,
+  canCancel: true,
+  canDelete: true,
+  canDuplicate: false,
+  canViewAnswers: false,
+  canComment: true,
+  canModerate: true,
+};
 
 // What a load asks of the router (#1515): the event alone, or every prop. Each load also gives its callbacks (the cancel
 // function, the end), so the options are never the bare object
@@ -77,14 +101,15 @@ interface Options {
   reader?: Reader;
   zone?: string | null;
   permissions?: EventPermissions;
+  comments?: Comment[];
 }
 
-function renderPage(event: SpaceEvent, { reader = 'member', zone = 'America/New_York', permissions = NONE }: Options = {}) {
+function renderPage(event: SpaceEvent, { reader = 'member', zone = 'America/New_York', permissions = NONE, comments = [] }: Options = {}) {
   shared.user = reader === 'visitor' ? null : { cuid: 'me', time_zone: zone };
   const community = { ...eventsCommunity, is_member: reader === 'member' } as Community;
   return render(
     <AppDataProvider>
-      <EventPage community={community} space={eventsSpace} spaceGroups={[]} event={event} permissions={permissions} />
+      <EventPage community={community} space={eventsSpace} spaceGroups={[]} event={event} comments={comments} permissions={permissions} />
       <Toaster />
     </AppDataProvider>,
   );
@@ -155,6 +180,54 @@ describe('the page of an event (#1514, design 6.2)', () => {
 
       renderPage(eventFixture('e1', 'Weekly review', { cover, cover_alt: null }));
       expect(document.querySelector('img[src="/uploads/cover.webp"]')).toHaveAttribute('alt', '');
+    });
+  });
+
+  describe('the comments (#1516, design 6.2 point 2)', () => {
+    const at = new Date(EVENT_TEST_NOW);
+    const thread: Comment[] = [
+      {
+        cuid: 'k1',
+        body: 'See you there',
+        body_html: '<p>See you there</p>',
+        edited_at: null,
+        deleted_at: null,
+        author: { cuid: 'ada', name: 'Ada', username: 'ada' },
+        parent_cuid: null,
+        replies: [],
+        created_at: at,
+        updated_at: at,
+      },
+    ];
+
+    it('come last, after the article, with the form for a member who can comment', async () => {
+      const { container } = renderPage(withBody(), { comments: thread, permissions: { ...NONE, canComment: true } });
+
+      const article = container.querySelector('article') as HTMLElement;
+      const heading = screen.getByRole('heading', { name: '1 comment' });
+      expect(article.contains(heading)).toBe(false);
+      expect(article.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(screen.getByText('See you there')).toBeInTheDocument();
+      expect(screen.getByRole('textbox', { name: 'Write a comment' })).toBeInTheDocument();
+      const results = await axe.run(container, { rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
+      expect(results.violations).toEqual([]);
+    });
+
+    it('show a visitor the comments with the prompt to sign in, and no form', async () => {
+      const { container } = renderPage(withBody(), { reader: 'visitor', comments: thread });
+
+      expect(screen.getByText('See you there')).toBeInTheDocument();
+      expect(screen.queryByRole('textbox', { name: 'Write a comment' })).toBeNull();
+      expect(screen.getAllByRole('link', { name: /sign in/i }).length).toBeGreaterThan(0);
+      const results = await axe.run(container, { rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
+      expect(results.violations).toEqual([]);
+    });
+
+    it('are not on the page of a draft', () => {
+      renderPage(withBody({ state: 'draft' }), { permissions: ALL });
+
+      expect(screen.queryByRole('heading', { name: /comment/i })).toBeNull();
+      expect(screen.queryByRole('textbox', { name: 'Write a comment' })).toBeNull();
     });
   });
 
@@ -384,7 +457,7 @@ describe('the page of an event (#1514, design 6.2)', () => {
       const { rerender } = renderPage(going({ places_left: 28 }));
       const page = (event: SpaceEvent) => (
         <AppDataProvider>
-          <EventPage community={eventsCommunity} space={eventsSpace} spaceGroups={[]} event={event} permissions={NONE} />
+          <EventPage community={eventsCommunity} space={eventsSpace} spaceGroups={[]} event={event} comments={[]} permissions={NONE} />
           <Toaster />
         </AppDataProvider>
       );
@@ -676,7 +749,7 @@ describe('the page of an event (#1514, design 6.2)', () => {
       shared.user = { cuid: 'me', time_zone: 'America/New_York' };
       const tree = (event: SpaceEvent) => (
         <AppDataProvider>
-          <EventPage community={eventsCommunity} space={eventsSpace} spaceGroups={[]} event={event} permissions={ALL} />
+          <EventPage community={eventsCommunity} space={eventsSpace} spaceGroups={[]} event={event} comments={[]} permissions={ALL} />
         </AppDataProvider>
       );
       const { rerender } = render(tree(withBody({ state: 'draft' })));
@@ -905,7 +978,7 @@ describe('the page of an event (#1514, design 6.2)', () => {
         const { rerender } = renderPage(withBody({ places_left: 1 }), { permissions: ALL });
         const page = (event: SpaceEvent) => (
           <AppDataProvider>
-            <EventPage community={eventsCommunity} space={eventsSpace} spaceGroups={[]} event={event} permissions={ALL} />
+            <EventPage community={eventsCommunity} space={eventsSpace} spaceGroups={[]} event={event} comments={[]} permissions={ALL} />
             <Toaster />
           </AppDataProvider>
         );
@@ -977,6 +1050,7 @@ describe('the page of an event (#1514, design 6.2)', () => {
               space={eventsSpace}
               spaceGroups={[]}
               event={withBody({ places_left: 1, my_answer: 'yes' })}
+              comments={[]}
               permissions={NONE}
             />
             <Toaster />
@@ -1071,7 +1145,7 @@ describe('the page of an event (#1514, design 6.2)', () => {
 
     const page = (event: SpaceEvent) => (
       <AppDataProvider>
-        <EventPage community={eventsCommunity} space={eventsSpace} spaceGroups={[]} event={event} permissions={NONE} />
+        <EventPage community={eventsCommunity} space={eventsSpace} spaceGroups={[]} event={event} comments={[]} permissions={NONE} />
         <Toaster />
       </AppDataProvider>
     );

@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\DB;
  * named or counted. All the rows of a page load with a fixed number of queries.
  *
  * - `post_comment`: the first-level comments on its post since its subject.
+ * - `event_comment`: the first-level comments on its event since its subject (#1516).
  * - `comment_reply`: the replies to its parent comment since its subject.
  * - `thread_comment`: the comments and the replies in its post thread since its subject.
  * - `thread_reply`: the replies in its chat thread since its subject.
@@ -43,7 +44,7 @@ final class NotificationBundles
      */
     public static function attach(User $user, Collection $rows): void
     {
-        $rows->loadMissing(['community', 'space', 'actor', 'post', 'page', 'event', 'comment.post', 'comment.communityResource', 'chatMessage.parent']);
+        $rows->loadMissing(['community', 'space', 'actor', 'post', 'page', 'event', 'comment.post', 'comment.communityResource', 'comment.event', 'chatMessage.parent']);
 
         $blocked = array_values(DB::table('user_blocks')->where('blocker_id', $user->id)->pluck('blocked_id')->map(static fn ($id): int => is_numeric($id) ? (int) $id : 0)->all());
         $bundles = self::bundles($user, $rows, $blocked);
@@ -81,6 +82,7 @@ final class NotificationBundles
     {
         // Per family of items: the rows and where each one starts, as [row id, scope, first id]
         $postTop = [];
+        $eventTop = [];
         $postAll = [];
         $replies = [];
         $spacePosts = [];
@@ -92,6 +94,8 @@ final class NotificationBundles
             $message = $row->chatMessage;
             if ($row->kind === KnowiiNotificationKind::PostComment && $comment?->post_id !== null) {
                 $postTop[$row->id] = [$comment->post_id, $comment->id];
+            } elseif ($row->kind === KnowiiNotificationKind::EventComment && $comment?->event_id !== null) {
+                $eventTop[$row->id] = [$comment->event_id, $comment->id];
             } elseif ($row->kind === KnowiiNotificationKind::CommentReply && $comment?->parent_id !== null) {
                 $replies[$row->id] = [$comment->parent_id, $comment->id];
             } elseif ($row->kind === KnowiiNotificationKind::ThreadComment && $comment?->post_id !== null) {
@@ -117,16 +121,19 @@ final class NotificationBundles
             }
         }
 
-        if ($postTop !== [] || $postAll !== [] || $replies !== []) {
+        if ($postTop !== [] || $eventTop !== [] || $postAll !== [] || $replies !== []) {
             $comments = Comment::query()
-                ->where('id', '>=', self::lowest(array_column([...$postTop, ...$postAll, ...$replies], 1)))
+                ->where('id', '>=', self::lowest(array_column([...$postTop, ...$eventTop, ...$postAll, ...$replies], 1)))
                 ->whereNotNull('author_id')
                 ->where('author_id', '!=', $user->id)
                 ->when($blocked !== [], static fn (Builder $query) => $query->whereNotIn('author_id', $blocked))
-                ->where(static function (Builder $query) use ($postTop, $postAll, $replies): void {
+                ->where(static function (Builder $query) use ($postTop, $eventTop, $postAll, $replies): void {
                     $query->whereRaw('1 = 0');
                     if ($postTop !== []) {
                         $query->orWhere(static fn (Builder $inner) => $inner->whereIn('post_id', array_unique(array_column($postTop, 0)))->whereNull('parent_id'));
+                    }
+                    if ($eventTop !== []) {
+                        $query->orWhere(static fn (Builder $inner) => $inner->whereIn('event_id', array_unique(array_column($eventTop, 0)))->whereNull('parent_id'));
                     }
                     if ($postAll !== []) {
                         $query->orWhereIn('post_id', array_unique(array_column($postAll, 0)));
@@ -136,10 +143,13 @@ final class NotificationBundles
                     }
                 })
                 ->orderByDesc('id')
-                ->get(['id', 'post_id', 'parent_id', 'author_id']);
+                ->get(['id', 'post_id', 'event_id', 'parent_id', 'author_id']);
 
             foreach ($postTop as $rowId => [$postId, $firstId]) {
                 $bundles[$rowId] = self::summary($comments->filter(static fn (Comment $comment): bool => $comment->parent_id === null && $comment->post_id === $postId && $comment->id >= $firstId));
+            }
+            foreach ($eventTop as $rowId => [$eventId, $firstId]) {
+                $bundles[$rowId] = self::summary($comments->filter(static fn (Comment $comment): bool => $comment->parent_id === null && $comment->event_id === $eventId && $comment->id >= $firstId));
             }
             foreach ($postAll as $rowId => [$postId, $firstId]) {
                 $bundles[$rowId] = self::summary($comments->filter(static fn (Comment $comment): bool => $comment->post_id === $postId && $comment->id >= $firstId));

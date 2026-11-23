@@ -17,10 +17,10 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
 /**
- * The state of an event (#1513, ADR 0053). Allowed: draft to published, published to draft (not once it started, and
- * not once a member who can read the space answered it, #1515), published to cancelled, cancelled to published (the
- * answers are still there). A cancel needs the ability `cancel` (moderators of the space too), the other changes need
- * `update`. Each real change adds 1 to `sequence`; the same state again changes nothing.
+ * The state of an event (#1513, ADR 0053). Allowed: draft to published, published to draft (not once it started, not
+ * once a member who can read the space answered it, #1515, and not once it has a comment, #1516), published to
+ * cancelled, cancelled to published (the answers are still there). A cancel needs the ability `cancel` (moderators of
+ * the space too), the other changes need `update`. Each real change adds 1 to `sequence`; the same state again changes nothing.
  *
  * The change is decided inside the lock of the row of the event, from the state and the start of that row: two changes
  * of one event run one after the other, and the second one sees what the first one wrote.
@@ -28,6 +28,8 @@ use Illuminate\Validation\Rule;
 class SetEventState implements SetsEventStates
 {
     public const string ANSWERED_MESSAGE = 'Members answered this event. Cancel it instead.';
+
+    public const string COMMENTED_MESSAGE = 'Members commented on this event. Cancel it instead.';
 
     final public function setState(User $user, Event $event, array $input): Event
     {
@@ -74,6 +76,11 @@ class SetEventState implements SetsEventStates
             // too: these members must find the event again. The row of a member who lost the access stays with the draft
             if ($from === KnowiiEventState::Published && $target === KnowiiEventState::Draft && $event->answers()->ofReaders()->exists()) {
                 throw new BusinessException(self::ANSWERED_MESSAGE);
+            }
+            // A draft never holds a comment (#1516): a reply or a mention in it would tell a member who cannot see it. A
+            // marker counts too. A new comment waits for this lock (CreateComment), so none comes in between
+            if ($from === KnowiiEventState::Published && $target === KnowiiEventState::Draft && $event->comments()->exists()) {
+                throw new BusinessException(self::COMMENTED_MESSAGE);
             }
             $event->state = $target;
             $event->sequence++;

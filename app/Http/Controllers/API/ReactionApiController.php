@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Actions\Events\EventPublication;
 use App\Contracts\Reactions\TogglesReactions;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\AuthorResource;
@@ -10,6 +11,7 @@ use App\Models\Comment;
 use App\Models\Community;
 use App\Models\CommunityResource;
 use App\Models\Conversation;
+use App\Models\Event;
 use App\Models\Post;
 use App\Models\Reaction;
 use App\Models\Space;
@@ -21,7 +23,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
 /**
- * Reactions to posts, comments and messages (#1176, any emoji since #1204): toggle a reaction, list who reacted.
+ * Reactions to posts, comments and messages (#1176, any emoji since #1204): toggle a reaction, list who reacted. The
+ * comments of an event take reactions (#1516), the event itself does not.
  */
 class ReactionApiController extends Controller
 {
@@ -67,6 +70,36 @@ class ReactionApiController extends Controller
      */
     final public function listResourceComment(Community $community, Space $space, CommunityResource $resource, Comment $comment): JsonResponse
     {
+        Gate::authorize('view', $comment);
+
+        return self::success('Reactions', null, self::whoReacted($comment));
+    }
+
+    /**
+     * Add or remove the reaction of the member to a comment on an event (#1516). Returns the new summary. A person who
+     * may not see the event gets 404, a person who is not a member 403. There is no reaction on the event itself.
+     *
+     * @throws AuthenticationException
+     */
+    #[BodyParameter('emoji', description: self::EMOJI_DESCRIPTION, required: true, type: 'string', example: '👍')]
+    final public function toggleEventComment(Request $request, Community $community, Space $space, Event $event, Comment $comment): JsonResponse
+    {
+        self::ofEvent($community, $space, $event, $comment);
+
+        return $this->toggle($request, $comment);
+    }
+
+    /**
+     * Who reacted to a comment on an event, per emoji (#1516): a read, as the list of the comments. A person who may not
+     * see the event gets 404; a signed-in person who is not a member reads it in a public space, as for the comment of a
+     * resource.
+     *
+     * @throws AuthenticationException
+     */
+    final public function listEventComment(Request $request, Community $community, Space $space, Event $event, Comment $comment): JsonResponse
+    {
+        self::ofEvent($community, $space, $event, $comment);
+        EventPublication::assertVisible($request->user() ?? throw new AuthenticationException, $event);
         Gate::authorize('view', $comment);
 
         return self::success('Reactions', null, self::whoReacted($comment));
@@ -132,6 +165,17 @@ class ReactionApiController extends Controller
         Gate::authorize('view', $conversation);
 
         return self::success('Reactions', null, self::whoReacted($message));
+    }
+
+    /**
+     * The policies read the space and the community of the event, and the comment its event: they are known
+     */
+    private static function ofEvent(Community $community, Space $space, Event $event, Comment $comment): void
+    {
+        $space->setRelation('community', $community);
+        $event->setRelation('space', $space);
+        $event->setRelation('community', $community);
+        $comment->setRelation('event', $event);
     }
 
     /**

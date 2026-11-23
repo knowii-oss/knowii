@@ -2,6 +2,7 @@
 
 namespace App\Actions\Comments;
 
+use App\Actions\Events\EventComments;
 use App\Constants;
 use App\Contracts\Comments\CreatesComments;
 use App\Contracts\Notifications\FollowsThreads;
@@ -11,6 +12,7 @@ use App\Enums\KnowiiFollowReason;
 use App\Events\Spaces\SpaceContentChanged;
 use App\Models\Comment;
 use App\Models\CommunityResource;
+use App\Models\Event;
 use App\Models\Post;
 use App\Models\User;
 use App\Rules\MaxMarkdownImages;
@@ -22,11 +24,18 @@ use Illuminate\Validation\ValidationException;
 class CreateComment implements CreatesComments
 {
     /**
-     * Comment a post or a resource (#1034), or reply to a comment. A reply to a reply goes to the top-level comment
-     * (one level only).
+     * Comment a post, a resource (#1034) or an event (#1516), or reply to a comment. A reply to a reply goes to the
+     * top-level comment (one level only).
+     *
+     * An event first gives the answers of its other routes (EventComments): 404 for a person who may not see it, 403 for
+     * a person who is not a member, 422 for a draft. The comment then waits for a change of state of the event that runs
+     * (SetEventState holds the lock of the row): a draft never holds a comment.
      */
-    final public function create(User $user, Post|CommunityResource $subject, array $input): Comment
+    final public function create(User $user, Post|CommunityResource|Event $subject, array $input): Comment
     {
+        if ($subject instanceof Event) {
+            EventComments::assertAllowed($user, $subject, true);
+        }
         Gate::forUser($user)->authorize('comment', $subject);
 
         /** @var array{body: string, parent_cuid?: string|null} $validated */
@@ -46,10 +55,16 @@ class CreateComment implements CreatesComments
         }
 
         $comment = DB::transaction(function () use ($subject, $user, $parentId, $validated) {
+            if ($subject instanceof Event) {
+                // A shared lock: comments do not wait for each other, a change of state waits for them, and they for it.
+                // The state of the row as it is now decides
+                EventComments::assertNotDraft(Event::query()->whereKey($subject->id)->sharedLock()->firstOrFail(['id', 'state']));
+            }
             $comment = Comment::create([
                 'community_id' => $subject->community_id,
                 'post_id' => $subject instanceof Post ? $subject->id : null,
                 'community_resource_id' => $subject instanceof CommunityResource ? $subject->id : null,
+                'event_id' => $subject instanceof Event ? $subject->id : null,
                 'author_id' => $user->id,
                 'parent_id' => $parentId,
                 'body' => $validated['body'],
@@ -64,7 +79,7 @@ class CreateComment implements CreatesComments
             return $comment;
         });
 
-        // The comment of a post is new content of its space, the one of a resource only a visit (#1476)
+        // The comment of a post is new content of its space, the one of a resource or of an event only a visit (#1476)
         app(TracksSpaceVisits::class)->wroteIn($user, $subject->space, $subject instanceof Post);
         // A member who comments a post follows its thread, unless they stopped following it or muted it (#1475)
         if ($subject instanceof Post) {
