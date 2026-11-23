@@ -32,6 +32,7 @@ The sign-in provider of this site: {{sign_in_provider}}.
 10. A new email address that you asked for: until you confirm it or cancel it, or for {{retention.pending_email}} at most.
 11. Invitation emails that you send: the community and the time, kept {{retention.invitation_mails}}.
 12. Joins through an invite link: {{retention.invite_link_uses}} after you joined.
+13. Email delivery: the record of each email, {{retention.mail_deliveries}}. The reports of our mail provider, {{retention.mail_webhook_events}}. A count of temporary failures: {{retention.email_soft_bounces}} after the last failure.
 
 ## 4. Cookies
 

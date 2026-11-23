@@ -248,6 +248,20 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     /**
+     * A change of the email address lifts the suppression of the notification email of the address of before at once
+     * (#1478, ADR 0054): the rows of another address go, on every path that saves the account (the profile form, the
+     * confirmation of a new address, a takeover, an operator). App\Support\EmailSuppression also compares the address.
+     */
+    protected static function booted(): void
+    {
+        static::updated(static function (User $user): void {
+            if ($user->wasChanged('email')) {
+                EmailSuppression::query()->where('user_id', $user->id)->where('email', '!=', mb_strtolower($user->email))->delete();
+            }
+        });
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

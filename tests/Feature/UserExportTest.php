@@ -403,7 +403,7 @@ test('the export lists the invitations sent to the address, with their groups an
         ->and($invitations[0]['email'])->toBe('member@example.com')
         ->and($invitations[0]['access_groups'])->toBe([['cuid' => $group->cuid, 'name' => 'Qxexport Paid']])
         ->and($invitations[0]['member_tags'])->toBe([['cuid' => $hidden->cuid, 'name' => 'Qxexport Onboarded']])
-        ->and($files['README.txt'])->toContain('the invitations sent to your email address (with the access groups and the member tags that each gives when you join)');
+        ->and($files['README.txt'])->toContain('the invitations sent to your email address (with the access groups and the member tags that each gives when you join, and whether our mail provider reported that the invitation email could not be delivered)');
 });
 
 test('the export lists the rows of the imports of invitations with the address of the member, in any case, and nothing of another person (#1390)', function () {
@@ -444,7 +444,7 @@ test('the export lists the invitation emails that the account sent, with the com
         ['community' => $f['community']->cuid, 'created_at' => '2026-11-18T10:00:00+00:00'],
         ['community' => null, 'created_at' => '2026-11-18T11:00:00+00:00'],
     ])
-        ->and($files['README.txt'])->toContain('your sessions and the invitation emails that you sent in the last days (the community and the time)');
+        ->and($files['README.txt'])->toContain('your sessions, the invitation emails that you sent in the last days (the community and the time), and the record of each email that we sent you');
 });
 
 test('the export lists the joins of the member through an invite link, with the name of the link, after the join blocks, and never its token (#1391)', function () {

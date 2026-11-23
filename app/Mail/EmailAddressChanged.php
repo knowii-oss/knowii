@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\HasDeliveryRow;
 use App\Support\InstanceValues;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -13,7 +14,7 @@ use Illuminate\Queue\SerializesModels;
  */
 class EmailAddressChanged extends Mailable
 {
-    use Queueable, SerializesModels;
+    use HasDeliveryRow, Queueable, SerializesModels;
 
     /**
      * @param  string  $maskedAddress  The new address with most of the name hidden: "a***@example.com"

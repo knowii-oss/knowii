@@ -61,17 +61,17 @@ class SendInvitationImportMails implements SendsInvitationImportMails
             return;
         }
 
-        // The invitation counts from now. An accept or a cancel that ended after the read above leaves no row to
-        // change: then no mail goes, and the row is `skipped`
+        // The invitation counts from now, and a report of the mail provider on an earlier send is cleared (#1478). An accept
+        // or a cancel that ended after the read above leaves no row to change: then no mail goes, and the row is `skipped`
         $now = now();
-        if (CommunityInvitation::query()->whereKey($invitation->id)->update(['created_at' => $now]) !== 1) {
+        if (CommunityInvitation::query()->whereKey($invitation->id)->update(['created_at' => $now, 'bounced_at' => null, 'bounce_type' => null]) !== 1) {
             $this->end($row, $queuedCount, KnowiiInvitationImportOutcome::Skipped);
 
             return;
         }
-        $invitation->forceFill(['created_at' => $now])->syncOriginal();
+        $invitation->forceFill(['created_at' => $now, 'bounced_at' => null, 'bounce_type' => null])->syncOriginal();
         $invitation->setRelation('community', $community);
-        Mail::to($invitation->email)->send(new CommunityInvitationMail($invitation, $import->user ?? $community->owner));
+        Mail::to($invitation->email)->send((new CommunityInvitationMail($invitation, $import->user ?? $community->owner))->recordDelivery(invitation: $invitation));
 
         $this->end($row, $queuedCount, KnowiiInvitationImportOutcome::Sent, ['sent_at' => now()]);
     }

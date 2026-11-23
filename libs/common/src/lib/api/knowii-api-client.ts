@@ -124,6 +124,8 @@ import {
   NOTIFICATIONS_COUNT_API_PATH,
   NOTIFICATIONS_SEEN_API_PATH,
   NOTIFICATIONS_CAUGHT_UP_API_PATH,
+  NOTIFICATIONS_EMAIL_STATUS_API_PATH,
+  NOTIFICATIONS_EMAIL_SUPPRESSION_API_PATH,
   COMMUNITY_CATCH_UP_API_PATH,
   COMMUNITY_SPACE_VISIT_API_PATH,
   USER_TIME_ZONE_API_PATH,
@@ -178,6 +180,8 @@ import type { Conversation, NewConversationForm } from '../types/conversation.sc
 import { conversationSchema } from '../types/conversation.schema';
 import type { CatchUp, Notification } from '../types/notification.schema';
 import { catchUpSchema, notificationSchema } from '../types/notification.schema';
+import type { EmailStatus } from '../types/email-status.schema';
+import { emailStatusSchema } from '../types/email-status.schema';
 import type { CommunitySpaceLevel, SpaceLevel, SpaceNotificationLevel, ThreadFollow } from '../types/notification-follow.schema';
 import { communitySpaceLevelSchema, spaceLevelSchema, threadFollowSchema } from '../types/notification-follow.schema';
 import type { PresenceMember } from '../types/presence.schema';
@@ -1917,6 +1921,17 @@ export const knowiiApiClient = {
         'Failed to clear Following.',
         communityCuid === undefined ? {} : { community: communityCuid },
       ),
+    /**
+     * The email status of the member (#1478): whether the notification emails to the address stopped after a report of the
+     * mail provider, why and since when, and the state of each notification email group
+     */
+    emailStatus: (signal?: AbortSignal): Promise<ApiResult<EmailStatus>> =>
+      apiRequest('get', NOTIFICATIONS_EMAIL_STATUS_API_PATH, emailStatusSchema, 'Failed to load your email status.', undefined, signal),
+    /**
+     * "Try this address again" (#1478): the notification emails go again. Once an hour: a second call answers 429
+     */
+    tryAddressAgain: (): Promise<ApiResult<EmailStatus>> =>
+      apiRequest('delete', NOTIFICATIONS_EMAIL_SUPPRESSION_API_PATH, emailStatusSchema, 'Failed to try your address again.'),
     /**
      * The number of the bell: the notifications that the member did not see, 14 days old at most
      */

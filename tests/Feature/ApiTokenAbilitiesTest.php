@@ -8,10 +8,17 @@ use App\Models\AccessGroup;
 use App\Models\Event as EventModel;
 use App\Models\Space;
 use App\Models\SpaceGroup;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Route as RouteFacade;
 use Illuminate\Testing\TestResponse;
 use Laravel\Sanctum\Sanctum;
+
+// The web routes that need no token ability (#1478): their proof is a signature, never a session
+const MW_PUBLIC_WEB_ROUTES = [
+    'oidc.entitlements.webhook',
+    'mail.webhook',
+];
 
 beforeEach(function () {
     $this->c = communityWithMembers();
@@ -117,6 +124,43 @@ test('the API routes that a visitor may call are these, all of them GET, limited
         // The comments of an event (#1516)
         'api/v1/communities/{community}/spaces/{space}/events/{event}/comments',
     ]);
+});
+
+test('the web routes that need no token ability are these (#1478, design 6.14 point 10)', function () {
+    // A web route outside the API that has no sign-in, and whose proof is not a session: a signed address, or a call that
+    // is not a GET and has no CSRF check (a webhook)
+    $found = [];
+    foreach (RouteFacade::getRoutes()->getRoutes() as $route) {
+        /** @var Route $route */
+        if (str_starts_with($route->uri(), 'api/') || $route->isFallback) {
+            continue;
+        }
+        $declared = $route->gatherMiddleware();
+        $signedIn = collect($declared)->contains(fn ($m) => is_string($m) && (in_array($m, ['auth', 'auth:sanctum', 'auth.optional', 'guest', 'verified'], true) || str_starts_with($m, 'auth:')));
+        if ($signedIn) {
+            continue;
+        }
+        $middleware = app('router')->gatherRouteMiddleware($route);
+        $signed = in_array('signed', $declared, true);
+        $isGet = in_array('GET', $route->methods(), true);
+        if ($signed || (! $isGet && ! in_array(PreventRequestForgery::class, $middleware, true))) {
+            $found[(string) $route->getName()] = [$route, $declared, $middleware];
+        }
+    }
+
+    expect(array_keys($found))->toEqualCanonicalizing(MW_PUBLIC_WEB_ROUTES);
+
+    foreach ($found as $name => [$route, $declared, $middleware]) {
+        expect(collect($declared)->contains(fn ($m) => is_string($m) && str_starts_with($m, 'throttle:')))->toBeTrue("{$name} has no limiter")
+            ->and(collect($declared)->contains(fn ($m) => is_string($m) && str_starts_with($m, 'ability:')))->toBeFalse("{$name} names an ability");
+        if (! in_array('GET', $route->methods(), true)) {
+            expect($route->methods())->toBe(['POST'])
+                ->and($middleware)->not->toContain(PreventRequestForgery::class);
+        }
+        if (str_starts_with($name, 'mail.stop.')) {
+            expect($declared)->toContain('signed');
+        }
+    }
 });
 
 // ---------------------------------------------------------------------------------------------------------------------

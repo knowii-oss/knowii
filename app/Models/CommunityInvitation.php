@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\CommunityInvitation as KnowiiCommunityInvitation;
 use App\Enums\KnowiiCommunityMemberRole;
+use App\Enums\KnowiiInvitationBounceType;
 use App\Http\Resources\CommunityInvitationResource;
 use App\Traits\GeneratesCuid;
 use Carbon\Carbon;
@@ -21,6 +22,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property int $community_id
  * @property string $email
  * @property KnowiiCommunityMemberRole $role
+ * @property ?Carbon $bounced_at When the mail provider reported that the invitation email did not arrive (#1478)
+ * @property ?KnowiiInvitationBounceType $bounce_type `hard` or `soft` (#1478)
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read Community $community
@@ -78,6 +81,8 @@ class CommunityInvitation extends KnowiiCommunityInvitation
     {
         return [
             'role' => KnowiiCommunityMemberRole::class,
+            'bounced_at' => 'datetime',
+            'bounce_type' => KnowiiInvitationBounceType::class,
         ];
     }
 

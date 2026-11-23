@@ -1,0 +1,19 @@
+meta {
+  name: Notifications - Email status
+  type: http
+  seq: 239
+}
+
+get {
+  url: {{BASE_URL}}/api/v1/notifications/email-status
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  The email status of the current member (#1478): `suppressed` is true when the notification emails to the address of the account stopped after a report of the mail provider, `reason` says why (`hard_bounce`, `complaint`, `soft_bounces` for 3 temporary failures in a row, `provider_list`), `since` when, and `address_hint` is the address of the account. 1 or 2 temporary failures show as not suppressed. `email_choices` lists the five notification email groups with their state: `default`, or `off` after the stop link of an email. Sign-in links and the emails about the account still go to a suppressed address. Own state only. Needs notifications:read.
+}

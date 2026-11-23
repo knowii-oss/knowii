@@ -129,6 +129,10 @@ export const communityInvitationSchema = z.object({
   created_at: z.string(),
   expires_at: z.string(),
   is_expired: z.boolean(),
+  // A report of the mail provider on the invitation email (#1478): `hard` (it could not be reached) or `soft` (it did not
+  // arrive yet), and when. Null without a report
+  bounced_at: z.string().nullable(),
+  bounce_type: z.enum(['hard', 'soft']).nullable(),
   access_groups: z.array(invitationAccessGroupSchema),
   member_tags: z.array(memberTagSchema),
 });

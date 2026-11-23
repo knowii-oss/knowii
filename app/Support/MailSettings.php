@@ -88,6 +88,28 @@ final class MailSettings
     }
 
     /**
+     * The removals of an address from the list of the provider in one hour (#1478): MAIL_PROVIDER_REMOVALS_PER_HOUR, at
+     * least 1, default 1 (also for an empty or a wrong value)
+     */
+    public static function providerRemovalsPerHour(): int
+    {
+        $cap = self::integer('mail.provider_removals.per_hour', 1);
+
+        return $cap >= 1 ? $cap : 1;
+    }
+
+    /**
+     * The removals of an address from the list of the provider in 24 hours (#1478): MAIL_PROVIDER_REMOVALS_PER_DAY, at
+     * least 1, default 3 (also for an empty or a wrong value)
+     */
+    public static function providerRemovalsPerDay(): int
+    {
+        $cap = self::integer('mail.provider_removals.per_day', 3);
+
+        return $cap >= 1 ? $cap : 3;
+    }
+
+    /**
      * The addresses of MAIL_ALERT_TO, as they are configured (the check skips the invalid ones)
      *
      * @return list<string>
@@ -118,6 +140,15 @@ final class MailSettings
     public static function readsProviderUsage(): bool
     {
         return config('mail.default') === 'resend' && self::resendKey() !== null;
+    }
+
+    /**
+     * The mail goes through Resend: the provider with a list of suppressed addresses (#1478). With `smtp` or `log`, the
+     * platform never calls the provider
+     */
+    public static function sendsThroughResend(): bool
+    {
+        return config('mail.default') === 'resend';
     }
 
     public static function resendKey(): ?string

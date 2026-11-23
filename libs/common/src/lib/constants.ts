@@ -363,6 +363,9 @@ export const NOTIFICATION_READ_API_PATH = `${NOTIFICATION_API_PATH}/read`;
 export const NOTIFICATION_UNREAD_API_PATH = `${NOTIFICATION_API_PATH}/unread`;
 // "I am caught up" (#1497): the open rows of "Following" are read
 export const NOTIFICATIONS_CAUGHT_UP_API_PATH = `${NOTIFICATIONS_API_PATH}/caught-up`;
+// The email status of the current member and "Try this address again" (#1478). WARNING: aligned with ApiRoutes
+export const NOTIFICATIONS_EMAIL_STATUS_API_PATH = `${NOTIFICATIONS_API_PATH}/email-status`;
+export const NOTIFICATIONS_EMAIL_SUPPRESSION_API_PATH = `${NOTIFICATIONS_API_PATH}/email-suppression`;
 // The data of the "Catch up" card, and the visit of a space (#1476, ADR 0048)
 export const COMMUNITY_CATCH_UP_API_PATH = `${COMMUNITY_API_PATH}/catch-up`;
 export const COMMUNITY_SPACE_VISIT_API_PATH = `${COMMUNITY_SPACE_API_PATH}/visit`;

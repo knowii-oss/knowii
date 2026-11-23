@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\HasDeliveryRow;
 use App\Models\Community;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
@@ -13,7 +14,7 @@ use Illuminate\Queue\SerializesModels;
  */
 class CommunityOwnershipTransferred extends Mailable
 {
-    use Queueable, SerializesModels;
+    use HasDeliveryRow, Queueable, SerializesModels;
 
     public function __construct(public Community $community, public User $formerOwner) {}
 

@@ -3,6 +3,8 @@
 namespace App\Jobs\Middleware;
 
 use App\Contracts\Mail\ChecksMailBudgets;
+use App\Enums\KnowiiMailDeliveryStatus;
+use App\Mail\NotificationMail;
 use App\Support\MailQuotaRefusal;
 use Closure;
 use Illuminate\Mail\SendQueuedMailable;
@@ -34,6 +36,7 @@ final class HoldNotificationMail
         $budget = app(ChecksMailBudgets::class);
 
         if ($budget->isHeld()) {
+            self::markHeld($job);
             Log::info('A notification mail is not sent: the mail budget of the month holds notification mail', ['mailable' => self::nameOf($job)]);
 
             return;
@@ -48,6 +51,17 @@ final class HoldNotificationMail
             }
 
             $budget->holdUntil(MailQuotaRefusal::holdEnd($type), $type);
+            self::markHeld($job);
+        }
+    }
+
+    /**
+     * The row of the delivery log of the mail is `held` (#1478)
+     */
+    private static function markHeld(object $job): void
+    {
+        if ($job instanceof SendQueuedMailable && $job->mailable instanceof NotificationMail) {
+            $job->mailable->markDelivery(KnowiiMailDeliveryStatus::Held);
         }
     }
 

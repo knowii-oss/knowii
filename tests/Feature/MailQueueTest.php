@@ -2,7 +2,9 @@
 
 use App\Contracts\Mail\ChecksMailBudgets;
 use App\Contracts\Mail\RecordsSentEmails;
+use App\Jobs\Middleware\HideMailErrorText;
 use App\Jobs\Middleware\HoldNotificationMail;
+use App\Jobs\Middleware\SkipSuppressedNotificationMail;
 use App\Mail\CommunityInvitation;
 use App\Mail\CommunityOwnershipTransferred;
 use App\Mail\MagicLink;
@@ -133,10 +135,12 @@ test('a notification mail has the hold, then the rate limiter, and the retry rul
     $mail = new TestNotificationMail;
     $middleware = $mail->middleware();
 
-    expect($middleware)->toHaveCount(2)
-        ->and($middleware[0])->toBeInstanceOf(HoldNotificationMail::class)
-        ->and($middleware[1])->toBeInstanceOf(RateLimited::class)
-        ->and((fn () => $this->limiterName)->call($middleware[1]))->toBe('mail')
+    expect($middleware)->toHaveCount(4)
+        ->and($middleware[0])->toBeInstanceOf(HideMailErrorText::class)
+        ->and($middleware[1])->toBeInstanceOf(HoldNotificationMail::class)
+        ->and($middleware[2])->toBeInstanceOf(SkipSuppressedNotificationMail::class)
+        ->and($middleware[3])->toBeInstanceOf(RateLimited::class)
+        ->and((fn () => $this->limiterName)->call($middleware[3]))->toBe('mail')
         ->and($mail->maxExceptions)->toBe(3)
         ->and($mail->backoff())->toBe([60, 300, 1800])
         ->and($mail->retryUntil()->equalTo(CarbonImmutable::parse('2026-11-18T12:00:00Z')))->toBeTrue();

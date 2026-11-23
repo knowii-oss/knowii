@@ -119,7 +119,7 @@ class ChangeEmailAddress implements ChangesEmailAddresses
         [$result, $previous] = $outcome;
         if ($result === KnowiiEmailChangeResult::Confirmed && $previous !== null) {
             // The address of before gets a notice: the person who reads it learns of the change
-            Mail::to($previous)->queue(new EmailAddressChanged(self::masked($user->email)));
+            Mail::to($previous)->queue((new EmailAddressChanged(self::masked($user->email)))->recordDelivery($user));
         }
         Log::info('Change of the email address: '.$result->value, ['user' => $user->cuid]);
 
@@ -150,7 +150,7 @@ class ChangeEmailAddress implements ChangesEmailAddresses
         ]);
 
         // After the commit of the caller: the link works when the mail is sent
-        DB::afterCommit(static fn () => Mail::to($address)->queue(new ConfirmNewEmailAddress($url, $minutes)));
+        DB::afterCommit(static fn () => Mail::to($address)->queue((new ConfirmNewEmailAddress($url, $minutes))->recordDelivery($user)));
     }
 
     /**
