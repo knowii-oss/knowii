@@ -17,6 +17,9 @@ export const INVITATION_WORDS = {
   tagLimit: (limit: number) => `An invitation holds at most ${limit} tags`,
   // A row of "Pending invitations"
   pendingAccessGroups: (names: string) => `Access groups: ${names}`,
+  // A report of the mail provider on the invitation email (#1478)
+  bounceHard: 'This address could not be reached. Check it, then invite again.',
+  bounceSoft: 'The email to this address did not arrive yet. Invite again later.',
   loadMore: 'Load more',
   // "20 more loaded": the real number of new rows
   loaded: (count: number) => `${count} more loaded`,

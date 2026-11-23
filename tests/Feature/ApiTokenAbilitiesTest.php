@@ -18,6 +18,9 @@ use Laravel\Sanctum\Sanctum;
 const MW_PUBLIC_WEB_ROUTES = [
     'oidc.entitlements.webhook',
     'mail.webhook',
+    'mail.stop.show',
+    'mail.stop.store',
+    'mail.stop.undo',
 ];
 
 beforeEach(function () {

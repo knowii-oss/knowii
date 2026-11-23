@@ -526,6 +526,12 @@ export function CommunityMembersManager({
                         </span>
                       )}
                       <MemberTagList tags={invitation.member_tags} className="mt-1" />
+                      {/* A report of the mail provider on the invitation email (#1478): in words, not only a color */}
+                      {invitation.bounce_type !== null && (
+                        <span className="mt-1 text-sm font-bold text-danger-text">
+                          {invitation.bounce_type === 'hard' ? INVITATION_WORDS.bounceHard : INVITATION_WORDS.bounceSoft}
+                        </span>
+                      )}
                     </div>
                     {roles.includes(invitation.role) && (
                       <Button

@@ -5,6 +5,7 @@ use App\Exceptions\BusinessException;
 use App\Exceptions\NoAccessException;
 use App\Exceptions\TechnicalException;
 use App\Http\Controllers\Inertia\InviteLinkController;
+use App\Http\Controllers\Mail\MailStopController;
 use App\Http\Middleware\AddRobotsHeader;
 use App\Http\Middleware\AddViteContentSecurityPolicyNonce;
 use App\Http\Middleware\AnswerOnlyForOwnHostNames;
@@ -37,6 +38,7 @@ use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Routing\Exceptions\InvalidSignatureException;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -201,6 +203,12 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             return null;
+        });
+
+        // A stop link of a notification email that is not valid (#1478): the stop page in its "not valid" state for the GET, an
+        // empty body for a POST, never the general error page
+        $exceptions->render(function (InvalidSignatureException $e, Request $request) {
+            return $request->routeIs('mail.stop.*') ? MailStopController::invalid($request) : null;
         });
 
         // A visitor on a page that visitors may read, but who may not read this one (a members-only space, a chat space,
@@ -402,8 +410,9 @@ return Application::configure(basePath: dirname(__DIR__))
                 }
             }
 
-            // The page without access (#1561) is its own answer, a 403, in every environment
-            if ($exception instanceof NoAccessException) {
+            // The page without access (#1561) and the stop page of a notification email (#1478) are their own answer, in every
+            // environment
+            if ($exception instanceof NoAccessException || $request->routeIs('mail.stop.*')) {
                 return $response;
             }
 

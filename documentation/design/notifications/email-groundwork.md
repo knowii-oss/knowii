@@ -269,6 +269,8 @@ The owner took all 12 decisions as recommended on 2026-11-17 (decision 12 is in 
 2. Decision 2: the address of the budget alert is configuration (`MAIL_ALERT_TO`) and is never written in the code. When it is empty, the log line is the alert.
 3. Decision 3: the check by counsel is still to ask for (#1610). It blocks only the merge of slice 4c (the first notification mail).
 
+Update of 2026-11-23: the owner closed #1610 ("Won't do"). No other review of the words comes before the first notification email, for slice 4b and for slice 4c: the owner approves the words, the policy lines and the sub-processor line word for word. Section 9 says what the build of slice 4b changed.
+
 ### 4.1 The decisions as they were asked
 
 1. The plan at the mail provider. The estimate of design 6.14 (about 3 500 mails a month, 16 000 in the worst case) is above the Free plan (3 000 a month, 100 a day). Recommendation: the operator confirms the plan before slice 4c, and expects a paid plan (50 000 a month), with "Transactional Overages" off, so that the alert and the hold protect the bill. Alternative: stay on Free and lower the budget of design 6.5.
@@ -403,3 +405,17 @@ The brief of slice 4a was written against the code one day later. Where it diffe
 8. `app:health` gets the check `mail-queue` (2.4 point 5): with the `database` driver it fails when a job of the mail queue waits for more than 10 minutes.
 9. Slice 4a has nothing that a member can read or change: no route, no ability, no API document. The ADR says so.
 10. The words of the alert mail (2.5 point 6) are approved by the owner (2026-11-17): the text at 80% as quoted, and a hold variant that says that notification emails are paused until the date and that account emails keep going.
+
+## 9. What the build changed (slice 4b, 2026-11-23)
+
+The build of slice 4b (#1478, [ADR 0054](../../adr/0054-email-delivery-the-mail-queue-the-budget-bounces-and-the-one-click-stop.md), "Slice 4b") differs from section 3 in these points. Where it differs, this section is right.
+
+1. The GET of the stop page (`mail.stop.show`) keeps the `web` group: the page has the shared props, the theme and the header of a signed-in member. It is a secret address (ADR 0064): the session keeps no previous address of it and the page sends no page view. The two POST routes have no session, no cookie and no CSRF token (3.4 point 1).
+2. The row of the delivery log of an invitation uses `nullOnDelete` for `community_invitation_id` (3.5 point 1 said cascade): a late report on a deleted invitation still reads `kind = invitation` and never changes an account. The row has a status `queued` too, written before the mail goes to the queue.
+3. The lift of a suppression on a change of the address: a model event of `User` deletes the rows of the address of before when `email` changes, on every path that saves the account, and `App\Support\EmailSuppression` still compares the address (3.3 point 3).
+4. The prune step `email_suppressions` deletes a count of soft bounces that stopped nothing (90 days after the last bounce, owner decision of question 2) and a row whose address is not the address of the account any more.
+5. A report on a mail of an account to another address than the address of the account (the confirmation of a new address, the notice to the address of before) changes nothing.
+6. The webhook checks the signature with a verifier of the platform, not the one of the provider library (3.2 points 3 and 4): a secret that is not `whsec_` and strict base64 turns the route off (404), any call that is not valid answers 401 (a missing or malformed header, a signature or a time that is not valid), and a body over 256 KB 413.
+7. A report with no row of the delivery log counts only when it is about a mail from the sender address of the instance: the webhook belongs to the whole team at the provider (3.2 point 10.3).
+8. "Try this address again" also counts in the cap of the removals from the list of the provider (1 an hour, 3 a day per address), as the policy line says ("a few times a day at most").
+9. The groups of notification email and the table `notification_email_choices` came with the delivery log, because the email status of the API and the skip of a notification mail read them.

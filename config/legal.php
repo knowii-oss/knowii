@@ -51,6 +51,12 @@ return [
     'contact_email' => $required('LEGAL_CONTACT_EMAIL', Constants::INSTANCE_PLACEHOLDER_CONTACT_EMAIL),
 
     /*
+    | Optional: the postal address of the operator, for the footer of a notification email (#1478): "<operator>, <postal
+    | address>". Empty: the footer shows the operator only.
+    */
+    'postal_address' => trim((string) env('LEGAL_POSTAL_ADDRESS', '')),
+
+    /*
     | The folder of the legal texts and of subprocessors.json. No fallback: a file that is not there does not exist.
     */
     'path' => storage_path('app/legal'),

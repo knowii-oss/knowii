@@ -23,14 +23,19 @@ use Inertia\Response;
  */
 class MagicLinkController extends Controller
 {
+    public const string HELP_LINE = 'No email after a few minutes? Look in your spam folder, then ask again. An address that refused our mail before can need a second try.';
+
     public function store(Request $request): RedirectResponse
     {
         // The link keeps the page of a community that this session holds: it lands there in another browser too (#1612)
         app(SendsMagicLinks::class)->send($request->only(['email']), Landing::fromSession());
 
+        // One more line, the same for every address (#1478): an address that the mail provider listed after a bounce or a
+        // complaint can need a second try, and the answer never tells whether it is the case
         return redirect()->route('login')->with('status', sprintf(
-            'If an account has this address, we sent it a sign-in link. The link works once, for %d minutes.',
+            "If an account has this address, we sent it a sign-in link. The link works once, for %d minutes.\n%s",
             MagicLinks::VALIDITY_MINUTES,
+            self::HELP_LINE,
         ));
     }
 

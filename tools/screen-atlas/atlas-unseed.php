@@ -54,7 +54,8 @@ require_once __DIR__.'/atlas-shared.php';
     }
 
     // 2. The accounts of the seed, with what is left of their content
-    $emails = ['owner', 'admin', 'moderator', 'member', 'tomas', 'lena', 'new', 'unverified', '2fa'];
+    // The accounts of #1478 go with their suppression rows and their choices (the cascades of the account)
+    $emails = ['owner', 'admin', 'moderator', 'member', 'tomas', 'lena', 'new', 'unverified', '2fa', 'bounced', 'complained', 'retried', 'tried-twice'];
     // The members who answer the events (#1515): as many as the seed makes (atlas-shared.php)
     for ($index = 1; $index <= ATLAS_GROWER_COUNT; $index++) {
         $emails[] = sprintf('grower-%02d', $index);
