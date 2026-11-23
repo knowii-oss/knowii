@@ -22,7 +22,7 @@ use Visus\Cuid2\Cuid2;
 
 /*
  * The member directory (#148, ADR 0056): the page "Members" of a community, for its members only, and the API list
- * that it reads. An entry holds eight fields; the headline is its only profile field (#1688, ADR 0020), and `tags` holds
+ * that it reads. An entry holds nine fields; the headline is its only profile field (#1688, ADR 0020), and `tags` holds
  * the member tags that the reader may see (#1389, ADR 0060). The search reads the name and the username only, and never
  * leaves the community. Three sorts: `role` (the API without `sort`), `name` (the page without `sort`) and `newest`.
  */
@@ -30,7 +30,7 @@ use Visus\Cuid2\Cuid2;
 const DIRECTORY_COMPONENT = 'Members/Index';
 
 // WARNING: aligned with MemberWithRoleResource.php
-const DIRECTORY_ENTRY_KEYS = ['avatar_url', 'cuid', 'headline', 'member_since', 'name', 'role', 'tags', 'username'];
+const DIRECTORY_ENTRY_KEYS = ['avatar_url', 'cuid', 'headline', 'in_member_list', 'member_since', 'name', 'role', 'tags', 'username'];
 
 // Texts that no page holds by accident, with no character that JSON or HTML writes in another way
 const DIRECTORY_EMAIL_PROBE = 'directory-email-probe-q7x2@example.com';
@@ -335,7 +335,7 @@ test('the API list keeps its access: an account, a member, and the ability commu
 // What an entry holds
 // ---------------------------------------------------------------------------------------------------------------------
 
-test('an entry holds eight fields and no other data of the member, on the page and in the API (#148)', function (string $who) {
+test('an entry holds nine fields and no other data of the member, on the page and in the API (#148)', function (string $who) {
     $member = $this->c['member'];
     directoryFillProfile($member, true);
     $reader = directoryReader($who);
@@ -365,7 +365,7 @@ test('an entry holds eight fields and no other data of the member, on the page a
     }
 })->with('directory readers');
 
-test('a member who hides every profile field has the same eight fields, with an empty headline, for a member and for a manager (#148, #1688)', function (string $who) {
+test('a member who hides every profile field has the same nine fields, with an empty headline, for a member and for a manager (#148, #1688)', function (string $who) {
     $member = $this->c['member'];
     directoryFillProfile($member, false);
     $reader = directoryReader($who);

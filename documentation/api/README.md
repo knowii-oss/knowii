@@ -20,7 +20,7 @@ A personal API token (created on the "API tokens" page of the user menu) has abi
 | Ability             | What it allows                                                        |
 | ------------------- | --------------------------------------------------------------------- |
 | `user:read`         | Read the current user, their blocks and their frequently used emoji   |
-| `user:write`        | Change the avatar, the online status and the time zone; send the link of a change of the email address again, or cancel the change |
+| `user:write`        | Change the avatar, the online status, the choice to be in the member lists and the time zone; send the link of a change of the email address again, or cancel the change |
 | `account:delete`    | Delete your own account for good, with your password (and your two-factor code), `DELETE /v1/user`. Never in the default set of a new token |
 | `communities:read`  | Read communities, space groups, spaces, members and invitations       |
 | `communities:write` | Create, change and delete communities, spaces, members, invitations; join an open community, leave a community, let a removed member join again, change who can join, let search engines index the public spaces, transfer its ownership |
@@ -67,6 +67,16 @@ A member tag is a label that the managers of a community put on its members, for
 | `DELETE /communities/{community}/member-tags/{tag}/members/{member}` | Take the tag off: 204, or 404 for a member without the tag. Managers. Ability `member-tags:write` |
 
 Each entry of `GET /communities/{community}/members` holds `tags`: the tags of the member that the caller may see, by name. Nothing tells a member that a tag was put on them or taken off. A member reads all their own tags, of both visibilities, in the export of their data.
+
+## The member list
+
+A member chooses to be in the member list of their communities (#1466, [ADR 0063](../adr/0063-a-member-chooses-to-be-in-the-member-list-of-their-communities.md)): one choice for the account, shown by default.
+
+| Method and path | What it does |
+|---|---|
+| `PATCH /user/member-list` | Body `{"show_in_member_list": false}`. Answers 200 with the current user, who holds `show_in_member_list`; 400 for a missing value or a value that is not a boolean. Ability `user:write` |
+
+`GET /communities/{community}/members` (with or without `query`, with each `sort`) leaves out the members who chose to hide, except the owner, the admins, the moderators and the caller, and its `totalCount` does not count them. The owner, the admins and the moderators with the manage members right get every member. Each entry holds `in_member_list`: whether the other members find the person in the list. It is `false` only on the entry of a hidden member, which only these managers and the hidden member themself get. The member page, a typed mention, the online members and the member count of a community do not change.
 
 ## Entitlements of the sign-in provider
 

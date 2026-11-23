@@ -1,0 +1,26 @@
+meta {
+  name: User - Member list
+  type: http
+  seq: 238
+}
+
+patch {
+  url: {{BASE_URL}}/api/v1/user/member-list
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "show_in_member_list": false
+  }
+}
+
+docs {
+  Show or hide the current user in the member list of their communities (#1466): one choice for the account, true by default. false: the other members do not find the member in the member list, the member search or the mention suggestions (Members - List, Members - Search). The owner, the admins and the moderators with the manage members right still get the entry, with in_member_list false, and so does the member themself. A community where the member is the owner, an admin or a moderator always lists them. The member page, the posts, a typed mention, the online list (see User - Online status) and the member count do not change. Returns the current user with show_in_member_list. Needs user:write.
+}

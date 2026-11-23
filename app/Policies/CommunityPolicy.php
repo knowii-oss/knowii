@@ -204,6 +204,15 @@ class CommunityPolicy
     }
 
     /**
+     * See the members who chose to hide from the member list (#1466), with a marker, in every member list: the same people
+     * as those who add members. The other members find them only on the team, and never in a list.
+     */
+    final public function viewHiddenMembers(User $user, Community $community): bool
+    {
+        return CommunityRoles::allows($user, $community, KnowiiModeratorPermission::ManageMembers);
+    }
+
+    /**
      * Determine whether the user can delete the model.
      */
     final public function delete(User $user, Community $community): bool

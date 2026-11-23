@@ -271,6 +271,8 @@ export const USERS_API_IS_USERNAME_AVAILABLE_PATH = `${USERS_API_BASE_PATH}/is-u
 export const USER_AVATAR_API_PATH = `${API_BASE_PATH}/user/avatar`;
 // Show or hide when the current user is online (#1187)
 export const USER_ONLINE_STATUS_API_PATH = `${API_BASE_PATH}/user/online-status`;
+// Show or hide the current user in the member list of their communities (#1466)
+export const USER_MEMBER_LIST_API_PATH = `${API_BASE_PATH}/user/member-list`;
 // The members the current user blocked (#1186)
 // The time zone and the pop-up switch of the member (#1476, ADR 0048)
 export const USER_TIME_ZONE_API_PATH = `${API_BASE_PATH}/user/time-zone`;

@@ -28,6 +28,7 @@ const ursula: CommunityMember = {
   role: 'member',
   member_since: null,
   tags: [{ ...founder, members_count: null }],
+  in_member_list: true,
 };
 
 const author = { cuid: 'u', name: 'Ursula', username: 'ursula', avatar_url: null };

@@ -34,12 +34,15 @@ class MemberController extends Controller
     /**
      * The member directory of a community (#148, ADR 0056): its members, for its members, with a search by name and two
      * sorts. The first entries come with the page; the page loads the next ones through the API list of the members. An
-     * entry is the one of that list (MemberWithRoleResource): the headline is its only profile field.
+     * entry is the one of that list (MemberWithRoleResource): the headline is its only profile field. The people who hide
+     * from the member list are left out for a reader who does not manage the members (#1466).
      */
     public function index(Request $request, string $communitySlug): Response
     {
         $community = Community::where('slug', $communitySlug)->firstOrFail();
         NoAccess::authorizeView($request, $community, $community, KnowiiNoAccessKind::Community);
+        /** @var User $reader The route needs an account */
+        $reader = $request->user();
 
         JsonResource::withoutWrapping();
 
@@ -51,7 +54,7 @@ class MemberController extends Controller
         /** @var array{members: array{items: ResourceCollection, pagination: array<string, int|null>}, sort: string, query: string}|null $list */
         $list = null;
         // One value for the three props of the list: the first prop that is asked for reads the members, one time
-        $directory = static function () use (&$list, $request, $community): array {
+        $directory = static function () use (&$list, $request, $community, $reader): array {
             if ($list !== null) {
                 return $list;
             }
@@ -62,9 +65,9 @@ class MemberController extends Controller
             $search = $request->query('query');
             $sort = KnowiiMemberSort::forDirectory(is_string($sort) ? $sort : null);
             $search = CommunityMemberQuery::searchText(is_string($search) ? $search : '');
-            $page = (new Pagination(Constants::COMMUNITY_MEMBERS_PAGE_SIZE, 0))->apply(CommunityMemberQuery::for($community, $search, $sort));
+            $page = (new Pagination(Constants::COMMUNITY_MEMBERS_PAGE_SIZE, 0))->apply(CommunityMemberQuery::for($community, $reader, $search, $sort));
             // The entries are those of the API list: their tags too, with one query for the page (#1389, ADR 0060)
-            MemberTagsOfMembers::attach($community, $page['items'], $request->user());
+            MemberTagsOfMembers::attach($community, $page['items'], $reader);
             $request->attributes->set(self::NO_MEMBER_LIST_ATTRIBUTE, false);
 
             return $list = [
@@ -86,6 +89,8 @@ class MemberController extends Controller
             'query' => static fn (): string => $directory()['query'],
             // The link "Manage members" to the settings: the people who can add members (#1240)
             'canManageMembers' => static fn (): bool => Gate::check('addCommunityMember', $community),
+            // The line above the list for a reader who chose to hide from it and is not on the team (#1466)
+            'hiddenFromList' => static fn (): bool => CommunityMemberQuery::hidesReader($community, $reader),
         ]);
     }
 

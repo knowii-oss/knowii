@@ -38,6 +38,7 @@ const member = (cuid: string, name: string, role: CommunityRole): CommunityMembe
   role,
   member_since: '2026-11-01T10:00:00.000000Z',
   tags: [],
+  in_member_list: true,
 });
 
 const members = [
@@ -115,6 +116,23 @@ describe('CommunityMembersManager', () => {
     expect(within(list).getByRole('button', { name: 'Remove Ursula' })).toBeInTheDocument();
     expect(within(list).queryByRole('button', { name: /Role of Alan/ })).not.toBeInTheDocument();
     expect(within(list).getByRole('button', { name: /Role of Ursula/ })).toBeInTheDocument();
+  });
+
+  it('marks a member who hides from the member list, and no other member (#1466)', async () => {
+    vi.spyOn(knowiiApiClient.communities.members, 'list').mockResolvedValue({
+      ok: true,
+      message: '',
+      data: page([...members, { ...member('q', 'Quinn', 'member'), in_member_list: false }]),
+    });
+    renderManager('admin');
+
+    const list = await screen.findByRole('list', { name: 'Members' });
+    await within(list).findByText('Quinn');
+
+    const entryOf = (name: string) => within(list).getByRole('link', { name }).closest('li') as HTMLElement;
+    expect(within(entryOf('Quinn')).getByText('Hidden from the list')).toBeInTheDocument();
+    expect(within(entryOf('Ursula')).queryByText('Hidden from the list')).not.toBeInTheDocument();
+    expect(within(list).getAllByText('Hidden from the list')).toHaveLength(1);
   });
 
   it('does not show the headline of a member: the second line stays the username (#1688)', async () => {

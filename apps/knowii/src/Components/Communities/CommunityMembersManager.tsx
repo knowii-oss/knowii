@@ -45,6 +45,7 @@ import {
   useFocusAfterRender,
 } from '@/Components/ui';
 import { MemberTagList } from '@/Components/Members/MemberTagList';
+import { HiddenFromListBadge } from '@/Components/Members/HiddenFromListBadge';
 import { MemberTagsDialog } from './MemberTagsDialog';
 import type { InvitationGrants } from './InvitationGrantsPicker';
 import { InvitationGrantsPicker, NO_INVITATION_GRANTS } from './InvitationGrantsPicker';
@@ -440,6 +441,12 @@ export function CommunityMembersManager({
                         {member.name}
                       </Link>
                       <span className="truncate text-sm text-muted">@{member.username}</span>
+                      {/* The other members do not find this member in the member list (#1466) */}
+                      {!member.in_member_list && (
+                        <span className="mt-1">
+                          <HiddenFromListBadge />
+                        </span>
+                      )}
                       <MemberTagList tags={member.tags} className="mt-1" />
                     </div>
                     {permissions.canAssignMemberTags === true && (

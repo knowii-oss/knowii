@@ -1,6 +1,6 @@
 # 0056. The member directory: every member reads the member list of the community
 
-- Status: Accepted
+- Status: Accepted, amended by [0063](0063-a-member-chooses-to-be-in-the-member-list-of-their-communities.md) (a member can hide from the member list: decisions 7, 10, 13 and 23)
 - Date: 2026-11-20
 - Issue: #148
 - Pull request: #1701

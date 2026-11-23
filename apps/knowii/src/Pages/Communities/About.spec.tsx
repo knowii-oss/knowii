@@ -61,8 +61,18 @@ const team: CommunityMember[] = [
     role: 'owner',
     member_since: null,
     tags: [],
+    in_member_list: true,
   },
-  { cuid: 'm', name: 'Margaret', username: 'margaret', headline: '', role: 'moderator', member_since: null, tags: [] },
+  {
+    cuid: 'm',
+    name: 'Margaret',
+    username: 'margaret',
+    headline: '',
+    role: 'moderator',
+    member_since: null,
+    tags: [],
+    in_member_list: true,
+  },
 ];
 
 const none: CommunityPermissions = {

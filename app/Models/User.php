@@ -42,6 +42,7 @@ use TaylorNetwork\UsernameGenerator\GeneratesUsernames;
  * @property string $name
  * @property string $email
  * @property bool $show_online_status Whether the other members see when this member is online (#1187)
+ * @property bool $show_in_member_list Whether the other members find this member in the member list of their communities (#1466)
  * @property ?string $time_zone The IANA zone that the member chose (#1476); null: the zone of the instance. Only the member reads it
  * @property ?Carbon $last_visit_on The date of the last visit, without an hour (#1476). Nobody reads it: hidden from every serialization
  * @property bool $notification_popups Whether the app shows pop-ups for the lines that need the member (#1476)
@@ -233,6 +234,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'session_version' => 'integer',
             'password' => 'hashed',
             'show_online_status' => 'boolean',
+            'show_in_member_list' => 'boolean',
             'notification_popups' => 'boolean',
             'last_visit_on' => 'date',
             'deletion_signed_in_at' => 'datetime',
@@ -287,6 +289,16 @@ class User extends Authenticatable implements MustVerifyEmail
     final public function showsOnlineStatus(): bool
     {
         return filter_var($this->getAttributes()['show_online_status'] ?? true, FILTER_VALIDATE_BOOLEAN);
+    }
+
+    /**
+     * Whether the other members find this member in the member list of their communities (#1466). The team of a community
+     * is always in its list, whatever this says (CommunityMemberQuery). A new account is shown: the column defaults to
+     * true, and a model built in memory does not hold it yet.
+     */
+    final public function showsInMemberList(): bool
+    {
+        return filter_var($this->getAttributes()['show_in_member_list'] ?? true, FILTER_VALIDATE_BOOLEAN);
     }
 
     /**

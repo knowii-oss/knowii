@@ -87,3 +87,4 @@ Do not write an ADR for a bug fix, a refactor that keeps the structure, or a fea
 | [0060](0060-member-tags-labels-on-members.md)                                                  | Member tags: labels on members, for the members or for the managers only         | Accepted |
 | [0061](0061-invitations-carry-access-groups-and-tags-and-come-from-a-file.md)                  | Invitations carry access groups and tags, and many come from a file              | Accepted |
 | [0062](0062-invite-links-a-shared-link-to-join-a-community-with-set-access-groups-and-tags.md) | Invite links: a shared link to join a community, with set access groups and tags | Accepted |
+| [0063](0063-a-member-chooses-to-be-in-the-member-list-of-their-communities.md)                 | A member chooses to be in the member list of their communities                   | Accepted |

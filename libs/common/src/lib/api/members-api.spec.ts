@@ -73,3 +73,41 @@ describe('the member list of a community (#1242, #148)', () => {
     expect(wrong).toMatchObject({ ok: false, message: 'Failed to load the members.' });
   });
 });
+
+describe('the member list choice of the current member (#1466)', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it.each([false, true])('sends PATCH with show_in_member_list %s', async (show) => {
+    const fetchMock = answer({ data: { cuid: 'u1', show_in_member_list: show } });
+
+    const result = await knowiiApiClient.users.updateMemberListVisibility(show);
+
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('/api/v1/user/member-list');
+    expect(fetchMock.mock.calls[0]?.[1]).toMatchObject({ method: 'PATCH', body: JSON.stringify({ show_in_member_list: show }) });
+    expect(result.ok).toBe(true);
+  });
+
+  it('gives the error of the server', async () => {
+    answer({ message: 'The show in member list field must be true or false.' }, 400);
+
+    const result = await knowiiApiClient.users.updateMemberListVisibility(false);
+
+    expect(result.ok).toBe(false);
+  });
+});
+
+describe('an entry of the member list (#1466)', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('reads in_member_list, and takes true when a page was built before the field', async () => {
+    answer({ data: [{ ...member, in_member_list: false }, member], metadata: { pagination } });
+
+    const result = await knowiiApiClient.communities.members.list('c1', 20, 0);
+
+    expect(result.ok && result.data.items.map((item) => item.in_member_list)).toEqual([false, true]);
+  });
+});

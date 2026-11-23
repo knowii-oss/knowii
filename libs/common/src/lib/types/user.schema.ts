@@ -11,6 +11,8 @@ export const currentUserSchema = z.object({
   two_factor_enabled: z.boolean(),
   // #1187: false when the member hides when they are online. Absent on old sessions: shown
   show_online_status: z.boolean().optional(),
+  // #1466: false when the member hides from the member list of their communities. Absent on old sessions: shown
+  show_in_member_list: z.boolean().optional(),
   // #1476: the IANA zone of the member, null when not known (the zone of the instance applies). Only the member reads it
   time_zone: z.string().nullable().optional(),
   // #1476: false when the member does not want pop-ups. Absent on old sessions: shown

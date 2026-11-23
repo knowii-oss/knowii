@@ -195,6 +195,8 @@ final class ExportUser implements ExportsUsers
                 'pending_email_requested_at' => $this->date($user->pending_email_requested_at),
                 'two_factor_authentication' => $user->two_factor_confirmed_at !== null,
                 'show_online_status' => $user->showsOnlineStatus(),
+                // #1466: whether the other members find the member in the member list of their communities
+                'show_in_member_list' => $user->showsInMemberList(),
                 // Where I am (#1476, ADR 0048): the zone that the member chose, the date of the last visit (nobody else reads it) and
                 // the switch of the pop-ups
                 'time_zone' => $user->timeZone(),
@@ -1023,7 +1025,7 @@ final class ExportUser implements ExportsUsers
             '',
         ];
         $descriptions = [
-            'account.json' => 'your account and your profile, with the choice of who sees each profile field, and the accounts of other providers that you connected to sign in (the provider, your identifier there and the dates), with the entitlement keys that the provider reported for you and the date of the last check, your time zone, the date of your last visit (a date, no hour) and your choice of pop-ups',
+            'account.json' => 'your account and your profile, with the choice of who sees each profile field, and the accounts of other providers that you connected to sign in (the provider, your identifier there and the dates), with the entitlement keys that the provider reported for you and the date of the last check, your time zone, the date of your last visit (a date, no hour), your choice to be in the member lists and your choice of pop-ups',
             'memberships.json' => 'your communities and your role, the communities you own, your access groups (and whether you were added by hand or by an entitlement rule), the tags that the managers of a community put on you (the name, who sees it: the members or the managers only, and the date), the invitations sent to your email address (with the access groups and the member tags that each gives when you join), the rows of the imports of invitations from a file with your address (the community, the date, whether the invitation went out and why a row was refused), the communities where a manager removed you and where you cannot join again by yourself, and the invite links through which you joined a community (the community, the cuid and the name of the link, and the date)',
             'activity.json' => 'the lessons you marked as done, your quiz results, your answers to events (the event by its identifier and its title, and your answer: yes, replay only or no), what you read in chat spaces and conversations, the members you blocked, where you were mentioned, your notifications (kind, community, the items by identifier and the dates, never a text), the threads that you follow or muted and the level that you chose for each space, the date when you last visited each space, your API tokens, your sessions and the invitation emails that you sent in the last days (the community and the time)',
             'posts.json' => 'your posts (Markdown)',

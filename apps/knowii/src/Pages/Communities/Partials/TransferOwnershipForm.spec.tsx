@@ -13,6 +13,7 @@ const member = (cuid: string, name: string, role: CommunityRole): CommunityMembe
   role,
   member_since: '2026-11-01T10:00:00.000000Z',
   tags: [],
+  in_member_list: true,
 });
 
 const page = (items: CommunityMember[]): Paginated<CommunityMember> => ({
