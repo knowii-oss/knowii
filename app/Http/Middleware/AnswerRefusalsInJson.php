@@ -11,7 +11,8 @@ use Symfony\Component\HttpFoundation\Response;
  * the JSON error of the API, never as a page or as a redirect to the sign-in page: the browser then shows a download that
  * failed, and never saves a page of the application as the file. The request is marked as one that wants JSON before
  * the end of an outdated session (EndOutdatedSessions, ADR 0059) and the sign-in check run (see the priority in
- * bootstrap/app.php). The answer of a success does not change.
+ * bootstrap/app.php). The answer of a success does not change. Every route of the api group has it too (#1716): an error of
+ * the API is JSON whatever the `Accept` header says.
  */
 class AnswerRefusalsInJson
 {

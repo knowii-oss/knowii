@@ -10,6 +10,7 @@ The reference description of the API is the OpenAPI document that Scramble gener
 2. Copy `.env.example` to `.env` in this folder and set the email and password of a test user. The `.env` file is not committed (see the Bruno [dotenv secrets](https://docs.usebruno.com/secrets-management/dotenv-file) documentation).
 3. Select the `Local` environment (`http://localhost:4200`).
 4. Run `Get CSRF cookie`, then `Auth - Login`. Bruno keeps the session cookie for the next requests. For token authentication, run `Auth - Login (include token)` and send the token as `Authorization: Bearer <token>`.
+5. Send `Accept: application/json` (the requests of this collection do): every error is then the JSON of [ADR 0011](../adr/0011-rest-api-design-guide.md), in every environment, except the plain-text 503 of an instance that is not configured and an `HttpResponseException` that carries its own response.
 
 Requests that target an existing item (a community, a space) contain a cuid from the seed data. Replace it with a cuid from your database.
 

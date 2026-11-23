@@ -29,6 +29,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Middleware\HandleCors;
@@ -95,6 +96,11 @@ return Application::configure(basePath: dirname(__DIR__))
             // EnsureFrontendRequestsAreStateful middleware. Running them twice starts a second session from the
             // already-decrypted cookie, which replaces the user's session cookie and logs them out.
             HandleCors::class,
+
+            // Every refusal of the API is the JSON of ADR 0011, whatever the `Accept` header says (#1716): also the refusals
+            // that a middleware chooses before any exception, as the check of the email address (`verified`). The priority
+            // list (below) puts it before the end of an outdated session, the sign-in check and `verified`
+            AnswerRefusalsInJson::class,
 
             // Reject non-JSON request bodies (the API only accepts JSON input)
             EnsureRequestIsJson::class,
@@ -183,6 +189,19 @@ return Application::configure(basePath: dirname(__DIR__))
         // A failed form keeps its input in the session for the next page, never the token of a link (ADR 0064): the reset
         // page of the password reads its token from its props, not from the old input
         $exceptions->dontFlash(['token']);
+
+        // Every error of an address of the API is the JSON of ADR 0011, whatever the `Accept` header says (#1716): a client
+        // such as curl sends `*/*`. The render callbacks below and the response hook read `expectsJson()`, so the request of
+        // the API is marked as one that wants JSON, as `json-refusals` does. A page request does not change
+        $rendersJson = static fn (Request $request): bool => $request->is('api/*') || $request->expectsJson();
+        $exceptions->shouldRenderJsonWhen($rendersJson);
+        $exceptions->render(function (Throwable $e, Request $request) {
+            if ($request->is('api/*') && ! $request->expectsJson()) {
+                $request->headers->set('Accept', 'application/json');
+            }
+
+            return null;
+        });
 
         // A visitor on a page that visitors may read, but who may not read this one (a members-only space, a chat space,
         // a page that does not exist): the sign-in page, then back to the address (#1387, ADR 0044). Not found gives the
@@ -330,16 +349,21 @@ return Application::configure(basePath: dirname(__DIR__))
                 return null;
             }
 
-            // Symfony types the headers as a plain array: keep the string names with string (or string list) values
+            // Symfony types the headers as a plain array: keep every header with a string name, its scalar values as strings
+            // (Retry-After and X-RateLimit-* are integers)
             $headers = [];
             foreach ($e->getHeaders() as $name => $value) {
                 if (! is_string($name)) {
                     continue;
                 }
-                if (is_string($value)) {
-                    $headers[$name] = $value;
-                } elseif (is_array($value)) {
-                    $headers[$name] = implode(', ', array_filter($value, 'is_string'));
+                $values = [];
+                foreach (is_array($value) ? $value : [$value] as $item) {
+                    if (is_scalar($item)) {
+                        $values[] = (string) $item;
+                    }
+                }
+                if ($values !== []) {
+                    $headers[$name] = implode(', ', $values);
                 }
             }
 
@@ -347,6 +371,12 @@ return Application::configure(basePath: dirname(__DIR__))
             {
                 use ApiResponses;
             })::httpIssue($e->getStatusCode(), $headers);
+        });
+
+        // An exception that carries its own answer (a middleware, a limit with its own response): that answer, unchanged,
+        // never the 500 below
+        $exceptions->render(function (HttpResponseException $e) {
+            return $e->getResponse();
         });
 
         // Convert Exception instances to Internal Server Exception
@@ -363,7 +393,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         // Handle responses
-        $exceptions->respond(function (Response|RedirectResponse|JsonResponse $response, Throwable $exception, Request $request) {
+        $exceptions->respond(function (Response|RedirectResponse|JsonResponse $response, Throwable $exception, Request $request) use ($rendersJson) {
             if ($request->expectsJson()) {
                 if ($exception instanceof AlreadyAuthenticatedException && $response instanceof JsonResponse) {
                     Log::debug('AlreadyAuthenticatedException');
@@ -377,7 +407,9 @@ return Application::configure(basePath: dirname(__DIR__))
                 return $response;
             }
 
-            if (! app()->environment(['local', 'testing']) && in_array($response->getStatusCode(), [500, 503, 404, 403])) {
+            // The page `Error` is for a page request and an Inertia visit only: a request that expects JSON and a request of
+            // the API keep the JSON error of ADR 0011 in every environment (#1716)
+            if (! $rendersJson($request) && ! app()->environment(['local', 'testing']) && in_array($response->getStatusCode(), [500, 503, 404, 403])) {
                 // The two values of the footer, also when the failure came before the shared props (maintenance mode, a
                 // middleware that failed): they read only the configuration and the folder of the legal texts
                 return Inertia::render('Error', [
@@ -387,7 +419,8 @@ return Application::configure(basePath: dirname(__DIR__))
                 ])->toResponse($request)->setStatusCode($response->getStatusCode());
             }
 
-            if ($response->getStatusCode() === 419) {
+            // An expired form token: a redirect back for a page, the JSON 419 of ADR 0011 for JSON and for the API (#1716)
+            if ($response->getStatusCode() === 419 && ! $rendersJson($request)) {
                 return back()->with([
                     'message' => 'The page expired, please try again.',
                 ]);
