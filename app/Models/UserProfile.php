@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Database\Factories\UserProfileFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\UseResource;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -179,6 +180,16 @@ class UserProfile extends Authenticatable implements MustVerifyEmail
         return [
             'field_visibility' => 'array',
         ];
+    }
+
+    /**
+     * The copy of the address of the account is stored in lower case, as the address itself (User::email())
+     *
+     * @return Attribute<?string, ?string>
+     */
+    protected function email(): Attribute
+    {
+        return Attribute::set(static fn (?string $value): ?string => User::lowerCaseAddress($value));
     }
 
     /**

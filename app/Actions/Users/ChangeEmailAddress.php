@@ -101,7 +101,7 @@ class ChangeEmailAddress implements ChangesEmailAddresses
                     'pending_email_requested_at' => null,
                 ])->save();
                 // The profile keeps a copy of the address
-                $account->profile()->update(['email' => $pending]);
+                $account->profile()->update(['email' => $account->email]);
                 // A reset link of the address of before has no use any more
                 DB::table('password_reset_tokens')->where('email', $previous)->delete();
 

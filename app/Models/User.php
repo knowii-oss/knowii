@@ -170,19 +170,44 @@ class User extends Authenticatable implements MustVerifyEmail
      * Retention::pendingEmailDays() days (retention:prune removes it later). Every read gets this value: the code, the own
      * resource and the account of the page. A query may select some columns only: a missing column counts as null.
      *
-     * @return Attribute<?string, never>
+     * It is stored in lower case, as the address of the account (email()).
+     *
+     * @return Attribute<?string, ?string>
      */
     protected function pendingEmail(): Attribute
     {
-        return Attribute::get(function (): ?string {
-            $value = $this->attributes['pending_email'] ?? null;
-            $requestedAt = $this->attributes['pending_email_requested_at'] ?? null;
-            if (! is_string($value) || $requestedAt === null) {
-                return null;
-            }
+        return Attribute::make(
+            get: function (): ?string {
+                $value = $this->attributes['pending_email'] ?? null;
+                $requestedAt = $this->attributes['pending_email_requested_at'] ?? null;
+                if (! is_string($value) || $requestedAt === null) {
+                    return null;
+                }
 
-            return $this->asDateTime($requestedAt)->greaterThan(now()->subDays(Retention::pendingEmailDays())) ? $value : null;
-        });
+                return $this->asDateTime($requestedAt)->greaterThan(now()->subDays(Retention::pendingEmailDays())) ? $value : null;
+            },
+            set: static fn (?string $value): ?string => self::lowerCaseAddress($value),
+        );
+    }
+
+    /**
+     * The address of the account is stored in lower case, at every write of the model: the sign-up, the provider, the
+     * correction and the change of the address, the factories. Fortify lowers the address of the sign-in and of the
+     * password reset forms, so a person signs in and resets the password with any casing of the address
+     *
+     * @return Attribute<string, ?string>
+     */
+    protected function email(): Attribute
+    {
+        return Attribute::set(static fn (?string $value): ?string => self::lowerCaseAddress($value));
+    }
+
+    /**
+     * An address in lower case, as the addresses of the accounts are stored; null stays null
+     */
+    public static function lowerCaseAddress(?string $address): ?string
+    {
+        return $address === null ? null : mb_strtolower($address);
     }
 
     /**

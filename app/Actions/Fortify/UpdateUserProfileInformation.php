@@ -198,7 +198,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
                     'pending_email_requested_at' => null,
                 ])->save();
                 // Keep the user profile in sync
-                $account->profile()->update(['email' => $address]);
+                $account->profile()->update(['email' => $account->email]);
                 // A reset link of the address of before has no use any more
                 DB::table('password_reset_tokens')->where('email', $previous)->delete();
 
