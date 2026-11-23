@@ -15,7 +15,8 @@
     "events": "Events spaces and events",
     "notifications": "Notifications",
     "account": "Account settings",
-    "errors": "Error pages"
+    "errors": "Error pages",
+    "mail": "The stop link of a notification email"
   },
   "notes": [
     "The application ran in the `local` environment. There, a 403, a 404 and a 500 show the error page of the framework, not `Pages/Error.tsx`: `bootstrap/app.php` renders that page only outside `local` and `testing`. The pictures of the area \"errors\" and every \"forbidden\" state show what the local environment shows.",
@@ -2693,6 +2694,125 @@
       "roles": ["new-member"],
       "component": "Pages/Error.tsx",
       "expect": { "status": 403 }
+    },
+    {
+      "area": "mail",
+      "screen": "stop",
+      "state": "confirm",
+      "name": "Stop page of a notification email, before the button",
+      "path": "{mailStop.confirm}",
+      "roles": ["visitor", "member"],
+      "component": "Pages/Mail/Stop.tsx",
+      "note": "The link of a notification email opens it without a sign-in. Nothing changes before the button."
+    },
+    {
+      "area": "mail",
+      "screen": "stop",
+      "state": "confirm-summary",
+      "name": "Stop page, before the button, for the weekly summary",
+      "path": "{mailStop.confirm-summary}",
+      "roles": ["visitor", "member"],
+      "component": "Pages/Mail/Stop.tsx"
+    },
+    {
+      "area": "mail",
+      "screen": "stop",
+      "state": "done",
+      "name": "Stop page after the button: what stopped and what still arrives, with Undo",
+      "path": "{mailStop.done}",
+      "roles": ["visitor", "member"],
+      "component": "Pages/Mail/Stop.tsx"
+    },
+    {
+      "area": "mail",
+      "screen": "stop",
+      "state": "done-summary",
+      "name": "Stop page after the button, for the weekly summary",
+      "path": "{mailStop.done-summary}",
+      "roles": ["visitor", "member"],
+      "component": "Pages/Mail/Stop.tsx"
+    },
+    {
+      "area": "mail",
+      "screen": "stop",
+      "state": "undone",
+      "name": "Stop page after Undo",
+      "path": "{mailStop.undone}",
+      "roles": ["visitor", "member"],
+      "component": "Pages/Mail/Stop.tsx"
+    },
+    {
+      "area": "mail",
+      "screen": "stop",
+      "state": "invalid",
+      "name": "Stop page of a link that is not valid",
+      "path": "{mailStop.invalid}",
+      "roles": ["visitor", "member"],
+      "component": "Pages/Mail/Stop.tsx",
+      "note": "A link with a wrong signature: the answer is a 403 with this page.",
+      "expect": { "status": 403 }
+    },
+    {
+      "area": "notifications",
+      "screen": "email-box",
+      "state": "bounce",
+      "name": "Notification settings: the address did not accept the emails",
+      "path": "/user/notifications",
+      "roles": ["member"],
+      "account": "bounced",
+      "component": "Pages/Profile/Notifications.tsx"
+    },
+    {
+      "area": "notifications",
+      "screen": "email-box",
+      "state": "complaint",
+      "name": "Notification settings: an email was marked as spam",
+      "path": "/user/notifications",
+      "roles": ["member"],
+      "account": "complained",
+      "component": "Pages/Profile/Notifications.tsx"
+    },
+    {
+      "area": "notifications",
+      "screen": "email-box",
+      "state": "tried-again",
+      "name": "Notification settings: after \"Try this address again\"",
+      "path": "/user/notifications",
+      "roles": ["member"],
+      "account": "retried",
+      "component": "Pages/Profile/Notifications.tsx",
+      "steps": [
+        ["click", "role=button[name=\"Try this address again\"]"],
+        ["waitFor", "text=We will try this address again with the next email."],
+        ["settle"]
+      ]
+    },
+    {
+      "area": "notifications",
+      "screen": "email-box",
+      "state": "second-try",
+      "name": "Notification settings: the second try within the hour",
+      "path": "/user/notifications",
+      "roles": ["member"],
+      "account": "tried-twice",
+      "component": "Pages/Profile/Notifications.tsx",
+      "steps": [
+        ["click", "role=button[name=\"Try this address again\"]"],
+        ["waitFor", "text=We will try this address again with the next email."],
+        ["click", "role=button[name=\"Try this address again\"]"],
+        ["waitFor", "role=alert"],
+        ["settle"]
+      ]
+    },
+    {
+      "area": "settings",
+      "screen": "invitation",
+      "state": "bounced",
+      "name": "Pending invitations: a hard and a soft bounce",
+      "path": "/community/{garden}/settings",
+      "roles": ["owner"],
+      "component": "Pages/Communities/Settings.tsx",
+      "steps": [["waitFor", "text=This address could not be reached. Check it, then invite again."], ["settle"]]
     }
   ]
 }

@@ -3,6 +3,7 @@
 use App\ApiRoutes;
 use App\Contracts\Auth\SendsMagicLinks;
 use App\Enums\KnowiiCommunityMemberRole;
+use App\Enums\KnowiiNotificationEmailGroup;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Mail\ConfirmNewEmailAddress;
 use App\Mail\MagicLink;
@@ -10,6 +11,7 @@ use App\Models\Community;
 use App\Models\InviteLink;
 use App\Models\User;
 use App\Support\Analytics;
+use App\Support\MailStopLink;
 use App\Support\SecretAddresses;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
@@ -61,6 +63,8 @@ const SA_ROUTES = [
     'invite/{inviteLinkToken}' => ['guest', 'account'],
     'api/v1/invite-links/{inviteLinkToken}' => ['account'],
     'auth/oidc/callback' => ['guest'],
+    // The stop link of a notification email (#1478)
+    'mail/stop' => ['guest', 'account', 'another'],
 ];
 
 /**
@@ -245,6 +249,10 @@ function saCase(string $address, string $state): array
             };
 
             return ['url' => $url, 'secrets' => [$token], 'as' => str_contains($address, 'API') ? $ada : $as];
+        case 'mail/stop':
+            $url = MailStopLink::for($ada, KnowiiNotificationEmailGroup::RepliesAndMentions);
+
+            return ['url' => $url, 'secrets' => saSignedSecrets($url), 'as' => $as];
         case 'auth/oidc/callback':
         case 'the callback of the provider in capital letters':
         case 'the callback of the provider with a double slash':

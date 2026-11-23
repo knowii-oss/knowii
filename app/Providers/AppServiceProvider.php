@@ -90,6 +90,7 @@ use App\Actions\Notifications\MarkNotificationsRead;
 use App\Actions\Notifications\MarkNotificationsSeen;
 use App\Actions\Notifications\Notify;
 use App\Actions\Notifications\PruneNotifications;
+use App\Actions\Notifications\StopEmailGroup;
 use App\Actions\Notifications\TrackSpaceVisits;
 use App\Actions\Pages\CreatePage;
 use App\Actions\Pages\DeletePage;
@@ -220,6 +221,7 @@ use App\Contracts\Notifications\MarksNotificationsRead;
 use App\Contracts\Notifications\MarksNotificationsSeen;
 use App\Contracts\Notifications\Notifies;
 use App\Contracts\Notifications\PrunesNotifications;
+use App\Contracts\Notifications\StopsEmailGroups;
 use App\Contracts\Notifications\TracksSpaceVisits;
 use App\Contracts\Pages\CreatesPages;
 use App\Contracts\Pages\DeletesPages;
@@ -475,6 +477,7 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(ReceivesMailWebhooks::class, ReceiveMailWebhook::class);
         app()->singleton(RemovesProviderSuppressions::class, RemoveResendSuppression::class);
         app()->singleton(LiftsEmailSuppressions::class, LiftEmailSuppression::class);
+        app()->singleton(StopsEmailGroups::class, StopEmailGroup::class);
 
         // Public newsletter endpoint (#938): a few requests per minute and per IP address
         RateLimiter::for('newsletter', static function (Request $request) {
@@ -539,6 +542,12 @@ class AppServiceProvider extends ServiceProvider
         // The removals of an address from the list of the mail provider (#1478, ADR 0054): per address, an hour and a day.
         // App\Support\ProviderRemovals reads it with the address, not with a request
         RateLimiter::for(ProviderRemovals::LIMITER, static fn (string $address) => ProviderRemovals::limits($address));
+
+        // The stop link of a notification email (#1478): per IP address for its three routes together, never per account (a
+        // stranger with bad links would use up the limit of another person)
+        RateLimiter::for('mail-stop', static function (Request $request) {
+            return Limit::perMinute(Constants::MAIL_STOP_PER_ADDRESS_PER_MINUTE)->by('mail-stop:'.$request->ip());
+        });
 
         // "Try this address again" (#1478): once an hour per account
         RateLimiter::for('mail-suppression', static function (Request $request) {

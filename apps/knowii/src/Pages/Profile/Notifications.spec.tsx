@@ -72,6 +72,12 @@ describe('the notification settings page (#1497)', () => {
     shared.reload.mockClear();
     api = spyOnFollowApi();
     api.forCommunity.mockResolvedValue({ ok: true, message: '', data: levels });
+    // The address is not suppressed: the box of #1478 shows nothing
+    vi.spyOn(knowiiApiClient.notifications, 'emailStatus').mockResolvedValue({
+      ok: true,
+      message: '',
+      data: { suppressed: false, reason: null, since: null, address_hint: 'ada@example.com', email_choices: [] },
+    });
   });
   afterEach(() => {
     vi.useRealTimers();

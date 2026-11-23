@@ -52,14 +52,17 @@ use App\Actions\SpaceGroups\SetSpaceGroupAccessGroups;
 use App\Actions\Spaces\CreateSpace;
 use App\Actions\Uploads\UploadImage;
 use App\Actions\Users\UpdateAvatar;
+use App\Enums\KnowiiNotificationEmailGroup;
 use App\Models\AccessGroup;
 use App\Models\ChatMessage;
 use App\Models\Comment;
 use App\Models\Community;
 use App\Models\CommunityResource;
 use App\Models\Conversation;
+use App\Models\EmailSuppression;
 use App\Models\Event as EventModel;
 use App\Models\Notification;
+use App\Models\NotificationEmailChoice;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\QuizResult;
@@ -67,10 +70,13 @@ use App\Models\Space;
 use App\Models\SpaceGroup;
 use App\Models\Upload;
 use App\Models\User;
+use App\Support\MailStopLink;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Laravel\Fortify\Actions\EnableTwoFactorAuthentication;
 
 require_once __DIR__.'/atlas-shared.php';
@@ -409,6 +415,15 @@ require_once __DIR__.'/atlas-shared.php';
     if (! $garden->communityInvitations()->where('email', 'atlas-invited@example.com')->exists()) {
         app(InviteCommunityMember::class)->invite($owner, $garden, ['email' => 'atlas-invited@example.com', 'role' => 'member']);
         $made++;
+    }
+
+    // Reports of the mail provider on two invitations that wait (#1478): the row says it in words
+    foreach (['atlas-bounced-hard@example.com' => 'hard', 'atlas-bounced-soft@example.com' => 'soft'] as $address => $type) {
+        if (! $garden->communityInvitations()->where('email', $address)->exists()) {
+            app(InviteCommunityMember::class)->invite($owner, $garden, ['email' => $address, 'role' => 'member']);
+            $made++;
+        }
+        $garden->communityInvitations()->where('email', $address)->update(['bounced_at' => now(), 'bounce_type' => $type]);
     }
 
     // Read the accounts again: their memberships changed
@@ -981,6 +996,36 @@ require_once __DIR__.'/atlas-shared.php';
     }
 
     // ---------------------------------------------------------------------------------------------------------------
+    // 7b. Bounces, complaints and the stop link of a notification email (#1478)
+    // ---------------------------------------------------------------------------------------------------------------
+
+    // Four members whose notification emails stopped after a report of the mail provider: the box of the settings page
+    // after a bounce, after a spam report, after "Try this address again", and at the second try within the hour. Each
+    // run of the seed gives the row back and forgets the limit of the lift, so each picture starts from the same state
+    $suppressed = [];
+    foreach (['bounced' => ['Bea Bounced', 'hard_bounce'], 'complained' => ['Carl Complained', 'complaint'], 'retried' => ['Rita Retried', 'hard_bounce'], 'tried-twice' => ['Tim Twice', 'hard_bounce']] as $key => [$name, $reason]) {
+        $suppressed[$key] = $account($key, $name, 'atlas-'.$key, true, $zone);
+        $join($garden, $owner, $suppressed[$key], 'member');
+        EmailSuppression::query()->updateOrCreate(
+            ['user_id' => $suppressed[$key]->id],
+            ['email' => $suppressed[$key]->email, 'reason' => $reason, 'suppressed_at' => now()->subDays(2), 'soft_bounce_count' => 0, 'last_event_at' => now()->subDays(2)],
+        );
+        RateLimiter::clear(md5('mail-suppression'.'mail-suppression:user:'.$suppressed[$key]->id));
+    }
+    // The stop link of the member: the page reads the group from it. A GET changes nothing, and the states after the
+    // button come from their signed addresses, so the pictures write no choice
+    $relative = static fn (string $url): string => Str::after($url, rtrim(config()->string('app.url'), '/'));
+    NotificationEmailChoice::query()->where('user_id', $member->id)->delete();
+    $mailStop = [
+        'confirm' => $relative(MailStopLink::for($member, KnowiiNotificationEmailGroup::RepliesAndMentions)),
+        'confirm-summary' => $relative(MailStopLink::for($member, KnowiiNotificationEmailGroup::WeeklySummary)),
+        'done' => $relative(MailStopLink::done($member->cuid, KnowiiNotificationEmailGroup::RepliesAndMentions)),
+        'done-summary' => $relative(MailStopLink::done($member->cuid, KnowiiNotificationEmailGroup::WeeklySummary)),
+        'undone' => $relative(MailStopLink::undone($member->cuid, KnowiiNotificationEmailGroup::RepliesAndMentions)),
+        'invalid' => $relative(MailStopLink::for($member, KnowiiNotificationEmailGroup::RepliesAndMentions)).'0',
+    ];
+
+    // ---------------------------------------------------------------------------------------------------------------
     // 8. The manifest: the addresses that the screenshot tool needs
     // ---------------------------------------------------------------------------------------------------------------
 
@@ -994,7 +1039,10 @@ require_once __DIR__.'/atlas-shared.php';
         'accounts' => [
             'owner' => $owner->email, 'admin' => $admin->email, 'moderator' => $moderator->email, 'member' => $member->email,
             'new-member' => $newcomer->email, 'unverified' => $unverified->email, 'two-factor' => $twoFactor->email,
+            'bounced' => $suppressed['bounced']->email, 'complained' => $suppressed['complained']->email,
+            'retried' => $suppressed['retried']->email, 'tried-twice' => $suppressed['tried-twice']->email,
         ],
+        'mailStop' => $mailStop,
         'usernames' => ['owner' => $owner->username, 'admin' => $admin->username, 'moderator' => $moderator->username, 'member' => $member->username, 'tomas' => $tomas->username, 'new-member' => $newcomer->username],
         'garden' => $garden->slug,
         'empty' => $empty->slug,

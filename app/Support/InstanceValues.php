@@ -38,6 +38,14 @@ final class InstanceValues
     }
 
     /**
+     * The postal address of the operator, for the footer of a notification email (#1478). Empty when it is not set
+     */
+    public static function postalAddress(): string
+    {
+        return self::text('legal.postal_address');
+    }
+
+    /**
      * The public contact address of the operator. Empty when it is not set
      */
     public static function contactEmail(): string

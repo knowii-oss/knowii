@@ -49,7 +49,7 @@ export default function LoginPage({ canResetPassword, status }: Props) {
       <Head title="Log in" />
       <AuthenticationCard>
         {status && (
-          <div role="status" className="mb-4 text-sm font-medium text-success">
+          <div role="status" className="mb-4 text-sm font-medium whitespace-pre-line text-success">
             {status}
           </div>
         )}

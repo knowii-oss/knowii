@@ -12,7 +12,9 @@ use App\Jobs\Middleware\SkipSuppressedNotificationMail;
 use App\Mail\Concerns\HasDeliveryRow;
 use App\Models\MailDelivery;
 use App\Models\User;
+use App\Support\InstanceValues;
 use App\Support\MailSettings;
+use App\Support\MailStopLink;
 use Carbon\CarbonImmutable;
 use DateInterval;
 use DateTimeInterface;
@@ -21,6 +23,7 @@ use Illuminate\Contracts\Queue\Factory;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Headers;
 use Illuminate\Queue\Middleware\RateLimited;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
@@ -124,6 +127,46 @@ abstract class NotificationMail extends Mailable implements ShouldQueue
         }
 
         return parent::later($delay, $queue);
+    }
+
+    /**
+     * The stop link of the mail: the group of the mail, for its account. Built when the mail is sent, never stored in the
+     * queued job (ADR 0064 point 11)
+     */
+    public function stopLink(): string
+    {
+        return MailStopLink::for($this->account(), $this->emailGroup());
+    }
+
+    /**
+     * The row of the delivery log, and the one-click stop of RFC 8058 (#1478, design 5.6 point 9): `List-Unsubscribe` with
+     * the stop link of the group, the same address as the footer link, and `List-Unsubscribe-Post`. Account mail has
+     * neither header
+     */
+    public function headers(): Headers
+    {
+        return new Headers(text: $this->deliveryHeaders() + [
+            'List-Unsubscribe' => '<'.$this->stopLink().'>',
+            'List-Unsubscribe-Post' => 'List-Unsubscribe=One-Click',
+        ]);
+    }
+
+    /**
+     * The values of the footer partial `emails.partials.notification-footer`: the stop link, the settings and the line of
+     * the operator ("<operator>, <postal address>", or the operator alone without an address)
+     *
+     * @return array{stopUrl: string, settingsUrl: string, operatorLine: string}
+     */
+    public function footerData(): array
+    {
+        $operator = InstanceValues::operator();
+        $address = InstanceValues::postalAddress();
+
+        return [
+            'stopUrl' => $this->stopLink(),
+            'settingsUrl' => route('profile.notifications'),
+            'operatorLine' => $address === '' ? $operator : $operator.', '.$address,
+        ];
     }
 
     /**

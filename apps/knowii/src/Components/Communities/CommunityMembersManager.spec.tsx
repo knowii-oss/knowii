@@ -12,6 +12,7 @@ import type {
   Paginated,
 } from '@knowii/common';
 import { AppDataProvider, canActOnRole, grantableRoles, knowiiApiClient } from '@knowii/common';
+import { INVITATION_WORDS } from './invitation-words';
 import { CommunityMembersManager } from './CommunityMembersManager';
 
 vi.mock('@inertiajs/react', () => ({
@@ -238,6 +239,28 @@ describe('CommunityMembersManager', () => {
 
     await waitFor(() => expect(cancel).toHaveBeenCalledWith('c1', 'i1'));
     await waitFor(() => expect(screen.getByText('No pending invitations.')).toBeInTheDocument());
+  });
+
+  it('shows the report of the mail provider on a pending invitation, in words (#1478)', async () => {
+    vi.spyOn(knowiiApiClient.communities.invitations, 'list').mockResolvedValue({
+      ok: true,
+      message: '',
+      data: page([
+        { ...invitation, cuid: 'i2', email: 'hard@example.com', bounced_at: '2026-11-23T10:00:00.000000Z', bounce_type: 'hard' },
+        { ...invitation, cuid: 'i3', email: 'soft@example.com', bounced_at: '2026-11-23T10:00:00.000000Z', bounce_type: 'soft' },
+        { ...invitation, cuid: 'i4', email: 'fine@example.com' },
+      ]),
+    });
+    renderManager('admin');
+
+    const list = await screen.findByRole('list', { name: 'Pending invitations' });
+    const rows = within(list).getAllByRole('listitem');
+    expect(rows[0]).toHaveTextContent(INVITATION_WORDS.bounceHard);
+    expect(rows[1]).toHaveTextContent(INVITATION_WORDS.bounceSoft);
+    expect(rows[2]).not.toHaveTextContent(INVITATION_WORDS.bounceHard);
+    expect(rows[2]).not.toHaveTextContent(INVITATION_WORDS.bounceSoft);
+    expect(INVITATION_WORDS.bounceHard).toBe('This address could not be reached. Check it, then invite again.');
+    expect(INVITATION_WORDS.bounceSoft).toBe('The email to this address did not arrive yet. Invite again later.');
   });
 
   it('shows no invitation form and no controls without the rights (#1242)', async () => {

@@ -57,6 +57,9 @@ final class SecretAddresses
         'user/email-change/*',
         'community-invitations/*',
         'auth/oidc/callback',
+        // The stop link of a notification email (#1478): a signed address without a path parameter
+        'mail/stop',
+        'mail/stop/undo',
     ];
 
     /**

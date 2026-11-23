@@ -20,6 +20,7 @@ use App\Http\Controllers\Inertia\PageController;
 use App\Http\Controllers\Inertia\PostController;
 use App\Http\Controllers\Inertia\SpaceController;
 use App\Http\Controllers\LegalPageController;
+use App\Http\Controllers\Mail\MailStopController;
 use App\Http\Controllers\RobotsController;
 use App\Http\Controllers\SecurityTxtController;
 use App\Http\Controllers\Webhooks\MailWebhookController;
@@ -213,6 +214,36 @@ Route::post('/webhooks/resend', [MailWebhookController::class, 'store'])
     ])
     ->middleware('throttle:mail-webhook')
     ->name('mail.webhook');
+
+// The stop link of a notification email (#1478, ADR 0054, RFC 8058): no sign-in and no token ability, because the signature
+// of the address is the proof (a secret address, ADR 0064). The limit per IP address comes before the check of the
+// signature. The page (GET) keeps the web group, for the header of a signed-in member, and changes nothing. The two POST
+// routes have no session, no cookie and no CSRF token: a mail program sends the one-click POST
+Route::get('/mail/stop', [MailStopController::class, 'show'])
+    ->middleware(['throttle:mail-stop', 'signed'])
+    ->name('mail.stop.show');
+Route::post('/mail/stop', [MailStopController::class, 'store'])
+    ->withoutMiddleware([
+        EncryptCookies::class,
+        AddQueuedCookiesToResponse::class,
+        StartSession::class,
+        ShareErrorsFromSession::class,
+        PreventRequestForgery::class,
+        HandleInertiaRequests::class,
+    ])
+    ->middleware(['throttle:mail-stop', 'signed'])
+    ->name('mail.stop.store');
+Route::post('/mail/stop/undo', [MailStopController::class, 'undo'])
+    ->withoutMiddleware([
+        EncryptCookies::class,
+        AddQueuedCookiesToResponse::class,
+        StartSession::class,
+        ShareErrorsFromSession::class,
+        PreventRequestForgery::class,
+        HandleInertiaRequests::class,
+    ])
+    ->middleware(['throttle:mail-stop', 'signed'])
+    ->name('mail.stop.undo');
 
 // The contact page shows the contact address of the instance (#1653): without an address, the page does not exist
 Route::get('/contact', static function (): InertiaResponse {

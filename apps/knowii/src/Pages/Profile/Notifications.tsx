@@ -4,6 +4,7 @@ import { useTypedPage } from '@knowii/common';
 import AppLayout from '@/Layouts/AppLayout';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
 import ActionSection from '@/Components/ActionSection';
+import { EmailStatusBox } from '@/Components/Notifications/EmailStatusBox';
 import type { BreadcrumbItem } from '@/Components/ui';
 import { Divider } from '@/Components/ui';
 import { PopupsForm } from '@/Pages/Profile/Partials/PopupsForm';
@@ -62,6 +63,9 @@ export default function NotificationSettings({ communities }: Props) {
       >
         {status}
       </div>
+
+      {/* The notification emails of the address stopped after a report of the mail provider (#1478) */}
+      <EmailStatusBox />
 
       <ActionSection
         title="Your time zone"
