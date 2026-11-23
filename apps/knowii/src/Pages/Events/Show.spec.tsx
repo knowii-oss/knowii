@@ -67,6 +67,7 @@ const NONE: EventPermissions = {
   canViewAnswers: false,
   canComment: false,
   canModerate: false,
+  mustCancelBeforeDelete: false,
 };
 // The host, the owner and the admins: they also read the answers (#1515)
 const ALL: EventPermissions = {
@@ -77,6 +78,7 @@ const ALL: EventPermissions = {
   canViewAnswers: true,
   canComment: true,
   canModerate: true,
+  mustCancelBeforeDelete: false,
 };
 // A moderator with the right to delete content: cancels and deletes the events of others, does not edit them, and does
 // not read the answers
@@ -88,6 +90,7 @@ const MODERATOR: EventPermissions = {
   canViewAnswers: false,
   canComment: true,
   canModerate: true,
+  mustCancelBeforeDelete: false,
 };
 
 // What a load asks of the router (#1515): the event alone, or every prop. Each load also gives its callbacks (the cancel
@@ -209,6 +212,29 @@ describe('the page of an event (#1514, design 6.2)', () => {
       expect(article.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
       expect(screen.getByText('See you there')).toBeInTheDocument();
       expect(screen.getByRole('textbox', { name: 'Write a comment' })).toBeInTheDocument();
+      const results = await axe.run(container, { rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
+      expect(results.violations).toEqual([]);
+    });
+
+    it('follow the description and the section after the event, in the order of the design (6.2 point 2)', async () => {
+      vi.setSystemTime(new Date('2026-11-19T09:00:00Z'));
+      const { container } = renderPage(
+        withBody({ is_past: true, notes: 'The slides', notes_html: '<p>The slides of the session</p>', replay_expected: true }),
+        { comments: thread, permissions: { ...NONE, canComment: true } },
+      );
+
+      const description = screen.getByText('questions');
+      const after = screen.getByRole('heading', { level: 2, name: 'After the event' });
+      const notes = screen.getByText('The slides of the session');
+      const comments = screen.getByRole('heading', { name: '1 comment' });
+      const order = [description, after, notes, comments];
+      for (let index = 1; index < order.length; index++) {
+        expect(
+          (order[index - 1] as HTMLElement).compareDocumentPosition(order[index] as HTMLElement) & Node.DOCUMENT_POSITION_FOLLOWING,
+        ).toBeTruthy();
+      }
+      expect((container.querySelector('article') as HTMLElement).contains(after)).toBe(true);
+      expect(screen.getByText('The host plans a replay. It shows here when the host adds it.')).toBeInTheDocument();
       const results = await axe.run(container, { rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
       expect(results.violations).toEqual([]);
     });
@@ -803,7 +829,10 @@ describe('the page of an event (#1514, design 6.2)', () => {
       await openMenu();
       await userEvent.click(screen.getByRole('menuitem', { name: 'Delete' }));
       const dialog = await screen.findByRole('dialog', { name: 'Delete this event?' });
-      expect(within(dialog).getByText('This cannot be undone.')).toBeInTheDocument();
+      // #1516: the delete takes the comments and the answers with it
+      expect(
+        within(dialog).getByText('Its comments and the answers of members are deleted too. This cannot be undone.'),
+      ).toBeInTheDocument();
       expect(remove).not.toHaveBeenCalled();
 
       await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));
@@ -811,6 +840,58 @@ describe('the page of an event (#1514, design 6.2)', () => {
       expect(remove).toHaveBeenCalledWith('c1', 's1', 'e1');
       await waitFor(() => expect(shared.visit).toHaveBeenCalledWith('/community/tests/space/office-hours'));
       expect(await screen.findByText('Event deleted')).toBeInTheDocument();
+    });
+
+    it.each([
+      ['the host', ALL],
+      ['a moderator with the right to delete content', MODERATOR],
+    ])(
+      'offers %s to cancel first an event that members still expect, and its "Cancel event" cancels it (#1516)',
+      async (_name, permissions) => {
+        const setState = vi
+          .spyOn(knowiiApiClient.communities.events, 'setState')
+          .mockResolvedValue({ ok: true, message: '', data: withBody({ state: 'cancelled' }) });
+        const remove = vi.spyOn(knowiiApiClient.communities.events, 'delete');
+        const { container } = renderPage(withBody(), { permissions: { ...permissions, mustCancelBeforeDelete: true } });
+
+        await openMenu();
+        await userEvent.click(screen.getByRole('menuitem', { name: 'Delete' }));
+        const dialog = await screen.findByRole('dialog', { name: 'Cancel this event first?' });
+        expect(within(dialog).getByText('Members answered Yes or Replay only. Cancel it first, so members are told.')).toBeInTheDocument();
+        expect(within(dialog).getByRole('button', { name: 'Keep the event' })).toHaveFocus();
+        expect(within(dialog).queryByRole('button', { name: 'Delete' })).toBeNull();
+        const results = await axe.run(container.ownerDocument.body, {
+          rules: { 'color-contrast': { enabled: false }, region: { enabled: false } },
+        });
+        expect(results.violations).toEqual([]);
+
+        await userEvent.click(within(dialog).getByRole('button', { name: 'Cancel event' }));
+
+        expect(setState).toHaveBeenCalledWith('c1', 's1', 'e1', 'cancelled');
+        expect(remove).not.toHaveBeenCalled();
+        await waitFor(() => expect(shared.reload).toHaveBeenCalled());
+        expect(await screen.findByText('Event cancelled')).toBeInTheDocument();
+      },
+    );
+
+    it('shows the words of the server when a delete is refused after the page loaded (#1516)', async () => {
+      vi.spyOn(knowiiApiClient.communities.events, 'delete').mockResolvedValue({
+        ok: false,
+        status: 422,
+        message: 'Cancel it first, so members are told.',
+        errors: {},
+      });
+      renderPage(withBody(), { permissions: ALL });
+
+      await openMenu();
+      await userEvent.click(screen.getByRole('menuitem', { name: 'Delete' }));
+      const dialog = await screen.findByRole('dialog', { name: 'Delete this event?' });
+      await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));
+
+      await waitFor(() =>
+        expect(document.querySelector('[data-slot="event-actions-error"]')).toHaveTextContent('Cancel it first, so members are told.'),
+      );
+      expect(shared.visit).not.toHaveBeenCalled();
     });
 
     it('publishes a cancelled event again and puts a published event back to draft, without a question', async () => {

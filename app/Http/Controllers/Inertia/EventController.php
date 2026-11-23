@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Inertia;
 
+use App\Actions\Events\DeleteEvent;
 use App\Contracts\Notifications\TracksSpaceVisits;
 use App\Enums\KnowiiNoAccessKind;
 use App\Enums\KnowiiSpaceType;
@@ -38,6 +39,7 @@ class EventController extends Controller
         $user = $request->user();
 
         JsonResource::withoutWrapping();
+        $canDelete = Gate::check('delete', $event);
 
         // WARNING: The props passed here must remain aligned with the props expected by the page (Pages/Events/Show.tsx)
         return Jetstream::inertia()->render($request, 'Events/Show', [
@@ -52,7 +54,7 @@ class EventController extends Controller
             'permissions' => [
                 'canUpdate' => Gate::check('update', $event),
                 'canCancel' => Gate::check('cancel', $event),
-                'canDelete' => Gate::check('delete', $event),
+                'canDelete' => $canDelete,
                 // A copy is a new event of the space: the right to change this one, and the right to create one
                 'canDuplicate' => Gate::check('update', $event) && Gate::check('contribute', $space),
                 // "Answers" (#1515): the owner, the admins and the host, never for a draft, never a moderator. No field
@@ -62,6 +64,9 @@ class EventController extends Controller
                 'canComment' => Gate::check('comment', $event),
                 // Delete the comments of others, and their replies
                 'canModerate' => Gate::check('moderate', $space),
+                // "Delete" offers the cancel (#1516): the server would refuse the delete of an event that members still
+                // expect. Only for the people who may delete it; it names no member and gives no count
+                'mustCancelBeforeDelete' => $canDelete && DeleteEvent::mustCancelFirst($event),
             ],
         ]);
     }

@@ -706,7 +706,9 @@ test('a deleted event deletes its answers', function () {
     $other = EventModel::factory()->inSpace($this->space)->hostedBy($this->c['host'])->create();
     eanAnswer('member', $other, 'no');
 
-    app(DeletesEvents::class)->delete($this->c['host'], $this->event);
+    // A published event that members still expect is cancelled first (#1516)
+    app(SetsEventStates::class)->setState($this->c['host'], $this->event, ['state' => 'cancelled']);
+    app(DeletesEvents::class)->delete($this->c['host'], $this->event->fresh());
 
     expect(EventAnswer::query()->where('event_id', $this->event->id)->exists())->toBeFalse()
         ->and(eanAnswers($other))->toBe(['member' => 'no']);

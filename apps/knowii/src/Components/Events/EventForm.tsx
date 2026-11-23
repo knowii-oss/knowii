@@ -27,6 +27,7 @@ import {
   MAX_EVENT_DURATION_HOURS,
   MAX_LENGTH_EVENT_COVER_ALT,
   MAX_LENGTH_EVENT_PLACE,
+  MAX_LENGTH_EVENT_REPLAY_URL,
   MAX_LENGTH_EVENT_TITLE,
   MAX_UPLOAD_SIZE_BYTES,
   MIN_EVENT_CAPACITY,
@@ -158,6 +159,9 @@ function startValues(event: SpaceEvent | null, defaultZone: string): EventFormVa
     // Empty: no limit
     capacity: typeof event?.capacity === 'number' ? String(event.capacity) : '',
     replay_expected: event?.replay_expected ?? false,
+    // After the event (#1516): empty means none
+    replay_url: event?.replay_url ?? '',
+    notes: event?.notes ?? '',
   };
 }
 
@@ -206,6 +210,10 @@ function storedChoice(date: string, time: string, zone: string, offsetMinutes: n
  * limit, and only the Yes answers take a place. The form of a published or cancelled event reads the number of Yes
  * answers once, and says it under the limit. A limit under that number is accepted: nobody is removed, and the line
  * says so when the person leaves the field. "A replay will exist" offers the answer "Replay only".
+ *
+ * After the event (#1516, design 2.4): the form of a published event that ended has the group "After the event" with
+ * "Replay link" (described by the sentence about the agreement of the people in a recording, and who sees the link) and
+ * "Notes" (Markdown). They are sent only when they changed; an empty field clears the value.
  */
 export function EventForm({ community, space, event, timeZones, permissions, currentUser }: EventFormProps) {
   const { showToast } = useAppData();
@@ -309,6 +317,8 @@ export function EventForm({ community, space, event, timeZones, permissions, cur
   const [formError, setFormError] = useState<string | null>(null);
 
   const isDraft = current === null || current.state === 'draft';
+  // "After the event" (#1516): the replay link and the notes, for a published event that ended, as the server says it
+  const showsAfterEvent = current !== null && current.state === 'published' && current.is_past;
   const slugs = { communitySlug: community.slug, spaceSlug: space.slug };
   const cancelHref = current ? route(EVENT_URL, { ...slugs, eventSlug: current.slug }) : route(SPACE_URL, slugs);
   const chosenHost = host[0] ?? null;
@@ -443,6 +453,8 @@ export function EventForm({ community, space, event, timeZones, permissions, cur
       location_visibility: 'location_visibility',
       capacity: 'capacity',
       replay_expected: 'replay_expected',
+      replay_url: 'replay_url',
+      notes: 'notes',
     };
     let shown = false;
     for (const [name, field] of Object.entries(fields)) {
@@ -577,6 +589,17 @@ export function EventForm({ community, space, event, timeZones, permissions, cur
       }
       if (answerFields.replay_expected !== current.replay_expected) {
         changes.replay_expected = answerFields.replay_expected;
+      }
+      // After the event (#1516): only the form of a published event that ended shows the two fields. An empty field
+      // clears its value
+      if (showsAfterEvent) {
+        const replayUrl = values.replay_url.trim();
+        if (replayUrl !== before.replay_url) {
+          changes.replay_url = replayUrl === '' ? null : replayUrl;
+        }
+        if (values.notes !== before.notes) {
+          changes.notes = values.notes;
+        }
       }
       const hostChanged = chosenHost.cuid !== current.host?.cuid;
       // The owner and the admins change every event, whoever its host is: the new host goes with the other changes. A
@@ -1028,6 +1051,63 @@ export function EventForm({ community, space, event, timeZones, permissions, cur
         </p>
         <InputError id="event-replay-error" className="mt-2" message={errors.replay_expected?.message} />
       </div>
+
+      {showsAfterEvent && (
+        <fieldset id="event-after" className="flex flex-col gap-4 rounded-xl border border-border p-4">
+          <legend className="px-1 text-base font-extrabold">{EVENT_WORDS.afterEventLegend}</legend>
+          <div>
+            <InputLabel htmlFor="event-replay-url">{EVENT_WORDS.fieldReplayUrl}</InputLabel>
+            <TextInput
+              id="event-replay-url"
+              type="url"
+              inputMode="url"
+              autoComplete="off"
+              wrapperClassName="mt-1"
+              maxLength={MAX_LENGTH_EVENT_REPLAY_URL}
+              invalid={!!errors.replay_url}
+              aria-describedby={describedBy(
+                'event-replay-url-consent',
+                'event-replay-url-who',
+                errors.replay_url && 'event-replay-url-error',
+              )}
+              {...form.register('replay_url')}
+            />
+            <p id="event-replay-url-consent" className="mt-1 text-xs text-muted">
+              {EVENT_WORDS.replayConsent}
+            </p>
+            <p id="event-replay-url-who" className="mt-1 text-xs text-muted">
+              {EVENT_WORDS.replayWho}
+            </p>
+            <InputError id="event-replay-url-error" className="mt-2" message={errors.replay_url?.message} />
+          </div>
+          <div>
+            <InputLabel htmlFor="event-notes">{EVENT_WORDS.fieldNotes}</InputLabel>
+            <div className="mt-1">
+              <Controller
+                name="notes"
+                control={form.control}
+                render={({ field }) => (
+                  <MarkdownEditor
+                    id="event-notes"
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    renderPreview={renderPreview}
+                    rows={POST_EDITOR_ROWS}
+                    invalid={!!errors.notes}
+                    images={images}
+                    aria-describedby={describedBy('event-notes-who', errors.notes && 'event-notes-error')}
+                  />
+                )}
+              />
+            </div>
+            <p id="event-notes-who" className="mt-1 text-xs text-muted">
+              {EVENT_WORDS.notesWho}
+            </p>
+            <InputError id="event-notes-error" className="mt-2" message={errors.notes?.message} />
+          </div>
+        </fieldset>
+      )}
 
       <div>
         <MemberPicker

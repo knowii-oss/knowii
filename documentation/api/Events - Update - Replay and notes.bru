@@ -1,0 +1,27 @@
+meta {
+  name: Events - Update - Replay and notes
+  type: http
+  seq: 235
+}
+
+patch {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of an events space>/events/<cuid of an event that ended>
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "replay_url": "https://replays.example.com/weekly-review",
+    "notes": "The **slides** and the links of the session."
+  }
+}
+
+docs {
+  After the event (#1516): the owner, the admins and the host add the replay link (an absolute http or https address, up to 2048 characters) and the notes (Markdown, up to 20 000 characters) of a published event whose end passed. null or an empty text removes them, at any time. A link of one of the two video hosts of lessons shows their click-to-load player on the page; any other address is a plain link. The server never opens the link. sequence does not move. Only the members who can see the event read replay_url and replay; every reader of the event reads the notes. A create and a duplicate ignore both fields. Ability events:write.
+}

@@ -257,6 +257,28 @@ test('the comments of an event per role, per visibility of its space and per sta
     'a draft of a public space' => ['public', 'draft', []],
 ]);
 
+test('the replay link of an event per role, per visibility of its space, per state and per answer (#1516)', function (string $visibility, string $state, string $where, array $replay) {
+    [$c, $event] = policyEventOf($this->c, $visibility, $state);
+    $event->forceFill(['location_visibility' => $where])->save();
+    // The member answered Replay only: on a `going` event the meeting address is not for them, the replay is
+    if ($state !== 'draft') {
+        EventAnswer::factory()->to($event)->of($c['member'])->replay()->create();
+    }
+    $event = Event::query()->findOrFail($event->id);
+
+    foreach (POLICY_EVENT_READERS as $role) {
+        $allowed = $c[$role] === null ? Gate::forUser(null)->allows('viewReplay', $event) : Gate::forUser($c[$role])->allows('viewReplay', $event);
+        expect($allowed)->toBe(in_array($role, $replay, true), "{$role}, viewReplay");
+    }
+})->with([
+    'a public space, members: every member, never an outsider or a visitor' => ['public', 'past', 'members', ['owner', 'admin', 'moderator', 'host', 'member', 'inGroup']],
+    'a public space, going: every member too, whatever the answer' => ['public', 'past', 'going', ['owner', 'admin', 'moderator', 'host', 'member', 'inGroup']],
+    'a members space' => ['members', 'published', 'going', ['owner', 'admin', 'moderator', 'host', 'member', 'inGroup']],
+    'a groups space: the members of the group, the owner and the admins' => ['groups', 'past', 'members', ['owner', 'admin', 'host', 'inGroup']],
+    'a cancelled event' => ['public', 'cancelled', 'going', ['owner', 'admin', 'moderator', 'host', 'member', 'inGroup']],
+    'a draft: who may see it' => ['public', 'draft', 'members', ['owner', 'admin', 'host']],
+]);
+
 test('a host who lost the access group, and a host who left, read no answer and do not answer', function () {
     $host = User::factory()->withUserProfile()->create();
     $this->c['community']->users()->attach($host, ['role' => KnowiiCommunityMemberRole::Member]);

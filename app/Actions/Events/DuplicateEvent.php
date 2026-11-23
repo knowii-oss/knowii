@@ -66,6 +66,10 @@ class DuplicateEvent implements DuplicatesEvents
                 'capacity' => $event->capacity,
                 // A model that was just created does not hold the default of the database (rules.md, Data 7)
                 'replay_expected' => $event->replay_expected === true,
+                // A copy never takes the replay, the notes or the comments of the event (#1516)
+                'replay_url' => null,
+                'notes' => '',
+                'notes_html' => '',
                 'state' => KnowiiEventState::Draft,
                 'sequence' => 0,
                 'published_notified_at' => null,

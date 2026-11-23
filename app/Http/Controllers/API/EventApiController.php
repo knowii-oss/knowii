@@ -21,6 +21,7 @@ use App\Support\UpcomingEvents;
 use App\Traits\ApiResponses;
 use Dedoc\Scramble\Attributes\BodyParameter;
 use Dedoc\Scramble\Attributes\QueryParameter;
+use Dedoc\Scramble\Attributes\Response as OpenApiResponse;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
@@ -149,7 +150,8 @@ class EventApiController extends Controller
 
     /**
      * Change an event: the owner, the admins and the host. Each field is optional; the times are checked with the stored
-     * values of the fields that are absent. The slug stays. The state has its own route. A change tells nobody.
+     * values of the fields that are absent. The slug stays. The state has its own route. A change tells nobody. After
+     * the event, the replay link and the notes (#1516); a create and a duplicate never take them.
      *
      * @throws AuthenticationException
      */
@@ -166,10 +168,12 @@ class EventApiController extends Controller
     #[BodyParameter('cover_upload_cuid', description: 'The cuid of an image uploaded in this community; null removes the cover', required: false, type: 'string')]
     #[BodyParameter('cover_alt', description: 'Text alternative of the cover (up to 125 characters)', required: false, type: 'string')]
     #[BodyParameter('host_cuid', description: 'The user cuid of the new host: a member of the community who can read the space', required: false, type: 'string')]
+    #[BodyParameter('replay_url', description: 'After the event (#1516): the replay link, an absolute http or https address (up to 2048 characters). Only on a published event whose end passed (400 otherwise); null or empty removes it at any time. A link of one of the two video hosts of lessons shows their click-to-load player. Only the members who can see the event read it, never a visitor. The server never opens it', required: false, type: 'string', format: 'uri')]
+    #[BodyParameter('notes', description: 'After the event (#1516): notes in Markdown (up to 20 000 characters). Only on a published event whose end passed (400 otherwise); empty removes them at any time. Every reader of the event reads them, in a public space anyone on the internet', required: false, type: 'string')]
     final public function update(Request $request, Community $community, Space $space, Event $event): JsonResponse
     {
         $event = app(UpdatesEvents::class)->update($request->user() ?? throw new AuthenticationException, $event, $request->only([
-            'title', 'body', 'starts_at', 'ends_at', 'time_zone', 'meeting_url', 'place', 'location_visibility', 'capacity', 'replay_expected', 'cover_upload_cuid', 'cover_alt', 'host_cuid',
+            'title', 'body', 'starts_at', 'ends_at', 'time_zone', 'meeting_url', 'place', 'location_visibility', 'capacity', 'replay_expected', 'cover_upload_cuid', 'cover_alt', 'host_cuid', 'replay_url', 'notes',
         ]));
 
         return self::success('Event updated', null, self::loaded($event)->toResource()->withLargeFields());
@@ -206,10 +210,13 @@ class EventApiController extends Controller
     }
 
     /**
-     * Delete an event: the owner, the admins, the host and the moderators of the space.
+     * Delete an event: the owner, the admins, the host and the moderators of the space, with its answers and comments. A
+     * published event whose end is not passed and that has a Yes or a Replay only answer of a member who can read the
+     * space is refused (422, "Cancel it first, so members are told."): cancel it first (#1516).
      *
      * @throws AuthenticationException
      */
+    #[OpenApiResponse(422, 'A published event that members still expect: "Cancel it first, so members are told."', type: 'array{message: string}')]
     final public function destroy(Request $request, Community $community, Space $space, Event $event): Response
     {
         app(DeletesEvents::class)->delete($request->user() ?? throw new AuthenticationException, $event);

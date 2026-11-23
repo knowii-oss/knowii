@@ -89,6 +89,10 @@ class CreateEvent implements CreatesEvents
                 'cover_alt' => self::blankToNull($validated['cover_alt'] ?? null),
                 'capacity' => self::capacity($validated['capacity'] ?? null),
                 'replay_expected' => filter_var($validated['replay_expected'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                // After the event only (#1516): a create never takes them. A new model does not hold the database defaults
+                'replay_url' => null,
+                'notes' => '',
+                'notes_html' => '',
                 'state' => $state,
                 'sequence' => 0,
                 'published_notified_at' => null,

@@ -2164,6 +2164,87 @@
     },
     {
       "area": "events",
+      "screen": "event-after",
+      "state": "player",
+      "name": "Event page, after the event with a replay",
+      "path": "/community/{garden}/space/{spaces.events}/event/{events.replay-player}",
+      "roles": ["member"],
+      "component": "Pages/Events/Show.tsx",
+      "note": "A replay of one of the two video hosts of lessons: the click-to-load player, which loads nothing before Play, then the notes.",
+      "steps": [
+        ["scroll", "#event-after-title"],
+        ["wait", 300]
+      ]
+    },
+    {
+      "area": "events",
+      "screen": "event-after",
+      "state": "link-notes",
+      "name": "Event page, after the event, plain link and notes",
+      "path": "/community/{garden}/space/{spaces.events}/event/{events.replay-link}",
+      "roles": ["visitor", "member", "owner"],
+      "component": "Pages/Events/Show.tsx",
+      "note": "Another address is a plain link that opens in a new tab. A visitor reads the notes and nothing about the replay; the owner gets \"Edit the replay and notes\".",
+      "steps": [
+        ["scroll", "#event-after-title"],
+        ["wait", 300]
+      ]
+    },
+    {
+      "area": "events",
+      "screen": "event-after",
+      "state": "replay-expected",
+      "name": "Event page, after the event, a replay that the host plans",
+      "path": "/community/{garden}/space/{spaces.events}/event/{events.replay-expected}",
+      "roles": ["member", "owner"],
+      "component": "Pages/Events/Show.tsx",
+      "note": "No link yet: a member reads that the host plans a replay; the owner gets \"Add the replay and notes\".",
+      "steps": [
+        ["scroll", "#event-after-title"],
+        ["wait", 300]
+      ]
+    },
+    {
+      "area": "events",
+      "screen": "event",
+      "state": "comments",
+      "name": "Event page, comments",
+      "path": "/community/{garden}/space/{spaces.events}/event/{events.comments}",
+      "roles": ["visitor", "member"],
+      "component": "Pages/Events/Show.tsx",
+      "note": "The comments come after the article, with their replies. A visitor of the public space reads them with the prompt to sign in.",
+      "steps": [
+        ["scroll", "role=heading[name=/comments$/]"],
+        ["wait", 300]
+      ]
+    },
+    {
+      "area": "events",
+      "screen": "form",
+      "state": "after-event",
+      "name": "Event form, after the event",
+      "path": "/community/{garden}/space/{spaces.events}/event/{events.replay-link}/edit",
+      "roles": ["owner"],
+      "component": "Pages/Events/Form.tsx",
+      "note": "The group \"After the event\" of a published event that ended: \"Replay link\" with the approved sentence about the agreement of the people in a recording, and \"Notes\".",
+      "steps": [
+        ["scroll", "#event-after"],
+        ["wait", 300]
+      ]
+    },
+    {
+      "area": "events",
+      "screen": "event",
+      "state": "cancel-first-dialog",
+      "name": "Delete, cancel it first",
+      "path": "/community/{garden}/space/{spaces.events}/event/{events.cancel-first}",
+      "roles": ["owner"],
+      "component": "Pages/Events/Show.tsx",
+      "note": "Members answered Yes: \"Delete\" asks to cancel the event first.",
+      "steps": [["click", "role=button[name=\"Event actions\"]"], ["click", "role=menuitem[name=\"Delete\"]"], ["waitDialog"]]
+    },
+    {
+      "area": "events",
       "screen": "form",
       "state": "new",
       "name": "New event, form",

@@ -81,6 +81,16 @@ class EventPolicy
     }
 
     /**
+     * Read the replay link of the event (#1516): a member of the community for whom `view` passes, whatever
+     * `location_visibility` says, so that a member who answered Replay only, No or nothing gets the replay of a `going`
+     * event too. Never a visitor, never a person who is not a member, also in a public space.
+     */
+    final public function viewReplay(?User $user, Event $event): bool
+    {
+        return $user !== null && $user->belongsToCommunity($event->community) && $this->view($user, $event);
+    }
+
+    /**
      * Answer an event, change the answer or clear it (#1515): a member of the community who can see the event, while it
      * is published and not over. The owner, the admins and the moderators answer like members. Never a person who is
      * not a member, also in a public space.

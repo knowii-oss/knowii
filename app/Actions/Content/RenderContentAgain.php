@@ -55,10 +55,10 @@ final class RenderContentAgain implements RendersContentAgain
                 static fn (Page $page, string $body): string => Markdown::render($body),
                 $dryRun,
             ),
-            // The descriptions of the events (#1513), without mentions like pages
+            // The descriptions of the events (#1513) and their notes (#1516), without mentions like pages
             'events' => $this->renderAll(
                 Event::query(),
-                [['body', 'body_html']],
+                [['body', 'body_html'], ['notes', 'notes_html']],
                 static fn (Event $event, string $body): string => $body === '' ? '' : Markdown::render($body),
                 $dryRun,
             ),

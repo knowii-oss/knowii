@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { eventAnswerValueSchema } from './event-answer.schema';
+import { pageVideoSchema } from './page.schema';
 import { authorSchema } from './post.schema';
 import { uploadSchema } from './upload.schema';
 
@@ -26,6 +27,11 @@ export type EventLocationVisibility = z.infer<typeof eventLocationVisibilitySche
  * The answers (#1515): `my_answer` is the answer of the reader and of nobody else, and `places_left` is the number of
  * places that are left when the event has a limit. `capacity`, the limit itself, is only for the people who read the
  * answers (the host, the owner and the admins). A visitor and a person who is not a member get null, false, null and null.
+ *
+ * After the event (#1516): `replay_url` and `replay` (the player of one of the two video hosts of lessons, else null) are
+ * for the members who can see the event (`can_view_replay`): a visitor and a person who is not a member get false, null
+ * and null, and nothing that says whether a replay exists. `notes` (Markdown) and `notes_html` are for every reader of the
+ * event, with the description: lists carry none.
  * WARNING: aligned with EventResource.php
  */
 export const eventSchema = z.object({
@@ -61,6 +67,14 @@ export const eventSchema = z.object({
   community: z.object({ cuid: z.string(), slug: z.string(), name: z.string() }).optional(),
   body: z.string().nullable(),
   body_html: z.string().nullable(),
+  // After the event (#1516): the server cuts the replay for a visitor and a person who is not a member
+  can_view_replay: z.boolean(),
+  replay_url: z.string().nullable(),
+  // The click-to-load player of a lesson, for a link of one of its two video hosts. Null: another address, or no replay
+  replay: pageVideoSchema.nullable(),
+  // With the description only. Empty: no notes
+  notes: z.string().nullable(),
+  notes_html: z.string().nullable(),
   created_at: z.coerce.date(),
   updated_at: z.coerce.date(),
 });
@@ -85,6 +99,9 @@ export interface EventPermissions {
   canComment: boolean;
   // Delete the comments of others and their replies: the people who moderate the space
   canModerate: boolean;
+  // A delete would be refused (#1516): the event is published, not over, and members answered Yes or Replay only. "Delete"
+  // offers to cancel it first
+  mustCancelBeforeDelete: boolean;
 }
 
 /**

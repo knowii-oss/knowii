@@ -1561,6 +1561,99 @@ describe('the form of the host of an event (#1514, design 4.2, 6.3 and 11.1)', {
     });
   });
 
+  describe('after the event (#1516, design 2.4)', () => {
+    const ended = (changes: Record<string, unknown> = {}) =>
+      eventFixture('e1', 'Weekly review', {
+        host: ME,
+        is_past: true,
+        starts_at: '2026-11-04T16:00:00.000000Z',
+        ends_at: '2026-11-04T17:00:00.000000Z',
+        ...changes,
+      });
+    const group = () => screen.queryByRole('group', { name: 'After the event' });
+
+    it('has the group "After the event" only on a published event that ended, after "A replay will exist" and before "Host"', () => {
+      for (const event of [
+        null,
+        eventFixture('e1', 'Weekly review', { host: ME }),
+        ended({ state: 'draft' }),
+        ended({ state: 'cancelled' }),
+      ]) {
+        const { unmount } = renderForm({ event });
+        expect(group()).toBeNull();
+        expect(screen.queryByLabelText('Replay link')).toBeNull();
+        unmount();
+      }
+
+      renderForm({ event: ended() });
+      const fieldset = group() as HTMLElement;
+      const replay = screen.getByRole('checkbox', { name: 'A replay will exist' });
+      const host = screen.getByRole('combobox', { name: 'Host' });
+      expect(replay.compareDocumentPosition(fieldset) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(fieldset.compareDocumentPosition(host) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(fieldset).toHaveAttribute('id', 'event-after');
+    });
+
+    it('describes "Replay link" with the approved sentence about the agreement, then who sees it, and "Notes" with who reads them', () => {
+      renderForm({ event: ended() });
+
+      const replay = screen.getByLabelText('Replay link');
+      expect(replay).toHaveAttribute('type', 'url');
+      expect(replay).toHaveAccessibleDescription(
+        'Before you add a recording, make sure the people in it agreed. Members who can see the event see it. Visitors do not.',
+      );
+      expect(screen.getByLabelText('Notes')).toHaveAccessibleDescription('Everyone who can read the event reads the notes.');
+    });
+
+    it('sends only the replay link and the notes that changed, and an empty field clears its value', async () => {
+      update.mockResolvedValue(saved({ is_past: true, replay_url: 'https://example.com/replay' }));
+      renderForm({ event: ended({ notes: 'The slides' }) });
+
+      fill('Replay link', ' https://example.com/replay ');
+      fill('Notes', '');
+      await userEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+
+      await waitFor(() => expect(update).toHaveBeenCalledWith('c1', 's1', 'e1', { replay_url: 'https://example.com/replay', notes: '' }));
+    });
+
+    it('shows a field error of the server under its field, and the focus stays on the button (axe)', async () => {
+      update.mockResolvedValue({
+        ok: false,
+        status: 400,
+        message: 'The given data was invalid.',
+        errors: {
+          replay_url: ['Add the replay once the event is published and over.'],
+          notes: ['Add the notes once the event is published and over.'],
+        },
+      });
+      const { container } = renderForm({ event: ended() });
+      fill('Replay link', 'https://example.com/replay');
+      fill('Notes', 'The slides');
+      const button = screen.getByRole('button', { name: 'Save changes' });
+
+      await userEvent.click(button);
+
+      const error = await screen.findByText('Add the replay once the event is published and over.');
+      expect(error).toHaveAttribute('role', 'alert');
+      expect(error).toHaveAttribute('id', 'event-replay-url-error');
+      expect(screen.getByText('Add the notes once the event is published and over.')).toHaveAttribute('id', 'event-notes-error');
+      expect(button).toHaveFocus();
+      expect(shared.visit).not.toHaveBeenCalled();
+      const results = await axe.run(container, { rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
+      expect(results.violations.map((violation) => violation.id)).toEqual([]);
+    });
+
+    it('refuses an address that is not http or https before it sends anything', async () => {
+      renderForm({ event: ended() });
+
+      fill('Replay link', NOT_AN_ADDRESS);
+      await userEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+
+      expect(await screen.findByText('Use an address that starts with http:// or https://')).toBeInTheDocument();
+      expect(update).not.toHaveBeenCalled();
+    });
+  });
+
   describe('accessibility (design 11.6)', () => {
     const rules = { 'color-contrast': { enabled: false }, region: { enabled: false } };
 

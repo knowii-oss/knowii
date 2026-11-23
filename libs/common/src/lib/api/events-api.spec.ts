@@ -27,6 +27,11 @@ const event = {
   space: { cuid: 's1', slug: 'office-hours', name: 'Office hours' },
   body: null,
   body_html: null,
+  can_view_replay: true,
+  replay_url: null,
+  replay: null,
+  notes: null,
+  notes_html: null,
   created_at: '2026-11-10T10:00:00.000000Z',
   updated_at: '2026-11-10T10:00:00.000000Z',
 };

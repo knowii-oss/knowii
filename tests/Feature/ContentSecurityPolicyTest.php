@@ -1,6 +1,13 @@
 <?php
 
+use App\Enums\KnowiiSpaceType;
+use App\Enums\KnowiiSpaceVisibility;
+use App\Models\Event as EventModel;
+use App\Models\Page;
+use App\Models\Space;
+use App\Models\SpaceGroup;
 use App\Support\ContentSecurityPolicySources;
+use App\Support\VideoEmbed;
 
 /**
  * The Content Security Policy never accepts a whole scheme (#1183): every origin is listed explicitly.
@@ -73,4 +80,24 @@ it('allows WebSockets to the Reverb host only', function () {
     if ($expectedReverb !== null) {
         expect($directives['connect-src'])->toContain($expectedReverb);
     }
+});
+
+it('sends on the page of an event with a replay the same frame-src as on a lesson, with the two player hosts only (#1516)', function () {
+    $c = communityWithMembers();
+    $group = SpaceGroup::factory()->create(['community_id' => $c['community']->id]);
+    $events = Space::factory()->inGroup($group)->create(['type' => KnowiiSpaceType::Events, 'visibility' => KnowiiSpaceVisibility::Members]);
+    $course = Space::factory()->inGroup($group)->create(['type' => KnowiiSpaceType::Course, 'visibility' => KnowiiSpaceVisibility::Members]);
+    $event = EventModel::factory()->inSpace($events)->hostedBy($c['member'])->past()->create(['replay_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ']);
+    $lesson = Page::factory()->inSpace($course)->create(['author_id' => $c['owner']->id, 'video_url' => 'https://vimeo.com/76979871', 'position' => 1]);
+    $this->actingAs($c['member']);
+    $slugs = ['communitySlug' => $c['community']->slug];
+
+    $eventPage = $this->get(route('events.show', [...$slugs, 'spaceSlug' => $events->slug, 'eventSlug' => $event->slug]))->assertOk();
+    $lessonPage = $this->get(route('pages.show', [...$slugs, 'spaceSlug' => $course->slug, 'pageSlug' => $lesson->slug]))->assertOk();
+    $frames = fn ($response) => cspDirectives((string) $response->headers->get('Content-Security-Policy'))['frame-src'] ?? [];
+
+    expect($frames($eventPage))->toBe($frames($lessonPage))
+        ->and($frames($eventPage))->toContain(...VideoEmbed::PLAYER_HOSTS)
+        ->and(array_diff($frames($eventPage), $frames($this->get('/'))))->toBe([])
+        ->and($frames($eventPage))->not->toContain('https://www.youtube.com', 'https://vimeo.com');
 });

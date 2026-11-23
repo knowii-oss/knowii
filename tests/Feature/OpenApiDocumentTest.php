@@ -212,6 +212,19 @@ test('the routes of the answers to events are documented, with the limit of plac
     }
 });
 
+test('the change of an event documents the replay link and the notes, and its delete the refusal "cancel it first" (#1516)', function () {
+    $paths = openApiDocument()['paths'];
+    $event = '/v1/communities/{community}/spaces/{space}/events/{event}';
+    $update = $paths[$event]['patch']['requestBody']['content']['application/json']['schema']['properties'] ?? [];
+    $create = $paths['/v1/communities/{community}/spaces/{space}/events']['post']['requestBody']['content']['application/json']['schema']['properties'] ?? [];
+
+    expect($update)->toHaveKeys(['replay_url', 'notes'])
+        ->and($update['replay_url']['description'] ?? '')->toContain('never a visitor')
+        ->and($create)->not->toHaveKey('replay_url')
+        ->and($create)->not->toHaveKey('notes')
+        ->and(array_keys($paths[$event]['delete']['responses'] ?? []))->toContain(204, 422);
+});
+
 test('the routes of the comments of an event are documented, with their body and no reaction on the event itself (#1516)', function () {
     $paths = openApiDocument()['paths'];
     $event = '/v1/communities/{community}/spaces/{space}/events/{event}';
