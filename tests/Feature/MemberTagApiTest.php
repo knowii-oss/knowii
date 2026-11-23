@@ -209,6 +209,8 @@ test('a tag of the managers answers to another reader as a cuid that does not ex
         'delete' => fn (string $cuid) => test()->deleteJson(mtagPath($this->community, $cuid, ApiRoutes::COMMUNITY_MEMBER_TAG)),
     ];
     $readers = ['a member' => $this->reader, 'a moderator without the right' => $this->c['moderator'], 'the tagged member' => $this->c['member'], 'an outsider' => $this->c['outsider']];
+    // A token without the abilities gets the 403 of the ability before the tag is read (ADR 0022), for both cuids
+    $status = $way === 'token without the abilities' ? 403 : 404;
 
     foreach ($readers as $who => $reader) {
         foreach ($routes as $name => $route) {
@@ -218,8 +220,8 @@ test('a tag of the managers answers to another reader as a cuid that does not ex
             mtagThrough($reader, $way);
             /** @var TestResponse $missing */
             $missing = $route('qxnosuchtagq7x2qxnosucht');
-            expect($secret->status())->toBe(404, "{$who}, {$name}: the status of the tag of the managers")
-                ->and($missing->status())->toBe(404, "{$who}, {$name}: the status of a missing cuid")
+            expect($secret->status())->toBe($status, "{$who}, {$name}: the status of the tag of the managers")
+                ->and($missing->status())->toBe($status, "{$who}, {$name}: the status of a missing cuid")
                 ->and($secret->getContent())->toBe($missing->getContent(), "{$who}, {$name}: the bodies differ");
         }
     }

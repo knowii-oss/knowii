@@ -1,11 +1,16 @@
 <?php
 
 use App\ApiRoutes;
+use App\Contracts\Comments\CreatesComments;
 use App\Enums\KnowiiSpaceType;
+use App\Enums\KnowiiSpaceVisibility;
+use App\Models\AccessGroup;
+use App\Models\Event as EventModel;
 use App\Models\Space;
 use App\Models\SpaceGroup;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Route as RouteFacade;
+use Illuminate\Testing\TestResponse;
 use Laravel\Sanctum\Sanctum;
 
 beforeEach(function () {
@@ -112,4 +117,95 @@ test('the API routes that a visitor may call are these, all of them GET, limited
         // The comments of an event (#1516)
         'api/v1/communities/{community}/spaces/{space}/events/{event}/comments',
     ]);
+});
+
+// ---------------------------------------------------------------------------------------------------------------------
+// The abilities come before the item of the route
+// ---------------------------------------------------------------------------------------------------------------------
+
+/**
+ * Items of the routes with a scoped binding and an ability that the member cannot see: an event of a "groups" space
+ * without the access group, a draft of another host, and a comment of that event. Each case has its address and the
+ * address of an identifier that does not exist
+ *
+ * @return array<string, array{method: string, item: string, missing: string, body: array<string, string>}>
+ */
+function tabHiddenItems(): array
+{
+    $test = test();
+    $c = $test->c;
+    $group = SpaceGroup::factory()->create(['community_id' => $c['community']->id]);
+    $groups = Space::factory()->inGroup($group)->create(['type' => KnowiiSpaceType::Events, 'visibility' => KnowiiSpaceVisibility::Groups]);
+    $groups->accessGroups()->attach(AccessGroup::query()->create(['community_id' => $c['community']->id, 'name' => 'Buyers']));
+    $public = Space::factory()->inGroup($group)->create(['type' => KnowiiSpaceType::Events, 'visibility' => KnowiiSpaceVisibility::Public]);
+    $forBuyers = EventModel::factory()->inSpace($groups)->hostedBy($c['owner'])->create(['title' => 'For the buyers']);
+    $draft = EventModel::factory()->inSpace($public)->hostedBy($c['moderator'])->draft()->create(['title' => 'A draft']);
+    $comment = app(CreatesComments::class)->create($c['owner'], $forBuyers, ['body' => 'For the buyers only']);
+    $event = static fn (Space $space, string $cuid): string => ApiRoutes::path(ApiRoutes::COMMUNITY_SPACE_EVENT, [
+        ApiRoutes::PARAM_COMMUNITY => $c['community']->cuid, ApiRoutes::PARAM_SPACE => $space->cuid, ApiRoutes::PARAM_EVENT => $cuid,
+    ]);
+    $ofComment = static fn (string $route, string $cuid): string => ApiRoutes::path($route, [
+        ApiRoutes::PARAM_COMMUNITY => $c['community']->cuid, ApiRoutes::PARAM_SPACE => $groups->cuid, ApiRoutes::PARAM_EVENT => $forBuyers->cuid, ApiRoutes::PARAM_COMMENT => $cuid,
+    ]);
+
+    return [
+        'an event of a groups space' => ['method' => 'GET', 'item' => $event($groups, $forBuyers->cuid), 'missing' => $event($groups, 'nothing-here'), 'body' => []],
+        'a draft of another host' => ['method' => 'GET', 'item' => $event($public, $draft->cuid), 'missing' => $event($public, 'nothing-here'), 'body' => []],
+        'the reactions of a comment of an event' => ['method' => 'GET', 'item' => $ofComment(ApiRoutes::COMMUNITY_SPACE_EVENT_COMMENT_REACTIONS, $comment->cuid), 'missing' => $ofComment(ApiRoutes::COMMUNITY_SPACE_EVENT_COMMENT_REACTIONS, 'nothing-here'), 'body' => []],
+        'the change of a comment of an event' => ['method' => 'PATCH', 'item' => $ofComment(ApiRoutes::COMMUNITY_SPACE_EVENT_COMMENT, $comment->cuid), 'missing' => $ofComment(ApiRoutes::COMMUNITY_SPACE_EVENT_COMMENT, 'nothing-here'), 'body' => ['body' => 'Changed']],
+    ];
+}
+
+/**
+ * One request of the member with a new personal access token that has these abilities
+ *
+ * @param  list<string>  $abilities
+ * @param  array<string, string>  $body
+ */
+function tabWithToken(array $abilities, string $method, string $url, array $body): TestResponse
+{
+    $test = test();
+    $token = $test->c['member']->createToken('script', $abilities)->plainTextToken;
+    app('auth')->forgetGuards();
+
+    return $test->withToken($token)->json($method, $url, $body);
+}
+
+test('a token without the ability gets the same answer for an item that its owner cannot see and for an identifier that does not exist (ADR 0022)', function () {
+    foreach (tabHiddenItems() as $name => $case) {
+        $ofItem = tabWithToken(['posts:read'], $case['method'], $case['item'], $case['body']);
+        $ofMissing = tabWithToken(['posts:read'], $case['method'], $case['missing'], $case['body']);
+
+        expect($ofItem->getStatusCode())->toBe(403, $name)
+            ->and($ofMissing->getStatusCode())->toBe(403, $name)
+            ->and($ofItem->getContent())->toBe($ofMissing->getContent(), $name);
+    }
+});
+
+test('a token with the ability keeps the 404 of an item that its owner cannot see and of an identifier that does not exist (ADR 0022)', function () {
+    foreach (tabHiddenItems() as $name => $case) {
+        $ofItem = tabWithToken(['events:read', 'events:write'], $case['method'], $case['item'], $case['body']);
+        $ofMissing = tabWithToken(['events:read', 'events:write'], $case['method'], $case['missing'], $case['body']);
+
+        expect($ofItem->getStatusCode())->toBe(404, $name)
+            ->and($ofMissing->getStatusCode())->toBe(404, $name)
+            ->and($ofItem->getContent())->toBe($ofMissing->getContent(), $name);
+    }
+});
+
+test('an account whose address is not verified gets the same answer with a session for an item that it cannot see and for an identifier that does not exist', function () {
+    $cases = tabHiddenItems();
+    $this->c['member']->forceFill(['email_verified_at' => null])->save();
+
+    foreach ($cases as $name => $case) {
+        $answers = [];
+        foreach (['item', 'missing'] as $which) {
+            app('auth')->forgetGuards();
+            $answers[$which] = $this->actingAs($this->c['member']->fresh() ?? $this->c['member'])->json($case['method'], $case[$which], $case['body']);
+        }
+
+        expect($answers['item']->getStatusCode())->toBe($answers['missing']->getStatusCode(), $name)
+            ->and($answers['item']->getStatusCode())->toBe(403, $name)
+            ->and($answers['item']->getContent())->toBe($answers['missing']->getContent(), $name);
+    }
 });

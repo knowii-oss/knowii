@@ -7,6 +7,7 @@ use App\Http\Middleware\RefuseUnconfiguredInstance;
 use App\Mail\CommunityInvitation as CommunityInvitationMail;
 use App\Models\User;
 use App\Support\InstanceValues;
+use Bepsvpt\SecureHeaders\SecureHeadersMiddleware;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 use Illuminate\Log\Events\MessageLogged;
@@ -163,11 +164,14 @@ test('the refusal runs before every middleware of the application and of the fra
     $position = array_search(RefuseUnconfiguredInstance::class, $global, true);
 
     expect($position)->not->toBeFalse();
-    // Only a middleware that a package prepends after the application can stand before it; it must not be one of ours
-    foreach (array_slice($global, 0, (int) $position) as $before) {
-        expect($before)->not->toStartWith('App\\')->not->toStartWith('Illuminate\\');
+    // Only the security headers, which read only the configuration and are on the 503 too, and a middleware that a package
+    // prepends after the application can stand before it; it must not be one of ours
+    $before = array_slice($global, 0, (int) $position);
+    expect($before)->toContain(SecureHeadersMiddleware::class);
+    foreach ($before as $middleware) {
+        expect($middleware)->not->toStartWith('App\\')->not->toStartWith('Illuminate\\');
     }
-    expect((int) $position)->toBeLessThanOrEqual(1);
+    expect((int) $position)->toBeLessThanOrEqual(2);
 });
 
 test('in production, the refusal is not stored by a proxy, and the log gets the message once a minute', function () {
