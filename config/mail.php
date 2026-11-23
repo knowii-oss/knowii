@@ -149,14 +149,18 @@ return [
         'alert_to' => $list((string) env('MAIL_ALERT_TO', '')),
     ],
 
-    // The daily caps of the invitation mails (#1390, ADR 0061): every invitation mail (a single invitation, a row of an
-    // import, a send again) counts in both, over the last 24 hours. A whole number of at least 1, else 1000
+    // The daily caps of the invitation mails (#1390, #1713, ADR 0061): every invitation mail (a single invitation, a row
+    // of an import, a send again) counts in all three, over the last 24 hours. A whole number of at least 1, else 1000
     'invitations' => [
         // For one community
         'per_community_per_day' => env('MAIL_INVITATIONS_PER_COMMUNITY_PER_DAY', 1000),
 
         // For one account, over all its communities: the account of the manager who sends
         'per_account_per_day' => env('MAIL_INVITATIONS_PER_ACCOUNT_PER_DAY', 1000),
+
+        // For the whole instance, over all its communities and accounts. Below the daily quota of the mail provider, if
+        // it has one, so that the sign-in links keep room
+        'per_instance_per_day' => env('MAIL_INVITATIONS_PER_INSTANCE_PER_DAY', 1000),
     ],
 
 ];

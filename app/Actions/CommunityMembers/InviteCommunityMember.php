@@ -40,12 +40,14 @@ class InviteCommunityMember implements InvitesCommunityMembers
      * The order of the refusals: the email and the role (400), the role hierarchy (403), a personal community (422), a
      * member (400), the groups and the tags (InvitationGrants: 400 or 403), the role of the invitation that the new one
      * replaces (403), a hold of the mail budget (422, with its end), then the daily caps of the invitation mails of the
-     * community and of the account (422, with the time from when it works again: InvitationMailCaps). The mail goes out at
-     * once, never held (ADR 0054 point 1): a single invitation waits for the end of a hold of the mail budget.
+     * community, of the account and of the instance (422, with the time from when it works again: InvitationMailCaps).
+     * The mail goes out at once, never held (ADR 0054 point 1): a single invitation waits for the end of a hold of the
+     * mail budget.
      *
-     * The transaction takes the locks of the daily caps first (the community, then the account, as the confirm of an
-     * import), then reads and locks the invitations of the address: an import of the same address that confirms now ends
-     * before that read.
+     * The transaction takes the locks of the daily caps of the community and of the account first (the community, then
+     * the account, as the confirm of an import), then reads and locks the invitations of the address: an import of the
+     * same address that confirms now ends before that read. The lock of the instance comes last, after the hold, just
+     * before the counts (InvitationMailCaps::assertRoom()).
      *
      * @throws AuthorizationException
      * @throws BusinessException

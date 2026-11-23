@@ -38,9 +38,9 @@ class ResendInvitationImport implements ResendsInvitationImports
      *   days after the confirm.
      *
      * Who: a person who passes `addCommunityMember` and may give the role of every row of the set. The checks of the
-     * mail apply to the set (InvitationImportMailChecks, with the daily caps of the community and of this person). Then
-     * each row is `queued` again with a new `queued_at` and the next `queued_count`, counts in the daily caps, and gets
-     * one job: a job of an earlier time of the row that still runs changes nothing.
+     * mail apply to the set (InvitationImportMailChecks, with the daily caps of the community, of this person and of the
+     * instance). Then each row is `queued` again with a new `queued_at` and the next `queued_count`, counts in the daily
+     * caps, and gets one job: a job of an earlier time of the row that still runs changes nothing.
      *
      * @throws AuthorizationException
      * @throws BusinessException
@@ -60,8 +60,8 @@ class ResendInvitationImport implements ResendsInvitationImports
 
         /** @var array<int, int> $queued */
         $queued = DB::transaction(static function () use ($user, $community, $import, $notJoined): array {
-            // The import row, the community row, then the locks of the daily caps (the community, then the account), as the
-            // confirm: the counts of the checks below hold until the commit
+            // The import row, the community row, then the locks of the daily caps (the community, then the account; the
+            // instance in the checks of the mail), as the confirm: the counts of the checks below hold until the commit
             $locked = InvitationImport::query()->whereKey($import->id)->lockForUpdate()->firstOrFail();
             if ($locked->state === KnowiiInvitationImportState::Preview || $locked->confirmed_at === null) {
                 throw new BusinessException('This import is not sent yet');

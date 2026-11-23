@@ -51,9 +51,9 @@ class CommunityInvitationApiController extends Controller
      * the same address again replaces its invitation. The invitation can carry access groups (with the "manage the
      * members of access groups" right, and `groups:write` for a token) and member tags (with the "assign member tags"
      * right, and `member-tags:write` for a token): the person gets them when they accept it. A personal community
-     * invites nobody. An account and a community send at most a number of invitation mails a day (1000 by default):
-     * past a daily cap, 422 with the time from when it works again. While the instance holds its mail, an invitation is
-     * refused: 422 with the time from when it works again.
+     * invites nobody. An account, a community and the instance send at most a number of invitation mails a day (1000
+     * by default): past a daily cap, 422 with the time from when it works again. While the instance holds its mail, an
+     * invitation is refused: 422 with the time from when it works again.
      *
      * @throws AuthenticationException
      */

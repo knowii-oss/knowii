@@ -23,7 +23,8 @@ use Illuminate\Support\Facades\DB;
  *    from the provider; the use is the one that it read last, plus the mail sent since then (else `sent_count`), plus
  *    the rows of every import that wait on the queue (queued from InvitationImports::staleQueuedBefore(): an older
  *    queued row counts as not sent). Without a known quota, this check does nothing.
- * 3. The daily caps of the invitation mails of the community and of the account that sends (InvitationMailCaps).
+ * 3. The daily caps of the invitation mails of the community, of the account that sends and of the instance
+ *    (InvitationMailCaps), whose words show no number of the instance either.
  */
 final class InvitationImportMailChecks
 {

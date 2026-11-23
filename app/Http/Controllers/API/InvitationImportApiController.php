@@ -121,7 +121,8 @@ class InvitationImportApiController extends Controller
      * Send a preview: only the person who uploaded it. Every valid row is checked again; a row that changed since the
      * preview is refused with its reason. The import is refused as a whole (422), with nothing changed, when the instance
      * holds its mail, cannot send so many mails this month, or when the rows pass a daily cap of the invitation mails
-     * (of the community, or of the caller over all their communities). 202: the mails go out one by one.
+     * (of the community, of the caller over all their communities, or of the instance). 202: the mails go out one by
+     * one.
      *
      * @throws AuthenticationException
      */
