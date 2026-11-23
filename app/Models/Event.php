@@ -27,7 +27,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * host entered them. "Past" is derived from the end, never stored.
  *
  * Members answer it (#1515): Yes, Replay only or No, one row per member in `event_answers`. `capacity` limits the Yes
- * answers; `replay_expected` offers "Replay only".
+ * answers; `replay_expected` offers "Replay only". Members comment it (#1516), with the comments of posts and resources.
  *
  * Not to confuse with the broadcast events of `app/Events/`.
  *
@@ -63,6 +63,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read ?int $upload_usages_count
  * @property-read Collection<int, EventAnswer> $answers
  * @property-read ?int $answers_count
+ * @property-read Collection<int, Comment> $comments
+ * @property-read ?int $comments_count
  *
  * @method static \Database\Factories\EventFactory factory($count = null, $state = [])
  * @method static Builder<static> newModelQuery()
@@ -242,6 +244,16 @@ class Event extends Model
     final public function answers(): HasMany
     {
         return $this->hasMany(EventAnswer::class);
+    }
+
+    /**
+     * The comments on the event (#1516), oldest first, as the comments of a resource
+     *
+     * @return HasMany<Comment, covariant $this>
+     */
+    final public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class)->orderBy('created_at')->orderBy('id');
     }
 
     /**

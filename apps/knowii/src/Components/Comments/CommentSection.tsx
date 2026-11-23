@@ -10,7 +10,7 @@ import { ReactionBar } from '@/Components/Reactions/ReactionBar';
 import { SignInPrompt, useIsVisitor } from '@/Components/Reader/Reader';
 
 export interface CommentSectionProps {
-  // The post or the resource that the comments are about (#1034)
+  // The post, the resource (#1034) or the event (#1516) that the comments are about
   subject: CommentSubject;
   initialComments: Comment[];
   currentUserCuid: string | null;
@@ -98,6 +98,18 @@ function threadOf(comments: Comment[], cuid: string): string | null {
   return comments.find((comment) => comment.cuid === cuid || comment.replies?.some((reply) => reply.cuid === cuid))?.cuid ?? null;
 }
 
+/**
+ * The cuid of the post, the resource or the event of the comments
+ */
+const commentSubjectCuid = (subject: CommentSubject): string =>
+  'postCuid' in subject ? subject.postCuid : 'resourceCuid' in subject ? subject.resourceCuid : subject.eventCuid;
+
+/**
+ * The cuid of the item of the same kind in a live update: the comments of an event listen to `event_cuid` (#1516)
+ */
+const payloadSubjectCuid = (subject: CommentSubject, data: SpaceContentPayload): string | null | undefined =>
+  'postCuid' in subject ? data.post_cuid : 'resourceCuid' in subject ? data.resource_cuid : data.event_cuid;
+
 const collapsedStorageKey = (subjectCuid: string) => `knowii:collapsed-comments:${subjectCuid}`;
 
 function readCollapsed(subjectCuid: string): string[] {
@@ -126,7 +138,7 @@ function showComment(cuid: string) {
 }
 
 /**
- * Comments of a post or a resource, oldest first, with one level of replies. Authors edit their comments; authors and moderators
+ * Comments of a post, a resource or an event, oldest first, with one level of replies. Authors edit their comments; authors and moderators
  * delete them. A comment with replies of other people stays as a marker; a moderator can delete the replies too (#1565).
  */
 export function CommentSection(props: CommentSectionProps) {
@@ -161,7 +173,7 @@ export function CommentSection(props: CommentSectionProps) {
     () => ({ type: 'space' as const, communityCuid: subject.communityCuid, spaceCuid: subject.spaceCuid }),
     [subject.communityCuid, subject.spaceCuid],
   );
-  const subjectCuid = 'postCuid' in subject ? subject.postCuid : subject.resourceCuid;
+  const subjectCuid = commentSubjectCuid(subject);
 
   // Collapsed threads (#1205), kept per post or resource in the browser. A link to a comment opens its thread.
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(() => {
@@ -238,7 +250,7 @@ export function CommentSection(props: CommentSectionProps) {
     event: ['space.comment.created', 'space.comment.updated', 'space.comment.deleted', 'space.reactions.changed'],
     callback: (event, payload) => {
       const data = payload as SpaceContentPayload;
-      const aboutThisSubject = ('postCuid' in subject ? data.post_cuid : data.resource_cuid) === subjectCuid;
+      const aboutThisSubject = payloadSubjectCuid(subject, data) === subjectCuid;
       if (!aboutThisSubject || (event === 'space.reactions.changed' && !data.comment_cuid)) {
         return;
       }

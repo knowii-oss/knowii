@@ -3,6 +3,7 @@
 namespace App\Actions\Events;
 
 use App\Contracts\Events\UpdatesEvents;
+use App\Contracts\Notifications\PrunesNotifications;
 use App\Enums\KnowiiEventLocationVisibility;
 use App\Events\Spaces\SpaceContentChanged;
 use App\Models\Event;
@@ -40,6 +41,7 @@ class UpdateEvent implements UpdatesEvents
         }
 
         $community = $event->community;
+        $formerHostId = $event->host_id;
         $changes = [];
         if (isset($validated['title'])) {
             $changes['title'] = trim($validated['title']);
@@ -99,6 +101,10 @@ class UpdateEvent implements UpdatesEvents
         Log::info('Event updated', ['event' => $event->cuid, 'fields' => array_keys($validated)]);
         // A draft sends nothing on the space channel
         EventPublication::broadcast(SpaceContentChanged::EVENT_UPDATED, $event, $user);
+        // Another host (#1516): the rows "commented on your event" of the former host go; the new host gets the next ones
+        if ($formerHostId !== null && $formerHostId !== $event->host_id) {
+            app(PrunesNotifications::class)->forFormerHost($event, $formerHostId);
+        }
 
         return $event;
     }

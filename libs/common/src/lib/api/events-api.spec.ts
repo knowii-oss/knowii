@@ -346,3 +346,64 @@ describe('the calls of events (#1514, ADR 0053)', () => {
     expect(refused.ok).toBe(false);
   });
 });
+
+describe('the calls of the comments of an event (#1516)', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  const subject = { communityCuid: 'c1', spaceCuid: 's1', eventCuid: 'e1' };
+  const comment = {
+    cuid: 'k1',
+    body: 'See you there',
+    body_html: '<p>See you there</p>',
+    parent_cuid: null,
+    deleted: false,
+    author: { cuid: 'u1', name: 'Ada', username: 'ada', avatar_url: null },
+    reactions: [],
+    replies: [],
+    edited_at: null,
+    created_at: '2026-11-10T10:00:00.000000Z',
+    updated_at: '2026-11-10T10:00:00.000000Z',
+  };
+
+  it('uses the six addresses of the comments of an event, never a reaction on the event itself', async () => {
+    const base = '/api/v1/communities/c1/spaces/s1/events/e1/comments';
+    const calls: [string, string][] = [];
+    const run = async (body: unknown, call: () => Promise<unknown>, status = 200) => {
+      const fetchMock = answer(body, status);
+      await call();
+      calls.push([callOf(fetchMock).options.method, callOf(fetchMock).url]);
+    };
+
+    await run({ data: [comment] }, () => knowiiApiClient.communities.comments.list(subject));
+    await run(
+      { data: comment },
+      () => knowiiApiClient.communities.comments.create(subject, { body: 'See you there', parent_cuid: null }),
+      201,
+    );
+    await run({ data: comment }, () => knowiiApiClient.communities.comments.update(subject, 'k1', { body: 'Changed' }));
+    await run(null, () => knowiiApiClient.communities.comments.delete(subject, 'k1'), 204);
+    await run({ data: [] }, () => knowiiApiClient.communities.reactions.toggle({ ...subject, commentCuid: 'k1' }, '👍'));
+    await run({ data: [] }, () => knowiiApiClient.communities.reactions.whoReacted({ ...subject, commentCuid: 'k1' }));
+
+    expect(calls).toEqual([
+      ['GET', base],
+      ['POST', base],
+      ['PATCH', `${base}/k1`],
+      ['DELETE', `${base}/k1`],
+      ['POST', `${base}/k1/reactions`],
+      ['GET', `${base}/k1/reactions`],
+    ]);
+  });
+
+  it('keeps the addresses of the comments of a post and of a resource', async () => {
+    let fetchMock = answer({ data: [] });
+    await knowiiApiClient.communities.comments.list({ communityCuid: 'c1', spaceCuid: 's1', postCuid: 'p1' });
+    expect(callOf(fetchMock).url).toBe('/api/v1/communities/c1/spaces/s1/posts/p1/comments');
+
+    fetchMock = answer({ data: [] });
+    await knowiiApiClient.communities.comments.list({ communityCuid: 'c1', spaceCuid: 's1', resourceCuid: 'r1' });
+    expect(callOf(fetchMock).url).toBe('/api/v1/communities/c1/spaces/s1/resources/r1/comments');
+  });
+});

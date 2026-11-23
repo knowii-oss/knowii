@@ -1,0 +1,24 @@
+meta {
+  name: Event Comments - Update
+  type: http
+  seq: 231
+}
+
+patch {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of an events space>/events/<cuid of an event>/comments/<comment cuid>
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  { "body": "Edited comment" }
+}
+
+docs {
+  Edits a comment of an event. Only its author edits it, while a member who can read the space (editing or deleting a comment needs the access to its space). 404 for an event that you may not see. Ability events:write.
+}

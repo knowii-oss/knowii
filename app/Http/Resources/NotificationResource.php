@@ -69,9 +69,11 @@ class NotificationResource extends AbstractKnowiiJsonResource
     public static function titleOf(Notification $notification): ?string
     {
         $post = $notification->post ?? $notification->comment?->post;
+        // A new event, or a comment on an event (#1516)
+        $event = $notification->event ?? $notification->comment?->event;
 
-        if ($notification->event !== null) {
-            return $notification->event->title;
+        if ($event !== null) {
+            return $event->title;
         }
 
         return $notification->page->title ?? ($post === null || $post->isDeleted() ? null : $post->title);
@@ -111,9 +113,9 @@ class NotificationResource extends AbstractKnowiiJsonResource
             'resource_slug' => $comment?->communityResource?->slug,
             // A new lesson of a course (#1475): the lesson is addressed by its slug
             'page_slug' => $notification->page?->slug,
-            // A new event (#1513): its space opens it in this slice; the event page comes with the screens
-            'event_cuid' => $notification->event?->cuid,
-            'event_slug' => $notification->event?->slug,
+            // A new event (#1513), or the event of a comment (#1516): the event page opens it, at the comment
+            'event_cuid' => ($notification->event ?? $comment?->event)?->cuid,
+            'event_slug' => ($notification->event ?? $comment?->event)?->slug,
         ];
     }
 

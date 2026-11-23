@@ -17,8 +17,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * A comment on a post (#1175) or on a resource of a resources space (#1034): exactly one of post_id and
- * community_resource_id is set (ADR 0014). A reply has a parent (a top-level comment): one level of nesting only.
+ * A comment on a post (#1175), on a resource of a resources space (#1034) or on an event of an events space (#1516):
+ * exactly one of post_id, community_resource_id and event_id is set (ADR 0014). A reply has a parent (a top-level
+ * comment): one level of nesting only.
  * A comment that is deleted while it still has replies of other people (by its author, or with the account of its
  * author) stays as a marker (#1344, #1565, ADR 0043, ADR 0050): no text, no author, `deleted_at` set (`LeavesMarkers`).
  *
@@ -27,6 +28,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $community_id
  * @property ?int $post_id
  * @property ?int $community_resource_id
+ * @property ?int $event_id
  * @property ?int $author_id
  * @property ?int $parent_id
  * @property string $body
@@ -38,6 +40,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Community $community
  * @property-read ?Post $post
  * @property-read ?CommunityResource $communityResource
+ * @property-read ?Event $event
  * @property-read ?User $author
  * @property-read ?Comment $parent
  * @property-read Collection<int, Comment> $replies
@@ -58,6 +61,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Comment whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Comment whereCuid($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Comment whereEditedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Comment whereEventId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Comment whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Comment whereParentId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Comment wherePostId($value)
@@ -87,6 +91,7 @@ class Comment extends Model
         'community_id',
         'post_id',
         'community_resource_id',
+        'event_id',
         'author_id',
         'parent_id',
         'body',
@@ -103,6 +108,7 @@ class Comment extends Model
         'community_id',
         'post_id',
         'community_resource_id',
+        'event_id',
         'author_id',
         'parent_id',
     ];
@@ -151,12 +157,20 @@ class Comment extends Model
     }
 
     /**
-     * The item the comment is about: a post or a resource.
+     * @return BelongsTo<Event, covariant $this>
      */
-    final public function subject(): Post|CommunityResource
+    final public function event(): BelongsTo
     {
-        /** @var Post|CommunityResource */
-        return $this->post ?? $this->communityResource;
+        return $this->belongsTo(Event::class);
+    }
+
+    /**
+     * The item the comment is about: a post, a resource or an event (#1516).
+     */
+    final public function subject(): Post|CommunityResource|Event
+    {
+        /** @var Post|CommunityResource|Event */
+        return $this->post ?? $this->communityResource ?? $this->event;
     }
 
     /**

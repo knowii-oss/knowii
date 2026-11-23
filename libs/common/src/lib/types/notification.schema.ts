@@ -18,6 +18,8 @@ export const notificationKindSchema = z.enum([
   'lesson_new',
   // A new event in an events space (#1513)
   'event_new',
+  // A first-level comment on an event that the member hosts (#1516)
+  'event_comment',
 ]);
 export type NotificationKind = z.infer<typeof notificationKindSchema>;
 
@@ -31,6 +33,8 @@ export const notificationReasonSchema = z.enum([
   'follows_thread',
   'space_everything',
   'started_course',
+  // The member hosts the event (#1516)
+  'hosts_event',
 ]);
 export type NotificationReason = z.infer<typeof notificationReasonSchema>;
 
@@ -51,7 +55,7 @@ export const notificationTargetSchema = z.object({
   resource_slug: z.string().nullable(),
   // A new lesson of a course
   page_slug: z.string().nullable(),
-  // A new event (#1513): the line opens the space of the event in this slice
+  // A new event (#1513), or the event of a comment (#1516, then with `comment_cuid`): the line opens the event page
   event_cuid: z.string().nullable(),
   event_slug: z.string().nullable(),
 });
@@ -148,7 +152,7 @@ export const FOLLOWING_KINDS: readonly NotificationKind[] = [
 /**
  * One sentence from the kind, the authors and the live counts (#1484, #1497, design 2.5):
  *
- * 1. "Anna replied to your post", "Marc mentioned you in Open discussion"
+ * 1. "Anna replied to your post", "Marc mentioned you in Open discussion", "Anna commented on your event" (#1516)
  * 2. "3 new replies in <title>", "Ben posted in <space>: <title>", "4 new posts in <space>", "New messages in <space>",
  *    "Lesson <title> of <course> is out"
  * 3. "Tue 18 Nov, 17:00 Central European Standard Time: <title>" for a new event (#1513), in the zone of the account (else
@@ -162,6 +166,9 @@ export function notificationSentence(notification: Notification, zone?: string |
   switch (notification.kind) {
     case 'post_comment':
       return `${who} replied to your post`;
+    case 'event_comment':
+      // [W] #1516
+      return `${who} commented on your event`;
     case 'comment_reply':
       return `${who} replied to your comment`;
     case 'mention':
@@ -236,6 +243,9 @@ export function notificationReasonSentence(notification: Pick<Notification, 'rea
       return `Your level for ${space ?? 'this space'} is Everything, so you get every new item.`;
     case 'started_course':
       return `You started ${space ?? 'this course'}, so you are told about its new lessons.`;
+    case 'hosts_event':
+      // [W] #1516
+      return 'You host this event, and someone commented on it.';
   }
 }
 

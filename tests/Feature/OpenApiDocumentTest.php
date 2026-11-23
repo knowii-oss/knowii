@@ -171,6 +171,7 @@ test('the deletes of a comment and of a post document their option and both answ
     foreach ([
         $post.'/comments/{comment}' => 'delete_replies',
         '/v1/communities/{community}/spaces/{space}/resources/{resource}/comments/{comment}' => 'delete_replies',
+        '/v1/communities/{community}/spaces/{space}/events/{event}/comments/{comment}' => 'delete_replies',
         $post => 'delete_comments',
     ] as $path => $option) {
         $operation = $paths[$path]['delete'] ?? [];
@@ -209,6 +210,26 @@ test('the routes of the answers to events are documented, with the limit of plac
         expect($properties)->toHaveKeys(['capacity', 'replay_expected', 'location_visibility'])
             ->and($properties['location_visibility']['description'] ?? '')->toContain('the members who answer Yes');
     }
+});
+
+test('the routes of the comments of an event are documented, with their body and no reaction on the event itself (#1516)', function () {
+    $paths = openApiDocument()['paths'];
+    $event = '/v1/communities/{community}/spaces/{space}/events/{event}';
+    $comments = $paths[$event.'/comments'] ?? [];
+    $comment = $paths[$event.'/comments/{comment}'] ?? [];
+    $reactions = $paths[$event.'/comments/{comment}/reactions'] ?? [];
+    $body = $comments['post']['requestBody']['content']['application/json']['schema'] ?? [];
+
+    expect($comments)->toHaveKeys(['get', 'post'])
+        ->and($body['required'] ?? [])->toBe(['body'])
+        ->and(array_keys($body['properties'] ?? []))->toContain('body', 'parent_cuid')
+        ->and($body['properties']['body']['description'] ?? '')->toContain('anyone on the internet can read it')
+        ->and(array_keys($comments['post']['responses'] ?? []))->toContain(201)
+        ->and($comment)->toHaveKeys(['patch', 'delete'])
+        ->and($comment['patch']['requestBody']['content']['application/json']['schema']['required'] ?? [])->toBe(['body'])
+        ->and($reactions)->toHaveKeys(['get', 'post'])
+        ->and($reactions['post']['requestBody']['content']['application/json']['schema']['required'] ?? [])->toBe(['emoji'])
+        ->and($paths)->not->toHaveKey($event.'/reactions');
 });
 
 test('the calendar file of an event and "My events" are documented, the file as text/calendar with its refusals (#1515)', function () {

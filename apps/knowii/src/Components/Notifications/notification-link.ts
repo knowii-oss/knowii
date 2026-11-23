@@ -27,6 +27,7 @@ export const THREAD_QUERY_PARAM = 'thread';
  * 3. a chat message: the chat space with `#message-{cuid}`, and `?thread={parent}` when the message is a reply
  * 4. a mention in a post: the post page
  * 5. a new event: the page of the event (#1514), or the page of its space when the target has no slug of the event
+ * 6. a comment of an event (#1516): the event page with `#comment-{cuid}`
  *
  * Null when the notification has no space (it cannot be opened). A line of the "Catch up" card (#1476) has the same target.
  */
@@ -46,7 +47,8 @@ export function notificationHref(notification: Pick<Notification, 'community' | 
     return `${route(RESOURCE_URL, { ...base, resourceSlug: target.resource_slug })}${anchor}`;
   }
   if (target.event_slug) {
-    return route(EVENT_URL, { ...base, eventSlug: target.event_slug });
+    const anchor = target.comment_cuid ? `#${commentHash(target.comment_cuid)}` : '';
+    return `${route(EVENT_URL, { ...base, eventSlug: target.event_slug })}${anchor}`;
   }
   if (target.event_cuid) {
     return route(SPACE_URL, base);

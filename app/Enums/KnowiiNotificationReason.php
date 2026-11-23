@@ -20,4 +20,6 @@ enum KnowiiNotificationReason: string
     case SpaceEverything = 'space_everything';
     // You started the course
     case StartedCourse = 'started_course';
+    // You host the event (#1516)
+    case HostsEvent = 'hosts_event';
 }

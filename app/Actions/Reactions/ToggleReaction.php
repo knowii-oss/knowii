@@ -2,6 +2,7 @@
 
 namespace App\Actions\Reactions;
 
+use App\Actions\Events\EventComments;
 use App\Contracts\Reactions\TogglesReactions;
 use App\Events\Spaces\SpaceContentChanged;
 use App\Exceptions\BusinessException;
@@ -25,6 +26,10 @@ class ToggleReaction implements TogglesReactions
      */
     final public function toggle(User $user, Post|Comment|ChatMessage $reactable, array $input): array
     {
+        // A comment of an event gives the answers of the other routes of the event first (#1516)
+        if ($reactable instanceof Comment && $reactable->event_id !== null && $reactable->event !== null) {
+            EventComments::assertAllowed($user, $reactable->event, false);
+        }
         Gate::forUser($user)->authorize('react', $reactable);
 
         /** @var array{emoji: string} $validated */

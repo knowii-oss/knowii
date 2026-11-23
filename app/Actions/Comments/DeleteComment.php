@@ -2,6 +2,7 @@
 
 namespace App\Actions\Comments;
 
+use App\Actions\Events\EventComments;
 use App\Contracts\Comments\DeletesComments;
 use App\Contracts\Content\LeavesMarkers;
 use App\Events\Spaces\SpaceContentChanged;
@@ -28,6 +29,10 @@ class DeleteComment implements DeletesComments
     {
         Log::info('Processing request to delete a comment', ['comment' => $comment->cuid, 'by' => $user->cuid]);
 
+        // A comment of an event gives the answers of the other routes of the event first (#1516)
+        if ($comment->event_id !== null && $comment->event !== null) {
+            EventComments::assertAllowed($user, $comment->event, false);
+        }
         $gate = Gate::forUser($user);
         if ($gate->none(['delete', 'deleteWithReplies'], $comment)) {
             throw new AuthorizationException;

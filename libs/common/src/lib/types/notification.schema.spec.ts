@@ -108,6 +108,26 @@ describe('notificationSentence (#1484)', () => {
     );
   });
 
+  it('writes the line of a comment on my event, with its reason, as a level 1 kind (#1516)', () => {
+    const parsed = notificationSchema.parse({
+      ...resource,
+      kind: 'event_comment',
+      reason: 'hosts_event',
+      title: 'Weekly review office hour',
+      target: { ...resource.target, post_slug: null, post_cuid: null, event_cuid: 'e1', event_slug: 'weekly-review' },
+    });
+
+    expect(notificationSentence(parsed)).toBe('Anna commented on your event');
+    expect(notificationSentence({ ...parsed, actors: [person('Anna'), person('Ben')], items_count: 2 })).toBe(
+      'Anna and Ben commented on your event',
+    );
+    expect(notificationReasonSentence({ reason: 'hosts_event', follow_reason: null, space: parsed.space })).toBe(
+      'You host this event, and someone commented on it.',
+    );
+    expect(notificationSentenceHasTitle(parsed)).toBe(false);
+    expect(FOLLOWING_KINDS).not.toContain('event_comment');
+  });
+
   it('uses the last author when the bundle has no list, and "Deleted member" without an author', () => {
     expect(notificationActorNames(notification({ actors: [], actor: person('Zoe') }))).toBe('Zoe');
     expect(notificationSentence(notification({ actors: [], actor: null }))).toBe('Deleted member replied to your post');

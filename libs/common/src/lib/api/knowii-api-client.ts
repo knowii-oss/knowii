@@ -30,6 +30,8 @@ import {
   COMMUNITY_SPACE_RESOURCE_CAPTURE_API_PATH,
   COMMUNITY_SPACE_RESOURCE_COMMENT_API_PATH,
   COMMUNITY_SPACE_RESOURCE_COMMENTS_API_PATH,
+  COMMUNITY_SPACE_EVENT_COMMENTS_API_PATH,
+  COMMUNITY_SPACE_EVENT_COMMENT_API_PATH,
   COMMUNITY_SPACE_RESOURCES_API_PATH,
   COMMUNITY_MEMBERS_API_PATH,
   COMMUNITY_MEMBER_API_PATH,
@@ -218,17 +220,22 @@ import { reactionEmojiSchema, reactionSummarySchema, whoReactedSchema } from '..
 const avatarResponseSchema = z.object({ avatar_url: z.string().nullable() });
 
 /**
- * The item that comments are about: a post (#1175) or a resource of a resources space (#1034)
+ * The item that comments are about: a post (#1175), a resource of a resources space (#1034) or an event of an events space
+ * (#1516)
  */
 export type CommentSubject =
-  { communityCuid: string; spaceCuid: string; postCuid: string } | { communityCuid: string; spaceCuid: string; resourceCuid: string };
+  | { communityCuid: string; spaceCuid: string; postCuid: string }
+  | { communityCuid: string; spaceCuid: string; resourceCuid: string }
+  | { communityCuid: string; spaceCuid: string; eventCuid: string };
 
 /**
- * The item a reaction targets: a post, a comment of a post, or a comment of a resource
+ * The item a reaction targets: a post, a comment of a post, a comment of a resource, or a comment of an event (never the
+ * event itself, #1516)
  */
 export type ReactionTarget =
   | { communityCuid: string; spaceCuid: string; postCuid: string; commentCuid?: string | undefined }
   | { communityCuid: string; spaceCuid: string; resourceCuid: string; commentCuid: string }
+  | { communityCuid: string; spaceCuid: string; eventCuid: string; commentCuid: string }
   // A chat message (#1185)
   | { communityCuid: string; spaceCuid: string; messageCuid: string; commentCuid?: undefined }
   // A direct message (#1186)
@@ -333,19 +340,26 @@ const reactionsPath = (target: ReactionTarget) =>
         ? `${commentsPath(target, target.commentCuid)}/reactions`
         : `${postsPath(target.communityCuid, target.spaceCuid, 'postCuid' in target ? target.postCuid : '', COMMUNITY_SPACE_POST_API_PATH)}/reactions`;
 const commentsPath = (subject: CommentSubject, commentCuid?: string) =>
-  'resourceCuid' in subject
-    ? apiPath(commentCuid ? COMMUNITY_SPACE_RESOURCE_COMMENT_API_PATH : COMMUNITY_SPACE_RESOURCE_COMMENTS_API_PATH, {
+  'eventCuid' in subject
+    ? apiPath(commentCuid ? COMMUNITY_SPACE_EVENT_COMMENT_API_PATH : COMMUNITY_SPACE_EVENT_COMMENTS_API_PATH, {
         [SPACE_API_PARAM_COMMUNITY]: subject.communityCuid,
         [SPACE_API_PARAM_SPACE]: subject.spaceCuid,
-        [SPACE_API_PARAM_RESOURCE]: subject.resourceCuid,
+        [SPACE_API_PARAM_EVENT]: subject.eventCuid,
         [SPACE_API_PARAM_COMMENT]: commentCuid ?? '',
       })
-    : apiPath(commentCuid ? COMMUNITY_SPACE_POST_COMMENT_API_PATH : COMMUNITY_SPACE_POST_COMMENTS_API_PATH, {
-        [SPACE_API_PARAM_COMMUNITY]: subject.communityCuid,
-        [SPACE_API_PARAM_SPACE]: subject.spaceCuid,
-        [SPACE_API_PARAM_POST]: subject.postCuid,
-        [SPACE_API_PARAM_COMMENT]: commentCuid ?? '',
-      });
+    : 'resourceCuid' in subject
+      ? apiPath(commentCuid ? COMMUNITY_SPACE_RESOURCE_COMMENT_API_PATH : COMMUNITY_SPACE_RESOURCE_COMMENTS_API_PATH, {
+          [SPACE_API_PARAM_COMMUNITY]: subject.communityCuid,
+          [SPACE_API_PARAM_SPACE]: subject.spaceCuid,
+          [SPACE_API_PARAM_RESOURCE]: subject.resourceCuid,
+          [SPACE_API_PARAM_COMMENT]: commentCuid ?? '',
+        })
+      : apiPath(commentCuid ? COMMUNITY_SPACE_POST_COMMENT_API_PATH : COMMUNITY_SPACE_POST_COMMENTS_API_PATH, {
+          [SPACE_API_PARAM_COMMUNITY]: subject.communityCuid,
+          [SPACE_API_PARAM_SPACE]: subject.spaceCuid,
+          [SPACE_API_PARAM_POST]: subject.postCuid,
+          [SPACE_API_PARAM_COMMENT]: commentCuid ?? '',
+        });
 const resourcesPath = (communityCuid: string, spaceCuid: string) =>
   apiPath(COMMUNITY_SPACE_RESOURCES_API_PATH, { [SPACE_API_PARAM_COMMUNITY]: communityCuid, [SPACE_API_PARAM_SPACE]: spaceCuid });
 const htmlSchema = z.object({ html: z.string() });

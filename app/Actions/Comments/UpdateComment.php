@@ -2,6 +2,7 @@
 
 namespace App\Actions\Comments;
 
+use App\Actions\Events\EventComments;
 use App\Constants;
 use App\Contracts\Comments\UpdatesComments;
 use App\Events\Spaces\SpaceContentChanged;
@@ -19,6 +20,10 @@ class UpdateComment implements UpdatesComments
      */
     final public function update(User $user, Comment $comment, array $input): Comment
     {
+        // A comment of an event gives the answers of the other routes of the event first (#1516)
+        if ($comment->event_id !== null && $comment->event !== null) {
+            EventComments::assertAllowed($user, $comment->event, false);
+        }
         Gate::forUser($user)->authorize('update', $comment);
 
         /** @var array{body: string} $validated */

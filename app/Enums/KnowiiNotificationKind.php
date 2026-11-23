@@ -26,6 +26,8 @@ enum KnowiiNotificationKind: string
     case LessonNew = 'lesson_new';
     // A new event in an events space where the member is at "Everything" (#1513, ADR 0053)
     case EventNew = 'event_new';
+    // A first-level comment on an event that the member hosts (#1516, ADR 0053)
+    case EventComment = 'event_comment';
 
     /**
      * 0 Account, 1 Needs you, 2 Following, 3 Around you (design 2.1).
@@ -33,7 +35,7 @@ enum KnowiiNotificationKind: string
     final public function level(): int
     {
         return match ($this) {
-            self::PostComment, self::CommentReply, self::Mention => 1,
+            self::PostComment, self::CommentReply, self::Mention, self::EventComment => 1,
             self::ThreadComment, self::ThreadReply, self::SpacePost, self::SpaceChat, self::LessonNew, self::EventNew => 2,
         };
     }
@@ -50,6 +52,7 @@ enum KnowiiNotificationKind: string
             self::ThreadComment, self::ThreadReply => KnowiiNotificationReason::FollowsThread,
             self::SpacePost, self::SpaceChat, self::EventNew => KnowiiNotificationReason::SpaceEverything,
             self::LessonNew => KnowiiNotificationReason::StartedCourse,
+            self::EventComment => KnowiiNotificationReason::HostsEvent,
         };
     }
 

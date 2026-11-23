@@ -1,6 +1,6 @@
 # 0044. Public spaces can be read by visitors, without an account
 
-- Status: Accepted, amended by [0053](0053-events-a-space-type-with-its-own-table.md) (point 9: the reads of events)
+- Status: Accepted, amended by [0053](0053-events-a-space-type-with-its-own-table.md) (point 9: the reads of events, and the comments of an event, #1516)
 - Date: 2026-11-15
 - Issue: #1387
 - Pull request: #1489

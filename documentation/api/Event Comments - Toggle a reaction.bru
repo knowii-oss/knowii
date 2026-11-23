@@ -1,0 +1,24 @@
+meta {
+  name: Event Comments - Toggle a reaction
+  type: http
+  seq: 233
+}
+
+post {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of an events space>/events/<cuid of an event>/comments/<comment cuid>/reactions
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  { "emoji": "👍" }
+}
+
+docs {
+  Adds or removes the reaction of the member to a comment of an event. Returns the new summary. There is no reaction on the event itself. Ability events:write.
+}

@@ -29,6 +29,7 @@ use LogicException;
  * The one place that decides who is told, and writes the rows (#1474, ADR 0042, design 3, 6.6, 6.8, 6.9, 6.10).
  *
  * - `post_comment`: a first-level comment on a post tells the author of the post. Subject: the comment.
+ * - `event_comment`: a first-level comment on an event tells the host of the event (#1516). Subject: the comment.
  * - `comment_reply`: a reply to a comment tells the author of that comment. Subject: the reply.
  * - `mention`: a mention in a post, a comment or a chat message tells the mentioned member. Subject: the item.
  *
@@ -189,7 +190,8 @@ final class Notify implements Notifies
     }
 
     /**
-     * The members to tell and their reason, by user id. One reason per member: mention first, then reply, then comment.
+     * The members to tell and their reason, by user id. One reason per member: mention first, then reply, then comment
+     * (on a post, or on an event for its host).
      *
      * @return array<int, KnowiiNotificationKind>
      */
@@ -211,6 +213,9 @@ final class Notify implements Notifies
                 $add($item->parent?->author_id, KnowiiNotificationKind::CommentReply);
             } elseif ($item->post_id !== null) {
                 $add($item->post?->author_id, KnowiiNotificationKind::PostComment);
+            } elseif ($item->event_id !== null) {
+                // The host as `host_id` says: deliver() then checks that the host can still read the space
+                $add($item->event?->host_id, KnowiiNotificationKind::EventComment);
             }
         }
 
@@ -268,12 +273,15 @@ final class Notify implements Notifies
     }
 
     /**
-     * The thing that rows bundle on: the post for a comment, the parent comment for a reply, the item for a mention
+     * The thing that rows bundle on: the post or the event for a comment, the parent comment for a reply, the item for a
+     * mention
      */
     private function dedupeKey(KnowiiNotificationKind $kind, Post|Comment|ChatMessage $item, string $column): string
     {
         return match ($kind) {
             KnowiiNotificationKind::PostComment => 'post_comment:post:'.($item instanceof Comment ? $item->post_id : $item->id),
+            // One open row per event, never one for every event (#1516)
+            KnowiiNotificationKind::EventComment => 'event_comment:event:'.($item instanceof Comment ? $item->event_id : $item->id),
             KnowiiNotificationKind::CommentReply => 'comment_reply:comment:'.($item instanceof Comment ? $item->parent_id : $item->id),
             KnowiiNotificationKind::Mention => 'mention:'.$column.':'.$item->id,
             // The level 2 kinds are written by fanOut(), not here

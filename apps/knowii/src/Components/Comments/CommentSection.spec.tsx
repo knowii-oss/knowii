@@ -1,4 +1,5 @@
 import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest';
+import axe from 'axe-core';
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { Comment } from '@knowii/common';
@@ -182,6 +183,55 @@ describe('CommentSection', () => {
       { communityCuid: 'community', spaceCuid: 'space', resourceCuid: 'resource' },
       { body: 'Useful', parent_cuid: null },
     );
+  });
+});
+
+describe('CommentSection on an event (#1516)', () => {
+  const channel = 'community.community.space.space';
+  const subject = { communityCuid: 'community', spaceCuid: 'space', eventCuid: 'event' };
+  afterEach(() => vi.restoreAllMocks());
+
+  it('comments an event and replies through the event endpoints', async () => {
+    const create = vi
+      .spyOn(knowiiApiClient.communities.comments, 'create')
+      .mockResolvedValueOnce({ ok: true, message: '', data: comment('n1', ada, 'See you there') })
+      .mockResolvedValueOnce({ ok: true, message: '', data: comment('r2', ada, 'Me too', 'c1') });
+    renderSection({ subject });
+
+    await userEvent.type(screen.getByRole('textbox', { name: 'Write a comment' }), 'See you there');
+    await userEvent.click(screen.getByRole('button', { name: 'Comment' }));
+    expect(create).toHaveBeenLastCalledWith(subject, { body: 'See you there', parent_cuid: null });
+
+    await userEvent.click(
+      within(document.getElementById('comment-c1') as HTMLElement).getAllByRole('button', { name: 'Reply to Ada' })[0] as HTMLElement,
+    );
+    await userEvent.type(screen.getByRole('textbox', { name: 'Reply to Ada' }), 'Me too');
+    await userEvent.click(screen.getByRole('button', { name: 'Reply' }));
+    expect(create).toHaveBeenLastCalledWith(subject, { body: 'Me too', parent_cuid: 'c1' });
+    expect(await screen.findByText('Me too', { selector: 'p' })).toBeInTheDocument();
+  });
+
+  it('loads the comments again on a live update of this event, never on one of another event, post or resource', async () => {
+    const list = vi
+      .spyOn(knowiiApiClient.communities.comments, 'list')
+      .mockResolvedValue({ ok: true, message: '', data: [...initial, comment('c3', bob, 'Live one')] });
+    renderSection({ subject });
+
+    act(() => emitSocketEvent(channel, 'space.comment.created', { space_cuid: 'space', event_cuid: 'other', comment_cuid: 'x1' }));
+    act(() => emitSocketEvent(channel, 'space.comment.created', { space_cuid: 'space', post_cuid: 'event', comment_cuid: 'x2' }));
+    act(() => emitSocketEvent(channel, 'space.comment.created', { space_cuid: 'space', resource_cuid: 'event', comment_cuid: 'x3' }));
+    expect(list).not.toHaveBeenCalled();
+
+    act(() => emitSocketEvent(channel, 'space.comment.created', { space_cuid: 'space', event_cuid: 'event', comment_cuid: 'c3' }));
+    expect(await screen.findByText('Live one')).toBeInTheDocument();
+    expect(list).toHaveBeenCalledWith(subject);
+  });
+
+  it('has no automated violation (axe)', async () => {
+    renderSection({ subject });
+
+    const results = await axe.run(document.body, { rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
+    expect(results.violations).toEqual([]);
   });
 });
 

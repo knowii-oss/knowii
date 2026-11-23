@@ -81,6 +81,10 @@ export interface EventPermissions {
   canDuplicate: boolean;
   // Read who answered Yes and Replay only (#1515): the owner, the admins and the host, never for a draft, never a moderator
   canViewAnswers: boolean;
+  // Comment the event (#1516): a member who can see it, never on a draft
+  canComment: boolean;
+  // Delete the comments of others and their replies: the people who moderate the space
+  canModerate: boolean;
 }
 
 /**

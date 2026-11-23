@@ -99,6 +99,28 @@ describe('notificationHref (#1484)', () => {
     expect(threadOf(makeNotification('a', { kind: 'event_new', level: 2, target }))).toBeNull();
   });
 
+  it('opens the page of the event at the comment for a comment, a reply or a mention on an event (#1516)', () => {
+    const target: NotificationTarget = {
+      post_slug: null,
+      post_cuid: null,
+      comment_cuid: 'k1',
+      chat_message_cuid: null,
+      thread_cuid: null,
+      resource_cuid: null,
+      resource_slug: null,
+      page_slug: null,
+      event_cuid: 'e1',
+      event_slug: 'weekly-review',
+    };
+
+    for (const kind of ['event_comment', 'comment_reply', 'mention'] as const) {
+      expect(notificationHref(makeNotification('a', { kind, level: 1, target }), route)).toBe(
+        '/events.show/knowii/open/weekly-review#comment-k1',
+      );
+    }
+    expect(threadOf(makeNotification('a', { kind: 'event_comment', level: 1, target }))).toBeNull();
+  });
+
   it('has no address without a space, or without a target', () => {
     expect(notificationHref(makeNotification('a', { space: null }), route)).toBeNull();
     const empty: NotificationTarget = {

@@ -270,6 +270,19 @@ test('the export holds the limit of places and the replay choice of an event, an
     }
 });
 
+test('the export holds the comments on events with the cuid of their event (#1516)', function () {
+    $f = communityExportFixture();
+    $events = Space::factory()->inGroup(SpaceGroup::query()->where('community_id', $f['community']->id)->firstOrFail())->create(['type' => KnowiiSpaceType::Events]);
+    $event = Event::factory()->inSpace($events)->hostedBy($f['member'])->create();
+    $comment = Comment::factory()->onEvent($event)->create(['author_id' => $f['member']->id, 'body' => 'Thank you for the **session**']);
+
+    $files = runCommunityExport($f['community']);
+    $row = collect(json_decode($files['comments.json'], true)['comments'])->firstWhere('cuid', $comment->cuid);
+
+    expect($row)->toMatchArray(['post' => null, 'resource' => null, 'event' => $event->cuid, 'body' => 'Thank you for the **session**'])
+        ->and($files['README.txt'])->toContain('the comments on posts, on resources and on events');
+});
+
 test('the export holds the member tags of both visibilities with the cuids of their members, and none of another community (#1389)', function () {
     $f = communityExportFixture();
     $founder = MemberTag::factory()->forMembers()->create(['community_id' => $f['community']->id, 'name' => 'Founder', 'color' => 'purple']);

@@ -94,6 +94,19 @@ class EventPolicy
     }
 
     /**
+     * Comment the event, reply to a comment, and react to its comments (#1516): a member of the community who can see
+     * the event, while it is not a draft. The owner, the admins and the moderators comment like members; a published, a
+     * cancelled and a past event take comments. Never a person who is not a member, also in a public space. A draft takes
+     * none, also from its host, the owner and the admins: a reply or a mention would tell a member who cannot see it.
+     */
+    final public function comment(User $user, Event $event): bool
+    {
+        return ! $event->isDraft()
+            && $user->belongsToCommunity($event->community)
+            && $this->view($user, $event);
+    }
+
+    /**
      * Read who answered Yes and Replay only, and how many answered No (#1515): the owner, the admins and the host.
      * Never a moderator, also with the right to delete content: the answers are personal data that moderation does not
      * need. The answers of a draft are read by nobody.

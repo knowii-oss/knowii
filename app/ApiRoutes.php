@@ -197,6 +197,13 @@ final class ApiRoutes
     // The calendar file of an event, for a member (#1515, ADR 0053): one iCalendar file, built at each request
     public const COMMUNITY_SPACE_EVENT_CALENDAR_FILE = self::COMMUNITY_SPACE_EVENT.'/calendar-file';
 
+    // The comments of an event (#1516, ADR 0053), as the comments of a resource. No reaction on the event itself
+    public const COMMUNITY_SPACE_EVENT_COMMENTS = self::COMMUNITY_SPACE_EVENT.'/comments';
+
+    public const COMMUNITY_SPACE_EVENT_COMMENT = self::COMMUNITY_SPACE_EVENT_COMMENTS.'/{'.self::PARAM_COMMENT.'}';
+
+    public const COMMUNITY_SPACE_EVENT_COMMENT_REACTIONS = self::COMMUNITY_SPACE_EVENT_COMMENT.'/reactions';
+
     // The upcoming events of every events space that the reader can read (#1513)
     public const COMMUNITY_EVENTS = self::COMMUNITY.'/events';
 

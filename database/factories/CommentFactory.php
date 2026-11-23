@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Comment;
+use App\Models\Event;
 use App\Models\Post;
 use App\Models\User;
 use App\Support\Markdown;
@@ -37,8 +38,22 @@ class CommentFactory extends Factory
         return $this->state(fn () => ['post_id' => $post->id, 'community_id' => $post->community_id]);
     }
 
+    /**
+     * A comment on an event (#1516)
+     */
+    final public function onEvent(Event $event): static
+    {
+        return $this->state(fn () => ['post_id' => null, 'event_id' => $event->id, 'community_id' => $event->community_id]);
+    }
+
     final public function replyTo(Comment $parent): static
     {
-        return $this->state(fn () => ['post_id' => $parent->post_id, 'community_id' => $parent->community_id, 'parent_id' => $parent->id]);
+        return $this->state(fn () => [
+            'post_id' => $parent->post_id,
+            'community_resource_id' => $parent->community_resource_id,
+            'event_id' => $parent->event_id,
+            'community_id' => $parent->community_id,
+            'parent_id' => $parent->id,
+        ]);
     }
 }

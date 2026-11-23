@@ -153,11 +153,17 @@ class SpaceContentChanged implements ShouldBroadcast, ShouldDispatchAfterCommit
     }
 
     /**
+     * The identifier of the item of a comment: a post, a resource, or an event (#1516). Never a text
+     *
      * @return array<string, string|null>
      */
-    private static function subjectPayload(Post|CommunityResource $subject): array
+    private static function subjectPayload(Post|CommunityResource|Event $subject): array
     {
-        return $subject instanceof Post ? ['post_cuid' => $subject->cuid] : ['resource_cuid' => $subject->cuid];
+        return match (true) {
+            $subject instanceof Post => ['post_cuid' => $subject->cuid],
+            $subject instanceof CommunityResource => ['resource_cuid' => $subject->cuid],
+            default => ['event_cuid' => $subject->cuid],
+        };
     }
 
     /**

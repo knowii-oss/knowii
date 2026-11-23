@@ -28,7 +28,7 @@ final class NotificationItem
     public static function spaceOf(Post|Comment|ChatMessage|Page|Event $item): ?Space
     {
         $spaceId = match (true) {
-            $item instanceof Comment => $item->post->space_id ?? $item->communityResource?->space_id,
+            $item instanceof Comment => $item->post->space_id ?? $item->communityResource->space_id ?? $item->event?->space_id,
             default => $item->space_id,
         };
 
@@ -37,7 +37,8 @@ final class NotificationItem
 
     /**
      * The thread of the item: a post with its comments, or a first-level chat message with its replies. Null for the
-     * items that are in no thread (a comment on a resource, a page, an event: only its space can be muted).
+     * items that are in no thread (a comment on a resource or on an event, a page, an event: only its space can be
+     * muted).
      *
      * @return array{column: 'post_id'|'chat_message_id', id: int}|null
      */

@@ -210,6 +210,53 @@ test('the answers to an event per role, per visibility of its space and per stat
     'a draft of a public space' => ['public', 'draft', [], []],
 ]);
 
+/**
+ * The readers of an event of a space of the given visibility, and the event in the given state (#1515, #1516)
+ *
+ * @return array{0: array<string, mixed>, 1: Event}
+ */
+function policyEventOf(array $c, string $visibility, string $state): array
+{
+    $c = [...$c, 'guest' => null];
+    foreach (['host', 'inGroup'] as $key) {
+        $c[$key] = User::factory()->withUserProfile()->create();
+        $c['community']->users()->attach($c[$key], ['role' => KnowiiCommunityMemberRole::Member]);
+    }
+    $group = SpaceGroup::factory()->create(['community_id' => $c['community']->id]);
+    $space = Space::factory()->inGroup($group)->create(['type' => KnowiiSpaceType::Events, 'visibility' => $visibility]);
+    if ($visibility === 'groups') {
+        $buyers = AccessGroup::query()->create(['community_id' => $c['community']->id, 'name' => 'Buyers']);
+        $space->accessGroups()->attach($buyers);
+        $buyers->members()->attach([$c['host']->id, $c['inGroup']->id]);
+    }
+    $factory = Event::factory()->inSpace($space)->hostedBy($c['host']);
+    $event = match ($state) {
+        'draft' => $factory->draft()->create(),
+        'cancelled' => $factory->cancelled()->create(),
+        'past' => $factory->past()->create(),
+        default => $factory->create(),
+    };
+
+    return [$c, $event];
+}
+
+test('the comments of an event per role, per visibility of its space and per state (#1516)', function (string $visibility, string $state, array $comment) {
+    [$c, $event] = policyEventOf($this->c, $visibility, $state);
+
+    foreach (POLICY_EVENT_READERS as $role) {
+        $allowed = $c[$role] === null ? Gate::forUser(null)->allows('comment', $event) : Gate::forUser($c[$role])->allows('comment', $event);
+        expect($allowed)->toBe(in_array($role, $comment, true), "{$role}, comment");
+    }
+})->with([
+    'a public space: every member, never an outsider or a visitor' => ['public', 'published', ['owner', 'admin', 'moderator', 'host', 'member', 'inGroup']],
+    'a members space' => ['members', 'published', ['owner', 'admin', 'moderator', 'host', 'member', 'inGroup']],
+    'a groups space: the members of the group, the owner and the admins' => ['groups', 'published', ['owner', 'admin', 'host', 'inGroup']],
+    'a cancelled event takes comments' => ['public', 'cancelled', ['owner', 'admin', 'moderator', 'host', 'member', 'inGroup']],
+    'an event that ended takes comments' => ['members', 'past', ['owner', 'admin', 'moderator', 'host', 'member', 'inGroup']],
+    'a draft takes none, also from its host, the owner and the admins' => ['members', 'draft', []],
+    'a draft of a public space' => ['public', 'draft', []],
+]);
+
 test('a host who lost the access group, and a host who left, read no answer and do not answer', function () {
     $host = User::factory()->withUserProfile()->create();
     $this->c['community']->users()->attach($host, ['role' => KnowiiCommunityMemberRole::Member]);

@@ -6,11 +6,14 @@ use App\Contracts\Comments\DeletesComments;
 use App\Contracts\Comments\UpdatesComments;
 use App\Enums\KnowiiSpacePostingPolicy;
 use App\Enums\KnowiiSpaceType;
+use App\Enums\KnowiiSpaceVisibility;
 use App\Events\Spaces\SpaceTreeChanged;
+use App\Models\AccessGroup;
 use App\Models\Comment;
 use App\Models\Post;
 use App\Models\Space;
 use App\Models\SpaceGroup;
+use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Validation\ValidationException;
@@ -146,3 +149,18 @@ test('the post page gets the comments and the permission to comment', function (
             ->where('post.comments_count', 1)
             ->where('permissions.canComment', true));
 });
+
+test('editing or deleting a comment of a post needs the access to its space (#1516)', function (string $route) {
+    $space = Space::factory()->inGroup($this->space->spaceGroup)->create(['type' => KnowiiSpaceType::Discussion, 'visibility' => KnowiiSpaceVisibility::Groups]);
+    $buyers = AccessGroup::query()->create(['community_id' => $this->c['community']->id, 'name' => 'Buyers']);
+    $space->accessGroups()->attach($buyers);
+    $buyers->members()->attach($this->c['member']->id);
+    $post = Post::factory()->inSpace($space)->create(['author_id' => $this->c['admin']->id]);
+    $comment = app(CreatesComments::class)->create(User::query()->findOrFail($this->c['member']->id), $post, ['body' => 'Mine']);
+
+    $buyers->members()->detach($this->c['member']->id);
+    $this->actingAs(User::query()->findOrFail($this->c['member']->id));
+
+    ($route === 'update' ? $this->patchJson(commentsPath($post, $comment), ['body' => 'Changed']) : $this->deleteJson(commentsPath($post, $comment)))->assertForbidden();
+    expect($comment->fresh()?->body)->toBe('Mine');
+})->with(['update', 'delete']);
