@@ -177,7 +177,7 @@ test('every answer has the security headers of the configuration', function (str
     ['api: the 401 of the sign-in check', 401],
     ['api: a 404 of a route binding', 404],
     ['api: a 403 of a token ability', 403],
-    ['api: a 419', 302],
+    ['api: a 419', 419],
     ['api: a 429', 429],
     ['api: the 503 of an instance that is not configured', 503],
     ['api: the answer of a 404 of a route binding, as in production', 404],

@@ -19,7 +19,7 @@ The rules we apply most:
 3. Methods: `GET` (read), `POST` (create, or an action on a resource: `POST .../spaces/reorder`), `PATCH` (partial update), `PUT` (full replacement, rarely), `DELETE`.
 4. Status codes: 200, 201 with the created item, 204 for a delete, 400 or 422 for validation and business errors, 401, 403, 404, 405, 409 for conflicts, 412 for failed preconditions, 429 for rate limits, 500.
 5. Collections: offset pagination with `limit` (default 10, maximum 1000) and `offset` (default 0), and the pagination metadata of the guide (`limit`, `offset`, `previousOffset`, `nextOffset`, `currentPage`, `pageCount`, `totalCount`) in `metadata.pagination`. Sorting with `sort` (`sort=-createdAt,name`), filtering with named query parameters.
-6. Errors: one structure for every error, with a human message and the details per field for validation errors.
+6. Errors: one structure for every error, in every environment (#1716), with a human message and the details per field for validation errors. The page `Error` is for a page request and an Inertia visit; every error of an address of the API (`api/*`) is this JSON, whatever the `Accept` header of the request says. Two answers are not this JSON: the plain-text 503 of an instance that is not configured, and an `HttpResponseException` that carries its own response.
 7. Dates and times in ISO 8601 with a time zone (UTC on the wire).
 8. No hypermedia controls (HATEOAS), like the guide itself.
 9. Security recommendations of the guide: no internal identifiers (we expose cuid2, [ADR 0005](0005-cuid2-public-identifiers.md)), no sensitive data in URLs, rate limits.

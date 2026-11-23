@@ -310,6 +310,16 @@ test('a member who cannot read the space gets the body of an event that does not
         ->and($missing->json())->toBe($none->json());
 });
 
+test('in production, a plain link to the file of an event that does not exist gets the JSON 404 of the API (#1716)', function () {
+    configuredInstance();
+    app()->detectEnvironment(fn () => 'production');
+
+    $response = $this->actingAs($this->c['member'])->get(ecfPath($this->event, eventCuid: 'nothing-here'))->assertNotFound();
+
+    $response->assertHeader('Content-Type', 'application/json')->assertJsonPath('type', 'notFound');
+    expect((string) $response->getContent())->not->toContain('"component"');
+});
+
 test('a person who is not a member gets 403 in a public space, and 404 in another space', function () {
     $response = ecfGet('outsider', $this->event)->assertForbidden();
 

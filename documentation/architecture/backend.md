@@ -179,7 +179,7 @@ Shared shapes of the API envelope (`App\Traits\ApiResponses`): the metadata is `
 - When there are business related problems, a `BusinessException` should be thrown. This exception should be caught in the global exception handler, and converted to a JSON response as well
 - Where there are other problems (e.g., unavailable database), a `TechnicalException` should be thrown. This exception should be caught in the global exception handler, and converted to a JSON response as well
 
-The global exception handlers are located in `bootstrap/app.php`. They must translate all exceptions to JSON when the client requests a JSON response.
+The global exception handlers are located in `bootstrap/app.php`. They must translate all exceptions to JSON when the client requests a JSON response, and for every address of the API (`api/*`): one structure for every error, in every environment (#1716); the page `Error` is for a page request and an Inertia visit. Two answers are not this JSON: the plain-text 503 of an instance that is not configured, and an `HttpResponseException` that carries its own response.
 
 ## API
 

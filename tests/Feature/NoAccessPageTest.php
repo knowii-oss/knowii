@@ -244,6 +244,17 @@ test('a request that expects JSON gets the answer of before', function () {
     expect((string) $response->getContent())->not->toContain(NO_ACCESS_COMPONENT)->not->toContain(NO_ACCESS_COMMUNITY_NAME);
 });
 
+test('in production, a request that expects JSON gets the JSON 403 of the API, not the error page (#1716)', function () {
+    noAccessCommunity('open');
+    configuredInstance();
+    app()->detectEnvironment(fn () => 'production');
+
+    $response = $this->actingAs($this->c['outsider'])->getJson(noAccessPages()['space']['url']);
+
+    $response->assertForbidden()->assertHeader('Content-Type', 'application/json')->assertJsonPath('type', 'authorizationIssue');
+    expect((string) $response->getContent())->not->toContain(NO_ACCESS_COMPONENT)->not->toContain('"component"')->not->toContain(NO_ACCESS_COMMUNITY_NAME);
+});
+
 test('an Inertia visit gets the page without access as an Inertia page, with the status 403', function () {
     noAccessCommunity('open');
     $headers = [
@@ -272,6 +283,21 @@ test('the page without access shows outside the local and testing environments, 
         ->assertForbidden()->assertInertia(fn ($inertia) => $inertia->component('Error')->where('status', 403));
     $this->actingAs($this->c['outsider'])->get(route('spaces.show', ['communitySlug' => $this->c['community']->slug, 'spaceSlug' => 'no-such-space']))
         ->assertNotFound()->assertInertia(fn ($inertia) => $inertia->component('Error')->where('status', 404));
+});
+
+test('in production, an Inertia visit of a person who is not a member still gets the page without access, with the status 403', function () {
+    noAccessCommunity('open');
+    configuredInstance();
+    app()->detectEnvironment(fn () => 'production');
+    $headers = [
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => (string) app(HandleInertiaRequests::class)->version(request()),
+        'X-Requested-With' => 'XMLHttpRequest',
+        'Accept' => 'text/html, application/xhtml+xml',
+    ];
+
+    $this->actingAs($this->c['outsider'])->get(noAccessPages()['space']['url'], $headers)
+        ->assertForbidden()->assertHeader('X-Inertia', 'true')->assertJsonPath('component', NO_ACCESS_COMPONENT);
 });
 
 test('after a join, the same address answers the content', function () {
