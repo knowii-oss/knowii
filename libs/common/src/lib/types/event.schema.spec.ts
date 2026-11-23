@@ -26,6 +26,11 @@ const fromServer = {
   space: { cuid: 's1', slug: 'office-hours', name: 'Office hours' },
   body: null,
   body_html: null,
+  can_view_replay: true,
+  replay_url: null,
+  replay: null,
+  notes: null,
+  notes_html: null,
   created_at: '2026-11-10T10:00:00.000000Z',
   updated_at: '2026-11-10T10:00:00.000000Z',
 };
@@ -102,5 +107,47 @@ describe('eventSchema (#1513)', () => {
     expect(eventSchema.parse({ ...fromServer, community }).community).toEqual(community);
     expect(eventSchema.parse(fromServer).community).toBeUndefined();
     expect(eventSchema.safeParse({ ...fromServer, community: { cuid: 'c1' } }).success).toBe(false);
+  });
+
+  it('reads the replay and the notes after the event, and the cut of a visitor (#1516)', () => {
+    const player = {
+      provider: 'youtube',
+      id: 'dQw4w9WgXcQ',
+      url: 'https://youtu.be/dQw4w9WgXcQ',
+      embed_url: 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ',
+    };
+    const member = eventSchema.parse({
+      ...fromServer,
+      is_past: true,
+      replay_url: player.url,
+      replay: player,
+      notes: 'The **slides**',
+      notes_html: '<p>The <strong>slides</strong></p>',
+    });
+    expect(member.can_view_replay).toBe(true);
+    expect(member.replay?.provider).toBe('youtube');
+    expect(member.notes_html).toContain('<strong>slides</strong>');
+
+    const link = eventSchema.parse({ ...fromServer, replay_url: 'https://example.com/replay', replay: null });
+    expect(link.replay_url).toBe('https://example.com/replay');
+    expect(link.replay).toBeNull();
+
+    const visitor = eventSchema.parse({ ...fromServer, can_view_replay: false, replay_url: null, replay: null, notes: 'The slides' });
+    expect(visitor.can_view_replay).toBe(false);
+    expect(visitor.replay_url).toBeNull();
+    expect(visitor.notes).toBe('The slides');
+  });
+
+  it('refuses an event without the five fields of the replay and the notes, and a player of another host (#1516)', () => {
+    for (const field of ['can_view_replay', 'replay_url', 'replay', 'notes', 'notes_html'] as const) {
+      const { [field]: _dropped, ...without } = fromServer;
+      expect(eventSchema.safeParse(without).success, field).toBe(false);
+    }
+    expect(
+      eventSchema.safeParse({
+        ...fromServer,
+        replay: { provider: 'other', id: 'x', url: 'https://example.com', embed_url: 'https://example.com' },
+      }).success,
+    ).toBe(false);
   });
 });

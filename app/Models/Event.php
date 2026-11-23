@@ -28,6 +28,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  *
  * Members answer it (#1515): Yes, Replay only or No, one row per member in `event_answers`. `capacity` limits the Yes
  * answers; `replay_expected` offers "Replay only". Members comment it (#1516), with the comments of posts and resources.
+ * After the event the host adds a replay link and notes (#1516); the platform never receives a recording.
  *
  * Not to confuse with the broadcast events of `app/Events/`.
  *
@@ -50,6 +51,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property ?string $cover_alt Empty: a decorative image
  * @property ?int $capacity The limit of places (1 to 5 000), which counts the Yes answers only. Null: no limit
  * @property bool $replay_expected The host says that a replay will exist: members may answer "Replay only"
+ * @property ?string $replay_url The replay link that the host pastes after the event (#1516): never opened by the server
+ * @property string $notes The notes of the host after the event, in Markdown. Empty: no notes
+ * @property string $notes_html
  * @property KnowiiEventState $state
  * @property int $sequence Goes up when the time, the address, the place or the state changes
  * @property ?Carbon $published_notified_at When the "new event" lines were queued
@@ -89,9 +93,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static Builder<static>|Event whereId($value)
  * @method static Builder<static>|Event whereLocationVisibility($value)
  * @method static Builder<static>|Event whereMeetingUrl($value)
+ * @method static Builder<static>|Event whereNotes($value)
+ * @method static Builder<static>|Event whereNotesHtml($value)
  * @method static Builder<static>|Event wherePlace($value)
  * @method static Builder<static>|Event wherePublishedNotifiedAt($value)
  * @method static Builder<static>|Event whereReplayExpected($value)
+ * @method static Builder<static>|Event whereReplayUrl($value)
  * @method static Builder<static>|Event whereSequence($value)
  * @method static Builder<static>|Event whereSlug($value)
  * @method static Builder<static>|Event whereSpaceId($value)
@@ -138,6 +145,9 @@ class Event extends Model
         'cover_alt',
         'capacity',
         'replay_expected',
+        'replay_url',
+        'notes',
+        'notes_html',
         'state',
         'sequence',
         'published_notified_at',
@@ -403,12 +413,13 @@ class Event extends Model
     }
 
     /**
-     * Record the uploads that the event shows: the images of the description and the cover, so that `uploads:prune`
-     * keeps them. syncUploadUsages() deletes every row first, so the cover comes after it.
+     * Record the uploads that the event shows: the images of the description, of the notes (#1516) and the cover, so that
+     * `uploads:prune` keeps them. syncUploadUsages() deletes every row first, so the cover comes after it.
      */
     final public function syncUploads(): void
     {
-        $this->syncUploadUsages($this->body);
+        // The images of the description and of the notes (#1516)
+        $this->syncUploadUsages($this->body."\n".$this->notes);
         if ($this->cover_upload_id !== null) {
             $this->uploadUsages()->firstOrCreate(['upload_id' => $this->cover_upload_id]);
         }

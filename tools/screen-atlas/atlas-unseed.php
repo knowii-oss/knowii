@@ -11,7 +11,7 @@
  *
  * What the seed made, and how it goes:
  * 1. The communities "Atlas Garden" and "Atlas Empty" of atlas-owner@example.com: the action DeleteCommunity (the
- *    spaces, posts, comments, chat, pages, quizzes, materials, resources, events with the answers of their members (also the events that the member of the atlas hosts, #1515),
+ *    spaces, posts, comments, chat, pages, quizzes, materials, resources, events with the answers of their members (also the events that the member of the atlas hosts, #1515), with their replay links, notes and comments (#1516),
  *    access groups, invitations, notifications, conversations and uploads go with the community, by cascade and by the
  *    file clean-up of the action).
  * 2. The accounts atlas-*@example.com: the action DeleteUser (the personal community, the profile, the sessions, the

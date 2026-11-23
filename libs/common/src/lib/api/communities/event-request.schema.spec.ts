@@ -30,6 +30,8 @@ const form = {
   location_visibility: 'members',
   capacity: '',
   replay_expected: false,
+  replay_url: '',
+  notes: '',
 };
 
 const request = {
@@ -75,6 +77,8 @@ describe('eventFormSchema (#1514, design 6.3)', () => {
       location_visibility: 'members',
       capacity: '',
       replay_expected: false,
+      replay_url: '',
+      notes: '',
     });
 
     expect(messagesOf(result)).toEqual({
@@ -178,6 +182,19 @@ describe('eventRequestSchema (#1514, ADR 0053)', () => {
     });
 
     expect(changed).toEqual({ title: 'A better title', location_visibility: 'going', capacity: null, replay_expected: false });
+  });
+
+  it('takes the replay link and the notes in a change only, empty or null to clear them (#1516)', () => {
+    expect(eventUpdateRequestSchema.parse({ replay_url: 'https://example.com/replay', notes: 'The **slides**' })).toEqual({
+      replay_url: 'https://example.com/replay',
+      notes: 'The **slides**',
+    });
+    expect(eventUpdateRequestSchema.safeParse({ replay_url: null, notes: null }).success).toBe(true);
+    expect(eventUpdateRequestSchema.safeParse({ replay_url: '' }).success).toBe(true);
+    expect(eventUpdateRequestSchema.safeParse({ replay_url: ['java', 'script:alert(1)'].join('') }).success).toBe(false);
+    expect(eventUpdateRequestSchema.safeParse({ replay_url: `https://example.com/${'a'.repeat(2048)}` }).success).toBe(false);
+    expect(eventUpdateRequestSchema.safeParse({ notes: 'x'.repeat(20001) }).success).toBe(false);
+    expect(eventRequestSchema.parse({ ...request, replay_url: 'https://example.com/replay' })).not.toHaveProperty('replay_url');
   });
 
   it('accepts a change of one field', () => {

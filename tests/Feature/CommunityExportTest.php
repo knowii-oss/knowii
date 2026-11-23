@@ -270,6 +270,24 @@ test('the export holds the limit of places and the replay choice of an event, an
     }
 });
 
+test('the export holds the replay link and the notes of an event, the notes in Markdown (#1516)', function () {
+    $f = communityExportFixture();
+    $events = Space::factory()->inGroup(SpaceGroup::query()->where('community_id', $f['community']->id)->firstOrFail())->create(['type' => KnowiiSpaceType::Events]);
+    Event::factory()->inSpace($events)->hostedBy($f['member'])->past()->create([
+        'replay_url' => 'https://replays.example.com/the-review',
+        'notes' => 'The **slides**',
+        'notes_html' => '<p>The <strong>slides</strong></p>',
+    ]);
+
+    $files = runCommunityExport($f['community']);
+    $row = json_decode($files['events.json'], true)['events'][0];
+
+    expect($row['replay_url'])->toBe('https://replays.example.com/the-review')
+        ->and($row['notes'])->toBe('The **slides**')
+        ->and($row)->not->toHaveKey('notes_html')
+        ->and($files['README.txt'])->toContain('replay link and notes (Markdown)');
+});
+
 test('the export holds the comments on events with the cuid of their event (#1516)', function () {
     $f = communityExportFixture();
     $events = Space::factory()->inGroup(SpaceGroup::query()->where('community_id', $f['community']->id)->firstOrFail())->create(['type' => KnowiiSpaceType::Events]);

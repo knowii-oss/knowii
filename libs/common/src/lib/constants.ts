@@ -180,6 +180,9 @@ export const MAX_LENGTH_EVENT_MEETING_URL = 2048;
 export const MAX_LENGTH_EVENT_PLACE = 255;
 export const MAX_LENGTH_EVENT_COVER_ALT = 125;
 export const MAX_EVENT_DURATION_HOURS = 24;
+// After the event (#1516): the replay link and the notes
+export const MAX_LENGTH_EVENT_REPLAY_URL = 2048;
+export const MAX_LENGTH_EVENT_NOTES = 20000;
 // The limit of places of an event (#1515): it counts the Yes answers
 export const MIN_EVENT_CAPACITY = 1;
 export const MAX_EVENT_CAPACITY = 5000;

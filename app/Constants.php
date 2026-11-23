@@ -103,6 +103,11 @@ class Constants
     // An event ends at most this many hours after its start
     public const int MAX_EVENT_DURATION_HOURS = 24;
 
+    // After the event (#1516): the replay link and the notes. WARNING: aligned with constants.ts (libs/common)
+    public const int MAX_LENGTH_EVENT_REPLAY_URL = 2048;
+
+    public const int MAX_LENGTH_EVENT_NOTES = 20000;
+
     // The limit of places of an event (#1515): it counts the Yes answers. The migration holds the same numbers in a check
     public const int MIN_EVENT_CAPACITY = 1;
 

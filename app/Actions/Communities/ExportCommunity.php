@@ -463,6 +463,9 @@ final class ExportCommunity implements ExportsCommunities
                 'location_visibility' => $event->location_visibility->value,
                 'capacity' => $event->capacity,
                 'replay_expected' => $event->replay_expected,
+                // After the event (#1516): the replay link and the notes in Markdown
+                'replay_url' => $event->replay_url,
+                'notes' => $event->notes,
                 'cover_upload' => $event->cover?->cuid,
                 'cover_alt' => $event->cover_alt,
                 'sequence' => $event->sequence,
@@ -798,7 +801,7 @@ final class ExportCommunity implements ExportsCommunities
             'posts.json' => 'the posts (Markdown)',
             'comments.json' => 'the comments on posts, on resources and on events (Markdown)',
             'pages.json' => 'the pages and the lessons (Markdown)',
-            'events.json' => 'the events of the events spaces, with their description (Markdown), times, zone, meeting address and place',
+            'events.json' => 'the events of the events spaces, with their description (Markdown), times, zone, meeting address and place, and their replay link and notes (Markdown)',
             'chat-messages.json' => 'the messages of the chat spaces',
             'reactions.json' => 'the reactions to posts, comments and messages',
             'resources.json' => 'the resources with their address and the captured text (Markdown)',

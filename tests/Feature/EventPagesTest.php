@@ -274,7 +274,7 @@ test('the event page gives the event with its description, its host and its spac
         ->where('space.cuid', $event->space->cuid)
         ->where('community.cuid', $this->c['community']->cuid)
         ->has('spaceGroups')
-        ->has('permissions', 7));
+        ->has('permissions', 8));
 });
 
 test('an event is only found in its own events space, and an address that names no event answers 404', function () {
@@ -301,8 +301,8 @@ test('an event with the slug "new" has its page, and the form of a new event kee
 test('the permissions of the event page follow the policies, for each role', function (string $visibility, array $expected) {
     // "Answers" (#1515) is for the owner, the admins and the host: never a moderator, also with the right to delete content.
     // The comments (#1516): every member who can see the event comments, the people who moderate the space moderate
-    $none = ['canUpdate' => false, 'canCancel' => false, 'canDelete' => false, 'canDuplicate' => false, 'canViewAnswers' => false, 'canComment' => false, 'canModerate' => false];
-    $all = ['canUpdate' => true, 'canCancel' => true, 'canDelete' => true, 'canDuplicate' => true, 'canViewAnswers' => true, 'canComment' => true, 'canModerate' => true];
+    $none = ['canUpdate' => false, 'canCancel' => false, 'canDelete' => false, 'canDuplicate' => false, 'canViewAnswers' => false, 'canComment' => false, 'canModerate' => false, 'mustCancelBeforeDelete' => false];
+    $all = ['canUpdate' => true, 'canCancel' => true, 'canDelete' => true, 'canDuplicate' => true, 'canViewAnswers' => true, 'canComment' => true, 'canModerate' => true, 'mustCancelBeforeDelete' => false];
     $named = ['all' => $all, 'none' => $none, 'member' => [...$none, 'canComment' => true], 'host' => [...$all, 'canModerate' => false]];
 
     foreach ($expected as $reader => $rights) {
@@ -325,6 +325,23 @@ test('the permissions of the event page follow the policies, for each role', fun
     ]],
     'groups' => ['groups', ['owner' => 'all', 'admin' => 'all', 'host' => 'host']],
 ]);
+
+test('the event page says when "Delete" must offer the cancel: a published event that members still expect (#1516)', function () {
+    $event = $this->published['members'];
+    $must = fn (string $reader): bool => evpProps(evpGet($reader, evpEventUrl($event->fresh()))->assertOk())['permissions']['mustCancelBeforeDelete'];
+
+    expect(collect(['host', 'moderator', 'admin', 'owner', 'member'])->mapWithKeys(fn ($reader) => [$reader => $must($reader)])->all())
+        ->toBe(['host' => false, 'moderator' => false, 'admin' => false, 'owner' => false, 'member' => false]);
+
+    EventAnswer::factory()->to($event)->of($this->c['member'])->replay()->create();
+    // Only the people who may delete the event read it: never a member, who has no "Delete"
+    expect(collect(['host', 'moderator', 'admin', 'owner', 'member'])->mapWithKeys(fn ($reader) => [$reader => $must($reader)])->all())
+        ->toBe(['host' => true, 'moderator' => true, 'admin' => true, 'owner' => true, 'member' => false]);
+
+    // Cancelled, it can be deleted
+    $event->update(['state' => KnowiiEventState::Cancelled]);
+    expect($must('host'))->toBeFalse()->and($must('moderator'))->toBeFalse();
+});
 
 test('the page of a draft gives nobody the answers: not its host, not the owner, not an admin', function () {
     foreach (['host', 'owner', 'admin'] as $reader) {
@@ -351,7 +368,7 @@ test('a host who left the community keeps no right on the event page', function 
     $props = evpProps(evpGet('host', evpEventUrl($event))->assertOk());
 
     // An outsider now: the public space stays readable, without a right and without the meeting address
-    expect($props['permissions'])->toBe(['canUpdate' => false, 'canCancel' => false, 'canDelete' => false, 'canDuplicate' => false, 'canViewAnswers' => false, 'canComment' => false, 'canModerate' => false])
+    expect($props['permissions'])->toBe(['canUpdate' => false, 'canCancel' => false, 'canDelete' => false, 'canDuplicate' => false, 'canViewAnswers' => false, 'canComment' => false, 'canModerate' => false, 'mustCancelBeforeDelete' => false])
         ->and($props['event']['meeting_url'])->toBeNull()
         ->and($props['event']['can_view_location'])->toBeFalse();
 });
@@ -580,7 +597,8 @@ test('the screens give each reader their own answer and the places, and the limi
         // A member never reads the limit or the answer of another member, anywhere in the page
         $page = evpGet('member', $url);
         $text = (string) json_encode(evpProps($page)).$page->getContent();
-        expect(str_contains($text, '4321'))->toBeFalse("member, {$key}")->and(str_contains($text, '"replay"'))->toBeFalse("member, {$key}");
+        // The answer "replay" of the moderator as a value: an event also has the key `replay`, the player of its replay (#1516)
+        expect(str_contains($text, '4321'))->toBeFalse("member, {$key}")->and(str_contains($text, ':"replay"'))->toBeFalse("member, {$key}");
     }
 });
 

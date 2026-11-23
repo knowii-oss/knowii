@@ -1,0 +1,19 @@
+meta {
+  name: Events - Delete - Cancel it first
+  type: http
+  seq: 237
+}
+
+delete {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of an events space>/events/<cuid of a published event that members answered Yes>
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  A published event whose end is not passed (an event that happens now too) and that a member who can read the space answered Yes or Replay only cannot be deleted (#1516): 422, "Cancel it first, so members are told." Cancel it with Events - Set state, then delete it. A draft, a cancelled event, an event that ended, and an event with No answers only are deleted, with their answers and comments (204). Ability events:write.
+}

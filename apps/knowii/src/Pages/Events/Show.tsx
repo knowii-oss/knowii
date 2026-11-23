@@ -1,13 +1,14 @@
 import { useCallback, useMemo, useRef } from 'react';
 import { router } from '@inertiajs/react';
 import type { Comment, Community, EventPermissions, Space, SpaceContentPayload, SpaceEvent, SpaceGroup } from '@knowii/common';
-import { COMMUNITY_URL, SPACE_TYPE_LABELS, SPACE_URL, useSocket, useTypedPage } from '@knowii/common';
+import { COMMUNITY_URL, EVENT_EDIT_URL, SPACE_TYPE_LABELS, SPACE_URL, useSocket, useTypedPage } from '@knowii/common';
 import AppLayout from '@/Layouts/AppLayout';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
 import { CommentSection } from '@/Components/Comments/CommentSection';
 import { AddToCalendar } from '@/Components/Events/AddToCalendar';
 import { EventActions } from '@/Components/Events/EventActions';
+import { EventAfter } from '@/Components/Events/EventAfter';
 import { EventAnswer } from '@/Components/Events/EventAnswer';
 import { EventHost } from '@/Components/Events/EventHost';
 import { EventMeeting } from '@/Components/Events/EventMeeting';
@@ -42,7 +43,8 @@ interface Props {
 /**
  * The page of an event of an events space (#1514, #1515, ADR 0053, design 6.2). In this order: the title (the only h1),
  * the state as text, the cover, the date in the zone of the reader, "Add to calendar" for a member (#1515), the host,
- * the answer of the reader, where it happens, the description, and after the article the comments (#1516). A visitor and
+ * the answer of the reader, where it happens, the description, the replay and the notes after the event (#1516), and
+ * after the article the comments (#1516). A visitor and
  * a person who is not a member read it in a public space, without the meeting address: the server cuts it. A visitor
  * reads the comments with the prompt to sign in.
  *
@@ -213,6 +215,14 @@ export default function EventPage({ community, space, spaceGroups, event, commen
               </ErrorBoundary>
             </section>
           )}
+
+          {/* After the event (#1516, design 6.2 point 2): the replay, the notes, and the link of the host to the form */}
+          <EventAfter
+            event={event}
+            canUpdate={permissions.canUpdate}
+            editHref={`${route(EVENT_EDIT_URL, { communitySlug: community.slug, spaceSlug: space.slug, eventSlug: event.slug })}#event-after`}
+            now={now}
+          />
         </article>
 
         {/* The comments come last, after the article (design 6.2 point 2), with their own live updates. A draft takes

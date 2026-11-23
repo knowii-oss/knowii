@@ -59,6 +59,12 @@ export function eventFixture(cuid: string, title: string, changes: Partial<Recor
     community: { cuid: 'c1', slug: 'tests', name: 'Tests' },
     body: null,
     body_html: null,
+    // After the event (#1516): no replay and no notes
+    can_view_replay: true,
+    replay_url: null,
+    replay: null,
+    notes: null,
+    notes_html: null,
     created_at: '2026-11-10T10:00:00.000000Z',
     updated_at: '2026-11-10T10:00:00.000000Z',
     ...changes,

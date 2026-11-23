@@ -204,7 +204,7 @@ test('an event that the member hosts and answered is one item, and every item ca
         ->and(array_unique(array_column($items, 'body')))->toBe([null]);
 });
 
-test('each item equals the event of GET .../events/{event} for the same reader, field by field, without the description', function () {
+test('each item equals the event of GET .../events/{event} for the same reader, field by field, without the description and the notes', function () {
     $items = (array) uevCall('mia', '?limit=100')->assertOk()->json('data');
     expect($items)->not->toBeEmpty();
 
@@ -213,7 +213,8 @@ test('each item equals the event of GET .../events/{event} for the same reader, 
         $one = (array) test()->actingAs(uevUser('mia'))->getJson(ApiRoutes::path(ApiRoutes::COMMUNITY_SPACE_EVENT, [
             ApiRoutes::PARAM_COMMUNITY => $model->community->cuid, ApiRoutes::PARAM_SPACE => $model->space->cuid, ApiRoutes::PARAM_EVENT => $model->cuid,
         ]))->assertOk()->json('data');
-        unset($one['body'], $one['body_html'], $item['body'], $item['body_html']);
+        // The large fields: the description, and the notes after the event (#1516)
+        unset($one['body'], $one['body_html'], $item['body'], $item['body_html'], $one['notes'], $one['notes_html'], $item['notes'], $item['notes_html']);
 
         expect($item)->toBe($one);
     }

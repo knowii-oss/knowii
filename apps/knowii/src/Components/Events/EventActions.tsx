@@ -31,12 +31,16 @@ type Action = 'publish' | 'cancel' | 'publish-again' | 'draft' | 'duplicate' | '
  *
  * "Answers" (#1515, design 6.4 point 3) is next to "Edit" for the readers of the answers (`permissions.canViewAnswers`:
  * the host, the owner and the admins, never for a draft, never a moderator). It opens the list in a dialog.
+ *
+ * "Cancel it first" (#1516, design 7.2 point 3): when the server would refuse the delete (`mustCancelBeforeDelete`: a
+ * published event that is not over, with a Yes or a Replay only answer), "Delete" asks "Cancel this event first?" and its
+ * "Cancel event" runs the cancel of the menu. A refusal of the server after the page loaded shows in the alert, as today.
  */
 export function EventActions({ community, space, event, permissions, now, onChanged }: EventActionsProps) {
   const { showToast } = useAppData();
   const [busy, setBusy] = useState<Action | null>(null);
   const busyRef = useRef(false);
-  const [confirming, setConfirming] = useState<'cancel' | 'delete' | null>(null);
+  const [confirming, setConfirming] = useState<'cancel' | 'delete' | 'cancel-first' | null>(null);
   // The dialog "Answers" is open. A load of the page (a live update) keeps it open
   const [showingAnswers, setShowingAnswers] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -204,7 +208,11 @@ export function EventActions({ community, space, event, permissions, now, onChan
               )}
               {permissions.canDelete && (
                 <DropdownMenuItem>
-                  <button type="button" className={dropdownMenuItemClasses} onClick={() => setConfirming('delete')}>
+                  <button
+                    type="button"
+                    className={dropdownMenuItemClasses}
+                    onClick={() => setConfirming(permissions.mustCancelBeforeDelete ? 'cancel-first' : 'delete')}
+                  >
                     {EVENT_WORDS.delete}
                   </button>
                 </DropdownMenuItem>
@@ -238,6 +246,31 @@ export function EventActions({ community, space, event, permissions, now, onChan
         size="sm"
         title={EVENT_WORDS.cancelQuestion}
         description={EVENT_WORDS.cancelExplanation}
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setConfirming(null)} autoFocus data-autofocus>
+              {EVENT_WORDS.keep}
+            </Button>
+            <Button
+              variant="danger"
+              loading={busy === 'cancel'}
+              onClick={() => void setState('cancel', 'cancelled', EVENT_WORDS.eventCancelled)}
+            >
+              {EVENT_WORDS.cancelConfirm}
+            </Button>
+          </>
+        }
+      />
+      {/* A published event that members still expect (#1516, design 7.2 point 3): the server refuses its delete, so
+          "Delete" offers the cancel, which shows on the page, in "My events" and in the calendar file. It names no member
+          and gives no count */}
+      <Dialog
+        open={confirming === 'cancel-first'}
+        onClose={() => setConfirming(null)}
+        onAfterClose={focusMenuButton}
+        size="sm"
+        title={EVENT_WORDS.cancelFirstQuestion}
+        description={EVENT_WORDS.cancelFirstExplanation}
         footer={
           <>
             <Button variant="secondary" onClick={() => setConfirming(null)} autoFocus data-autofocus>

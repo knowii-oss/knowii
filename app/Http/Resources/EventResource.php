@@ -8,6 +8,7 @@ use App\Models\Space;
 use App\Models\Upload;
 use App\Models\User;
 use App\Support\EventAnswers;
+use App\Support\VideoEmbed;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -26,6 +27,11 @@ use Laravel\Sanctum\TransientToken;
  * an API token, `capacity` also needs the ability that reads the answers (`event-answers:read`), as the list of the
  * answers does: a token without it reads what a member reads. A visitor and a person who is not a member get null,
  * false, null and null. No field names another member or counts answers.
+ *
+ * After the event (#1516): `replay_url` and `replay` (the click-to-load player of a lesson for a link of its two video
+ * hosts, VideoEmbed::parse, else null) are for the readers who pass EventPolicy::viewReplay (`can_view_replay`): a
+ * visitor and a person who is not a member get false, null and null, and nothing that says whether a replay exists.
+ * `notes` and `notes_html` are large fields, for every reader of the event.
  *
  * WARNING: aligned with eventSchema (event.schema.ts)
  *
@@ -50,6 +56,7 @@ class EventResource extends AbstractKnowiiJsonResource
             EventAnswers::preload(new Collection([$event]), $member);
         }
         $canViewLocation = Gate::forUser($user)->check('viewLocation', $event);
+        $canViewReplay = Gate::forUser($user)->check('viewReplay', $event);
         $seesCapacity = $member !== null && self::tokenReadsAnswers($member)
             && (Gate::forUser($member)->check('viewAnswers', $event) || Gate::forUser($member)->check('update', $event));
 
@@ -86,6 +93,13 @@ class EventResource extends AbstractKnowiiJsonResource
             'community' => $this->whenLoaded('community', fn (Community $community) => ['cuid' => $community->cuid, 'slug' => $community->slug, 'name' => $community->name]),
             'body' => $this->serializeLargeFields ? $event->body : null,
             'body_html' => $this->serializeLargeFields ? $event->body_html : null,
+            // After the event (#1516): the replay for the members who can see the event, cut on the server
+            'can_view_replay' => $canViewReplay,
+            'replay_url' => $canViewReplay ? $event->replay_url : null,
+            'replay' => $canViewReplay ? VideoEmbed::parse($event->replay_url) : null,
+            // For every reader of the event, with the description. Empty: no notes
+            'notes' => $this->serializeLargeFields ? $event->notes : null,
+            'notes_html' => $this->serializeLargeFields ? $event->notes_html : null,
             'created_at' => $event->created_at,
             'updated_at' => $event->updated_at,
         ];

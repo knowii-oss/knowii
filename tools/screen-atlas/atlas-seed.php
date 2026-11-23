@@ -174,7 +174,7 @@ require_once __DIR__.'/atlas-shared.php';
         return $created;
     };
 
-    $comment = static function (User $by, Post|CommunityResource $on, string $body, ?Comment $parent = null) use (&$made, &$history): Comment {
+    $comment = static function (User $by, Post|CommunityResource|EventModel $on, string $body, ?Comment $parent = null) use (&$made, &$history): Comment {
         $found = $on->comments()->where('body', $body)->first();
         if ($found !== null) {
             return $found;
@@ -690,7 +690,7 @@ require_once __DIR__.'/atlas-shared.php';
     // pictures stay what they were
     // ---------------------------------------------------------------------------------------------------------------
 
-    $events = Notify::silenced(function () use ($garden, $owner, $admin, $moderator, $member, $tomas, $lena, $growers, $gardenEvents, $event, $answer, $upload): array {
+    $events = Notify::silenced(function () use ($garden, $owner, $admin, $moderator, $member, $tomas, $lena, $growers, $gardenEvents, $event, $answer, $upload, $comment): array {
         $cover = $upload($owner, $garden, 'Paper bags with seeds on a wooden table', 1600, 900, [255, 236, 179], [129, 199, 132]);
         $swap = $event($owner, $gardenEvents, $owner, 'Seed swap, online', 3, 18, [
             'body' => "Bring the seeds that you saved this year, and a short story about each one.\n\n## How it works\n\n1. Each person shows one seed and says where it grew.\n2. We write down who wants which seed.\n3. You send the seeds by post after the call.\n\nNew gardeners are welcome: you do not need seeds to join.",
@@ -804,7 +804,45 @@ require_once __DIR__.'/atlas-shared.php';
             'state' => 'draft',
         ]);
 
-        return compact('swap', 'workshop', 'cancelled', 'draft', 'past', 'answers', 'answered', 'full', 'cancelledAnswered', 'many', 'replayOnly', 'onePlace', 'memberHosts', 'memberDraft');
+        // After the event (#1516). The host adds the replay link and the notes through the action, once the event is over: a
+        // past event with the player of a lesson, a past event with a plain link and notes, and a past event whose host
+        // plans a replay that is not there yet
+        $after = static function (EventModel $past, array $fields) use ($owner): void {
+            if ($past->replay_url === null && $past->notes === '') {
+                app(UpdateEvent::class)->update($owner, $past, $fields);
+            }
+        };
+        $replayPlayer = $event($owner, $gardenEvents, $moderator, 'Seed saving, recorded session', -10, 18, [
+            'body' => 'How to dry, sort and keep the seeds of tomatoes and beans.',
+            'meeting_url' => 'https://example.com/atlas/meet/seed-saving',
+            'replay_expected' => true,
+        ]);
+        $after($replayPlayer, [
+            'replay_url' => 'https://vimeo.com/76979871',
+            'notes' => "Thank you for the questions.\n\n- Dry the seeds on paper, never on a plate.\n- Keep them in a paper bag with the name and the year.",
+        ]);
+        $replayLink = $event($owner, $gardenEvents, $moderator, 'Watering systems, recorded talk', -14, 19, [
+            'body' => 'Drip lines, wicks and bottles: what works on a balcony.',
+            'meeting_url' => 'https://example.com/atlas/meet/watering-talk',
+            'replay_expected' => true,
+        ]);
+        $after($replayLink, [
+            'replay_url' => 'https://example.com/atlas/replays/watering-systems',
+            'notes' => "## What we said\n\n1. A wick works for small pots.\n2. A drip line needs a timer.\n\nThe **slides** are in the resources space.",
+        ]);
+        $replayExpected = $event($owner, $gardenEvents, $moderator, 'Soil test evening', -2, 19, [
+            'body' => 'We test the soil of three beds and read the results together.',
+            'meeting_url' => 'https://example.com/atlas/meet/soil-test',
+            'replay_expected' => true,
+        ]);
+
+        // The comments of an event (#1516): on the past question hour, with replies
+        $question = $comment($tomas, $past, 'Can I put the peels of oranges in the compost?');
+        $comment($moderator, $past, 'Yes, in small pieces. They take longer than other peels.', $question);
+        $comment($member, $past, 'Thank you, that was my question too.', $question);
+        $comment($lena, $past, 'The tip about the brown leaves saved my compost. Thank you!');
+
+        return compact('swap', 'workshop', 'cancelled', 'draft', 'past', 'answers', 'answered', 'full', 'cancelledAnswered', 'many', 'replayOnly', 'onePlace', 'memberHosts', 'memberDraft', 'replayPlayer', 'replayLink', 'replayExpected');
     });
     $say('events ready');
 
@@ -837,6 +875,10 @@ require_once __DIR__.'/atlas-shared.php';
     // 5. Today: what tells the member something. Every line below writes notifications through the real jobs
     // ---------------------------------------------------------------------------------------------------------------
 
+    // event_comment (#1516): two first-level comments on the event that the member hosts, one bundle ("Tomas and Lena
+    // commented on your event")
+    $comment($tomas, $events['memberHosts'], 'Can I bring seeds of chili peppers too?');
+    $comment($lena, $events['memberHosts'], 'Count me in: I have too many basil seeds.');
     // post_comment, twice by two members: one bundle ("Tomas and Lena commented")
     $comment($tomas, $refs['mine'], 'One more idea: check that the holes of the pot are open.');
     $comment($lena, $refs['mine'], 'And turn the pot a quarter each week, so that every side gets sun.');
@@ -931,6 +973,8 @@ require_once __DIR__.'/atlas-shared.php';
         'many' => [10, 19], 'replayOnly' => [7, 18], 'onePlace' => [9, 15],
         // "My events" (#1515)
         'memberHosts' => [4, 17], 'memberDraft' => [15, 18],
+        // After the event (#1516)
+        'replayPlayer' => [-10, 18], 'replayLink' => [-14, 19], 'replayExpected' => [-2, 19],
     ];
     foreach ($distances as $key => [$days, $hour]) {
         app(UpdateEvent::class)->update($owner, $events[$key]->refresh(), ['starts_at' => $eventTime($days, $hour), 'ends_at' => $eventTime($days, $hour + 1), 'time_zone' => 'Europe/Brussels']);
@@ -981,6 +1025,9 @@ require_once __DIR__.'/atlas-shared.php';
             'answers-many' => $events['many']->slug, 'replay-only' => $events['replayOnly']->slug, 'one-place' => $events['onePlace']->slug,
             // "My events" (#1515): an event that the member hosts, and a draft of the member
             'member-hosts' => $events['memberHosts']->slug, 'member-draft' => $events['memberDraft']->slug,
+            // After the event (#1516): the player, a plain link with notes, a planned replay; the comments; cancel it first
+            'replay-player' => $events['replayPlayer']->slug, 'replay-link' => $events['replayLink']->slug, 'replay-expected' => $events['replayExpected']->slug,
+            'comments' => $events['past']->slug, 'cancel-first' => $events['answered']->slug,
         ],
         'conversations' => ['direct' => $direct->cuid, 'group' => $group->cuid, 'owner' => $direct2->cuid],
         'chat' => ['thread' => $refs['threadTwo']->cuid],

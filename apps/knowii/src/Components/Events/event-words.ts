@@ -14,7 +14,9 @@ const members = (count: number) => (count === 1 ? '1 member' : `${count} members
  * The words of the screens of events (#1514, #1515, ADR 0053), in one place. A text marked [Q] is a text where the
  * design is silent: the owner confirmed these words on 2026-11-20. A text marked [W] is a text of the screens of the
  * answers, of the calendar file and of "My events" (#1515) that the design does not give: a proposal that waits for the
- * owner. A word changes here, and nowhere else. The specs read these values.
+ * owner. A word changes here, and nowhere else. The specs read these values. The [W] words of slice E3 (#1516: after the
+ * event, and "cancel it first") are proposals too; the sentence about the agreement of the people in a recording is the
+ * one that the owner approved on 2026-11-17.
  */
 export const EVENT_WORDS = {
   // The list of an events space (design 6.1)
@@ -124,7 +126,11 @@ export const EVENT_WORDS = {
   cancelExplanation: 'It stays visible with the label Cancelled.',
   cancelConfirm: 'Cancel event',
   deleteQuestion: 'Delete this event?',
-  deleteExplanation: 'This cannot be undone.',
+  // [W] #1516: the delete takes the comments and the answers with it
+  deleteExplanation: 'Its comments and the answers of members are deleted too. This cannot be undone.',
+  // [W] #1516: a published event that members still expect is cancelled first (design 7.2 point 3)
+  cancelFirstQuestion: 'Cancel this event first?',
+  cancelFirstExplanation: 'Members answered Yes or Replay only. Cancel it first, so members are told.',
   deleteConfirm: 'Delete',
   keep: 'Keep the event',
   eventDeleted: 'Event deleted',
@@ -221,6 +227,29 @@ export const EVENT_WORDS = {
   // [Q] A publication takes two or three requests. What is saved when a later one fails, after the message of the server
   savedNotPublished: 'Your changes are saved. The event is not published.',
   publishedHostNotChanged: 'The event is published. The host did not change.',
+
+  // After the event (#1516, design 2.4 and 6.2 point 2): the section of the page
+  // [W]
+  afterEvent: 'After the event',
+  // [W] A replay link that is not of the two video hosts of lessons
+  watchReplay: 'Watch the replay',
+  // [W] For a member, when the host said that a replay will exist and no link is there yet
+  replayPlanned: 'The host plans a replay. It shows here when the host adds it.',
+  // [W]
+  notes: 'Notes',
+  // [W] The link of the people who change the event to its form
+  addReplayAndNotes: 'Add the replay and notes',
+  editReplayAndNotes: 'Edit the replay and notes',
+  // The form, after the event. [W] The legend; "Replay link" and "Notes" are words of the design
+  afterEventLegend: 'After the event',
+  fieldReplayUrl: 'Replay link',
+  // Approved by the owner on 2026-11-17 (design 2.4 point 5): word for word
+  replayConsent: 'Before you add a recording, make sure the people in it agreed.',
+  // [W]
+  replayWho: 'Members who can see the event see it. Visitors do not.',
+  fieldNotes: 'Notes',
+  // [W]
+  notesWho: 'Everyone who can read the event reads the notes.',
 
   // "Next events" on the home and on the public page of a community (design 6.7)
   nextEvents: 'Next events',

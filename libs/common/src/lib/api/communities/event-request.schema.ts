@@ -4,7 +4,9 @@ import {
   MAX_LENGTH_EVENT_BODY,
   MAX_LENGTH_EVENT_COVER_ALT,
   MAX_LENGTH_EVENT_MEETING_URL,
+  MAX_LENGTH_EVENT_NOTES,
   MAX_LENGTH_EVENT_PLACE,
+  MAX_LENGTH_EVENT_REPLAY_URL,
   MAX_LENGTH_EVENT_TITLE,
   MIN_EVENT_CAPACITY,
   MIN_LENGTH_EVENT_TITLE,
@@ -57,6 +59,16 @@ const meetingUrlSchema = z
   .trim()
   .max(MAX_LENGTH_EVENT_MEETING_URL, { error: `The address is too long (maximum ${MAX_LENGTH_EVENT_MEETING_URL} characters)` })
   .refine((value) => value === '' || safeHttpUrl(value) !== null, { error: 'Use an address that starts with http:// or https://' });
+// After the event (#1516): empty, or an absolute http or https address. The page shows the player of a lesson for a link
+// of its two video hosts, and a plain link for any other address
+const replayUrlSchema = z
+  .string()
+  .trim()
+  .max(MAX_LENGTH_EVENT_REPLAY_URL, { error: `The address is too long (maximum ${MAX_LENGTH_EVENT_REPLAY_URL} characters)` })
+  .refine((value) => value === '' || safeHttpUrl(value) !== null, { error: 'Use an address that starts with http:// or https://' });
+const notesSchema = z
+  .string()
+  .max(MAX_LENGTH_EVENT_NOTES, { error: `The notes are too long (maximum ${MAX_LENGTH_EVENT_NOTES} characters)` });
 
 /**
  * What a wrong limit of places says, next to its field
@@ -112,6 +124,9 @@ export const eventFormSchema = z.object({
   capacity: capacityTextSchema,
   // "A replay will exist": "Replay only" is then an answer
   replay_expected: z.boolean(),
+  // After the event (#1516): the form of a published event that ended shows them
+  replay_url: replayUrlSchema,
+  notes: notesSchema,
 });
 export type EventForm = z.infer<typeof eventFormSchema>;
 
@@ -149,7 +164,11 @@ export type EventRequest = z.infer<typeof eventRequestSchema>;
 
 /**
  * What the API takes to change an event: every field of a create is optional, and the state has its own call
- * (`setState`). WARNING: aligned with UpdateEvent.php
+ * (`setState`). The replay link and the notes (#1516) are for a change only: a value that is not empty needs a published
+ * event that ended, and null or an empty text clears it. WARNING: aligned with UpdateEvent.php
  */
-export const eventUpdateRequestSchema = eventRequestSchema.omit({ state: true, notify_now: true }).partial();
+export const eventUpdateRequestSchema = eventRequestSchema.omit({ state: true, notify_now: true }).partial().extend({
+  replay_url: replayUrlSchema.nullable().optional(),
+  notes: notesSchema.nullable().optional(),
+});
 export type EventUpdateRequest = z.infer<typeof eventUpdateRequestSchema>;

@@ -2,17 +2,23 @@
 
 use App\ApiRoutes;
 use App\Constants;
+use App\Contracts\Events\DeletesEvents;
 use App\Enums\KnowiiEventLocationVisibility;
 use App\Enums\KnowiiSpacePostingPolicy;
 use App\Enums\KnowiiSpaceType;
 use App\Enums\KnowiiSpaceVisibility;
 use App\Events\Spaces\SpaceTreeChanged;
+use App\Exceptions\BusinessException;
 use App\Models\AccessGroup;
 use App\Models\Event as EventModel;
+use App\Models\EventAnswer;
 use App\Models\Space;
 use App\Models\SpaceGroup;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Testing\TestResponse;
@@ -114,7 +120,7 @@ test('a moderator creates, reads, changes, publishes, duplicates and deletes an 
         ->assertJsonPath('data.cover', null);
     expect(array_keys((array) $created->json('data')))->toBe([
         'cuid', 'title', 'slug', 'state', 'starts_at', 'ends_at', 'time_zone', 'is_past', 'location_visibility', 'can_view_location',
-        'meeting_url', 'place', 'my_answer', 'can_answer', 'replay_expected', 'places_left', 'capacity', 'cover', 'cover_alt', 'host', 'space', 'community', 'body', 'body_html', 'created_at', 'updated_at',
+        'meeting_url', 'place', 'my_answer', 'can_answer', 'replay_expected', 'places_left', 'capacity', 'cover', 'cover_alt', 'host', 'space', 'community', 'body', 'body_html', 'can_view_replay', 'replay_url', 'replay', 'notes', 'notes_html', 'created_at', 'updated_at',
     ]);
     $event = EventModel::query()->where('cuid', $created->json('data.cuid'))->firstOrFail();
 
@@ -425,4 +431,100 @@ test('creating and duplicating events is limited per member', function () {
 
     $this->postJson(evaPath(ApiRoutes::COMMUNITY_SPACE_EVENTS, $space), $input)->assertStatus(429);
     $this->postJson(evaPath(ApiRoutes::COMMUNITY_SPACE_EVENT_DUPLICATE, $space, $this->published['public']))->assertStatus(429);
+});
+
+// Cancel it first (#1516, rules 40 to 43)
+// ---------------------------------------------------------------------------------------------------------------------
+
+/**
+ * An event of the members space for the "cancel it first" rule, with one answer of a member
+ */
+function evaDeleteCase(string $case): EventModel
+{
+    $test = test();
+    $factory = EventModel::factory()->inSpace($test->spaces['members'])->hostedBy($test->c['moderator']);
+    $member = User::factory()->withUserProfile()->create();
+    $test->c['community']->users()->attach($member, ['role' => 'member']);
+    $groups = $case === 'lost access' ? evaGroupsSpace() : null;
+    $event = match ($case) {
+        'now' => $factory->create(['starts_at' => now()->subMinutes(30), 'ends_at' => now()->addMinutes(30)]),
+        'ended' => $factory->past()->create(),
+        'cancelled' => $factory->cancelled()->create(),
+        'draft' => $factory->draft()->create(),
+        'lost access' => $factory->inSpace($groups ?? $test->spaces['members'])->create(),
+        default => $factory->create(),
+    };
+    $answer = match ($case) {
+        'replay' => 'replay',
+        'no' => 'no',
+        'nobody' => null,
+        default => 'yes',
+    };
+    $buyers = $groups?->accessGroups()->first();
+    $buyers?->members()->attach($member->id);
+    if ($answer !== null) {
+        EventAnswer::factory()->to($event)->of($member)->{$answer}()->create();
+    }
+    // The member lost the access group of the space: the answer stays and counts for nothing
+    $buyers?->members()->detach($member->id);
+
+    return $event;
+}
+
+function evaGroupsSpace(): Space
+{
+    $test = test();
+    $space = Space::factory()->inGroup($test->spaces['members']->spaceGroup)->create(['type' => KnowiiSpaceType::Events, 'visibility' => KnowiiSpaceVisibility::Groups]);
+    $buyers = AccessGroup::query()->create(['community_id' => $test->c['community']->id, 'name' => 'EVA buyers']);
+    $space->accessGroups()->attach($buyers);
+    $buyers->members()->attach($test->c['moderator']->id);
+
+    return $space;
+}
+
+test('a published event that members still expect cannot be deleted: cancel it first, through the action and through DELETE', function (string $case) {
+    $event = evaDeleteCase($case);
+
+    expect(fn () => app(DeletesEvents::class)->delete($this->c['owner'], $event))
+        ->toThrow(BusinessException::class, 'Cancel it first, so members are told.');
+    $this->actingAs($this->c['moderator'])->deleteJson(evaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $event->space, $event))
+        ->assertStatus(422)
+        ->assertJsonPath('message', 'Cancel it first, so members are told.');
+
+    expect(EventModel::query()->whereKey($event->id)->exists())->toBeTrue()
+        ->and(EventAnswer::query()->where('event_id', $event->id)->count())->toBe(1);
+})->with([
+    'a Yes' => ['yes'],
+    'a Replay only' => ['replay'],
+    'an event that happens now' => ['now'],
+]);
+
+test('a draft, a cancelled event, an event that ended, a No alone, no answer and the answer of a member who lost the access do not block a delete', function (string $case) {
+    $event = evaDeleteCase($case);
+
+    $this->actingAs($this->c['moderator'])->deleteJson(evaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $event->space, $event))
+        ->assertNoContent();
+
+    expect(EventModel::query()->whereKey($event->id)->exists())->toBeFalse()
+        ->and(EventAnswer::query()->where('event_id', $event->id)->count())->toBe(0);
+})->with([
+    'a draft' => ['draft'],
+    'a cancelled event' => ['cancelled'],
+    'an event that ended' => ['ended'],
+    'a No alone' => ['no'],
+    'no answer' => ['nobody'],
+    'a Yes of a member who lost the access' => ['lost access'],
+]);
+
+test('the rule of the delete reads the row of the event inside a lock, and still needs the right to delete', function () {
+    $event = evaDeleteCase('nobody');
+    $statements = [];
+    DB::listen(function (QueryExecuted $query) use (&$statements) {
+        $statements[] = strtolower($query->sql);
+    });
+
+    expect(fn () => app(DeletesEvents::class)->delete($this->c['member'], $event))->toThrow(AuthorizationException::class);
+    app(DeletesEvents::class)->delete($this->c['moderator'], $event);
+
+    expect(collect($statements)->contains(fn (string $sql) => preg_match('/from "events" where .* for update$/', $sql) === 1))->toBeTrue();
 });

@@ -1,0 +1,26 @@
+meta {
+  name: Events - Update - Replay before the end
+  type: http
+  seq: 236
+}
+
+patch {
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of an events space>/events/<cuid of an event that is not over>
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "replay_url": "https://replays.example.com/weekly-review"
+  }
+}
+
+docs {
+  The replay link and the notes are for a published event whose end passed (#1516). Before the end, on a cancelled event and on a draft, a value that is not empty answers 400 with a field error: "Add the replay once the event is published and over." (replay_url) or "Add the notes once the event is published and over." (notes). A published event that did not start yet answers 422 to an end in the past: "This event did not happen yet. Cancel it instead." An event that is over and holds a replay link or notes, in any state, answers 422 to a move that makes it not over: "Remove the replay link and the notes before you move this event to a later time." Ability events:write.
+}

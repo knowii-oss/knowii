@@ -8,7 +8,7 @@ A design says what a feature does for the people who use it, and why, before it 
 | ----------------------------------------------------- | ------------------------------------------ | ---------------------------- | ------------------ |
 | [Notifications](notifications/design.md)              | Approved (2026-11-15); slices 1 to 3 built | #1392, slices #1474 to #1483 | ADR 0042, ADR 0048 |
 | [Email groundwork](notifications/email-groundwork.md) | Approved (2026-11-17); not built           | #1477, #1478                 |                    |
-| [Events](events/design.md)                            | Approved (2026-11-16); E1 and E2 built     | #1388, slices #1513 to #1516 | ADR 0053           |
+| [Events](events/design.md)                            | Approved (2026-11-16); E1 to E3 built      | #1388, slices #1513 to #1516 | ADR 0053           |
 | [Component toolkit](component-toolkit/proposal.md)    | Accepted (2026-11-17); slice 1 built       | #657                         | ADR 0049           |
 | [Personal knowledge layer](personal-layer/design.md)  | Draft; not approved                        | #1525, epic #1524            |                    |
 
