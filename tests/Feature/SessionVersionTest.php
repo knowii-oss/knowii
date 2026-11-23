@@ -272,7 +272,9 @@ test('with the array driver the session of before still exists after a takeover:
     svSignedUpAccount();
     $cookies = svSignInWithPassword()['session'];
     $id = (string) reset($cookies);
-    expect(app('session')->driver()->getHandler()->read($id))->toContain(EndOutdatedSessions::SESSION_KEY);
+    // The session is encrypted by default (ADR 0064): the stored value is read as the store reads it
+    $stored = (string) app('session')->driver()->getHandler()->read($id);
+    expect(config('session.encrypt') ? (string) app('encrypter')->decrypt($stored) : $stored)->toContain(EndOutdatedSessions::SESSION_KEY);
 
     svTakeOver('link');
     expect(app('session')->driver()->getHandler()->read($id))->not->toBe('');

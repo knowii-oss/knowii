@@ -57,7 +57,22 @@ export type InertiaSharedProps<T = NonNullable<unknown>> = T & {
    * so nothing links to it. Without the prop no text exists: no link, and no sentence that names a text.
    */
   legalPages?: LegalPageSlug[];
+  /**
+   * The page view of the statistics (#1316, ADR 0064): null when the instance sets none, and at an address that holds a
+   * link token or a signature. apps/knowii/src/statistics.ts sends it
+   */
+  statistics?: StatisticsPageProp | null;
 };
+
+/**
+ * Where a page sends its page view (App\Support\Analytics::pageProp()): the event address of the proxy, the site, and the
+ * address of the page view, which the server cleans (the origin and the path, and of the query only the campaign keys)
+ */
+export interface StatisticsPageProp {
+  endpoint: string;
+  domain: string;
+  url: string;
+}
 
 /**
  * The values of one instance that the pages show (#1653, ADR 0055). They come from the configuration of the server

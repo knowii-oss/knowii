@@ -116,7 +116,7 @@ function noAccessAssertNoSecret(TestResponse $response): void
  */
 function noAccessPageProps(array $props): array
 {
-    return array_diff_key($props, array_flip(['auth', 'userProfile', 'jetstream', 'errors', 'errorBags', 'ziggy', 'newsletter', 'instance', 'legalPages', 'oidc', 'catchUp', 'communityCount']));
+    return array_diff_key($props, array_flip(['auth', 'userProfile', 'jetstream', 'errors', 'errorBags', 'ziggy', 'newsletter', 'instance', 'legalPages', 'oidc', 'catchUp', 'communityCount', 'statistics']));
 }
 
 dataset('no access communities with a public page', ['open', 'invitation']);

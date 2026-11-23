@@ -88,3 +88,4 @@ Do not write an ADR for a bug fix, a refactor that keeps the structure, or a fea
 | [0061](0061-invitations-carry-access-groups-and-tags-and-come-from-a-file.md)                  | Invitations carry access groups and tags, and many come from a file              | Accepted |
 | [0062](0062-invite-links-a-shared-link-to-join-a-community-with-set-access-groups-and-tags.md) | Invite links: a shared link to join a community, with set access groups and tags | Accepted |
 | [0063](0063-a-member-chooses-to-be-in-the-member-list-of-their-communities.md)                 | A member chooses to be in the member list of their communities                   | Accepted |
+| [0064](0064-the-session-and-the-statistics-keep-no-address-that-holds-a-secret.md)             | The session and the statistics keep no address that holds a secret               | Accepted |

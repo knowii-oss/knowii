@@ -120,11 +120,15 @@ function ilpageJoin(Community $community): TestResponse
 }
 
 /**
- * The decoded payloads of every session of the database
+ * The decoded payloads of every session of the database, decrypted when the sessions are encrypted (the default, ADR 0064)
  */
 function ilpageSessionPayloads(): string
 {
-    return DB::table('sessions')->pluck('payload')->map(static fn ($payload): string => (string) base64_decode((string) $payload, true))->implode("\n");
+    return DB::table('sessions')->pluck('payload')->map(static function ($payload): string {
+        $stored = (string) base64_decode((string) $payload, true);
+
+        return config('session.encrypt') ? (string) app('encrypter')->decrypt($stored) : $stored;
+    })->implode("\n");
 }
 
 function ilpageIsMember(User $user, Community $community): bool
@@ -553,7 +557,7 @@ test('the page of a link is never indexed, and robots.txt blocks the addresses o
     }
 });
 
-test('the page of a link loads no statistics script, also when the instance sets the values, and another page does', function () {
+test('the page of a link sends no page view, also when the instance sets the values, and another page does', function () {
     config(['services.plausible.domain' => 'community.example.com', 'services.plausible.proxy_url' => 'https://stats.example.com']);
 
     $open = $this->get(route('invite-links.open', ['inviteLinkToken' => $this->link->token]));
@@ -563,13 +567,11 @@ test('the page of a link loads no statistics script, also when the instance sets
         if (! $works) {
             $this->link->update(['active' => false]);
         }
-        $html = (string) $this->get(route('invite-links.show'))->getContent();
-        expect($html)->not->toContain('stats.example.com')
-            ->and($html)->not->toContain('data-domain=')
-            ->and($html)->not->toContain('/content/script.js');
+        $page = $this->get(route('invite-links.show'))->assertInertia(fn ($page) => $page->where('statistics', null));
+        expect((string) $page->getContent())->not->toContain('stats.example.com');
     }
 
-    expect((string) $this->get('/')->getContent())->toContain('src="https://stats.example.com/content/script.js"');
+    $this->get('/')->assertInertia(fn ($page) => $page->where('statistics.endpoint', 'https://stats.example.com/api/v1/event'));
 });
 
 test('the settings page tells the owner and the admins of a shared community that they manage the invite links, and nobody else', function (string $who, bool $manageMembers, bool $allowed) {

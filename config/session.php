@@ -45,9 +45,14 @@ return [
     | should be encrypted before it's stored. All encryption is performed
     | automatically by Laravel and you may use the session like normal.
     |
+    | The session is encrypted by default (ADR 0064): the table of the sessions
+    | then holds no value of a session in clear, also a future one. Only an
+    | explicit false value turns it off (false, 0, off or no, in any case):
+    | an empty value keeps it on.
+    |
     */
 
-    'encrypt' => env('SESSION_ENCRYPT', false),
+    'encrypt' => ! in_array(strtolower(trim(var_export(env('SESSION_ENCRYPT'), true), "' ")), ['false', '0', 'off', 'no'], true),
 
     /*
     |--------------------------------------------------------------------------

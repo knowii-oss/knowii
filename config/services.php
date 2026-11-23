@@ -14,8 +14,8 @@ return [
     |
     */
 
-    // Plausible audience statistics through a proxy (#1316): off unless both values are set. The proxy serves the
-    // script at /content/script.js and receives the events at /api/v1/event (for example https://stats.example.com)
+    // Plausible audience statistics through a proxy (#1316): off unless both values are set. The pages send their page
+    // views to /api/v1/event of the proxy (for example https://stats.example.com), and load no script of it (ADR 0064)
     'plausible' => [
         'domain' => env('PLAUSIBLE_DOMAIN'),
         'proxy_url' => env('PLAUSIBLE_PROXY_URL'),
