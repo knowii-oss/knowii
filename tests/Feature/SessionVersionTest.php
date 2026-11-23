@@ -4,9 +4,9 @@ use App\Contracts\Auth\ReadsOpenIdConnectIdentities;
 use App\Http\Middleware\EndOutdatedSessions;
 use App\Mail\MagicLink;
 use App\Models\User;
+use App\Notifications\ResetPasswordLink;
 use App\Support\OpenIdIdentity;
 use Illuminate\Auth\Middleware\Authenticate;
-use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Broadcasting\BroadcastManager;
 use Illuminate\Http\Request;
 use Illuminate\Session\ArraySessionHandler;
@@ -191,7 +191,7 @@ function svTakeOver(string $way): void
         Notification::fake();
         test()->post('/forgot-password', ['email' => SV_EMAIL])->assertSessionHasNoErrors();
         $token = '';
-        Notification::assertSentTo(User::query()->where('email', SV_EMAIL)->firstOrFail(), ResetPassword::class, function (ResetPassword $notification) use (&$token) {
+        Notification::assertSentTo(User::query()->where('email', SV_EMAIL)->firstOrFail(), ResetPasswordLink::class, function (ResetPasswordLink $notification) use (&$token) {
             $token = $notification->token;
 
             return true;

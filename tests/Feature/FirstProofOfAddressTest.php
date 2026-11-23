@@ -14,6 +14,7 @@ use App\Mail\MagicLink;
 use App\Models\User;
 use App\Models\UserEntitlement;
 use App\Models\UserIdentity;
+use App\Notifications\ResetPasswordLink;
 use App\Support\OpenIdIdentity;
 use App\Support\ReverbLiveConnections;
 use GuzzleHttp\Exception\ConnectException;
@@ -23,7 +24,6 @@ use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request as GuzzleRequest;
 use GuzzleHttp\Psr7\Response;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Contracts\Auth\StatefulGuard;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Log\Events\MessageLogged;
@@ -142,7 +142,7 @@ function firstProofResetToken(User $user): string
     Notification::fake();
     test()->post('/forgot-password', ['email' => $user->email])->assertSessionHasNoErrors();
     $token = '';
-    Notification::assertSentTo($user, ResetPassword::class, function (ResetPassword $notification) use (&$token) {
+    Notification::assertSentTo($user, ResetPasswordLink::class, function (ResetPasswordLink $notification) use (&$token) {
         $token = $notification->token;
 
         return true;
@@ -527,11 +527,14 @@ test('a password reset changes only the password of an account with a verified a
     $this->assertGuest();
 });
 
-test('a password reset of the pending address of a member finds no account, and the member keeps everything', function () {
+test('a password reset of the pending address of a member gets the same answer as every address, sends no mail, and the member keeps everything', function () {
     $account = firstProofMemberWithANewAddress();
 
     Notification::fake();
-    $this->post('/forgot-password', ['email' => FIRST_PROOF_NEW_ADDRESS])->assertSessionHasErrors('email');
+    $this->from('/forgot-password')->post('/forgot-password', ['email' => FIRST_PROOF_NEW_ADDRESS])
+        ->assertRedirect('/forgot-password')
+        ->assertSessionHasNoErrors()
+        ->assertSessionHas('status', 'If an account has this address, we sent it a password reset link. The link works for 60 minutes.');
     Notification::assertNothingSent();
 
     firstProofMemberKeptEverything($account);

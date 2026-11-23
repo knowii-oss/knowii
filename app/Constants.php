@@ -206,6 +206,9 @@ class Constants
 
     public const int INVITATIONS_PER_MINUTE = 10;
 
+    // Requests of the password reset form per hour and per IP address, for any address: one person never reaches it
+    public const int PASSWORD_RESETS_PER_IP_PER_HOUR = 20;
+
     // The largest page of the pending invitations (#1390): a file adds up to 1000 of them. WARNING: aligned with constants.ts
     public const int MAX_INVITATIONS_PAGE_LIMIT = 1000;
 

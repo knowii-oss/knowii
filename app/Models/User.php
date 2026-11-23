@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Actions\Users\UpdateAvatar;
 use App\Http\Resources\UserResource;
+use App\Notifications\ResetPasswordLink;
 use App\Notifications\VerifyEmailAddress;
 use App\Support\Landing;
 use App\Support\Retention;
@@ -426,6 +427,16 @@ class User extends Authenticatable implements MustVerifyEmail
     final public function sendEmailVerificationNotification(): void
     {
         $this->notify(new VerifyEmailAddress(Landing::fromSession()));
+    }
+
+    /**
+     * The password reset mail goes through the queue, encrypted, as the other mails that hold a link (ADR 0064)
+     *
+     * @param  string  $token
+     */
+    final public function sendPasswordResetNotification(#[\SensitiveParameter] $token): void
+    {
+        $this->notify(new ResetPasswordLink($token));
     }
 
     /**
