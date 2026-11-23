@@ -11,11 +11,13 @@ import {
   MEMBER_SEARCH_MAX_LENGTH,
   MEMBER_URL,
   MEMBERS_URL,
+  USER_PROFILE_URL,
 } from '@knowii/common';
 import { FaGear, FaMagnifyingGlass, FaUsers } from 'react-icons/fa6';
 import AppLayout from '@/Layouts/AppLayout';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
+import { HiddenFromListBadge } from '@/Components/Members/HiddenFromListBadge';
 import { CommunityShell } from '@/Components/Spaces/CommunityShell';
 import type { BreadcrumbItem } from '@/Components/ui';
 import {
@@ -59,6 +61,9 @@ export const MEMBER_DIRECTORY_WORDS = {
   emptyTitle: 'No member matches this search',
   clearSearch: 'Clear the search',
   loadMore: 'Load more',
+  // The line above the list for a reader who hides from it (#1466), and its link to the profile
+  hiddenFromList: 'You are hidden from this list. Only you and the managers see your entry.',
+  changeHiddenFromList: 'Change it in your profile',
 } as const;
 
 // The pause in the typing after which the list follows the search text
@@ -91,6 +96,11 @@ interface Props {
    * The reader can add members: the page shows the link to the member management of the settings
    */
   canManageMembers: boolean;
+  /**
+   * The reader chose to hide from the member list and is not on the team (#1466): the other members do not find the
+   * reader here. Computed on the server
+   */
+  hiddenFromList: boolean;
 }
 
 /**
@@ -136,7 +146,7 @@ const listOf = (members: Paginated<CommunityMember>): ShownList => ({
  * an alert line says to wait; the line goes away at the next visit that succeeds. "Load more" says the same in its
  * own error line.
  */
-export default function MembersPage({ community, spaceGroups, members, sort, query, canManageMembers }: Props) {
+export default function MembersPage({ community, spaceGroups, members, sort, query, canManageMembers, hiddenFromList }: Props) {
   const [searchText, setSearchText] = useState(query);
   const [list, setList] = useState<ShownList>(() => listOf(members));
   if (list.source !== members) {
@@ -377,6 +387,15 @@ export default function MembersPage({ community, spaceGroups, members, sort, que
             </div>
           </div>
 
+          {hiddenFromList && (
+            <p className="text-sm text-muted">
+              {MEMBER_DIRECTORY_WORDS.hiddenFromList}{' '}
+              <Link href={route(USER_PROFILE_URL)} className="underline underline-offset-2 hover:text-primary">
+                {MEMBER_DIRECTORY_WORDS.changeHiddenFromList}
+              </Link>
+            </p>
+          )}
+
           {/* "128 members", "3 members found", then "20 more loaded": polite, and always in the page so that a screen
               reader reads each change */}
           <p role="status" aria-live="polite" className="text-sm text-muted">
@@ -442,7 +461,8 @@ interface MemberEntryProps {
 /**
  * An entry of the directory, in the order that a screen reader gives: the picture (a decoration: the name is next to
  * it), the name as the only link, the username, the headline when the member shows one (#1688), the role of the owner,
- * of an admin and of a moderator as a text label, and the date of joining. A long name and a long username are cut; the
+ * of an admin and of a moderator as a text label, the marker of a member whom the other members do not find here (#1466),
+ * and the date of joining. A long name and a long username are cut; the
  * headline wraps.
  */
 function MemberEntry({ member, href }: MemberEntryProps) {
@@ -462,6 +482,7 @@ function MemberEntry({ member, href }: MemberEntryProps) {
         {member.headline && <p className="mt-1 text-sm wrap-anywhere">{member.headline}</p>}
         <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted empty:hidden">
           {member.role !== 'member' && <Badge variant="neutral">{COMMUNITY_ROLE_LABELS[member.role]}</Badge>}
+          {!member.in_member_list && <HiddenFromListBadge />}
           {member.member_since && (
             <span>
               {MEMBER_DIRECTORY_WORDS.joined} <RelativeTime date={member.member_since} />

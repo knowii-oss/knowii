@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Inertia;
 
 use App\Constants;
+use App\Http\Resources\AuthorResource;
 use App\Models\ChatMessage;
 use App\Models\Community;
+use App\Models\CommunityMember;
 use App\Models\Conversation;
 use App\Models\User;
 use App\Support\Conversations;
 use App\Support\SpaceTree;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Resources\Json\ResourceCollection;
@@ -68,7 +71,35 @@ class ConversationController extends Controller
             // A one-to-one conversation: whether the member blocked the other one (Block or Unblock)
             'blockedByMe' => $conversation !== null && $conversation->isDirect()
                 && $user->blockedUsers()->whereIn('users.id', $conversation->participants()->whereKeyNot($user->id)->select('users.id'))->exists(),
+            // "Send a message" on a member page (`?to=username`, #1466): the member to write to, found here and not in the
+            // member list, which leaves out the members who hide from it
+            'recipient' => static fn (): ?AuthorResource => self::recipient($request, $community, $user),
         ]);
+    }
+
+    /**
+     * The person of the community whose username is `to` without the case: the owner or a person with a membership row.
+     * Null for the reader, for anyone outside the community, for an unknown username and for a value that is not a text.
+     * The choice to hide from the member list does not count: the reader holds the username, and the member page answers
+     * for it (#1466).
+     */
+    private static function recipient(Request $request, Community $community, User $user): ?AuthorResource
+    {
+        $username = $request->query('to');
+        if (! is_string($username) || trim($username) === '') {
+            return null;
+        }
+
+        $recipient = User::query()
+            ->whereRaw('lower(username) = ?', [mb_strtolower(trim($username))])
+            ->whereKeyNot($user->id)
+            ->where(function (Builder $scope) use ($community) {
+                $scope->where('users.id', $community->owner_id)
+                    ->orWhereIn('users.id', CommunityMember::query()->where('community_id', $community->id)->select('user_id'));
+            })
+            ->first();
+
+        return $recipient?->toResource(AuthorResource::class);
     }
 
     /**

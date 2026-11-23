@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
 /**
  * A member of a community with their role (#1242). Not named CommunityMemberResource: it wraps a User, not the
  * CommunityMember pivot. The user comes from CommunityMemberQuery, which adds
- * `community_role` and `community_member_since`, and loads the profile for the headline (#1688). Its tags (#1389, ADR
+ * `community_role`, `community_member_since` and `community_in_member_list` (#1466), and loads the profile for the headline (#1688). Its tags (#1389, ADR
  * 0060) are the ones that MemberTagsOfMembers::attach() put on the user for the reader: none when nothing did.
  *
  * @mixin User
@@ -44,6 +44,9 @@ class MemberWithRoleResource extends AbstractKnowiiJsonResource
             'member_since' => is_string($memberSince) || $memberSince instanceof DateTimeInterface ? Carbon::parse($memberSince) : null,
             // The tags that the reader may see, by name (#1389, ADR 0060)
             'tags' => MemberTagsOfMembers::of($user)->toResourceCollection(),
+            // Whether the other members of this community find the person in the member list (#1466): false only for a
+            // person who chose to hide and is not on the team. Only a manager and the person themself get such an entry
+            'in_member_list' => filter_var($this->getAttribute('community_in_member_list') ?? true, FILTER_VALIDATE_BOOLEAN),
         ];
     }
 }

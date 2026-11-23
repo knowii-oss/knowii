@@ -35,7 +35,9 @@ class MemberApiController extends Controller
      * List the members of the community with their role. Without `sort`: owner first, then admins, moderators and
      * members. With a query: the members whose username, or a word of their name, starts with it. Each entry holds the
      * member tags that the caller may see (`tags`, by name): every tag for the people who manage the members, the tags
-     * that the managers show to the members for another member. Limited per minute.
+     * that the managers show to the members for another member. The list leaves out the members who chose to hide from
+     * it (#1466), except the owner, the admins, the moderators and the caller; the people who manage the members get
+     * everyone. `in_member_list` tells whether the other members find the person in the list. Limited per minute.
      */
     #[QueryParameter('query', description: 'Beginning of the username or of a word of the name. The server keeps its first 100 characters. Empty: every member', type: 'string', example: 'ada')]
     #[QueryParameter('sort', description: 'The order. role: owner, admins, moderators, members, each by username. name: the name from A to Z. newest: the date of joining, the newest first. Any other value: role', type: "'role'|'name'|'newest'", default: 'role', example: 'name')]
@@ -50,7 +52,7 @@ class MemberApiController extends Controller
         $sort = $request->query('sort');
         $query = CommunityMemberQuery::searchText(is_string($query) ? $query : '');
         $sort = KnowiiMemberSort::forApi(is_string($sort) ? $sort : null);
-        $page = Pagination::fromRequest($request)->apply(CommunityMemberQuery::for($community, $query, $sort));
+        $page = Pagination::fromRequest($request)->apply(CommunityMemberQuery::for($community, $request->user() ?? throw new AuthenticationException, $query, $sort));
         // One query for the tags of the whole page (#1389, ADR 0060)
         MemberTagsOfMembers::attach($community, $page['items'], $request->user());
 
@@ -66,10 +68,12 @@ class MemberApiController extends Controller
     #[BodyParameter('role', description: 'admin, moderator or member: lower than the role of the caller', required: true, type: 'string', example: 'moderator')]
     final public function update(Request $request, Community $community, string $member): JsonResponse
     {
-        app(UpdatesCommunityMemberRoles::class)->update($request->user() ?? throw new AuthenticationException, $community, $member, $request->only(['role']));
+        $caller = $request->user() ?? throw new AuthenticationException;
+        app(UpdatesCommunityMemberRoles::class)->update($caller, $community, $member, $request->only(['role']));
 
+        // The caller manages the members, so the member is in the list that the caller reads (#1466)
         /** @var User $updated */
-        $updated = CommunityMemberQuery::for($community)->where('users.cuid', $member)->firstOrFail();
+        $updated = CommunityMemberQuery::for($community, $caller)->where('users.cuid', $member)->firstOrFail();
         MemberTagsOfMembers::attach($community, [$updated], $request->user());
 
         return self::success('Role changed', null, $updated->toResource(MemberWithRoleResource::class));

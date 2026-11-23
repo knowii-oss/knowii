@@ -24,6 +24,7 @@ Names are in English. One concept has one name everywhere: in the database, the 
 | member tag        | label, badge, tag (alone)                         | A label that the managers of a community put on a member, "Founder" (`App\Models\MemberTag`, ADR 0060)                                  |
 | invitation import | bulk invite, mass invite, CSV import (alone)      | The invitations of one CSV file: a preview, then a log of each row (`App\Models\InvitationImport`, ADR 0061)                            |
 | invite link       | join link, share link, invitation link (for this) | An address that the managers share: anyone who holds it joins as a member, with its groups and tags (`App\Models\InviteLink`, ADR 0062) |
+| hidden member     | unlisted member, private member                   | A member whom the other members do not find in the member list, by their own choice (`users.show_in_member_list`, ADR 0063)             |
 | upload            | attachment, file                                  | A file a member sent (images first)                                                                                                     |
 
 ## PHP

@@ -446,7 +446,7 @@ test('each entry of the member list holds the headline that its member shows (#1
         ->and($entries->firstWhere('cuid', $this->member->cuid)['headline'])->toBe(HEADLINE_PROBE)
         ->and($entries->firstWhere('cuid', $this->c['admin']->cuid)['headline'])->toBe('The headline of the admin')
         ->and($entries->firstWhere('cuid', $this->c['owner']->cuid)['headline'])->toBe('')
-        ->and(array_keys($entries->firstWhere('cuid', $this->member->cuid)))->toEqualCanonicalizing(['cuid', 'name', 'username', 'avatar_url', 'role', 'member_since', 'headline', 'tags']);
+        ->and(array_keys($entries->firstWhere('cuid', $this->member->cuid)))->toEqualCanonicalizing(['cuid', 'name', 'username', 'avatar_url', 'role', 'member_since', 'headline', 'tags', 'in_member_list']);
 })->with(['reader', 'owner']);
 
 test('the member list holds nothing of a hidden headline, also for the owner (#1688)', function (string $viewer) {

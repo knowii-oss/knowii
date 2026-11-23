@@ -21,6 +21,7 @@ import {
   COMMUNITY_CONVERSATION_MESSAGE_REACTIONS_API_PATH,
   USER_IDENTITIES_API_PATH,
   USER_ONLINE_STATUS_API_PATH,
+  USER_MEMBER_LIST_API_PATH,
   COMMUNITY_ONLINE_MEMBERS_API_PATH,
   COMMUNITY_SPACE_ONLINE_MEMBERS_API_PATH,
   COMMUNITY_API_PATH,
@@ -1861,6 +1862,14 @@ export const knowiiApiClient = {
       apiRequest('put', USER_NOTIFICATION_SETTINGS_API_PATH, ownAccountSettingsSchema, 'Failed to save the pop-up choice.', { popups }),
     updateOnlineStatus: (show: boolean): Promise<ApiResult<unknown>> =>
       apiRequest('patch', USER_ONLINE_STATUS_API_PATH, null, 'Failed to change your online status.', { show_online_status: show }),
+    /**
+     * Show or hide the current member in the member list of their communities (#1466). The team of a community is always
+     * in its list, and the managers see everyone.
+     */
+    updateMemberListVisibility: (show: boolean): Promise<ApiResult<unknown>> =>
+      apiRequest('patch', USER_MEMBER_LIST_API_PATH, null, 'Failed to change your choice for the member list.', {
+        show_in_member_list: show,
+      }),
     isUsernameAvailable: async (input: IsUsernameAvailableRequest, signal?: AbortSignal): Promise<IsUsernameAvailableResponse> => {
       try {
         const response = await fetch(USERS_API_IS_USERNAME_AVAILABLE_PATH, {

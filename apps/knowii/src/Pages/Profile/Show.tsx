@@ -4,6 +4,7 @@ import { useTypedPage } from '@knowii/common';
 import UpdateProfileInformationForm from '@/Pages/Profile/Partials/UpdateProfileInformationForm';
 import UpdateAvatarForm from '@/Pages/Profile/Partials/UpdateAvatarForm';
 import OnlineStatusForm from '@/Pages/Profile/Partials/OnlineStatusForm';
+import MemberListForm from '@/Pages/Profile/Partials/MemberListForm';
 import UpdatePasswordForm from '@/Pages/Profile/Partials/UpdatePasswordForm';
 import TwoFactorAuthenticationForm from '@/Pages/Profile/Partials/TwoFactorAuthenticationForm';
 import LogoutOtherBrowserSessionsForm from '@/Pages/Profile/Partials/LogoutOtherBrowserSessionsForm';
@@ -52,6 +53,8 @@ export default function UserProfile(props: Props) {
       {page.props.auth.user && (
         <>
           <OnlineStatusForm showOnlineStatus={page.props.auth.user.show_online_status !== false} />
+          <Divider className="my-10" />
+          <MemberListForm showInMemberList={page.props.auth.user.show_in_member_list !== false} />
           <Divider className="my-10" />
         </>
       )}

@@ -98,6 +98,7 @@ const memberOf = (cuid: string, name: string, changes: Partial<CommunityMember> 
   role: 'member',
   member_since: '2026-06-01T10:00:00.000000Z',
   tags: [],
+  in_member_list: true,
   ...changes,
 });
 
@@ -124,9 +125,18 @@ interface Options {
   sort?: MemberDirectorySort;
   query?: string;
   canManageMembers?: boolean;
+  hiddenFromList?: boolean;
 }
 
-function tree({ members = everyone, nextOffset = null, totalCount, sort = 'name', query = '', canManageMembers = false }: Options = {}) {
+function tree({
+  members = everyone,
+  nextOffset = null,
+  totalCount,
+  sort = 'name',
+  query = '',
+  canManageMembers = false,
+  hiddenFromList = false,
+}: Options = {}) {
   const page: Paginated<CommunityMember> = { items: members, pagination: paginationOf(nextOffset, totalCount ?? members.length) };
   return (
     <AppDataProvider>
@@ -139,6 +149,7 @@ function tree({ members = everyone, nextOffset = null, totalCount, sort = 'name'
             sort={sort}
             query={query}
             canManageMembers={canManageMembers}
+            hiddenFromList={hiddenFromList}
           />
         </ToolkitProvider>
       </AccountTimeZoneProvider>
@@ -844,6 +855,48 @@ describe('the member directory (#148)', () => {
 
       expect(names()).toEqual(['Grace Hopper']);
       expect(status()).toHaveTextContent(/^1 member found$/);
+    });
+  });
+
+  describe('the members who hide from the list (#1466)', () => {
+    const hidden = memberOf('u9', 'Quinn Hidden', { username: 'quinn', in_member_list: false });
+
+    it('marks an entry with in_member_list false, after the role, and no other entry', () => {
+      renderPage({ members: [ada, hidden, mary] });
+
+      expect(within(entryOf('Quinn Hidden')).getByText('Hidden from the list')).toBeInTheDocument();
+      expect(within(entryOf('Ada Lovelace')).queryByText('Hidden from the list')).toBeNull();
+      expect(within(entryOf('Mary Shelley')).queryByText('Hidden from the list')).toBeNull();
+      expect(screen.getAllByText('Hidden from the list')).toHaveLength(1);
+    });
+
+    it('marks a hidden member with a role after the role badge', () => {
+      renderPage({ members: [memberOf('u8', 'Rita Levi', { role: 'moderator', in_member_list: false })] });
+
+      const labels = within(entryOf('Rita Levi'))
+        .getAllByText(/^(Moderator|Hidden from the list)$/)
+        .map((element) => element.textContent);
+      expect(labels).toEqual(['Moderator', 'Hidden from the list']);
+    });
+
+    it('shows the line and the link to the profile only to a reader who hides', () => {
+      const { unmount } = renderPage({ members: [ada, hidden], hiddenFromList: true });
+
+      expect(screen.getByText(/^You are hidden from this list\. Only you and the managers see your entry\./)).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Change it in your profile' })).toHaveAttribute('href', '/profile.show/');
+      unmount();
+
+      renderPage({ members: [ada, hidden] });
+      expect(screen.queryByText(/You are hidden from this list/)).toBeNull();
+      expect(screen.queryByRole('link', { name: 'Change it in your profile' })).toBeNull();
+    });
+
+    it('has no automated violation with the line and the marker (axe)', async () => {
+      const { container } = renderPage({ members: [ada, hidden], hiddenFromList: true });
+
+      const results = await axe.run(container, { rules: { 'color-contrast': { enabled: false } } });
+
+      expect(results.violations).toEqual([]);
     });
   });
 

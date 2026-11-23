@@ -386,6 +386,14 @@ test('the privacy policy tells who sees the member list of a community, and what
     );
 });
 
+test('the privacy policy tells that a member can hide from the member lists, and who still sees them (#1466, approved 2026-11-23)', function () {
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('updated', '2026-11-23')
+        ->where('html', fn (string $html) => str_contains($html, 'and your choice to show or hide your online status, and your choice to show or hide yourself in the member lists of your communities,')
+            && str_contains($html, 'The members of a community see its member list: your name, your username, your picture, your headline, your role and the date you joined. You can hide yourself from the member lists in your profile. The owner, the administrators and the moderators who manage members still see you there, with your choice, and the owner, the administrators and the moderators of a community are always in its member list.'))
+    );
+});
+
 test('the privacy policy tells about the member tags, who sees them and how long they stay (#1389, approved 2026-11-22)', function () {
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
         ->where('updated', '2026-11-23')

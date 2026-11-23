@@ -102,6 +102,8 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
         Route::post(ApiRoutes::USER_AVATAR, [UserApiController::class, 'updateAvatar'])->middleware('ability:user:write')->middleware('throttle:uploads');
         Route::delete(ApiRoutes::USER_AVATAR, [UserApiController::class, 'deleteAvatar'])->middleware('ability:user:write');
         Route::patch(ApiRoutes::USER_ONLINE_STATUS, [UserApiController::class, 'updateOnlineStatus'])->middleware('ability:user:write');
+        // The member list of the communities (#1466): the team is always listed, the managers see everyone
+        Route::patch(ApiRoutes::USER_MEMBER_LIST, [UserApiController::class, 'updateMemberListVisibility'])->middleware('ability:user:write');
         // The time zone is set by the member only, and read by the member only (#1476, ADR 0048)
         Route::put(ApiRoutes::USER_TIME_ZONE, [UserApiController::class, 'updateTimeZone'])->middleware('ability:user:write');
         Route::put(ApiRoutes::USER_NOTIFICATION_SETTINGS, [UserApiController::class, 'updateNotificationSettings'])->middleware('ability:notifications:write');

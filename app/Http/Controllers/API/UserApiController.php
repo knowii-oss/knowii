@@ -7,6 +7,7 @@ namespace App\Http\Controllers\API;
 use App\Contracts\Users\ChangesEmailAddresses;
 use App\Contracts\Users\DeletesAccounts;
 use App\Contracts\Users\UpdatesAvatars;
+use App\Contracts\Users\UpdatesMemberListVisibility;
 use App\Contracts\Users\UpdatesNotificationSettings;
 use App\Contracts\Users\UpdatesOnlineStatus;
 use App\Contracts\Users\UpdatesTimeZones;
@@ -94,6 +95,22 @@ class UserApiController extends Controller
         $user = app(UpdatesOnlineStatus::class)->update($request->user() ?? throw new AuthenticationException, $request->only(['show_online_status']));
 
         return self::success('Online status updated', null, $user->refresh()->load('profile')->toResource());
+    }
+
+    /**
+     * Show or hide the current user in the member list of their communities (#1466). Hidden, the other members do not find
+     * the member in the member list, the member search or the mention suggestions. The owner, the admins and the moderators
+     * who manage members still do, and a community where the member is the owner, an admin or a moderator always lists them.
+     * The member page, the posts and a typed mention do not change. Returns the current user.
+     *
+     * @throws AuthenticationException
+     */
+    #[BodyParameter('show_in_member_list', description: 'true: the other members find you in the member list of your communities. false: only the managers and you find you there, except in a community where you are on the team', required: true, type: 'boolean', example: false)]
+    final public function updateMemberListVisibility(Request $request): JsonResponse
+    {
+        $user = app(UpdatesMemberListVisibility::class)->update($request->user() ?? throw new AuthenticationException, $request->only(['show_in_member_list']));
+
+        return self::success('Member list visibility updated', null, $user->refresh()->load('profile')->toResource());
     }
 
     /**

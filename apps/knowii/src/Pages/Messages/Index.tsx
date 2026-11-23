@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Link, router } from '@inertiajs/react';
 import type { Author, ChatMessage, Community, Conversation, SpaceGroup } from '@knowii/common';
-import { COMMUNITY_URL, CONVERSATION_URL, knowiiApiClient, MESSAGES_URL, useSocket, useTypedPage } from '@knowii/common';
+import { COMMUNITY_URL, CONVERSATION_URL, MESSAGES_URL, useSocket, useTypedPage } from '@knowii/common';
 import { FaArrowLeft, FaEnvelope, FaPenToSquare } from 'react-icons/fa6';
 import AppLayout from '@/Layouts/AppLayout';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
@@ -22,6 +22,11 @@ interface Props {
   messages: { items: ChatMessage[]; has_more: boolean; first_unread_cuid: string | null } | null;
   permissions: { canStart: boolean; canSend: boolean };
   blockedByMe: boolean;
+  /**
+   * "Send a message" on a member page (`?to=username`, #1466): the member of this community with that username, found
+   * by the server, also when the member hides from the member list. Null without `to`, for the reader and for anyone else
+   */
+  recipient: Author | null;
 }
 
 /**
@@ -33,29 +38,18 @@ export default function MessagesPage(props: Props) {
   const page = useTypedPage();
   const user = page.props.auth.user;
   const currentUserCuid = user?.cuid ?? '';
-  const [dialogOpen, setDialogOpen] = useState(false);
+  // "Send a message" on a member page: ?to=username opens the dialog with that member. The server finds the member, because
+  // the member list leaves out the members who hide from it (#1466)
+  const recipient = props.permissions.canStart ? props.recipient : null;
+  const [dialogOpen, setDialogOpen] = useState(recipient !== null);
   // A new key at each opening: the dialog starts empty, or with the member of ?to=
   const [dialogKey, setDialogKey] = useState(0);
-  const [initialMembers, setInitialMembers] = useState<Author[]>([]);
+  const [initialMembers, setInitialMembers] = useState<Author[]>(recipient === null ? [] : [recipient]);
   const openDialog = (members: Author[]) => {
     setInitialMembers(members);
     setDialogKey((key) => key + 1);
     setDialogOpen(true);
   };
-
-  // "Send a message" on a member page: ?to=username chooses that member
-  useEffect(() => {
-    const username = new URLSearchParams(window.location.search).get('to');
-    if (!username || !props.permissions.canStart) {
-      return;
-    }
-    void knowiiApiClient.communities.members.search(community.cuid, username, 5).then((members) => {
-      const member = members.find((item) => item.username.toLowerCase() === username.toLowerCase());
-      if (member && member.cuid !== currentUserCuid) {
-        openDialog([member]);
-      }
-    });
-  }, [community.cuid, currentUserCuid, props.permissions.canStart]);
 
   // A message in any conversation of the member: the list and the unread counts follow. The open conversation marks its
   // messages as read first, so its reload waits a little.

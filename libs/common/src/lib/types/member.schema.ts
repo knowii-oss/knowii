@@ -75,6 +75,10 @@ export const communityMemberSchema = z.object({
   member_since: z.string().nullable(),
   // The member tags that the reader may see, by name (#1389, ADR 0060). The default is for a page built before the field
   tags: z.array(memberTagSchema).default([]),
+  // Whether the other members of this community find the person in the member list (#1466): false only for a member who
+  // hides from it, and only a manager and the member themself get such an entry. The default is for a page built before
+  // the field
+  in_member_list: z.boolean().default(true),
 });
 export type CommunityMember = z.infer<typeof communityMemberSchema>;
 

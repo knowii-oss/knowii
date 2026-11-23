@@ -94,6 +94,9 @@ final class ApiRoutes
     // Show or hide when the current user is online (#1187)
     public const USER_ONLINE_STATUS = 'user/online-status';
 
+    // Show or hide the current user in the member list of their communities (#1466)
+    public const USER_MEMBER_LIST = 'user/member-list';
+
     // The time zone and the notification choices of the current user (#1476, ADR 0048)
     public const USER_TIME_ZONE = 'user/time-zone';
 
