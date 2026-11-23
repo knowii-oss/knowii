@@ -22,6 +22,7 @@ use App\Support\SecretAddresses;
 use App\Traits\ApiResponses;
 use Bepsvpt\SecureHeaders\SecureHeadersMiddleware;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Database\Eloquent\RelationNotFoundException;
 use Illuminate\Database\QueryException;
@@ -53,10 +54,23 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // In production, an instance without an operator or a contact address answers only a 503 (#1653, ADR 0055): before
-        // every middleware of the application and of the framework that reads a session, a cookie or the database, so that
-        // every address answers so, the health address too. Only a middleware that a package prepends later runs before it
-        $middleware->prepend(RefuseUnconfiguredInstance::class);
+        $middleware->prepend([
+            // The security headers of config/secure-headers.php are on every answer of the web and of the API, also on an
+            // answer that a middleware gives (the 503 below, a redirect to the sign-in page, a 404 of a route binding, a 419,
+            // a 429) and on the error page: first in the global stack, so that every answer comes back through it. It reads
+            // only the configuration
+            SecureHeadersMiddleware::class,
+
+            // In production, an instance without an operator or a contact address answers only a 503 (#1653, ADR 0055):
+            // before every middleware of the application and of the framework that reads a session, a cookie or the
+            // database, so that every address answers so, the health address too. Only the security headers (above) and a
+            // middleware that a package prepends later run before it
+            RefuseUnconfiguredInstance::class,
+
+            // The nonce of the Vite scripts is one of the policy, made before anything can render a page (the error page of
+            // a middleware too)
+            AddViteContentSecurityPolicyNonce::class,
+        ]);
 
         // The application answers only for its own host names (APP_URL, TRUSTED_HOSTS and the loopback names), with a 400
         // for another one: right after the middleware that trusts the proxies, so that it reads the host name that the
@@ -71,8 +85,6 @@ return Application::configure(basePath: dirname(__DIR__))
             // The last visit of a member, one date at most once a day (#1476)
             RecordLastVisit::class,
             AddLinkHeadersForPreloadedAssets::class,
-            SecureHeadersMiddleware::class,
-            AddViteContentSecurityPolicyNonce::class,
             // noindex for members and private instances (#104)
             AddRobotsHeader::class,
         ]);
@@ -96,8 +108,6 @@ return Application::configure(basePath: dirname(__DIR__))
 
             SubstituteBindings::class,
 
-            SecureHeadersMiddleware::class,
-
             // The API is never indexed (#104)
             AddRobotsHeader::class,
         ]);
@@ -113,6 +123,13 @@ return Application::configure(basePath: dirname(__DIR__))
         // also the end of an outdated session and the sign-in check, so the browser never saves a page or the sign-in page
         // as the file. Before EndOutdatedSessions, which comes before the sign-in check (above)
         $middleware->prependToPriorityList(EndOutdatedSessions::class, AnswerRefusalsInJson::class);
+
+        // The abilities of a token (ADR 0022) and the check of the email address (`verified`) come before the item of the
+        // route is read: after the sign-in check and before the bindings of the route, so that a refused request gets the
+        // same answer whatever the URL names. Both read only the account, its token and the mark of a visitor, never a
+        // parameter of the route
+        $middleware->prependToPriorityList(SubstituteBindings::class, RequireTokenAbility::class);
+        $middleware->prependToPriorityList(SubstituteBindings::class, EnsureEmailIsVerified::class);
 
         // Token abilities on the API routes (ADR 0022, #689): `ability:a,b` passes with any of them
         $middleware->alias([

@@ -23,6 +23,7 @@ use App\Support\InviteLinkTexts;
 use App\Support\Landing;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Middleware\Authenticate;
+use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -464,10 +465,12 @@ test('the session middleware is the one of the application, with the cache that 
         PreventRequestForgery::class,
         EndOutdatedSessions::class,
     ];
-    expect(array_slice($router->gatherRouteMiddleware($router->getRoutes()->getByName('dashboard')), 0, 9))->toBe([
+    // The check of the email address comes before the bindings of the route (ADR 0022)
+    expect(array_slice($router->gatherRouteMiddleware($router->getRoutes()->getByName('dashboard')), 0, 10))->toBe([
         ...$start,
         Authenticate::class.':sanctum',
         AuthenticateSession::class,
+        EnsureEmailIsVerified::class,
         SubstituteBindings::class,
     ])
         ->and(array_slice($router->gatherRouteMiddleware($router->getRoutes()->getByName('invite-links.open')), 0, 6))->toBe($start)

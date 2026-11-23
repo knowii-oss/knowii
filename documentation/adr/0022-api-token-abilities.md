@@ -12,7 +12,7 @@ Jetstream lets members create personal API tokens with "permissions" (Sanctum ab
 
 1. The abilities are read and write per area, plus one narrow ability: `user:read`, `user:write`, `communities:read`, `communities:write`, `posts:read`, `posts:write`, `resources:read`, `resources:write`, `resources:create` (add resources only).
 2. Every authenticated route of `routes/api.php` names the abilities that it accepts with the `ability:` middleware (`RequireTokenAbility`, any of the list). `ApiTokenAbilitiesTest` fails when a route has none.
-3. A request with a personal access token passes only with one of the abilities (403 otherwise). The web session of the member is not limited (Sanctum's transient token).
+3. A request with a personal access token passes only with one of the abilities (403 otherwise). The web session of the member is not limited (Sanctum's transient token). The API checks the abilities of a token and the email address before it reads the item of the route: `RequireTokenAbility` and `EnsureEmailIsVerified` (`verified`) come before `SubstituteBindings` in the priority list of `bootstrap/app.php`, so a refused request gets the same answer whatever item the URL names.
 4. A new token gets the four read abilities by default; the member adds more.
 5. The token of the API login (`includeToken`, 12 hours) has every ability: the password and the second factor stand behind it (#1256).
 6. Members manage their tokens on the "API tokens" page (user menu): create (the token shows once), change the abilities, delete.
