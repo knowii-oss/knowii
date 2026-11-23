@@ -527,6 +527,17 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by(mb_strtolower(is_string($email) ? $email : '').'|'.$request->ip());
         });
 
+        // Each request of the password reset form can send an email: the numbers of the sign-in link, per address and IP,
+        // and 20 an hour per IP alone, which one person never reaches
+        RateLimiter::for('password-reset', static function (Request $request) {
+            $email = $request->input('email');
+
+            return [
+                Limit::perMinute(5)->by(mb_strtolower(is_string($email) ? $email : '').'|'.$request->ip()),
+                Limit::perHour(Constants::PASSWORD_RESETS_PER_IP_PER_HOUR)->by('ip|'.$request->ip()),
+            ];
+        });
+
         // Each invitation sends an email (#1242)
         RateLimiter::for('invitations', static function (Request $request) {
             return Limit::perMinute(Constants::INVITATIONS_PER_MINUTE)->by(self::rateLimitKey($request));

@@ -41,7 +41,7 @@ The framework keeps the address of every full GET as the previous address of the
 
 ### The queue
 
-11. A queued mail that holds a link is encrypted in the queue. `App\Mail\MagicLink` (the token) and `App\Mail\ConfirmNewEmailAddress` (the signed link) implement `ShouldBeEncrypted`, so the rows of `jobs` and `failed_jobs` hold neither the token nor the link. The other mails and notifications build their link when they are sent, or hold none; the reset mail of the framework is not queued.
+11. A queued mail that holds a link is encrypted in the queue. `App\Mail\MagicLink` (the token), `App\Notifications\ResetPasswordLink` (the token of the password reset) and `App\Mail\ConfirmNewEmailAddress` (the signed link) implement `ShouldBeEncrypted`, so the rows of `jobs` and `failed_jobs` hold neither the token nor the link. The other mails and notifications build their link when they are sent, or hold none.
 
 ## Consequences
 

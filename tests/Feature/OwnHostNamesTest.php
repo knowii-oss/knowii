@@ -2,8 +2,8 @@
 
 use App\Http\Middleware\AnswerOnlyForOwnHostNames;
 use App\Models\User;
+use App\Notifications\ResetPasswordLink;
 use App\Notifications\VerifyEmailAddress;
-use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
@@ -144,7 +144,7 @@ test('the reset link uses the host of the instance', function () {
 
     $this->post('https://app.example.com/forgot-password', ['email' => $user->email])->assertSessionHasNoErrors();
 
-    Notification::assertSentTo($user, ResetPassword::class, function (ResetPassword $notification) use ($user) {
+    Notification::assertSentTo($user, ResetPasswordLink::class, function (ResetPasswordLink $notification) use ($user) {
         expect(parse_url($notification->toMail($user)->actionUrl, PHP_URL_HOST))->toBe('app.example.com');
 
         return true;
