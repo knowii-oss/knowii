@@ -9,15 +9,17 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
 /**
- * The daily caps of the invitation mails (#1390, ADR 0061). Every invitation mail counts: a single invitation, a row of an
- * import at its confirm, a row of a send again. A community sends at most MailSettings::invitationsPerCommunityPerDay()
- * of them in 24 hours, and an account at most MailSettings::invitationsPerAccountPerDay(), over all its communities (the
- * account of the manager who sends).
+ * The daily caps of the invitation mails (#1390, #1713, ADR 0061). Every invitation mail counts: a single invitation, a
+ * row of an import at its confirm, a row of a send again. A community sends at most
+ * MailSettings::invitationsPerCommunityPerDay() of them in 24 hours, an account at most
+ * MailSettings::invitationsPerAccountPerDay(), over all its communities (the account of the manager who sends), and the
+ * whole instance at most MailSettings::invitationsPerInstancePerDay(), over all its communities and accounts.
  *
  * The count is the rows of `invitation_mails` of the last 24 hours: one per mail that went to the queue, written in the
  * transaction that queues it. A delete of an invitation, of an import or of its record leaves them, so nothing that a
- * manager deletes lowers the count. The caller holds a transaction and calls lock() before it reads what the count
- * decides, so two requests never both pass on the same count.
+ * manager deletes lowers the count; the instance counts every row, also one whose community and account are deleted. The
+ * caller holds a transaction and calls lock() before it reads what the count decides, so two requests never both pass on
+ * the same count; assertRoom() takes the lock of the instance after them.
  */
 final class InvitationMailCaps
 {
@@ -31,10 +33,15 @@ final class InvitationMailCaps
     public const int LOCK_ACCOUNT = 1390_02;
 
     /**
+     * The lock of the cap of the instance (#1713): one key, 0, taken by assertRoom() after the two above
+     */
+    public const int LOCK_INSTANCE = 1713_01;
+
+    /**
      * Lock the caps of the community, then of the account (always in this order), until the end of the transaction of
      * the caller. Advisory locks of the transaction: they serialize the requests that count the same caps, and no
      * foreign key check, no update and no row lock of the `communities` and `users` rows waits for them. A second call in
-     * the same transaction does not wait: it holds them already.
+     * the same transaction does not wait: it holds them already. The lock of the instance comes later, in assertRoom()
      */
     public static function lock(User $user, Community $community): void
     {
@@ -43,16 +50,25 @@ final class InvitationMailCaps
     }
 
     /**
-     * Refuse when $count more mails would pass a cap, with a BusinessException (422) that says when they can go. Both
-     * caps are computed: the words are those of the cap that frees last, with the fewest that can go now and the later
-     * time. A single invitation gets the time from when it works again; a set gets how many can go now, and from when
-     * all of them can.
+     * Refuse when $count more mails would pass a cap, with a BusinessException (422) that says when they can go.
+     *
+     * The locks, in one order for every path: the community and the account (lock(), again: the caller took them
+     * already), then the instance, just before the counts. So every request that sends invitation mails waits for the
+     * others only for its counts, its writes and its commit, never for the checks of the rows of a confirm, and two
+     * requests of two communities never both pass on the same count of the instance.
+     *
+     * The words: the most specific cap that refuses. When the cap of the community or of the account refuses, the words
+     * are those of the one of them that frees last, with the fewest that can go now and the later time. Only when both
+     * take the set and the cap of the instance refuses, the words are those of the instance, with no number of the
+     * instance (ADR 0061, decision 13). A single invitation gets the time from when it works again; a set gets how many
+     * can go now (not for the instance), and from when all of them can.
      *
      * @throws BusinessException
      */
     public static function assertRoom(User $user, Community $community, int $count, bool $single = false): void
     {
         self::lock($user, $community);
+        DB::select('select pg_advisory_xact_lock(?, ?)', [self::LOCK_INSTANCE, 0]);
 
         $since = CarbonImmutable::now()->subHours(self::WINDOW_HOURS);
         $caps = [
@@ -76,6 +92,8 @@ final class InvitationMailCaps
             }
         }
         if ($refusal === null) {
+            self::assertInstanceRoom($since, $count, $single);
+
             return;
         }
 
@@ -105,12 +123,42 @@ final class InvitationMailCaps
     }
 
     /**
-     * When $need rows of the window have left it: the time of the oldest of them, plus the window
+     * The cap of the instance, when the caps of the community and of the account take the set: every row of the window,
+     * whatever its community and its account. Its words hold no number of the instance, neither the cap nor the places
+     * left
+     *
+     * @throws BusinessException
      */
-    private static function freeFrom(string $column, int $id, CarbonImmutable $since, int $need): ?CarbonImmutable
+    private static function assertInstanceRoom(CarbonImmutable $since, int $count, bool $single): void
     {
-        $createdAt = DB::table('invitation_mails')
-            ->where($column, $id)
+        $cap = MailSettings::invitationsPerInstancePerDay();
+        $used = DB::table('invitation_mails')->where('created_at', '>', $since)->count();
+        if ($used + $count <= $cap) {
+            return;
+        }
+
+        $from = $count <= $cap ? self::freeFrom(null, null, $since, $used + $count - $cap) : null;
+        if ($single) {
+            throw new BusinessException('This instance sends no more invitation emails now.'.($from === null ? '' : ' Invite this person from '.self::format($from).'.'));
+        }
+        if ($from === null) {
+            throw new BusinessException('This instance cannot send so many invitation emails in 24 hours. Send fewer rows.');
+        }
+
+        throw new BusinessException('This instance cannot send so many invitation emails now. '.($count === 1 ? 'This invitation' : 'These '.$count.' invitations').' can go from '.self::format($from).'.');
+    }
+
+    /**
+     * When $need rows of the window have left it: the time of the oldest of them, plus the window. A null column: every
+     * row (the instance)
+     */
+    private static function freeFrom(?string $column, ?int $id, CarbonImmutable $since, int $need): ?CarbonImmutable
+    {
+        $query = DB::table('invitation_mails');
+        if ($column !== null) {
+            $query->where($column, $id);
+        }
+        $createdAt = $query
             ->where('created_at', '>', $since)
             ->orderBy('created_at')
             ->orderBy('id')

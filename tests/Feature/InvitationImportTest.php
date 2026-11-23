@@ -626,6 +626,160 @@ test('a refusal reads both caps: the words of the cap that frees last, the fewes
         ->toThrow(BusinessException::class, 'An account sends at most 4 invitation emails in 24 hours, in all its communities. 1 more can go now. These 3 invitations can go from 2026-11-19 11:00 UTC.');
 });
 
+test('the cap of the instance counts every invitation mail of the last 24 hours, also one whose community and account are deleted (#1713)', function () {
+    Mail::fake();
+    config(['mail.invitations.per_instance_per_day' => 3]);
+    importMailsSent(null, null, 3, now()->subHour());
+
+    $this->actingAs($this->c['owner'])->postJson(importInvitePath($this->community), ['email' => 'qx-1@example.com', 'role' => 'member'])
+        ->assertStatus(422)
+        ->assertJsonPath('message', 'This instance sends no more invitation emails now. Invite this person from 2026-11-19 09:00 UTC.');
+    expect(CommunityInvitation::query()->where('email', 'qx-1@example.com')->exists())->toBeFalse()
+        ->and(DB::table('invitation_mails')->count())->toBe(3);
+    Mail::assertNothingQueued();
+
+    // 24 hours after them the mails do not count
+    $this->travelTo(CarbonImmutable::parse('2026-11-19T09:00:00Z'));
+    $this->actingAs($this->c['owner'])->postJson(importInvitePath($this->community), ['email' => 'qx-1@example.com', 'role' => 'member'])->assertCreated();
+});
+
+test('every invitation mail of every community and account counts in the cap of the instance, and the fifth of each kind is refused with no change (#1713)', function () {
+    Queue::fake();
+    Mail::fake();
+    config(['mail.invitations.per_community_per_day' => 100, 'mail.invitations.per_account_per_day' => 100, 'mail.invitations.per_instance_per_day' => 4]);
+    $second = Community::factory()->create(['owner_id' => $this->c['outsider']->id, 'name' => 'Qxcommunity Second', 'slug' => 'qxcommunity-second']);
+
+    // Four mails, from two communities and three accounts: two single invitations and two confirms of one row
+    $this->actingAs($this->c['outsider'])->postJson(importInvitePath($second), ['email' => 'qx-a@example.com', 'role' => 'member'])->assertCreated();
+    $this->actingAs($this->c['owner'])->postJson(importInvitePath($this->community), ['email' => 'qx-single@example.com', 'role' => 'member'])->assertCreated();
+    $notSent = importSent($this->community, $this->c['admin'], ['qx-1@example.com']);
+    $notSent->rows()->update(['outcome' => 'held']);
+    $notJoined = importSent($second, $this->c['outsider'], ['qx-2@example.com']);
+    $notJoined->rows()->update(['outcome' => 'sent', 'sent_at' => now()]);
+    $notJoined->forceFill(['confirmed_at' => now()->subDays(10)])->save();
+    $next = importFrom($this->c['owner'], $this->community, "email\nqx-3@example.com\n");
+    expect(DB::table('invitation_mails')->distinct()->count('community_id'))->toBe(2)
+        ->and(DB::table('invitation_mails')->count())->toBe(4);
+    $invitations = CommunityInvitation::query()->orderBy('id')->pluck('id')->all();
+
+    // A single invitation, a replace of an invitation, a confirm, a send again `not_sent` and `not_joined`
+    $this->actingAs($this->c['admin'])->postJson(importInvitePath($this->community), ['email' => 'qx-new@example.com', 'role' => 'member'])
+        ->assertStatus(422)
+        ->assertJsonPath('message', 'This instance sends no more invitation emails now. Invite this person from 2026-11-19 10:00 UTC.');
+    $this->actingAs($this->c['owner'])->postJson(importInvitePath($this->community), ['email' => 'qx-single@example.com', 'role' => 'member'])
+        ->assertStatus(422)
+        ->assertJsonPath('message', 'This instance sends no more invitation emails now. Invite this person from 2026-11-19 10:00 UTC.');
+    expect(fn () => app(ConfirmsInvitationImports::class)->confirm($this->c['owner'], $next))
+        ->toThrow(BusinessException::class, 'This instance cannot send so many invitation emails now. This invitation can go from 2026-11-19 10:00 UTC.');
+    expect(fn () => app(ResendsInvitationImports::class)->resend($this->c['owner'], $notSent->refresh(), ['rows' => 'not_sent']))
+        ->toThrow(BusinessException::class, 'This instance cannot send so many invitation emails now. This invitation can go from 2026-11-19 10:00 UTC.');
+    expect(fn () => app(ResendsInvitationImports::class)->resend($this->c['outsider'], $notJoined->refresh(), ['rows' => 'not_joined']))
+        ->toThrow(BusinessException::class, 'This instance cannot send so many invitation emails now. This invitation can go from 2026-11-19 10:00 UTC.');
+
+    // Nothing changed: no invitation, no count, no mail, no change of an import or of its rows
+    expect(CommunityInvitation::query()->orderBy('id')->pluck('id')->all())->toBe($invitations)
+        ->and(DB::table('invitation_mails')->count())->toBe(4)
+        ->and($next->refresh()->state)->toBe(KnowiiInvitationImportState::Preview)
+        ->and(importRows($notSent))->toBe([2 => ['held', null, null]])
+        ->and(importRows($notJoined))->toBe([2 => ['sent', null, null]])
+        ->and($notJoined->refresh()->resent_at)->toBeNull();
+    Mail::assertQueued(CommunityInvitationMail::class, 2);
+    Queue::assertPushed(SendInvitationImportMail::class, 2);
+});
+
+test('a set larger than the cap of the instance can never go in one go, and the words show no number of the instance (#1713)', function () {
+    Queue::fake();
+    config(['mail.invitations.per_instance_per_day' => 2]);
+    $import = importFrom($this->c['owner'], $this->community, "email\nqx-1@example.com\nqx-2@example.com\nqx-3@example.com\n");
+
+    expect(fn () => app(ConfirmsInvitationImports::class)->confirm($this->c['owner'], $import))
+        ->toThrow(BusinessException::class, 'This instance cannot send so many invitation emails in 24 hours. Send fewer rows.')
+        ->and($import->refresh()->state)->toBe(KnowiiInvitationImportState::Preview)
+        ->and(DB::table('invitation_mails')->count())->toBe(0);
+
+    // A set of 3 with 1 place left: no count of the places
+    config(['mail.invitations.per_instance_per_day' => 4]);
+    importMailsSent(null, null, 3, CarbonImmutable::parse('2026-11-18T09:00:00Z'));
+    expect(fn () => app(ConfirmsInvitationImports::class)->confirm($this->c['owner'], $import))
+        ->toThrow(BusinessException::class, 'This instance cannot send so many invitation emails now. These 3 invitations can go from 2026-11-19 09:00 UTC.');
+});
+
+test('the most specific cap that refuses gives its words: the instance only when the community and the account take the set (#1713)', function () {
+    Queue::fake();
+    Mail::fake();
+    $this->travelTo(CarbonImmutable::parse('2026-11-18T12:00:00Z'));
+    config(['mail.invitations.per_community_per_day' => 1, 'mail.invitations.per_account_per_day' => 100, 'mail.invitations.per_instance_per_day' => 1]);
+
+    // The community frees at 10:00 tomorrow, the instance at 11:00: the words and the time of the community
+    importMailsSent($this->community, null, 1, CarbonImmutable::parse('2026-11-18T10:00:00Z'));
+    importMailsSent(null, null, 1, CarbonImmutable::parse('2026-11-18T11:00:00Z'));
+    $this->actingAs($this->c['owner'])->postJson(importInvitePath($this->community), ['email' => 'qx-1@example.com', 'role' => 'member'])
+        ->assertStatus(422)
+        ->assertJsonPath('message', 'A community sends at most 1 invitation emails in 24 hours. Invite this person from 2026-11-19 10:00 UTC.');
+
+    // The community frees at 11:00 tomorrow, the instance at 10:00
+    DB::table('invitation_mails')->delete();
+    config(['mail.invitations.per_instance_per_day' => 2]);
+    importMailsSent(null, null, 1, CarbonImmutable::parse('2026-11-18T10:00:00Z'));
+    importMailsSent($this->community, null, 1, CarbonImmutable::parse('2026-11-18T11:00:00Z'));
+    $this->actingAs($this->c['owner'])->postJson(importInvitePath($this->community), ['email' => 'qx-1@example.com', 'role' => 'member'])
+        ->assertStatus(422)
+        ->assertJsonPath('message', 'A community sends at most 1 invitation emails in 24 hours. Invite this person from 2026-11-19 11:00 UTC.');
+    $one = importFrom($this->c['owner'], $this->community, "email\nqx-2@example.com\n");
+    expect(fn () => app(ConfirmsInvitationImports::class)->confirm($this->c['owner'], $one))
+        ->toThrow(BusinessException::class, 'A community sends at most 1 invitation emails in 24 hours. 0 more can go now. This invitation can go from 2026-11-19 11:00 UTC.');
+
+    // The account refuses too: its words, as on main
+    config(['mail.invitations.per_community_per_day' => 100, 'mail.invitations.per_account_per_day' => 1]);
+    importMailsSent(null, $this->c['owner'], 1, CarbonImmutable::parse('2026-11-18T11:30:00Z'));
+    expect(fn () => app(ConfirmsInvitationImports::class)->confirm($this->c['owner'], $one))
+        ->toThrow(BusinessException::class, 'An account sends at most 1 invitation emails in 24 hours, in all its communities. 0 more can go now. This invitation can go from 2026-11-19 11:30 UTC.');
+
+    // A cap of the community that can never take the set: its words "in 24 hours", with the places of the community
+    config(['mail.invitations.per_community_per_day' => 1, 'mail.invitations.per_account_per_day' => 100]);
+    $two = importFrom($this->c['owner'], $this->community, "email\nqx-3@example.com\nqx-4@example.com\n");
+    expect(fn () => app(ConfirmsInvitationImports::class)->confirm($this->c['owner'], $two))
+        ->toThrow(BusinessException::class, 'A community sends at most 1 invitation emails in 24 hours. 0 more can go now.');
+
+    // Only the instance refuses: its words, with no number of the instance
+    config(['mail.invitations.per_community_per_day' => 100]);
+    expect(fn () => app(ConfirmsInvitationImports::class)->confirm($this->c['owner'], $two))
+        ->toThrow(BusinessException::class, 'This instance cannot send so many invitation emails now. These 2 invitations can go from 2026-11-19 11:30 UTC.')
+        ->and(CommunityInvitation::query()->count())->toBe(0)
+        ->and(DB::table('invitation_mails')->count())->toBe(3);
+    Mail::assertNothingQueued();
+    Queue::assertNothingPushed();
+});
+
+test('the hold of the mail budget and the month refuse before the cap of the instance (#1713)', function () {
+    Queue::fake();
+    Mail::fake();
+    config(['mail.invitations.per_instance_per_day' => 1]);
+    importMailsSent(null, null, 1, now()->subHour());
+    $import = importFrom($this->c['owner'], $this->community, "email\nqx-1@example.com\nqx-2@example.com\nqx-3@example.com\n");
+
+    // The hold first, for a single invitation and for a confirm
+    importHoldMail(CarbonImmutable::parse('2026-11-18T12:00:00Z'));
+    $this->actingAs($this->c['owner'])->postJson(importInvitePath($this->community), ['email' => 'qx-single@example.com', 'role' => 'member'])
+        ->assertStatus(422)
+        ->assertJsonPath('message', 'This instance holds its mail now. Invite this person from 2026-11-18 12:00 UTC.');
+    expect(fn () => app(ConfirmsInvitationImports::class)->confirm($this->c['owner'], $import))
+        ->toThrow(BusinessException::class, 'This instance holds its mail now. Send the invitations from 2026-11-18 12:00 UTC.');
+
+    // Then the month, for a confirm
+    DB::table('mail_usage_months')->delete();
+    config(['mail.budget.monthly_quota' => 100, 'mail.budget.hold_percent' => 90]);
+    DB::table('mail_usage_months')->insert(['cuid' => 'invitationimportrow00000d', 'month' => '2026-11-01', 'sent_count' => 88, 'created_at' => now(), 'updated_at' => now()]);
+    expect(fn () => app(ConfirmsInvitationImports::class)->confirm($this->c['owner'], $import))
+        ->toThrow(BusinessException::class, 'This import needs 3 emails. This instance cannot send so many this month. Send fewer rows.');
+
+    // Then the cap of the instance
+    $one = importFrom($this->c['owner'], $this->community, "email\nqx-4@example.com\n");
+    expect(fn () => app(ConfirmsInvitationImports::class)->confirm($this->c['owner'], $one))
+        ->toThrow(BusinessException::class, 'This instance cannot send so many invitation emails now. This invitation can go from 2026-11-19 09:00 UTC.')
+        ->and(DB::table('invitation_mails')->count())->toBe(1);
+});
+
 test('a single invitation waits for the end of a hold of the mail budget: 422 with the end, and nothing is written (#1390)', function () {
     Mail::fake();
     // The end of the hold is rounded up to the minute
@@ -645,7 +799,7 @@ test('a single invitation waits for the end of a hold of the mail budget: 422 wi
     Mail::assertQueued(CommunityInvitationMail::class, 1);
 });
 
-test('the caps lock the community, then the account, with advisory locks of the transaction; a single invitation takes them first (#1390)', function () {
+test('the caps lock the community, the account, then the instance, with advisory locks of the transaction, in one order for every path; the instance just before the counts (#1390, #1713)', function () {
     Queue::fake();
     Mail::fake();
     $statements = [];
@@ -654,19 +808,40 @@ test('the caps lock the community, then the account, with advisory locks of the 
     });
 
     $this->actingAs($this->c['owner'])->postJson(importInvitePath($this->community), ['email' => 'qx-lock@example.com', 'role' => 'member'])->assertCreated();
+    $single = $statements;
     $import = importFrom($this->c['owner'], $this->community, "email\nqx-lock-2@example.com\n");
+    $statements = [];
     app(ConfirmsInvitationImports::class)->confirm($this->c['owner'], $import);
+    $confirm = $statements;
 
-    $locks = array_values(array_filter($statements, static fn (array $statement): bool => str_contains($statement[0], 'pg_advisory_xact_lock')));
-    $firstInvitationRead = array_key_first(array_filter($statements, static fn (array $statement): bool => str_contains($statement[0], 'from "community_invitations"') && str_contains($statement[0], 'for update')));
-    $firstLock = array_key_first(array_filter($statements, static fn (array $statement): bool => str_contains($statement[0], 'pg_advisory_xact_lock')));
-    expect(array_map(static fn (array $lock): array => $lock[1], array_slice($locks, 0, 2)))
-        ->toBe([[InvitationMailCaps::LOCK_COMMUNITY, $this->community->id], [InvitationMailCaps::LOCK_ACCOUNT, $this->c['owner']->id]])
-        ->and($firstLock)->toBeLessThan($firstInvitationRead)
-        // No row lock of the community or of the account for the caps; the confirm locks the community row
-        // `for no key update`
-        ->and(array_filter($statements, static fn (array $statement): bool => (str_contains($statement[0], 'from "users"') || str_contains($statement[0], 'from "communities"')) && str_contains($statement[0], 'for update')))->toBe([])
-        ->and(array_filter($statements, static fn (array $statement): bool => str_contains($statement[0], 'from "communities"') && str_contains($statement[0], 'for no key update')))->toHaveCount(1);
+    $first = static fn (array $list, callable $match): ?int => array_key_first(array_filter($list, static fn (array $statement): bool => $match($statement)));
+    $lockOf = static fn (int $namespace): callable => static fn (array $statement): bool => str_contains($statement[0], 'pg_advisory_xact_lock') && $statement[1][0] === $namespace;
+    $from = static fn (string $table, string $lock = ''): callable => static fn (array $statement): bool => str_contains($statement[0], 'from "'.$table.'"') && str_contains($statement[0], $lock);
+    foreach ([$single, $confirm] as $list) {
+        $locks = array_values(array_filter($list, static fn (array $statement): bool => str_contains($statement[0], 'pg_advisory_xact_lock')));
+        $order = [];
+        foreach ($locks as $lock) {
+            $order[$lock[1][0]] ??= $lock[1];
+        }
+        // The first time of each lock: the community, the account, then the instance; nothing after the instance
+        expect(array_values($order))->toBe([[InvitationMailCaps::LOCK_COMMUNITY, $this->community->id], [InvitationMailCaps::LOCK_ACCOUNT, $this->c['owner']->id], [InvitationMailCaps::LOCK_INSTANCE, 0]])
+            ->and(end($locks)[1])->toBe([InvitationMailCaps::LOCK_INSTANCE, 0])
+            // The hold (and for the confirm the month) is read before the lock of the instance, the counts after it
+            ->and($first($list, $from('mail_usage_months')))->toBeLessThan($first($list, $lockOf(InvitationMailCaps::LOCK_INSTANCE)))
+            ->and($first($list, $lockOf(InvitationMailCaps::LOCK_INSTANCE)))->toBeLessThan($first($list, $from('invitation_mails')));
+    }
+    // A single invitation takes the locks of the community and of the account before it reads the invitations of the
+    // address, and the lock of the instance after
+    expect($first($single, $lockOf(InvitationMailCaps::LOCK_COMMUNITY)))->toBeLessThan($first($single, $from('community_invitations', 'for update')))
+        ->and($first($single, $from('community_invitations', 'for update')))->toBeLessThan($first($single, $lockOf(InvitationMailCaps::LOCK_INSTANCE)))
+        // A confirm checks its rows before the lock of the instance
+        ->and($first($confirm, $lockOf(InvitationMailCaps::LOCK_ACCOUNT)))->toBeLessThan($first($confirm, $from('community_join_blocks')))
+        ->and($first($confirm, $from('community_join_blocks')))->toBeLessThan($first($confirm, $lockOf(InvitationMailCaps::LOCK_INSTANCE)));
+
+    // No row lock of the community or of the account for the caps; the confirm locks the community row `for no key update`
+    $all = [...$single, ...$confirm];
+    expect(array_filter($all, static fn (array $statement): bool => (str_contains($statement[0], 'from "users"') || str_contains($statement[0], 'from "communities"')) && str_contains($statement[0], 'for update')))->toBe([])
+        ->and(array_filter($all, static fn (array $statement): bool => str_contains($statement[0], 'from "communities"') && str_contains($statement[0], 'for no key update')))->toHaveCount(1);
 });
 
 test('an invitation of the address that comes while a single invitation waits for its locks is replaced, and the request gives 201 (#1390)', function () {
@@ -685,11 +860,12 @@ test('an invitation of the address that comes while a single invitation waits fo
         ->and(CommunityInvitation::query()->where('cuid', 'qxsameinvitation0000000a')->exists())->toBeFalse();
 });
 
-test('the caps are read from the configuration: a whole number of at least 1, else 1000 (#1390)', function (mixed $value, int $cap) {
-    config(['mail.invitations.per_community_per_day' => $value, 'mail.invitations.per_account_per_day' => $value]);
+test('the caps are read from the configuration: a whole number of at least 1, else 1000 (#1390, #1713)', function (mixed $value, int $cap) {
+    config(['mail.invitations.per_community_per_day' => $value, 'mail.invitations.per_account_per_day' => $value, 'mail.invitations.per_instance_per_day' => $value]);
 
     expect(MailSettings::invitationsPerCommunityPerDay())->toBe($cap)
-        ->and(MailSettings::invitationsPerAccountPerDay())->toBe($cap);
+        ->and(MailSettings::invitationsPerAccountPerDay())->toBe($cap)
+        ->and(MailSettings::invitationsPerInstancePerDay())->toBe($cap);
 })->with([
     'a number' => [250, 250],
     'a numeric string' => [' 40 ', 40],

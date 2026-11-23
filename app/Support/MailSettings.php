@@ -77,6 +77,17 @@ final class MailSettings
     }
 
     /**
+     * The invitation mails that the whole instance sends in 24 hours, over all its communities and accounts (#1713):
+     * MAIL_INVITATIONS_PER_INSTANCE_PER_DAY, at least 1, default 1000 (also for an empty or a wrong value)
+     */
+    public static function invitationsPerInstancePerDay(): int
+    {
+        $cap = self::integer('mail.invitations.per_instance_per_day', self::INVITATIONS_PER_DAY_DEFAULT);
+
+        return $cap >= 1 ? $cap : self::INVITATIONS_PER_DAY_DEFAULT;
+    }
+
+    /**
      * The addresses of MAIL_ALERT_TO, as they are configured (the check skips the invalid ones)
      *
      * @return list<string>

@@ -15,5 +15,5 @@ headers {
 }
 
 docs {
-  Sends a preview (#1390): only the person who uploaded it (403 otherwise). Every valid row is checked again; a row that changed since the preview is refused with its reason. 422 for the whole import, with nothing changed, when the instance holds its mail, cannot send so many mails this month, or when the rows pass a daily cap of the invitation mails (of the community, or of the caller over all their communities; the text says how many can go now); 422 when it is sent already. 202 with the import in sending: the mails go out one by one, at the pace that the mail provider accepts. Token ability: invitations:write. Limited to 5 a minute.
+  Sends a preview (#1390): only the person who uploaded it (403 otherwise). Every valid row is checked again; a row that changed since the preview is refused with its reason. 422 for the whole import, with nothing changed, when the instance holds its mail, cannot send so many mails this month, or when the rows pass a daily cap of the invitation mails (of the community, or of the caller over all their communities, the text says how many can go now; or of the instance, the text shows no number); 422 when it is sent already. 202 with the import in sending: the mails go out one by one, at the pace that the mail provider accepts. Token ability: invitations:write. Limited to 5 a minute.
 }

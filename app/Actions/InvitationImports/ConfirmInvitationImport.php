@@ -37,13 +37,15 @@ class ConfirmInvitationImport implements ConfirmsInvitationImports
     /**
      * Send a preview (#1390, ADR 0061): only the person who uploaded it, who saw it. In one transaction, with the import
      * row then the community row locked, `for no key update` (JoinCommunity locks it `for update`: the two wait for
-     * each other), then the locks of the daily caps (InvitationMailCaps::lock(): the community, then the account), so
-     * two confirms never both pass:
+     * each other), then the locks of the daily caps (InvitationMailCaps::lock(): the community, then the account; the
+     * lock of the instance comes after the checks of the rows, the hold and the month, in step 2), so two confirms never
+     * both pass:
      *
      * 1. every valid row is checked again for the confirmer (InvitationImportChecks): a row that fails now is refused with
      *    the reason that applies now;
      * 2. the checks of the mail for the rows that stay valid (InvitationImportMailChecks: the hold, the month, the daily
-     *    caps of the community and of the confirmer): each refuses the whole import, and nothing changes;
+     *    caps of the community, of the confirmer and of the instance): each refuses the whole import, and nothing
+     *    changes;
      * 3. for each valid row, the expired invitation of the address goes, and the invitation is inserted with
      *    `on conflict do nothing`: a single invitation of the same address that came meanwhile refuses the row
      *    (`pending_invitation`), with no error. The links of its groups and tags follow, and the row is `queued`.
