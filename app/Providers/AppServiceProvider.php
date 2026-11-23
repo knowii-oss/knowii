@@ -291,8 +291,8 @@ class AppServiceProvider extends ServiceProvider
             $this->app->register(IdeHelperServiceProvider::class);
         }
 
-        // The session middleware keeps no address that holds the token of an invite link as the previous address (#1391,
-        // ADR 0062). Bound in place of the middleware of the framework, built as the framework builds it (one instance, with
+        // The session middleware keeps no address that holds a link token or a signature as the previous address (ADR 0062,
+        // ADR 0064). Bound in place of the middleware of the framework, built as the framework builds it (one instance, with
         // the cache that blocks a session), so that the web group and the first-party requests of the API use it, and the
         // middleware keeps its name and its place in the order of the middleware
         $this->app->singleton(StartSession::class, static fn (Application $app): StartSession => new StartSessionWithoutTokenAddresses(

@@ -18,6 +18,7 @@ use App\Http\Middleware\RefuseUnconfiguredInstance;
 use App\Http\Middleware\RequireTokenAbility;
 use App\Support\InstanceValues;
 use App\Support\LegalPages;
+use App\Support\SecretAddresses;
 use App\Traits\ApiResponses;
 use Bepsvpt\SecureHeaders\SecureHeadersMiddleware;
 use Illuminate\Auth\AuthenticationException;
@@ -162,12 +163,17 @@ return Application::configure(basePath: dirname(__DIR__))
   // https://laravel.com/docs/11.x/errors#handling-exceptions
     ->withExceptions(function (Exceptions $exceptions) {
 
+        // A failed form keeps its input in the session for the next page, never the token of a link (ADR 0064): the reset
+        // page of the password reads its token from its props, not from the old input
+        $exceptions->dontFlash(['token']);
+
         // A visitor on a page that visitors may read, but who may not read this one (a members-only space, a chat space,
         // a page that does not exist): the sign-in page, then back to the address (#1387, ADR 0044). Not found gives the
-        // same answer as refused, so that nobody learns which private spaces exist
+        // same answer as refused, so that nobody learns which private spaces exist. An address that holds a secret is never
+        // the intended address (ADR 0064): the sign-in page then comes without it
         $exceptions->render(function (AccessDeniedHttpException|NotFoundHttpException $e, Request $request) {
             if ($request->attributes->get(AuthenticateIfPresent::VISITOR_ATTRIBUTE) === true && ! $request->expectsJson() && ! $request->is('api/*')) {
-                return redirect()->guest(route('login'));
+                return SecretAddresses::holdsASecret($request) ? redirect()->route('login') : redirect()->guest(route('login'));
             }
 
             return null;

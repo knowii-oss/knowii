@@ -13,7 +13,8 @@ $cspReverb = Sources::reverbOrigin(env('REVERB_HOST'), env('REVERB_PORT'), env('
 $cspViteDevServer = Sources::viteDevServerOrigins(env('APP_ENV'), env('VITE_DEV_SERVER_URL'), env('VITE_PORT'));
 // Host of the uploaded files when they are not served by the app itself (S3-compatible bucket, CDN)
 $cspStorage = Sources::origin(env('UPLOADS_PUBLIC_URL'));
-// Plausible through a proxy (#1316): only when both values are set, like the script tag (App\Support\Analytics)
+// Plausible through a proxy (#1316): only when both values are set, like the prop of the page view (App\Support\Analytics).
+// The pages post their page views to the proxy and load no script of it (ADR 0064)
 $cspAnalytics = filled(env('PLAUSIBLE_DOMAIN')) ? Sources::origin(env('PLAUSIBLE_PROXY_URL')) : null;
 
 return [
@@ -663,7 +664,6 @@ return [
 
             // Fallback for older browsers
             'allow' => Sources::unique([
-                $cspAnalytics,
                 'https://challenges.cloudflare.com',
             ]),
 

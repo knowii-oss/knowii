@@ -75,6 +75,10 @@ jobs:
           php -r "file_exists('.env') || copy('.env.example', '.env');"
       - name: Install back-end dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+      # The key comes before the static analysis: Larastan boots the application, and the session is encrypted by
+      # default (ADR 0064)
+      - name: Generate Laravel key
+        run: php artisan key:generate
       - name: Audit PHP dependencies security
         run: composer audit
 
@@ -110,8 +114,6 @@ jobs:
       # committed to Git; it is generated here (and on deploy).
       - name: Build front-end assets
         run: npm run build
-      - name: Generate Laravel key
-        run: php artisan key:generate
       - name: Configure FS permissions
         run: chmod -R 777 storage bootstrap/cache
       - name: Run database migrations

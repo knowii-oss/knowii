@@ -3,14 +3,17 @@
 namespace App\Http\Middleware;
 
 use App\Constants;
+use App\Support\Analytics;
 use App\Support\InstanceValues;
 use App\Support\LegalPages;
 use App\Support\Newsletter;
 use App\Support\OpenIdConnect;
+use App\Support\SecretAddresses;
 use Closure;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Middleware;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Tighten\Ziggy\Ziggy;
 
 class HandleInertiaRequests extends Middleware
@@ -31,6 +34,15 @@ class HandleInertiaRequests extends Middleware
     }
 
     /**
+     * An Inertia visit to an address that holds a secret never becomes the previous address of the session (ADR 0064),
+     * also when `inertia.store_previous_url` is on
+     */
+    public function shouldStoreCurrentUrl(Request $request, SymfonyResponse $response): bool
+    {
+        return ! SecretAddresses::holdsASecret($request) && parent::shouldStoreCurrentUrl($request, $response);
+    }
+
+    /**
      * Define the props that are shared by default.
      *
      * @return array<string, mixed>
@@ -42,10 +54,14 @@ class HandleInertiaRequests extends Middleware
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
             ],
-            // The newsletter form of the footer (#938)
-            'newsletter' => fn () => Newsletter::pageProp(),
+            // The newsletter form of the footer (#938). Off at an address that holds a secret (ADR 0064): the form loads the
+            // bot check of another host
+            'newsletter' => fn () => SecretAddresses::holdsASecret($request) ? ['enabled' => false, 'turnstileSiteKey' => null] : Newsletter::pageProp(),
             // The values of this instance (#1653): the contact address, the publisher, the footer and the social links
             'instance' => fn () => InstanceValues::pageProp(),
+            // The page view of the statistics (#1316, ADR 0064): null when the instance sets none and at an address that
+            // holds a secret. Read when the response is built, so the error page of such an address gets null too
+            'statistics' => fn () => Analytics::pageProp($request),
             // The legal pages that this instance has a text for (#1653): the footer, the sign-up and the forms name only
             // these, and a page that is not in the list answers 404
             'legalPages' => fn () => LegalPages::available(),

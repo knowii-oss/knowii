@@ -12,11 +12,16 @@ import { AppDataProvider, removeExpiredKeptTexts } from '@knowii/common';
 import { ErrorBoundary, Toaster } from '@/Components/ui';
 import { ApplicationToolkitProvider } from '@/Components/ApplicationToolkit';
 import { pageComponents } from './page-components';
+import { startPageViews } from './statistics';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 // The texts that were not sent and whose last change is more than 7 days ago leave the browser, for every account (#1622)
 removeExpiredKeptTexts();
+
+// One page view per visit of a page, with the address that the server cleaned (#1316, ADR 0064): before the application
+// starts, so that the first load counts. Nothing is sent when the instance sets no statistics
+startPageViews();
 
 // Per-request CSP nonce for the <style> elements that Inertia injects (progress bar, error dialog), see app.blade.php
 const styleNonce = document.querySelector<HTMLMetaElement>('meta[property="csp-nonce"]')?.nonce;

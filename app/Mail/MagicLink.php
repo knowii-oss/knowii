@@ -4,13 +4,14 @@ namespace App\Mail;
 
 use App\Actions\Auth\MagicLinks;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
 /**
- * The email with a sign-in link (#703, ADR 0023).
+ * The email with a sign-in link (#703, ADR 0023). It holds the token, so it is encrypted in the queue (ADR 0064).
  */
-class MagicLink extends Mailable
+class MagicLink extends Mailable implements ShouldBeEncrypted
 {
     use Queueable, SerializesModels;
 

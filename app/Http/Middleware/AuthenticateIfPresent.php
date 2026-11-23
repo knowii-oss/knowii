@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\SecretAddresses;
 use Closure;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
@@ -52,8 +53,9 @@ class AuthenticateIfPresent implements AuthenticatesRequests
 
         $request->attributes->set(self::VISITOR_ATTRIBUTE, true);
 
-        // After a click on "Sign in" the member comes back to the page that they were reading
-        if ($request->isMethod('GET') && ! $request->is('api/*') && $request->hasSession()) {
+        // After a click on "Sign in" the member comes back to the page that they were reading. Never an address that holds a
+        // secret (ADR 0064)
+        if ($request->isMethod('GET') && ! $request->is('api/*') && $request->hasSession() && ! SecretAddresses::holdsASecret($request)) {
             $request->session()->put('url.intended', $request->fullUrl());
         }
 
