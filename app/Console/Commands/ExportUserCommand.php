@@ -19,7 +19,8 @@ class ExportUserCommand extends Command
 {
     public function handle(ExportsUsers $exporter): int
     {
-        $user = User::query()->where('email', $this->argument('email'))->first();
+        // The stored address is in lower case: the command finds the account with any casing of the address
+        $user = User::query()->where('email', mb_strtolower($this->argument('email')))->first();
         if ($user === null) {
             $this->error('No account has this email address.');
 

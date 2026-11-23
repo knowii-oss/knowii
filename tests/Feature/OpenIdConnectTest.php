@@ -794,7 +794,9 @@ test('case 1: an identity with this issuer and subject signs in its account, wha
 });
 
 test('case 3: an account with this address that verified it is connected and signed in (the address is compared without case)', function () {
-    $user = oidcMember('Ada@Example.COM');
+    // Written past the model, which stores every address in lower case: a row of before
+    $user = oidcMember('ada@example.com');
+    DB::table('users')->where('id', $user->id)->update(['email' => 'Ada@Example.COM']);
 
     oidcCallback(oidcStart())->assertRedirect(route('dashboard'));
 
@@ -891,7 +893,9 @@ test('an address that two accounts have (they differ by case only) is refused, n
     // stays for a database without it
     DB::statement('DROP INDEX users_email_lower_unique');
     oidcMember('ada@example.com');
-    oidcMember('ADA@example.com');
+    // Written past the model, which stores every address in lower case: a row of before
+    $twin = oidcMember('ada.twin@example.com');
+    DB::table('users')->where('id', $twin->id)->update(['email' => 'ADA@example.com']);
 
     $response = oidcCallback(oidcStart());
 

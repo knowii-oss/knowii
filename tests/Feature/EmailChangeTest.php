@@ -939,7 +939,9 @@ test('the migration of the unique address stops, and changes nothing, while two 
     $migration = require database_path('migrations/'.EMAIL_CHANGE_UNIQUE_MIGRATION);
     $migration->down();
     $ada = emailChangeMember();
-    $twin = emailChangeMember('ADA@example.com', 'ada-twin');
+    // Written past the model, which stores every address in lower case: a row of before
+    $twin = emailChangeMember('ada.twin@example.com', 'ada-twin');
+    DB::table('users')->where('id', $twin->id)->update(['email' => 'ADA@example.com']);
 
     expect(fn () => $migration->up())->toThrow(RuntimeException::class, $ada->cuid.', '.$twin->cuid);
 
