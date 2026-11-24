@@ -228,19 +228,18 @@ test('the time zone is in the shared account of the page, and in no resource tha
     expect($this->getJson(ApiRoutes::path(ApiRoutes::COMMUNITY_MEMBERS, [ApiRoutes::PARAM_COMMUNITY => $this->community->cuid]))->getContent())->not->toContain($needle);
 });
 
-test('the sign-up form sends the zone: an invalid or absent value gives null and never an error', function () {
+test('the sign-up sends the zone: an invalid or absent value gives null and never an error', function () {
     foreach ([['time_zone' => 'Europe/Paris', 'expected' => 'Europe/Paris'], ['time_zone' => 'Asia/Calcutta', 'expected' => 'Asia/Kolkata'], ['time_zone' => 'Nowhere/Land', 'expected' => null], ['time_zone' => ['x'], 'expected' => null], ['expected' => null]] as $index => $case) {
         $expected = $case['expected'];
         unset($case['expected']);
         app('auth')->forgetGuards();
         $this->flushSession();
 
-        $this->post('/register', [
+        // The page of the link of the sign-up sends the zone (ADR 0065)
+        signUpThroughLink([
             'name' => 'Zoned User '.$index,
             'email' => "zoned$index@example.com",
             'password' => 'password',
-            'password_confirmation' => 'password',
-            'terms' => true,
             ...$case,
         ])->assertRedirect();
 

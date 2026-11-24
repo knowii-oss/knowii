@@ -227,6 +227,7 @@ export default function UpdateProfileInformationForm(props: Props) {
 
   const updateProfileInformation: FormEventHandler = (e) => {
     e.preventDefault();
+    const changesEmail = emailChanged;
 
     form.put(route(USER_PROFILE_INFORMATION_UPDATE_URL), {
       // WARNING: aligned with the error bag of UpdateUserProfileInformation.php. Without it, the errors of the server
@@ -234,7 +235,12 @@ export default function UpdateProfileInformationForm(props: Props) {
       errorBag: 'updateProfileInformation',
       preserveScroll: true,
       onSuccess: () => {
-        showToast({ severity: 'success', summary: 'Success', detail: 'Profile updated successfully.' });
+        // A new address waits for its link (ADR 0058): the same words for every new address
+        showToast({
+          severity: 'success',
+          summary: 'Success',
+          detail: changesEmail ? 'We sent a link to the new address.' : 'Profile updated successfully.',
+        });
       },
     });
   };
@@ -316,7 +322,7 @@ export default function UpdateProfileInformationForm(props: Props) {
           }}
           autoComplete="username"
           required
-          // An address that was never verified can be corrected (#1706): the address check goes to the new address
+          // An address that was never verified can be corrected (#1706): the link goes to the new address, as a change
           disabled={form.processing}
         />
         <InputError className="mt-2" message={form.errors.email} />

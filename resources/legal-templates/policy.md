@@ -37,7 +37,7 @@ We do not use advertising or tracking cookies, and we do not sell personal data.
 1. To run your account and the communities you join: the contract between you and us (GDPR art. 6(1)(b)).
 2. To protect the platform (sign-in protection, rate limits, bot checks, logs, backups): our legitimate interest in a secure service (art. 6(1)(f)).
 3. [TODO: keep only if you use it] To send the newsletter emails: your consent (art. 6(1)(a)). You can unsubscribe in every email.
-4. To send the emails that the service needs (sign-in links, address verification): the contract. To send the invitations of a community: the legitimate interest of the community that invites you (art. 6(1)(f)); the owner of the community decides who is invited.
+4. To send the emails that the service needs (sign-in links, address verification, the link that finishes a sign-up, and the email that tells that an address already has an account when someone uses it to sign up or for another account): the contract, or the steps that you ask for before it. For an email that we send to you because another person used your address (to sign up, or as the new address of another account): our legitimate interest in keeping accounts safe and in telling you about it (art. 6(1)(f)). To send the invitations of a community: the legitimate interest of the community that invites you (art. 6(1)(f)); the owner of the community decides who is invited.
 5. To stop the emails to an address that does not accept them or that marked them as spam, to keep the groups of emails that you stopped, and to trace a report of our mail provider: our legitimate interest in sending email only where it arrives and where it is wanted (art. 6(1)(f)).
 6. [TODO: keep only if you use it] To know how many people visit the pages: our legitimate interest in improving the service (art. 6(1)(f)).
 
@@ -51,7 +51,7 @@ We use these sub-processors:
 
 {{subprocessors}}
 
-Our mail provider keeps its own list of addresses that did not accept an email or that marked one as spam, and sends nothing to them. When you ask for a sign-in link, a password reset or the check of an address, or when you choose to try your address again, we ask our mail provider to take your address off that list, a few times a day at most.
+Our mail provider keeps its own list of addresses that did not accept an email or that marked one as spam, and sends nothing to them. When you ask for a sign-in link, a password reset, the check of an address or the link of a sign-up, when someone uses your address to sign up or for another account, or when you choose to try your address again, we ask our mail provider to take your address off that list, a few times a day at most.
 
 [TODO: keep only if a provider of your list is outside the European Economic Area, and name the safeguard of each one] Some of them are in the United States. These transfers use the EU-US Data Privacy Framework or the standard contractual clauses of the European Commission. Write to {{contact}} for a copy of these safeguards.
 
@@ -63,7 +63,7 @@ When a member adds a link to a resources space, our server fetches the page to c
 
 1. Account and profile: while your account exists. When you delete your account, we delete your personal data at once. Your posts, comments, resources and messages stay where you wrote them, under the name "Deleted member". When you delete your account, you can also delete your posts, comments and messages. Afterwards, write to {{contact}} to have content removed.
 2. Content: until its author, a moderator or the owner deletes it, or the community is deleted. A deleted message, and a deleted post or comment that other people answered, leave an empty marker without their text.
-3. Sessions: {{retention.session}} after your last activity. Sign-in links: {{retention.sign_in_link}}. Password reset links: {{retention.password_reset_link}}.
+3. Sessions: {{retention.session}} after your last activity. Sign-in links: {{retention.sign_in_link}}. A sign-up that you did not finish (the name and the email address that you typed, encrypted): its link works {{retention.sign_up_link}}, and we delete it at most an hour after. Password reset links: {{retention.password_reset_link}}.
 4. Invitations: valid for {{retention.invitation}}, deleted {{retention.expired_invitations}} after they expire. The record of an import from a file: deleted {{retention.invitation_imports}} after the invitations were sent, or {{retention.invitation_import_previews}} after the upload when nobody sent them.
 5. API tokens: until they expire ({{retention.api_token_default}} by default) or you revoke them. Expired tokens are deleted {{retention.expired_api_tokens}} after their expiry date.
 6. Uploaded images that no content uses: {{retention.unused_uploads}}.

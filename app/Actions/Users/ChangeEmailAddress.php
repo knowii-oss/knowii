@@ -2,17 +2,22 @@
 
 namespace App\Actions\Users;
 
+use App\Constants;
 use App\Contracts\Users\ChangesEmailAddresses;
 use App\Enums\KnowiiEmailChangeResult;
+use App\Jobs\SendEmailChangeMail;
 use App\Mail\ConfirmNewEmailAddress;
 use App\Mail\EmailAddressChanged;
+use App\Mail\EmailAddressHasAccount;
 use App\Models\User;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -21,14 +26,18 @@ use Illuminate\Validation\ValidationException;
  * A change of the email address applies after the new address is confirmed (#1706, ADR 0058).
  *
  * 1. The profile form (UpdateUserProfileInformation) validates the new address and the password, and calls request(): the
- *    address waits in users.pending_email with the time of the request, and the link goes to it. The account keeps its
- *    current, verified address until the link is opened.
- * 2. The link is a signed, temporary route (config auth.verification.expire, as the address check) with the cuid of the
+ *    address waits in users.pending_email with the time of the request, and one job (App\Jobs\SendEmailChangeMail) is
+ *    queued. The account keeps its current address until the link is opened. The request does the same work for a free
+ *    address and for an address that another account has: it never reads another account.
+ * 2. The job (deliver()) sends the link, or, when another account has the address, the mail "This address already has an
+ *    account" in place of the link (at most one a minute and Constants::EMAIL_ADDRESS_HAS_ACCOUNT_MAILS_PER_HOUR an hour
+ *    per recipient). The pending address stays then: a cancel, a newer change, a takeover or the retention removes it.
+ * 3. The link is a signed, temporary route (config auth.verification.expire, as the address check) with the cuid of the
  *    account and an HMAC-SHA256 of the pending address with the key of the application: the link of a replaced or
  *    cancelled address does not match. It needs a session of the account.
- * 3. confirm() applies it in one transaction, on the row of the account read again and locked, then a notice goes to the
- *    address of before, with the new address masked.
- * 4. A pending address waits Retention::pendingEmailDays() days at most (retention.pending_email_days): after that it does
+ * 4. confirm() applies it in one transaction, on the row of the account read again and locked, then a notice goes to the
+ *    address of before when it was verified.
+ * 5. A pending address waits Retention::pendingEmailDays() days at most (retention.pending_email_days): after that it does
  *    not count, and retention:prune removes it.
  *
  * The mails are account mails of level 0 (ADR 0054): on the default queue, never held. The log lines hold the cuid of the
@@ -43,7 +52,7 @@ class ChangeEmailAddress implements ChangesEmailAddresses
             'pending_email_requested_at' => now(),
         ])->save();
 
-        $this->sendLink($user);
+        $this->queueMail($user);
         // After the commit of the caller, as the mail: the line says what is stored
         $cuid = $user->cuid;
         DB::afterCommit(static fn () => Log::info('Change of the email address asked', ['user' => $cuid]));
@@ -55,10 +64,51 @@ class ChangeEmailAddress implements ChangesEmailAddresses
             throw ValidationException::withMessages(['pending_email' => __('No change of the email address waits for its confirmation.')]);
         }
 
-        $this->sendLink($user);
+        $this->queueMail($user);
         Log::info('Link of the change of the email address sent again', ['user' => $user->cuid]);
 
         return $user;
+    }
+
+    final public function deliver(int $userId, string $addressHash): void
+    {
+        $user = User::query()->find($userId);
+        $address = $user === null ? null : self::pendingAddressOf($user);
+        // A newer change, a cancel, a confirmation or a takeover came after the request: nothing to send
+        if ($user === null || $address === null || ! hash_equals(self::addressHash($address), $addressHash)) {
+            return;
+        }
+
+        $taken = User::query()
+            ->whereKeyNot($user->id)
+            ->whereRaw('lower(email) = ?', [mb_strtolower($address)])
+            ->exists();
+        if ($taken) {
+            // At most one such mail a minute and EMAIL_ADDRESS_HAS_ACCOUNT_MAILS_PER_HOUR an hour per recipient, whatever the
+            // account that asks: a mail over the cap is dropped, and the answer of the request does not change
+            $key = self::recipientKey($address);
+            if (! Cache::add($key.':minute', true, 60) || RateLimiter::tooManyAttempts($key.':hour', Constants::EMAIL_ADDRESS_HAS_ACCOUNT_MAILS_PER_HOUR)) {
+                Log::info('Change of the email address: the new address has an account, and its mail without a link is over the cap', ['user' => $user->cuid]);
+
+                return;
+            }
+            RateLimiter::hit($key.':hour', 3600);
+
+            // No link: the account keeps its address, and the pending address stays (clearing it would show on the profile)
+            Mail::to($address)->queue((new EmailAddressHasAccount)->recordDelivery($user));
+            Log::info('Change of the email address: the new address has an account, the mail without a link was sent', ['user' => $user->cuid]);
+
+            return;
+        }
+
+        $minutes = Config::get('auth.verification.expire', 60);
+        $minutes = is_int($minutes) && $minutes > 0 ? $minutes : 60;
+        $url = URL::temporarySignedRoute('email-change.confirm', Carbon::now()->addMinutes($minutes), [
+            'userCuid' => $user->cuid,
+            'hash' => $addressHash,
+        ]);
+
+        Mail::to($address)->queue((new ConfirmNewEmailAddress($url, $minutes))->recordDelivery($user));
     }
 
     final public function cancel(User $user): User
@@ -93,7 +143,10 @@ class ChangeEmailAddress implements ChangesEmailAddresses
                     return [KnowiiEmailChangeResult::AddressTaken, null];
                 }
 
-                $previous = $account->email;
+                // The notice goes only to an address that was verified: the correction of an address that was never
+                // verified sends none, as before (ADR 0058)
+                $previous = $account->hasVerifiedEmail() ? $account->email : null;
+                $oldAddress = $account->email;
                 $account->forceFill([
                     'email' => $pending,
                     'email_verified_at' => now(),
@@ -103,7 +156,7 @@ class ChangeEmailAddress implements ChangesEmailAddresses
                 // The profile keeps a copy of the address
                 $account->profile()->update(['email' => $account->email]);
                 // A reset link of the address of before has no use any more
-                DB::table('password_reset_tokens')->where('email', $previous)->delete();
+                DB::table('password_reset_tokens')->where('email', $oldAddress)->delete();
 
                 return [KnowiiEmailChangeResult::Confirmed, $previous];
             });
@@ -135,22 +188,28 @@ class ChangeEmailAddress implements ChangesEmailAddresses
         return $user->pending_email;
     }
 
-    private function sendLink(User $user): void
+    /**
+     * One job for the pending address, after the commit of the caller: the job reads the row as it is stored
+     */
+    private function queueMail(User $user): void
     {
         $address = self::pendingAddressOf($user);
         if ($address === null) {
             return;
         }
 
-        $minutes = Config::get('auth.verification.expire', 60);
-        $minutes = is_int($minutes) && $minutes > 0 ? $minutes : 60;
-        $url = URL::temporarySignedRoute('email-change.confirm', Carbon::now()->addMinutes($minutes), [
-            'userCuid' => $user->cuid,
-            'hash' => self::addressHash($address),
-        ]);
+        $userId = $user->id;
+        $hash = self::addressHash($address);
+        DB::afterCommit(static fn () => SendEmailChangeMail::dispatch($userId, $hash));
+    }
 
-        // After the commit of the caller: the link works when the mail is sent
-        DB::afterCommit(static fn () => Mail::to($address)->queue((new ConfirmNewEmailAddress($url, $minutes))->recordDelivery($user)));
+    /**
+     * The key of the mails without a link to one recipient: an HMAC of the address with the key of the application, never
+     * the address
+     */
+    private static function recipientKey(string $address): string
+    {
+        return 'email-change-taken:'.hash_hmac('sha256', 'email-change-taken:'.mb_strtolower($address), config()->string('app.key'));
     }
 
     /**

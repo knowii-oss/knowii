@@ -56,6 +56,7 @@ test('the periods of the privacy policy come from the configuration (ADR 0030)',
 
     expect($periods['session'])->toBe('2 hours')
         ->and($periods['sign_in_link'])->toBe('15 minutes')
+        ->and($periods['sign_up_link'])->toBe('60 minutes')
         ->and($periods['password_reset_link'])->toBe('60 minutes')
         ->and($periods['invitation'])->toBe('7 days')
         ->and($periods['expired_invitations'])->toBe('30 days')

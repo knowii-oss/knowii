@@ -1,69 +1,72 @@
 import Footer from '@/Components/Footer';
 import OpenIdConnectButton from '@/Components/Auth/OpenIdConnectButton';
-import { Button, Checkbox, InputError, InputLabel, PasswordInput, TextInput, Turnstile } from '@/Components/ui';
+import { Button, InputError, InputLabel, TextInput, Turnstile } from '@/Components/ui';
 import AuthenticationCard from '@/Components/AuthenticationCard';
 import { Head, Link, useForm } from '@inertiajs/react';
 import type { FormEventHandler } from 'react';
 import { useState } from 'react';
-import {
-  browserTimeZone,
-  LOGIN_URL,
-  PRIVACY_POLICY_URL,
-  REGISTER_URL,
-  SIGNUP_HONEYPOT_FIELD,
-  TERMS_OF_SERVICE_URL,
-  useTypedPage,
-} from '@knowii/common';
+import { LOGIN_URL, REGISTER_URL, SIGNUP_HONEYPOT_FIELD } from '@knowii/common';
 import { useRoute } from 'ziggy-js';
-import { FaAt, FaLock, FaUser } from 'react-icons/fa';
+import { FaAt, FaUser } from 'react-icons/fa';
 
 interface RegisterFormData {
   name: string;
   email: string;
-  password: string;
-  password_confirmation: string;
-  terms: boolean;
   turnstile_token: string;
   website: string;
-  // The zone of the browser (#1476): the sign-up never fails when the browser gives none
-  time_zone: string;
 }
 
 interface Props {
   // Null when the instance has no Turnstile keys: no bot check then (#737)
   turnstileSiteKey?: string | null;
+  // The answer of the form, the same for every address (ADR 0065): it shows in the place of the form
+  status?: string | null;
 }
 
-export default function RegisterPage({ turnstileSiteKey = null }: Props) {
-  const page = useTypedPage();
+/**
+ * The sign-up form (ADR 0065): the name and the address. The answer is the same for every address: the mail has the next
+ * step. The password and the box of the terms are on the page of the link of the mail (Auth/FinishSignUp).
+ */
+export default function RegisterPage({ turnstileSiteKey = null, status = null }: Props) {
   const route = useRoute();
 
   const form = useForm<RegisterFormData>({
     name: '',
     email: '',
-    password: '',
-    password_confirmation: '',
-    terms: false,
     turnstile_token: '',
     website: '',
-    time_zone: browserTimeZone() ?? '',
   });
   // A Turnstile token works once: a new key mounts a new widget after each attempt
   const [turnstileKey, setTurnstileKey] = useState(0);
-  // The box of the terms names only the legal texts that the instance has (#1653): both, one, or none
-  const legalPages = page.props.legalPages ?? [];
-  const hasTerms = legalPages.includes('terms-of-service');
-  const hasPrivacyPolicy = legalPages.includes('privacy-policy');
 
   const submit: FormEventHandler = (e) => {
     e.preventDefault();
     form.post(route(REGISTER_URL), {
       onFinish: () => {
-        form.reset('password', 'password_confirmation', 'turnstile_token');
+        form.reset('turnstile_token');
         setTurnstileKey((current) => current + 1);
       },
     });
   };
+
+  if (status) {
+    return (
+      <>
+        <Head title="Register" />
+        <AuthenticationCard>
+          <div className="flex flex-col gap-4">
+            <p role="status" className="text-sm font-medium text-success">
+              {status}
+            </p>
+            <Link href={route(LOGIN_URL)} className="simple-link touch-target">
+              Back to sign in
+            </Link>
+          </div>
+        </AuthenticationCard>
+        <Footer variant="compact" />
+      </>
+    );
+  }
 
   return (
     <>
@@ -107,81 +110,6 @@ export default function RegisterPage({ turnstileSiteKey = null }: Props) {
             />
             <InputError className="mt-2" message={form.errors.email} />
           </div>
-
-          {/* Password */}
-          <div className="mt-4">
-            <InputLabel htmlFor="password">Password</InputLabel>
-            <PasswordInput
-              icon={<FaLock />}
-              size="lg"
-              wrapperClassName="mt-1"
-              showStrength
-              id="password"
-              name="password"
-              value={form.data.password}
-              onChange={(e) => form.setData('password', e.target.value)}
-              autoComplete="new-password"
-              required
-              disabled={form.processing}
-            />
-            <InputError className="mt-2" message={form.errors.password} />
-          </div>
-
-          {/* Confirm password */}
-          <div className="mt-4">
-            <InputLabel htmlFor="password_confirmation">Confirm password</InputLabel>
-            <PasswordInput
-              icon={<FaLock />}
-              size="lg"
-              wrapperClassName="mt-1"
-              id="password_confirmation"
-              name="password_confirmation"
-              value={form.data.password_confirmation}
-              onChange={(e) => form.setData('password_confirmation', e.target.value)}
-              autoComplete="new-password"
-              required
-              disabled={form.processing}
-            />
-            <InputError className="mt-2" message={form.errors.password_confirmation} />
-          </div>
-
-          {/* Terms and privacy policy */}
-          {page.props.jetstream.hasTermsAndPrivacyPolicyFeature && (
-            <div className="mt-4">
-              <div className="flex items-start gap-2">
-                <Checkbox
-                  name="terms"
-                  id="terms"
-                  className="mt-0.5"
-                  checked={form.data.terms}
-                  onChange={(e) => form.setData('terms', e.target.checked)}
-                  required
-                  disabled={form.processing}
-                />
-                <label htmlFor="terms" className="text-sm text-muted">
-                  {/* 16 is the minimum age of the terms. No date of birth: the checkbox is enough (#1350). The sentence
-                      names the texts that exist: without one, only the age stays (#1653) */}
-                  I am 16 or older
-                  {(hasTerms || hasPrivacyPolicy) && ' and I agree to the '}
-                  {hasTerms && (
-                    <a target="_blank" rel="noreferrer" href={route(TERMS_OF_SERVICE_URL)} className="simple-link">
-                      Terms of Service
-                    </a>
-                  )}
-                  {hasTerms && hasPrivacyPolicy && ' and '}
-                  {hasPrivacyPolicy && (
-                    <a target="_blank" rel="noreferrer" href={route(PRIVACY_POLICY_URL)} className="simple-link">
-                      Privacy Policy
-                    </a>
-                  )}
-                </label>
-              </div>
-              <InputError className="mt-2" message={form.errors.terms} />
-            </div>
-          )}
-
-          {/* The zone of the browser, in a hidden field (#1476): nothing is shown, and nothing fails when it is empty */}
-          <input type="hidden" name="time_zone" value={form.data.time_zone} />
 
           {/* Honeypot (#737): hidden from people and from screen readers, bots fill it in */}
           <div aria-hidden="true" className="absolute -left-[10000px] h-px w-px overflow-hidden">

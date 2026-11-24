@@ -4,6 +4,7 @@ namespace App\Actions\Auth;
 
 use App\Contracts\Auth\ConsumesMagicLinks;
 use App\Contracts\Auth\SendsMagicLinks;
+use App\Jobs\SendSignInLink;
 use App\Mail\MagicLink;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
@@ -26,6 +27,15 @@ class MagicLinks implements ConsumesMagicLinks, SendsMagicLinks
     public const int VALIDITY_MINUTES = 15;
 
     /**
+     * At most one sign-in link per account in this time
+     */
+    public const int SECONDS_BETWEEN_LINKS = 60;
+
+    /**
+     * The form of the sign-in link gives the same answer for every address (documentation/architecture/backend.md): the
+     * request checks the format of the address and queues one job for it (App\Jobs\SendSignInLink), which calls deliver().
+     * The request never reads an account.
+     *
      * @throws ValidationException
      */
     final public function send(array $input, ?string $landing = null): void
@@ -33,10 +43,26 @@ class MagicLinks implements ConsumesMagicLinks, SendsMagicLinks
         /** @var array{email: string} $validated */
         $validated = Validator::make($input, ['email' => ['required', 'string', 'email', 'max:255']])->validate();
 
-        $user = User::query()->whereRaw('lower(email) = ?', [mb_strtolower(trim($validated['email']))])->first();
+        SendSignInLink::dispatch(mb_strtolower(trim($validated['email'])), $landing);
+    }
+
+    /**
+     * The work of the job: when an account has the address, without regard to the case, a new link goes to the address of
+     * the account, at most one a minute per account. An address without an account is one query
+     */
+    final public function deliver(string $email, ?string $landing = null): void
+    {
+        $user = User::query()->whereRaw('lower(email) = ?', [mb_strtolower(trim($email))])->first();
         if ($user === null) {
             // Same answer as for an existing account: the form never tells who has an account
             Log::info('Sign-in link asked for an unknown address');
+
+            return;
+        }
+
+        // At most one link a minute per account, whatever the IP address: a second request in that minute sends nothing
+        if (! Cache::add(self::sentKey($user), true, self::SECONDS_BETWEEN_LINKS)) {
+            Log::info('Sign-in link not sent: one was sent less than a minute ago', ['user' => $user->cuid]);
 
             return;
         }
@@ -104,6 +130,11 @@ class MagicLinks implements ConsumesMagicLinks, SendsMagicLinks
     private static function addressHash(string $email): string
     {
         return hash_hmac('sha256', $email, config()->string('app.key'));
+    }
+
+    private static function sentKey(User $user): string
+    {
+        return 'magic-link-sent:'.$user->cuid;
     }
 
     private static function key(string $token): string

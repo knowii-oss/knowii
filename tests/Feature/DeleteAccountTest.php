@@ -118,7 +118,8 @@ test('a new sign-up with the email of a deleted account gets a new profile (#126
     $user = User::factory()->withUserProfile(fn ($factory) => $factory->state(['bio' => 'The old bio']))->create();
     $this->actingAs($user)->delete('/user', ['password' => 'password']);
 
-    $this->post('/register', ['name' => 'Ada Again', 'email' => $user->email, 'password' => 'password', 'password_confirmation' => 'password', 'terms' => true]);
+    app('auth')->forgetGuards();
+    signUpThroughLink(['name' => 'Ada Again', 'email' => $user->email, 'password' => 'password'])->assertSessionHasNoErrors();
 
     $profile = UserProfile::query()->where('email', $user->email)->firstOrFail();
     expect($profile->bio)->toBeNull()->and($profile->name)->toBe('Ada Again');

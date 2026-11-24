@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Actions\Auth\MagicLinks;
+use App\Actions\Auth\PendingSignUps;
 use App\Constants;
 use App\Models\CommunityInvitation;
 
@@ -20,6 +21,14 @@ final class Retention
     public static function signInLinkMinutes(): int
     {
         return MagicLinks::VALIDITY_MINUTES;
+    }
+
+    /**
+     * The life of a pending sign-up and of its link (ADR 0065): the one of the link of the address check
+     */
+    public static function signUpLinkMinutes(): int
+    {
+        return PendingSignUps::validityMinutes();
     }
 
     public static function passwordResetMinutes(): int
@@ -183,6 +192,7 @@ final class Retention
         return [
             'session' => self::minutes(self::sessionMinutes()),
             'sign_in_link' => self::minutes(self::signInLinkMinutes()),
+            'sign_up_link' => self::minutes(self::signUpLinkMinutes()),
             'password_reset_link' => self::minutes(self::passwordResetMinutes()),
             'invitation' => self::count(self::invitationValidityDays(), 'day'),
             'expired_invitations' => self::count(self::expiredInvitationsDays(), 'day'),

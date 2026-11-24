@@ -280,6 +280,8 @@ test('the cap: 1 removal an hour and 3 in 24 hours per address; the mail goes ev
     Log::spy();
 
     app(SendsMagicLinks::class)->send(['email' => 'ada@example.com']);
+    // At most one sign-in link a minute per account
+    Carbon::setTestNow(now()->addSeconds(61));
     app(SendsMagicLinks::class)->send(['email' => 'ada@example.com']);
     expect($removals->removed)->toHaveCount(1)
         ->and($transport->messages())->toHaveCount(2);

@@ -11,6 +11,10 @@ Schedule::command('uploads:prune')->dailyAt('03:30')->withoutOverlapping()->onOn
 // Expired invitations, API tokens, failed jobs, password reset tokens, sessions and cache entries (#1306)
 Schedule::command('retention:prune')->dailyAt('03:40')->withoutOverlapping()->onOneServer();
 
+// The expired entries of the database cache, every hour (ADR 0065): a sign-up that nobody finished goes at most an hour
+// after the end of its link
+Schedule::command('cache:prune-expired')->hourly()->withoutOverlapping(10)->onOneServer();
+
 // Old waitlist contacts, unconfirmed and unsubscribed contacts of the EmailOctopus lists (#77)
 Schedule::command('mailing-lists:prune')->dailyAt('03:50')->withoutOverlapping()->onOneServer();
 

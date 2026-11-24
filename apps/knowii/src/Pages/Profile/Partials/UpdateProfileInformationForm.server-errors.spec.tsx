@@ -41,7 +41,7 @@ const user: CurrentUser = {
 };
 
 const HEADLINE_ERROR = 'The headline field must not be greater than 80 characters.';
-const EMAIL_ERROR = 'The email has already been taken.';
+const EMAIL_ERROR = 'The email field must be a valid email address.';
 
 const PROFILE_PAGE = {
   component: 'Profile/Show',

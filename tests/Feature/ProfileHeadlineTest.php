@@ -234,19 +234,17 @@ test('an empty headline is stored as null, never as an empty text (#1688)', func
 ]);
 
 test('the error of the server comes back to the profile form under the name of its error bag (#1688)', function () {
-    $taken = User::factory()->withUserProfile()->create(['email' => 'taken@example.com']);
-
     // As the form sends it. The page that comes back holds the errors under the name of the bag: the form reads them there
     // (UpdateProfileInformationForm.server-errors.spec.tsx gives the form this answer). The model is fresh, as a new
     // request has: the page reads columns that the factory did not set
     headlineActingAs(User::query()->findOrFail($this->member->id))
         ->followingRedirects()
         ->from(route('profile.show'))
-        ->put('/user/profile-information', ['name' => $this->member->name, 'email' => $taken->email, 'headline' => str_repeat('b', 81)], ['X-Inertia-Error-Bag' => 'updateProfileInformation'])
+        ->put('/user/profile-information', ['name' => $this->member->name, 'email' => 'not-an-address', 'headline' => str_repeat('b', 81)], ['X-Inertia-Error-Bag' => 'updateProfileInformation'])
         ->assertOk()
         ->assertInertia(fn ($page) => $page->component('Profile/Show')
             ->where('errors.updateProfileInformation.headline', 'The headline field must not be greater than 80 characters.')
-            ->where('errors.updateProfileInformation.email', 'The email has already been taken.')
+            ->where('errors.updateProfileInformation.email', 'The email field must be a valid email address.')
             ->missing('errors.headline'));
 });
 

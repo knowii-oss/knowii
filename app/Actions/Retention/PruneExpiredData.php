@@ -177,6 +177,11 @@ final class PruneExpiredData implements PrunesExpiredData
         return $dryRun ? $query->count() : $query->update(['pending_email' => null, 'pending_email_requested_at' => null]);
     }
 
+    final public function pruneExpiredCache(bool $dryRun = false): int
+    {
+        return $this->pruneCache($dryRun);
+    }
+
     private function pruneCache(bool $dryRun): int
     {
         $store = config('cache.default');

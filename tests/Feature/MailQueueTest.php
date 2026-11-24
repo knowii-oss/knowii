@@ -7,9 +7,13 @@ use App\Jobs\Middleware\HoldNotificationMail;
 use App\Jobs\Middleware\SkipSuppressedNotificationMail;
 use App\Mail\CommunityInvitation;
 use App\Mail\CommunityOwnershipTransferred;
+use App\Mail\ConfirmNewEmailAddress;
+use App\Mail\EmailAddressHasAccount;
+use App\Mail\FinishSignUp;
 use App\Mail\MagicLink;
 use App\Mail\MailBudgetAlert;
 use App\Mail\NotificationMail;
+use App\Mail\SignUpAccountExists;
 use App\Support\MailWorkerActivity;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
@@ -194,9 +198,11 @@ test('a mail that waited for more than 2 hours is not sent late: the worker fail
 });
 
 test('the account mailables have no limiter, no hold, and stay on the queue default (#1477)', function () {
-    foreach ([MagicLink::class, CommunityInvitation::class, CommunityOwnershipTransferred::class, MailBudgetAlert::class] as $class) {
+    foreach ([MagicLink::class, ConfirmNewEmailAddress::class, FinishSignUp::class, SignUpAccountExists::class, EmailAddressHasAccount::class, CommunityInvitation::class, CommunityOwnershipTransferred::class, MailBudgetAlert::class] as $class) {
+        // The only middleware of an account mail keeps the text of an error out of the log (HideMailErrorText)
+        $middleware = method_exists($class, 'middleware') ? array_map(static fn (object $item): string => $item::class, (new ReflectionClass($class))->newInstanceWithoutConstructor()->middleware()) : [];
         expect(is_subclass_of($class, NotificationMail::class))->toBeFalse()
-            ->and(method_exists($class, 'middleware'))->toBeFalse()
+            ->and($middleware === [] || $middleware === [HideMailErrorText::class])->toBeTrue()
             ->and(method_exists($class, 'retryUntil'))->toBeFalse()
             ->and((new ReflectionClass($class))->newInstanceWithoutConstructor()->queue)->toBeNull();
     }

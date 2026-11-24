@@ -7,9 +7,12 @@ use App\Mail\CommunityInvitation;
 use App\Mail\CommunityOwnershipTransferred;
 use App\Mail\ConfirmNewEmailAddress;
 use App\Mail\EmailAddressChanged;
+use App\Mail\EmailAddressHasAccount;
+use App\Mail\FinishSignUp;
 use App\Mail\MagicLink;
 use App\Mail\MailBudgetAlert;
 use App\Mail\NotificationMail;
+use App\Mail\SignUpAccountExists;
 use App\Notifications\ResetPasswordLink;
 use App\Notifications\VerifyEmailAddress;
 use Illuminate\Auth\Notifications\ResetPassword;
@@ -35,6 +38,11 @@ final class MailKinds
         VerifyEmailAddress::class => KnowiiMailKind::AskedFor,
         ResetPassword::class => KnowiiMailKind::AskedFor,
         ResetPasswordLink::class => KnowiiMailKind::AskedFor,
+        // The two mails of the sign-up form and the mail of a change to an address that has an account (ADR 0065, ADR 0058):
+        // a person asked for them a moment ago, as for a sign-in link
+        FinishSignUp::class => KnowiiMailKind::AskedFor,
+        SignUpAccountExists::class => KnowiiMailKind::AskedFor,
+        EmailAddressHasAccount::class => KnowiiMailKind::AskedFor,
         // A manager asked for it, not the person who gets it
         CommunityInvitation::class => KnowiiMailKind::Invitation,
         // About the account, not asked for

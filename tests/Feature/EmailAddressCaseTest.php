@@ -84,8 +84,9 @@ test('the correction of an address that was never verified stores it in lower ca
     $this->actingAs($user)->put('/user/profile-information', ['name' => $user->name, 'email' => 'Grace.Hopper@Example.org', 'current_password' => EMAIL_CASE_PASSWORD])
         ->assertSessionHasNoErrors();
 
-    expect(DB::table('users')->where('id', $user->id)->value('email'))->toBe('grace.hopper@example.org')
-        ->and(DB::table('user_profiles')->where('user_id', $user->id)->value('email'))->toBe('grace.hopper@example.org');
+    // The correction waits for the link of the new address, as a change (ADR 0058)
+    expect(DB::table('users')->where('id', $user->id)->value('pending_email'))->toBe('grace.hopper@example.org')
+        ->and(DB::table('users')->where('id', $user->id)->value('email'))->toBe('grace@example.com');
 });
 
 test('the password sign-in works with any casing of the address', function (string $typed) {

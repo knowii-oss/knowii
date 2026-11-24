@@ -209,6 +209,15 @@ class Constants
     // Requests of the password reset form per hour and per IP address, for any address: one person never reaches it
     public const int PASSWORD_RESETS_PER_IP_PER_HOUR = 20;
 
+    // Requests of the sign-in link form per hour and per IP address, for any address: one person never reaches it
+    public const int SIGN_IN_LINKS_PER_IP_PER_HOUR = 20;
+
+    // Requests of the sign-up form per hour and per IP address, for any address: one person never reaches it
+    public const int SIGN_UPS_PER_IP_PER_HOUR = 20;
+
+    // Requests of the page of the link of a sign-up per minute and per IP address: the numbers of a sign-in link
+    public const int SIGN_UP_LINKS_PER_MINUTE = 5;
+
     // The largest page of the pending invitations (#1390): a file adds up to 1000 of them. WARNING: aligned with constants.ts
     public const int MAX_INVITATIONS_PAGE_LIMIT = 1000;
 
@@ -283,6 +292,10 @@ class Constants
     // The link of a change of the email address (#1706): send it again, cancel the change, open it. Per minute and per user,
     // for the web and the API together. A link is a mail
     public const int EMAIL_CHANGES_PER_MINUTE = 6;
+
+    // The mails "This address already has an account" of a change of the address, per recipient and hour (ADR 0058): one a
+    // minute at most too
+    public const int EMAIL_ADDRESS_HAS_ACCOUNT_MAILS_PER_HOUR = 5;
 
     // Markdown preview requests (editor) per minute and per user
     public const int MARKDOWN_PREVIEWS_PER_MINUTE = 60;

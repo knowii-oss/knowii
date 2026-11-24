@@ -552,15 +552,11 @@ test('a visitor who signs up comes back to the page of the community, and the pe
 
     $this->app['auth']->forgetGuards();
     $this->get($url)->assertOk();
-    $this->post('/register', ['name' => 'Grace Hopper', 'email' => 'grace@example.com', 'password' => 'a-Long-Password-9!', 'password_confirmation' => 'a-Long-Password-9!', 'terms' => true])
+    // The account is made by the link of the mail, verified, and the person lands on the page of the community (ADR 0065)
+    signUpThroughLink(['name' => 'Grace Hopper', 'email' => 'grace@example.com', 'password' => 'a-Long-Password-9!'])
         ->assertRedirect($url);
-
-    // The new account has to verify its address: the page sends it there, and the link of the email comes back here
     $grace = User::query()->where('email', 'grace@example.com')->firstOrFail();
-    expect($grace->hasVerifiedEmail())->toBeFalse();
-    $this->get($url)->assertRedirect(route('verification.notice'));
-    $verification = URL::temporarySignedRoute('verification.verify', now()->addMinutes(60), ['id' => $grace->getKey(), 'hash' => sha1($grace->getEmailForVerification())]);
-    $this->get($verification)->assertRedirect($url);
+    expect($grace->hasVerifiedEmail())->toBeTrue();
 
     // Not a member yet: the person presses "Join"
     expect(joinCommunityIsMember($grace, $this->c['community']))->toBeFalse();

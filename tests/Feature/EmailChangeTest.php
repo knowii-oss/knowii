@@ -8,17 +8,17 @@ use App\Contracts\Auth\ConsumesMagicLinks;
 use App\Contracts\Users\ChangesEmailAddresses;
 use App\Enums\KnowiiCommunityMemberRole;
 use App\Enums\KnowiiEmailChangeResult;
+use App\Http\Controllers\Inertia\SignUpLinkController;
 use App\Mail\ConfirmNewEmailAddress;
 use App\Mail\EmailAddressChanged;
+use App\Mail\EmailAddressHasAccount;
 use App\Mail\MagicLink;
 use App\Models\Community;
 use App\Models\Post;
 use App\Models\Space;
 use App\Models\SpaceGroup;
 use App\Models\User;
-use App\Notifications\VerifyEmailAddress;
 use App\Support\Retention;
-use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Support\Carbon;
@@ -90,6 +90,17 @@ function emailChangeRequest(User $user, string $email, ?string $password = EMAIL
 function emailChangeLinkOfTheMail(): string
 {
     $mail = Mail::queued(ConfirmNewEmailAddress::class)->last();
+    expect($mail)->not->toBeNull();
+
+    return $mail->url;
+}
+
+/**
+ * The link of the last mail that confirms this new address
+ */
+function emailChangeLinkOf(string $address): string
+{
+    $mail = Mail::queued(ConfirmNewEmailAddress::class, fn (ConfirmNewEmailAddress $mail) => $mail->hasTo($address))->last();
     expect($mail)->not->toBeNull();
 
     return $mail->url;
@@ -189,15 +200,16 @@ test('the other fields of the profile need no password', function () {
     Mail::assertNothingQueued();
 });
 
-test('the address of another account is refused, also in another case', function (string $address) {
+test('the address of another account gets the same answer as a free address, also in another case: the mail without a link, and the account keeps its address', function (string $address) {
     emailChangeMember(EMAIL_CHANGE_OTHER, 'charles-babbage');
     $ada = emailChangeMember();
 
-    emailChangeRequest($ada, $address)->assertSessionHasErrorsIn('updateProfileInformation', ['email' => 'The email has already been taken.']);
+    emailChangeRequest($ada, $address)->assertSessionHasNoErrors();
 
-    expect($ada->fresh()->pending_email)->toBeNull()
+    expect($ada->fresh()->pending_email)->toBe(mb_strtolower($address))
         ->and($ada->fresh()->email)->toBe(EMAIL_CHANGE_OLD);
-    Mail::assertNothingQueued();
+    Mail::assertQueued(EmailAddressHasAccount::class, fn (EmailAddressHasAccount $mail) => $mail->hasTo(mb_strtolower($address)));
+    Mail::assertNotQueued(ConfirmNewEmailAddress::class);
 })->with([EMAIL_CHANGE_OTHER, 'Other.New@Example.com']);
 
 test('the pending address of another account does not block a request', function () {
@@ -633,7 +645,7 @@ test('the member sees the pending address in the account of the page and in the 
 // An address that was never verified
 // ---------------------------------------------------------------------------------------------------------------------
 
-test('an address that was never verified is corrected at once, and the address check goes to the new address', function () {
+test('the correction of an address that was never verified waits for the link of the new address, as a change; the link verifies it', function () {
     Notification::fake();
     $grace = User::factory()->unverified()->withUserProfile()->create([
         'name' => 'Grace Hopper', 'username' => 'grace-hopper', 'email' => 'grace@exmaple.com', 'password' => Hash::make(EMAIL_CHANGE_PASSWORD),
@@ -642,19 +654,26 @@ test('an address that was never verified is corrected at once, and the address c
     emailChangeRequest($grace, 'grace@example.com', EMAIL_CHANGE_PASSWORD, ['name' => 'Another Name'])->assertSessionHasNoErrors();
 
     $fresh = $grace->fresh();
-    expect($fresh->email)->toBe('grace@example.com')
+    expect($fresh->email)->toBe('grace@exmaple.com')
         ->and($fresh->email_verified_at)->toBeNull()
-        ->and($fresh->pending_email)->toBeNull()
-        ->and($fresh->profile->email)->toBe('grace@example.com')
-        // The other fields wait for the address check
+        ->and($fresh->pending_email)->toBe('grace@example.com')
+        ->and($fresh->profile->email)->toBe('grace@exmaple.com')
+        // The other fields wait for a verified address
         ->and($fresh->name)->toBe('Grace Hopper');
-    Notification::assertSentTo($fresh, VerifyEmailAddress::class);
-    Notification::assertCount(1);
-    Mail::assertNotQueued(ConfirmNewEmailAddress::class);
+    Notification::assertNothingSent();
+    $url = emailChangeLinkOf('grace@example.com');
+
+    // The link proves the new mailbox: the account gets the new address, verified, and the address of before gets no notice
+    $this->actingAs($grace->fresh())->get($url)->assertRedirect(route('profile.show'));
+    $fresh = $grace->fresh();
+    expect($fresh->email)->toBe('grace@example.com')
+        ->and($fresh->email_verified_at?->toDateTimeString())->toBe(EMAIL_CHANGE_NOW)
+        ->and($fresh->pending_email)->toBeNull()
+        ->and($fresh->profile->email)->toBe('grace@example.com');
     Mail::assertNotQueued(EmailAddressChanged::class);
 });
 
-test('the correction of an address that was never verified needs the password too, and the address of another account is refused', function () {
+test('the correction of an address that was never verified needs the password too; the address of another account gets the same answer and the mail without a link', function () {
     Notification::fake();
     emailChangeMember(EMAIL_CHANGE_OTHER, 'charles-babbage');
     $grace = User::factory()->unverified()->withUserProfile()->create([
@@ -662,9 +681,12 @@ test('the correction of an address that was never verified needs the password to
     ]);
 
     emailChangeRequest($grace, 'grace@example.com', 'not-the-password')->assertSessionHasErrorsIn('updateProfileInformation', ['current_password']);
-    emailChangeRequest($grace, EMAIL_CHANGE_OTHER)->assertSessionHasErrorsIn('updateProfileInformation', ['email']);
+    emailChangeRequest($grace, EMAIL_CHANGE_OTHER)->assertSessionHasNoErrors();
 
-    expect($grace->fresh()->email)->toBe('grace@exmaple.com');
+    expect($grace->fresh()->email)->toBe('grace@exmaple.com')
+        ->and($grace->fresh()->pending_email)->toBe(EMAIL_CHANGE_OTHER);
+    Mail::assertQueued(EmailAddressHasAccount::class, fn (EmailAddressHasAccount $mail) => $mail->hasTo(EMAIL_CHANGE_OTHER));
+    Mail::assertNotQueued(ConfirmNewEmailAddress::class);
     Notification::assertNothingSent();
 });
 
@@ -734,19 +756,22 @@ test('a correction checks the password against the row read again', function () 
     Notification::assertNothingSent();
 });
 
-test('the link of the address check of the address of before verifies nothing after a correction: 403', function () {
+test('the link of the address check of the address of before still verifies it while a correction waits; the link of the correction then changes the address', function () {
     $grace = emailChangeNeverVerified();
-    // The model of the request of the link, read before the correction
-    $stale = User::query()->findOrFail($grace->id);
     $link = URL::temporarySignedRoute('verification.verify', now()->addMinutes(60), ['id' => $grace->id, 'hash' => sha1('grace@example.com')]);
     app(UpdatesUserProfileInformation::class)->update($grace->fresh(), ['name' => 'Grace Hopper', 'email' => 'grace.new@example.com', 'current_password' => EMAIL_CHANGE_PASSWORD]);
-    expect($grace->fresh()->email)->toBe('grace.new@example.com');
+    expect($grace->fresh()->email)->toBe('grace@example.com')
+        ->and($grace->fresh()->pending_email)->toBe('grace.new@example.com');
 
-    $this->actingAs($stale)->get($link)->assertForbidden();
+    $this->actingAs($grace->fresh())->get($link)->assertRedirect();
 
     $row = $grace->fresh();
-    expect($row->email)->toBe('grace.new@example.com')
-        ->and($row->email_verified_at)->toBeNull();
+    expect($row->email)->toBe('grace@example.com')
+        ->and($row->email_verified_at?->toDateTimeString())->toBe(EMAIL_CHANGE_NOW)
+        ->and($row->pending_email)->toBe('grace.new@example.com');
+
+    $this->actingAs($row)->get(emailChangeLinkOf('grace.new@example.com'))->assertRedirect(route('profile.show'));
+    expect($grace->fresh()->email)->toBe('grace.new@example.com');
 });
 
 test('the address check writes only while the row has the address of the model and no verified address', function () {
@@ -781,7 +806,7 @@ test('the link of the address check still verifies the address of the account', 
     expect($grace->fresh()->email_verified_at?->toDateTimeString())->toBe(EMAIL_CHANGE_NOW);
 });
 
-test('a sign-in link of the address of before gives no account after a correction: the new address is not verified, and nobody is signed in', function () {
+test('a sign-in link of the address of before is a first proof while a correction waits: it takes the account over and the pending address goes (ADR 0059)', function () {
     Notification::fake();
     $grace = emailChangeNeverVerified();
     $this->post('/login/link', ['email' => 'grace@example.com'])->assertRedirect(route('login'));
@@ -790,18 +815,18 @@ test('a sign-in link of the address of before gives no account after a correctio
     $token = $mail->token;
 
     emailChangeRequest($grace, 'grace.new@example.com')->assertSessionHasNoErrors();
-    expect($grace->fresh()->email)->toBe('grace.new@example.com');
+    expect($grace->fresh()->email)->toBe('grace@example.com')
+        ->and($grace->fresh()->pending_email)->toBe('grace.new@example.com');
 
     emailChangeNewBrowser();
-    expect(app(ConsumesMagicLinks::class)->peek($token))->toBeNull();
-    $this->get('/login/link/'.$token)->assertOk()->assertInertia(fn ($page) => $page->where('valid', false)->where('email', null));
-    $this->post('/login/link/'.$token)->assertRedirect(route('login'))->assertSessionHas('status', 'This sign-in link expired or was already used. Ask for a new one.');
-    $this->assertGuest();
+    $this->post('/login/link/'.$token)->assertRedirect(route('dashboard'));
+    $this->assertAuthenticatedAs($grace->fresh());
 
     $row = $grace->fresh();
-    expect($row->email)->toBe('grace.new@example.com')
-        ->and($row->email_verified_at)->toBeNull()
-        ->and(Hash::check(EMAIL_CHANGE_PASSWORD, (string) $row->password))->toBeTrue();
+    expect($row->email)->toBe('grace@example.com')
+        ->and($row->hasVerifiedEmail())->toBeTrue()
+        ->and($row->pending_email)->toBeNull()
+        ->and($row->password)->toBeNull();
 });
 
 test('the entry of a sign-in link holds the account and an HMAC of the address with the key of the application, never the address', function () {
@@ -825,51 +850,71 @@ test('the entry of a sign-in link holds the account and an HMAC of the address w
         ->and(app(ConsumesMagicLinks::class)->peek($idOnly))->toBeNull();
 });
 
-test('a correction that another account wins at the write gets the error of a taken address, never an error page', function () {
+test('the link of a correction to an address that another account took in between is not applied, and the pending address goes', function () {
     Notification::fake();
     $grace = emailChangeNeverVerified();
-    // Another account takes the address between the check and the write
-    User::updating(static function (User $user) use ($grace): void {
-        if ($user->is($grace) && $user->isDirty('email')) {
-            DB::table('users')->insert(['cuid' => 'cuid-of-the-other-account', 'username' => 'the-other-account', 'name' => 'Other', 'email' => 'GRACE.NEW@example.com', 'password' => 'x', 'created_at' => now(), 'updated_at' => now()]);
-        }
-    });
+    emailChangeRequest($grace, 'grace.new@example.com')->assertSessionHasNoErrors();
+    $url = emailChangeLinkOf('grace.new@example.com');
+    DB::table('users')->insert(['cuid' => 'cuid-of-the-other-account', 'username' => 'the-other-account', 'name' => 'Other', 'email' => 'GRACE.NEW@example.com', 'password' => 'x', 'created_at' => now(), 'updated_at' => now()]);
 
-    emailChangeRequest($grace, 'grace.new@example.com')->assertRedirect()->assertSessionHasErrorsIn('updateProfileInformation', ['email']);
+    $this->actingAs($grace->fresh())->get($url)->assertRedirect(route('profile.show'));
 
-    expect($grace->fresh()->email)->toBe('grace@example.com');
-    Notification::assertNothingSent();
+    expect($grace->fresh()->email)->toBe('grace@example.com')
+        ->and($grace->fresh()->email_verified_at)->toBeNull()
+        ->and($grace->fresh()->pending_email)->toBeNull();
 });
 
 // ---------------------------------------------------------------------------------------------------------------------
 // One address per account, without regard to the case
 // ---------------------------------------------------------------------------------------------------------------------
 
-test('the sign-up refuses an address that another account has in another case', function () {
-    emailChangeMember();
+/**
+ * The sign-up form for grace@example.com (ADR 0065): no account yet. Returns the token of the link of its mail
+ */
+function emailChangePendingSignUp(): string
+{
+    test()->post('/register', ['name' => 'Grace Hopper', 'email' => 'grace@example.com'])->assertSessionHasNoErrors();
 
-    $this->post('/register', ['name' => 'Grace Hopper', 'email' => 'ADA@Example.com', 'password' => EMAIL_CHANGE_PASSWORD, 'password_confirmation' => EMAIL_CHANGE_PASSWORD, 'terms' => true])
-        ->assertSessionHasErrors(['email' => __('validation.unique', ['attribute' => 'email'])]);
+    return (string) signUpLinkToken('grace@example.com');
+}
 
-    expect(User::query()->count())->toBe(1);
+/**
+ * The page of the link of the sign-up of grace@example.com
+ */
+function emailChangeFinishSignUp(string $token): TestResponse
+{
+    return test()->post('/register/link/'.$token, ['name' => 'Grace Hopper', 'password' => EMAIL_CHANGE_PASSWORD, 'password_confirmation' => EMAIL_CHANGE_PASSWORD, 'terms' => true]);
+}
+
+test('the link of a sign-up whose address got an account in another case makes no second account', function () {
+    $token = emailChangePendingSignUp();
+    emailChangeMember('Grace@Example.com', 'grace-first');
+
+    emailChangeFinishSignUp($token)
+        ->assertRedirect(route('login'))
+        ->assertSessionHas('status', SignUpLinkController::ADDRESS_HAS_ACCOUNT);
+
+    expect(User::query()->whereRaw('lower(email) = ?', ['grace@example.com'])->count())->toBe(1);
     $this->assertGuest();
 });
 
-test('a sign-up that another account wins at the write gets the error of a taken address, never an error page', function () {
+test('the link of a sign-up that another account wins at the write makes no account, and sends the person to the sign-in page, never an error page', function () {
+    $token = emailChangePendingSignUp();
     User::creating(static function (User $user): void {
         if ($user->email === 'grace@example.com') {
             DB::table('users')->insert(['cuid' => 'cuid-of-the-other-account', 'username' => 'the-other-account', 'name' => 'Other', 'email' => 'Grace@example.com', 'password' => 'x', 'created_at' => now(), 'updated_at' => now()]);
         }
     });
 
-    $this->post('/register', ['name' => 'Grace Hopper', 'email' => 'grace@example.com', 'password' => EMAIL_CHANGE_PASSWORD, 'password_confirmation' => EMAIL_CHANGE_PASSWORD, 'terms' => true])
-        ->assertRedirect()
-        ->assertSessionHasErrors(['email' => __('validation.unique', ['attribute' => 'email'])]);
+    emailChangeFinishSignUp($token)
+        ->assertRedirect(route('login'))
+        ->assertSessionHas('status', SignUpLinkController::ADDRESS_HAS_ACCOUNT);
 
     $this->assertGuest();
 });
 
-test('a sign-up that another account wins at the write on another value gets the error of a sign-up that did not work, never the error of a taken address', function () {
+test('the link of a sign-up that another account wins at the write on another value gets the error of a sign-up that did not work, and the link is used up', function () {
+    $token = emailChangePendingSignUp();
     // Another account takes the username of the new account between its choice and the write
     User::creating(static function (User $user): void {
         if ($user->email === 'grace@example.com') {
@@ -877,30 +922,25 @@ test('a sign-up that another account wins at the write on another value gets the
         }
     });
 
-    $this->post('/register', ['name' => 'Grace Hopper', 'email' => 'grace@example.com', 'password' => EMAIL_CHANGE_PASSWORD, 'password_confirmation' => EMAIL_CHANGE_PASSWORD, 'terms' => true])
-        ->assertRedirect()
+    emailChangeFinishSignUp($token)
+        ->assertRedirect(route('register.link.show', ['token' => $token]))
         ->assertSessionHasErrors(['email' => CreateNewUser::NOT_CREATED_MESSAGE]);
 
     expect(session('errors')->get('email'))->not->toContain(__('validation.unique', ['attribute' => 'email']))
         ->and(User::query()->where('email', 'grace@example.com')->exists())->toBeFalse();
     $this->assertGuest();
+    $this->get('/register/link/'.$token)->assertInertia(fn ($page) => $page->component('Auth/FinishSignUp')->where('valid', false));
 });
 
 /**
  * The database refuses the write of the new account with a unique violation, and names the index, or does not (a server
- * whose messages are in another language: the framework then finds no name). With `$taken`, another account gets the
- * address in another case after the check of a free address, before the write
+ * whose messages are in another language: the framework then finds no name). With `$taken`, another account has the
+ * address in another case before the write
  */
 function emailChangeSignUpRefusedAtTheWrite(?string $index, bool $taken): void
 {
     if ($taken) {
-        $done = new ArrayObject;
-        DB::listen(static function (QueryExecuted $query) use ($done): void {
-            if (count($done) === 0 && str_contains($query->sql, 'lower(email) = ?') && in_array('grace@example.com', $query->bindings, true)) {
-                $done[] = true;
-                DB::table('users')->insert(['cuid' => 'cuid-of-the-other-account', 'username' => 'the-other-account', 'name' => 'Other', 'email' => 'Grace@example.com', 'password' => 'x', 'created_at' => now(), 'updated_at' => now()]);
-            }
-        });
+        DB::table('users')->insert(['cuid' => 'cuid-of-the-other-account', 'username' => 'the-other-account', 'name' => 'Other', 'email' => 'Grace@example.com', 'password' => 'x', 'created_at' => now(), 'updated_at' => now()]);
     }
     User::creating(static function (User $user) use ($index): void {
         if ($user->email === 'grace@example.com') {
@@ -909,16 +949,20 @@ function emailChangeSignUpRefusedAtTheWrite(?string $index, bool $taken): void
     });
 }
 
-test('a sign-up that the database refuses at the write reads the taken value from the name of the index, or checks the address when the index has no name', function (?string $index, bool $taken, bool $addressError) {
+test('the link of a sign-up that the database refuses at the write reads the taken value from the name of the index, or checks the address when the index has no name', function (?string $index, bool $taken, bool $addressError) {
+    $token = emailChangePendingSignUp();
     emailChangeSignUpRefusedAtTheWrite($index, $taken);
 
-    $this->post('/register', ['name' => 'Grace Hopper', 'email' => 'grace@example.com', 'password' => EMAIL_CHANGE_PASSWORD, 'password_confirmation' => EMAIL_CHANGE_PASSWORD, 'terms' => true])
-        ->assertRedirect()
-        ->assertSessionHasErrors(['email' => $addressError ? __('validation.unique', ['attribute' => 'email']) : CreateNewUser::NOT_CREATED_MESSAGE]);
+    $response = emailChangeFinishSignUp($token);
+    if ($addressError) {
+        $response->assertRedirect(route('login'))->assertSessionHas('status', SignUpLinkController::ADDRESS_HAS_ACCOUNT);
+    } else {
+        $response->assertRedirect(route('register.link.show', ['token' => $token]))->assertSessionHasErrors(['email' => CreateNewUser::NOT_CREATED_MESSAGE]);
+        expect(session('errors')->get('email'))->toHaveCount(1);
+    }
 
-    expect(session('errors')->get('email'))->toHaveCount(1)
-        ->and(User::query()->where('email', 'grace@example.com')->exists())->toBeFalse()
-        ->and(User::query()->where('email', 'Grace@example.com')->exists())->toBe($taken);
+    expect(User::query()->where('email', 'grace@example.com')->exists())->toBeFalse()
+        ->and(DB::table('users')->where('email', 'Grace@example.com')->exists())->toBe($taken);
     $this->assertGuest();
 })->with([
     'the index of the address' => ['users_email_unique', false, true],
@@ -998,8 +1042,10 @@ test('each correction of an address that was never verified counts in the same b
     }
     emailChangeRequest($grace->fresh(), 'grace.7@example.com')->assertSessionHasErrorsIn('updateProfileInformation', ['email']);
 
-    expect($grace->fresh()->email)->toBe('grace.6@example.com');
-    Notification::assertCount(6);
+    expect($grace->fresh()->email)->toBe('grace@example.com')
+        ->and($grace->fresh()->pending_email)->toBe('grace.6@example.com');
+    Mail::assertQueued(ConfirmNewEmailAddress::class, 6);
+    Notification::assertNothingSent();
 });
 
 // ---------------------------------------------------------------------------------------------------------------------

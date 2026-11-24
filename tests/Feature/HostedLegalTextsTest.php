@@ -175,7 +175,7 @@ test('the privacy policy lists the cookies and the browser storage, with the ses
 
 test('the privacy policy names the text that was not sent, kept in the browser (#1622)', function () {
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
-        ->where('updated', '2026-11-23')
+        ->where('updated', '2026-11-24')
         ->where('html', fn (string $html) => str_contains($html, '<td>The text of a post, a page or a lesson that you wrote and did not send</td>')
             && str_contains($html, '<td>Gives your text back after a closed tab, a reload or a crash. It stays only in your browser and is never sent to the server before you publish it</td>')
             && str_contains($html, '<td>Until you publish or discard it, until you sign out, or 7 days after your last change</td>'))
@@ -300,7 +300,7 @@ test('the privacy policy tells about the follows, the space levels and the entit
 
 test('the privacy policy says that a public space is read by anyone, with the name and the picture (#1387)', function () {
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
-        ->where('updated', '2026-11-23')
+        ->where('updated', '2026-11-24')
         ->where('html', fn (string $html) => str_contains($html, 'What you post in a public space of a community can be read by anyone on the internet, with your name and your picture.')
             && ! str_contains($html, 'The space tells you so before you post.')));
 });
@@ -323,7 +323,7 @@ test('the privacy policy says what Knowii keeps when a manager removes a member,
 
 test('the privacy policy tells about the time zone, the last visit and the visits of spaces (#1476, approved 2026-11-16)', function () {
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
-        ->where('updated', '2026-11-23')
+        ->where('updated', '2026-11-24')
         ->where('html', fn (string $html) => str_contains($html, 'your time zone, which your browser gives when you sign up or which you set yourself, to show times in your zone; the date of your last visit (a date without an hour, replaced at each visit, that nobody else can see), to show you what is new since then; and your choice to show or hide pop-ups.')
             && str_contains($html, 'and when you saw it), and the date and hour of your last visit of each space, to mark the spaces that have something new for you, and, when you sign in with the sign-in provider of this site')
             && str_contains($html, 'Time zone and pop-up choice: while your account exists. Last visit date: replaced at each visit. Last visit of each space: replaced at each visit, and deleted when you leave the community.'))
@@ -332,7 +332,7 @@ test('the privacy policy tells about the time zone, the last visit and the visit
 
 test('the privacy policy says that a deleted message, post or comment with answers leaves an empty marker (#1565)', function () {
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
-        ->where('updated', '2026-11-23')
+        ->where('updated', '2026-11-24')
         ->where('html', fn (string $html) => str_contains($html, 'A deleted message, and a deleted post or comment that other people answered, leave an empty marker without their text.')
             && ! str_contains($html, 'This message was deleted'))
     );
@@ -342,7 +342,7 @@ test('the privacy policy says that the waitlist takes no new address, and how lo
     config(['retention.waitlist_months' => 12]);
 
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
-        ->where('updated', '2026-11-23')
+        ->where('updated', '2026-11-24')
         ->where('html', fn (string $html) => str_contains($html, 'Waitlist and newsletter: your email address, if you join the newsletter, or if you joined the waitlist before it closed.')
             && str_contains($html, 'To send the newsletter emails, and the waitlist emails to the addresses given before it closed: your consent (art. 6(1)(a)).')
             && str_contains($html, 'Waitlist: it takes no new address. The addresses given before are deleted after the launch invitation, at most 12 months after you joined it.')
@@ -352,13 +352,13 @@ test('the privacy policy says that the waitlist takes no new address, and how lo
 
 test('the privacy policy names the time of a new sign-in that confirms a deletion (#1521)', function () {
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
-        ->where('updated', '2026-11-23')
+        ->where('updated', '2026-11-24')
         ->where('html', fn (string $html) => str_contains($html, 'the identifier of that account and the date you connected it, and the time of a new sign-in with it when you confirm the deletion of an account that has no password;')));
 });
 
 test('the privacy policy names the events and what they hold in the content of a member (#1513, approved 2026-11-17, #1516)', function () {
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
-        ->where('updated', '2026-11-23')
+        ->where('updated', '2026-11-24')
         ->where('html', fn (string $html) => str_contains($html, 'chat messages, direct messages, pages, lessons, events (their title, description, date, place, meeting address, replay link and notes), and uploaded images and their alternative text.'))
     );
 });
@@ -372,14 +372,14 @@ test('the privacy policy names the replay link and the notes of events, and the 
 
 test('the privacy policy names the headline in the fields of the profile (#1688, approved 2026-11-20)', function () {
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
-        ->where('updated', '2026-11-23')
+        ->where('updated', '2026-11-24')
         ->where('html', fn (string $html) => str_contains($html, 'Profile: what you choose to add (headline, bio, location, phone number, links to your sites and social accounts), and which of these fields other members see. Your phone number is hidden by default.'))
     );
 });
 
 test('the privacy policy tells who sees the member list of a community, and what an entry holds (#148, approved 2026-11-20)', function () {
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
-        ->where('updated', '2026-11-23')
+        ->where('updated', '2026-11-24')
         ->where('html', fn (string $html) => str_contains($html, 'Members of a community see what you post in it, and the profile fields you choose to show. The members of a community see its member list: your name, your username, your picture, your headline, your role and the date you joined.')
             // The sentence of before the member directory is gone: the list is no longer for the managers only
             && ! str_contains($html, 'The owner and the administrators of a community see its member list.'))
@@ -388,7 +388,7 @@ test('the privacy policy tells who sees the member list of a community, and what
 
 test('the privacy policy tells that a member can hide from the member lists, and who still sees them (#1466, approved 2026-11-23)', function () {
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
-        ->where('updated', '2026-11-23')
+        ->where('updated', '2026-11-24')
         ->where('html', fn (string $html) => str_contains($html, 'and your choice to show or hide your online status, and your choice to show or hide yourself in the member lists of your communities,')
             && str_contains($html, 'The members of a community see its member list: your name, your username, your picture, your headline, your role and the date you joined. You can hide yourself from the member lists in your profile. The owner, the administrators and the moderators who manage members still see you there, with your choice, and the owner, the administrators and the moderators of a community are always in its member list.'))
     );
@@ -396,7 +396,7 @@ test('the privacy policy tells that a member can hide from the member lists, and
 
 test('the privacy policy tells about the member tags, who sees them and how long they stay (#1389, approved 2026-11-22)', function () {
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
-        ->where('updated', '2026-11-23')
+        ->where('updated', '2026-11-24')
         ->where('html', fn (string $html) => str_contains($html, 'your access groups, the tags that the managers of a community put on you, the lessons')
             && str_contains($html, 'The managers of a community can put tags on you, for example &quot;Founder&quot;. A tag is a short name and holds no other text.')
             && str_contains($html, 'The members of a community see the tags that its managers chose to show, on your profile and in the member list there. The owner, the administrators and the moderators who manage members see all your tags in that community. Your data export lists all of them.')
@@ -406,7 +406,7 @@ test('the privacy policy tells about the member tags, who sees them and how long
 
 test('the privacy policy tells that an invitation can carry access groups and tags (#1390, approved 2026-11-22)', function () {
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
-        ->where('updated', '2026-11-23')
+        ->where('updated', '2026-11-24')
         ->where('html', fn (string $html) => str_contains($html, 'the invitations sent to your email address, with the access groups and the tags that they give when you join,')
             && str_contains($html, 'when a manager of a community invites you, they give us your email address, and they can choose the access groups and the tags that you get when you join.'))
     );
@@ -426,7 +426,7 @@ test('the privacy policy tells about the invitations from a file, their record a
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
         ->where('html', fn (string $html) => str_contains($html, 'A manager can also invite many people at once with a file. We read the file one time and do not keep it. The record of that import keeps your address, whether the invitation went out, and why a row was refused.')
             && str_contains($html, 'The record of an import from a file: deleted 37 days after the invitations were sent, or 24 hours after the upload when nobody sent them.')
-            && str_contains($html, 'To send the emails that the service needs (sign-in links, address verification): the contract. To send the invitations of a community: the legitimate interest of the community that invites you (art. 6(1)(f)); the owner of the community decides who is invited.')
+            && str_contains($html, 'To send the emails that the service needs (sign-in links, address verification, the link that finishes a sign-up, and the email that tells that an address already has an account when someone uses it to sign up or for another account): the contract, or the steps that you ask for before it. For an email that we send to you because another person used your address (to sign up, or as the new address of another account): our legitimate interest in keeping accounts safe and in telling you about it (art. 6(1)(f)). To send the invitations of a community: the legitimate interest of the community that invites you (art. 6(1)(f)); the owner of the community decides who is invited.')
             && ! str_contains($html, 'address verification, invitations): the contract'))
     );
 });
@@ -441,7 +441,7 @@ test('the privacy policy tells about the answers to events, who sees them and ho
     config(['retention.event_answers_days' => 90]);
 
     $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
-        ->where('updated', '2026-11-23')
+        ->where('updated', '2026-11-24')
         ->where('html', fn (string $html) => str_contains($html, 'Your answers to events (yes, replay only or no), until 90 days after the event or until you leave the community.')
             && str_contains($html, 'The host and the team of an event see who answered yes or replay only. They do not see when you open the meeting.')
             && str_contains($html, 'We do not record who attends a meeting.')
@@ -476,4 +476,11 @@ test('the hosted instance has a text for every legal page, and its list of sub-p
     expect(LegalPages::available())->toBe(array_keys(LegalPages::PAGES))
         ->and(File::isFile(hostedLegalFolder().'/'.LegalPages::SUBPROCESSORS_FILE))->toBeTrue()
         ->and(LegalPages::subprocessors())->toHaveCount(5);
+});
+
+test('the privacy policy tells about the sign-up that waits for its link, and the mails of an address that has an account (ADR 0065, 2026-11-24, to approve)', function () {
+    $this->get('/privacy-policy')->assertInertia(fn ($page) => $page
+        ->where('html', fn (string $html) => str_contains($html, 'A sign-up that you did not finish (the name and the email address that you typed, encrypted): its link works 60 minutes, and we delete it at most an hour after.')
+            && str_contains($html, 'When you ask for a sign-in link, a password reset, the check of an address or the link of a sign-up, when someone uses your address to sign up or for another account, or when you choose to try your address again, we ask our mail provider to take your address off that list, a few times a day at most.'))
+    );
 });

@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
 import type { ReactNode } from 'react';
 import type * as Common from '@knowii/common';
 import type { CurrentUser } from '@knowii/common';
-import { AppDataProvider, MAX_LENGTH_USER_HEADLINE } from '@knowii/common';
+import { AppDataProvider, MAX_LENGTH_USER_HEADLINE, useToasts } from '@knowii/common';
 import UpdateProfileInformationForm from './UpdateProfileInformationForm';
 
 const profile = {
@@ -313,6 +313,36 @@ describe('a change of the email address (#1706)', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     expect(form.put.mock.calls[0]?.[1]).toMatchObject({ email: 'ada.new@example.com', current_password: 'the-password' });
+  });
+
+  it('says "We sent a link to the new address." after a save that changes the address, whatever the new address', async () => {
+    function Toasts() {
+      const { toasts } = useToasts();
+      return (
+        <ul>
+          {toasts.map((toast) => (
+            <li key={toast.id}>{toast.detail}</li>
+          ))}
+        </ul>
+      );
+    }
+    render(
+      <AppDataProvider>
+        <UpdateProfileInformationForm user={user} hasPassword />
+        <Toasts />
+      </AppDataProvider>,
+    );
+    const email = screen.getByRole('textbox', { name: 'Email' });
+    await userEvent.clear(email);
+    await userEvent.type(email, 'ada.new@example.com');
+    await userEvent.type(screen.getByLabelText('Current password'), 'the-password');
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    const options = form.put.mock.calls[0]?.[2] as { onSuccess: () => void };
+    act(() => options.onSuccess());
+
+    expect(screen.getByText('We sent a link to the new address.')).toBeInTheDocument();
+    expect(screen.queryByText('Profile updated successfully.')).toBeNull();
   });
 
   it('asks for no password for the same address in another case, and for an account without a password', async () => {

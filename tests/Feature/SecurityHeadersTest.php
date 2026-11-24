@@ -121,7 +121,7 @@ function shAnswer(string $case): TestResponse
         'web: a 403 of the signature check' => $test->actingAs(User::factory()->withUserProfile()->create())->get('/user/email-change/someone/a-hash'),
         'web: a 419' => shAsInProduction(static fn (): TestResponse => $test->actingAs(User::factory()->withUserProfile()->create())->post('/logout')),
         'web: a 429' => (static function () use ($test): TestResponse {
-            RateLimiter::for('magic-link', static fn (): Limit => Limit::perMinute(1)->by('security-headers'));
+            RateLimiter::for('sign-in-link', static fn (): Limit => Limit::perMinute(1)->by('security-headers'));
             $test->post('/login/link', ['email' => 'ada@example.com']);
 
             return $test->post('/login/link', ['email' => 'ada@example.com']);
