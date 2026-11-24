@@ -7,9 +7,9 @@ use App\Contracts\Auth\TakesOverUnverifiedAccounts;
 use App\Enums\KnowiiAddressProof;
 use App\Enums\KnowiiTakeOverResult;
 use App\Exceptions\AccountChangedException;
+use App\Http\Responses\FailedPasswordResetResponse;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\ResetsUserPasswords;
@@ -60,7 +60,7 @@ class ResetUserPassword implements ResetsUserPasswords
             // The address was corrected, or the account was deleted, after the broker checked the token: the reset proves
             // nothing about the account, and the answer is the one of a token that does not work
             if (! $result->provesTheAccount()) {
-                throw ValidationException::withMessages(['email' => [__(Password::INVALID_TOKEN)]]);
+                throw ValidationException::withMessages(['email' => [FailedPasswordResetResponse::MESSAGE]]);
             }
         }
 

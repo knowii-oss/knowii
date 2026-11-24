@@ -6,6 +6,7 @@ use App\Actions\Auth\PendingSignUps;
 use App\Mail\FinishSignUp;
 use App\Mail\SignUpAccountExists;
 use App\Models\User;
+use App\Support\AccountMailCaps;
 use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -19,7 +20,9 @@ use Throwable;
  * this job, so its answer does the same work for every address. The job:
  *
  * 1. Sends at most one mail of the sign-up per address a minute, both kinds together, whatever the IP address: a cache key
- *    with an HMAC of the address, never the address. A second job in that minute sends nothing.
+ *    with an HMAC of the address, never the address. A second job in that minute sends nothing. An address gets at most
+ *    Constants::ACCOUNT_MAILS_PER_ADDRESS_PER_DAY mails of the sign-up a day, both kinds together
+ *    (App\Support\AccountMailCaps): a mail over the cap is not sent.
  * 2. An account has the address, without regard to the case (also an account whose address was never verified): the mail
  *    "You already have an account on Knowii" (SignUpAccountExists) to the stored address of the account.
  * 3. No account has the address: a pending sign-up (PendingSignUps) and the mail "Finish your sign-up" (FinishSignUp), with
@@ -50,6 +53,12 @@ class SendSignUpMail implements ShouldBeEncrypted, ShouldQueue
             $address = mb_strtolower(trim($this->email));
             if (! Cache::add(self::sentKey($address), true, self::SECONDS_BETWEEN_MAILS)) {
                 Log::info('A sign-up mail is not sent: one was sent to the address less than a minute ago', ['job' => $this->jobId()]);
+
+                return;
+            }
+
+            if (! AccountMailCaps::take(AccountMailCaps::SIGN_UP, $address)) {
+                Log::info('A sign-up mail is not sent: the address got all its sign-up mails of the day', ['job' => $this->jobId()]);
 
                 return;
             }

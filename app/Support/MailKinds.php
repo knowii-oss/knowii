@@ -12,6 +12,7 @@ use App\Mail\FinishSignUp;
 use App\Mail\MagicLink;
 use App\Mail\MailBudgetAlert;
 use App\Mail\NotificationMail;
+use App\Mail\SecondFactorLocked;
 use App\Mail\SignUpAccountExists;
 use App\Notifications\ResetPasswordLink;
 use App\Notifications\VerifyEmailAddress;
@@ -48,6 +49,7 @@ final class MailKinds
         // About the account, not asked for
         CommunityOwnershipTransferred::class => KnowiiMailKind::Account,
         EmailAddressChanged::class => KnowiiMailKind::Account,
+        SecondFactorLocked::class => KnowiiMailKind::Account,
         // To the operator, never to a member
         MailBudgetAlert::class => KnowiiMailKind::Operator,
     ];

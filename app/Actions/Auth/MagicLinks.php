@@ -7,6 +7,7 @@ use App\Contracts\Auth\SendsMagicLinks;
 use App\Jobs\SendSignInLink;
 use App\Mail\MagicLink;
 use App\Models\User;
+use App\Support\AccountMailCaps;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -63,6 +64,13 @@ class MagicLinks implements ConsumesMagicLinks, SendsMagicLinks
         // At most one link a minute per account, whatever the IP address: a second request in that minute sends nothing
         if (! Cache::add(self::sentKey($user), true, self::SECONDS_BETWEEN_LINKS)) {
             Log::info('Sign-in link not sent: one was sent less than a minute ago', ['user' => $user->cuid]);
+
+            return;
+        }
+
+        // At most a few sign-in links a day per address (App\Support\AccountMailCaps): a link over the cap is not sent
+        if (! AccountMailCaps::take(AccountMailCaps::SIGN_IN_LINK, $user->email)) {
+            Log::info('Sign-in link not sent: the address got all its sign-in links of the day', ['user' => $user->cuid]);
 
             return;
         }

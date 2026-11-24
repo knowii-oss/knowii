@@ -1,5 +1,6 @@
 <?php
 
+use App\Constants;
 use App\Models\User;
 
 return [
@@ -97,7 +98,8 @@ return [
             'provider' => 'users',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
             'expire' => 60,
-            'throttle' => 60,
+            // A link is replaced by a new one only after 5 minutes: a request before sends no mail, and the first link works
+            'throttle' => Constants::PASSWORD_RESET_LINK_SECONDS,
         ],
     ],
 

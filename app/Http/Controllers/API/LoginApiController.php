@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Support\DummyPassword;
 use App\Support\SecondFactor;
+use App\Support\SecondFactorTries;
 use App\Traits\ApiResponses;
 use Dedoc\Scramble\Attributes\BodyParameter;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,7 +23,11 @@ class LoginApiController extends Controller
 
     /**
      * Log in through the API. When the account has two-factor authentication, send `code` (from the authenticator
-     * app) or `recovery_code` too: without one, the answer is a 401 with `metadata.two_factor_required` (#1256).
+     * app) or `recovery_code` too: without one, the answer is a 401 with `metadata.two_factor_required` (#1256). After 5
+     * wrong codes in a minute, or 10 in an hour, for the account on every path (the web sign-in too), the answer is a 429
+     * with `Retry-After` until the time is over, also for a right code. Only a request with the right password counts.
+     *
+     * @throws ThrottleRequestsException
      */
     #[BodyParameter('email', description: 'Email address of the account', required: true, type: 'string', format: 'email')]
     #[BodyParameter('password', description: 'Password of the account', required: true, type: 'string')]
@@ -71,7 +77,8 @@ class LoginApiController extends Controller
                 return self::authenticationIssue('Enter the code of your authenticator app or a recovery code.', ['two_factor_required' => true]);
             }
 
-            if (! SecondFactor::passes($user, $code, $recoveryCode)) {
+            // The password is right: the code counts in the tries of the account, with the other places that check a code
+            if (! SecondFactorTries::check($user, static fn (): bool => SecondFactor::passes($user, $code, $recoveryCode))) {
                 Log::warning('API login: wrong two-factor code', ['user' => $user->cuid]);
 
                 return self::authenticationIssue('The two-factor code is not valid.', ['two_factor_required' => true]);

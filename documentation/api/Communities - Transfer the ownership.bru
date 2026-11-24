@@ -18,12 +18,13 @@ headers {
 body:json {
   {
     "member": "<user cuid of an admin>",
-    "password": "{{PASSWORD}}"
+    "password": "{{PASSWORD}}",
+    "code": "<the code of the authenticator app or a recovery code, with two-factor authentication>"
   }
 }
 
 docs {
-  The owner gives the community to one of its admins (#1339, ADR 0035). `member` is the user cuid of the new owner, `password` is the password of the current owner. In one step the admin becomes the owner and the former owner becomes an admin. The new owner gets an email. Returns the community.
+  The owner gives the community to one of its admins (#1339, ADR 0035). `member` is the user cuid of the new owner, `password` is the password of the current owner, and `code` the code of their authenticator app or a recovery code when two-factor authentication is on (omit it otherwise). In one step the admin becomes the owner and the former owner becomes an admin. The new owner gets an email. Returns the community.
 
-  Errors: 400 when the password is wrong or a field is missing, 403 for anyone but the owner and for a personal community, 404 when `member` is not a member of the community, 422 when the member is not an admin, 429 after 5 requests in a minute.
+  Errors: 400 when the password or the code is wrong or a field is missing (also after 5 wrong codes in a minute or 10 in an hour for the account), 403 for anyone but the owner and for a personal community, 404 when `member` is not a member of the community, 422 when the member is not an admin, 429 after 5 requests in a minute.
 }

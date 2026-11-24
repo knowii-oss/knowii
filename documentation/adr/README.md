@@ -94,3 +94,4 @@ Do not write an ADR for a bug fix, a refactor that keeps the structure, or a fea
 | [0067](0067-the-tries-of-the-current-password-count-for-what-signed-the-request-in.md)         | The tries of the current password count for what signed the request in           | Accepted |
 | [0068](0068-the-cookies-belong-to-one-host.md)                                                 | The cookies belong to one host                                                   | Accepted |
 | [0069](0069-names-are-one-line-of-plain-text-and-mails-print-plain-text.md)                    | Names are one line of plain text, and mails print plain text                     | Accepted |
+| [0071](0071-the-two-factor-code-is-the-last-check-and-a-closed-second-step-sends-a-mail.md)    | The two-factor code is the last check, and a closed second step sends a mail     | Accepted |

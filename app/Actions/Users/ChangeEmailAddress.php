@@ -10,6 +10,7 @@ use App\Mail\ConfirmNewEmailAddress;
 use App\Mail\EmailAddressChanged;
 use App\Mail\EmailAddressHasAccount;
 use App\Models\User;
+use App\Support\AccountMailCaps;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -31,7 +32,9 @@ use Illuminate\Validation\ValidationException;
  *    address and for an address that another account has: it never reads another account.
  * 2. The job (deliver()) sends the link, or, when another account has the address, the mail "This address already has an
  *    account" in place of the link (at most one a minute and Constants::EMAIL_ADDRESS_HAS_ACCOUNT_MAILS_PER_HOUR an hour
- *    per recipient). The pending address stays then: a cancel, a newer change, a takeover or the retention removes it.
+ *    per recipient). The pending address stays then: a cancel, a newer change, a takeover or the retention removes it. A
+ *    recipient gets at most Constants::ACCOUNT_MAILS_PER_ADDRESS_PER_DAY mails of a change a day, both kinds together
+ *    (App\Support\AccountMailCaps): a mail over the cap is not sent.
  * 3. The link is a signed, temporary route (config auth.verification.expire, as the address check) with the cuid of the
  *    account and an HMAC-SHA256 of the pending address with the key of the application: the link of a replaced or
  *    cancelled address does not match. It needs a session of the account.
@@ -92,11 +95,23 @@ class ChangeEmailAddress implements ChangesEmailAddresses
 
                 return;
             }
+            if (! AccountMailCaps::take(AccountMailCaps::EMAIL_CHANGE, $address)) {
+                Log::info('Change of the email address: the new address got all its mails of a change of the day', ['user' => $user->cuid]);
+
+                return;
+            }
             RateLimiter::hit($key.':hour', 3600);
 
             // No link: the account keeps its address, and the pending address stays (clearing it would show on the profile)
             Mail::to($address)->queue((new EmailAddressHasAccount)->recordDelivery($user));
             Log::info('Change of the email address: the new address has an account, the mail without a link was sent', ['user' => $user->cuid]);
+
+            return;
+        }
+
+        // At most a few mails of a change a day per recipient, both kinds together: a mail over the cap is not sent
+        if (! AccountMailCaps::take(AccountMailCaps::EMAIL_CHANGE, $address)) {
+            Log::info('Change of the email address: the new address got all its mails of a change of the day', ['user' => $user->cuid]);
 
             return;
         }

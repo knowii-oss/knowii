@@ -1,6 +1,6 @@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Community, CommunityPermissions, CommunityRole, Space, SpaceGroup } from '@knowii/common';
-import { COMMUNITY_URL, DASHBOARD_URL, SPACE_URL, useSocket } from '@knowii/common';
+import { COMMUNITY_URL, DASHBOARD_URL, SPACE_URL, useSocket, useTypedPage } from '@knowii/common';
 import { breadcrumbHome } from '../../Components/BreadcrumbHome';
 import CommunityIcon from '@/Components/Communities/CommunityIcon';
 import { AccessGroupsManager } from '@/Components/Communities/AccessGroupsManager';
@@ -29,6 +29,8 @@ interface Props {
 }
 
 export default function CommunitySettingsPage(props: Props) {
+  // The account of the page: the transfer of the ownership asks for the code of an owner with two-factor authentication
+  const page = useTypedPage();
   useSocket({
     channel: {
       type: 'community',
@@ -211,6 +213,7 @@ export default function CommunitySettingsPage(props: Props) {
             communityName={props.community.name}
             refreshKey={membersVersion}
             onTransferred={() => router.reload()}
+            twoFactor={page.props.auth.user?.two_factor_enabled === true}
           />
         </>
       )}

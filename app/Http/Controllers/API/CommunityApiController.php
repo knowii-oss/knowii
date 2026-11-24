@@ -138,16 +138,19 @@ class CommunityApiController extends Controller
      * Transfer the ownership of the community to one of its admins (owner only, #1339, ADR 0035). The new owner gets
      * an email, and the former owner becomes an admin. The owner confirms with their password: after 5 wrong passwords in
      * 15 minutes of the tokens of the account together, each token of the account gets a 429 until the 15 minutes are over
-     * (`Retry-After`). A session of the web application ends at its fifth wrong password (401). Never for a personal
-     * community. Returns the community.
+     * (`Retry-After`). A session of the web application ends at its fifth wrong password (401). An owner with two-factor
+     * authentication sends `code` too: a code of the authenticator app or a recovery code (a 400 on `code` when it is missing
+     * or wrong; after 5 wrong codes in a minute or 10 in an hour for the account on every path, every code waits). Never for
+     * a personal community. Returns the community.
      *
      * @throws AuthenticationException
      */
     #[BodyParameter('member', description: 'The user cuid of the new owner: an admin of the community', required: true, type: 'string', example: 'tz4a98xxat96iws9zmbrgj3a')]
     #[BodyParameter('password', description: 'The password of the current owner', required: true, type: 'string')]
+    #[BodyParameter('code', description: 'The code of the authenticator app or a recovery code of the current owner: required with two-factor authentication', required: false, type: 'string', example: '123456')]
     final public function transferOwnership(Request $request, Community $community): JsonResponse
     {
-        app(TransfersCommunityOwnership::class)->transfer($request->user() ?? throw new AuthenticationException, $community, $request->only(['member', 'password']));
+        app(TransfersCommunityOwnership::class)->transfer($request->user() ?? throw new AuthenticationException, $community, $request->only(['member', 'password', 'code']));
 
         return self::success('Ownership transferred', null, $community->refresh()->loadCount('users')->toResource()->withLargeFields());
     }

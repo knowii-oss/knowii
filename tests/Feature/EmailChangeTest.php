@@ -1007,15 +1007,16 @@ test('the migration of the unique address stops, and changes nothing, while two 
 // One budget of mails for a change of the address
 // ---------------------------------------------------------------------------------------------------------------------
 
-test('each change of the address in the profile counts: 6 a minute, also with the right password, then the form says to wait', function () {
+test('each change of the address in the profile counts: 6 a minute with "Send the link again", also with the right password, then the form says to wait', function () {
     $ada = emailChangeMember();
 
-    foreach (range(1, 6) as $try) {
-        emailChangeRequest($ada->fresh(), 'ada.'.$try.'@example.com')->assertSessionHasNoErrors();
+    emailChangeRequest($ada->fresh(), 'ada.1@example.com')->assertSessionHasNoErrors();
+    foreach (range(1, 5) as $try) {
+        $this->actingAs($ada->fresh())->post('/user/email-change/resend')->assertSessionHasNoErrors();
     }
-    emailChangeRequest($ada->fresh(), 'ada.7@example.com')->assertSessionHasErrorsIn('updateProfileInformation', ['email' => 'Too many tries. Please wait a minute, then try again.']);
+    emailChangeRequest($ada->fresh(), 'ada.2@example.com')->assertSessionHasErrorsIn('updateProfileInformation', ['email' => 'Too many tries. Please wait a minute, then try again.']);
 
-    expect($ada->fresh()->pending_email)->toBe('ada.6@example.com');
+    expect($ada->fresh()->pending_email)->toBe('ada.1@example.com');
     Mail::assertQueuedCount(6);
 
     // The other fields of the profile do not count
@@ -1023,16 +1024,29 @@ test('each change of the address in the profile counts: 6 a minute, also with th
     expect($ada->fresh()->name)->toBe('Ada King');
 
     $this->travel(61)->seconds();
-    emailChangeRequest($ada->fresh(), 'ada.7@example.com')->assertSessionHasNoErrors();
-    expect($ada->fresh()->pending_email)->toBe('ada.7@example.com');
+    emailChangeRequest($ada->fresh(), 'ada.2@example.com')->assertSessionHasNoErrors();
+    expect($ada->fresh()->pending_email)->toBe('ada.2@example.com');
+});
+
+test('the profile form takes 5 changes of the address a day, then the form says to wait', function () {
+    $ada = emailChangeMember();
+
+    foreach (range(1, 5) as $try) {
+        emailChangeRequest($ada->fresh(), 'ada.'.$try.'@example.com')->assertSessionHasNoErrors();
+    }
+    emailChangeRequest($ada->fresh(), 'ada.6@example.com')->assertSessionHasErrorsIn('updateProfileInformation', ['email' => 'Too many tries. Please wait 24 hours, then try again.']);
+
+    expect($ada->fresh()->pending_email)->toBe('ada.5@example.com');
+    Mail::assertQueuedCount(5);
 });
 
 test('the changes of the address in the profile and "Send the link again" share one budget', function () {
     $ada = emailChangeMember();
 
-    foreach (range(1, 6) as $try) {
+    foreach (range(1, 5) as $try) {
         emailChangeRequest($ada->fresh(), 'ada.'.$try.'@example.com')->assertSessionHasNoErrors();
     }
+    $this->actingAs($ada->fresh())->post('/user/email-change/resend')->assertSessionHasNoErrors();
     $this->actingAs($ada->fresh())->post('/user/email-change/resend')->assertStatus(429);
     Sanctum::actingAs($ada->fresh(), ['user:write']);
     $this->postJson('/api/v1/'.ApiRoutes::USER_EMAIL_CHANGE_RESEND)->assertStatus(429);
@@ -1043,14 +1057,14 @@ test('each correction of an address that was never verified counts in the same b
     Notification::fake();
     $grace = emailChangeNeverVerified();
 
-    foreach (range(1, 6) as $try) {
+    foreach (range(1, 5) as $try) {
         emailChangeRequest($grace->fresh(), 'grace.'.$try.'@example.com')->assertSessionHasNoErrors();
     }
-    emailChangeRequest($grace->fresh(), 'grace.7@example.com')->assertSessionHasErrorsIn('updateProfileInformation', ['email']);
+    emailChangeRequest($grace->fresh(), 'grace.6@example.com')->assertSessionHasErrorsIn('updateProfileInformation', ['email']);
 
     expect($grace->fresh()->email)->toBe('grace@example.com')
-        ->and($grace->fresh()->pending_email)->toBe('grace.6@example.com');
-    Mail::assertQueued(ConfirmNewEmailAddress::class, 6);
+        ->and($grace->fresh()->pending_email)->toBe('grace.5@example.com');
+    Mail::assertQueued(ConfirmNewEmailAddress::class, 5);
     Notification::assertNothingSent();
 });
 

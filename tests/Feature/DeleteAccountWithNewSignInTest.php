@@ -2,6 +2,7 @@
 
 use App\Actions\Auth\ConfirmAccountDeletion;
 use App\ApiRoutes;
+use App\Constants;
 use App\Contracts\Users\DeletesAccounts;
 use App\Enums\KnowiiApiResponseType;
 use App\Enums\KnowiiSpaceType;
@@ -607,7 +608,7 @@ test('with two-factor authentication on, the web limits the tries of the code', 
     $this->actingAs($this->member);
     freshCallback(freshStartProof());
 
-    foreach (range(1, 3) as $try) {
+    foreach (range(1, Constants::SECOND_FACTOR_TRIES_PER_MINUTE) as $try) {
         $this->delete('/user', ['code' => '00000'.$try])->assertSessionHasErrors(['code' => 'The provided two factor authentication code was invalid.']);
     }
     $this->delete('/user', ['code' => 'recovery-one'])->assertSessionHasErrors(['code' => 'Too many tries. Please wait a minute, then try again.']);

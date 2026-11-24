@@ -39,13 +39,15 @@ const everyone = [
 
 const onTransferred = vi.fn();
 
-function renderForm() {
+function renderForm(twoFactor = false) {
   render(
     <AppDataProvider>
-      <TransferOwnershipForm communityCuid="c1" communityName="Tests" onTransferred={onTransferred} />
+      <TransferOwnershipForm communityCuid="c1" communityName="Tests" onTransferred={onTransferred} twoFactor={twoFactor} />
     </AppDataProvider>,
   );
 }
+
+const CODE_LABEL = 'The code of your authenticator app or a recovery code';
 
 async function openDialog() {
   await userEvent.click(screen.getByRole('button', { name: 'Transfer the ownership' }));
@@ -77,6 +79,46 @@ describe('TransferOwnershipForm', () => {
 
     await waitFor(() => expect(transfer).toHaveBeenCalledWith('c1', 'g', 'secret'));
     await waitFor(() => expect(onTransferred).toHaveBeenCalledTimes(1));
+    expect(within(dialog).queryByLabelText(CODE_LABEL)).not.toBeInTheDocument();
+  });
+
+  it('asks an owner with two-factor authentication for the code and sends it', async () => {
+    const transfer = vi
+      .spyOn(knowiiApiClient.communities, 'transferOwnership')
+      .mockResolvedValue({ ok: true, message: '', data: { cuid: 'c1' } as Community });
+    renderForm(true);
+    const dialog = await openDialog();
+
+    await userEvent.click(await within(dialog).findByRole('button', { name: /New owner/ }));
+    await userEvent.click(await screen.findByRole('option', { name: 'Alan (@alan)' }));
+    await userEvent.type(within(dialog).getByLabelText('Your password, to confirm'), 'secret');
+    await userEvent.type(within(dialog).getByLabelText(CODE_LABEL), '123456');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Transfer' }));
+
+    await waitFor(() => expect(transfer).toHaveBeenCalledWith('c1', 'a', 'secret', '123456'));
+    await waitFor(() => expect(onTransferred).toHaveBeenCalledTimes(1));
+  });
+
+  it('shows the code error of the server under the code field, and keeps the dialog open', async () => {
+    vi.spyOn(knowiiApiClient.communities, 'transferOwnership').mockResolvedValue({
+      ok: false,
+      status: 400,
+      message: 'Invalid',
+      errors: { code: ['Enter the code of your authenticator app or a recovery code.'] },
+    });
+    renderForm();
+    const dialog = await openDialog();
+
+    await userEvent.click(await within(dialog).findByRole('button', { name: /New owner/ }));
+    await userEvent.click(await screen.findByRole('option', { name: 'Alan (@alan)' }));
+    await userEvent.type(within(dialog).getByLabelText('Your password, to confirm'), 'secret');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Transfer' }));
+
+    expect(await within(dialog).findByText('Enter the code of your authenticator app or a recovery code.')).toBeInTheDocument();
+    const code = within(dialog).getByLabelText(CODE_LABEL);
+    await waitFor(() => expect(code).toHaveFocus());
+    expect(code).toHaveAttribute('aria-invalid', 'true');
+    expect(onTransferred).not.toHaveBeenCalled();
   });
 
   it('asks for a new owner before it calls the API (#1339)', async () => {

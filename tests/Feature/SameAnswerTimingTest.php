@@ -163,6 +163,21 @@ test('the forms take the same time for an address with and without an account', 
                 return fn () => timingSignIn($row, $address);
             },
         ]),
+        'the reset page' => timingRun([
+            'an account with a link' => function () use ($hash) {
+                $account = timingAccount($hash);
+                Password::broker()->createToken($account);
+
+                return fn () => test()->postJson('/reset-password', ['token' => Str::random(64), 'email' => $account->email, 'password' => TIMING_PASSWORD, 'password_confirmation' => TIMING_PASSWORD])->assertStatus(400);
+            },
+            'no account' => function () use ($hash) {
+                // An account and a link that the request does not use: both cases are prepared the same way
+                Password::broker()->createToken(timingAccount($hash));
+                $address = 'none-'.Str::lower(Str::random(12)).'@example.com';
+
+                return fn () => test()->postJson('/reset-password', ['token' => Str::random(64), 'email' => $address, 'password' => TIMING_PASSWORD, 'password_confirmation' => TIMING_PASSWORD])->assertStatus(400);
+            },
+        ]),
         'the profile form' => timingRun([
             'a free address' => function () use ($hash) {
                 $account = timingAccount($hash);
@@ -189,6 +204,7 @@ test('the forms take the same time for an address with and without an account', 
     'the web sign-in, no password',
     'the API sign-in, no account',
     'the API sign-in, no password',
+    'the reset page',
     'the profile form',
 ])->skip(fn () => getenv('RUN_TIMING_TESTS') !== '1', 'Timing measures: set RUN_TIMING_TESTS=1');
 

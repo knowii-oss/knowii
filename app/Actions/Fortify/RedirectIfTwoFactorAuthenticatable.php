@@ -2,21 +2,24 @@
 
 namespace App\Actions\Fortify;
 
+use App\Http\Requests\TwoFactorLoginRequest;
 use App\Support\DummyPassword;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Timebox;
 use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable as FortifyRedirectIfTwoFactorAuthenticatable;
 use Laravel\Fortify\Fortify;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * The first step of every password sign-in of the web (Fortify runs it because the second factor is on). It is the step of
  * Fortify, with one more check: a sign-in takes the same time for an address with and without an account
  * (documentation/architecture/backend.md). When no account has the address, or the account has no password (a provider
  * made it), the framework compares no hash; the step then checks the password against App\Support\DummyPassword, so every
- * failed sign-in costs one hash check at the cost of the application. Everything else is the step of Fortify: its timebox
- * of 200 ms, the rehash on login, the event `Failed`, the limiter `login` and the error "These credentials do not match our
- * records.".
+ * failed sign-in costs one hash check at the cost of the application. The challenge that it begins holds the time when it
+ * began (App\Http\Requests\TwoFactorLoginRequest): it ends after a few minutes. Everything else is the step of Fortify:
+ * its timebox of 200 ms, the rehash on login, the event `Failed`, the limiter `login` and the error "These credentials do
+ * not match our records.".
  */
 class RedirectIfTwoFactorAuthenticatable extends FortifyRedirectIfTwoFactorAuthenticatable
 {
@@ -50,5 +53,17 @@ class RedirectIfTwoFactorAuthenticatable extends FortifyRedirectIfTwoFactorAuthe
                 }
             });
         }, 200000);
+    }
+
+    /**
+     * @param  Request  $request
+     * @param  Authenticatable  $user  The account whose password was right
+     * @return Response
+     */
+    protected function twoFactorChallengeResponse($request, $user)
+    {
+        $request->session()->put(TwoFactorLoginRequest::STARTED_AT_KEY, TwoFactorLoginRequest::startedNow());
+
+        return parent::twoFactorChallengeResponse($request, $user);
     }
 }

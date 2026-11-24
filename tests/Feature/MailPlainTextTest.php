@@ -9,6 +9,7 @@ use App\Mail\EmailAddressHasAccount;
 use App\Mail\FinishSignUp;
 use App\Mail\MagicLink;
 use App\Mail\MailBudgetAlert;
+use App\Mail\SecondFactorLocked;
 use App\Mail\SignUpAccountExists;
 use App\Models\Community;
 use App\Models\User;
@@ -129,6 +130,14 @@ function mailPlainTextCase(string $class): array
                 'values' => 0,
                 'subject' => '80% of the email quota of November 2026 is used',
                 'anchors' => [],
+            ];
+        case SecondFactorLocked::class:
+            // The time and the zone of the member: a zone is a name of the IANA list, never a typed text
+            return [
+                'send' => $to(new SecondFactorLocked(CarbonImmutable::parse('2026-11-24T11:00:00Z'), 'Europe/Brussels')),
+                'values' => 0,
+                'subject' => 'Wrong two-factor codes on your account on Knowii',
+                'anchors' => [['Change your password', 'https://knowii.test/forgot-password', true]],
             ];
         case SignUpAccountExists::class:
             return [
@@ -362,6 +371,7 @@ test('a value in an attribute of a mail keeps its quotes inside the attribute', 
     'the new address to confirm' => ['emails.confirm-new-email-address', ['url' => 'QUOTED', 'minutes' => 60], 1],
     'the end of the sign-up' => ['emails.finish-sign-up', ['url' => 'QUOTED', 'minutes' => 60], 1],
     'the sign-in link' => ['emails.magic-link', ['url' => 'QUOTED', 'minutes' => 15], 1],
+    'the closed second step' => ['emails.second-factor-locked', ['count' => 10, 'closedUntil' => '2026-11-24 12:00 (Europe/Brussels)', 'resetUrl' => 'QUOTED'], 1],
     'the account that exists' => ['emails.sign-up-account-exists', ['signInUrl' => 'QUOTED', 'resetUrl' => 'QUOTED'], 2],
     'the footer of a notification mail' => ['emails.partials.notification-footer', ['stopUrl' => 'QUOTED', 'settingsUrl' => 'QUOTED', 'operatorLine' => 'Example Ltd'], 2],
 ]);

@@ -12,12 +12,17 @@ use App\Models\AccessGroup;
 use App\Models\Community;
 use App\Models\MemberTag;
 use App\Models\User;
+use App\Support\AccountDeletion;
 use App\Support\CommunityRoles;
 use App\Support\MemberTagAssignments;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Validation\ValidationException;
+use Laravel\Fortify\Contracts\TwoFactorAuthenticationProvider;
 use Laravel\Sanctum\Sanctum;
+use PragmaRX\Google2FA\Google2FA;
 
 /*
  * Transfer the ownership of a community (#1339, ADR 0035).
@@ -159,6 +164,94 @@ test('the transfer needs the password of the owner (#1339)', function () {
 
     expect($community->fresh()->owner_id)->toBe($this->c['owner']->id);
     Mail::assertNothingQueued();
+});
+
+/**
+ * The owner turns on two-factor authentication, confirmed, with one recovery code: the secret
+ */
+function ownershipTwoFactor(User $owner): string
+{
+    $secret = app(TwoFactorAuthenticationProvider::class)->generateSecretKey();
+    $owner->forceFill([
+        'two_factor_secret' => encrypt($secret),
+        'two_factor_recovery_codes' => encrypt(json_encode(['recovery-one'])),
+        'two_factor_confirmed_at' => now(),
+    ])->save();
+
+    return $secret;
+}
+
+test('the transfer asks an owner with two-factor authentication for the code', function () {
+    $community = $this->c['community'];
+    $owner = $this->c['owner'];
+    ownershipTwoFactor($owner);
+
+    // Without a code, and with a wrong code: an error on the code, and nothing changes
+    $this->actingAs($owner)->postJson(ownershipPath($community), ownershipBody($this->c['admin']))
+        ->assertStatus(400)
+        ->assertJsonPath('errors.code.0', 'Enter the code of your authenticator app or a recovery code.');
+    $this->actingAs($owner)->postJson(ownershipPath($community), [...ownershipBody($this->c['admin']), 'code' => '000000'])
+        ->assertStatus(400)
+        ->assertJsonPath('errors.code.0', 'The provided two factor authentication code was invalid.');
+
+    expect($community->fresh()->owner_id)->toBe($owner->id);
+    Mail::assertNothingQueued();
+});
+
+test('the transfer of an owner with two-factor authentication passes with a code or with a recovery code', function (string $kind) {
+    $community = $this->c['community'];
+    $owner = $this->c['owner'];
+    $secret = ownershipTwoFactor($owner);
+    $code = $kind === 'code' ? app(Google2FA::class)->getCurrentOtp($secret) : 'recovery-one';
+
+    $this->actingAs($owner)->postJson(ownershipPath($community), [...ownershipBody($this->c['admin']), 'code' => $code])->assertOk();
+
+    expect($community->fresh()->owner_id)->toBe($this->c['admin']->id);
+    if ($kind === 'recovery code') {
+        expect($owner->fresh()->recoveryCodes())->not->toContain('recovery-one');
+    }
+})->with(['code', 'recovery code']);
+
+test('the transfer checks the new owner before the code: a refused transfer keeps the recovery code and counts no try', function (string $who, int $status) {
+    $community = $this->c['community'];
+    $owner = $this->c['owner'];
+    ownershipTwoFactor($owner);
+    $member = $who === 'unknown' ? 'unknowncuid' : $this->c[$who]->cuid;
+
+    $this->actingAs($owner)->postJson(ownershipPath($community), ['member' => $member, 'password' => 'password', 'code' => 'recovery-one'])
+        ->assertStatus($status);
+    $this->actingAs($owner)->postJson(ownershipPath($community), ['member' => $member, 'password' => 'password', 'code' => '000000'])
+        ->assertStatus($status);
+
+    expect($owner->fresh()->recoveryCodes())->toContain('recovery-one')
+        ->and($community->fresh()->owner_id)->toBe($owner->id)
+        ->and(RateLimiter::attempts('second-factor-tries:minute:'.$owner->cuid))->toBe(0)
+        ->and(RateLimiter::attempts('second-factor-tries:hour:'.$owner->cuid))->toBe(0);
+
+    // The recovery code still works for a transfer to an admin
+    $this->actingAs($owner)->postJson(ownershipPath($community), [...ownershipBody($this->c['admin']), 'code' => 'recovery-one'])->assertOk();
+    expect($community->fresh()->owner_id)->toBe($this->c['admin']->id);
+})->with([
+    'a moderator' => ['moderator', 422],
+    'a member' => ['member', 422],
+    'not a member' => ['outsider', 404],
+    'an unknown member' => ['unknown', 404],
+]);
+
+test('the wrong codes of a transfer count with the other places that check a code', function () {
+    $community = $this->c['community'];
+    $owner = $this->c['owner'];
+    $secret = ownershipTwoFactor($owner);
+
+    // Wrong codes of the deletion of the account, then one of the transfer: the minute has no try left
+    foreach (range(2, Constants::SECOND_FACTOR_TRIES_PER_MINUTE) as $i) {
+        expect(fn () => AccountDeletion::checkSecondFactor($owner->fresh(), '000000'))->toThrow(ValidationException::class);
+    }
+    $this->actingAs($owner)->postJson(ownershipPath($community), [...ownershipBody($this->c['admin']), 'code' => '000000'])->assertStatus(400);
+    $this->actingAs($owner)->postJson(ownershipPath($community), [...ownershipBody($this->c['admin']), 'code' => app(Google2FA::class)->getCurrentOtp($secret)])
+        ->assertStatus(400)
+        ->assertJsonPath('errors.code.0', 'Too many tries. Please wait a minute, then try again.');
+    expect($community->fresh()->owner_id)->toBe($owner->id);
 });
 
 test('only the owner transfers the ownership (#1339)', function (string $who) {
