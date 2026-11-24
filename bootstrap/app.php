@@ -40,6 +40,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Exceptions\InvalidSignatureException;
 use Illuminate\Routing\Middleware\SubstituteBindings;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -135,8 +136,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // The abilities of a token (ADR 0022) and the check of the email address (`verified`) come before the item of the
         // route is read: after the sign-in check and before the bindings of the route, so that a refused request gets the
         // same answer whatever the URL names. Both read only the account, its token and the mark of a visitor, never a
-        // parameter of the route
-        $middleware->prependToPriorityList(SubstituteBindings::class, RequireTokenAbility::class);
+        // parameter of the route. The abilities also come before the limits of the route: a token without the ability
+        // uses up no try of the account
+        $middleware->prependToPriorityList(ThrottleRequests::class, RequireTokenAbility::class);
         $middleware->prependToPriorityList(SubstituteBindings::class, EnsureEmailIsVerified::class);
 
         // Token abilities on the API routes (ADR 0022, #689): `ability:a,b` passes with any of them
