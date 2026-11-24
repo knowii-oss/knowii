@@ -137,6 +137,7 @@ If you want more control you can run the parts separately:
 - Run `./vendor/bin/sail npm run dev` to start the front-end (inside the Docker container)
 - Run `./vendor/bin/sail php artisan queue:listen --queue=broadcasts,notifications,default` to start the queue worker (necessary for processing WebSocket events)
 - Run `./vendor/bin/sail php artisan queue:listen --queue=mail` in a second terminal to start the worker of the notification emails (ADR 0054)
+- Run `./vendor/bin/sail php artisan queue:listen --queue=captures` in a third terminal to start the worker of the captures of resources (ADR 0018)
 
 WARNING: You have to start the front-end server inside the Docker container, because it already reserves the port exposed by Vite.
 

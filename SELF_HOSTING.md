@@ -345,15 +345,16 @@ php artisan optimize
 
 ## 6. Run the processes
 
-Knowii needs five processes, in addition to PHP-FPM:
+Knowii needs six processes, in addition to PHP-FPM:
 
 - The web server (nginx with PHP-FPM), which serves the `public/` folder
 - The queue worker, which processes jobs. Knowii sends its real-time (WebSocket) events through the queue: without a worker, users get no live updates, and no notification is written. The worker reads three queues, in this order: `broadcasts` (live updates), `notifications` (who is told about replies and mentions, and the clean-up when access changes) and `default` (the rest). Keep the three names in the `--queue` option (ADR 0042).
 - The worker of the notification mail, which reads only the queue `mail` (ADR 0054). A send to a slow mail server never holds up the live updates. Without it, notification emails wait in the queue, and `php artisan app:health` fails after 10 minutes. A notification email that waits for more than 2 hours is not sent late: the worker fails it (`failed_jobs`), and the notification stays in the app. On a host that runs one worker only, set `MAIL_QUEUE=default` instead (step 4).
+- The worker of the captures, which reads only the queue `captures` (ADR 0018). It fetches the pages that members add as resources, with their cover, their icon and the images of an article. A long list of captures never delays the live updates, the notifications or the account mails (the sign-in link, the sign-up mail, the reset mail, the mail of a change of address, which stay on `default`). One capture has at most 80 seconds and is not tried again when it runs out of time. Without this worker, resources stay "pending". On a host that runs one worker only, add `captures` at the end of the `--queue` option of the first worker instead.
 - The WebSocket server (Laravel Reverb)
 - The scheduler, which runs the scheduled tasks of `routes/console.php` (see the list below). Without it, unused uploaded images are never deleted.
 
-Keep the two queue workers, Reverb and the scheduler running with a process manager. This is an example for Supervisor (`/etc/supervisor/conf.d/knowii.conf`). Change the path and the user:
+Keep the three queue workers, Reverb and the scheduler running with a process manager. This is an example for Supervisor (`/etc/supervisor/conf.d/knowii.conf`). Change the path and the user:
 
 ```ini
 [program:knowii-queue]
@@ -369,6 +370,13 @@ user=www-data
 autostart=true
 autorestart=true
 stopwaitsecs=60
+
+[program:knowii-queue-captures]
+command=php /var/www/knowii/artisan queue:work --queue=captures --sleep=3 --tries=3
+user=www-data
+autostart=true
+autorestart=true
+stopwaitsecs=90
 
 [program:knowii-reverb]
 command=php /var/www/knowii/artisan reverb:start
@@ -530,12 +538,14 @@ npm ci
 npm run build
 php artisan migrate --force
 php artisan optimize
-php artisan queue:restart    # both workers restart with the new code
+php artisan queue:restart    # the workers restart with the new code
 php artisan reverb:restart   # the WebSocket server restarts with the new code
 sudo systemctl reload php8.5-fpm
 ```
 
 From the release that adds the queue `mail` (#1477, ADR 0054), run the second queue worker of step 6 (`knowii-queue-mail`), or set `MAIL_QUEUE=default`. With Docker, `up -d` starts the new service `queue-mail`.
+
+From the release that adds the queue `captures` (ADR 0018), run the third queue worker of step 6 (`knowii-queue-captures`), or add `captures` to the `--queue` option of the first worker. With Docker, `up -d` starts the new service `queue-captures`. The captures that wait on `default` from before the update are still run by the first worker.
 
 Some releases need one more step after the migration. The release that adds smaller sizes for uploaded images ([ADR 0040](documentation/adr/0040-stored-sizes-of-uploaded-images.md)) needs this, in this order:
 
@@ -557,7 +567,7 @@ Both commands accept `--dry-run`, and you can run them again: they only do what 
 
 ## Docker
 
-Instead of steps 1 to 8, you can run Knowii with Docker. The repository has a production image (`Dockerfile`) and one Compose project (`compose.production.yaml`) with these services: `app` (the web server, FrankenPHP), `queue` (the queue worker), `queue-mail` (the worker of the notification mail), `reverb` (WebSockets), `scheduler` (the scheduled tasks) and `postgres` (PostgreSQL 18). The application services use the same image with another command. You need Docker with the Compose plugin, a reverse proxy that ends the TLS (see below), and nothing else: no PHP, Composer or Node.js on the server. The image never runs development tools. See [ADR 0046](documentation/adr/0046-production-image-and-compose.md).
+Instead of steps 1 to 8, you can run Knowii with Docker. The repository has a production image (`Dockerfile`) and one Compose project (`compose.production.yaml`) with these services: `app` (the web server, FrankenPHP), `queue` (the queue worker), `queue-mail` (the worker of the notification mail), `queue-captures` (the worker of the captures of resources), `reverb` (WebSockets), `scheduler` (the scheduled tasks) and `postgres` (PostgreSQL 18). The application services use the same image with another command. You need Docker with the Compose plugin, a reverse proxy that ends the TLS (see below), and nothing else: no PHP, Composer or Node.js on the server. The image never runs development tools. See [ADR 0046](documentation/adr/0046-production-image-and-compose.md).
 
 ### Get the image
 

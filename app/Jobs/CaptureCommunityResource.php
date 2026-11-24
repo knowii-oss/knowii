@@ -15,14 +15,21 @@ use Illuminate\Support\Str;
 use Throwable;
 
 /**
- * Capture the page of a community resource (ADR 0018), on the default queue. Each change of the capture status saves
- * the community resource, which broadcasts CommunityResourceUpdated on the channel of its space.
+ * Capture the page of a community resource (ADR 0018), on the queue of the captures (its own worker). Each change of the
+ * capture status saves the community resource, which broadcasts CommunityResourceUpdated on the channel of its space.
  */
 class CaptureCommunityResource implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;
 
     public int $tries = 3;
+
+    /**
+     * Seconds before the worker stops the capture. A capture that runs out of time is not tried again.
+     */
+    public int $timeout = Constants::CAPTURE_JOB_TIMEOUT_SECONDS;
+
+    public bool $failOnTimeout = true;
 
     /**
      * Seconds before the second and the third try
@@ -39,7 +46,10 @@ class CaptureCommunityResource implements ShouldBeUnique, ShouldQueue
     /**
      * @param  bool  $nameFromPage  The member gave no name: the title of the page becomes the name (#1062)
      */
-    public function __construct(public CommunityResource $communityResource, public bool $nameFromPage = false) {}
+    public function __construct(public CommunityResource $communityResource, public bool $nameFromPage = false)
+    {
+        $this->onQueue(Constants::QUEUE_CAPTURES);
+    }
 
     public function uniqueId(): string
     {

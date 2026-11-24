@@ -154,6 +154,21 @@ class Constants
     // Capture of resources (ADR 0018): a plain HTTP fetch in a queued job
     public const int CAPTURE_TIMEOUT_SECONDS = 15;
 
+    // Redirects followed by one fetch: each one is checked and pinned like the first address
+    public const int CAPTURE_MAX_REDIRECTS = 5;
+
+    // Time to open the connection of one fetch
+    public const int CAPTURE_CONNECT_TIMEOUT_SECONDS = 5;
+
+    // Time for all the images of one capture together: the cover, the icon and the images of the article
+    public const int CAPTURE_IMAGES_SECONDS = 45;
+
+    // Time of one capture job: the page, the images, the parse. Below the retry_after of the queue (90 seconds)
+    public const int CAPTURE_JOB_TIMEOUT_SECONDS = 80;
+
+    // Longest captured article that is stored, in characters: a longer one is cut at the last paragraph before it
+    public const int MAX_CAPTURE_MARKDOWN_LENGTH = 200_000;
+
     // The agent names the project, not one instance (#1653)
     public const string CAPTURE_USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36 Knowii/1.0 (+https://github.com/knowii-oss/knowii)';
 
@@ -424,6 +439,10 @@ class Constants
     public const string QUEUE_BROADCASTS = 'broadcasts';
 
     public const string QUEUE_NOTIFICATIONS = 'notifications';
+
+    // Captures of resources (ADR 0018): a queue of their own, read by a worker of its own, so that a long list of captures
+    // never delays a live update, a notification or an account mail
+    public const string QUEUE_CAPTURES = 'captures';
 
     // Email delivery (#1477, ADR 0054): the queue of the notification mail, read by a worker of its own. Code reads
     // config('mail.queue'), which defaults to this name (MAIL_QUEUE=default puts the mail on the first worker)

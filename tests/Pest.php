@@ -184,6 +184,7 @@ function entFakeProvider(): stdClass
     $provider->ed = entEdKey('ed-1');
     $provider->jwks = [$provider->ed['jwk']];
     $provider->tokenStatus = 200;
+    $provider->discoveryStatus = 200;
     $provider->tokenExpiresIn = 600;
     $provider->tokenRequests = [];
     $provider->reads = [];
@@ -191,7 +192,7 @@ function entFakeProvider(): stdClass
 
     Http::preventStrayRequests();
     Http::fake([
-        'auth.example.test/.well-known/openid-configuration' => fn () => Http::response([
+        'auth.example.test/.well-known/openid-configuration' => fn () => $provider->discoveryStatus !== 200 ? Http::response(['error' => 'x'], $provider->discoveryStatus) : Http::response([
             'issuer' => ENT_ISSUER,
             'authorization_endpoint' => ENT_ISSUER.'/authorize',
             'token_endpoint' => ENT_ISSUER.'/token',

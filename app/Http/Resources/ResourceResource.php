@@ -34,15 +34,9 @@ class ResourceResource extends AbstractKnowiiJsonResource
             'favicon_url' => ResourceImages::url($this->favicon_path),
             'type' => $this->type->value,
             'is_featured' => $this->is_featured,
-            'view_count' => $this->view_count,
-            'share_count' => $this->share_count,
-            'last_captured_at' => $this->last_captured_at,
-            'last_checked_at' => $this->last_checked_at,
-            'check_failures_count' => $this->check_failures_count,
             'is_unavailable' => $this->is_unavailable,
-
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            // One row per address for the whole instance (ADR 0018): its own dates and counters are never sent. The
+            // community resource has the dates of the entry in its community
         ];
     }
 }
