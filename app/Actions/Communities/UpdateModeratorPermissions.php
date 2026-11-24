@@ -3,9 +3,11 @@
 namespace App\Actions\Communities;
 
 use App\Contracts\Communities\UpdatesModeratorPermissions;
+use App\Enums\KnowiiCommunityMemberRole;
 use App\Enums\KnowiiModeratorPermission;
 use App\Models\Community;
 use App\Models\User;
+use App\Support\LiveConnections;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -27,7 +29,8 @@ class UpdateModeratorPermissions implements UpdatesModeratorPermissions
         /** @var array<string, bool> $validated */
         $validated = Validator::make($input, $rules)->validate();
 
-        $permissions = $community->moderatorPermissions();
+        $before = $community->moderatorPermissions();
+        $permissions = $before;
         foreach ($validated as $key => $value) {
             $permissions[$key] = (bool) $value;
         }
@@ -35,6 +38,14 @@ class UpdateModeratorPermissions implements UpdatesModeratorPermissions
         $community->update(['moderator_permissions' => $permissions]);
 
         Log::info('Moderator rights updated', ['community' => $community->cuid, 'permissions' => $permissions]);
+
+        // A right that goes off: the live connections of the moderators end (ADR 0075)
+        $wentOff = array_filter(array_keys($before), static fn (string $key): bool => $before[$key] && ! ($permissions[$key] ?? false));
+        if ($wentOff !== []) {
+            /** @var list<string> $moderators */
+            $moderators = $community->users()->wherePivot('role', KnowiiCommunityMemberRole::Moderator)->pluck('users.cuid')->all();
+            LiveConnections::endFor(...$moderators);
+        }
 
         return $community;
     }

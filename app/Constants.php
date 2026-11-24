@@ -540,8 +540,6 @@ class Constants
     public const array INSTANCE_CHECKED_COMMANDS = ['queue:work', 'queue:listen', 'schedule:work', 'schedule:run', 'reverb:start'];
 
     // WebSockets
-    public const string WS_CHANNEL_COMMUNITIES = 'communities';
-
     public const string WS_CHANNEL_COMMUNITY_PARAM_COMMUNITY_CUID = '{communityCuid}';
 
     public const string WS_CHANNEL_COMMUNITY = 'community.{communityCuid}';

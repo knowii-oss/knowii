@@ -15,24 +15,12 @@ export interface PostListProps {
   canReact: boolean;
   // The member can moderate the space: the composer offers "Tell the followers of this space now" (#1497)
   canModerate?: boolean;
-  /**
-   * The signed-in member: their own new posts are already in the list (no "new posts" button for them)
-   */
-  currentUserCuid?: string | null;
 }
 
 /**
  * The posts of a discussion space, pinned first, with "Load more" and the composer for new posts.
  */
-export function PostList({
-  community,
-  space,
-  initialPosts,
-  canContribute,
-  canReact,
-  canModerate = false,
-  currentUserCuid = null,
-}: PostListProps) {
+export function PostList({ community, space, initialPosts, canContribute, canReact, canModerate = false }: PostListProps) {
   const { showToast } = useAppData();
   const isVisitor = useIsVisitor();
   const [posts, setPosts] = useState<Post[]>(initialPosts.items);
@@ -76,14 +64,13 @@ export function PostList({
       'space.reactions.changed',
     ],
     callback: (event, payload) => {
-      const { post_cuid: postCuid, comment_cuid: commentCuid, author_cuid: authorCuid } = payload as SpaceContentPayload;
+      const { post_cuid: postCuid, comment_cuid: commentCuid } = payload as SpaceContentPayload;
       if (!postCuid) {
         return;
       }
+      // The own new post of the reader is already in the list: its event does not come back to this page
       if (event === 'space.post.created') {
-        if (authorCuid !== currentUserCuid) {
-          setNewPosts((current) => (current.includes(postCuid) ? current : [...current, postCuid]));
-        }
+        setNewPosts((current) => (current.includes(postCuid) ? current : [...current, postCuid]));
         return;
       }
       if (event === 'space.post.deleted') {

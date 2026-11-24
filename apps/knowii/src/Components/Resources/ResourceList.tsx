@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import type { Community, CommunityResource, Identifiable, Paginated, Space } from '@knowii/common';
+import type { Community, CommunityResource, Paginated, ResourcePayload, Space } from '@knowii/common';
 import { knowiiApiClient, RESOURCE_URL, RESOURCES_PER_PAGE, useAppData, useSocket } from '@knowii/common';
 import { FaPlus } from 'react-icons/fa6';
 import { SignInPrompt, useIsVisitor } from '@/Components/Reader/Reader';
@@ -16,7 +16,8 @@ export interface ResourceListProps {
 
 /**
  * The resources of a resources space, newest first (ADR 0015). Members who can contribute add resources; the list
- * follows the resource events of the space channel.
+ * follows the resource events of the space channel. An event names the resource only: the list reads it through the API,
+ * with the rights of the reader now (ADR 0009).
  */
 export function ResourceList({ community, space, initialResources, canContribute }: ResourceListProps) {
   const { showToast } = useAppData();
@@ -46,12 +47,12 @@ export function ResourceList({ community, space, initialResources, canContribute
     setResources((current) => current.map((item) => (item.cuid === updated.cuid ? { ...item, ...updated } : item)));
   }, []);
 
-  const removeResource = useCallback((deleted: Identifiable) => {
-    if (!removed.current.has(deleted.cuid)) {
-      removed.current.add(deleted.cuid);
+  const removeResource = useCallback((deletedCuid: string) => {
+    if (!removed.current.has(deletedCuid)) {
+      removed.current.add(deletedCuid);
       setTotalCount((count) => Math.max(0, count - 1));
     }
-    setResources((current) => current.filter((item) => item.cuid !== deleted.cuid));
+    setResources((current) => current.filter((item) => item.cuid !== deletedCuid));
   }, []);
 
   const channel = useMemo(
@@ -65,13 +66,22 @@ export function ResourceList({ community, space, initialResources, canContribute
     enabled: !isVisitor,
     event: ['community.resource.created', 'community.resource.updated', 'community.resource.deleted'],
     callback: (event, payload) => {
-      if (event === 'community.resource.created') {
-        addResource(payload as CommunityResource);
-      } else if (event === 'community.resource.updated') {
-        replaceResource(payload as CommunityResource);
-      } else {
-        removeResource(payload);
+      const { resource_cuid: resourceCuid } = payload as ResourcePayload;
+      if (event === 'community.resource.deleted') {
+        removeResource(resourceCuid);
+        return;
       }
+      // A resource that the API does not give to the reader is not shown
+      void knowiiApiClient.resources.get(community.cuid, space.cuid, resourceCuid).then((result) => {
+        if (!result.ok) {
+          return;
+        }
+        if (event === 'community.resource.created') {
+          addResource(result.data);
+        } else {
+          replaceResource(result.data);
+        }
+      });
     },
   });
 

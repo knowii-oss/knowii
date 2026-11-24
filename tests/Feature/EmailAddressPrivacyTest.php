@@ -385,10 +385,11 @@ test('what the WebSocket server gives the other members of B holds no address: p
     }
     expect($count)->toBeGreaterThan(0);
 
-    // The event of a resource holds its curator
+    // The event of a resource holds its identifiers only, never its curator
     $payload = (new CommunityResourceCreated($this->resourceOfB))->broadcastWith();
     $json = (string) json_encode($payload);
-    expect($json)->toContain('Bea Probe');
+    expect($json)->not->toContain('Bea Probe')
+        ->and(array_keys($payload))->toBe(['community_cuid', 'space_cuid', 'resource_cuid']);
     eapAssertNoAddressOfOthersIn($json, (array) json_decode($json, true), null, 'resource event');
 });
 

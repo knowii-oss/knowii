@@ -19,11 +19,6 @@ use Illuminate\Support\Facades\Broadcast;
 //    return (int) $user->id === (int) $id;
 // });
 
-Broadcast::channel(Constants::WS_CHANNEL_COMMUNITIES, static function (User $user) {
-    // This is a public channel sharing events about public communities
-    return true;
-});
-
 Broadcast::channel(Constants::WS_CHANNEL_COMMUNITY, static function (User $user, string $communityCuid) {
     // This is a private channel reserved to community members. A community that does not exist answers as one that the
     // account may not read
@@ -52,7 +47,10 @@ Broadcast::channel(Constants::WS_CHANNEL_CONVERSATION, static function (User $us
 });
 Broadcast::channel(Constants::WS_CHANNEL_CONVERSATION_PRESENCE, ConversationPresenceChannel::class);
 
-// The events of one member: their conversations changed (#1186)
-Broadcast::channel(Constants::WS_CHANNEL_USER, static function (User $user, string $userCuid) {
-    return $user->cuid === $userCuid;
+// The events of one member: their conversations changed (#1186). Every page of the account also joins its presence
+// form (`presence-user.{cuid}`, ADR 0075), also when the member hides the online status. Nobody else joins it, and its
+// member data is the cuid only. The WebSocket server knows each connection by its account through the signature of
+// every channel (App\Broadcasting\AccountBoundBroadcaster), and ends them when the access ends
+Broadcast::channel(Constants::WS_CHANNEL_USER, static function (User $user, string $userCuid): array|false {
+    return $user->cuid === $userCuid ? ['cuid' => $user->cuid] : false;
 });

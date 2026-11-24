@@ -128,7 +128,7 @@ describe('PostList', () => {
 describe('PostList live updates (#1180)', () => {
   const channel = 'community.c1.space.s1';
 
-  function renderLive(currentUserCuid: string | null = 'me') {
+  function renderLive() {
     render(
       <AppDataProvider>
         <PostList
@@ -137,7 +137,6 @@ describe('PostList live updates (#1180)', () => {
           initialPosts={{ items: [post('p1', 'Pinned', true), post('p2', 'Second')], pagination: pagination(null, 2) }}
           canContribute
           canReact
-          currentUserCuid={currentUserCuid}
         />
       </AppDataProvider>,
     );
@@ -151,8 +150,8 @@ describe('PostList live updates (#1180)', () => {
     });
     renderLive();
 
-    act(() => emitSocketEvent(channel, 'space.post.created', { space_cuid: 's1', post_cuid: 'p9', author_cuid: 'someone' }));
-    act(() => emitSocketEvent(channel, 'space.post.created', { space_cuid: 's1', post_cuid: 'p9', author_cuid: 'someone' }));
+    act(() => emitSocketEvent(channel, 'space.post.created', { space_cuid: 's1', post_cuid: 'p9' }));
+    act(() => emitSocketEvent(channel, 'space.post.created', { space_cuid: 's1', post_cuid: 'p9' }));
 
     expect(screen.getAllByRole('article')).toHaveLength(2);
     await userEvent.click(screen.getByRole('button', { name: '1 new post' }));
@@ -161,14 +160,6 @@ describe('PostList live updates (#1180)', () => {
     expect(list).toHaveBeenCalledWith('c1', 's1', expect.any(Number), 0);
     expect(screen.queryByRole('button', { name: /new post$/ })).not.toBeInTheDocument();
     await waitFor(() => expect(screen.getByRole('link', { name: 'Pinned' })).toHaveFocus());
-  });
-
-  it('shows no button for the posts of the member, who already sees them', () => {
-    renderLive('me');
-
-    act(() => emitSocketEvent(channel, 'space.post.created', { space_cuid: 's1', post_cuid: 'p9', author_cuid: 'me' }));
-
-    expect(screen.queryByRole('button', { name: '1 new post' })).not.toBeInTheDocument();
   });
 
   it('removes a deleted post and loads an edited one again', async () => {

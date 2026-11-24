@@ -34,12 +34,12 @@ class DeleteEvent implements DeletesEvents
 
         // Built before the delete: the broadcast needs the space of the event. A draft sends nothing on the space channel
         $broadcast = null;
-        DB::transaction(function () use ($event, $user, &$broadcast) {
+        DB::transaction(function () use ($event, &$broadcast) {
             $locked = Event::query()->whereKey($event->id)->lockForUpdate()->firstOrFail();
             if (self::mustCancelFirst($locked)) {
                 throw new BusinessException(self::CANCEL_FIRST_MESSAGE);
             }
-            $broadcast = $locked->isDraft() ? null : SpaceContentChanged::forEvent(SpaceContentChanged::EVENT_DELETED, $event, $user->cuid);
+            $broadcast = $locked->isDraft() ? null : SpaceContentChanged::forEvent(SpaceContentChanged::EVENT_DELETED, $event);
             $locked->delete();
         });
 

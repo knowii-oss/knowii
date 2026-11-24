@@ -981,8 +981,8 @@ describe('the page of an event (#1514, design 6.2)', () => {
 
   describe('live updates (rule 23)', () => {
     const channel = 'community.c1.space.s1';
-    const emit = (name: string, eventCuid: string, authorCuid = 'someone') =>
-      act(() => emitSocketEvent(channel, name, { space_cuid: 's1', event_cuid: eventCuid, author_cuid: authorCuid }));
+    const emit = (name: string, eventCuid: string) =>
+      act(() => emitSocketEvent(channel, name, { space_cuid: 's1', event_cuid: eventCuid }));
 
     it('loads the page again when this event changes or goes away: the server decides what the reader sees', () => {
       renderPage(withBody());
@@ -1000,17 +1000,16 @@ describe('the page of an event (#1514, design 6.2)', () => {
 
       emit('space.event.created', 'e1');
       expect(shared.reload).toHaveBeenCalledTimes(1);
-      // Not for another event that was published, nor for the own publication of the reader
+      // Not for another event that was published
       emit('space.event.created', 'e2');
-      emit('space.event.created', 'e1', 'me');
       expect(shared.reload).toHaveBeenCalledTimes(1);
     });
 
-    it('does nothing for another event, and for the own change of the reader', () => {
+    it('does nothing for another event', () => {
       renderPage(withBody());
 
       emit('space.event.updated', 'e2');
-      emit('space.event.deleted', 'e1', 'me');
+      emit('space.event.deleted', 'e2');
 
       expect(shared.reload).not.toHaveBeenCalled();
     });
@@ -1027,7 +1026,7 @@ describe('the page of an event (#1514, design 6.2)', () => {
     describe('the places changed (#1515, rules 55 and 56)', () => {
       // The signal names the event only: no member
       const places = (eventCuid: string) =>
-        act(() => emitSocketEvent(channel, 'space.event.answers.changed', { space_cuid: 's1', event_cuid: eventCuid, author_cuid: null }));
+        act(() => emitSocketEvent(channel, 'space.event.answers.changed', { space_cuid: 's1', event_cuid: eventCuid }));
 
       it('loads the event alone again for this event, and nothing for another event (rule 55)', () => {
         renderPage(withBody({ places_left: 28 }));
@@ -1180,10 +1179,7 @@ describe('the page of an event (#1514, design 6.2)', () => {
 
   describe('one load at a time (#1515): an older event never lands after a newer one', () => {
     const channel = 'community.c1.space.s1';
-    const signal = (name: string) =>
-      act(() =>
-        emitSocketEvent(channel, name, { space_cuid: 's1', event_cuid: 'e1', author_cuid: name.endsWith('changed') ? null : 'someone' }),
-      );
+    const signal = (name: string) => act(() => emitSocketEvent(channel, name, { space_cuid: 's1', event_cuid: 'e1' }));
     const places = () => signal('space.event.answers.changed');
 
     interface LoadOptions {

@@ -12,6 +12,7 @@ use App\Models\CommunityInvitation;
 use App\Models\InvitationImportRow;
 use App\Models\User;
 use App\Support\AccountDeletion;
+use App\Support\LiveConnections;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -162,6 +163,7 @@ class DeleteUser implements DeletesAccounts, DeletesUsers
     private function afterRemoval(string $cuid): void
     {
         Storage::disk(UpdateAvatar::disk())->deleteDirectory('avatars/'.$cuid);
+        LiveConnections::endFor($cuid);
 
         Log::info('User deleted', ['user' => $cuid]);
     }

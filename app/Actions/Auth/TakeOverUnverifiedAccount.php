@@ -4,11 +4,11 @@ namespace App\Actions\Auth;
 
 use App\Contracts\Auth\TakesOverUnverifiedAccounts;
 use App\Contracts\Auth\UnlinksIdentities;
-use App\Contracts\Realtime\EndsLiveConnections;
 use App\Enums\KnowiiAddressProof;
 use App\Enums\KnowiiTakeOverResult;
 use App\Models\User;
 use App\Support\BrowserHistory;
+use App\Support\LiveConnections;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -31,7 +31,7 @@ use SensitiveParameter;
  * 6. The API tokens and the password reset tokens of the account are deleted.
  * 7. The connections to a provider are removed, with their entitlement keys (UnlinksIdentities).
  * 8. The proof of a deletion (ADR 0052) and a pending change of the address (ADR 0058) are cleared.
- * 9. After the commit, the live connections of the account on the broadcaster end (EndsLiveConnections).
+ * 9. After the commit, the live connections of the account on the broadcaster end (LiveConnections, ADR 0075).
  * 10. The next page of the browser that proved the address (the page after its sign-in, or the sign-in page after a
  *     password reset) tells it to forget the pages that its history keeps (App\Support\BrowserHistory).
  *
@@ -52,7 +52,6 @@ class TakeOverUnverifiedAccount implements TakesOverUnverifiedAccounts
 {
     public function __construct(
         private readonly UnlinksIdentities $unlinksIdentities,
-        private readonly EndsLiveConnections $endsLiveConnections,
     ) {}
 
     final public function takeOver(User $user, KnowiiAddressProof $proof, string $provedAddress, #[SensitiveParameter] ?string $newPassword = null): KnowiiTakeOverResult
@@ -117,11 +116,10 @@ class TakeOverUnverifiedAccount implements TakesOverUnverifiedAccounts
         BrowserHistory::clear();
 
         $cuid = $user->cuid;
-        $endsLiveConnections = $this->endsLiveConnections;
-        DB::afterCommit(static function () use ($proof, $cuid, $endsLiveConnections): void {
+        DB::afterCommit(static function () use ($proof, $cuid): void {
             Log::notice($proof->takeoverLogLine(), ['user' => $cuid]);
-            $endsLiveConnections->endFor($cuid);
         });
+        LiveConnections::endFor($cuid);
 
         return KnowiiTakeOverResult::TookOver;
     }

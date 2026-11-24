@@ -29,7 +29,7 @@ class SendDirectMessage implements SendsDirectMessages
         $message = DB::transaction(static fn () => self::write($user, $conversation, $validated['body']));
 
         Log::info('Direct message sent', ['conversation' => $conversation->cuid, 'message' => $message->cuid]);
-        ChatMessageEvents::dispatch(ChatMessageEvents::CREATED, $message, $user->cuid);
+        ChatMessageEvents::dispatch(ChatMessageEvents::CREATED, $message);
 
         return $message;
     }

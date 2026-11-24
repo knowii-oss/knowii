@@ -390,9 +390,7 @@ describe('"Answers", the list for the host, the owner and the admins (#1515, des
     await within(dialog).findByRole('list');
     expect(list).toHaveBeenCalledTimes(1);
 
-    act(() =>
-      emitSocketEvent('community.c1.space.s1', 'space.event.answers.changed', { space_cuid: 's1', event_cuid: 'e1', author_cuid: null }),
-    );
+    act(() => emitSocketEvent('community.c1.space.s1', 'space.event.answers.changed', { space_cuid: 's1', event_cuid: 'e1' }));
 
     expect(list).toHaveBeenCalledTimes(1);
     expect(names(dialog)).toHaveLength(20);

@@ -37,7 +37,7 @@ final class EventPublication
             }
         }
 
-        event(SpaceContentChanged::forEvent($fromDraft ? SpaceContentChanged::EVENT_CREATED : SpaceContentChanged::EVENT_UPDATED, $event, $user->cuid));
+        event(SpaceContentChanged::forEvent($fromDraft ? SpaceContentChanged::EVENT_CREATED : SpaceContentChanged::EVENT_UPDATED, $event));
     }
 
     /**
@@ -46,7 +46,7 @@ final class EventPublication
     public static function broadcast(string $name, Event $event, User $user): void
     {
         if (! $event->isDraft()) {
-            event(SpaceContentChanged::forEvent($name, $event, $user->cuid));
+            event(SpaceContentChanged::forEvent($name, $event));
         }
     }
 

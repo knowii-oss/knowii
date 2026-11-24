@@ -291,9 +291,9 @@ Events that can be dispatched and processed within Knowii (with or without WebSo
 - `App\Events\Communities\CommunityCreated`
 - `App\Events\Communities\CommunityUpdated`
 - `App\Events\Communities\CommunityDeleted`
-- `App\Events\CommunityResources\CommunityResourceCreated` (also `Updated`, `Deleted`): on the channel of the resources space only ([ADR 0015](../adr/0015-resources-space-type.md))
+- `App\Events\CommunityResources\CommunityResourceCreated` (also `Updated`, `Deleted`): on the channel of the resources space only ([ADR 0015](../adr/0015-resources-space-type.md)), with `community_cuid`, `space_cuid` and `resource_cuid`: the resource list reads the resource through the API
 - `App\Events\Spaces\SpaceTreeChanged`
-- `App\Events\Spaces\SpaceContentChanged` (#1180): posts, comments and reactions (`space.post.created`, `.updated`, `.deleted`, `space.comment.*`, `space.reactions.changed`) on the channel of the space only. A post or a comment that becomes a marker (#1565) sends `.updated`: the pages load it again and show the marker, and the post lists drop a marker post. The payload holds identifiers only (`post_cuid`, `resource_cuid`, `event_cuid` for a comment on an event since #1516, `comment_cuid`, `author_cuid`): the page loads the item again through the API, which checks the access and computes the fields of the member, such as their own reactions. New posts wait behind a "new posts" button, so the list does not move under the reader. Page spaces (#1179) and course spaces (#1188) add `space.page.created`, `.updated`, `.deleted` (`page_cuid`) and `space.pages.reordered`; the list and the page view reload their props. Chat spaces (#1185) add `space.message.created`, `.updated`, `.deleted` (`message_cuid`, `parent_cuid` for a thread reply) and send `space.reactions.changed` with `message_cuid`; the chat loads the message through the API. Events spaces (#1513, ADR 0053) add `space.event.created`, `.updated` (also for a change of state) and `.deleted` (`event_cuid`, `author_cuid`): never a title, a meeting address or a place, and nothing for a draft. `space.event.answers.changed` (#1515) carries `event_cuid` only, never the member who answered, and is sent only when the number of Yes answers of an event with a limit of places changed.
+- `App\Events\Spaces\SpaceContentChanged` (#1180): posts, comments and reactions (`space.post.created`, `.updated`, `.deleted`, `space.comment.*`, `space.reactions.changed`) on the channel of the space only. A post or a comment that becomes a marker (#1565) sends `.updated`: the pages load it again and show the marker, and the post lists drop a marker post. The payload holds identifiers only (`post_cuid`, `resource_cuid`, `event_cuid` for a comment on an event since #1516, `comment_cuid`): the page loads the item again through the API, which checks the access and computes the fields of the member, such as their own reactions. It never names the person who made the change: a change of a person goes to every page but the one that made it (`X-Socket-ID`, [ADR 0075](../adr/0075-live-connections-end-with-the-access.md)). New posts wait behind a "new posts" button, so the list does not move under the reader. Page spaces (#1179) and course spaces (#1188) add `space.page.created`, `.updated`, `.deleted` (`page_cuid`) and `space.pages.reordered`; the list and the page view reload their props. Chat spaces (#1185) add `space.message.created`, `.updated`, `.deleted` (`message_cuid`, `parent_cuid` for a thread reply) and send `space.reactions.changed` with `message_cuid`; the chat loads the message through the API. Events spaces (#1513, ADR 0053) add `space.event.created`, `.updated` (also for a change of state) and `.deleted` (`event_cuid`): never a title, a meeting address or a place, and nothing for a draft. `space.event.answers.changed` (#1515) carries `event_cuid` only, never the member who answered, and is sent only when the number of Yes answers of an event with a limit of places changed.
 - `App\Events\CommunityMembers\CommunityMembersChanged`, `App\Events\AccessGroups\AccessGroupsChanged`
 - ...
 
@@ -326,7 +326,7 @@ References:
 
 In addition, each event class should:
 
-- implement `broadcastWith` and use an HTTP Resource class to serialize the model in the exact same way as through the API
+- implement `broadcastWith` with identifiers only: the cuids of the item, of its space and of its community. Never a resource of the API, a text or the person who made the change ([ADR 0075](../adr/0075-live-connections-end-with-the-access.md)): `tests/Feature/LiveUpdatePayloadsTest.php` walks every broadcast class and fails on another key, and a new class needs its builder there
 - implement `broadcastAs` to define the event name. Use the following form for event names: `<lowercase_model_name or logical_group_name>.<lower_case_event_name>` (e.g., `community.created`)
 - implement `broadcastOn` to define the channel(s) the event should be broadcast on (respecting the naming conventions listed below)
 
@@ -334,18 +334,15 @@ Example `broadcastWith` implementation:
 
 ```php
 /**
-* Get the data to broadcast.
-*
-* @return array<string, mixed>
-  */
-  final public function broadcastWith(): array
-  {
-  return $this->community->toResource()->toArray(request());
-  }
+ * @return array{cuid: string}
+ */
+final public function broadcastWith(): array
+{
+  return ['cuid' => $this->community->cuid];
+}
 ```
 
-Notice that we reuse HTTP Resource classes to serialize the model in the exact same way as through the API. This ensures that the client can handle the event data in the same way as the API data.
-Although, the HTTP Resource classes support serializing large fields or not. Always consider the size of the payloads you're sending through WebSockets and the number of potential connected clients (msg size \* number of clients). The maximum WebSocket message size is governed by the `REVERB_APP_MAX_MESSAGE_SIZE` environment variable. In general, keep messages small and avoid sending large fields.
+The page reads the item through the API, with the rights of its reader now: a payload never depends on the account of the request. The largest message of a client is `REVERB_APP_MAX_MESSAGE_SIZE` (10 000 bytes), and a connection sends at most 30 messages a second (`rate_limiting` in `config/reverb.php`).
 
 Example of `broadcastAs` implementation:
 
@@ -366,21 +363,13 @@ Example of `broadcastOn` implementation:
 ```php
 final public function broadcastOn(): array
 {
-  // Emit events to the community channel
-  $retVal = [
-    new PrivateChannel(Str::of(Constants::WS_CHANNEL_COMMUNITY)->replace(Constants::WS_CHANNEL_COMMUNITY_PARAM_COMMUNITY_CUID, $this->community->cuid)),
+  return [
+    new PrivateChannel(Str::of(Constants::WS_CHANNEL_COMMUNITY)->replace(Constants::WS_CHANNEL_COMMUNITY_PARAM_COMMUNITY_CUID, $this->community->cuid)->toString()),
   ];
-
-  // Emit events about public communities to the public channel
-  if (KnowiiCommunityVisibility::Public === $this->community->visibility) {
-    $retVal[] = new PrivateChannel(Constants::WS_CHANNEL_COMMUNITIES);
-  }
-
-  return $retVal;
 }
 ```
 
-Note how the `broadcastOn` method emits events to the community channel, and to the public channel if and only if the community is public. This is a good practice to ensure that the events are dispatched to the right clients, and it is actually critical for security reasons.
+The events of a community go to the channel of the community only: its members. An item of a space goes to the channel of the space only.
 
 Check out the CommunityEvent abstract class for a complete example.
 
@@ -413,7 +402,6 @@ The channels listed in `broadcastOn` should all be defined in `channels.php`. An
 
 ```php
 // WebSockets
-public const string WS_CHANNEL_COMMUNITIES = 'communities';
 public const string WS_CHANNEL_COMMUNITY_PARAM_COMMUNITY_CUID = '{communityCuid}';
 public const string WS_CHANNEL_COMMUNITY = 'community.{communityCuid}';
 ```
@@ -425,11 +413,6 @@ The authorization of a live channel (`POST /broadcasting/auth`, in `routes/web.p
 Example of channel definitions in `channels.php`:
 
 ```php
-Broadcast::channel(Constants::WS_CHANNEL_COMMUNITIES, static function (User $user) {
-  // This is a public channel sharing events about public communities
-  return true;
-});
-
 Broadcast::channel(Constants::WS_CHANNEL_COMMUNITY, static function (User $user, string $communityCuid) {
   // This is a private channel reserved to community members. A community that does not exist answers as one that the
   // account may not read
@@ -438,6 +421,15 @@ Broadcast::channel(Constants::WS_CHANNEL_COMMUNITY, static function (User $user,
   return $community !== null && $user->allCommunities()->contains($community);
 });
 ```
+
+### Live connections end with the access
+
+The rule of a channel runs once, when a connection subscribes. So when the access of an account ends or shrinks, its live connections end, and the page connects again with the present rights ([ADR 0075](../adr/0075-live-connections-end-with-the-access.md)):
+
+1. The authorization of every private channel is signed with the account: `App\Broadcasting\AccountBoundBroadcaster` (the broadcaster of the driver `reverb`, set in `AppServiceProvider`) puts `channel_data = {"user_id": "<cuid>"}` in the answer, and Reverb keeps it on the subscription. Reverb then knows each connection that holds a channel by its account. One connection belongs to one account: the first account that gets a channel on a connection keeps it for 24 hours (`live-socket:{socket id}` in the cache), and a channel for another account on it is refused (403). Every page of a signed-in account also joins `presence-user.{cuid}` (`useAccountConnection` in `NotificationsProvider`), also when the member hides the online status: its rule is the rule of `user.{cuid}`, the own cuid only, and its member data is the cuid only.
+2. `App\Support\LiveConnections::endFor()` (or `endForMembersOf()` for a change of many members) sends the job `App\Jobs\EndLiveConnections` on the queue `broadcasts`, after the commit. The job calls `App\Contracts\Realtime\EndsLiveConnections` (`ReverbLiveConnections`: `POST /apps/{id}/users/{cuid}/terminate_connections`) for each account. A failure is one line of the log with the cuids, and the job is tried again.
+3. The callers: the removal and the leave of a member, a lower role, a right of the moderators that goes off, a member who leaves an access group by hand or by an entitlement rule, the deletion of the account, the sign-out (`EndLiveConnectionsAtSignOut`), `EndOtherSessions` (a change or a reset of the password, "Log out other browser sessions", the second factor), the takeover, the online status that goes hidden, a block (both members). Every member of the community: a deleted access group, an access group that loses a space group or a space group that loses an access group, a space that changes its access, a community that changes its visibility or turns direct messages off.
+4. Pusher JS connects again by itself and subscribes again: each channel asks its rule again, and `useSocketReconnected` loads the lists again. `tests/Feature/LiveConnectionsEndWithTheAccessTest.php` fakes the contract and checks each caller.
 
 ### Images in member content
 
@@ -529,7 +521,7 @@ The calendar file and "My events" (#1515, ADR 0053, "The calendar file and My ev
 
 ### Direct messages
 
-Direct messages (#1186, [ADR 0028](../adr/0028-direct-messages.md)) are chat messages with a `conversation_id`. `App\Events\Conversations\ConversationChanged` (`conversation.message.created`, `.updated`, `.deleted`, `conversation.reactions.changed`, with `conversation_cuid`, `message_cuid`, `author_cuid`) goes to `conversation.{conversationCuid}` (participants) and to `user.{userCuid}` of each participant (their lists and unread counts). `App\Support\ChatMessageEvents` sends the event of a chat message to its place: the space channel or the conversation channels.
+Direct messages (#1186, [ADR 0028](../adr/0028-direct-messages.md)) are chat messages with a `conversation_id`. `App\Events\Conversations\ConversationChanged` (`conversation.message.created`, `.updated`, `.deleted`, `conversation.reactions.changed`, with `conversation_cuid` and `message_cuid`, never the person who wrote) goes to `conversation.{conversationCuid}` (participants) and to `user.{userCuid}` of each participant (their lists and unread counts). `App\Support\ChatMessageEvents` sends the event of a chat message to its place: the space channel or the conversation channels.
 
 ### Notifications
 

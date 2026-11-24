@@ -39,12 +39,12 @@ function assertSpaceEvent(string $name, array $payload, ?Space $space = null): v
 test('creating, editing, pinning and deleting a post broadcast to the space (#1180)', function () {
     $member = $this->c['member'];
     $post = app(CreatesPosts::class)->create($member, $this->space, ['title' => 'Hello there', 'body' => 'Text']);
-    assertSpaceEvent(SpaceContentChanged::POST_CREATED, ['space_cuid' => $this->space->cuid, 'post_cuid' => $post->cuid, 'author_cuid' => $member->cuid]);
+    assertSpaceEvent(SpaceContentChanged::POST_CREATED, ['space_cuid' => $this->space->cuid, 'post_cuid' => $post->cuid]);
 
     app(UpdatesPosts::class)->update($member, $post, ['body' => 'Edited']);
     app(PinsPosts::class)->pin($this->c['owner'], $post, ['pinned' => true]);
     Event::assertDispatchedTimes(SpaceContentChanged::class, 3);
-    assertSpaceEvent(SpaceContentChanged::POST_UPDATED, ['post_cuid' => $post->cuid, 'author_cuid' => $this->c['owner']->cuid]);
+    assertSpaceEvent(SpaceContentChanged::POST_UPDATED, ['post_cuid' => $post->cuid]);
 
     app(DeletesPosts::class)->delete($member, $post);
     assertSpaceEvent(SpaceContentChanged::POST_DELETED, ['post_cuid' => $post->cuid]);

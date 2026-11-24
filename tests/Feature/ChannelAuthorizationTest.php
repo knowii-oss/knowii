@@ -54,7 +54,6 @@ test('a member with a session gets the authorization of the channels that they m
 
     foreach ([
         'private-user.'.$member->cuid,
-        'private-communities',
         'private-community.'.$this->community->cuid,
         'private-community.'.$this->community->cuid.'.space.'.$this->space->cuid,
         'presence-community.'.$this->community->cuid.'.online',
@@ -64,6 +63,8 @@ test('a member with a session gets the authorization of the channels that they m
     }
 
     channelAnswerFor($member, 'private-user.'.$this->c['owner']->cuid)->assertForbidden()->assertJsonMissingPath('auth');
+    // The events of a community go to its members only: no channel holds the communities of others
+    channelAnswerFor($member, 'private-communities')->assertForbidden()->assertJsonMissingPath('auth');
     channelAnswerFor($this->c['outsider'], 'private-community.'.$this->community->cuid)->assertForbidden()->assertJsonMissingPath('auth');
 });
 
@@ -73,7 +74,6 @@ test('an account whose email address is not verified gets no authorization, as o
 
     foreach ([
         'private-user.'.$unverified->cuid,
-        'private-communities',
         'private-community.'.$this->community->cuid,
         'presence-community.'.$this->community->cuid.'.online',
     ] as $channel) {
@@ -107,9 +107,9 @@ test('a visitor gets a refusal in JSON, whatever the name of the channel and wha
         return test()->post('/broadcasting/auth', channelBody($channel));
     })->assertUnauthorized()->assertJsonPath('type', KnowiiApiResponseType::AuthenticationIssue->value);
 })->with([
-    'a private channel' => ['private-communities'],
+    'a private channel' => ['private-community.aaaaaaaaaaaaaaaaaaaaaaaa'],
     'a presence channel' => ['presence-community.aaaaaaaaaaaaaaaaaaaaaaaa.online'],
-    'a name without a prefix' => ['communities'],
+    'a name without a prefix' => ['community.aaaaaaaaaaaaaaaaaaaaaaaa'],
     'no name' => [''],
 ]);
 

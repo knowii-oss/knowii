@@ -162,7 +162,6 @@ export default function SpacePage(props: Props) {
             canContribute={props.permissions.canContribute}
             canReact={props.permissions.canReact}
             canModerate={props.permissions.canModerate}
-            currentUserCuid={page.props.auth.user?.cuid ?? null}
           />
         ) : space.type === 'chat' && props.chat ? (
           <ChatSpace

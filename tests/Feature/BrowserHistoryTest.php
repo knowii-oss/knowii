@@ -1,6 +1,7 @@
 <?php
 
 use App\ApiRoutes;
+use App\Http\Middleware\HandleInertiaRequests;
 use App\Mail\MagicLink;
 use App\Models\User;
 use App\Notifications\ResetPasswordLink;
@@ -107,6 +108,22 @@ test('the page after the sign-out tells the browser to forget the pages of the m
     $this->post('/logout')->assertRedirect('/');
     $this->assertGuest('web');
 
+    expectHistoryIsClearedOnce('/');
+});
+
+test('the sign-out from a page loads the next page in full: the page starts again, with a new live connection', function () {
+    $user = browserHistoryMember();
+    signInWithForm($user);
+    app('auth')->forgetGuards();
+    $this->get('/dashboard')->assertOk();
+    $version = (string) app(HandleInertiaRequests::class)->version(request());
+
+    $response = $this->post('/logout', [], ['X-Inertia' => 'true', 'X-Inertia-Version' => $version, 'X-Requested-With' => 'XMLHttpRequest']);
+
+    $response->assertStatus(409)->assertHeader('X-Inertia-Location', url('/'));
+    $this->assertGuest('web');
+    $this->flushHeaders();
+    // The full page still tells the browser to forget the pages of the member
     expectHistoryIsClearedOnce('/');
 });
 

@@ -49,7 +49,7 @@ test('the curator deletes a resource with its comments and captured files; the s
     expect(CommunityResource::query()->whereKey($this->resource->id)->exists())->toBeFalse()
         ->and(Comment::query()->count())->toBe(0);
     Storage::disk('public')->assertMissing($folder.'/images/a.webp');
-    Event::assertDispatched(CommunityResourceDeleted::class, fn (CommunityResourceDeleted $event) => $event->broadcastWith() === ['cuid' => $this->resource->cuid]);
+    Event::assertDispatched(CommunityResourceDeleted::class, fn (CommunityResourceDeleted $event) => $event->broadcastWith() === ['community_cuid' => $this->c['community']->cuid, 'space_cuid' => $this->space->cuid, 'resource_cuid' => $this->resource->cuid]);
 });
 
 test('owners, admins and moderators of the space delete any resource; other members and outsiders cannot', function () {

@@ -91,6 +91,8 @@ export function ChatRoom(props: ChatRoomProps) {
     visible: props.presence.visible,
     fetchMembers: props.presence.fetchMembers,
     currentUserCuid,
+    // A thread is the cuid of its first message: only the threads of the messages of this page
+    acceptsScope: (scope) => latest.current.messages.some((message) => message.cuid === scope),
   });
   const { notifyTyping, stopTyping } = presence;
   const onTypingChange = useCallback(

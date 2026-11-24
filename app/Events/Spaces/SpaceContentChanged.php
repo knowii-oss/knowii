@@ -15,6 +15,7 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Str;
 
 /**
@@ -22,7 +23,8 @@ use Illuminate\Support\Str;
  * which checks SpacePolicy::view (members-only and access group spaces never leak).
  *
  * The payload holds identifiers only: the open pages load the item again through the API, which checks the access and
- * computes the fields of the member (their own reactions).
+ * computes the fields of the member (their own reactions). It never names the person who made the change: the change of a
+ * person goes to every page but the one that made it (the socket of the `X-Socket-ID` header of its request).
  * WARNING: the names are aligned with use-socket.ts (libs/common)
  */
 class SpaceContentChanged implements ShouldBroadcast, ShouldDispatchAfterCommit
@@ -79,22 +81,22 @@ class SpaceContentChanged implements ShouldBroadcast, ShouldDispatchAfterCommit
         public readonly array $payload,
     ) {}
 
-    public static function forPost(string $name, Post $post, ?string $authorCuid = null): self
+    public static function forPost(string $name, Post $post): self
     {
-        return self::in($post->space, $name, ['post_cuid' => $post->cuid, 'author_cuid' => $authorCuid]);
+        return self::in($post->space, $name, ['post_cuid' => $post->cuid])->leaveOutTheSender();
     }
 
-    public static function forPage(string $name, Page $page, ?string $authorCuid = null): self
+    public static function forPage(string $name, Page $page): self
     {
-        return self::in($page->space, $name, ['page_cuid' => $page->cuid, 'author_cuid' => $authorCuid]);
+        return self::in($page->space, $name, ['page_cuid' => $page->cuid])->leaveOutTheSender();
     }
 
     /**
      * The identifiers only: never a title, a meeting address or a place
      */
-    public static function forEvent(string $name, Event $event, ?string $authorCuid = null): self
+    public static function forEvent(string $name, Event $event): self
     {
-        return self::in($event->space, $name, ['event_cuid' => $event->cuid, 'author_cuid' => $authorCuid]);
+        return self::in($event->space, $name, ['event_cuid' => $event->cuid])->leaveOutTheSender();
     }
 
     /**
@@ -106,13 +108,12 @@ class SpaceContentChanged implements ShouldBroadcast, ShouldDispatchAfterCommit
         return self::in($event->space, self::EVENT_ANSWERS_CHANGED, ['event_cuid' => $event->cuid]);
     }
 
-    public static function forMessage(string $name, ChatMessage $message, ?string $authorCuid = null): self
+    public static function forMessage(string $name, ChatMessage $message): self
     {
         return self::in($message->space ?? throw new \LogicException('Not a message of a chat space'), $name, [
             'message_cuid' => $message->cuid,
             'parent_cuid' => $message->parent_id === null ? null : $message->parent?->cuid,
-            'author_cuid' => $authorCuid,
-        ]);
+        ])->leaveOutTheSender();
     }
 
     public static function forPagesOrder(Space $space): self
@@ -120,15 +121,14 @@ class SpaceContentChanged implements ShouldBroadcast, ShouldDispatchAfterCommit
         return self::in($space, self::PAGES_REORDERED, []);
     }
 
-    public static function forComment(string $name, Comment $comment, ?string $authorCuid = null): self
+    public static function forComment(string $name, Comment $comment): self
     {
         $subject = $comment->subject();
 
         return self::in($subject->space, $name, [
             ...self::subjectPayload($subject),
             'comment_cuid' => $comment->cuid,
-            'author_cuid' => $authorCuid,
-        ]);
+        ])->leaveOutTheSender();
     }
 
     /**
@@ -164,6 +164,19 @@ class SpaceContentChanged implements ShouldBroadcast, ShouldDispatchAfterCommit
             $subject instanceof CommunityResource => ['resource_cuid' => $subject->cuid],
             default => ['event_cuid' => $subject->cuid],
         };
+    }
+
+    /**
+     * The page that made the change does not get it back: it sent the id of its live connection in the `X-Socket-ID` header
+     * of its request (the API client). A request without a live connection, or a value that is not the id of one, leaves
+     * no page out
+     */
+    private function leaveOutTheSender(): self
+    {
+        $socket = Broadcast::socket();
+        $this->socket = is_string($socket) && preg_match('/\A\d+\.\d+\z/', $socket) === 1 ? $socket : null;
+
+        return $this;
     }
 
     /**

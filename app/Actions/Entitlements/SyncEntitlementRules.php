@@ -11,6 +11,7 @@ use App\Models\CommunityMember;
 use App\Models\User;
 use App\Models\UserEntitlement;
 use App\Support\AccessGroupMemberships;
+use App\Support\LiveConnections;
 use App\Support\OidcEntitlements;
 use App\Support\OpenIdConnect;
 use Illuminate\Database\Eloquent\Collection;
@@ -28,6 +29,7 @@ use Illuminate\Support\Facades\Log;
  * - `AccessGroupsChanged` (the prune of the notifications of ADR 0042 follows from it) and `SpaceTreeChanged` (the
  *   navigation of the open pages) go out once per community that changed.
  * - The log holds cuids and counts, never a key or a subject.
+ * - The live connections of each member whose groups changed end (ADR 0075): the pages connect again with the groups of now.
  */
 final class SyncEntitlementRules implements SyncsEntitlementRules
 {
@@ -50,6 +52,7 @@ final class SyncEntitlementRules implements SyncsEntitlementRules
             if (self::apply($community, $user->id, $keys)) {
                 self::announce($community->cuid);
                 Log::info('Entitlement rules changed the access groups of a member', ['community' => $community->cuid, 'member' => $user->cuid]);
+                LiveConnections::endFor($user);
             }
         }
     }
@@ -66,11 +69,14 @@ final class SyncEntitlementRules implements SyncsEntitlementRules
         CommunityMember::query()->where('community_id', $community->id)->chunkById(self::CHUNK, function (Collection $members) use ($community, &$changedMembers): void {
             /** @var Collection<int, CommunityMember> $members */
             $keysByUser = self::keysOf(array_values($members->map(static fn (CommunityMember $member): int => $member->user_id)->all()));
+            $changed = [];
             foreach ($members as $member) {
                 if (self::apply($community, $member->user_id, $keysByUser[$member->user_id] ?? [])) {
                     $changedMembers++;
+                    $changed[] = $member->user_id;
                 }
             }
+            LiveConnections::endForIds($changed);
         });
 
         if ($changedMembers > 0) {
@@ -97,6 +103,7 @@ final class SyncEntitlementRules implements SyncsEntitlementRules
             // Written when the change is stored: a takeover calls this inside its own transaction (ADR 0059)
             $context = ['member' => $user->cuid, 'communities' => count($communityIds)];
             DB::afterCommit(static fn () => Log::info('Entitlement rule memberships of a member removed', $context));
+            LiveConnections::endFor($user);
         }
     }
 
@@ -110,7 +117,8 @@ final class SyncEntitlementRules implements SyncsEntitlementRules
 
         $cleared = 0;
         $communityIds = [];
-        $query->chunkById(self::CHUNK, function (Collection $rows) use (&$cleared, &$communityIds): void {
+        $userIds = [];
+        $query->chunkById(self::CHUNK, function (Collection $rows) use (&$cleared, &$communityIds, &$userIds): void {
             /** @var Collection<int, AccessGroupMember> $rows */
             foreach ($rows as $row) {
                 $communityId = DB::transaction(static function () use ($row): ?int {
@@ -125,11 +133,13 @@ final class SyncEntitlementRules implements SyncsEntitlementRules
                 if ($communityId !== null) {
                     $cleared++;
                     $communityIds[$communityId] = $communityId;
+                    $userIds[$row->user_id] = $row->user_id;
                 }
             }
         });
 
         $this->announceAll(array_values($communityIds));
+        LiveConnections::endForIds(array_values($userIds));
         if ($cleared > 0) {
             Log::notice('Entitlement rule memberships cleared where no rule can apply', ['memberships' => $cleared, 'communities' => count($communityIds)]);
         }

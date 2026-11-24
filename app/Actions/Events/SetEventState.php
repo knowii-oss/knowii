@@ -100,7 +100,7 @@ class SetEventState implements SetsEventStates
             KnowiiEventState::Draft => self::backToDraft($event, $user),
             // `space.event.created` when it leaves the draft, else `space.event.updated`
             KnowiiEventState::Published => EventPublication::published($user, $event, $from === KnowiiEventState::Draft, $notifyNow),
-            KnowiiEventState::Cancelled => event(SpaceContentChanged::forEvent(SpaceContentChanged::EVENT_UPDATED, $event, $user->cuid)),
+            KnowiiEventState::Cancelled => event(SpaceContentChanged::forEvent(SpaceContentChanged::EVENT_UPDATED, $event)),
         };
 
         return $event;
@@ -119,7 +119,7 @@ class SetEventState implements SetsEventStates
     private static function backToDraft(Event $event, User $user): void
     {
         app(PrunesNotifications::class)->forDraftEvent($event);
-        event(SpaceContentChanged::forEvent(SpaceContentChanged::EVENT_DELETED, $event, $user->cuid));
+        event(SpaceContentChanged::forEvent(SpaceContentChanged::EVENT_DELETED, $event));
     }
 
     private static function assertAllowed(KnowiiEventState $from, KnowiiEventState $to, Event $event): void

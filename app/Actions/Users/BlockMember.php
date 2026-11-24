@@ -6,6 +6,7 @@ use App\Contracts\Notifications\PrunesNotifications;
 use App\Contracts\Users\BlocksMembers;
 use App\Exceptions\BusinessException;
 use App\Models\User;
+use App\Support\LiveConnections;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -24,6 +25,8 @@ class BlockMember implements BlocksMembers
         // What the blocked member caused for the blocker goes away (#1474, design 6.9.4)
         app(PrunesNotifications::class)->forBlock($user, $blocked);
         Log::info('Member blocked', ['user' => $user->cuid, 'blocked' => $blocked->cuid]);
+        // The presence of their conversations follows: the pages of both connect again (ADR 0075)
+        LiveConnections::endFor($user, $blocked);
     }
 
     final public function unblock(User $user, User $blocked): void

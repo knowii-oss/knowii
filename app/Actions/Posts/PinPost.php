@@ -25,7 +25,7 @@ class PinPost implements PinsPosts
             'is_pinned' => $validated['pinned'],
             'pinned_at' => $validated['pinned'] ? now() : null,
         ]);
-        event(SpaceContentChanged::forPost(SpaceContentChanged::POST_UPDATED, $post, $user->cuid));
+        event(SpaceContentChanged::forPost(SpaceContentChanged::POST_UPDATED, $post));
 
         return $post;
     }

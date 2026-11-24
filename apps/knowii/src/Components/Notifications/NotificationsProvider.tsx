@@ -1,7 +1,15 @@
 import type { ReactNode } from 'react';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { Notification } from '@knowii/common';
-import { knowiiApiClient, NOTIFICATIONS_URL, notificationSentence, useSocket, useSocketReconnected, useTypedPage } from '@knowii/common';
+import {
+  knowiiApiClient,
+  NOTIFICATIONS_URL,
+  notificationSentence,
+  useAccountConnection,
+  useSocket,
+  useSocketReconnected,
+  useTypedPage,
+} from '@knowii/common';
 import { useRoute } from 'ziggy-js';
 import { NotificationPopup } from './NotificationPopup';
 import { notificationHref } from './notification-link';
@@ -269,6 +277,9 @@ export function NotificationsProvider({ userCuid, children }: { userCuid: string
     void loadCount();
     listeners.current.forEach((listener) => listener({ cuids: [], many: true }));
   });
+
+  // Every signed-in page: the live connection is known by its account (ADR 0075)
+  useAccountConnection(userCuid);
 
   const userChannel = useMemo(() => ({ type: 'user' as const, userCuid }), [userCuid]);
   useSocket({

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { afterEach, vi } from 'vitest';
-import { apiPageRequest, apiPageRequestWith, apiPath, apiRequest } from './api-result';
+import { apiPageRequest, apiPageRequestWith, apiPath, apiRequest, readLiveSocketIdWith } from './api-result';
 
 function respond(status: number, body?: unknown) {
   vi.spyOn(globalThis, 'fetch').mockResolvedValue(
@@ -27,6 +27,18 @@ describe('apiRequest', () => {
     respond(204);
     await apiRequest('patch', '/api', null, 'Failed', {});
     expect(vi.mocked(globalThis.fetch).mock.calls[0]?.[1]?.method).toBe('PATCH');
+  });
+
+  it('sends the id of the live connection of the page, so that the live update of its own change does not come back to it', async () => {
+    respond(204);
+    readLiveSocketIdWith(() => '1234.5678');
+    await apiRequest('delete', '/api', null, 'Failed');
+    expect(new Headers(vi.mocked(globalThis.fetch).mock.calls[0]?.[1]?.headers).get('X-Socket-ID')).toBe('1234.5678');
+
+    // A page without a live connection sends no id
+    readLiveSocketIdWith(() => undefined);
+    await apiRequest('delete', '/api', null, 'Failed');
+    expect(new Headers(vi.mocked(globalThis.fetch).mock.calls[1]?.[1]?.headers).has('X-Socket-ID')).toBe(false);
   });
 
   it('accepts an empty 204 response', async () => {

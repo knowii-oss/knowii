@@ -72,7 +72,7 @@ class CreatePost implements CreatesPosts
         // queued jobs, after the commit
         app(Notifies::class)->notify($post, $notifyNow);
         // Live updates (#1180)
-        event(SpaceContentChanged::forPost(SpaceContentChanged::POST_CREATED, $post, $user->cuid));
+        event(SpaceContentChanged::forPost(SpaceContentChanged::POST_CREATED, $post));
 
         return $post;
     }
