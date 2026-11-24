@@ -68,7 +68,7 @@ Real time uses Reverb ([ADR 0009](../adr/0009-real-time-through-reverb.md)):
 
 ## Security
 
-1. Sessions: the front-end calls the API with the session cookie (Sanctum, stateful domains). API clients use tokens.
+1. Sessions: the front-end calls the API with the session cookie (Sanctum, stateful domains). API clients use tokens. The session cookie belongs to the one host of the instance (`__Host-` prefix, no domain), the API allows requests with cookies from its own origin only, and after a sign-in the application goes only to an address of its own host names ([ADR 0068](../adr/0068-the-cookies-belong-to-one-host.md)).
 2. Content Security Policy: no `'unsafe-inline'` for scripts or styles, per-request nonces, no scheme-wide sources ([ADR 0007](../adr/0007-strict-content-security-policy.md)).
 3. Member content (Markdown) is rendered on the server with raw HTML escaped, then shown as HTML. Members never inject HTML ([ADR 0013](../adr/0013-markdown-rendered-on-the-server.md)).
 4. Rate limits on public and write endpoints. Cloudflare Turnstile on public forms.

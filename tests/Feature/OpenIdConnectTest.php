@@ -1002,6 +1002,21 @@ test('the intended page survives the two-factor challenge', function () {
     $this->post('/two-factor-challenge', ['code' => (new Google2FA)->getCurrentOtp($secret)])->assertRedirect('https://knowii.test/community/x');
 });
 
+test('the callback lands on an own address: the session keeps no address of another host as the page to open (ADR 0068)', function (string $how) {
+    $user = oidcMember();
+    UserIdentity::factory()->create(['user_id' => $user->id, 'issuer' => OIDC_ISSUER, 'subject' => 'sub-ada']);
+
+    if ($how === 'a session that holds the address') {
+        $this->withSession(['url.intended' => 'https://other.example/x']);
+    } else {
+        $this->call('HEAD', '/dashboard', server: ['HTTP_REFERER' => 'https://other.example/x'])->assertRedirect(route('login'));
+        expect(session()->has('url.intended'))->toBeFalse();
+    }
+
+    oidcCallback(oidcStart())->assertRedirect(route('dashboard'))->assertSessionMissing('url.intended');
+    $this->assertAuthenticatedAs($user);
+})->with(['a request that is not a GET, with the address in its Referer header', 'a session that holds the address']);
+
 test('the challenge after the callback gets no landing that a sign-in link left in the session (#1612)', function () {
     [$user, $secret] = oidcTwoFactorUser();
     UserIdentity::factory()->create(['user_id' => $user->id, 'issuer' => OIDC_ISSUER, 'subject' => 'sub-ada']);

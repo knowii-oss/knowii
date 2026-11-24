@@ -314,12 +314,18 @@ function legalTextsWithout(string ...$without): array
 }
 
 /**
- * An instance with its two required values (#1653, ADR 0055). A test that switches to production calls it first: in
- * production the placeholders of the test environment count as not set, and every request answers 503.
+ * An instance with its two required values (#1653, ADR 0055) and a session cookie of one host (ADR 0068). A test that
+ * switches to production calls it first: in production the placeholders of the test environment count as not set, the
+ * development name of the session cookie is refused, and every request answers 503.
  */
 function configuredInstance(): void
 {
-    config(['legal.operator' => 'Example Ltd (Ireland)', 'legal.contact_email' => 'hello@example.com']);
+    config([
+        'legal.operator' => 'Example Ltd (Ireland)',
+        'legal.contact_email' => 'hello@example.com',
+        'session.cookie' => '__Host-knowii_session',
+        'session.domain' => null,
+    ]);
 }
 
 /**
