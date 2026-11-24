@@ -8,6 +8,7 @@ use App\Models\Community;
 use App\Models\CommunityJoinBlock;
 use App\Models\User;
 use App\Support\CommunityRoles;
+use App\Support\LiveConnections;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -41,5 +42,6 @@ class RemoveCommunityMember implements RemovesCommunityMembers
 
         Log::info('Community member removed', ['community' => $community->cuid, 'member' => $target->cuid]);
         CommunityMembersChanged::dispatch($community->cuid);
+        LiveConnections::endFor($target);
     }
 }

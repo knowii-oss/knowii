@@ -11,6 +11,7 @@ use App\Contracts\Users\UpdatesTimeZones;
 use App\Enums\KnowiiAddressProof;
 use App\Enums\KnowiiTakeOverResult;
 use App\Http\Responses\FailedPasswordResetResponse;
+use App\Jobs\EndLiveConnections;
 use App\Mail\MagicLink;
 use App\Models\User;
 use App\Models\UserEntitlement;
@@ -1447,17 +1448,19 @@ test('Reverb gets the call that ends the connections of the account, with a time
         ->and(ReverbLiveConnections::TIMEOUT_SECONDS)->toBe(2);
 });
 
-test('a failure of Reverb is one line of the log, never an error: an error answer, or no answer in time', function (Response|Throwable $answer) {
+test('a failure of Reverb is one line of the log, never an error, and the job is tried again: an error answer, or no answer in time', function (Response|Throwable $answer) {
     $requests = firstProofReverb([$answer]);
     $logged = firstProofLogLines();
 
-    app(EndsLiveConnections::class)->endFor('cuid-of-the-account');
+    $job = (new EndLiveConnections(['cuid-of-the-account']))->withFakeQueueInteractions();
+    $job->handle(app(EndsLiveConnections::class));
 
+    $job->assertReleased(EndLiveConnections::RETRY_SECONDS);
     expect($requests)->toHaveCount(1)
         ->and($logged->getArrayCopy())->toHaveCount(1)
         ->and($logged[0]['level'])->toBe('warning')
-        ->and($logged[0]['message'])->toBe('The WebSocket server did not end the connections of an account')
-        ->and($logged[0]['context']['user'])->toBe('cuid-of-the-account');
+        ->and($logged[0]['message'])->toBe('The WebSocket server did not end the live connections of some accounts')
+        ->and($logged[0]['context']['users'])->toBe(['cuid-of-the-account']);
 })->with([
     'an error answer' => fn () => new Response(500, [], 'down'),
     'no answer in time' => fn () => new ConnectException('Connection timed out after 2000 milliseconds', new GuzzleRequest('POST', 'https://reverb.example.test')),

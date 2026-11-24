@@ -71,7 +71,7 @@ function svAuthorizeChannel(): TestResponse
     require base_path('routes/channels.php');
 
     try {
-        return test()->postJson('/broadcasting/auth', ['socket_id' => '1234.5678', 'channel_name' => 'private-communities']);
+        return test()->postJson('/broadcasting/auth', ['socket_id' => '1234.5678', 'channel_name' => 'private-user.'.User::query()->where('email', SV_EMAIL)->value('cuid')]);
     } finally {
         config(['broadcasting.default' => $default]);
         app(BroadcastManager::class)->forgetDrivers();

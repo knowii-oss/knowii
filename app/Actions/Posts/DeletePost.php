@@ -40,8 +40,8 @@ class DeletePost implements DeletesPosts
 
         // Built before the delete: the event names the space of the post. A marker is an update of the post: the open
         // post page loads it again and shows the marker, the lists drop it
-        $updated = SpaceContentChanged::forPost(SpaceContentChanged::POST_UPDATED, $post, $user->cuid);
-        $deleted = SpaceContentChanged::forPost(SpaceContentChanged::POST_DELETED, $post, $user->cuid);
+        $updated = SpaceContentChanged::forPost(SpaceContentChanged::POST_UPDATED, $post);
+        $deleted = SpaceContentChanged::forPost(SpaceContentChanged::POST_DELETED, $post);
 
         $marker = DB::transaction(static function () use ($user, $post, $withComments): bool {
             $markers = app(LeavesMarkers::class);

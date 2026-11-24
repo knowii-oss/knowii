@@ -14,9 +14,9 @@ use Illuminate\Foundation\Events\Dispatchable;
 
 /**
  * A message of a conversation changed (#1186, ADR 0028). Identifiers only, like SpaceContentChanged: the page loads the
- * message through the API, which checks the access. On the private channel of the conversation (participants only),
- * and on the channel of each participant who is still a member of the community, so their lists and unread counts
- * follow.
+ * message through the API, which checks the access. It never names the person who made the change. On the private channel
+ * of the conversation (participants only), and on the channel of each participant who is still a member of the community,
+ * so their lists and unread counts follow.
  */
 class ConversationChanged implements ShouldBroadcast, ShouldDispatchAfterCommit
 {
@@ -37,7 +37,6 @@ class ConversationChanged implements ShouldBroadcast, ShouldDispatchAfterCommit
         public readonly string $name,
         public readonly string $conversationCuid,
         public readonly string $messageCuid,
-        public readonly ?string $authorCuid,
         public readonly array $participantCuids,
     ) {}
 
@@ -46,7 +45,7 @@ class ConversationChanged implements ShouldBroadcast, ShouldDispatchAfterCommit
      * membership (the rule of ConversationPolicy::view). A participant who left or was removed keeps the row of the
      * conversation, for a return, and gets nothing of it meanwhile.
      */
-    public static function forMessage(string $name, ChatMessage $message, ?string $authorCuid = null): self
+    public static function forMessage(string $name, ChatMessage $message): self
     {
         /** @var Conversation $conversation */
         $conversation = $message->conversation;
@@ -62,7 +61,7 @@ class ConversationChanged implements ShouldBroadcast, ShouldDispatchAfterCommit
             ->values()
             ->all();
 
-        return new self($name, $conversation->cuid, $message->cuid, $authorCuid, $participantCuids);
+        return new self($name, $conversation->cuid, $message->cuid, $participantCuids);
     }
 
     /**
@@ -70,7 +69,7 @@ class ConversationChanged implements ShouldBroadcast, ShouldDispatchAfterCommit
      */
     public function broadcastWith(): array
     {
-        return ['conversation_cuid' => $this->conversationCuid, 'message_cuid' => $this->messageCuid, 'author_cuid' => $this->authorCuid];
+        return ['conversation_cuid' => $this->conversationCuid, 'message_cuid' => $this->messageCuid];
     }
 
     public function broadcastAs(): string

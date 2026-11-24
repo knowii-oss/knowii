@@ -7,6 +7,7 @@ use App\Events\CommunityMembers\CommunityMembersChanged;
 use App\Exceptions\BusinessException;
 use App\Models\Community;
 use App\Models\User;
+use App\Support\LiveConnections;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -36,5 +37,6 @@ class LeaveCommunity implements LeavesCommunities
 
         Log::info('Member left the community', ['community' => $community->cuid, 'member' => $user->cuid]);
         CommunityMembersChanged::dispatch($community->cuid);
+        LiveConnections::endFor($user);
     }
 }

@@ -1,10 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { NotificationsChangedPayload } from '../types/notification.schema';
-import type { Community } from '../types/community.schema';
-import type { CommunityResource } from '../types/community-resource.schema';
 import type { Identifiable } from '../types/identifiable.schema';
 
-const COMMUNITIES_CHANNEL = 'communities';
 const COMMUNITY_CHANNEL_PARAM_COMMUNITY_CUID = '{communityCuid}';
 const COMMUNITY_CHANNEL = `community.${COMMUNITY_CHANNEL_PARAM_COMMUNITY_CUID}`;
 // WARNING: aligned with WS_CHANNEL_COMMUNITY_SPACE (Constants.php)
@@ -20,7 +17,6 @@ const USER_CHANNEL = `user.${USER_CHANNEL_PARAM}`;
 
 // Define the channel types
 type Channel =
-  | { type: 'communities' }
   | { type: 'community'; communityCuid: string }
   | { type: 'space'; communityCuid: string; spaceCuid: string }
   // The messages of one conversation (#1186)
@@ -30,6 +26,7 @@ type Channel =
 
 // Define the event types
 // WARNING: those MUST match the names defined using broadcastAs on the back-end event classes
+// A live update carries identifiers only (ADR 0009): the page loads what it shows through the API or Inertia
 const CommunityEvents = {
   CREATED: 'community.created',
   UPDATED: 'community.updated',
@@ -41,6 +38,13 @@ const ResourceEvents = {
   UPDATED: 'community.resource.updated',
   DELETED: 'community.resource.deleted',
 } as const;
+
+// The resources of a resources space: the page loads the resource through the API. WARNING: aligned with CommunityResourceEvent.php
+export interface ResourcePayload {
+  community_cuid: string;
+  space_cuid: string;
+  resource_cuid: string;
+}
 
 // The navigation of the community changed: reload it (the payload only names the community)
 const SpaceTreeEvents = {
@@ -92,10 +96,10 @@ export const CONVERSATION_EVENTS = [
 ] as const;
 export type ConversationEvent = (typeof CONVERSATION_EVENTS)[number];
 
+// Identifiers only: never the person who made the change
 export interface ConversationPayload {
   conversation_cuid: string;
   message_cuid: string;
-  author_cuid: string | null;
 }
 
 export interface SpaceContentPayload {
@@ -108,7 +112,6 @@ export interface SpaceContentPayload {
   message_cuid?: string | null;
   // The first message of the thread of a reply (#1185)
   parent_cuid?: string | null;
-  author_cuid?: string | null;
 }
 
 // The notifications of the member changed (#1484): identifiers only, the bell loads the count through the API.
@@ -129,21 +132,18 @@ export interface InvitationImportChangedPayload {
 type CommunityEvent = (typeof CommunityEvents)[keyof typeof CommunityEvents];
 type ResourceEvent = (typeof ResourceEvents)[keyof typeof ResourceEvents];
 
-type CommunitiesChannelEvent = CommunityEvent;
 type CommunityChannelEvent = Exclude<CommunityEvent, typeof CommunityEvents.CREATED> | SpaceTreeEvent | MemberEvent | AccessGroupEvent;
 // The resources of a resources space go to the channel of the space only (ADR 0015)
 type SpaceChannelEvent = ResourceEvent | SpaceContentEvent;
 
-type AllEvents =
-  CommunitiesChannelEvent | CommunityChannelEvent | SpaceChannelEvent | ConversationEvent | NotificationEvent | InvitationImportEvent;
+type AllEvents = CommunityChannelEvent | SpaceChannelEvent | ConversationEvent | NotificationEvent | InvitationImportEvent;
 
 // Map events to their payload types
 type EventPayloadMap = {
-  // All community events apart from 'community.deleted' have a payload of type Community
-  [K in CommunityEvent]: K extends typeof CommunityEvents.DELETED ? Identifiable : Community;
+  // The cuid of the community
+  [K in CommunityEvent]: Identifiable;
 } & {
-  // All resource events apart from 'community.resource.deleted' have a payload of type CommunityResource
-  [K in ResourceEvent]: K extends typeof ResourceEvents.DELETED ? Identifiable : CommunityResource;
+  [K in ResourceEvent]: ResourcePayload;
 } & {
   [K in SpaceTreeEvent]: { community_cuid: string };
 } & {
@@ -161,15 +161,13 @@ type EventPayloadMap = {
 };
 
 // Define the hook options with improved type safety
-type ChannelEvent<ChannelType extends Channel> = ChannelType['type'] extends 'communities'
-  ? CommunitiesChannelEvent
-  : ChannelType['type'] extends 'community'
-    ? CommunityChannelEvent
-    : ChannelType['type'] extends 'space'
-      ? SpaceChannelEvent
-      : ChannelType['type'] extends 'user'
-        ? ConversationEvent | NotificationEvent | InvitationImportEvent
-        : ConversationEvent;
+type ChannelEvent<ChannelType extends Channel> = ChannelType['type'] extends 'community'
+  ? CommunityChannelEvent
+  : ChannelType['type'] extends 'space'
+    ? SpaceChannelEvent
+    : ChannelType['type'] extends 'user'
+      ? ConversationEvent | NotificationEvent | InvitationImportEvent
+      : ConversationEvent;
 
 type UseSocketOptions<ChannelType extends Channel, EventType extends ChannelEvent<ChannelType>> = {
   channel: ChannelType;
@@ -185,8 +183,6 @@ type UseSocketOptions<ChannelType extends Channel, EventType extends ChannelEven
 // Helper function to get the channel string
 const getChannelString = (channel: Channel): string => {
   switch (channel.type) {
-    case 'communities':
-      return COMMUNITIES_CHANNEL;
     case 'community':
       return COMMUNITY_CHANNEL.replace(COMMUNITY_CHANNEL_PARAM_COMMUNITY_CUID, channel.communityCuid);
     case 'space':
@@ -203,10 +199,6 @@ const getChannelString = (channel: Channel): string => {
 
 // Get all events for a channel type
 const getAllEventsForChannelType = (channelType: Channel['type']): AllEvents[] => {
-  if (channelType === 'communities') {
-    return Object.values(CommunityEvents);
-  }
-
   if (channelType === 'community') {
     return [...Object.values(CommunityEvents).filter((event) => event !== CommunityEvents.CREATED), ...Object.values(SpaceTreeEvents)];
   }
@@ -274,6 +266,22 @@ export const useSocket = <ChannelType extends Channel, EventType extends Channel
       releaseChannel(channelString);
     };
   }, [channelString, eventKey, channelType, enabled]);
+};
+
+/**
+ * The page of a signed-in account joins the presence channel of the account (`presence-user.{cuid}`, ADR 0075), also when
+ * the member hides the online status: the WebSocket server then knows the connection by its account, and ends it when the
+ * access of the account ends or shrinks. The page connects again by itself, and each channel asks its rule again. Nobody
+ * else joins this channel, and it tells nobody anything. Echo joins a channel once: the next page of the same account keeps
+ * it, and it is never left while the page lives.
+ */
+export const useAccountConnection = (userCuid: string) => {
+  useEffect(() => {
+    if (userCuid === '') {
+      return;
+    }
+    window.Echo.join(USER_CHANNEL.replace(USER_CHANNEL_PARAM, userCuid));
+  }, [userCuid]);
 };
 
 /**

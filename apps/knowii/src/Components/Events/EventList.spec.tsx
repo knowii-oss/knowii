@@ -493,7 +493,7 @@ describe('the list of an events space (#1514, design 6.1 and 11.3)', () => {
 
   describe('live updates (rule 18)', () => {
     const emit = (name: 'created' | 'updated' | 'deleted', eventCuid: string) =>
-      act(() => emitSocketEvent(channel, `space.event.${name}`, { space_cuid: 's1', event_cuid: eventCuid, author_cuid: 'someone' }));
+      act(() => emitSocketEvent(channel, `space.event.${name}`, { space_cuid: 's1', event_cuid: eventCuid }));
 
     it('gets a published event and inserts its card at its place: before a later start', async () => {
       const get = vi
@@ -785,8 +785,7 @@ describe('the list of an events space (#1514, design 6.1 and 11.3)', () => {
         ],
       });
       // The signal names the event only: no member
-      const places = () =>
-        act(() => emitSocketEvent(channel, 'space.event.answers.changed', { space_cuid: 's1', event_cuid: 'e1', author_cuid: null }));
+      const places = () => act(() => emitSocketEvent(channel, 'space.event.answers.changed', { space_cuid: 's1', event_cuid: 'e1' }));
 
       places();
       expect(await within(card('Weekly review')).findByText('27 places left')).toBeInTheDocument();
@@ -802,7 +801,7 @@ describe('the list of an events space (#1514, design 6.1 and 11.3)', () => {
       const get = vi.spyOn(knowiiApiClient.communities.events, 'get');
       renderList({ visitor: true });
 
-      act(() => emitSocketEvent(channel, 'space.event.answers.changed', { space_cuid: 's1', event_cuid: 'e1', author_cuid: null }));
+      act(() => emitSocketEvent(channel, 'space.event.answers.changed', { space_cuid: 's1', event_cuid: 'e1' }));
 
       expect(get).not.toHaveBeenCalled();
     });

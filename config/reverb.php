@@ -83,7 +83,18 @@ return [
                 'allowed_origins' => [env('REVERB_ALLOWED_ORIGINS', '*')],
                 'ping_interval' => env('REVERB_APP_PING_INTERVAL', 60),
                 'activity_timeout' => env('REVERB_APP_ACTIVITY_TIMEOUT', 30),
+                // The largest message of a client, in bytes: a typing signal is under 200 (ADR 0075)
                 'max_message_size' => env('REVERB_APP_MAX_MESSAGE_SIZE', 10_000),
+                // At most this many open connections for the instance; empty: no limit
+                'max_connections' => is_numeric(env('REVERB_APP_MAX_CONNECTIONS')) ? (int) env('REVERB_APP_MAX_CONNECTIONS') : null,
+                // At most 30 messages a second from one connection: the connection ends at the limit, and the page connects
+                // again (ADR 0075)
+                'rate_limiting' => [
+                    'enabled' => true,
+                    'max_attempts' => 30,
+                    'decay_seconds' => 1,
+                    'terminate_on_limit' => true,
+                ],
                 // Client events (typing indicators, #1187): only from a connection that joined the channel, and Reverb
                 // adds the identifier of the sender. "all" would relay events from any connection, with any user_id
                 'accept_client_events_from' => 'members',

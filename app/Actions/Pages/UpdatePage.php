@@ -53,7 +53,7 @@ class UpdatePage implements UpdatesPages
         });
 
         Log::info('Page updated', ['page' => $page->cuid, 'fields' => array_keys($validated)]);
-        event(SpaceContentChanged::forPage(SpaceContentChanged::PAGE_UPDATED, $page, $user->cuid));
+        event(SpaceContentChanged::forPage(SpaceContentChanged::PAGE_UPDATED, $page));
 
         return $page;
     }

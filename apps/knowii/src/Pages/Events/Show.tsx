@@ -128,7 +128,7 @@ export default function EventPage({ community, space, spaceGroups, event, commen
     // `answers.changed` (#1515): the places of an event with a limit changed. It names no member
     event: ['space.event.created', 'space.event.updated', 'space.event.deleted', 'space.event.answers.changed'],
     callback: (name, payload) => {
-      const { event_cuid: eventCuid, author_cuid: authorCuid } = payload as SpaceContentPayload;
+      const { event_cuid: eventCuid } = payload as SpaceContentPayload;
       if (eventCuid !== event.cuid) {
         return;
       }
@@ -138,10 +138,9 @@ export default function EventPage({ community, space, spaceGroups, event, commen
         reloadEvent();
         return;
       }
-      // The own changes of the reader already load the page, or leave it (a delete)
-      if (authorCuid !== user?.cuid) {
-        reloadPage();
-      }
+      // The own changes of the reader already load the page, or leave it (a delete): their events do not come back to
+      // this page
+      reloadPage();
     },
   });
 

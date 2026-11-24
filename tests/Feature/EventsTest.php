@@ -674,10 +674,9 @@ test('a published event sends its name on the space channel with identifiers onl
         'space.event.deleted', 'space.event.created', 'space.event.deleted',
     ]);
     foreach ($sent as [, $payload]) {
-        expect(array_keys($payload))->toBe(['space_cuid', 'event_cuid', 'author_cuid'])
+        expect(array_keys($payload))->toBe(['space_cuid', 'event_cuid'])
             ->and($payload['space_cuid'])->toBe($this->events->cuid)
-            ->and($payload['event_cuid'])->toBe($event->cuid)
-            ->and($payload['author_cuid'])->toBe($this->c['moderator']->cuid);
+            ->and($payload['event_cuid'])->toBe($event->cuid);
         $json = (string) json_encode($payload);
         expect($json)->not->toContain('Secret')->not->toContain('meet.example.com')->not->toContain('Changed');
     }

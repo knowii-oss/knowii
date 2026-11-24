@@ -8,6 +8,7 @@ use App\Events\CommunityMembers\CommunityMembersChanged;
 use App\Models\Community;
 use App\Models\User;
 use App\Support\CommunityRoles;
+use App\Support\LiveConnections;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -47,6 +48,10 @@ class UpdateCommunityMemberRole implements UpdatesCommunityMemberRoles
 
         Log::info('Community member role changed', ['community' => $community->cuid, 'member' => $target->cuid, 'role' => $role->value]);
         CommunityMembersChanged::dispatch($community->cuid);
+        // A lower role takes rights away (an admin reads every space): the live connections of the member end (ADR 0075)
+        if (CommunityRoles::rankOf($role) < CommunityRoles::rankOf($currentRole)) {
+            LiveConnections::endFor($target);
+        }
 
         return $target;
     }

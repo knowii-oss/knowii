@@ -16,6 +16,22 @@ const jsonHeaders: Record<string, string> = {
   'Content-Type': 'application/json',
 };
 
+// The id of the live connection of the page (bootstrap.ts gives it once Echo started; none before, and none for a visitor)
+let liveSocketId: () => string | undefined = () => undefined;
+
+/**
+ * Where the API client reads the id of the live connection of the page. Each request sends it in `X-Socket-ID`: the live
+ * update of a change goes to every page but the one that made it (ADR 0009)
+ */
+export function readLiveSocketIdWith(read: () => string | undefined): void {
+  liveSocketId = read;
+}
+
+function socketHeaders(): Record<string, string> {
+  const id = liveSocketId();
+  return id ? { 'X-Socket-ID': id } : {};
+}
+
 /**
  * Replace the `{param}` placeholders of an API path.
  */
@@ -52,7 +68,7 @@ async function callApi(method: ApiMethod, url: string, failureMessage: string, b
       // fetch() uppercases GET, POST, DELETE... but not PATCH: servers reject a lowercase "patch" method
       method: method.toUpperCase(),
       // A FormData body (a file, #1390) gets no Content-Type: the browser sets the multipart boundary
-      headers: body instanceof FormData ? { Accept: 'application/json' } : jsonHeaders,
+      headers: { ...(body instanceof FormData ? { Accept: 'application/json' } : jsonHeaders), ...socketHeaders() },
       ...(body === undefined ? {} : { body: body instanceof FormData ? body : JSON.stringify(body) }),
       ...(signal === undefined ? {} : { signal }),
     });

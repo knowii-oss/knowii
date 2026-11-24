@@ -19,7 +19,9 @@ class ConversationPresenceChannel
     {
         $conversation = Conversation::whereCuid($conversationCuid)->first();
 
-        if ($conversation === null || ! $user->showsOnlineStatus() || ! $user->can('view', $conversation)) {
+        // Typing is for the participants who may write now: no block between the two people of a one-to-one conversation, and
+        // a community that allows direct messages (ADR 0075)
+        if ($conversation === null || ! $user->showsOnlineStatus() || ! $user->can('send', $conversation)) {
             return false;
         }
 

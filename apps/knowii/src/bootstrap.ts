@@ -1,6 +1,7 @@
 import axios from 'axios';
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
+import { readLiveSocketIdWith } from '@knowii/common';
 
 // WARNING: Required by Inertia
 window.axios = axios;
@@ -29,3 +30,7 @@ Object.defineProperty(window, 'Echo', {
     echo = value;
   },
 });
+
+// The API client sends the id of the live connection, so that the live update of its own change does not come back to
+// this page. Read without starting Echo: a page without a connection sends none
+readLiveSocketIdWith(() => echo?.socketId());

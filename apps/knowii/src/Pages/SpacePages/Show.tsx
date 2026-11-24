@@ -111,11 +111,10 @@ export default function SpacePage(props: Props) {
     event: ['space.page.created', 'space.page.updated', 'space.page.deleted', 'space.pages.reordered'],
     callback: (event, payload) => {
       const data = payload as SpaceContentPayload;
+      // The own delete of the reader leaves the page already: its event does not come back to this page
       if (event === 'space.page.deleted' && data.page_cuid === page.cuid) {
-        if (data.author_cuid !== currentUser?.cuid) {
-          showToast({ severity: 'info', summary: 'This page was deleted' });
-          router.visit(spaceHref);
-        }
+        showToast({ severity: 'info', summary: 'This page was deleted' });
+        router.visit(spaceHref);
         return;
       }
       if (!editing && !editingQuiz) {

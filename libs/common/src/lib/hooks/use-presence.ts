@@ -49,6 +49,8 @@ interface WhisperingChannel {
 class PresenceStore {
   private snapshot: PresenceSnapshot = { members: [], typing: {} };
   private readonly listeners = new Set<() => void>();
+  // The threads that the open pages show: a typing signal for another scope is dropped
+  private readonly scopeFilters = new Set<(scope: string) => boolean>();
   private references = 0;
   private leaveTimer: ReturnType<typeof setTimeout> | null = null;
   private expiryTimer: ReturnType<typeof setTimeout> | null = null;
@@ -63,7 +65,7 @@ class PresenceStore {
         const typing = Object.fromEntries(
           Object.entries(this.snapshot.typing).map(([scope, typists]) => [scope, omit(typists, member.cuid)]),
         );
-        this.update({ members: this.snapshot.members.filter((m) => m.cuid !== member.cuid), typing });
+        this.update({ members: this.snapshot.members.filter((m) => m.cuid !== member.cuid), typing: withoutEmptyScopes(typing) });
       })
       .listenForWhisper(TYPING_EVENT, (signal, metadata) => this.onTyping(signal, metadata?.user_id));
   }
@@ -76,6 +78,20 @@ class PresenceStore {
       this.listeners.delete(listener);
     };
   };
+
+  /**
+   * A hook tells which threads its page shows; the returned function forgets it
+   */
+  acceptScopes(accepts: (scope: string) => boolean): () => void {
+    this.scopeFilters.add(accepts);
+    return () => {
+      this.scopeFilters.delete(accepts);
+    };
+  }
+
+  private accepts(scope: string): boolean {
+    return scope === '' || [...this.scopeFilters].some((accepts) => accepts(scope));
+  }
 
   retain() {
     this.references += 1;
@@ -106,13 +122,19 @@ class PresenceStore {
     if (!userCuid || typeof signal?.scope !== 'string' || !this.snapshot.members.some((m) => m.cuid === userCuid)) {
       return;
     }
+    // Only the main conversation and the threads of the messages that the page shows: another scope is never kept
+    if (!this.accepts(signal.scope)) {
+      return;
+    }
     const typists = { ...(this.snapshot.typing[signal.scope] ?? {}) };
     if (signal.typing) {
       typists[userCuid] = Date.now() + TYPING_EXPIRES_MS;
-    } else {
+    } else if (userCuid in typists) {
       delete typists[userCuid];
+    } else {
+      return;
     }
-    this.update({ typing: { ...this.snapshot.typing, [signal.scope]: typists } });
+    this.update({ typing: withoutEmptyScopes({ ...this.snapshot.typing, [signal.scope]: typists }) });
     this.scheduleExpiry();
   }
 
@@ -133,7 +155,7 @@ class PresenceStore {
           Object.fromEntries(Object.entries(typists).filter(([, expiry]) => expiry > now)),
         ]),
       );
-      this.update({ typing });
+      this.update({ typing: withoutEmptyScopes(typing) });
       this.scheduleExpiry();
     }, next + 50);
   }
@@ -144,6 +166,9 @@ class PresenceStore {
   }
 }
 
+// A scope where nobody types any more goes: the map holds only the scopes that someone types in
+const withoutEmptyScopes = (typing: Record<string, Record<string, number>>) =>
+  Object.fromEntries(Object.entries(typing).filter(([, typists]) => Object.keys(typists).length > 0));
 const dedupe = (members: PresenceMember[]) => [...new Map(members.map((member) => [member.cuid, member])).values()];
 const omit = (record: Record<string, number>, key: string) => Object.fromEntries(Object.entries(record).filter(([k]) => k !== key));
 
@@ -183,6 +208,11 @@ export interface UsePresenceOptions {
   visible: boolean;
   fetchMembers: () => Promise<ApiResult<PresenceMember[]>>;
   currentUserCuid: string | null;
+  /**
+   * The threads that the page shows: a typing signal is kept for the main conversation ('') and for a scope that this
+   * accepts (the cuid of a message of the page) only. Default: the main conversation only
+   */
+  acceptsScope?: (scope: string) => boolean;
 }
 
 export interface Presence {
@@ -201,9 +231,14 @@ export interface Presence {
   stopTyping: (scope: string) => void;
 }
 
-export function usePresence({ channel, visible, fetchMembers, currentUserCuid }: UsePresenceOptions): Presence {
+export function usePresence({ channel, visible, fetchMembers, currentUserCuid, acceptsScope }: UsePresenceOptions): Presence {
   const live = channel !== null && visible;
   const [store, setStore] = useState<PresenceStore | null>(null);
+
+  // The latest function of the page: the store asks it for each signal
+  const acceptsRef = useRef(acceptsScope);
+  acceptsRef.current = acceptsScope;
+  useEffect(() => store?.acceptScopes((scope) => acceptsRef.current?.(scope) ?? false), [store]);
 
   useEffect(() => {
     if (!live || channel === null) {

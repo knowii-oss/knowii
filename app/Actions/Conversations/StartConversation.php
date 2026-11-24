@@ -66,7 +66,7 @@ class StartConversation implements StartsConversations
         });
 
         Log::info('Conversation started', ['conversation' => $conversation->cuid, 'participants' => count($others) + 1]);
-        ChatMessageEvents::dispatch(ChatMessageEvents::CREATED, $message, $user->cuid);
+        ChatMessageEvents::dispatch(ChatMessageEvents::CREATED, $message);
 
         return $conversation;
     }

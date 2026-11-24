@@ -232,7 +232,7 @@ test('a new message goes to the conversation channel and to the channel of each 
         sort($expected);
 
         return $event->broadcastAs() === ConversationChanged::MESSAGE_CREATED
-            && array_keys($event->broadcastWith()) === ['conversation_cuid', 'message_cuid', 'author_cuid']
+            && array_keys($event->broadcastWith()) === ['conversation_cuid', 'message_cuid']
             && $channels === $expected;
     });
 });
@@ -293,7 +293,7 @@ test('the channels of a conversation are for its participants, the channel of a 
 
     expect($conversationChannel($this->c['admin'], $cuid))->toBeTrue()
         ->and($conversationChannel($this->c['moderator'], $cuid))->toBeFalse()
-        ->and($userChannel($this->c['admin'], $this->c['admin']->cuid))->toBeTrue()
+        ->and($userChannel($this->c['admin'], $this->c['admin']->cuid))->toBe(['cuid' => $this->c['admin']->cuid])
         ->and($userChannel($this->c['admin'], $this->c['member']->cuid))->toBeFalse()
         ->and((new ConversationPresenceChannel)->join($this->c['admin'], $cuid))->toBeArray()
         ->and((new ConversationPresenceChannel)->join($this->c['moderator'], $cuid))->toBeFalse();

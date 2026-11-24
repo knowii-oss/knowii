@@ -104,9 +104,7 @@ describe('ChatSpace', () => {
     vi.spyOn(knowiiApiClient.communities.chat, 'get').mockResolvedValue({ ok: true, message: '', data: message('m5', 'Live hello') });
     renderChat([message('m1', 'First')]);
 
-    act(() =>
-      emitSocketEvent(channel, 'space.message.created', { space_cuid: 's1', message_cuid: 'm5', parent_cuid: null, author_cuid: 'ada' }),
-    );
+    act(() => emitSocketEvent(channel, 'space.message.created', { space_cuid: 's1', message_cuid: 'm5', parent_cuid: null }));
 
     expect(await screen.findByText('Live hello')).toBeInTheDocument();
   });

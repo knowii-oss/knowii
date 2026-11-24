@@ -1,8 +1,8 @@
 import AppLayout from '@/Layouts/AppLayout';
 import { useCallback, useState } from 'react';
 import CommunityBox from '@/Components/Communities/CommunityBox';
-import type { Community, CommunityVisibility, Identifiable } from '@knowii/common';
-import { COMMUNITY_URL, communityVisibilityOptions, useSocket } from '@knowii/common';
+import type { Community, CommunityVisibility } from '@knowii/common';
+import { COMMUNITY_URL, communityVisibilityOptions } from '@knowii/common';
 import { useImmer } from 'use-immer';
 import { useRoute } from 'ziggy-js';
 import CreateCommunityDialog from '@/Components/Communities/CreateCommunityDialog';
@@ -21,6 +21,10 @@ interface Props {
   communities: Community[];
 }
 
+/**
+ * The communities of the person. The list comes from the server; a community that the person creates in the dialog joins
+ * it. No live channel adds the communities of others.
+ */
 export default function DashboardPage(props: Props) {
   const route = useRoute();
 
@@ -32,35 +36,6 @@ export default function DashboardPage(props: Props) {
       }
     });
   };
-
-  const handleCommunityDeleted = (deletedCommunity: Identifiable) => {
-    setCommunities((draft) => {
-      const index = draft.findIndex((community) => community.cuid === deletedCommunity.cuid);
-      if (index !== -1) {
-        draft.splice(index, 1);
-      }
-    });
-  };
-
-  useSocket({
-    channel: {
-      type: 'communities',
-    },
-    event: 'community.created',
-    callback: (_event, payload) => {
-      handleCommunityCreated(payload);
-    },
-  });
-
-  useSocket({
-    channel: {
-      type: 'communities',
-    },
-    event: 'community.deleted',
-    callback: (_event, payload) => {
-      handleCommunityDeleted(payload);
-    },
-  });
 
   const breadcrumbItems: BreadcrumbItem[] = [{ label: 'Home', icon: <FaHome /> }];
 

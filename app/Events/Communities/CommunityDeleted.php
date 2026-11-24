@@ -11,18 +11,4 @@ class CommunityDeleted extends CommunityEvent
     {
         return 'community.deleted';
     }
-
-    /**
-     * Get the data to broadcast.
-     *
-     * @return array{cuid: string}
-     */
-    public function broadcastWith(): array
-    {
-        $retVal = [
-            'cuid' => $this->community->cuid,
-        ];
-
-        return $retVal;
-    }
 }

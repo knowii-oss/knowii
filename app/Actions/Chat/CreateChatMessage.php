@@ -86,7 +86,7 @@ class CreateChatMessage implements CreatesChatMessages
         // The members mentioned in the message are told (#1474), and the ones who follow the thread or chose "Everything"
         // for the space (#1475): queued jobs, after the commit
         app(Notifies::class)->notify($message);
-        event(SpaceContentChanged::forMessage(SpaceContentChanged::MESSAGE_CREATED, $message, $user->cuid));
+        event(SpaceContentChanged::forMessage(SpaceContentChanged::MESSAGE_CREATED, $message));
 
         return $message;
     }

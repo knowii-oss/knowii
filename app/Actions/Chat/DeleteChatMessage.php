@@ -40,6 +40,6 @@ class DeleteChatMessage implements DeletesChatMessages
         });
 
         Log::info('Chat message deleted', ['message' => $message->cuid]);
-        ChatMessageEvents::dispatch(ChatMessageEvents::DELETED, $message, $user->cuid);
+        ChatMessageEvents::dispatch(ChatMessageEvents::DELETED, $message);
     }
 }

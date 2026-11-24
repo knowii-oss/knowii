@@ -4,6 +4,7 @@ namespace App\Actions\Users;
 
 use App\Contracts\Users\UpdatesOnlineStatus;
 use App\Models\User;
+use App\Support\LiveConnections;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
@@ -20,9 +21,16 @@ class UpdateOnlineStatus implements UpdatesOnlineStatus
             'show_online_status' => ['required', 'boolean'],
         ])->validate();
 
+        $shownBefore = $user->showsOnlineStatus();
         $user->forceFill(['show_online_status' => (bool) $validated['show_online_status']])->save();
 
         Log::info('Online status changed', ['user' => $user->cuid, 'shown' => (bool) $validated['show_online_status']]);
+
+        // Hidden at once on every page and device of the member: their live connections end, and the presence channels refuse
+        // them when they connect again (ADR 0027, ADR 0075)
+        if ($shownBefore && ! $user->showsOnlineStatus()) {
+            LiveConnections::endFor($user);
+        }
 
         return $user;
     }

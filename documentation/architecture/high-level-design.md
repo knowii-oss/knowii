@@ -61,10 +61,10 @@ Other browsers ◀──WebSocket── Reverb ◀── queue worker ◀── 
 
 Real time uses Reverb ([ADR 0009](../adr/0009-real-time-through-reverb.md)):
 
-1. Private channels carry data events. A channel exists per community and per space or conversation, and its authorization equals the read permission of that data.
+1. Private channels carry data events. A channel exists per community and per space or conversation, and its authorization equals the read permission of that data. The authorization is checked when a connection subscribes: when the access of an account ends or shrinks, its live connections end, and the page connects again with the present rights. The authorization of every channel is signed with the account, and one connection belongs to one account, so that the WebSocket server knows each connection by its account ([ADR 0075](../adr/0075-live-connections-end-with-the-access.md)).
 2. Presence channels show who is online and carry typing indicators (client events, never stored).
-3. Event payloads use the same API resources as the REST API, so the client handles one shape.
-4. When the payload would depend on the permissions of each member (the space tree), the event only names what changed (`community.space_tree.changed`) and the pages reload the data from the server.
+3. A live update carries identifiers only: the page reads the item through the API, which checks the access of the reader now. It never names the person who made the change, and it does not come back to the page that made the change (the API client sends `X-Socket-ID`).
+4. The payload never depends on the permissions of a member: the event only names what changed (`community.space_tree.changed`, `community.resource.created`) and the pages reload the data from the server. The WebSocket server limits the size (10 000 bytes) and the rate (30 a second) of the messages of a client.
 
 ## Security
 

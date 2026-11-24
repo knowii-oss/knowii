@@ -7,6 +7,7 @@ use App\Events\AccessGroups\AccessGroupsChanged;
 use App\Events\Spaces\SpaceTreeChanged;
 use App\Models\AccessGroup;
 use App\Models\User;
+use App\Support\LiveConnections;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 
@@ -26,5 +27,6 @@ class DeleteAccessGroup implements DeletesAccessGroups
         Log::info('Access group deleted', ['community' => $community->cuid, 'group' => $group->cuid]);
         AccessGroupsChanged::dispatch($community->cuid);
         SpaceTreeChanged::dispatch($community->cuid);
+        LiveConnections::endForMembersOf($community);
     }
 }

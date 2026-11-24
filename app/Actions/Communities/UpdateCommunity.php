@@ -8,6 +8,7 @@ use App\Enums\KnowiiCommunityVisibility;
 use App\Models\Community;
 use App\Models\User;
 use App\Rules\AvailableCommunityName;
+use App\Support\LiveConnections;
 use App\Support\PlainText;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Gate;
@@ -54,9 +55,17 @@ class UpdateCommunity implements UpdatesCommunities
             }
         }
 
+        $visibilityBefore = $community->visibility;
+        $directMessagesBefore = $community->allowsDirectMessages();
+
         $community->update($validated);
 
         Log::info('Community updated', ['community' => $community->cuid, 'fields' => array_keys($validated)]);
+
+        // Who reads what, or who types in a conversation, changed: the live connections of the members end (ADR 0075)
+        if ($community->visibility !== $visibilityBefore || ($directMessagesBefore && ! $community->allowsDirectMessages())) {
+            LiveConnections::endForMembersOf($community);
+        }
 
         return $community;
     }

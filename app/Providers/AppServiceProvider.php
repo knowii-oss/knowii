@@ -134,6 +134,7 @@ use App\Actions\Users\UpdateOnlineStatus;
 use App\Actions\Users\UpdateTimeZone;
 use App\Actions\Users\VerifyUsernameAvailability;
 use App\ApiRoutes;
+use App\Broadcasting\AccountBoundBroadcaster;
 use App\Constants;
 use App\Contracts\AccessGroups\AddsAccessGroupMembers;
 use App\Contracts\AccessGroups\CreatesAccessGroups;
@@ -280,6 +281,7 @@ use App\Support\RequestCredential;
 use App\Support\ReverbLiveConnections;
 use App\Support\ReverbPresenceChannels;
 use Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider;
+use Illuminate\Broadcasting\BroadcastManager;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Cache\Factory as CacheFactory;
 use Illuminate\Contracts\Foundation\Application;
@@ -289,6 +291,7 @@ use Illuminate\Http\Request;
 use Illuminate\Mail\Markdown as MailMarkdown;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Session\SessionManager;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -352,6 +355,11 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(ReadsPresenceChannels::class, ReverbPresenceChannels::class);
         // A takeover ends the live connections of the account (ADR 0059)
         app()->singleton(EndsLiveConnections::class, ReverbLiveConnections::class);
+        // Reverb: every private channel is signed with the account, and a connection belongs to one account (ADR 0075)
+        Broadcast::extend('reverb', static fn (Application $app, array $config): AccountBoundBroadcaster => new AccountBoundBroadcaster(
+            $app->make(BroadcastManager::class)->pusher($config),
+            (bool) ($config['jsonp'] ?? false),
+        ));
         app()->singleton(CreatesCommunityResources::class, CreateCommunityResource::class);
         app()->bind(CapturesResourcePages::class, CaptureResourcePage::class);
         app()->singleton(UpdatesCommunityResources::class, UpdateCommunityResource::class);

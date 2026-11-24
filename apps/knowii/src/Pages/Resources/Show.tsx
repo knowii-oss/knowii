@@ -61,7 +61,7 @@ export default function ResourcePage(props: Props) {
     enabled: !!page.props.auth.user,
     event: ['community.resource.updated', 'community.resource.deleted'],
     callback: (event, payload) => {
-      if (payload.cuid !== resource.cuid) {
+      if (payload.resource_cuid !== resource.cuid) {
         return;
       }
       if (event === 'community.resource.deleted') {

@@ -95,11 +95,10 @@ export default function PostPage(props: Props) {
       if (data.post_cuid !== post.cuid || (event === 'space.reactions.changed' && data.comment_cuid)) {
         return;
       }
+      // The own delete of the reader leaves the page already: its event does not come back to this page
       if (event === 'space.post.deleted') {
-        if (data.author_cuid !== page.props.auth.user?.cuid) {
-          showToast({ severity: 'info', summary: 'This post was deleted' });
-          router.visit(spaceHref);
-        }
+        showToast({ severity: 'info', summary: 'This post was deleted' });
+        router.visit(spaceHref);
         return;
       }
       if (editing) {

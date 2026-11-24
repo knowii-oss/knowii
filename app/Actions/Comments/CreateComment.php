@@ -74,7 +74,7 @@ class CreateComment implements CreatesComments
             $comment->update(['body_html' => $comment->renderBodyAndSyncMentions($validated['body'], $user)]);
             $comment->syncUploadUsages($validated['body']);
             // Live updates (#1180): sent after the commit (ShouldDispatchAfterCommit)
-            event(SpaceContentChanged::forComment(SpaceContentChanged::COMMENT_CREATED, $comment, $user->cuid));
+            event(SpaceContentChanged::forComment(SpaceContentChanged::COMMENT_CREATED, $comment));
 
             return $comment;
         });

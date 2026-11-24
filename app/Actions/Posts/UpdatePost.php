@@ -39,7 +39,7 @@ class UpdatePost implements UpdatesPosts
 
         if ($changes !== []) {
             DB::transaction(fn () => $post->update([...$changes, 'edited_at' => now()]));
-            event(SpaceContentChanged::forPost(SpaceContentChanged::POST_UPDATED, $post, $user->cuid));
+            event(SpaceContentChanged::forPost(SpaceContentChanged::POST_UPDATED, $post));
         }
 
         return $post;

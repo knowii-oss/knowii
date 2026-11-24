@@ -45,8 +45,8 @@ class DeleteComment implements DeletesComments
 
         // Built before the delete: the event names the subject of the comment. A marker is an update of the comment: the
         // open pages load the comments again and show it
-        $updated = SpaceContentChanged::forComment(SpaceContentChanged::COMMENT_UPDATED, $comment, $user->cuid);
-        $deleted = SpaceContentChanged::forComment(SpaceContentChanged::COMMENT_DELETED, $comment, $user->cuid);
+        $updated = SpaceContentChanged::forComment(SpaceContentChanged::COMMENT_UPDATED, $comment);
+        $deleted = SpaceContentChanged::forComment(SpaceContentChanged::COMMENT_DELETED, $comment);
 
         $marker = DB::transaction(static function () use ($user, $comment, $withReplies): bool {
             $markers = app(LeavesMarkers::class);

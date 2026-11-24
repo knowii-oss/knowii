@@ -8,6 +8,7 @@ use App\Events\Spaces\SpaceTreeChanged;
 use App\Models\AccessGroup;
 use App\Models\User;
 use App\Support\AccessGroupMemberships;
+use App\Support\LiveConnections;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -34,5 +35,8 @@ class RemoveAccessGroupMember implements RemovesAccessGroupMembers
         Log::info('Access group member removed', ['group' => $group->cuid, 'member' => $memberCuid, 'kept_by_rule' => $outcome === AccessGroupMemberships::KEPT_BY_RULE]);
         AccessGroupsChanged::dispatch($community->cuid);
         SpaceTreeChanged::dispatch($community->cuid);
+        if ($outcome === AccessGroupMemberships::REMOVED) {
+            LiveConnections::endFor($member);
+        }
     }
 }

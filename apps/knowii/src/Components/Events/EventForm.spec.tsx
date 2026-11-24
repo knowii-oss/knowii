@@ -1549,12 +1549,8 @@ describe('the form of the host of an event (#1514, design 4.2, 6.3 and 11.1)', {
       await waitFor(() => expect(capacityStatus()).toHaveTextContent('12 members answered Yes.'));
       fill('Limit of places', '30');
 
-      act(() =>
-        emitSocketEvent('community.c1.space.s1', 'space.event.answers.changed', { space_cuid: 's1', event_cuid: 'e1', author_cuid: null }),
-      );
-      act(() =>
-        emitSocketEvent('community.c1.space.s1', 'space.event.updated', { space_cuid: 's1', event_cuid: 'e1', author_cuid: 'someone' }),
-      );
+      act(() => emitSocketEvent('community.c1.space.s1', 'space.event.answers.changed', { space_cuid: 's1', event_cuid: 'e1' }));
+      act(() => emitSocketEvent('community.c1.space.s1', 'space.event.updated', { space_cuid: 's1', event_cuid: 'e1' }));
 
       expect(limit()).toHaveValue('30');
       expect(answersList).toHaveBeenCalledTimes(1);

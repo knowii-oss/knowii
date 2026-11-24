@@ -9,6 +9,7 @@ use App\Events\Spaces\SpaceTreeChanged;
 use App\Jobs\PruneUnviewableNotifications;
 use App\Models\Space;
 use App\Models\User;
+use App\Support\LiveConnections;
 use App\Support\PlainText;
 use App\Support\Positions;
 use Illuminate\Support\Facades\DB;
@@ -96,9 +97,11 @@ class UpdateSpace implements UpdatesSpaces
             SpaceAccessGroups::sync($space, $validated['access_groups'] ?? null);
         });
 
-        // Who can view the space changed: the notifications of the members who lost the access go away (#1474, ADR 0042)
+        // Who can view the space changed: the notifications of the members who lost the access go away (#1474, ADR 0042), and
+        // the live connections of the members end (ADR 0075)
         if ($space->visibility !== $visibilityBefore || $space->space_group_id !== $spaceGroupBefore || array_key_exists('access_groups', $validated)) {
             PruneUnviewableNotifications::dispatch($community, $space);
+            LiveConnections::endForMembersOf($community);
         }
 
         SpaceTreeChanged::dispatch($community->cuid);

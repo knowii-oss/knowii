@@ -20,7 +20,7 @@ class DeletePage implements DeletesPages
         Gate::forUser($user)->authorize('managePages', $page->space);
 
         // Built before the delete: the event needs the space of the page
-        $event = SpaceContentChanged::forPage(SpaceContentChanged::PAGE_DELETED, $page, $user->cuid);
+        $event = SpaceContentChanged::forPage(SpaceContentChanged::PAGE_DELETED, $page);
         // Read before the delete: the material files of the lesson or the section go after it (#1336)
         $files = ContentFiles::ofPage($page);
         $page->delete();

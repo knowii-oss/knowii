@@ -20,7 +20,7 @@ final class ChatMessageEvents
 
     public const string REACTIONS = 'reactions';
 
-    public static function dispatch(string $change, ChatMessage $message, ?string $authorCuid = null): void
+    public static function dispatch(string $change, ChatMessage $message): void
     {
         if ($message->isDirectMessage()) {
             event(ConversationChanged::forMessage(match ($change) {
@@ -28,7 +28,7 @@ final class ChatMessageEvents
                 self::UPDATED => ConversationChanged::MESSAGE_UPDATED,
                 self::DELETED => ConversationChanged::MESSAGE_DELETED,
                 default => ConversationChanged::REACTIONS_CHANGED,
-            }, $message, $authorCuid));
+            }, $message));
 
             return;
         }
@@ -39,6 +39,6 @@ final class ChatMessageEvents
                 self::CREATED => SpaceContentChanged::MESSAGE_CREATED,
                 self::UPDATED => SpaceContentChanged::MESSAGE_UPDATED,
                 default => SpaceContentChanged::MESSAGE_DELETED,
-            }, $message, $authorCuid));
+            }, $message));
     }
 }

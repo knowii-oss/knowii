@@ -33,7 +33,7 @@ class UpdateChatMessage implements UpdatesChatMessages
         });
 
         Log::info('Chat message updated', ['message' => $message->cuid]);
-        ChatMessageEvents::dispatch(ChatMessageEvents::UPDATED, $message, $user->cuid);
+        ChatMessageEvents::dispatch(ChatMessageEvents::UPDATED, $message);
 
         return $message;
     }

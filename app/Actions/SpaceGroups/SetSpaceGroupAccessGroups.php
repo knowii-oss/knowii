@@ -7,6 +7,7 @@ use App\Constants;
 use App\Contracts\SpaceGroups\SetsSpaceGroupAccessGroups;
 use App\Models\SpaceGroup;
 use App\Models\User;
+use App\Support\LiveConnections;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 
@@ -35,6 +36,10 @@ class SetSpaceGroupAccessGroups implements SetsSpaceGroupAccessGroups
 
         Log::info('Access groups of a space group set', ['spaceGroup' => $spaceGroup->cuid, 'access_groups' => $cuids]);
         AccessGroupSpaceGroups::broadcast($spaceGroup);
+        // An access group that no longer opens the space group (ADR 0075)
+        if (array_diff($current, $ids) !== []) {
+            LiveConnections::endForMembersOf($community);
+        }
 
         return $spaceGroup;
     }

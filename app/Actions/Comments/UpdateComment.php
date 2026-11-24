@@ -31,14 +31,14 @@ class UpdateComment implements UpdatesComments
             'body' => ['required', 'string', 'min:1', 'max:'.Constants::MAX_LENGTH_COMMENT_BODY, new MaxMarkdownImages],
         ])->validate();
 
-        DB::transaction(function () use ($comment, $validated, $user) {
+        DB::transaction(function () use ($comment, $validated) {
             $comment->update([
                 'body' => $validated['body'],
                 'body_html' => $comment->renderBodyAndSyncMentions($validated['body'], $comment->author),
                 'edited_at' => now(),
             ]);
             $comment->syncUploadUsages($validated['body']);
-            event(SpaceContentChanged::forComment(SpaceContentChanged::COMMENT_UPDATED, $comment, $user->cuid));
+            event(SpaceContentChanged::forComment(SpaceContentChanged::COMMENT_UPDATED, $comment));
         });
 
         return $comment;

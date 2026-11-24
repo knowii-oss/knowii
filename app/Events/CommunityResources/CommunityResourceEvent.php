@@ -9,9 +9,12 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Str;
 
+/**
+ * A resource of a resources space was created, changed or deleted. Identifiers only, like SpaceContentChanged (ADR 0009):
+ * the page loads the resource through the API, which checks the access of its reader now.
+ */
 abstract class CommunityResourceEvent implements ShouldBroadcast, ShouldDispatchAfterCommit
 {
     use Dispatchable, InteractsWithSockets;
@@ -32,25 +35,15 @@ abstract class CommunityResourceEvent implements ShouldBroadcast, ShouldDispatch
     }
 
     /**
-     * Get the data to broadcast.
-     *
-     * @return array<string, mixed>
+     * @return array{community_cuid: string, space_cuid: string, resource_cuid: string}
      */
-    public function broadcastWith(): array
+    final public function broadcastWith(): array
     {
-
-        // Disable wrapping for the data we return to the frontend from this controller
-        // This lets us use the API Resources classes without the wrapping that is normally applied
-        JsonResource::withoutWrapping();
-
-        $this->communityResource->load([
-            'resource',
-            'curator',
-            'capture',
-            'space',
-        ]);
-
-        return $this->communityResource->toResource()->toArray(request());
+        return [
+            'community_cuid' => $this->communityResource->community->cuid,
+            'space_cuid' => $this->communityResource->space->cuid,
+            'resource_cuid' => $this->communityResource->cuid,
+        ];
     }
 
     /**

@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest';
-import { act, render, screen, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { Community, CommunityResource, Paginated, Space } from '@knowii/common';
 import { AppDataProvider, knowiiApiClient } from '@knowii/common';
@@ -72,6 +72,17 @@ function resource(cuid: string, name: string, url = `https://example.com/${cuid}
   } as unknown as CommunityResource;
 }
 
+// A live update names the resource only (ADR 0009)
+const ids = (cuid: string) => ({ community_cuid: 'c1', space_cuid: 's1', resource_cuid: cuid });
+
+// The API answers these resources, as the reader may read them now
+function apiHolds(...items: CommunityResource[]) {
+  return vi.spyOn(knowiiApiClient.resources, 'get').mockImplementation(async (_community, _space, cuid) => {
+    const found = items.find((item) => item.cuid === cuid);
+    return found ? { ok: true, message: '', data: found } : { ok: false, status: 404, message: 'Not found', errors: {} };
+  });
+}
+
 function page(items: CommunityResource[], nextOffset: number | null = null): Paginated<CommunityResource> {
   return {
     items,
@@ -125,27 +136,42 @@ describe('ResourceList', () => {
     expect(await screen.findByRole('dialog')).toHaveTextContent('Share a link in Cool links.');
   });
 
-  it('follows the resource events of the space', async () => {
+  it('follows the resource events of the space: it reads each resource through the API', async () => {
+    const get = apiHolds(resource('b', 'Second'));
     renderList([resource('a', 'First')]);
 
-    act(() => handlers.get('.community.resource.created')?.(resource('b', 'Second')));
-    expect(screen.getAllByRole('listitem').map((item) => item.textContent)).toEqual([
-      expect.stringContaining('Second'),
-      expect.stringContaining('First'),
-    ]);
+    act(() => handlers.get('.community.resource.created')?.(ids('b')));
+    await waitFor(() =>
+      expect(screen.getAllByRole('listitem').map((item) => item.textContent)).toEqual([
+        expect.stringContaining('Second'),
+        expect.stringContaining('First'),
+      ]),
+    );
+    expect(get).toHaveBeenCalledWith('c1', 's1', 'b');
 
-    act(() => handlers.get('.community.resource.deleted')?.({ cuid: 'a' }));
+    act(() => handlers.get('.community.resource.deleted')?.(ids('a')));
     expect(screen.queryByText('First')).not.toBeInTheDocument();
   });
 
-  it('follows the capture of a resource: status, then the title of the page (ADR 0018)', () => {
+  it('shows no resource that the API does not give to the reader', async () => {
+    const get = apiHolds();
+    renderList([resource('a', 'First')]);
+
+    act(() => handlers.get('.community.resource.created')?.(ids('b')));
+    await waitFor(() => expect(get).toHaveBeenCalledWith('c1', 's1', 'b'));
+    expect(screen.getAllByRole('listitem')).toHaveLength(1);
+    expect(screen.getByText('1 resource')).toBeInTheDocument();
+  });
+
+  it('follows the capture of a resource: status, then the title of the page (ADR 0018)', async () => {
+    apiHolds({ ...resource('a', 'How to take smart notes'), capture_status: 'captured' } as CommunityResource);
     renderList([{ ...resource('a', 'Smart Notes Guide'), capture_status: 'pending' } as CommunityResource]);
     expect(screen.getByText('Capturing the page…')).toBeInTheDocument();
 
-    act(() => handlers.get('.community.resource.updated')?.({ ...resource('a', 'How to take smart notes'), capture_status: 'captured' }));
+    act(() => handlers.get('.community.resource.updated')?.(ids('a')));
 
+    expect(await screen.findByRole('heading', { name: /How to take smart notes/ })).toBeInTheDocument();
     expect(screen.queryByText('Capturing the page…')).not.toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /How to take smart notes/ })).toBeInTheDocument();
   });
 
   it('loads the next page and skips the resources already shown (#877)', async () => {
@@ -161,16 +187,17 @@ describe('ResourceList', () => {
     expect(screen.queryByRole('button', { name: 'Load more resources' })).not.toBeInTheDocument();
   });
 
-  it('shows the number of resources and keeps it current (#1137)', () => {
+  it('shows the number of resources and keeps it current (#1137)', async () => {
+    apiHolds(resource('b', 'Second'));
     renderList([resource('a', 'First')]);
     expect(screen.getByText('1 resource')).toBeInTheDocument();
 
-    act(() => handlers.get('.community.resource.created')?.(resource('b', 'Second')));
+    act(() => handlers.get('.community.resource.created')?.(ids('b')));
     // The same resource announced twice (dialog and event) counts once
-    act(() => handlers.get('.community.resource.created')?.(resource('b', 'Second')));
-    expect(screen.getByText('2 resources')).toBeInTheDocument();
+    act(() => handlers.get('.community.resource.created')?.(ids('b')));
+    expect(await screen.findByText('2 resources')).toBeInTheDocument();
 
-    act(() => handlers.get('.community.resource.deleted')?.({ cuid: 'a' }));
+    act(() => handlers.get('.community.resource.deleted')?.(ids('a')));
     expect(screen.getByText('1 resource')).toBeInTheDocument();
   });
 });

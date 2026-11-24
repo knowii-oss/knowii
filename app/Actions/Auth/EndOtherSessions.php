@@ -7,6 +7,7 @@ use App\Exceptions\AccountChangedException;
 use App\Http\Middleware\EndOutdatedSessions;
 use App\Models\User;
 use App\Support\EndedSession;
+use App\Support\LiveConnections;
 use Closure;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -58,6 +59,10 @@ class EndOtherSessions implements EndsOtherSessions
 
         // The model holds what the row holds now, so its next write finds the row (User::setKeysForSaveQuery())
         $user->forceFill($values)->syncOriginalAttributes(array_keys($values));
+
+        // The live connections of the account end with its sessions: the pages connect again with the sessions that are left
+        // (ADR 0075)
+        LiveConnections::endFor($user);
 
         $this->keepPresentSession($user, array_key_exists('password', $with));
     }
