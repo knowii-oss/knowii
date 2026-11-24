@@ -76,8 +76,9 @@ class ReactionApiController extends Controller
     }
 
     /**
-     * Add or remove the reaction of the member to a comment on an event (#1516). Returns the new summary. A person who
-     * may not see the event gets 404, a person who is not a member 403. There is no reaction on the event itself.
+     * Add or remove the reaction of the member to a comment on an event (#1516). Returns the new summary. A space that the
+     * person cannot read answers first (`SpaceAccess`). A person who may not see the event (a draft) gets 404, a person who
+     * is not a member 403. There is no reaction on the event itself.
      *
      * @throws AuthenticationException
      */
@@ -90,9 +91,9 @@ class ReactionApiController extends Controller
     }
 
     /**
-     * Who reacted to a comment on an event, per emoji (#1516): a read, as the list of the comments. A person who may not
-     * see the event gets 404; a signed-in person who is not a member reads it in a public space, as for the comment of a
-     * resource.
+     * Who reacted to a comment on an event, per emoji (#1516): a read, as the list of the comments. A space that the person
+     * cannot read answers first (`SpaceAccess`). A person who may not see the event (a draft) gets 404; a signed-in person
+     * who is not a member reads it in a public space, as for the comment of a resource.
      *
      * @throws AuthenticationException
      */

@@ -61,16 +61,15 @@ test('an admin builds the Start Here space with three ordered pages, and members
     ]))->assertInertia(fn ($page) => $page->where('pages.0.title', 'Welcome')->where('pages.2.title', 'Introduce yourself'));
 });
 
-test('the owner, the admins and the moderators manage pages; members and outsiders do not (#1179)', function (string $who, bool $allowed) {
-    $response = $this->actingAs($this->c[$who])->postJson(pagesPath($this->space), ['title' => 'A page', 'body' => 'Text']);
-
-    $allowed ? $response->assertCreated() : $response->assertForbidden();
+test('the owner, the admins and the moderators manage pages; members and outsiders do not (#1179)', function (string $who, int $status) {
+    $this->actingAs($this->c[$who])->postJson(pagesPath($this->space), ['title' => 'A page', 'body' => 'Text'])->assertStatus($status);
 })->with([
-    'owner' => ['owner', true],
-    'admin' => ['admin', true],
-    'moderator' => ['moderator', true],
-    'member' => ['member', false],
-    'outsider' => ['outsider', false],
+    'owner' => ['owner', 201],
+    'admin' => ['admin', 201],
+    'moderator' => ['moderator', 201],
+    'member' => ['member', 403],
+    // The members space answers an outsider as a space that does not exist
+    'outsider' => ['outsider', 404],
 ]);
 
 test('pages are edited, reordered and deleted (#1179)', function () {

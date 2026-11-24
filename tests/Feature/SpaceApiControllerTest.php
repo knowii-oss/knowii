@@ -133,14 +133,14 @@ test('a space of another community gives a 404', function () {
         ->assertNotFound();
 });
 
-test('outsiders read public spaces but not members-only spaces', function () {
+test('outsiders read public spaces; a members-only space answers them as a space that does not exist', function () {
     $public = Space::factory()->inGroup($this->group)->create(['visibility' => KnowiiSpaceVisibility::Public]);
     $private = Space::factory()->inGroup($this->group)->create(['visibility' => KnowiiSpaceVisibility::Members]);
 
     $this->actingAs($this->c['outsider']);
 
     $this->getJson(ApiRoutes::path(ApiRoutes::COMMUNITY_SPACE, communityParams([ApiRoutes::PARAM_SPACE => $public->cuid])))->assertOk();
-    $this->getJson(ApiRoutes::path(ApiRoutes::COMMUNITY_SPACE, communityParams([ApiRoutes::PARAM_SPACE => $private->cuid])))->assertForbidden();
+    $this->getJson(ApiRoutes::path(ApiRoutes::COMMUNITY_SPACE, communityParams([ApiRoutes::PARAM_SPACE => $private->cuid])))->assertNotFound();
 });
 
 test('the space page renders for members and respects visibility', function () {

@@ -18,13 +18,13 @@ use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Gate;
 
 /**
  * Comments on the events of events spaces, with one level of replies (#1516, ADR 0053): the comments of posts and
- * resources, with the same actions (ADR 0006). Every route of a signed-in person answers first as the other routes of an
- * event: 404 for an event that the person may not see (a draft of another host, a space that the person cannot read),
- * then 403 for a person who is not a member. A draft takes no comment (422). There is no reaction on the event itself.
+ * resources, with the same actions (ADR 0006). A space that the person cannot read answers first (`SpaceAccess`: 404 for
+ * a person who is not a member, 403 for a member). Every route then answers as the other routes of an event: 404 for an
+ * event that the person may not see (a draft of another host), then 403 for a person who is not a member. A draft takes
+ * no comment (422). There is no reaction on the event itself.
  */
 class EventCommentApiController extends Controller
 {
@@ -32,17 +32,13 @@ class EventCommentApiController extends Controller
 
     /**
      * The comments of an event, oldest first, each with its replies (oldest first). A visitor reads the comments of a
-     * published or cancelled event of a public space (401 elsewhere, and for a draft), as the event itself.
+     * published or cancelled event of a public space (404 elsewhere, and for a draft), as the event itself.
      */
     final public function index(Request $request, Community $community, Space $space, Event $event): JsonResponse
     {
         self::inSpace($community, $space, $event);
-        $user = $request->user();
-        if ($user !== null) {
-            EventPublication::assertVisible($user, $event);
-        }
-        // A visitor: the answer of the public reads (ADR 0044)
-        Gate::authorize('view', $event);
+        // A reader who cannot see the event, a visitor too: the answer of an event that does not exist
+        EventPublication::assertVisible($request->user(), $event);
 
         return self::success('Comments', ['totalCount' => $event->comments()->count()], CommentThread::for($event)->toResourceCollection());
     }

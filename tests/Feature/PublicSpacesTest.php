@@ -210,10 +210,13 @@ test('web pages: a member page is not shown to a visitor', function () {
     $this->get(route('members.show', ['communitySlug' => $this->c['community']->slug, 'username' => $this->author->username]))->assertRedirect(route('login'));
 });
 
-test('web pages: a space that does not exist answers a visitor like a private one', function () {
+test('web pages: a space that does not exist answers a visitor and an outsider like a private one', function () {
     $this->get(route('spaces.show', ['communitySlug' => $this->c['community']->slug, 'spaceSlug' => 'nothing-here']))->assertRedirect(route('login'));
     $this->get(route('spaces.show', ['communitySlug' => 'no-such-community', 'spaceSlug' => 'nothing-here']))->assertRedirect(route('login'));
-    $this->actingAs($this->c['outsider'])->get(route('spaces.show', ['communitySlug' => $this->c['community']->slug, 'spaceSlug' => 'nothing-here']))->assertNotFound();
+    // An outsider: the page without access, as for a space that they cannot read
+    $this->actingAs($this->c['outsider'])->get(route('spaces.show', ['communitySlug' => $this->c['community']->slug, 'spaceSlug' => 'nothing-here']))
+        ->assertForbidden()->assertInertia(fn ($page) => $page->component('Communities/NoAccess')->where('kind', 'space'));
+    $this->actingAs($this->c['outsider'])->get(route('spaces.show', ['communitySlug' => 'no-such-community', 'spaceSlug' => 'nothing-here']))->assertNotFound();
 });
 
 test('web pages: an unverified account is refused, like everywhere else', function () {
@@ -476,19 +479,19 @@ test('API: a public space is read by a visitor, an outsider and a member', funct
     publicReadApiAs('member', $url)->assertOk();
 })->with('public api reads');
 
-test('API: a members space answers a visitor 401, an outsider 403, a member 200', function (string $route) {
+test('API: a members space answers a visitor and an outsider 404 (a space that does not exist), a member 200', function (string $route) {
     $url = publicApiUrls('members')[$route];
 
-    publicReadApiAs('visitor', $url)->assertUnauthorized();
-    publicReadApiAs('outsider', $url)->assertForbidden();
+    publicReadApiAs('visitor', $url)->assertNotFound();
+    publicReadApiAs('outsider', $url)->assertNotFound();
     publicReadApiAs('member', $url)->assertOk();
 })->with('public api reads');
 
-test('API: a groups space answers a visitor 401, an outsider and a member outside the groups 403, the owner 200', function (string $route) {
+test('API: a groups space answers a visitor and an outsider 404, a member outside the groups 403, the owner 200', function (string $route) {
     $url = publicApiUrls('groups')[$route];
 
-    publicReadApiAs('visitor', $url)->assertUnauthorized();
-    publicReadApiAs('outsider', $url)->assertForbidden();
+    publicReadApiAs('visitor', $url)->assertNotFound();
+    publicReadApiAs('outsider', $url)->assertNotFound();
     publicReadApiAs('member', $url)->assertForbidden();
     publicReadApiAs('owner', $url)->assertOk();
 })->with('public api reads');
@@ -507,9 +510,10 @@ test('API: the comments of an event reach a visitor and an outsider in a public 
     }
 })->with([
     'a public space' => ['public', ['visitor' => 200, 'outsider' => 200, 'member' => 200]],
-    // A signed-in person who may not see the event gets the answer of an event that does not exist
-    'a members space' => ['members', ['visitor' => 401, 'outsider' => 404, 'member' => 200]],
-    'a groups space' => ['groups', ['visitor' => 401, 'outsider' => 404, 'member' => 404, 'owner' => 200]],
+    // A visitor and a signed-in person who is not a member get the answer of a space that does not exist; a member outside
+    // the groups the refusal of the space
+    'a members space' => ['members', ['visitor' => 404, 'outsider' => 404, 'member' => 200]],
+    'a groups space' => ['groups', ['visitor' => 404, 'outsider' => 404, 'member' => 403, 'owner' => 200]],
 ]);
 
 test('web: the page of an event of a public space gives its comments to a visitor (#1516)', function () {
@@ -525,7 +529,7 @@ test('web: the page of an event of a public space gives its comments to a visito
 test('API: a public chat space is not given to a visitor, the space of an outsider is unchanged', function () {
     $url = ApiRoutes::path(ApiRoutes::COMMUNITY_SPACE, [ApiRoutes::PARAM_COMMUNITY => $this->c['community']->cuid, ApiRoutes::PARAM_SPACE => $this->chat['public']->cuid]);
 
-    publicReadApiAs('visitor', $url)->assertUnauthorized();
+    publicReadApiAs('visitor', $url)->assertNotFound();
     publicReadApiAs('outsider', $url)->assertOk();
 });
 

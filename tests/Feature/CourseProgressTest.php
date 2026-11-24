@@ -85,7 +85,8 @@ test('sections and spaces that are not courses have no progress (#1304)', functi
 });
 
 test('outsiders keep no progress, also in a public course (#1304)', function () {
-    $this->actingAs($this->c['outsider'])->putJson(progressPath($this->course, $this->lessons[0]))->assertForbidden();
+    // A course that they cannot read answers as a space that does not exist
+    $this->actingAs($this->c['outsider'])->putJson(progressPath($this->course, $this->lessons[0]))->assertNotFound();
 
     $this->course->update(['visibility' => KnowiiSpaceVisibility::Public]);
     $this->actingAs($this->c['outsider'])->putJson(progressPath($this->course, $this->lessons[0]))->assertForbidden();

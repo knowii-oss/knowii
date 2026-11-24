@@ -19,8 +19,10 @@ use Illuminate\Http\Request;
  * What the current member chose for a thread (#1475, ADR 0042, design 2.2): a post with its comments, or a first-level
  * chat message with its replies. The state is `following`, `muted` or `stopped` (the member stopped following by hand:
  * writing in the thread again does not follow it again), or null when the member has no row. The reason is `wrote`,
- * `replied` or `manual`. Only a member of the community who can view the space has a state (403 otherwise), and a marker
- * of a deleted item has none (a business error).
+ * `replied` or `manual`. Only a member of the community who can view the space has a state: a space that the person
+ * cannot read answers as a space that does not exist (404) for a person who is not a member, and 403 for a member outside
+ * its access groups; a person who is not a member gets 403 in a public space. A marker of a deleted item has no state (a
+ * business error).
  */
 class ThreadFollowApiController extends Controller
 {

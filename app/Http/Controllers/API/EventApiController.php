@@ -99,19 +99,14 @@ class EventApiController extends Controller
     }
 
     /**
-     * Get an event with its description (Markdown and HTML). A draft is for its host, the owner and the admins. A
-     * signed-in reader who cannot see the event (a draft of another host, or an event of a space that the reader cannot
-     * read) gets 404, with the body of an event that does not exist: the same answer as every other route of an event
-     * (ADR 0053, "The answers and the places", point 3).
+     * Get an event with its description (Markdown and HTML). A draft is for its host, the owner and the admins. A reader
+     * who cannot see the event (a draft of another host), a visitor too, gets 404, with the body of an event that does not
+     * exist: the same answer as every other route of an event (ADR 0053, "The answers and the places", point 3). A
+     * space that the reader cannot read answers before the event is read (`SpaceAccess`).
      */
     final public function show(Request $request, Community $community, Space $space, Event $event): JsonResponse
     {
-        $user = $request->user();
-        if ($user !== null) {
-            EventPublication::assertVisible($user, $event);
-        }
-        // A visitor: the answer of the public reads (ADR 0044)
-        Gate::authorize('view', $event);
+        EventPublication::assertVisible($request->user(), $event);
 
         return self::success('Event', null, self::loaded($event)->toResource()->withLargeFields());
     }

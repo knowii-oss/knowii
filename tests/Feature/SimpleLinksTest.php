@@ -128,8 +128,8 @@ test('link spaces follow the visibility of spaces, access groups included (ADR 0
     $this->c['member']->unsetRelation('accessGroups');
     expect($names($this->c['member']))->toContain('For buyers');
 
-    // The URL of a restricted link stays hidden: the space itself is refused
-    $this->actingAs($this->c['outsider'])->getJson(linkSpacePath($paid))->assertForbidden();
+    // The URL of a restricted link stays hidden: the space answers an outsider as a space that does not exist
+    $this->actingAs($this->c['outsider'])->getJson(linkSpacePath($paid))->assertNotFound();
 });
 
 test('nobody posts in a link space', function () {

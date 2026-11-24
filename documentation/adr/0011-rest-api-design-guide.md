@@ -23,6 +23,7 @@ The rules we apply most:
 7. Dates and times in ISO 8601 with a time zone (UTC on the wire).
 8. No hypermedia controls (HATEOAS), like the guide itself.
 9. Security recommendations of the guide: no internal identifiers (we expose cuid2, [ADR 0005](0005-cuid2-public-identifiers.md)), no sensitive data in URLs, rate limits.
+10. A 404 also means "you may not know that this exists". A space that the reader cannot read, and every item in it, answers a visitor and a signed-in person who is not a member of the community as a space that does not exist: the same status and the same body, on every route under the space (the API and the pages), for every `Accept` header. A member of the community who cannot read the space (outside its access groups) gets 403, and the access to the space is checked before any item of the space is read: the answer is the same whether the item exists or not. An event that the reader may not see answers 404, also to a visitor ([ADR 0053](0053-events-a-space-type-with-its-own-table.md)). Accepted on purpose: on the API, where every identifier is a random cuid, a person who is not a member gets 403 for a community that exists and 404 for one that does not, and a member without the right gets 403 for an item of a manager that exists (an access group, an invitation, an import of invitations, an invite link, the access groups of a space group). A cuid is random, and the answer gives nothing that a use of the item needs. `tests/Feature/HiddenSpacesAnswerAsMissingTest.php` holds both rules and the accepted cases.
 
 ## Deviations
 

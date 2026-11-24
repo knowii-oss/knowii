@@ -604,10 +604,11 @@ test('community: a space of a personal community is for its owner only, also whe
         expect(Gate::forUser($reader)->check('view', $discussion->fresh()))->toBeFalse()
             ->and(Gate::forUser($reader)->check('view', $events->fresh()))->toBeFalse();
     }
-    // A visitor: the sign-in page on the web, 401 from the API; another account: 403
+    // A visitor: the sign-in page on the web; another account: the page without access; from the API, both get the answer
+    // of a space that does not exist (404)
     expect($statuses)->toBe([
-        'visitor web space' => 302, 'visitor web post' => 302, 'visitor api space' => 401, 'visitor api posts' => 401, 'visitor api events' => 401,
-        'outsider web space' => 403, 'outsider web post' => 403, 'outsider api space' => 403, 'outsider api posts' => 403, 'outsider api events' => 403,
+        'visitor web space' => 302, 'visitor web post' => 302, 'visitor api space' => 404, 'visitor api posts' => 404, 'visitor api events' => 404,
+        'outsider web space' => 403, 'outsider web post' => 403, 'outsider api space' => 404, 'outsider api posts' => 404, 'outsider api events' => 404,
     ]);
 
     // The owner reads the spaces, the post and the event

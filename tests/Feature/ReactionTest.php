@@ -89,7 +89,8 @@ test('the API toggles reactions and lists who reacted', function () {
         ->assertJsonMissingPath('data.0.members.0.email');
     $this->getJson(reactionsPath($this->post, $this->comment))->assertJsonPath('data.0.members.0.username', $this->c['admin']->username);
 
-    $this->actingAs($this->c['outsider'])->postJson(reactionsPath($this->post), ['emoji' => '👍'])->assertForbidden();
+    // A space that a person who is not a member cannot read answers as a space that does not exist
+    $this->actingAs($this->c['outsider'])->postJson(reactionsPath($this->post), ['emoji' => '👍'])->assertNotFound();
 });
 
 test('reactions go away with their comment, and with the comments of a deleted post', function () {

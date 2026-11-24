@@ -177,7 +177,8 @@ test('other members cannot capture a resource again', function (string $who, int
     $this->actingAs($c[$who])->postJson(captureAgainPath($space, $resource))->assertStatus($status);
 
     Queue::assertNotPushed(CaptureCommunityResource::class);
-})->with(['member' => ['member', 403], 'moderator without the right' => ['moderator', 403], 'outsider' => ['outsider', 403]]);
+    // An outsider: the members space answers as a space that does not exist
+})->with(['member' => ['member', 403], 'moderator without the right' => ['moderator', 403], 'outsider' => ['outsider', 404]]);
 
 test('a capture that runs cannot start again', function () {
     Queue::fake();
