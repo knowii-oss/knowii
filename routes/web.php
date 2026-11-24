@@ -26,12 +26,14 @@ use App\Http\Controllers\RobotsController;
 use App\Http\Controllers\SecurityTxtController;
 use App\Http\Controllers\Webhooks\MailWebhookController;
 use App\Http\Controllers\Webhooks\OidcEntitlementsWebhookController;
+use App\Http\Middleware\CheckChannelAuthorizationValues;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\InviteLink;
 use App\Support\InstanceValues;
 use App\Support\LegalPages;
 use App\Support\OidcEntitlements;
 use App\Support\SecurityTxt;
+use Illuminate\Broadcasting\BroadcastController;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -116,6 +118,20 @@ Route::middleware([
     // An event of an events space (#1514, ADR 0053): a visitor reads it in a public space, without its meeting address
     Route::get('/community/{communitySlug}/space/{spaceSlug}/event/{eventSlug}', [EventController::class, 'show'])->name('events.show');
 });
+
+// The authorization of a live channel (private and presence channels, routes/channels.php). It asks for the same sign-in
+// checks as the pages: a session of the account (never an API token: the `web` group refuses it, ADR 0022), the check of the
+// password of the session and a verified email address. POST only. Every refusal is the JSON error of ADR 0011, also for a
+// visitor: the client of the live connection never gets a page or a redirect, and a request with a bad value gets the
+// validation error (App\Http\Middleware\CheckChannelAuthorizationValues). No CSRF token, as the route of the framework
+// that it replaces (bootstrap/app.php): the answer changes nothing, and another site cannot read it
+Route::middleware([
+    'json-refusals',
+    'auth:sanctum',
+    config('jetstream.auth_session'),
+    'verified',
+    CheckChannelAuthorizationValues::class,
+])->post('/broadcasting/auth', [BroadcastController::class, 'authenticate'])->withoutMiddleware([PreventRequestForgery::class]);
 
 // Invite links (#1391, ADR 0062). The address of a link keeps the hash of its token in the session and sends to the page of
 // the link, so the token does not stay in the address; both load no statistics script (App\Support\Analytics). The page is

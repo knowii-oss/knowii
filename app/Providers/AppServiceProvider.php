@@ -10,6 +10,7 @@ use App\Actions\AccessGroups\SetAccessGroupRules;
 use App\Actions\AccessGroups\SetAccessGroupSpaceGroups;
 use App\Actions\AccessGroups\UpdateAccessGroup;
 use App\Actions\Auth\ConfirmAccountDeletion;
+use App\Actions\Auth\EndOtherSessions;
 use App\Actions\Auth\EntitlementsClient;
 use App\Actions\Auth\LinkIdentity;
 use App\Actions\Auth\MagicLinks;
@@ -143,6 +144,7 @@ use App\Contracts\AccessGroups\SetsAccessGroupSpaceGroups;
 use App\Contracts\AccessGroups\UpdatesAccessGroups;
 use App\Contracts\Auth\ConfirmsAccountDeletions;
 use App\Contracts\Auth\ConsumesMagicLinks;
+use App\Contracts\Auth\EndsOtherSessions;
 use App\Contracts\Auth\LinksIdentities;
 use App\Contracts\Auth\ReadsOpenIdConnectIdentities;
 use App\Contracts\Auth\ReadsSubjectEntitlements;
@@ -274,6 +276,7 @@ use App\Support\EmailChangeBudget;
 use App\Support\MailSettings;
 use App\Support\MemberTagsOfMembers;
 use App\Support\ProviderRemovals;
+use App\Support\RequestCredential;
 use App\Support\ReverbLiveConnections;
 use App\Support\ReverbPresenceChannels;
 use Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider;
@@ -461,6 +464,7 @@ class AppServiceProvider extends ServiceProvider
         app()->singleton(LinksIdentities::class, LinkIdentity::class);
         app()->singleton(UnlinksIdentities::class, UnlinkIdentity::class);
         app()->singleton(TakesOverUnverifiedAccounts::class, TakeOverUnverifiedAccount::class);
+        app()->singleton(EndsOtherSessions::class, EndOtherSessions::class);
         // An account without a password confirms its deletion with a new sign-in (#1521, ADR 0052)
         app()->singleton(ConfirmsAccountDeletions::class, ConfirmAccountDeletion::class);
         // The entitlements of the sign-in provider feed the access groups (#1386, ADR 0047)
@@ -629,13 +633,16 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(Constants::INVITE_LINK_READS_PER_MINUTE)->by(self::rateLimitKey($request));
         });
 
+        // The transfer of the ownership of a community checks the password of the owner (#1339). Per session or per API
+        // token, as the tries of the password (App\Support\PasswordTries): the requests of one credential never close the
+        // route for another session of the account
         RateLimiter::for('ownership-transfers', static function (Request $request) {
-            return Limit::perMinute(Constants::OWNERSHIP_TRANSFERS_PER_MINUTE)->by(self::rateLimitKey($request));
+            return Limit::perMinute(Constants::OWNERSHIP_TRANSFERS_PER_MINUTE)->by(self::credentialLimitKey($request));
         });
 
-        // The deletion of the own account through the API checks the password (#1492)
+        // The deletion of the own account through the API checks the password (#1492). Per session or per API token too
         RateLimiter::for('account-deletions', static function (Request $request) {
-            return Limit::perMinute(Constants::ACCOUNT_DELETIONS_PER_MINUTE)->by(self::rateLimitKey($request));
+            return Limit::perMinute(Constants::ACCOUNT_DELETIONS_PER_MINUTE)->by(self::credentialLimitKey($request));
         });
 
         // The link of a change of the email address (#1706, ADR 0058): send it again, cancel the change, open the link. One
@@ -690,6 +697,17 @@ class AppServiceProvider extends ServiceProvider
                 info("Attempted lazy loading [{$relation}] on model [{$class}].");
             });
         }
+    }
+
+    /**
+     * A rate limit that counts per credential of the request: the session or the API token of a member
+     * (App\Support\RequestCredential), or the IP address of a visitor.
+     */
+    private static function credentialLimitKey(Request $request): string
+    {
+        $user = $request->user();
+
+        return $user instanceof User ? RequestCredential::keyOf($request, $user) : 'ip:'.$request->ip();
     }
 
     /**

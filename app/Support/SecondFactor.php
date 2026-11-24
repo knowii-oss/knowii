@@ -14,6 +14,19 @@ use Laravel\Fortify\Fortify;
 final class SecondFactor
 {
     /**
+     * Whether the second factor of the account is on: a secret, confirmed when the instance asks for the confirmation, as
+     * Fortify says it. It reads the values that the model holds, so a model that never read them (one that was just
+     * made) has no second factor
+     */
+    public static function isOnFor(User $user): bool
+    {
+        $attributes = $user->getAttributes();
+
+        return ($attributes['two_factor_secret'] ?? null) !== null
+            && (! Fortify::confirmsTwoFactorAuthentication() || ($attributes['two_factor_confirmed_at'] ?? null) !== null);
+    }
+
+    /**
      * Check a code of the authenticator app, or, when `$code` is empty, a recovery code.
      */
     public static function passes(User $user, ?string $code, ?string $recoveryCode): bool

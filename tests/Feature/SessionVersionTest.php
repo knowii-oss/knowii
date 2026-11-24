@@ -230,9 +230,9 @@ test('a takeover ends the session of before, with its cookie or with the remembe
     match ($endpoint) {
         'page' => $before->assertOk(),
         'fortify' => $before->assertOk(),
-        // The API needs a verified address: signed in, and refused for that
+        // The API and the authorization of a channel need a verified address: signed in, and refused for that
         'api' => $before->assertForbidden(),
-        'broadcast' => $before->assertOk()->assertJsonStructure(['auth']),
+        'broadcast' => $before->assertForbidden()->assertJsonMissingPath('auth'),
     };
     test()->assertAuthenticatedAs($account);
 
@@ -243,9 +243,9 @@ test('a takeover ends the session of before, with its cookie or with the remembe
     match ($endpoint) {
         'page' => $after->assertRedirect(route('login')),
         'fortify', 'api' => $after->assertUnauthorized(),
-        // 401 when the version ends the session (the array driver keeps it, with the cookie of the session), 403 when the
-        // session is gone already (the takeover deleted its row, or only the remember cookie came): nobody is signed in
-        'broadcast' => $after->assertStatus($driver === 'array' && $credential === 'session' ? 401 : 403)->assertJsonMissingPath('auth'),
+        // The route has the sign-in check of the pages: 401 when the version ends the session, and when the session is gone
+        // already (the takeover deleted its row, or only the remember cookie came)
+        'broadcast' => $after->assertUnauthorized()->assertJsonMissingPath('auth'),
     };
     test()->assertGuest();
     expect($account->fresh()?->name)->toBe('Ada Lovelace')

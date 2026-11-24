@@ -1,5 +1,10 @@
 <?php
 
+/*
+ * The rules of the live channels. Each rule gets the account of the session: the authorization route (routes/web.php) has
+ * the sign-in checks of the pages, so a rule never runs for a visitor or for an API token.
+ */
+
 use App\Broadcasting\CommunityOnlineChannel;
 use App\Broadcasting\ConversationPresenceChannel;
 use App\Broadcasting\SpacePresenceChannel;
@@ -20,19 +25,19 @@ Broadcast::channel(Constants::WS_CHANNEL_COMMUNITIES, static function (User $use
 });
 
 Broadcast::channel(Constants::WS_CHANNEL_COMMUNITY, static function (User $user, string $communityCuid) {
-    // This is a private channel reserved to community members
-    $community = Community::whereCuid($communityCuid)->firstOrFail();
-    $retVal = $user->allCommunities()->contains($community);
+    // This is a private channel reserved to community members. A community that does not exist answers as one that the
+    // account may not read
+    $community = Community::whereCuid($communityCuid)->first();
 
-    return $retVal;
+    return $community !== null && $user->allCommunities()->contains($community);
 });
 
 Broadcast::channel(Constants::WS_CHANNEL_COMMUNITY_SPACE, static function (User $user, string $communityCuid, string $spaceCuid) {
-    // Private channel of a space: same rule as reading the space (SpacePolicy::view)
-    $community = Community::whereCuid($communityCuid)->firstOrFail();
-    $space = $community->spaces()->where('cuid', $spaceCuid)->firstOrFail();
+    // Private channel of a space: same rule as reading the space (SpacePolicy::view). A community or a space that does not
+    // exist answers as one that the account may not read
+    $space = Community::whereCuid($communityCuid)->first()?->spaces()->where('cuid', $spaceCuid)->first();
 
-    return $user->can('view', $space);
+    return $space !== null && $user->can('view', $space);
 });
 
 // Presence channels (#1187, ADR 0027): members who hide their online status never join

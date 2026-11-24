@@ -198,12 +198,35 @@ test('the transfer needs a session or a token with communities:write, and a veri
     $this->actingAs($newOwner)->postJson(ownershipPath($community), ownershipBody($this->c['owner']))->assertForbidden();
 });
 
-test('the transfer is rate limited: no unlimited password guessing (#1339)', function () {
+test('the transfer limits the wrong passwords: the tries of the password are limited (#1339)', function () {
     $community = $this->c['community'];
     $this->actingAs($this->c['owner']);
 
-    for ($i = 0; $i < Constants::OWNERSHIP_TRANSFERS_PER_MINUTE; $i++) {
+    // The wrong passwords count for the credential of the request, with the other places that ask for the current password
+    // (App\Support\PasswordTries, tests/Feature/PasswordTriesTest.php). The limit of the route counts per minute: the
+    // tries are spread over more than one
+    for ($i = 0; $i < Constants::PASSWORD_TRIES; $i++) {
         $this->postJson(ownershipPath($community), ownershipBody($this->c['admin'], 'guess-'.$i))->assertStatus(400);
+        $this->travel(21)->seconds();
+    }
+
+    // Then also the right password is refused, until the 15 minutes of the tries are over
+    $refused = $this->postJson(ownershipPath($community), ownershipBody($this->c['admin']))->assertStatus(429);
+    expect((int) $refused->headers->get('Retry-After'))->toBeGreaterThan(60)
+        ->and($community->fresh()->owner_id)->toBe($this->c['owner']->id);
+
+    $this->travel(Constants::PASSWORD_TRIES_MINUTES)->minutes();
+    $this->postJson(ownershipPath($community), ownershipBody($this->c['admin']))->assertOk();
+    expect($community->fresh()->owner_id)->toBe($this->c['admin']->id);
+});
+
+test('the transfer has its own limit per minute, also with the right password (#1339)', function () {
+    $community = $this->c['community'];
+    $this->actingAs($this->c['owner']);
+
+    // The right password and a member who cannot receive the community: each request counts for the route
+    for ($i = 0; $i < Constants::OWNERSHIP_TRANSFERS_PER_MINUTE; $i++) {
+        $this->postJson(ownershipPath($community), ownershipBody($this->c['member']))->assertStatus(422);
     }
 
     $this->postJson(ownershipPath($community), ownershipBody($this->c['admin']))->assertStatus(429);

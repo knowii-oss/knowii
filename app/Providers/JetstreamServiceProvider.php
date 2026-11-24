@@ -6,6 +6,8 @@ use App\Actions\DeleteUser;
 use App\Enums\KnowiiAccountDeletionProof;
 use App\Http\Controllers\ApiTokenController;
 use App\Http\Controllers\Inertia\OpenIdConnectController;
+use App\Http\Controllers\OtherBrowserSessionsController;
+use App\Http\Controllers\ProfilePhotoController;
 use App\Models\User;
 use App\Models\UserEntitlement;
 use App\Support\AccountDeletion;
@@ -14,6 +16,8 @@ use App\Support\OpenIdConnect;
 use Illuminate\Http\Request;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Jetstream\Http\Controllers\Inertia\ApiTokenController as JetstreamApiTokenController;
+use Laravel\Jetstream\Http\Controllers\Inertia\OtherBrowserSessionsController as JetstreamOtherBrowserSessionsController;
+use Laravel\Jetstream\Http\Controllers\Inertia\ProfilePhotoController as JetstreamProfilePhotoController;
 use Laravel\Jetstream\Jetstream;
 
 class JetstreamServiceProvider extends ServiceProvider
@@ -23,8 +27,14 @@ class JetstreamServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // The API tokens page creates tokens with an expiry (#1267): the routes of Jetstream resolve our controller
+        // The API tokens page creates tokens with an expiry (#1267), and answers 404 for an id that is no token of the
+        // account: the routes of Jetstream resolve our controller
         $this->app->bind(JetstreamApiTokenController::class, ApiTokenController::class);
+        // "Log out other browser sessions" ends every other session of the account, whatever the session driver (ADR 0066),
+        // and the browser forgets the pages that its history keeps
+        $this->app->bind(JetstreamOtherBrowserSessionsController::class, OtherBrowserSessionsController::class);
+        // The profile photos of Jetstream are off: their route answers 404
+        $this->app->bind(JetstreamProfilePhotoController::class, ProfilePhotoController::class);
     }
 
     /**

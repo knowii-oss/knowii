@@ -10,13 +10,14 @@ use App\Models\User;
 use App\Models\UserProfile;
 use App\Rules\KnownTimeZone;
 use App\Support\EmailChangeBudget;
+use App\Support\PasswordTries;
 use App\Support\ProfileFieldVisibility;
 use App\Support\ProfileHeadline;
 use App\Support\TimeZones;
 use Closure;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\UpdatesUserProfileInformation;
@@ -40,6 +41,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
      *
      * @param  array<mixed>  $input
      *
+     * @throws AuthenticationException
      * @throws TechnicalException
      * @throws ValidationException
      */
@@ -55,11 +57,6 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         $changesAddress = $newAddress !== null && mb_strtolower($newAddress) !== mb_strtolower($user->email);
         $checksPassword = $changesAddress && $user->hasPassword();
 
-        // A few wrong passwords a minute, as the deletion of the account: a session that someone else holds cannot guess it
-        $passwordKey = 'email-change-password:'.$user->cuid;
-        if ($checksPassword && RateLimiter::tooManyAttempts($passwordKey, Constants::EMAIL_CHANGES_PER_MINUTE)) {
-            throw ValidationException::withMessages(['current_password' => __('Too many tries. Please wait a minute, then try again.')])->errorBag('updateProfileInformation');
-        }
         // Each change of the address sends a mail: one budget with "Send the link again" (#1706, ADR 0058)
         if ($changesAddress && EmailChangeBudget::isUsedUpBy($user)) {
             throw ValidationException::withMessages(['email' => __('Too many tries. Please wait a minute, then try again.')])->errorBag('updateProfileInformation');
@@ -74,10 +71,10 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             // is the same for every new address (ADR 0058)
             'email' => ['required', 'email', 'max:'.Constants::MAX_LENGTH_USER_EMAIL],
             // The current password confirms a change of the address (#1706), when the account has one (an account that a
-            // provider made has none). The other fields need no password
-            ...($checksPassword ? ['current_password' => ['required', 'string', static function (string $attribute, mixed $value, Closure $fail) use ($user, $passwordKey): void {
-                if (! is_string($value) || ! Hash::check($value, (string) $user->password)) {
-                    RateLimiter::hit($passwordKey, 60);
+            // provider made has none). The other fields need no password. It is checked with the tries of the session
+            // (App\Support\PasswordTries): a wrong one counts, and the fifth wrong one in 15 minutes ends the session
+            ...($checksPassword ? ['current_password' => ['required', 'string', static function (string $attribute, mixed $value, Closure $fail) use ($user): void {
+                if (! PasswordTries::check($user, static fn (): bool => is_string($value) && Hash::check($value, (string) $user->password))) {
                     $fail(__('The provided password does not match your current password.'));
                 }
             }]] : []),

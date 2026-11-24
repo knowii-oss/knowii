@@ -17,12 +17,13 @@ use App\Exceptions\BusinessException;
 use App\Http\Controllers\Controller;
 use App\Models\Reaction;
 use App\Support\AccountDeletion;
+use App\Support\BrowserHistory;
 use App\Support\Emoji;
-use App\Support\SecondFactor;
 use App\Traits\ApiResponses;
 use Dedoc\Scramble\Attributes\BodyParameter;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Contracts\Auth\StatefulGuard;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -197,10 +198,13 @@ class UserApiController extends Controller
      * message gives the address of that page (also in `metadata.sign_in_url`). An account without a password and without a
      * connected sign-in account gets a business error too: the operator of the site deletes it.
      *
-     * Needs the ability `account:delete`, which is never in the default set of a token. A few tries a minute. Answers 204 and
-     * every token of the account is gone.
+     * Needs the ability `account:delete`, which is never in the default set of a token. A few tries a minute per token.
+     * After 5 wrong passwords in 15 minutes of the tokens of the account together, each token of the account gets a 429 until
+     * the 15 minutes are over (`Retry-After`). A session of the web application ends at its fifth wrong password (401).
+     * Answers 204 and every token of the account is gone.
      *
      * @throws AuthenticationException
+     * @throws ThrottleRequestsException
      * @throws ValidationException
      */
     #[BodyParameter('password', description: 'Your current password: required when the account has a password, ignored otherwise', required: false, type: 'string')]
@@ -228,21 +232,15 @@ class UserApiController extends Controller
             'code' => ['nullable', 'string', 'max:64'],
         ])->validate();
 
-        // The same check as the web (ConfirmPassword) and the same message
+        // The same check as the web (ConfirmPassword) and the same message. A wrong password counts for the session or for
+        // the token of the request (App\Support\PasswordTries)
         if ($proof === KnowiiAccountDeletionProof::Password && (! is_string($input['password']) || ! app(ConfirmPassword::class)($guard, $user, $input['password']))) {
             throw ValidationException::withMessages(['password' => __('The password is incorrect.')]);
         }
 
-        // Two-factor authentication is never skipped
-        if ($user->hasEnabledTwoFactorAuthentication()) {
-            $code = $input['code'] ?? null;
-            if (! is_string($code) || $code === '') {
-                throw ValidationException::withMessages(['code' => __('Enter the code of your authenticator app or a recovery code.')]);
-            }
-            if (! SecondFactor::passesEither($user, $code)) {
-                throw ValidationException::withMessages(['code' => __('The provided two factor authentication code was invalid.')]);
-            }
-        }
+        // Two-factor authentication is never skipped. A few wrong codes a minute per account, with the page
+        $code = $input['code'] ?? null;
+        AccountDeletion::checkSecondFactor($user, is_string($code) ? $code : null);
 
         if ($proof === KnowiiAccountDeletionProof::Password) {
             // The model of the request, whose password was checked: the action compares its version of the sessions with the
@@ -257,11 +255,13 @@ class UserApiController extends Controller
             }
         }
 
-        // A call from the web app has a session: it ends with the account
+        // A call from the web app has a session: it ends with the account, and the browser forgets the pages of the member
+        // that its history keeps
         if ($request->hasSession()) {
             $guard->logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
+            BrowserHistory::clear($request);
         }
 
         return self::deleted();

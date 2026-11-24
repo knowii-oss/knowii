@@ -6,6 +6,7 @@ use App\Exceptions\NoAccessException;
 use App\Exceptions\TechnicalException;
 use App\Http\Controllers\Inertia\InviteLinkController;
 use App\Http\Controllers\Mail\MailStopController;
+use App\Http\Middleware\AcceptOnlyTheSessionOnPages;
 use App\Http\Middleware\AddRobotsHeader;
 use App\Http\Middleware\AddViteContentSecurityPolicyNonce;
 use App\Http\Middleware\AnswerOnlyForOwnHostNames;
@@ -18,6 +19,7 @@ use App\Http\Middleware\LandOnlyOnOwnHostNames;
 use App\Http\Middleware\RecordLastVisit;
 use App\Http\Middleware\RefuseUnconfiguredInstance;
 use App\Http\Middleware\RequireTokenAbility;
+use App\Support\BrowserHistory;
 use App\Support\InstanceValues;
 use App\Support\LegalPages;
 use App\Support\SecretAddresses;
@@ -55,10 +57,15 @@ return Application::configure(basePath: dirname(__DIR__))
         web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
-        channels: __DIR__.'/../routes/channels.php',
         // Health check endpoint: https://laravel.com/docs/11.x/releases#health
         health: '/up',
     )
+    // The rules of the live channels. Not through `channels:` of withRouting(), which also registers the authorization
+    // route of the framework (GET and POST, with the `web` group only): routes/web.php registers it, for POST only, with the
+    // sign-in checks of the pages
+    ->booted(static function (): void {
+        require __DIR__.'/../routes/channels.php';
+    })
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->prepend([
             // The security headers of config/secure-headers.php are on every answer of the web and of the API, also on an
@@ -87,9 +94,13 @@ return Application::configure(basePath: dirname(__DIR__))
             // After a sign-in, the application goes only to an address of its own host names (ADR 0068): the session keeps
             // no other intended address (see the priority below)
             LandOnlyOnOwnHostNames::class,
-            // A session of an account that was taken over since its sign-in ends here (ADR 0059), before anything reads
-            // the account of the session (see the priority below)
+            // A session of an earlier version of its account ends here (ADR 0059, ADR 0066: after a takeover, a change of
+            // the password or of the second factor), before anything reads the account of the session (see the priority
+            // below)
             EndOutdatedSessions::class,
+            // The pages accept the session only (ADR 0022): a request whose account comes from an API token is refused,
+            // right after the sign-in check of the route (see the priority below)
+            AcceptOnlyTheSessionOnPages::class,
             HandleInertiaRequests::class,
             // The last visit of a member, one date at most once a day (#1476)
             RecordLastVisit::class,
@@ -113,8 +124,8 @@ return Application::configure(basePath: dirname(__DIR__))
             // Reject non-JSON request bodies (the API only accepts JSON input)
             EnsureRequestIsJson::class,
 
-            // A session of the first-party front-end whose account was taken over since its sign-in ends here, as in the
-            // web group (ADR 0059). A request with a token has no session: nothing to check
+            // A session of the first-party front-end of an earlier version of its account ends here, as in the web group
+            // (ADR 0059, ADR 0066). A request with a token has no session: nothing to check
             EndOutdatedSessions::class,
 
             // WARNING: Enabling this causes 302 redirects for API calls
@@ -142,6 +153,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // also the end of an outdated session and the sign-in check, so the browser never saves a page or the sign-in page
         // as the file. Before EndOutdatedSessions, which comes before the sign-in check (above)
         $middleware->prependToPriorityList(EndOutdatedSessions::class, AnswerRefusalsInJson::class);
+
+        // The pages accept the session only (ADR 0022): the check comes right after the sign-in check of the route, which
+        // finds the account, and before every other check of the route (the limits, the check of the password of the
+        // session, the check of the email address, the bindings)
+        $middleware->appendToPriorityList(AuthenticatesRequests::class, AcceptOnlyTheSessionOnPages::class);
 
         // The abilities of a token (ADR 0022) and the check of the email address (`verified`) come before the item of the
         // route is read: after the sign-in check and before the bindings of the route, so that a refused request gets the
@@ -432,7 +448,10 @@ return Application::configure(basePath: dirname(__DIR__))
             // the API keep the JSON error of ADR 0011 in every environment (#1716)
             if (! $rendersJson($request) && ! app()->environment(['local', 'testing']) && in_array($response->getStatusCode(), [500, 503, 404, 403])) {
                 // The two values of the footer, also when the failure came before the shared props (maintenance mode, a
-                // middleware that failed): they read only the configuration and the folder of the legal texts
+                // middleware that failed): they read only the configuration and the folder of the legal texts. The same for
+                // the encryption of the history of the browser, which a page asks for only where the browser can do it
+                BrowserHistory::decideEncryption($request);
+
                 return Inertia::render('Error', [
                     'status' => $response->getStatusCode(),
                     'instance' => static fn (): array => InstanceValues::pageProp(),

@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Constants;
 use App\Support\Analytics;
+use App\Support\BrowserHistory;
 use App\Support\InstanceValues;
 use App\Support\LegalPages;
 use App\Support\Newsletter;
@@ -24,6 +25,16 @@ class HandleInertiaRequests extends Middleware
      * @var string
      */
     protected $rootView = 'app';
+
+    /**
+     * A page asks the browser to encrypt its history only where the browser can do it (App\Support\BrowserHistory)
+     */
+    public function handle(Request $request, Closure $next)
+    {
+        BrowserHistory::decideEncryption($request);
+
+        return parent::handle($request, $next);
+    }
 
     /**
      * Determine the current asset version.

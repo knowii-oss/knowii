@@ -90,4 +90,6 @@ Do not write an ADR for a bug fix, a refactor that keeps the structure, or a fea
 | [0063](0063-a-member-chooses-to-be-in-the-member-list-of-their-communities.md)                 | A member chooses to be in the member list of their communities                   | Accepted |
 | [0064](0064-the-session-and-the-statistics-keep-no-address-that-holds-a-secret.md)             | The session and the statistics keep no address that holds a secret               | Accepted |
 | [0065](0065-the-sign-up-makes-the-account-when-the-link-of-its-mail-is-opened.md)              | The sign-up makes the account when the link of its mail is opened                | Accepted |
+| [0066](0066-the-session-version-ends-the-other-sessions-of-an-account.md)                      | The session version ends the other sessions of an account                        | Accepted |
+| [0067](0067-the-tries-of-the-current-password-count-for-what-signed-the-request-in.md)         | The tries of the current password count for what signed the request in           | Accepted |
 | [0068](0068-the-cookies-belong-to-one-host.md)                                                 | The cookies belong to one host                                                   | Accepted |

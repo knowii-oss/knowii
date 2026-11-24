@@ -32,18 +32,20 @@ export default function UpdatePasswordForm() {
     e.preventDefault();
 
     form.put(route(USER_PROFILE_PASSWORD_UPDATE_URL), {
+      // The server validates this form in its own error bag: with the name, each error shows under its field
+      errorBag: 'updatePassword',
       preserveScroll: true,
       onSuccess: () => {
         form.reset();
         showToast({ severity: 'success', summary: 'Success', detail: 'Password updated successfully.' });
       },
-      onError: () => {
-        if (form.errors.password) {
+      onError: (errors) => {
+        if (errors['password']) {
           form.reset('password', 'password_confirmation');
           passwordRef.current?.focus();
         }
 
-        if (form.errors.current_password) {
+        if (errors['current_password']) {
           form.reset('current_password');
           currentPasswordRef.current?.focus();
         }
@@ -79,8 +81,10 @@ export default function UpdatePasswordForm() {
           required
           autoComplete="current-password"
           disabled={form.processing}
+          invalid={!!form.errors.current_password}
+          aria-describedby={form.errors.current_password ? 'current_password-error' : undefined}
         />
-        <InputError className="mt-2" message={form.errors.current_password} />
+        <InputError id="current_password-error" className="mt-2" message={form.errors.current_password} />
       </div>
 
       {/* New password */}

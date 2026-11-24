@@ -283,11 +283,19 @@ class Constants
     // Joins of an open community (#1486) per minute and per user
     public const int JOINS_PER_MINUTE = 10;
 
-    // Ownership transfers (#1339) per minute and per user: each one checks the password of the owner
+    // Ownership transfers (#1339) per minute, per session or per API token: each one checks the password of the owner
     public const int OWNERSHIP_TRANSFERS_PER_MINUTE = 5;
 
-    // Deletions of the own account through the API (#1492) per minute and per user: each one checks the password
+    // Deletions of the own account through the API (#1492) per minute, per session or per API token: each one checks the
+    // password. Also the wrong codes of two-factor authentication per minute and per account, on the page and on the API
     public const int ACCOUNT_DELETIONS_PER_MINUTE = 3;
+
+    // Wrong current passwords for every place that asks for the current password together (App\Support\PasswordTries):
+    // per session that a sign-in made, per account for the sessions that the "Remember me" cookie made, and per account
+    // for the API tokens. After them a session ends, and the tokens wait until the minutes are over
+    public const int PASSWORD_TRIES = 5;
+
+    public const int PASSWORD_TRIES_MINUTES = 15;
 
     // The link of a change of the email address (#1706): send it again, cancel the change, open it. Per minute and per user,
     // for the web and the API together. A link is a mail

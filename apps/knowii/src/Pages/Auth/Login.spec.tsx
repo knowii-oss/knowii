@@ -59,3 +59,39 @@ describe('LoginPage with an OpenID Connect provider (#1385)', () => {
     expect(screen.getByRole('button', { name: 'Log in' })).toBeInTheDocument();
   });
 });
+
+describe('LoginPage after the end of a session', () => {
+  it.each(['Too many wrong passwords. Sign in again.', 'Your account changed on another device. Sign in again.'])(
+    'shows "%s" as a warning, once, and not as a success',
+    (words) => {
+      page.props = { oidc: null };
+      render(<LoginPage canResetPassword status="" warning={words} />);
+
+      const warning = screen.getByRole('alert');
+      expect(warning).toHaveTextContent(words);
+      expect(warning).toHaveClass('border-warning');
+      expect(warning).not.toHaveClass('text-success');
+      expect(screen.getAllByText(words)).toHaveLength(1);
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Log in' })).toBeInTheDocument();
+    },
+  );
+
+  it('keeps a status in the style of a success, and shows no warning without one', () => {
+    page.props = { oidc: null };
+    render(<LoginPage canResetPassword status="Your password has been reset." warning={null} />);
+
+    const status = screen.getByRole('status');
+    expect(status).toHaveTextContent('Your password has been reset.');
+    expect(status).toHaveClass('text-success');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('shows a warning and a status together, each in its style', () => {
+    page.props = { oidc: null };
+    render(<LoginPage canResetPassword status="Your password has been reset." warning="Too many wrong passwords. Sign in again." />);
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Too many wrong passwords. Sign in again.');
+    expect(screen.getByRole('status')).toHaveTextContent('Your password has been reset.');
+  });
+});
