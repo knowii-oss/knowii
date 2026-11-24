@@ -6,11 +6,14 @@ use App\Contracts\Posts\CreatesPosts;
 use App\Contracts\Posts\DeletesPosts;
 use App\Contracts\Posts\UpdatesPosts;
 use App\Contracts\Uploads\UploadsImages;
+use App\Enums\KnowiiCommunityVisibility;
 use App\Enums\KnowiiSpaceType;
 use App\Events\Spaces\SpaceTreeChanged;
+use App\Models\Community;
 use App\Models\Space;
 use App\Models\SpaceGroup;
 use App\Models\Upload;
+use App\Models\User;
 use App\Support\UploadReferences;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Event;
@@ -117,6 +120,42 @@ test('the images of a deleted post are pruned after 7 days (#1201, #1273)', func
 
     expect(Upload::query()->whereKey($upload->id)->exists())->toBeFalse();
     Storage::disk('public')->assertMissing($upload->path);
+});
+
+test('an uploaded image lives as long as content of its own community shows it', function () {
+    $upload = uploadAnImage();
+    $post = app(CreatesPosts::class)->create($this->c['member'], $this->space, ['title' => 'A photo', 'body' => imageMarkdown($upload)]);
+
+    // Another account shows the same image in a post and in a comment of its own community
+    $other = User::factory()->withUserProfile()->create();
+    $otherCommunity = Community::factory()->create(['owner_id' => $other->id, 'visibility' => KnowiiCommunityVisibility::Private]);
+    $otherSpace = Space::factory()->inGroup(SpaceGroup::factory()->create(['community_id' => $otherCommunity->id]))->create(['type' => KnowiiSpaceType::Discussion]);
+    $quote = app(CreatesPosts::class)->create($other, $otherSpace, ['title' => 'A quote', 'body' => imageMarkdown($upload)]);
+    $comment = app(CreatesComments::class)->create($other, $quote, ['body' => 'Again: '.imageMarkdown($upload)]);
+    app(UpdatesPosts::class)->update($other, $quote, ['body' => 'Changed: '.imageMarkdown($upload)]);
+
+    // The text shows the image while it exists, and records nothing: the image is not of this community
+    expect($quote->fresh()->body_html)->toContain($upload->cuid)
+        ->and($quote->uploadUsages()->count())->toBe(0)
+        ->and($comment->uploadUsages()->count())->toBe(0)
+        ->and($upload->usages()->count())->toBe(1)
+        ->and($upload->usages()->where('post_id', $post->id)->exists())->toBeTrue();
+
+    // The author deletes the post: 7 days later the file goes, whatever another community shows
+    app(DeletesPosts::class)->delete($this->c['member'], $post);
+    $this->travel(8)->days();
+    $this->artisan('uploads:prune')->assertSuccessful();
+
+    expect(Upload::query()->whereKey($upload->id)->exists())->toBeFalse();
+    Storage::disk('public')->assertMissing($upload->path);
+});
+
+test('an upload of the community is recorded whoever uploaded it', function () {
+    $upload = uploadAnImage();
+
+    $post = app(CreatesPosts::class)->create($this->c['admin'], $this->space, ['title' => 'A quote', 'body' => imageMarkdown($upload)]);
+
+    expect($upload->usages()->where('post_id', $post->id)->exists())->toBeTrue();
 });
 
 test('the prune runs every day (#1201)', function () {

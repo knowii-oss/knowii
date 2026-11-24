@@ -94,6 +94,8 @@ export function ConversationView(props: ConversationViewProps) {
         canWrite={props.canSend}
         canReact={props.canSend}
         canModerate={false}
+        // A member edits a direct message only while they may still write in the conversation
+        canEditOwn={props.canSend}
         readOnlyReason={readOnlyReason}
         presence={{
           channel: conversationPresenceChannel(conversation.cuid),

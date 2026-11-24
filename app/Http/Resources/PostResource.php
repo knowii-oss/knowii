@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Post;
+use App\Support\MentionLinks;
 use Illuminate\Http\Request;
 
 /**
@@ -26,7 +27,8 @@ class PostResource extends AbstractKnowiiJsonResource
             'slug' => $this->slug,
             // The Markdown source is needed to edit; lists only need the HTML
             'body' => $this->when($this->serializeLargeFields, $deleted ? '' : $this->body),
-            'body_html' => $deleted ? '' : $this->body_html,
+            // A mention is a link for a member of the community only (MentionLinks)
+            'body_html' => $deleted ? '' : MentionLinks::forReader($this->body_html, $request, $this->community_id),
             'is_pinned' => $this->is_pinned,
             'pinned_at' => $this->pinned_at,
             'edited_at' => $this->edited_at,

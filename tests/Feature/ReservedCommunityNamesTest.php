@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Fortify\CreateNewUser;
 use App\ApiRoutes;
 use App\Enums\KnowiiApiResponseType;
 use App\Enums\KnowiiCommunityVisibility;
@@ -103,9 +104,61 @@ test('a community cannot be renamed to a reserved name, and keeps a name that be
     reservedNameCheck($this->user, 'gardeners')->assertOk()->assertJsonPath('data.available', false);
 });
 
-test('a personal community never checks the reserved names (#1340)', function () {
-    reservedNameCreate($this->user, 'Support', 'personal')->assertCreated();
+test('the reserved names hold for a personal community too, at the creation', function (string $name) {
+    reservedNameCreate($this->user, $name, 'personal')
+        ->assertStatus(400)
+        ->assertJsonPath('type', KnowiiApiResponseType::ValidationIssue->value)
+        ->assertJsonPath('errors.name.0', AvailableCommunityName::MESSAGE);
+    expect(Community::query()->where('owner_id', $this->user->id)->count())->toBe(0);
+})->with([
+    'a built-in name' => ['Support'],
+    'another case' => ['SECURITY'],
+    'a name that gives the address of a reserved name' => ['Knowii-Community'],
+    'a name of the instance' => ['acme academy'],
+]);
+
+test('an administrator of the instance gives a reserved name to a personal community', function () {
+    reservedNameCreate($this->administrator, 'Support', 'personal')->assertCreated()->assertJsonPath('data.slug', 'support');
 });
+
+test('a personal community cannot be renamed to a reserved name, and keeps the name that it has', function () {
+    $personal = Community::factory()->create(['owner_id' => $this->user->id, 'visibility' => KnowiiCommunityVisibility::Personal, 'name' => 'My notes']);
+    $path = ApiRoutes::path(ApiRoutes::COMMUNITY, [ApiRoutes::PARAM_COMMUNITY => $personal->cuid]);
+
+    foreach (['Official', 'knowii support', 'Acme-Academy'] as $name) {
+        $this->actingAs($this->user)->patchJson($path, ['name' => $name])
+            ->assertStatus(400)
+            ->assertJsonPath('errors.name.0', AvailableCommunityName::MESSAGE);
+    }
+    expect($personal->fresh()->name)->toBe('My notes');
+
+    // A personal community that has a reserved name from before keeps it, and its owner still saves its settings
+    $old = Community::factory()->create(['owner_id' => $this->user->id, 'visibility' => KnowiiCommunityVisibility::Personal, 'name' => 'Help']);
+    $this->actingAs($this->user)
+        ->patchJson(ApiRoutes::path(ApiRoutes::COMMUNITY, [ApiRoutes::PARAM_COMMUNITY => $old->cuid]), ['name' => 'Help', 'description' => 'Still mine'])
+        ->assertOk();
+});
+
+test('the unique name stays a rule of shared communities: a personal community takes the name of a shared one (ADR 0033)', function () {
+    Community::factory()->create(['visibility' => KnowiiCommunityVisibility::Private, 'name' => 'Gardeners']);
+    $personal = Community::factory()->create(['owner_id' => $this->user->id, 'visibility' => KnowiiCommunityVisibility::Personal, 'name' => 'My notes']);
+
+    reservedNameCreate($this->user, 'Gardeners', 'personal')->assertCreated();
+    reservedNameCheck($this->user, 'Gardeners', $personal)->assertOk()->assertJsonPath('data.available', true);
+    reservedNameCheck($this->user, 'Support', $personal)->assertOk()->assertJsonPath('data.available', false);
+    $this->actingAs($this->user)
+        ->patchJson(ApiRoutes::path(ApiRoutes::COMMUNITY, [ApiRoutes::PARAM_COMMUNITY => $personal->cuid]), ['name' => 'gardeners'])
+        ->assertOk();
+});
+
+test('the personal community of a sign-up never has a reserved name', function (string $name) {
+    $user = User::factory()->withUserProfile()->create(['name' => $name]);
+    app(CreateNewUser::class)->createCommunity($user);
+
+    $personal = $user->ownedCommunities()->firstOrFail();
+    expect($personal->visibility)->toBe(KnowiiCommunityVisibility::Personal)
+        ->and(ReservedCommunityNames::isReserved($personal->name))->toBeFalse();
+})->with(['Support', 'Admins', 'Knowii', 'Knowii Team', 'Acme Academy']);
 
 test('the lists come from the configuration and ignore empty values (#1340)', function () {
     config(['communities.extra_reserved_names' => ['', '  ', 'Only This'], 'communities.reserved_names' => ['Base']]);

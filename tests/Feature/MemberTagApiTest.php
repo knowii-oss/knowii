@@ -517,3 +517,20 @@ test('member-tags:read and member-tags:write are not in the default set of a new
     expect(Jetstream::$defaultPermissions)->not->toContain('member-tags:read')->not->toContain('member-tags:write')
         ->and(Jetstream::$permissions)->toContain('member-tags:read', 'member-tags:write');
 });
+
+test('the add and the remove of a member tag on a member have a limit per account', function () {
+    $path = mtagPath($this->community, $this->shown->cuid, ApiRoutes::COMMUNITY_MEMBER_TAG_MEMBERS);
+    $memberPath = mtagPath($this->community, $this->shown->cuid, ApiRoutes::COMMUNITY_MEMBER_TAG_MEMBER, $this->reader->cuid);
+
+    foreach (range(1, Constants::MEMBER_TAG_MEMBER_CHANGES_PER_MINUTE / 2) as $try) {
+        mtagAs($this->c['admin'])->postJson($path, ['member' => $this->reader->cuid])->assertOk();
+        mtagAs($this->c['admin'])->deleteJson($memberPath)->assertNoContent();
+    }
+    mtagAs($this->c['admin'])->postJson($path, ['member' => $this->reader->cuid])->assertStatus(429);
+    mtagAs($this->c['admin'])->deleteJson($memberPath)->assertStatus(429);
+    expect($this->shown->members()->whereKey($this->reader->id)->exists())->toBeFalse();
+
+    // The limit is the one of the account, and the reads are not counted
+    mtagAs($this->c['admin'])->getJson($path)->assertOk();
+    mtagAs($this->c['owner'])->postJson($path, ['member' => $this->reader->cuid])->assertOk();
+});

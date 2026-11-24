@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\ChatMessage;
+use App\Support\MentionLinks;
 use Illuminate\Http\Request;
 
 /**
@@ -23,7 +24,9 @@ class ChatMessageResource extends AbstractKnowiiJsonResource
             'cuid' => $this->cuid,
             // A deleted message is a marker: no text, no author
             'body' => $deleted ? null : $this->body,
-            'body_html' => $deleted ? null : $this->body_html,
+            // A mention is a link for a member of the community only (MentionLinks): a signed-in person who is not a member
+            // reads a public chat space
+            'body_html' => $deleted ? null : MentionLinks::forReader($this->body_html, $request, $this->community_id),
             'author' => $deleted ? null : $this->author?->toResource(AuthorResource::class),
             'parent_cuid' => $this->parent_id === null ? null : ($this->relationLoaded('parent') ? $this->parent?->cuid : $this->parent()->value('cuid')),
             'reply_count' => $this->reply_count,

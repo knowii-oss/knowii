@@ -117,14 +117,25 @@ class AccessGroupApiController extends Controller
      * Add a member of the community to the group, by hand, named by exactly one of member (user cuid), username or email. Adding
      * a member twice changes nothing, so a sync can send the same list again.
      *
+     * With `member` or `username` the answer is the member (200), or a validation error when no member of the community
+     * matches. With `email` the answer is always 204 with no body, whether a member of the community has the address or
+     * not (nothing is added then): the answer never tells who has an address. Only the owner and the admins add by
+     * `email` (a token follows the role of its account): a moderator gets 403 and adds by `member` or `username`. At most
+     * 10 adds and removals a minute for each account.
+     *
      * @throws AuthenticationException
      */
     #[BodyParameter('member', description: 'Cuid of the user', required: false, type: 'string')]
     #[BodyParameter('username', description: 'Username of the member', required: false, type: 'string', example: 'ada-lovelace')]
-    #[BodyParameter('email', description: 'Email address of the member (for a sync from another system)', required: false, type: 'string', format: 'email', example: 'ada@example.com')]
-    final public function addMember(Request $request, Community $community, AccessGroup $accessGroup): JsonResponse
+    #[BodyParameter('email', description: 'Email address of the member (for a sync from another system), for the owner and the admins only: the answer is 204 with no body', required: false, type: 'string', format: 'email', example: 'ada@example.com')]
+    final public function addMember(Request $request, Community $community, AccessGroup $accessGroup): JsonResponse|Response
     {
         $member = app(AddsAccessGroupMembers::class)->add($request->user() ?? throw new AuthenticationException, $accessGroup, $request->only(['member', 'username', 'email']));
+
+        // The selector `email`: one answer, with no member in it
+        if ($member === null) {
+            return response()->noContent();
+        }
 
         return self::success('Member added to the group', null, $member->toResource(AuthorResource::class));
     }
@@ -132,6 +143,7 @@ class AccessGroupApiController extends Controller
     /**
      * Remove a member from the group by hand. Only the "by hand" source goes: a member whom an entitlement rule gives the
      * group stays in it (their `sources` then holds `by_rule` only).
+     * At most 10 adds and removals a minute for each account.
      *
      * @throws AuthenticationException
      */

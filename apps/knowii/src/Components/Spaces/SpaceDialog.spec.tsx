@@ -37,7 +37,7 @@ beforeEach(() => {
   });
 });
 
-function renderDialog(space?: Space) {
+function renderDialog(space?: Space, personalCommunity = false) {
   const onSaved = vi.fn();
   render(
     <AppDataProvider>
@@ -49,6 +49,7 @@ function renderDialog(space?: Space) {
         defaultSpaceGroupCuid="sg1"
         onClose={vi.fn()}
         onSaved={onSaved}
+        personalCommunity={personalCommunity}
       />
     </AppDataProvider>,
   );
@@ -343,5 +344,26 @@ describe('SpaceDialog after a create (#1576)', () => {
     const region = screen.getByRole('region', { name: 'Notifications' });
     expect(await within(region).findByText('Space updated')).toBeInTheDocument();
     expect(within(region).queryByRole('link')).not.toBeInTheDocument();
+  });
+});
+
+describe('SpaceDialog in a personal community', () => {
+  it('does not offer a public space: a personal community has none', async () => {
+    renderDialog(undefined, true);
+    const dialog = await screen.findByRole('dialog', { name: 'New space' });
+
+    await userEvent.click(within(dialog).getByRole('button', { name: /Who can read/ }));
+
+    expect(await screen.findByRole('option', { name: 'Members only' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'Public: anyone can read' })).not.toBeInTheDocument();
+  });
+
+  it('offers a public space in a shared community', async () => {
+    renderDialog();
+    const dialog = await screen.findByRole('dialog', { name: 'New space' });
+
+    await userEvent.click(within(dialog).getByRole('button', { name: /Who can read/ }));
+
+    expect(await screen.findByRole('option', { name: 'Public: anyone can read' })).toBeInTheDocument();
   });
 });

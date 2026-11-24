@@ -32,13 +32,17 @@ class UpdateCommunity implements UpdatesCommunities
         // WARNING: the same rules as CreateCommunity.php and newCommunitySchema (community.schema.ts)
         /** @var array{name?: string, description?: string|null, visibility?: string, direct_messages_enabled?: bool} $validated */
         $validated = Validator::make($input, [
-            'name' => ['sometimes', 'required', 'string', 'min:'.Constants::MIN_LENGTH_COMMUNITY_NAME, 'max:'.Constants::MAX_LENGTH_COMMUNITY_NAME, 'regex:'.Constants::ALLOWED_COMMUNITY_NAME_CHARACTERS_REGEX],
+            // A unique name for a shared community (ADR 0033, #1136); the reserved names hold for a personal one too
+            // (ADR 0036): its address comes from its name
+            'name' => [
+                'sometimes', 'required', 'string', 'min:'.Constants::MIN_LENGTH_COMMUNITY_NAME, 'max:'.Constants::MAX_LENGTH_COMMUNITY_NAME, 'regex:'.Constants::ALLOWED_COMMUNITY_NAME_CHARACTERS_REGEX,
+                new AvailableCommunityName($community, $user, $community->visibility !== KnowiiCommunityVisibility::Personal),
+            ],
             'description' => ['sometimes', 'nullable', 'string', 'max:'.Constants::MAX_LENGTH_COMMUNITY_DESCRIPTION],
             'visibility' => ['sometimes', 'required', Rule::enum(KnowiiCommunityVisibility::class)],
             // #1186: off, nobody starts a conversation or sends a direct message; the members still read theirs
             'direct_messages_enabled' => ['sometimes', 'boolean'],
-        ])->sometimes('name', [new AvailableCommunityName($community, $user)], static fn () => $community->visibility !== KnowiiCommunityVisibility::Personal)
-            ->validate();
+        ])->validate();
 
         if (array_key_exists('visibility', $validated)) {
             $visibility = KnowiiCommunityVisibility::from($validated['visibility']);

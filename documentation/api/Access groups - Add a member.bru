@@ -22,5 +22,11 @@ body:json {
 }
 
 docs {
-  Adds a member of the community to the group (#1241), named by exactly one of member (user cuid), username or email. Adding a member twice changes nothing, so a sync from another system can send its list again. Someone who is not a member of the community gives a validation issue. Owner, admins, moderators with the manage members right. Token ability: groups:write.
+  Adds a member of the community to the group (#1241), named by exactly one of member (user cuid), username or email. Adding a member twice changes nothing, so a sync from another system can send its list again. Owner, admins, moderators with the manage members right. Token ability: groups:write. Only the owner and the admins add by email: a moderator adds by member or username, and a request by email gets 403 (a token follows the role of its account).
+
+  With email, the answer is 204 with no body, whether a member of the community has the address or not (nothing is added then): the answer never tells who has an address. Read the members of the group to know who is in it.
+
+  With member or username, the answer is 200 with the member, and someone who is not a member of the community gives a validation issue (400).
+
+  The add and the remove of a group member share a limit of 10 requests a minute for each account: 429 after it.
 }

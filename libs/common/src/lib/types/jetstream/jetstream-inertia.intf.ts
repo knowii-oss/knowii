@@ -204,6 +204,7 @@ export const API_TOKEN_PERMISSIONS = [
   'account:delete',
   'communities:read',
   'communities:write',
+  'communities:delete',
   'posts:read',
   'posts:write',
   'chat:read',
@@ -240,6 +241,7 @@ export const API_TOKEN_PERMISSION_LABELS: Record<Permission, string> = {
   'account:delete': 'Delete your account',
   'communities:read': 'Read communities, spaces and members',
   'communities:write': 'Manage communities, spaces and members',
+  'communities:delete': 'Delete a community that you own',
   'posts:read': 'Read posts, comments and reactions',
   'posts:write': 'Write posts, comments and reactions, upload images',
   'chat:read': 'Read chat messages and threads',
@@ -274,6 +276,8 @@ export const API_TOKEN_PERMISSION_LABELS: Record<Permission, string> = {
  */
 export const API_TOKEN_PERMISSION_DESCRIPTIONS: Partial<Record<Permission, string>> = {
   'account:delete': 'Lets this token delete your account for good, with your password. It cannot be undone.',
+  'communities:delete':
+    'Lets this token delete a community that you own for good, with the content of every member, when it gives the name of the community. It cannot be undone.',
 };
 
 /**

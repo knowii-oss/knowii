@@ -48,8 +48,11 @@ class CreateCommunity implements CreatesCommunities
             'visibility' => ['required', Rule::enum(KnowiiCommunityVisibility::class)],
         ]);
 
-        // A shared community needs a name that no other shared community has (ADR 0033, #1136)
-        $validator->sometimes('name', [new AvailableCommunityName(null, $user)], static fn (Fluent $input) => $input->get('visibility') !== KnowiiCommunityVisibility::Personal->value);
+        // A shared community needs a name that no other shared community has (ADR 0033, #1136). The reserved names
+        // hold for every community, a personal one too (ADR 0036): its address comes from its name
+        $personal = static fn (Fluent $input): bool => $input->get('visibility') === KnowiiCommunityVisibility::Personal->value;
+        $validator->sometimes('name', [new AvailableCommunityName(null, $user)], static fn (Fluent $input): bool => ! $personal($input));
+        $validator->sometimes('name', [new AvailableCommunityName(null, $user, false)], $personal);
 
         $validator->validate();
 

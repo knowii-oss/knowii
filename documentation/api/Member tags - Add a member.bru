@@ -22,5 +22,5 @@ body:json {
 }
 
 docs {
-  Puts the tag on a member of the community (#1389), named by exactly one of member (user cuid) or username; the owner counts as a member. Putting it twice changes nothing and answers 200. Someone who is not a member of the community gives a validation issue; an email field gives one too. A member has at most 20 tags in a community (422 after that). Nothing tells the member. Owner, admins, moderators with the manage members right, on any member, themselves too. Token ability: member-tags:write.
+  Puts the tag on a member of the community (#1389), named by exactly one of member (user cuid) or username; the owner counts as a member. Putting it twice changes nothing and answers 200. Someone who is not a member of the community gives a validation issue; an email field gives one too. A member has at most 20 tags in a community (422 after that). Nothing tells the member. Owner, admins, moderators with the manage members right, on any member, themselves too. Token ability: member-tags:write. The add and the remove of a tag on a member share a limit of 10 requests a minute for each account: 429 after it.
 }

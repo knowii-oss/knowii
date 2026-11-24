@@ -1,10 +1,14 @@
 <?php
 
+use App\Actions\Spaces\SpaceInputRules;
 use App\ApiRoutes;
+use App\Enums\KnowiiCommunityVisibility;
 use App\Enums\KnowiiSpaceVisibility;
 use App\Events\Spaces\SpaceTreeChanged;
+use App\Models\Community;
 use App\Models\Space;
 use App\Models\SpaceGroup;
+use App\Models\User;
 use Illuminate\Support\Facades\Event;
 
 beforeEach(function () {
@@ -163,4 +167,53 @@ test('the space policy follows the posting policy', function () {
         ->and($this->c['outsider']->can('contribute', $announcements))->toBeFalse()
         ->and($this->c['moderator']->can('moderate', $announcements))->toBeTrue()
         ->and($this->c['member']->can('moderate', $announcements))->toBeFalse();
+});
+
+test('a space of a personal community cannot be public, at the creation and at a change', function () {
+    $owner = User::factory()->withUserProfile()->create();
+    $personal = Community::factory()->create(['owner_id' => $owner->id, 'visibility' => KnowiiCommunityVisibility::Personal]);
+    $group = SpaceGroup::factory()->create(['community_id' => $personal->id]);
+    $input = ['space_group_cuid' => $group->cuid, 'name' => 'Notes', 'type' => 'discussion', 'visibility' => 'public', 'posting_policy' => 'members'];
+    $params = [ApiRoutes::PARAM_COMMUNITY => $personal->cuid];
+
+    $this->actingAs($owner)->postJson(ApiRoutes::path(ApiRoutes::COMMUNITY_SPACES, $params), $input)
+        ->assertStatus(400)
+        ->assertJsonPath('errors.visibility.0', SpaceInputRules::PERSONAL_COMMUNITY_MESSAGE);
+    expect($personal->spaces()->count())->toBe(0);
+
+    $cuid = $this->actingAs($owner)->postJson(ApiRoutes::path(ApiRoutes::COMMUNITY_SPACES, $params), [...$input, 'visibility' => 'members'])
+        ->assertCreated()
+        ->json('data.cuid');
+    $spacePath = ApiRoutes::path(ApiRoutes::COMMUNITY_SPACE, [...$params, ApiRoutes::PARAM_SPACE => $cuid]);
+
+    $this->actingAs($owner)->patchJson($spacePath, ['visibility' => 'public'])
+        ->assertStatus(400)
+        ->assertJsonPath('errors.visibility.0', SpaceInputRules::PERSONAL_COMMUNITY_MESSAGE);
+    $this->actingAs($owner)->patchJson($spacePath, ['name' => 'Renamed', 'visibility' => 'members'])->assertOk();
+    expect($personal->spaces()->firstOrFail()->visibility)->toBe(KnowiiSpaceVisibility::Members);
+
+    // A shared community keeps its public spaces
+    $this->actingAs($this->c['owner'])
+        ->postJson(ApiRoutes::path(ApiRoutes::COMMUNITY_SPACES, communityParams()), [...$input, 'space_group_cuid' => $this->group->cuid])
+        ->assertCreated()
+        ->assertJsonPath('data.visibility', 'public');
+});
+
+test('the migration turns the public spaces of the personal communities into spaces for members, and leaves the others', function () {
+    $owner = User::factory()->withUserProfile()->create();
+    $personal = Community::factory()->create(['owner_id' => $owner->id, 'visibility' => KnowiiCommunityVisibility::Personal]);
+    $personalGroup = SpaceGroup::factory()->create(['community_id' => $personal->id]);
+    $wasPublic = Space::factory()->inGroup($personalGroup)->create(['visibility' => KnowiiSpaceVisibility::Public]);
+    $wasMembers = Space::factory()->inGroup($personalGroup)->create(['visibility' => KnowiiSpaceVisibility::Members]);
+    $sharedPublic = Space::factory()->inGroup($this->group)->create(['visibility' => KnowiiSpaceVisibility::Public]);
+    $sharedGroups = Space::factory()->inGroup($this->group)->create(['visibility' => KnowiiSpaceVisibility::Groups]);
+
+    $migration = require database_path('migrations/2026_11_24_120000_close_the_public_spaces_of_personal_communities.php');
+    $migration->up();
+    $migration->up();
+
+    expect($wasPublic->fresh()->visibility)->toBe(KnowiiSpaceVisibility::Members)
+        ->and($wasMembers->fresh()->visibility)->toBe(KnowiiSpaceVisibility::Members)
+        ->and($sharedPublic->fresh()->visibility)->toBe(KnowiiSpaceVisibility::Public)
+        ->and($sharedGroups->fresh()->visibility)->toBe(KnowiiSpaceVisibility::Groups);
 });

@@ -15,5 +15,5 @@ headers {
 }
 
 docs {
-  Takes the tag off a member (#1389). A member who does not have the tag gives a 404. Returns 204. Token ability: member-tags:write.
+  Takes the tag off a member (#1389). A member who does not have the tag gives a 404. Returns 204. Token ability: member-tags:write. The add and the remove of a tag on a member share a limit of 10 requests a minute for each account: 429 after it.
 }

@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use App\Models\Page;
 use App\Models\User;
+use App\Support\MentionLinks;
 use Illuminate\Http\Request;
 
 /**
@@ -26,7 +27,8 @@ class PageResource extends AbstractKnowiiJsonResource
             'slug' => $this->slug,
             'position' => $this->position,
             'body' => $this->serializeLargeFields ? $this->body : null,
-            'body_html' => $this->serializeLargeFields ? $this->body_html : null,
+            // A mention is a link for a member of the community only (MentionLinks)
+            'body_html' => $this->serializeLargeFields ? MentionLinks::forReader($this->body_html, $request, $this->community_id) : null,
             // Lessons of a course space (#1188): the provider and the player address; null without a video
             'video' => $this->video(),
             // Lessons of a course space (#1335): whether the lesson has a quiz (get it from its own endpoint)

@@ -138,6 +138,7 @@ export default function CommunitySettingsPage(props: Props) {
           spaceGroups={props.spaceGroups}
           onChanged={reloadSpaceTree}
           spaceHref={spaceHref}
+          personalCommunity={props.community.visibility === 'personal'}
         />
       )}
 

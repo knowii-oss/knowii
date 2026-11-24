@@ -206,6 +206,12 @@ class Constants
 
     public const int INVITATIONS_PER_MINUTE = 10;
 
+    // Adds and removals of a member of an access group per minute and per user, together: the numbers of the invitations
+    public const int ACCESS_GROUP_MEMBER_CHANGES_PER_MINUTE = self::INVITATIONS_PER_MINUTE;
+
+    // Adds and removals of a member tag on a member per minute and per user, together
+    public const int MEMBER_TAG_MEMBER_CHANGES_PER_MINUTE = self::INVITATIONS_PER_MINUTE;
+
     // Requests of the password reset form per hour and per IP address, for any address: one person never reaches it
     public const int PASSWORD_RESETS_PER_IP_PER_HOUR = 20;
 

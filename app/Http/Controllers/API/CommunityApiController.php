@@ -21,6 +21,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class CommunityApiController extends Controller
 {
@@ -151,13 +152,24 @@ class CommunityApiController extends Controller
         return self::success('Ownership transferred', null, $community->refresh()->loadCount('users')->toResource()->withLargeFields());
     }
 
+    /**
+     * Delete the community, with its spaces, the content of every member and the files, at once and for good: the owner
+     * only. The body names the community: `name` must be its name (whatever the case), as the screen asks.
+     *
+     * Needs the ability `communities:delete`, which is never in the default set of a token: `communities:write` does not
+     * delete a community. Answers 204.
+     *
+     * @throws AuthenticationException
+     * @throws ValidationException
+     */
+    #[BodyParameter('name', description: 'The name of the community that you delete (whatever the case)', required: true, type: 'string', example: 'Knowledge Builders')]
     final public function destroy(Request $request, Community $community): Response
     {
         Log::info('Processing API request to delete a community.');
         Log::debug('User: ', [$request->user()]);
 
         $deleter = app(DeletesCommunities::class);
-        $deleter->delete($request->user() ?? throw new AuthenticationException('User must be authenticated'), $community);
+        $deleter->deleteWithName($request->user() ?? throw new AuthenticationException('User must be authenticated'), $community, $request->only(['name']));
 
         return self::deleted();
     }

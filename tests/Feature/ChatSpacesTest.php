@@ -10,6 +10,7 @@ use App\Models\ChatMessage;
 use App\Models\Space;
 use App\Models\SpaceGroup;
 use App\Models\Upload;
+use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
@@ -101,6 +102,22 @@ test('the author edits and deletes their message; it stays as a marker (#1185)',
         ->assertJsonPath('data.body', null)
         ->assertJsonPath('data.author', null)
         ->assertJsonPath('data.deleted_at', fn ($value) => $value !== null);
+});
+
+test('an author who left the community no longer edits or deletes their message, also in a public chat space (#1324)', function () {
+    $this->space->update(['visibility' => KnowiiSpaceVisibility::Public]);
+    $message = ChatMessage::factory()->inSpace($this->space)->create(['author_id' => $this->c['member']->id, 'body' => 'First text']);
+
+    $this->c['community']->users()->detach($this->c['member']);
+    $author = User::query()->findOrFail($this->c['member']->id);
+
+    // A signed-in person reads a public chat space: the read is not the right on what they wrote
+    $this->actingAs($author)->getJson(chatPath($this->space, $message))->assertOk();
+    $this->actingAs($author)->patchJson(chatPath($this->space, $message), ['body' => 'Changed'])->assertForbidden();
+    $this->actingAs($author)->deleteJson(chatPath($this->space, $message))->assertForbidden();
+
+    expect($message->fresh()->body)->toBe('First text')
+        ->and($message->fresh()->isDeleted())->toBeFalse();
 });
 
 test('moderators delete any message; other members do not (#1185)', function (string $who, bool $allowed) {

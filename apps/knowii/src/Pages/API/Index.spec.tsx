@@ -133,6 +133,37 @@ describe('ApiTokensPage', () => {
     });
   });
 
+  it('offers the deletion of a community as its own choice, off by default, with its warning', async () => {
+    render(
+      <AppDataProvider>
+        <ApiTokensPage
+          tokens={tokens}
+          availablePermissions={['communities:read', 'communities:write', 'communities:delete']}
+          defaultPermissions={['communities:read']}
+        />
+      </AppDataProvider>,
+    );
+
+    const choice = screen.getByRole('checkbox', { name: /Delete a community that you own/ });
+    expect(choice).not.toBeChecked();
+    expect(screen.getByRole('checkbox', { name: /Manage communities, spaces and members/ })).not.toBeChecked();
+    expect(
+      screen.getByText(
+        'Lets this token delete a community that you own for good, with the content of every member, when it gives the name of the community. It cannot be undone.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText('communities:delete')).toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText('Name'), 'Closer');
+    await userEvent.click(choice);
+    await userEvent.click(screen.getByRole('button', { name: 'Create' }));
+
+    expect(post).toHaveBeenLastCalledWith('/api-tokens.store/', {
+      name: 'Closer',
+      permissions: ['communities:read', 'communities:delete'],
+      expires_in: '90',
+    });
+  });
+
   it('shows when each token expires (#1267)', () => {
     render(
       <AppDataProvider>

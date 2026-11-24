@@ -73,7 +73,12 @@ describe('AccessGroupsManager (#1241)', () => {
   });
 
   it('adds a member by email and removes one', async () => {
-    const add = vi.spyOn(knowiiApiClient.communities.accessGroups.members, 'add').mockResolvedValue({ ok: true, message: '', data: ada });
+    // By email the server answers without the member; by username it answers with the member
+    const add = vi
+      .spyOn(knowiiApiClient.communities.accessGroups.members, 'add')
+      .mockImplementation((_community, _group, input) =>
+        Promise.resolve({ ok: true, message: '', data: 'email' in input ? undefined : ada }),
+      );
     const remove = vi
       .spyOn(knowiiApiClient.communities.accessGroups.members, 'remove')
       .mockResolvedValue({ ok: true, message: '', data: undefined });
@@ -87,10 +92,13 @@ describe('AccessGroupsManager (#1241)', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: 'Add' }));
     await waitFor(() => expect(add).toHaveBeenCalledWith('c1', 'g1', { email: 'grace@example.com' }));
     await waitFor(() => expect(within(dialog).getByLabelText('Username or email')).toHaveValue(''));
+    // The text is the same whoever has the address
+    expect(await screen.findByText('If a member of the community has this address, they are now in Paid members.')).toBeInTheDocument();
 
     await userEvent.type(within(dialog).getByLabelText('Username or email'), '@grace-hopper');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Add' }));
     await waitFor(() => expect(add).toHaveBeenLastCalledWith('c1', 'g1', { username: 'grace-hopper' }));
+    expect(await screen.findByText('Ada Lovelace added to Paid members')).toBeInTheDocument();
 
     await userEvent.click(within(dialog).getByRole('button', { name: 'Remove Ada Lovelace from the group' }));
     await waitFor(() => expect(remove).toHaveBeenCalledWith('c1', 'g1', 'u1'));
@@ -101,13 +109,13 @@ describe('AccessGroupsManager (#1241)', () => {
       ok: false,
       status: 400,
       message: 'Invalid',
-      errors: { email: ['No member of the community matches'] },
+      errors: { username: ['No member of the community matches'] },
     });
     renderManager();
 
     await userEvent.click(await screen.findByRole('button', { name: 'Members of Paid members' }));
     const dialog = await screen.findByRole('dialog', { name: 'Members of Paid members' });
-    await userEvent.type(within(dialog).getByLabelText('Username or email'), 'stranger@example.com');
+    await userEvent.type(within(dialog).getByLabelText('Username or email'), 'stranger');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Add' }));
 
     expect(await within(dialog).findByText('No member of the community matches')).toBeInTheDocument();
@@ -121,6 +129,27 @@ describe('AccessGroupsManager (#1241)', () => {
     expect(screen.queryByRole('button', { name: 'Edit Paid members' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Delete Paid members' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Members of Paid members' })).toBeInTheDocument();
+  });
+
+  it('lets moderators add a member by username only', async () => {
+    const add = vi.spyOn(knowiiApiClient.communities.accessGroups.members, 'add').mockResolvedValue({ ok: true, message: '', data: ada });
+    renderManager(false, true);
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Members of Paid members' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Members of Paid members' });
+    expect(within(dialog).queryByLabelText('Username or email')).not.toBeInTheDocument();
+
+    await userEvent.type(within(dialog).getByLabelText('Username'), 'grace@example.com');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Add' }));
+    expect(
+      await within(dialog).findByText('Only the owner and the administrators add a member by email address. Use the username.'),
+    ).toBeInTheDocument();
+    expect(add).not.toHaveBeenCalled();
+
+    await userEvent.clear(within(dialog).getByLabelText('Username'));
+    await userEvent.type(within(dialog).getByLabelText('Username'), '@ada-lovelace');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Add' }));
+    await waitFor(() => expect(add).toHaveBeenCalledWith('c1', 'g1', { username: 'ada-lovelace' }));
   });
 
   it('deletes a group after a confirmation', async () => {

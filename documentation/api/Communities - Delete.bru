@@ -6,7 +6,7 @@ meta {
 
 delete {
   url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w
-  body: none
+  body: json
   auth: none
 }
 
@@ -17,8 +17,14 @@ headers {
 
 body:json {
   {
-    "name": "foo",
-    "description": "bar",
-    "visibility": "public"
+    "name": "<the name of the community>"
   }
+}
+
+docs {
+  The owner deletes the community, for good (ADR 0035): its spaces, the content of every member and the files go at once. `name` is the name of the community that you delete, whatever the case: the request names the community, as the screen asks.
+
+  Token ability: `communities:delete`, never in the default set of a new token (the token screen shows it as its own choice). `communities:write` does not delete a community.
+
+  Answers 204. Errors: 400 for a missing `name` or a name that is not the name of the community (the field is named in `errors`), 401 without a token, 403 without the ability and for anyone but the owner, 404 for a community that does not exist.
 }

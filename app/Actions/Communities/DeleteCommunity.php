@@ -11,10 +11,37 @@ use Exception;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Database\ConcurrencyErrorDetector;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class DeleteCommunity implements DeletesCommunities
 {
+    public const string NAME_MESSAGE = 'Give the name of the community to delete it';
+
+    /**
+     * Delete the community on the request of its owner (the API and the screen): the request names the community that
+     * it deletes, so that a request made for another community, or by mistake, deletes nothing (ADR 0035 point 4).
+     *
+     * @throws TechnicalException
+     * @throws ValidationException
+     * @throws AuthorizationException
+     */
+    final public function deleteWithName(User $user, Community $community, array $input): void
+    {
+        // Who may delete comes first: a person who may not gets the same refusal with any name
+        app(ValidateCommunityDeletion::class)->validate($user, $community);
+
+        /** @var array{name: string} $validated */
+        $validated = Validator::make($input, ['name' => ['required', 'string']])->validate();
+
+        // The check of the screen, done again here: the name of the community, whatever the case
+        if (mb_strtolower(trim($validated['name'])) !== mb_strtolower(trim($community->name))) {
+            throw ValidationException::withMessages(['name' => self::NAME_MESSAGE]);
+        }
+
+        $this->delete($user, $community);
+    }
+
     /**
      * Delete the given community.
      *

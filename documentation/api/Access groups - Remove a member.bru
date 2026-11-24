@@ -15,5 +15,5 @@ headers {
 }
 
 docs {
-  Removes a member from the group by hand (#1241). A member who is not in the group gives a 404. Only the by hand source goes: a member whom an entitlement rule gives the group stays in it (#1386). Returns 204. Token ability: groups:write.
+  Removes a member from the group by hand (#1241). A member who is not in the group gives a 404. Only the by hand source goes: a member whom an entitlement rule gives the group stays in it (#1386). Returns 204. Token ability: groups:write. The add and the remove of a group member share a limit of 10 requests a minute for each account: 429 after it.
 }

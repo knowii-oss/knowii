@@ -116,6 +116,7 @@ class MemberTagApiController extends Controller
     /**
      * Put the tag on a member of the community (the owner counts), named by exactly one of member (user cuid) or username.
      * Putting it twice changes nothing. A member has at most 20 tags in a community. Nothing tells the member.
+     * At most 10 adds and removals a minute for each account.
      *
      * @throws AuthenticationException
      */

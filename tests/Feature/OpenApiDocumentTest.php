@@ -290,3 +290,22 @@ test('the routes of the invite links are documented, the create with its require
         ->and(array_keys($paths['/v1/invite-links/{inviteLinkToken}'] ?? []))->toContain('get')
         ->and(array_keys($paths['/v1/invite-links/{inviteLinkToken}/membership'] ?? []))->toContain('post');
 });
+
+test('the deletion of a community documents the name that it needs', function () {
+    $operation = openApiDocument()['paths']['/v1/communities/{community}']['delete'] ?? [];
+
+    // Scramble lists the body fields of a DELETE as parameters, like the ones of DELETE /v1/user
+    $name = collect($operation['parameters'] ?? [])->firstWhere('name', 'name');
+    expect($name)->not->toBeNull()
+        ->and($name['required'] ?? false)->toBeTrue()
+        ->and(array_keys($operation['responses'] ?? []))->toContain(204);
+});
+
+test('the add of a member to an access group documents both answers: the member, and no body for an email address', function () {
+    $operation = openApiDocument()['paths']['/v1/communities/{community}/access-groups/{accessGroup}/members']['post'] ?? [];
+
+    // The three selectors of the body, wherever the schema of the body holds them
+    $body = (string) json_encode($operation['requestBody'] ?? []);
+    expect($body)->toContain('"member"')->toContain('"username"')->toContain('"email"')
+        ->and(array_keys($operation['responses'] ?? []))->toContain(200)->toContain(204);
+});

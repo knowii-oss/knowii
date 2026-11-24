@@ -31,6 +31,7 @@ class CreateSpace implements CreatesSpaces
 
         /** @var array{name: string, description?: string|null, emoji?: string|null, type: string, visibility: string, posting_policy?: string, space_group_cuid: string, access_groups?: list<string>, url?: string} $validated */
         $validated = Validator::make($input, SpaceInputRules::create())->validate();
+        SpaceInputRules::refusePublicInPersonalCommunity($community, $validated['visibility']);
 
         $spaceGroup = self::findSpaceGroup($community, $validated['space_group_cuid']);
 

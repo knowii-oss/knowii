@@ -36,7 +36,10 @@ class CommunityResourceController extends Controller
             app(TracksSpaceVisits::class)->visit($request->user(), $space);
         }
 
-        $resource = $space->resources()->where('slug', $resourceSlug)->with(['curator', 'resource', 'capture', 'space'])->firstOrFail();
+        // The data of the capture is for the members of the community only (ADR 0018), also in a public space: the same
+        // cut as the API read (CommunityResourceApiController::show)
+        $isMember = $request->user()?->belongsToCommunity($community) ?? false;
+        $resource = $space->resources()->where('slug', $resourceSlug)->with($isMember ? ['curator', 'resource', 'capture', 'space'] : ['curator', 'resource', 'space'])->firstOrFail();
 
         JsonResource::withoutWrapping();
 
@@ -48,7 +51,7 @@ class CommunityResourceController extends Controller
             // Not the large fields: the captured Markdown comes rendered, in 'article'
             'resource' => $resource->toResource(),
             // The captured article (#1247): members of the community only, never visitors (ADR 0018)
-            'article' => $this->article($request, $community, $resource),
+            'article' => $isMember ? $this->article($resource) : null,
             // Comments on the resource (#1034)
             'comments' => CommentThread::for($resource)->toResourceCollection(),
             'permissions' => [
@@ -65,14 +68,14 @@ class CommunityResourceController extends Controller
 
     /**
      * The captured article of an article resource, rendered on the server (ADR 0013: raw HTML escaped). Null for other
-     * types, without a capture, and for readers who are not members of the community.
+     * types and without a capture. For the members of the community only: the caller loads the capture for them alone.
      *
      * @return array{html: string, word_count: int, reading_time: int, source: string, captured_at: string}|null
      */
-    private function article(Request $request, Community $community, CommunityResource $resource): ?array
+    private function article(CommunityResource $resource): ?array
     {
         $capture = $resource->capture;
-        if ($capture === null || $resource->type !== KnowiiResourceType::Article || ! ($request->user()?->belongsToCommunity($community) ?? false)) {
+        if ($capture === null || $resource->type !== KnowiiResourceType::Article) {
             return null;
         }
 

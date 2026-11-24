@@ -232,6 +232,8 @@ test('web pages: an unverified account is refused, like everywhere else', functi
 const PUBLIC_SPACES_FORBIDDEN_KEYS = [
     'email', 'phone', 'bio', 'headline', 'access_groups', 'moderator_permissions', 'member_count', 'users_count',
     'direct_messages_enabled', 'unread_direct_messages', 'userProfile', 'field_visibility', 'online_status', 'show_online_status',
+    // The data of the capture of a resource (the count of words, the reading time, the source, the date), as in the API
+    'capture',
 ];
 
 /**
@@ -346,6 +348,29 @@ test('web pages: the captured article of a resource is for members of the commun
     expect(publicPropsOf(publicReadAs('visitor', $url))['article'])->toBeNull()
         ->and(publicPropsOf(publicReadAs('outsider', $url))['article'])->toBeNull()
         ->and(publicPropsOf(publicReadAs('member', $url))['article'])->not->toBeNull();
+});
+
+test('web pages: the resource page and the API send the same data of a resource to a reader who is not a member', function (string $reader) {
+    $resource = publicPropsOf(publicReadAs($reader, publicWebUrls('public')['resource'])->assertOk())['resource'];
+    app('auth')->forgetGuards();
+    $api = ($reader === 'visitor' ? $this : $this->actingAs($this->c[$reader]))->getJson(ApiRoutes::path(ApiRoutes::COMMUNITY_SPACE_RESOURCE, [
+        ApiRoutes::PARAM_COMMUNITY => $this->c['community']->cuid,
+        ApiRoutes::PARAM_SPACE => $this->resourcesSpace['public']->cuid,
+        ApiRoutes::PARAM_RESOURCE => $this->resource['public']->cuid,
+    ]))->assertOk()->json('data');
+
+    // No data of the capture for this reader, on the page as in the API: the same keys
+    expect($resource)->not->toHaveKey('capture')
+        ->and($api)->not->toHaveKey('capture')
+        ->and(array_keys($resource))->toEqualCanonicalizing(array_keys($api))
+        ->and((string) json_encode($resource))->not->toContain('1200');
+})->with(['visitor', 'outsider']);
+
+test('web pages: a member reads the data of the capture of a resource', function () {
+    $props = publicPropsOf(publicReadAs('member', publicWebUrls('public')['resource'])->assertOk());
+
+    expect($props['resource']['capture'])->toMatchArray(['word_count' => 1200, 'reading_time' => 6])
+        ->and($props['article'])->not->toBeNull();
 });
 
 test('web pages: a member keeps the full community and their rights', function () {
