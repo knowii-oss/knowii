@@ -37,6 +37,7 @@ class PostController extends Controller
         }
 
         JsonResource::withoutWrapping();
+        $comments = CommentThread::page($post, CommentThread::firstPage());
 
         // WARNING: The props passed here must remain aligned with the props expected by the page (Pages/Posts/Show.tsx)
         return Jetstream::inertia()->render($request, 'Posts/Show', [
@@ -44,7 +45,9 @@ class PostController extends Controller
             'space' => $space->toResource()->withLargeFields(),
             'spaceGroups' => SpaceTree::for($community, $request->user())->toResourceCollection(),
             'post' => $post->toResource()->withLargeFields(),
-            'comments' => CommentThread::for($post)->toResourceCollection(),
+            'comments' => $comments['items']->toResourceCollection(),
+            // The pagination of the comments (ADR 0073): the page loads the next ones
+            'commentsPagination' => $comments['metadata']['pagination'],
             'permissions' => [
                 'canManageSpaces' => Gate::check('manageSpaces', $community),
                 'canContribute' => Gate::check('contribute', $space),

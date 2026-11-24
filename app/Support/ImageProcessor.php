@@ -12,6 +12,8 @@ use GdImage;
  */
 final class ImageProcessor
 {
+    public const string TOO_LARGE_MESSAGE = 'This image is too large: at most '.(Constants::MAX_UPLOAD_IMAGE_PIXELS / 1_000_000).' megapixels.';
+
     /**
      * @return array{contents: string, mime_type: string, extension: string, width: int, height: int}
      *
@@ -25,24 +27,27 @@ final class ImageProcessor
         }
 
         [$width, $height] = [$info[0], $info[1]];
-        // Refuse decompression bombs before decoding: a small file can expand to gigabytes of pixels
+        // The width and the height of the header, before any decode: a small file can expand to gigabytes of pixels
         if ($width < 1 || $height < 1 || $width * $height > Constants::MAX_UPLOAD_IMAGE_PIXELS) {
-            throw new BusinessException('This image has too many pixels');
+            throw new BusinessException(self::TOO_LARGE_MESSAGE);
         }
 
         $contents = file_get_contents($sourcePath);
         $image = $contents === false ? false : @imagecreatefromstring($contents);
+        // The file is not needed any more: one large image at a time in memory
+        unset($contents);
         if (! $image instanceof GdImage) {
             throw new BusinessException('This image cannot be read');
         }
 
+        // Avatars (#109): the centered square, so every avatar fills its circle. Then the smaller image, and only then the
+        // rotation of the EXIF data: the rotation copies the small image, never the large one. A centered square and the
+        // largest side stay the same through a rotation, so the order changes nothing in the result
+        $image = $square ? self::cropToSquare($image) : $image;
+        $image = self::scaleDown($image, $maxDimension);
         if ($info[2] === IMAGETYPE_JPEG) {
             $image = self::applyExifOrientation($image, $sourcePath);
         }
-
-        // Avatars (#109): the centered square, so every avatar fills its circle
-        $image = $square ? self::cropToSquare($image) : $image;
-        $image = self::scaleDown($image, $maxDimension);
         imagepalettetotruecolor($image);
         imagealphablending($image, false);
         imagesavealpha($image, true);
@@ -59,7 +64,6 @@ final class ImageProcessor
             'width' => imagesx($image),
             'height' => imagesy($image),
         ];
-        imagedestroy($image);
 
         return $result;
     }

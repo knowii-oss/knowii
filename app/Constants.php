@@ -77,6 +77,9 @@ class Constants
 
     public const int MAX_SPACES_PER_COMMUNITY = 200;
 
+    // Pages of one pages space or course (ADR 0073)
+    public const int MAX_PAGES_PER_SPACE = 500;
+
     // WARNING: aligned with MAX_LENGTH_SPACE_URL (constants.ts)
     public const int MAX_LENGTH_SPACE_URL = 2048;
 
@@ -131,7 +134,9 @@ class Constants
     // Image uploads (#1178). WARNING: aligned with constants.ts (libs/common)
     public const int MAX_UPLOAD_SIZE_KILOBYTES = 10240;
 
-    public const int MAX_UPLOAD_IMAGE_PIXELS = 40_000_000;
+    // The largest image in pixels (ADR 0073), checked from the header of the file before the decode: the decode of the largest
+    // one and its copies stay within the memory of one request
+    public const int MAX_UPLOAD_IMAGE_PIXELS = 25_000_000;
 
     // Longest side after the resize
     public const int MAX_UPLOAD_IMAGE_DIMENSION = 2000;
@@ -422,6 +427,18 @@ class Constants
     // Reads of the public spaces per minute and per IP address, for visitors (#1387, ADR 0044). Signed-in requests are not limited here
     public const int PUBLIC_READS_PER_MINUTE = 60;
 
+    // Every route of the API has a limit (ADR 0073): per account and per minute, the reads (GET, HEAD) and the writes apart.
+    // A visitor has PUBLIC_READS_PER_MINUTE per IP address for every route of the API
+    public const int API_READS_PER_MINUTE = 600;
+
+    public const int API_WRITES_PER_MINUTE = 120;
+
+    // The pages that visitors read (ADR 0073): per IP address and per minute, for a request without an account
+    public const int PUBLIC_PAGES_PER_MINUTE = 120;
+
+    // Largest request body (ADR 0073), except on the upload routes, which check their files themselves
+    public const int MAX_REQUEST_BODY_BYTES = 1024 * 1024;
+
     // The public page of a community shows this many of the newest posts of its public discussion spaces, with an excerpt of this length (#1485)
     public const int PUBLIC_NEWEST_POSTS = 10;
 
@@ -434,6 +451,10 @@ class Constants
     public const int PAGINATION_DEFAULT_LIMIT = 10;
 
     public const int PAGINATION_MAX_LIMIT = 100;
+
+    // The comments of a post, a resource or an event in one page, the replies counted (ADR 0073). WARNING: aligned with
+    // COMMENTS_PER_PAGE (constants.ts)
+    public const int COMMENTS_PER_PAGE = 100;
 
     // Notifications (#1474, ADR 0042): the queues of the worker (it reads broadcasts, notifications, default, in this order)
     public const string QUEUE_BROADCASTS = 'broadcasts';

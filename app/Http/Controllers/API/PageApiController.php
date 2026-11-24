@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Constants;
 use App\Contracts\Pages\CreatesPages;
 use App\Contracts\Pages\DeletesPages;
 use App\Contracts\Pages\ReordersPages;
@@ -11,8 +12,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Community;
 use App\Models\Page;
 use App\Models\Space;
+use App\Support\Pagination;
 use App\Traits\ApiResponses;
 use Dedoc\Scramble\Attributes\BodyParameter;
+use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -27,14 +30,20 @@ class PageApiController extends Controller
     use ApiResponses;
 
     /**
-     * List the pages of a page space, in their order. Lists carry the titles only: get one page for its text.
+     * List the pages of a page space, in their order. Lists carry the titles only: get one page for its text. Paged with
+     * `limit` and `offset`; without a limit, every page of the space (a space holds at most 500 pages).
      */
-    final public function index(Community $community, Space $space): JsonResponse
+    #[QueryParameter('limit', description: 'Pages per answer (1 to 500, default 500)', type: 'int', example: 500)]
+    #[QueryParameter('offset', description: 'Pages to skip (0 to 500, default 0)', type: 'int', example: 0)]
+    final public function index(Request $request, Community $community, Space $space): JsonResponse
     {
         Gate::authorize('view', $space);
         self::assertPageSpace($space);
 
-        return self::success('Pages', null, $space->pages()->withExists('quiz')->get()->toResourceCollection());
+        $pagination = Pagination::fromRequest($request, Constants::MAX_PAGES_PER_SPACE, Constants::MAX_PAGES_PER_SPACE, Constants::MAX_PAGES_PER_SPACE);
+        $page = $pagination->apply($space->pages()->select(Page::LIST_COLUMNS)->withExists('quiz'));
+
+        return self::success('Pages', $page['metadata'], $page['items']->toResourceCollection());
     }
 
     /**

@@ -72,14 +72,14 @@ final class InvitationCsv
             return InvitationCsvResult::failed(self::NOT_UTF8);
         }
 
-        [$records, $closed] = self::records($content, ',');
+        [$records, $closed, $tooMany] = self::records($content, ',');
         $headerIndex = self::firstNonEmpty($records);
         if ($headerIndex === null) {
             return InvitationCsvResult::failed($closed ? self::NO_EMAIL_COLUMN : self::OPEN_QUOTE);
         }
         $header = $records[$headerIndex];
         if (count($header) === 1 && str_contains($header[0], ';')) {
-            [$records, $closed] = self::records($content, ';');
+            [$records, $closed, $tooMany] = self::records($content, ';');
             $headerIndex = self::firstNonEmpty($records) ?? 0;
             $header = $records[$headerIndex];
         }
@@ -109,11 +109,17 @@ final class InvitationCsv
             return InvitationCsvResult::failed(self::NO_EMAIL_COLUMN);
         }
 
+        if ($tooMany) {
+            return InvitationCsvResult::failed(self::TOO_MANY_ROWS);
+        }
+
         $width = count($header);
         $result = [];
-        $total = count($records);
-        for ($index = $headerIndex + 1; $index < $total; $index++) {
-            $cells = array_map(trim(...), $records[$index]);
+        foreach ($records as $index => $record) {
+            if ($index <= $headerIndex) {
+                continue;
+            }
+            $cells = array_map(trim(...), $record);
             if (implode('', $cells) === '') {
                 continue;
             }
@@ -156,16 +162,22 @@ final class InvitationCsv
     }
 
     /**
-     * The records of the content, each a list of cells (not trimmed), and whether every quoted cell was closed. RFC 4180
-     * with a lone CR as a line break too. A quote opens a quoted cell only as the first character of a cell; anywhere
-     * else it is a plain character. The delimiter, the quote and the line breaks are ASCII bytes, which never occur
-     * inside a multibyte UTF-8 character: the reading goes byte by byte.
+     * The records of the content that are not empty, each a list of cells (not trimmed) under the number of its record in
+     * the file, whether every quoted cell was closed, and whether the file has too many rows. RFC 4180 with a lone CR as
+     * a line break too. A quote opens a quoted cell only as the first character of a cell; anywhere else it is a plain
+     * character. The delimiter, the quote and the line breaks are ASCII bytes, which never occur inside a multibyte UTF-8
+     * character: the reading goes byte by byte.
      *
-     * @return array{0: list<list<string>>, 1: bool}
+     * The memory stays small whatever the file holds: an empty record is not kept, the reading stops after the header and
+     * one row more than Constants::MAX_INVITATION_IMPORT_ROWS, and the cells after the first
+     * Constants::MAX_INVITATION_IMPORT_COLUMNS of a record are joined in one last cell (empty when they are all empty).
+     *
+     * @return array{0: array<int, list<string>>, 1: bool, 2: bool}
      */
     private static function records(string $content, string $delimiter): array
     {
         $records = [];
+        $number = 0;
         $record = [];
         $cell = '';
         $quoted = false;
@@ -193,15 +205,21 @@ final class InvitationCsv
                 $quoted = true;
                 $cellStart = false;
             } elseif ($char === $delimiter) {
-                $record[] = $cell;
+                self::push($record, $cell);
                 $cell = '';
                 $cellStart = true;
             } elseif ($char === "\r" || $char === "\n") {
                 if ($char === "\r" && $at + 1 < $length && $content[$at + 1] === "\n") {
                     $at++;
                 }
-                $record[] = $cell;
-                $records[] = $record;
+                self::push($record, $cell);
+                if (trim(implode('', $record)) !== '') {
+                    $records[$number] = $record;
+                    if (count($records) > Constants::MAX_INVITATION_IMPORT_ROWS + 1) {
+                        return [$records, true, true];
+                    }
+                }
+                $number++;
                 $record = [];
                 $cell = '';
                 $cellStart = true;
@@ -213,15 +231,34 @@ final class InvitationCsv
 
         // The last record has no line break after it
         if ($cell !== '' || $record !== [] || ! $cellStart) {
-            $record[] = $cell;
-            $records[] = $record;
+            self::push($record, $cell);
+            if (trim(implode('', $record)) !== '') {
+                $records[$number] = $record;
+            }
         }
 
-        return [$records, ! $quoted];
+        return [$records, ! $quoted, count($records) > Constants::MAX_INVITATION_IMPORT_ROWS + 1];
     }
 
     /**
-     * @param  list<list<string>>  $records
+     * Add a cell to a record: the cells after the first Constants::MAX_INVITATION_IMPORT_COLUMNS are joined in one last cell
+     *
+     * @param  list<string>  $record
+     *
+     * @param-out list<string> $record
+     */
+    private static function push(array &$record, string $cell): void
+    {
+        if (count($record) > Constants::MAX_INVITATION_IMPORT_COLUMNS) {
+            // The record holds one cell more than the limit: the last one takes the cell
+            $record[] = array_pop($record).$cell;
+        } else {
+            $record[] = $cell;
+        }
+    }
+
+    /**
+     * @param  array<int, list<string>>  $records
      */
     private static function firstNonEmpty(array $records): ?int
     {

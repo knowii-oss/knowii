@@ -2,6 +2,7 @@
 
 namespace App\Actions\Spaces;
 
+use App\Constants;
 use App\Contracts\Spaces\ReordersSpaces;
 use App\Events\Spaces\SpaceTreeChanged;
 use App\Models\Space;
@@ -33,7 +34,7 @@ class ReorderSpaces implements ReordersSpaces
 
         /** @var array{space_cuids: list<string>} $validated */
         $validated = Validator::make($input, [
-            'space_cuids' => ['required', 'array'],
+            'space_cuids' => ['required', 'array', 'max:'.Constants::MAX_SPACES_PER_COMMUNITY],
             'space_cuids.*' => ['required', 'string', 'distinct'],
         ])->validate();
 

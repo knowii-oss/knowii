@@ -5,9 +5,14 @@ meta {
 }
 
 get {
-  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of an events space>/events/<cuid of an event>/comments
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of an events space>/events/<cuid of an event>/comments?limit=100&offset=0
   body: none
   auth: none
+}
+
+params:query {
+  limit: 100
+  offset: 0
 }
 
 headers {
@@ -15,6 +20,6 @@ headers {
 }
 
 docs {
-  The comments of an event (#1516), oldest first, each with its replies. metadata.totalCount counts the replies too. Get an event cuid with Events - List.
+  The comments of an event (#1516), oldest first, each with its replies. metadata.totalCount counts the replies too. Get an event cuid with Events - List. Offset pagination (limit, offset; metadata.pagination): at most 100 comments per answer, the replies counted (the default and largest limit is 100); a page that starts inside a thread has its top-level comment again, with the next replies only.
   Public: in a public space this request works without a session and without a token for a published or cancelled event (the response carries the name, username and avatar of the authors, never more). Every other space, and a draft, answer 401 without an account. A signed-in person who may not see the event gets 404. Ability events:read.
 }

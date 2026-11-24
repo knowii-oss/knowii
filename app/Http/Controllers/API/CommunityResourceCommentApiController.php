@@ -13,6 +13,7 @@ use App\Models\Space;
 use App\Support\CommentThread;
 use App\Traits\ApiResponses;
 use Dedoc\Scramble\Attributes\BodyParameter;
+use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -29,12 +30,18 @@ class CommunityResourceCommentApiController extends Controller
 
     /**
      * The comments of a resource, oldest first, each with its replies (oldest first).
+     * Paged with `limit` and `offset` (at most 100 comments in one answer, the replies counted, default 100): a page that
+     * starts inside a thread has its top-level comment again, with the next replies only. `metadata.totalCount` counts
+     * every comment of the item.
      */
-    final public function index(Community $community, Space $space, CommunityResource $resource): JsonResponse
+    #[QueryParameter('limit', description: 'Comments per answer, the replies counted (1 to 100, default 100)', type: 'int', example: 100)]
+    #[QueryParameter('offset', description: 'Comments to skip, the replies counted (default 0)', type: 'int', example: 0)]
+    final public function index(Request $request, Community $community, Space $space, CommunityResource $resource): JsonResponse
     {
         Gate::authorize('view', $resource);
+        $page = CommentThread::page($resource, CommentThread::pagination($request));
 
-        return self::success('Comments', ['totalCount' => $resource->comments()->count()], CommentThread::for($resource)->toResourceCollection());
+        return self::success('Comments', $page['metadata'], $page['items']->toResourceCollection());
     }
 
     /**

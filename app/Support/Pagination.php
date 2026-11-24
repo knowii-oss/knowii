@@ -20,8 +20,9 @@ final class Pagination
 
     /**
      * @param  int  $maxLimit  The largest page; a list that a client reads whole in a few pages has a larger one
+     * @param  int|null  $maxOffset  The largest offset (a list with a cap of its items): a larger one is this one
      */
-    public static function fromRequest(Request $request, int $defaultLimit = Constants::PAGINATION_DEFAULT_LIMIT, int $maxLimit = Constants::PAGINATION_MAX_LIMIT): self
+    public static function fromRequest(Request $request, int $defaultLimit = Constants::PAGINATION_DEFAULT_LIMIT, int $maxLimit = Constants::PAGINATION_MAX_LIMIT, ?int $maxOffset = null): self
     {
         $limit = (int) $request->query('limit', (string) $defaultLimit);
         $offset = (int) $request->query('offset', '0');
@@ -29,7 +30,9 @@ final class Pagination
         // The guide: 0 means the default, the limit has a maximum, the offset is never negative
         $limit = $limit <= 0 ? $defaultLimit : min($limit, $maxLimit);
 
-        return new self($limit, max(0, $offset));
+        $offset = max(0, $offset);
+
+        return new self($limit, $maxOffset === null ? $offset : min($offset, $maxOffset));
     }
 
     /**

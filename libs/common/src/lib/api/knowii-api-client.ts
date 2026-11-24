@@ -104,6 +104,7 @@ import {
   COMMUNITY_SPACE_EVENT_CALENDAR_FILE_API_PATH,
   EVENT_ANSWERS_PER_PAGE,
   SPACE_API_PARAM_EVENT,
+  COMMENTS_PER_PAGE,
   EVENTS_PER_PAGE,
   MARKDOWN_PREVIEW_API_PATH,
   SPACE_API_PARAM_MESSAGE,
@@ -1062,8 +1063,16 @@ export const knowiiApiClient = {
         ),
     },
     comments: {
-      list: (subject: CommentSubject): Promise<ApiResult<Comment[]>> =>
-        apiRequest('get', commentsPath(subject), z.array(commentSchema), 'Failed to load the comments.'),
+      /**
+       * One page of the comments (ADR 0073): at most `limit` comments, the replies counted, each thread then the next
+       * one. A page that starts inside a thread has its top-level comment again, with the next replies only
+       */
+      list: (subject: CommentSubject, offset = 0, limit: number = COMMENTS_PER_PAGE): Promise<ApiResult<Paginated<Comment>>> =>
+        apiPageRequest(
+          `${commentsPath(subject)}?${new URLSearchParams({ limit: String(limit), offset: String(offset) }).toString()}`,
+          commentSchema,
+          'Failed to load the comments.',
+        ),
       create: (subject: CommentSubject, input: CommentForm & { parent_cuid?: string | null }): Promise<ApiResult<Comment>> =>
         apiRequest('post', commentsPath(subject), commentSchema, 'Failed to publish the comment.', input),
       update: (subject: CommentSubject, commentCuid: string, input: CommentForm): Promise<ApiResult<Comment>> =>

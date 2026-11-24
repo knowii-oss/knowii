@@ -97,7 +97,8 @@ test('a reorder must list every space group of the community once', function (ca
 
     app(ReordersSpaceGroups::class)->reorder($this->c['owner'], $this->c['community'], ['space_group_cuids' => $cuids($groups, $other)]);
 })->with([
-    'missing one' => fn () => fn ($groups) => [$groups[0]->cuid],
-    'duplicate' => fn () => fn ($groups) => [$groups[0]->cuid, $groups[0]->cuid],
-    'from another community' => fn () => fn ($groups, $other) => [$groups[0]->cuid, $other->cuid],
+    // A callable parameter gets the closure itself: each one gives the list of the case
+    'missing one' => [fn ($groups) => [$groups[0]->cuid]],
+    'duplicate' => [fn ($groups) => [$groups[0]->cuid, $groups[0]->cuid]],
+    'from another community' => [fn ($groups, $other) => [$groups[0]->cuid, $other->cuid]],
 ])->throws(ValidationException::class);

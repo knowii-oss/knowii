@@ -15,6 +15,7 @@ use Illuminate\Broadcasting\BroadcastManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request as ClientRequest;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Transport\ArrayTransport;
@@ -588,4 +589,23 @@ function withCheckingBroadcaster(Closure $request): TestResponse
         config(['broadcasting.default' => $default]);
         app(BroadcastManager::class)->forgetDrivers();
     }
+}
+
+/**
+ * An uploaded PNG file of one color with these dimensions: a small file (the rows of one bit compress well), a real
+ * image that the server can decode
+ */
+function oneColorPng(int $width, int $height, string $name = 'image.png'): UploadedFile
+{
+    // Grayscale, one bit per pixel: each row is the filter byte 0 and its bits, all 0
+    $rows = str_repeat("\0".str_repeat("\0", intdiv($width + 7, 8)), $height);
+    $chunk = static fn (string $type, string $data): string => pack('N', strlen($data)).$type.$data.pack('N', crc32($type.$data));
+    $png = "\x89PNG\r\n\x1a\n"
+        .$chunk('IHDR', pack('NN', $width, $height)."\x01\x00\x00\x00\x00")
+        .$chunk('IDAT', (string) gzcompress($rows, 9))
+        .$chunk('IEND', '');
+    $path = (string) tempnam(sys_get_temp_dir(), 'knowii-png-');
+    file_put_contents($path, $png);
+
+    return new UploadedFile($path, $name, 'image/png', null, true);
 }

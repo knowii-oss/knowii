@@ -55,6 +55,13 @@ class Page extends Model
     use UsesUploads;
 
     /**
+     * The columns of a list of pages: every column but the text of the page (ADR 0073)
+     *
+     * @var list<string>
+     */
+    public const array LIST_COLUMNS = ['id', 'cuid', 'community_id', 'space_id', 'kind', 'author_id', 'title', 'slug', 'video_url', 'position', 'created_at', 'updated_at'];
+
+    /**
      * @var list<string>
      */
     protected $fillable = [

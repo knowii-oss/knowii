@@ -389,6 +389,18 @@ final class ApiRoutes
 
     public const COMMUNITY_SPACE_ONLINE_MEMBERS = self::COMMUNITY_SPACE.'/online-members';
 
+    // The routes that only mark something as read or seen by the current member (ADR 0073): the pages send them by
+    // themselves as the member reads, so they count in the reads of the API, never in its writes
+    public const array READ_MARKERS = [
+        self::COMMUNITY_SPACE_MESSAGES_READ,
+        self::COMMUNITY_CONVERSATION_READ,
+        self::COMMUNITY_SPACE_VISIT,
+        self::NOTIFICATIONS_SEEN,
+        self::NOTIFICATIONS_CAUGHT_UP,
+        self::NOTIFICATION_READ,
+        self::NOTIFICATION_UNREAD,
+    ];
+
     /**
      * Build a full, client-facing API path from a relative path, substituting
      * any route parameters.

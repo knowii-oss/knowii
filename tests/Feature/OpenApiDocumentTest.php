@@ -309,3 +309,12 @@ test('the add of a member to an access group documents both answers: the member,
     expect($body)->toContain('"member"')->toContain('"username"')->toContain('"email"')
         ->and(array_keys($operation['responses'] ?? []))->toContain(200)->toContain(204);
 });
+
+test('every operation documents the 429 of the limits, and every write but an upload the 413 of a large body', function () {
+    $paths = openApiDocument()['paths'];
+    $codes = fn (string $path, string $method) => array_keys($paths[$path][$method]['responses'] ?? []);
+
+    expect($codes('/v1/user/online-status', 'patch'))->toContain(429, 413)
+        ->and($codes('/v1/ping', 'get'))->toContain(429)->not->toContain(413)
+        ->and($codes('/v1/user/avatar', 'post'))->toContain(429)->not->toContain(413);
+});

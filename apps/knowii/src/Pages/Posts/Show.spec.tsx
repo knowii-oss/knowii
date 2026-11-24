@@ -2,9 +2,20 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { router } from '@inertiajs/react';
-import type { Comment, Community, Post, PostPermissions, Space } from '@knowii/common';
+import type { Comment, Community, Pagination, Post, PostPermissions, Space } from '@knowii/common';
 import { AppDataProvider, knowiiApiClient } from '@knowii/common';
 import PostPage from './Show';
+
+// The comments of the page fit in one page (ADR 0073)
+const ONE_PAGE = (comments: Comment[]): Pagination => ({
+  limit: 100,
+  offset: 0,
+  previousOffset: null,
+  nextOffset: null,
+  currentPage: 1,
+  pageCount: 1,
+  totalCount: comments.reduce((count, comment) => count + 1 + (comment.replies?.length ?? 0), 0),
+});
 
 vi.mock('@inertiajs/react', () => ({
   Link: ({ children, href, ...props }: { children: React.ReactNode; href: string }) => (
@@ -82,7 +93,12 @@ const author: PostPermissions = {
 
 const moderator: PostPermissions = { ...author, canModerate: true, canDeletePostWithComments: true, canUpdatePost: false };
 
-function renderPage(comments: Comment[], permissions: PostPermissions = author, shown: Post = post) {
+function renderPage(
+  comments: Comment[],
+  permissions: PostPermissions = author,
+  shown: Post = post,
+  pagination: Pagination = ONE_PAGE(comments),
+) {
   render(
     <AppDataProvider>
       <PostPage
@@ -91,6 +107,7 @@ function renderPage(comments: Comment[], permissions: PostPermissions = author, 
         spaceGroups={[]}
         post={shown}
         comments={comments}
+        commentsPagination={pagination}
         permissions={permissions}
       />
     </AppDataProvider>,
@@ -145,6 +162,27 @@ describe('PostPage, the delete that keeps the comments of other people (#1565)',
     await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));
 
     expect(remove).toHaveBeenCalledWith('c1', 's1', 'p1', { delete_comments: true });
+    await waitFor(() => expect(router.visit).toHaveBeenCalledWith('/spaces.show'));
+  });
+
+  it('counts every comment of the post while some are not loaded, and does not say that the post goes (ADR 0073)', async () => {
+    const remove = vi.spyOn(knowiiApiClient.communities.posts, 'delete').mockResolvedValue({ ok: true, message: '', data: undefined });
+    // The post is gone: it had no comment of other people
+    const get = vi
+      .spyOn(knowiiApiClient.communities.posts, 'get')
+      .mockResolvedValue({ ok: false, status: 404, message: 'Not found', errors: {} });
+    renderPage([comment('c1', ada)], moderator, post, { ...ONE_PAGE([]), nextOffset: 100, pageCount: 2, totalCount: 150 });
+
+    const dialog = await openDeleteDialog();
+    expect(within(dialog).getByRole('checkbox', { name: 'Also delete the comments (150)' })).not.toBeChecked();
+    expect(dialog).toHaveAccessibleDescription(
+      'Your comments under it are deleted too. If it has comments of other people, they stay and the post is replaced by a marker. This cannot be undone.',
+    );
+
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));
+    expect(remove).toHaveBeenCalledWith('c1', 's1', 'p1', {});
+    // The page asks the server whether a marker stayed
+    await waitFor(() => expect(get).toHaveBeenCalled());
     await waitFor(() => expect(router.visit).toHaveBeenCalledWith('/spaces.show'));
   });
 

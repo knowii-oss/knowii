@@ -14,6 +14,7 @@ use App\Models\Space;
 use App\Support\CommentThread;
 use App\Traits\ApiResponses;
 use Dedoc\Scramble\Attributes\BodyParameter;
+use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -33,14 +34,21 @@ class EventCommentApiController extends Controller
     /**
      * The comments of an event, oldest first, each with its replies (oldest first). A visitor reads the comments of a
      * published or cancelled event of a public space (404 elsewhere, and for a draft), as the event itself.
+     * Paged with `limit` and `offset` (at most 100 comments in one answer, the replies counted, default 100): a page that
+     * starts inside a thread has its top-level comment again, with the next replies only. `metadata.totalCount` counts
+     * every comment of the item.
      */
+    #[QueryParameter('limit', description: 'Comments per answer, the replies counted (1 to 100, default 100)', type: 'int', example: 100)]
+    #[QueryParameter('offset', description: 'Comments to skip, the replies counted (default 0)', type: 'int', example: 0)]
     final public function index(Request $request, Community $community, Space $space, Event $event): JsonResponse
     {
         self::inSpace($community, $space, $event);
         // A reader who cannot see the event, a visitor too: the answer of an event that does not exist
         EventPublication::assertVisible($request->user(), $event);
 
-        return self::success('Comments', ['totalCount' => $event->comments()->count()], CommentThread::for($event)->toResourceCollection());
+        $page = CommentThread::page($event, CommentThread::pagination($request));
+
+        return self::success('Comments', $page['metadata'], $page['items']->toResourceCollection());
     }
 
     /**

@@ -1,9 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
-import type { Comment, CommentSubject, SpaceContentPayload } from '@knowii/common';
+import type { Comment, CommentSubject, Pagination, SpaceContentPayload } from '@knowii/common';
 import { knowiiApiClient, useAppData, useSocket } from '@knowii/common';
 import { FaChevronDown, FaChevronRight, FaLink, FaPen, FaReply, FaTrash } from 'react-icons/fa6';
-import { Button, Checkbox, Dialog, ErrorBoundary, MarkdownContent, RelativeTime, useFocusAfterRender } from '@/Components/ui';
+import {
+  Button,
+  Checkbox,
+  Dialog,
+  ErrorBoundary,
+  LoadMoreButton,
+  MarkdownContent,
+  RelativeTime,
+  useFocusAfterRender,
+} from '@/Components/ui';
 import { CommentForm } from './CommentForm';
 import { commentBecomesMarker, commentDeletionLine, commentsAfterDeletion } from './delete-rules';
 import { ReactionBar } from '@/Components/Reactions/ReactionBar';
@@ -13,6 +22,10 @@ export interface CommentSectionProps {
   // The post, the resource (#1034) or the event (#1516) that the comments are about
   subject: CommentSubject;
   initialComments: Comment[];
+  /**
+   * The pagination of the first page (ADR 0073): without it, the first page holds every comment
+   */
+  initialPagination?: Pagination | undefined;
   currentUserCuid: string | null;
   canComment: boolean;
   canModerate: boolean;
@@ -21,9 +34,10 @@ export interface CommentSectionProps {
    */
   onCountChange?: (count: number) => void;
   /**
-   * Called when the comments change: the delete dialog of the post says what happens to them (#1565)
+   * Called when the comments change: the delete dialog of the post says what happens to them (#1565). `complete` is
+   * false while some comments are not loaded yet (ADR 0073), and `total` counts every comment of the item
    */
-  onCommentsChange?: (comments: Comment[]) => void;
+  onCommentsChange?: (comments: Comment[], complete: boolean, total: number) => void;
 }
 
 const countAll = (comments: Comment[]) => comments.reduce((total, comment) => total + 1 + (comment.replies?.length ?? 0), 0);
@@ -80,6 +94,25 @@ function withCreated(comments: Comment[], created: Comment): Comment[] {
       ? { ...comment, replies: [...(comment.replies ?? []), created] }
       : comment,
   );
+}
+
+/**
+ * The comments with one more page (ADR 0073): a thread that is already there gets the replies that it does not have
+ * yet (a page that starts inside a thread has its top-level comment again), any other thread comes at the end
+ */
+export function withPage(comments: Comment[], page: Comment[]): Comment[] {
+  const next = [...comments];
+  for (const thread of page) {
+    const index = next.findIndex((comment) => comment.cuid === thread.cuid);
+    const shown = index === -1 ? undefined : next[index];
+    if (shown === undefined) {
+      next.push(thread);
+      continue;
+    }
+    const known = new Set((shown.replies ?? []).map((reply) => reply.cuid));
+    next[index] = { ...thread, replies: [...(shown.replies ?? []), ...(thread.replies ?? []).filter((reply) => !known.has(reply.cuid))] };
+  }
+  return next;
 }
 
 /**
@@ -146,6 +179,15 @@ export function CommentSection(props: CommentSectionProps) {
   const { showToast } = useAppData();
   const isVisitor = useIsVisitor();
   const [comments, setComments] = useState<Comment[]>(props.initialComments);
+  // The next page of the comments (ADR 0073), null once every comment is loaded
+  const [nextOffset, setNextOffset] = useState<number | null>(props.initialPagination?.nextOffset ?? null);
+  const [loadingMore, setLoadingMore] = useState(false);
+  // The number of every comment of the item at the last answer of the server, and the number of the loaded ones then:
+  // the count of the title is the first one, changed by what the page did since
+  const [counted, setCounted] = useState(() => ({
+    total: props.initialPagination?.totalCount ?? countAll(props.initialComments),
+    loaded: countAll(props.initialComments),
+  }));
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   // The comment whose "Reply" button opened the reply form: a reply to a reply opens the form of its thread (#1624)
   const replyOpener = useRef<string | null>(null);
@@ -161,10 +203,25 @@ export function CommentSection(props: CommentSectionProps) {
 
   const focusAfterRender = useFocusAfterRender();
 
-  const update = (next: Comment[]) => {
+  const totalOf = (next: Comment[], count: { total: number; loaded: number }) => count.total + countAll(next) - count.loaded;
+
+  const update = (next: Comment[], page?: { nextOffset: number | null; totalCount: number }) => {
+    const count = page ? { total: page.totalCount, loaded: countAll(next) } : latest.current.counted;
+    const complete = (page ? page.nextOffset : latest.current.nextOffset) === null;
     setComments(next);
-    onCountChange?.(countAll(next));
-    onCommentsChange?.(next);
+    if (page) {
+      setNextOffset(page.nextOffset);
+      setCounted(count);
+    }
+    // The values of now for the next call before the render (a page that loads after another one)
+    latest.current = {
+      ...latest.current,
+      comments: next,
+      counted: count,
+      nextOffset: page ? page.nextOffset : latest.current.nextOffset,
+    };
+    onCountChange?.(totalOf(next, count));
+    onCommentsChange?.(next, complete, totalOf(next, count));
   };
 
   // Live updates (#1180): a comment of this subject changed, or the reactions of one: load the comments again. The
@@ -202,31 +259,71 @@ export function CommentSection(props: CommentSectionProps) {
   };
 
   // The latest values for the hashchange listener, which is registered once
-  const latest = useRef({ comments, collapsed, changeCollapsed });
+  const latest = useRef({ comments, collapsed, changeCollapsed, nextOffset, counted });
   useEffect(() => {
-    latest.current = { comments, collapsed, changeCollapsed };
+    latest.current = { comments, collapsed, changeCollapsed, nextOffset, counted };
   });
 
-  // Open the comment of the URL (#1205): on the first render, and when the hash changes (a link on the same page)
+  /**
+   * Loads the next pages until the comment is loaded or no page is left (a link to a comment of a later page)
+   */
+  const loadUntil = async (cuid: string): Promise<void> => {
+    while (threadOf(latest.current.comments, cuid) === null && latest.current.nextOffset !== null) {
+      const result = await knowiiApiClient.communities.comments.list(subject, latest.current.nextOffset);
+      if (!result.ok) {
+        return;
+      }
+      update(withPage(latest.current.comments, result.data.items), result.data.pagination);
+    }
+  };
+
+  /**
+   * Opens the comment of the URL: its page is loaded first, then its thread opens
+   */
+  const openTarget = async (target: string) => {
+    const wasLoaded = threadOf(latest.current.comments, target) !== null;
+    if (!wasLoaded) {
+      await loadUntil(target);
+    }
+    const { comments: current, collapsed: closed, changeCollapsed: change } = latest.current;
+    const thread = threadOf(current, target);
+    if (thread && closed.has(thread)) {
+      const next = new Set(closed);
+      next.delete(thread);
+      // The comment must be in the page before it gets the focus
+      flushSync(() => change(next));
+    }
+    if (wasLoaded) {
+      showComment(target);
+      return;
+    }
+    // The loaded page is in the document after the next render
+    focusAfterRender(() => {
+      showComment(target);
+      return null;
+    });
+  };
+  const openTargetRef = useRef(openTarget);
+  useEffect(() => {
+    openTargetRef.current = openTarget;
+  });
+
+  // Open the comment of the URL (#1205): on the first render, and when the hash changes (a link on the same page). A
+  // comment of a later page is loaded first (ADR 0073)
   useEffect(() => {
     const initial = commentInHash();
     if (initial) {
-      showComment(initial);
+      if (threadOf(latest.current.comments, initial) === null) {
+        void openTargetRef.current(initial);
+      } else {
+        showComment(initial);
+      }
     }
     const onHashChange = () => {
       const target = commentInHash();
-      if (!target) {
-        return;
+      if (target) {
+        void openTargetRef.current(target);
       }
-      const { comments: current, collapsed: closed, changeCollapsed: change } = latest.current;
-      const thread = threadOf(current, target);
-      if (thread && closed.has(thread)) {
-        const next = new Set(closed);
-        next.delete(thread);
-        // The comment must be in the page before it gets the focus
-        flushSync(() => change(next));
-      }
-      showComment(target);
     };
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
@@ -254,13 +351,52 @@ export function CommentSection(props: CommentSectionProps) {
       if (!aboutThisSubject || (event === 'space.reactions.changed' && !data.comment_cuid)) {
         return;
       }
-      void knowiiApiClient.communities.comments.list(subject).then((result) => {
-        if (result.ok) {
-          update(result.data);
-        }
-      });
+      void reload();
     },
   });
+
+  /**
+   * Loads again the pages that the page shows (ADR 0073): from the first one to the last loaded one
+   */
+  const reload = async () => {
+    const until = latest.current.nextOffset;
+    let loaded: Comment[] = [];
+    let offset: number | null = 0;
+    let last: Pagination | null = null;
+    while (offset !== null && (last === null || until === null || offset < until)) {
+      const result = await knowiiApiClient.communities.comments.list(subject, offset);
+      if (!result.ok) {
+        return;
+      }
+      loaded = withPage(loaded, result.data.items);
+      last = result.data.pagination;
+      offset = last.nextOffset;
+    }
+    if (last !== null) {
+      update(loaded, { nextOffset: offset, totalCount: last.totalCount });
+    }
+  };
+
+  const loadMore = async () => {
+    const offset = latest.current.nextOffset;
+    if (offset === null || loadingMore) {
+      return;
+    }
+    setLoadingMore(true);
+    const result = await knowiiApiClient.communities.comments.list(subject, offset);
+    setLoadingMore(false);
+    if (!result.ok) {
+      showToast({ severity: 'error', summary: result.message });
+      return;
+    }
+    const before = latest.current.comments;
+    update(withPage(before, result.data.items), result.data.pagination);
+    // The focus goes to the first new thread, else it stays on the button
+    const first = result.data.items.find((thread) => !before.some((comment) => comment.cuid === thread.cuid));
+    if (first) {
+      focusAfterRender(() => commentElement(first.cuid));
+    }
+  };
 
   const create = async (body: string, parentCuid: string | null): Promise<string | null> => {
     const result = await knowiiApiClient.communities.comments.create(subject, { body, parent_cuid: parentCuid });
@@ -447,7 +583,7 @@ export function CommentSection(props: CommentSectionProps) {
     );
   };
 
-  const total = countAll(comments);
+  const total = totalOf(comments, counted);
 
   return (
     <section aria-labelledby={COMMENTS_TITLE_ID} className="flex flex-col gap-4 border-t border-border pt-6">
@@ -550,6 +686,12 @@ export function CommentSection(props: CommentSectionProps) {
           );
         })}
       </ol>
+
+      {nextOffset !== null && (
+        <LoadMoreButton onClick={() => void loadMore()} loading={loadingMore}>
+          Load more comments
+        </LoadMoreButton>
+      )}
 
       {canComment && (
         <CommentForm

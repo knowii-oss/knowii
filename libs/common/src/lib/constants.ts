@@ -201,6 +201,8 @@ export const MAX_CONVERSATION_PARTICIPANTS = 10;
 export const POSTS_PER_PAGE = 20;
 export const POST_EDITOR_ROWS = 12;
 export const MAX_LENGTH_COMMENT_BODY = 10000;
+// The comments of one page, the replies counted (ADR 0073). WARNING: aligned with Constants::COMMENTS_PER_PAGE
+export const COMMENTS_PER_PAGE = 100;
 export const COMMENT_EDITOR_ROWS = 4;
 
 // Image uploads. WARNING: aligned with Constants.php

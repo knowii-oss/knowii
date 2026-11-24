@@ -21,6 +21,6 @@ body:multipart-form {
 
 docs {
   Uploads an image for a post or a comment (multipart/form-data: the only non-JSON body the API accepts).
-  JPEG, PNG, WebP or GIF, up to 10 MB and 40 megapixels. The server re-encodes it to WebP (metadata such as the GPS location is removed) and scales it down to 2,000 pixels on the longest side.
+  JPEG, PNG, WebP or GIF, up to 10 MB and 25 megapixels. The server re-encodes it to WebP (metadata such as the GPS location is removed) and scales it down to 2,000 pixels on the longest side.
   alt is required (accessibility). Insert the result in Markdown as ![alt](url). Members of the community only. Rate limited: 20 per minute.
 }

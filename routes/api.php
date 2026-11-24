@@ -160,7 +160,7 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
 
             // Posts (#1174)
             Route::post(ApiRoutes::COMMUNITY_SPACE_POSTS, [PostApiController::class, 'store'])->middleware('ability:posts:write')->middleware('throttle:posts');
-            Route::patch(ApiRoutes::COMMUNITY_SPACE_POST, [PostApiController::class, 'update'])->middleware('ability:posts:write');
+            Route::patch(ApiRoutes::COMMUNITY_SPACE_POST, [PostApiController::class, 'update'])->middleware('ability:posts:write')->middleware('throttle:posts');
             Route::delete(ApiRoutes::COMMUNITY_SPACE_POST, [PostApiController::class, 'destroy'])->middleware('ability:posts:write');
             Route::post(ApiRoutes::COMMUNITY_SPACE_POST_PIN, [PostApiController::class, 'pin'])->middleware('ability:posts:write');
 
@@ -187,7 +187,7 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::post(ApiRoutes::COMMUNITY_SPACE_MESSAGES, [ChatMessageApiController::class, 'store'])->middleware('ability:chat:write')->middleware('throttle:messages');
             Route::post(ApiRoutes::COMMUNITY_SPACE_MESSAGES_READ, [ChatMessageApiController::class, 'read'])->middleware('ability:chat:read');
             Route::get(ApiRoutes::COMMUNITY_SPACE_MESSAGE, [ChatMessageApiController::class, 'show'])->middleware('ability:chat:read');
-            Route::patch(ApiRoutes::COMMUNITY_SPACE_MESSAGE, [ChatMessageApiController::class, 'update'])->middleware('ability:chat:write');
+            Route::patch(ApiRoutes::COMMUNITY_SPACE_MESSAGE, [ChatMessageApiController::class, 'update'])->middleware('ability:chat:write')->middleware('throttle:messages');
             Route::delete(ApiRoutes::COMMUNITY_SPACE_MESSAGE, [ChatMessageApiController::class, 'destroy'])->middleware('ability:chat:write');
             Route::get(ApiRoutes::COMMUNITY_SPACE_MESSAGE_THREAD, [ChatMessageApiController::class, 'thread'])->middleware('ability:chat:read');
             Route::get(ApiRoutes::COMMUNITY_SPACE_MESSAGE_REACTIONS, [ReactionApiController::class, 'listMessage'])->middleware('ability:chat:read');
@@ -218,7 +218,7 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::get(ApiRoutes::COMMUNITY_SPACE_MATERIAL_DOWNLOAD, [CourseMaterialApiController::class, 'download'])->middleware('ability:pages:read');
 
             // Resources of resources spaces (ADR 0015)
-            Route::post(ApiRoutes::COMMUNITY_SPACE_RESOURCES, [CommunityResourceApiController::class, 'store'])->middleware('ability:resources:create,resources:write');
+            Route::post(ApiRoutes::COMMUNITY_SPACE_RESOURCES, [CommunityResourceApiController::class, 'store'])->middleware('ability:resources:create,resources:write')->middleware('throttle:captures');
             Route::patch(ApiRoutes::COMMUNITY_SPACE_RESOURCE, [CommunityResourceApiController::class, 'update'])->middleware('ability:resources:write');
             Route::delete(ApiRoutes::COMMUNITY_SPACE_RESOURCE, [CommunityResourceApiController::class, 'destroy'])->middleware('ability:resources:write');
             Route::post(ApiRoutes::COMMUNITY_SPACE_RESOURCE_CAPTURE, [CommunityResourceApiController::class, 'capture'])->middleware('ability:resources:write')->middleware('throttle:captures');
@@ -240,21 +240,21 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::get(ApiRoutes::COMMUNITY_SPACE_EVENT_CALENDAR_FILE, [EventCalendarFileApiController::class, 'show'])->middleware(['json-refusals', 'ability:events:read', 'throttle:calendar-files']);
             // The comments of an event (#1516, ADR 0053), as the comments of a resource. No reaction on the event itself
             Route::post(ApiRoutes::COMMUNITY_SPACE_EVENT_COMMENTS, [EventCommentApiController::class, 'store'])->middleware('ability:events:write')->middleware('throttle:comments');
-            Route::patch(ApiRoutes::COMMUNITY_SPACE_EVENT_COMMENT, [EventCommentApiController::class, 'update'])->middleware('ability:events:write');
+            Route::patch(ApiRoutes::COMMUNITY_SPACE_EVENT_COMMENT, [EventCommentApiController::class, 'update'])->middleware('ability:events:write')->middleware('throttle:comments');
             Route::delete(ApiRoutes::COMMUNITY_SPACE_EVENT_COMMENT, [EventCommentApiController::class, 'destroy'])->middleware('ability:events:write');
             Route::get(ApiRoutes::COMMUNITY_SPACE_EVENT_COMMENT_REACTIONS, [ReactionApiController::class, 'listEventComment'])->middleware('ability:events:read');
             Route::post(ApiRoutes::COMMUNITY_SPACE_EVENT_COMMENT_REACTIONS, [ReactionApiController::class, 'toggleEventComment'])->middleware('ability:events:write')->middleware('throttle:reactions');
 
             // Comments on resources (#1034)
             Route::post(ApiRoutes::COMMUNITY_SPACE_RESOURCE_COMMENTS, [CommunityResourceCommentApiController::class, 'store'])->middleware('ability:resources:write')->middleware('throttle:comments');
-            Route::patch(ApiRoutes::COMMUNITY_SPACE_RESOURCE_COMMENT, [CommunityResourceCommentApiController::class, 'update'])->middleware('ability:resources:write');
+            Route::patch(ApiRoutes::COMMUNITY_SPACE_RESOURCE_COMMENT, [CommunityResourceCommentApiController::class, 'update'])->middleware('ability:resources:write')->middleware('throttle:comments');
             Route::delete(ApiRoutes::COMMUNITY_SPACE_RESOURCE_COMMENT, [CommunityResourceCommentApiController::class, 'destroy'])->middleware('ability:resources:write');
             Route::get(ApiRoutes::COMMUNITY_SPACE_RESOURCE_COMMENT_REACTIONS, [ReactionApiController::class, 'listResourceComment'])->middleware('ability:resources:read');
             Route::post(ApiRoutes::COMMUNITY_SPACE_RESOURCE_COMMENT_REACTIONS, [ReactionApiController::class, 'toggleResourceComment'])->middleware('ability:resources:write')->middleware('throttle:reactions');
 
             // Comments (#1175)
             Route::post(ApiRoutes::COMMUNITY_SPACE_POST_COMMENTS, [CommentApiController::class, 'store'])->middleware('ability:posts:write')->middleware('throttle:comments');
-            Route::patch(ApiRoutes::COMMUNITY_SPACE_POST_COMMENT, [CommentApiController::class, 'update'])->middleware('ability:posts:write');
+            Route::patch(ApiRoutes::COMMUNITY_SPACE_POST_COMMENT, [CommentApiController::class, 'update'])->middleware('ability:posts:write')->middleware('throttle:comments');
             Route::delete(ApiRoutes::COMMUNITY_SPACE_POST_COMMENT, [CommentApiController::class, 'destroy'])->middleware('ability:posts:write');
 
             // Reactions (#1176)
@@ -277,7 +277,7 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::post(ApiRoutes::COMMUNITY_CONVERSATION_MESSAGES, [ConversationApiController::class, 'send'])->middleware('ability:messages:write')->middleware('throttle:messages');
             Route::post(ApiRoutes::COMMUNITY_CONVERSATION_READ, [ConversationApiController::class, 'read'])->middleware('ability:messages:read');
             Route::get(ApiRoutes::COMMUNITY_CONVERSATION_MESSAGE, [ConversationApiController::class, 'message'])->middleware('ability:messages:read');
-            Route::patch(ApiRoutes::COMMUNITY_CONVERSATION_MESSAGE, [ConversationApiController::class, 'updateMessage'])->middleware('ability:messages:write');
+            Route::patch(ApiRoutes::COMMUNITY_CONVERSATION_MESSAGE, [ConversationApiController::class, 'updateMessage'])->middleware('ability:messages:write')->middleware('throttle:messages');
             Route::delete(ApiRoutes::COMMUNITY_CONVERSATION_MESSAGE, [ConversationApiController::class, 'destroyMessage'])->middleware('ability:messages:write');
             Route::get(ApiRoutes::COMMUNITY_CONVERSATION_MESSAGE_REACTIONS, [ReactionApiController::class, 'listDirectMessage'])->middleware('ability:messages:read');
             Route::post(ApiRoutes::COMMUNITY_CONVERSATION_MESSAGE_REACTIONS, [ReactionApiController::class, 'toggleDirectMessage'])->middleware('ability:messages:write')->middleware('throttle:reactions');
