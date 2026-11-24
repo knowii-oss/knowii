@@ -569,6 +569,8 @@ test('a proof that expired before the deletion is refused on the web and through
     $this->deleteJson(ApiRoutes::path(ApiRoutes::USER))->assertStatus(422);
 
     expect(freshAccountExists($this->member))->toBeTrue();
+    // The page reads the session: a token works on the API only (ADR 0022)
+    $this->actingAs($this->member->fresh() ?? $this->member);
     $this->get('/user/profile')->assertInertia(fn ($page) => $page->where('accountDeletion.confirmed_until', null));
 });
 

@@ -1,10 +1,13 @@
 import type { ReactNode } from 'react';
 import { useRef, useState } from 'react';
 import axios from 'axios';
+import { router } from '@inertiajs/react';
 import { useRoute } from 'ziggy-js';
-import { PASSWORD_CONFIRM_URL, PASSWORD_CONFIRMATION_URL } from '@knowii/common';
+import { LOGIN_URL, PASSWORD_CONFIRM_URL, PASSWORD_CONFIRMATION_URL } from '@knowii/common';
 import { FaLock } from 'react-icons/fa';
 import { Button, Dialog, InputError, InputLabel, PasswordInput } from '@/Components/ui';
+
+const HTTP_UNAUTHORIZED = 401;
 
 interface Props {
   title?: string;
@@ -58,8 +61,14 @@ export default function ConfirmsPassword({
         close();
         onConfirm();
       })
-      .catch((reason: { response?: { data?: { errors?: { password?: string[] } } } }) => {
+      .catch((reason: { response?: { status?: number; data?: { errors?: { password?: string[] } } } }) => {
         setProcessing(false);
+        // The server ends the session at its fifth wrong password in 15 minutes (401): the sign-in page says why
+        if (reason.response?.status === HTTP_UNAUTHORIZED) {
+          close();
+          router.get(route(LOGIN_URL));
+          return;
+        }
         setError(reason.response?.data?.errors?.password?.[0] ?? 'The password is not correct.');
         input.current?.focus();
       });

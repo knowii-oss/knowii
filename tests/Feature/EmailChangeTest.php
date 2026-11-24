@@ -4,6 +4,7 @@ use App\Actions\Auth\MagicLinks;
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Users\ExportUser;
 use App\ApiRoutes;
+use App\Constants;
 use App\Contracts\Auth\ConsumesMagicLinks;
 use App\Contracts\Users\ChangesEmailAddresses;
 use App\Enums\KnowiiCommunityMemberRole;
@@ -165,17 +166,22 @@ test('the change of the address needs the current password: a wrong one changes 
     Mail::assertNothingQueued();
 });
 
-test('a few wrong passwords a minute, then the form says to wait', function () {
+test('the fifth wrong password in 15 minutes ends the session, and the address does not change', function () {
     $ada = emailChangeMember();
+    $cookies = signInWithForm($ada, EMAIL_CHANGE_PASSWORD)['session'];
+    $form = fn (array $browser, string $password): TestResponse => browserWith($browser)->put('/user/profile-information', ['name' => $ada->name, 'email' => EMAIL_CHANGE_NEW, 'current_password' => $password]);
 
-    foreach (range(1, 6) as $try) {
-        emailChangeRequest($ada, EMAIL_CHANGE_NEW, 'wrong-'.$try)->assertSessionHasErrorsIn('updateProfileInformation', ['current_password' => 'The provided password does not match your current password.']);
+    // The tries of the current password count for the session, with the other forms that ask for it
+    // (App\Support\PasswordTries)
+    foreach (range(1, Constants::PASSWORD_TRIES - 1) as $try) {
+        $form($cookies, 'wrong-'.$try)->assertSessionHasErrorsIn('updateProfileInformation', ['current_password' => 'The provided password does not match your current password.']);
     }
-    emailChangeRequest($ada, EMAIL_CHANGE_NEW)->assertSessionHasErrorsIn('updateProfileInformation', ['current_password' => 'Too many tries. Please wait a minute, then try again.']);
+    $form($cookies, 'wrong-again')->assertRedirect(route('login'));
+    $form($cookies, EMAIL_CHANGE_PASSWORD)->assertRedirect(route('login'));
     expect($ada->fresh()->pending_email)->toBeNull();
 
-    $this->travel(61)->seconds();
-    emailChangeRequest($ada, EMAIL_CHANGE_NEW)->assertSessionHasNoErrors();
+    // After a new sign-in the right password works
+    $form(signInWithForm($ada, EMAIL_CHANGE_PASSWORD)['session'], EMAIL_CHANGE_PASSWORD)->assertSessionHasNoErrors();
     expect($ada->fresh()->pending_email)->toBe(EMAIL_CHANGE_NEW);
 });
 

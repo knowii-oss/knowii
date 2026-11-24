@@ -5,6 +5,7 @@ import AuthenticationCard from '@/Components/AuthenticationCard';
 import { useRoute } from 'ziggy-js';
 import { FORGOT_PASSWORD_URL, LOGIN_LINK_STORE_URL, LOGIN_URL, REGISTER_URL } from '@knowii/common';
 import { FaAt, FaLock } from 'react-icons/fa';
+import { FaTriangleExclamation } from 'react-icons/fa6';
 import Footer from '@/Components/Footer';
 import OpenIdConnectButton from '@/Components/Auth/OpenIdConnectButton';
 import { Button, Checkbox, InputError, InputLabel, PasswordInput, TextInput } from '@/Components/ui';
@@ -17,10 +18,18 @@ interface LoginFormData {
 
 interface Props {
   canResetPassword: boolean;
+  /**
+   * The word of a success, for example after a reset of the password
+   */
   status: string;
+  /**
+   * The words of a session that the server ended: "Too many wrong passwords. Sign in again.", "Your account changed on
+   * another device. Sign in again.". A warning, never a success
+   */
+  warning?: string | null;
 }
 
-export default function LoginPage({ canResetPassword, status }: Props) {
+export default function LoginPage({ canResetPassword, status, warning }: Props) {
   const route = useRoute();
 
   const form = useForm<LoginFormData>({
@@ -48,6 +57,16 @@ export default function LoginPage({ canResetPassword, status }: Props) {
     <>
       <Head title="Log in" />
       <AuthenticationCard>
+        {warning && (
+          <p
+            role="alert"
+            className="mb-4 flex items-start gap-2 rounded-lg border border-warning bg-warning/10 p-3 text-sm font-medium text-primary"
+          >
+            <FaTriangleExclamation aria-hidden="true" className="mt-0.5 shrink-0 text-warning" />
+            <span>{warning}</span>
+          </p>
+        )}
+
         {status && (
           <div role="status" className="mb-4 text-sm font-medium whitespace-pre-line text-success">
             {status}

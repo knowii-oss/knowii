@@ -13,6 +13,7 @@ import { ErrorBoundary, Toaster } from '@/Components/ui';
 import { ApplicationToolkitProvider } from '@/Components/ApplicationToolkit';
 import { pageComponents } from './page-components';
 import { startPageViews } from './statistics';
+import { startHistoryOfOneAccount } from './history-account';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -31,6 +32,10 @@ createInertiaApp({
   title: (title) => `${title} - ${appName}`,
   resolve: (name) => resolvePageComponent(`./Pages/${name}.tsx`, pageComponents),
   setup({ el, App, props }) {
+    // The history of the tab keeps the pages of one account (App\Support\BrowserHistory): before the first page goes in the
+    // history, and then before each page that a visit brings
+    startHistoryOfOneAccount(props.initialPage.props);
+
     const root = ReactDOM.createRoot(el);
 
     root.render(

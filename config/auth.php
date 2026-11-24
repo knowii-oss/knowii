@@ -108,10 +108,13 @@ return [
     |
     | Here you may define the amount of seconds before a password confirmation
     | window expires and users are asked to re-enter their password via the
-    | confirmation screen. By default, the timeout lasts for three hours.
+    | confirmation screen. By default, the timeout lasts for 15 minutes: the
+    | settings of two-factor authentication ask for the password again after it.
+    | An empty value, zero and a value that is no number of seconds keep the
+    | 15 minutes: the framework would read them as 3 hours.
     |
     */
 
-    'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
+    'password_timeout' => max(0, (int) env('AUTH_PASSWORD_TIMEOUT', 900)) ?: 900,
 
 ];

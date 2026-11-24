@@ -150,11 +150,18 @@ return [
     | being accessible after logout. Can also be enabled per-request
     | or via the `inertia.encrypt` middleware.
     |
+    | The history is encrypted by default: after the sign-out, the page data
+    | of a member cannot be read from the history of the browser, on https
+    | (App\Support\BrowserHistory). Only an explicit false value turns it
+    | off (false, 0, off or no, in any case): an empty value keeps it on.
+    | A browser encrypts only in a secure context, so a page asks for it
+    | only over https or on a loopback name: see SELF_HOSTING.md.
+    |
     */
 
     'history' => [
 
-        'encrypt' => (bool) env('INERTIA_ENCRYPT_HISTORY', false),
+        'encrypt' => ! in_array(strtolower(trim(var_export(env('INERTIA_ENCRYPT_HISTORY'), true), "' ")), ['false', '0', 'off', 'no'], true),
 
     ],
 

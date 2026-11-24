@@ -19,6 +19,10 @@ use Symfony\Component\HttpFoundation\Response;
  * is refused like everywhere else. A token that Sanctum refuses (unknown, revoked, expired) gets a 401, it never
  * silently becomes a visitor. The abilities of a token are still checked by the `ability:` middleware of the route,
  * which lets only a request marked as a visitor go without a user.
+ *
+ * A token works on the API only (ADR 0022): on a page, a request with a valid token is refused with a 403
+ * (AcceptOnlyTheSessionOnPages). It is not read as a visitor, for the same reason as a token that is not valid: the
+ * client sent a token, so an answer for a visitor would hide its mistake.
  */
 class AuthenticateIfPresent implements AuthenticatesRequests
 {
@@ -40,6 +44,12 @@ class AuthenticateIfPresent implements AuthenticatesRequests
 
         if ($guard->check()) {
             $this->auth->shouldUse('sanctum');
+
+            // A page accepts the session only (ADR 0022): a token is refused here, before the check of the email address,
+            // so its answer is the same for every account. The API accepts a token, with its abilities
+            if (! $request->is('api/*')) {
+                AcceptOnlyTheSessionOnPages::check($request);
+            }
 
             // An unverified account is refused, on the web (redirect) and on the API (403), like `verified`
             /** @var Response */

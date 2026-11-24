@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Actions\Fortify\ConfirmPassword;
 use App\Actions\Fortify\ConfirmTwoFactorAuthentication;
 use App\Actions\Fortify\CreateNewUser;
+use App\Actions\Fortify\DisableTwoFactorAuthentication;
 use App\Actions\Fortify\EnableTwoFactorAuthentication;
 use App\Actions\Fortify\GenerateNewRecoveryCodes;
 use App\Actions\Fortify\RedirectIfTwoFactorAuthenticatable;
@@ -13,8 +15,10 @@ use App\Actions\Fortify\UpdateUserProfileInformation;
 use App\Http\Controllers\Inertia\PasswordResetLinkController;
 use App\Http\Controllers\Inertia\RegisteredUserController;
 use App\Http\Requests\TwoFactorLoginRequest;
+use App\Http\Responses\LogoutResponse;
 use App\Http\Responses\TwoFactorLoginResponse;
 use App\Http\Responses\VerifyEmailResponse;
+use App\Support\EndedSession;
 use App\Support\OpenIdConnect;
 use App\Support\Turnstile;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -24,9 +28,12 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Laravel\Fortify\Actions\ConfirmPassword as FortifyConfirmPassword;
 use Laravel\Fortify\Actions\ConfirmTwoFactorAuthentication as FortifyConfirmTwoFactorAuthentication;
+use Laravel\Fortify\Actions\DisableTwoFactorAuthentication as FortifyDisableTwoFactorAuthentication;
 use Laravel\Fortify\Actions\EnableTwoFactorAuthentication as FortifyEnableTwoFactorAuthentication;
 use Laravel\Fortify\Actions\GenerateNewRecoveryCodes as FortifyGenerateNewRecoveryCodes;
+use Laravel\Fortify\Contracts\LogoutResponse as LogoutResponseContract;
 use Laravel\Fortify\Contracts\RedirectsIfTwoFactorAuthenticatable;
 use Laravel\Fortify\Contracts\TwoFactorLoginResponse as TwoFactorLoginResponseContract;
 use Laravel\Fortify\Contracts\VerifyEmailResponse as VerifyEmailResponseContract;
@@ -46,6 +53,8 @@ class FortifyServiceProvider extends ServiceProvider
         $this->app->singleton(VerifyEmailResponseContract::class, VerifyEmailResponse::class);
         // After the code of the second factor, a sign-in link lands on the page that it carries (#1612, ADR 0057)
         $this->app->singleton(TwoFactorLoginResponseContract::class, TwoFactorLoginResponse::class);
+        // After the sign-out, the browser forgets the pages of the member that its history keeps
+        $this->app->singleton(LogoutResponseContract::class, LogoutResponse::class);
         // The password reset form gives the same answer for every address, and the broker runs in a queued job
         // (documentation/architecture/backend.md)
         $this->app->bind(FortifyPasswordResetLinkController::class, PasswordResetLinkController::class);
@@ -62,6 +71,13 @@ class FortifyServiceProvider extends ServiceProvider
         $this->app->bind(FortifyEnableTwoFactorAuthentication::class, EnableTwoFactorAuthentication::class);
         $this->app->bind(FortifyGenerateNewRecoveryCodes::class, GenerateNewRecoveryCodes::class);
         $this->app->bind(FortifyConfirmTwoFactorAuthentication::class, ConfirmTwoFactorAuthentication::class);
+        // The second factor signs out the other devices of the account when it is confirmed (above), turned off, or when
+        // its recovery codes are made again (ADR 0066)
+        $this->app->bind(FortifyDisableTwoFactorAuthentication::class, DisableTwoFactorAuthentication::class);
+        // Every place that asks for the current password counts the wrong passwords for what signed the request in
+        // (App\Support\PasswordTries): the confirmation of the password, "Log out other browser sessions" and the deletion
+        // of the account call this action
+        $this->app->bind(FortifyConfirmPassword::class, ConfirmPassword::class);
     }
 
     /**
@@ -88,6 +104,8 @@ class FortifyServiceProvider extends ServiceProvider
             return Inertia::render('Auth/Login', [
                 'canResetPassword' => Route::has('password.request'),
                 'status' => session('status'),
+                // The words of a session that the server ended, for one request: the page shows them as a warning
+                'warning' => session(EndedSession::WARNING_KEY),
             ]);
         });
         Fortify::updateUserProfileInformationUsing(UpdateUserProfileInformation::class);

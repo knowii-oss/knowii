@@ -10,7 +10,10 @@ use App\Exceptions\BusinessException;
 use App\Mail\CommunityOwnershipTransferred;
 use App\Models\Community;
 use App\Models\User;
+use App\Support\PasswordTries;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
@@ -28,8 +31,10 @@ class TransferCommunityOwnership implements TransfersCommunityOwnership
      * (the owner is not a row of it), and the former owner becomes an admin, in one transaction. The owner confirms
      * with their password: they cannot undo the change by themselves.
      *
+     * @throws AuthenticationException When the session made too many wrong tries of the password: it is ended
      * @throws AuthorizationException
      * @throws BusinessException
+     * @throws ThrottleRequestsException When the API tokens of the account made too many wrong tries of the password
      * @throws ValidationException
      */
     final public function transfer(User $user, Community $community, array $input): User
@@ -42,9 +47,10 @@ class TransferCommunityOwnership implements TransfersCommunityOwnership
             'password' => ['required', 'string'],
         ])->validate();
 
-        // An account without a password (created by a sign-in provider) sets one first: Forgot your password?
+        // The password is checked with the tries of what signed the request in (App\Support\PasswordTries): a wrong one
+        // counts. An account without a password (created by a sign-in provider) sets one first: Forgot your password?
         $storedPassword = $user->password;
-        if ($storedPassword === null || ! Hash::check($validated['password'], $storedPassword)) {
+        if (! PasswordTries::check($user, static fn (): bool => $storedPassword !== null && Hash::check($validated['password'], $storedPassword))) {
             throw ValidationException::withMessages(['password' => [__('The provided password does not match your current password.')]]);
         }
 

@@ -8,6 +8,7 @@ use App\Contracts\Realtime\EndsLiveConnections;
 use App\Enums\KnowiiAddressProof;
 use App\Enums\KnowiiTakeOverResult;
 use App\Models\User;
+use App\Support\BrowserHistory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -31,6 +32,8 @@ use SensitiveParameter;
  * 7. The connections to a provider are removed, with their entitlement keys (UnlinksIdentities).
  * 8. The proof of a deletion (ADR 0052) and a pending change of the address (ADR 0058) are cleared.
  * 9. After the commit, the live connections of the account on the broadcaster end (EndsLiveConnections).
+ * 10. The next page of the browser that proved the address (the page after its sign-in, or the sign-in page after a
+ *     password reset) tells it to forget the pages that its history keeps (App\Support\BrowserHistory).
  *
  * The caller signs the person in after the call: a session that starts later holds the new version. The name, the
  * username, the profile and the personal community stay. The action returns what it did (KnowiiTakeOverResult), and it
@@ -111,6 +114,8 @@ class TakeOverUnverifiedAccount implements TakesOverUnverifiedAccounts
 
         // When the takeover is stored (a caller can hold a transaction of its own): one line of the log, with the cuid only,
         // never the address, and the end of the live connections of the account
+        BrowserHistory::clear();
+
         $cuid = $user->cuid;
         $endsLiveConnections = $this->endsLiveConnections;
         DB::afterCommit(static function () use ($proof, $cuid, $endsLiveConnections): void {

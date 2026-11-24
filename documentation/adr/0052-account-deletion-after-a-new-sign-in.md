@@ -32,7 +32,7 @@ A new nonce and a new `iat` prove only a new round trip, not a new sign-in: a pe
 
 ### The deletion
 
-9. The web route `DELETE /user` and the API route `DELETE /api/v1/user` stay the only ways to delete. For case 2 they take the recorded proof in place of the password, and the two-factor code when two-factor authentication is on (on the web too, with 3 tries a minute; the API keeps its limiter `account-deletions`). `DeleteUser::deleteAfterSignIn()` locks the row of the account, checks the proof again (present, of this account, not expired), clears it and deletes the account in one transaction: a second request cannot use it. `delete_content` works as before.
+9. The web route `DELETE /user` and the API route `DELETE /api/v1/user` stay the only ways to delete. For case 2 they take the recorded proof in place of the password, and the two-factor code when two-factor authentication is on (on the web too, with 3 tries a minute; the API keeps its limiter `account-deletions`; since [ADR 0067](0067-the-tries-of-the-current-password-count-for-what-signed-the-request-in.md) the page and the API count the wrong codes together, per account). `DeleteUser::deleteAfterSignIn()` locks the row of the account, checks the proof again (present, of this account, not expired), clears it and deletes the account in one transaction: a second request cannot use it. `delete_content` works as before.
 10. API: with a valid proof the request succeeds with the same token ability (`account:delete`). Without one, the answer is a business error (422) whose message says that a new sign-in is needed and gives the address of the deletion section (also in `metadata.sign_in_url`). The API has no route that makes or reads a proof, and no new token ability.
 
 ### The screen

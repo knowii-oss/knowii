@@ -11,6 +11,7 @@ use Firebase\JWT\JWT;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
+use Illuminate\Broadcasting\BroadcastManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request as ClientRequest;
@@ -398,4 +399,126 @@ function signUpThroughLink(array $fields): TestResponse
     $page = array_intersect_key($fields, array_flip(['name', 'password', 'password_confirmation', 'terms', 'time_zone']));
 
     return test()->post('/register/link/'.$token, $page);
+}
+
+/*
+|--------------------------------------------------------------------------
+| Browsers
+|--------------------------------------------------------------------------
+|
+| A test with two browsers of one account uses real cookies: each browser sends only the cookies that a sign-in gave it.
+*/
+
+/**
+ * Another browser: it sends no cookie and no header, and the memory of the test holds no session and no signed-in account.
+ * The sessions that the store holds stay
+ */
+function newBrowser(): void
+{
+    session()->flush();
+    // A request of the API makes the guard of Sanctum the default one: a new request starts with the default of the
+    // application
+    app('auth')->shouldUse('web');
+    app('auth')->forgetGuards();
+    test()->flushHeaders();
+    // The cookies of the test client stay from one request to the next: this browser holds none
+    $case = test()->target;
+    Closure::bind(function (): void {
+        $this->defaultCookies = [];
+    }, $case, $case::class)();
+}
+
+/**
+ * A person signs in with the form of the sign-in page, in a new browser: the cookies that the browser keeps. The cookie of
+ * the session, and with "Remember me" the remember cookie
+ *
+ * @return array{session: array<string, string>, remember: array<string, string>}
+ */
+function signInWithForm(User $user, string $password = 'password', bool $remember = false): array
+{
+    newBrowser();
+    $response = test()->post('/login', ['email' => $user->email, 'password' => $password, ...($remember ? ['remember' => 'on'] : [])]);
+    $response->assertRedirect();
+    test()->assertAuthenticatedAs($user);
+
+    $sessionName = config()->string('session.cookie');
+    $rememberName = auth()->guard('web')->getRecallerName();
+    $session = $response->getCookie($sessionName)?->getValue();
+    $rememberValue = $response->getCookie($rememberName)?->getValue();
+    expect($session)->toBeString()->not->toBe('');
+
+    return [
+        'session' => [$sessionName => (string) $session],
+        'remember' => is_string($rememberValue) && $rememberValue !== '' ? [$rememberName => $rememberValue] : [],
+    ];
+}
+
+/**
+ * The cookie of the session that an answer gives to its browser: the browser sends it with its next requests
+ *
+ * @return array<string, string>
+ */
+function sessionCookieOf(TestResponse $response): array
+{
+    $name = config()->string('session.cookie');
+    $value = $response->getCookie($name)?->getValue();
+    expect($value)->toBeString()->not->toBe('');
+
+    return [$name => (string) $value];
+}
+
+/**
+ * A browser that holds only these cookies, for the requests that come next. The test client encrypts them as the application
+ * does, and a request for JSON sends them too, as a browser does for its own site
+ *
+ * @param  array<string, string>  $cookies
+ */
+function browserWith(array $cookies): TestCase
+{
+    newBrowser();
+
+    return test()->withCookies($cookies)->withCredentials();
+}
+
+/**
+ * The session driver of the test, for every request that comes next
+ */
+function useSessionDriver(string $driver): void
+{
+    config(['session.driver' => $driver]);
+    app('session')->forgetDrivers();
+    app()->forgetInstance('session.store');
+    app('auth')->forgetGuards();
+}
+
+/**
+ * A request to the authorization of a live channel (`POST /broadcasting/auth`), with a broadcaster that checks the channels:
+ * the one of the tests answers yes to everything. The broadcaster of the tests comes back after it, so the events of the
+ * other requests go nowhere
+ *
+ * @param  Closure(): TestResponse  $request
+ */
+function withCheckingBroadcaster(Closure $request): TestResponse
+{
+    $default = config('broadcasting.default');
+    config([
+        'broadcasting.default' => 'reverb',
+        'broadcasting.connections.reverb' => [
+            'driver' => 'reverb',
+            'key' => 'test-key',
+            'secret' => 'test-secret',
+            'app_id' => 'test-app',
+            'options' => ['host' => 'localhost', 'port' => 443, 'scheme' => 'https', 'useTLS' => true],
+        ],
+    ]);
+    app(BroadcastManager::class)->forgetDrivers();
+    // The channels go to the broadcaster of now
+    require base_path('routes/channels.php');
+
+    try {
+        return $request();
+    } finally {
+        config(['broadcasting.default' => $default]);
+        app(BroadcastManager::class)->forgetDrivers();
+    }
 }

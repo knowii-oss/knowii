@@ -58,7 +58,6 @@ test('mixed is used only where a value comes from outside (#726)', function () {
         // Request input or stored JSON, narrowed in the method
         'app/Actions/AccessGroups/AccessGroupInputRules.php' => 1,
         'app/Actions/Fortify/UpdateUserProfileInformation.php' => 1,
-        'app/Http/Controllers/ApiTokenController.php' => 1,
         'app/Support/Emoji.php' => 1,
         'app/Support/ProfileFieldVisibility.php' => 1,
         // Decoded JSON of a third party
@@ -104,5 +103,5 @@ test('the list of allowed mixed uses holds no entry that is gone (#726)', functi
     $uses = mixedTypeUsesOutsideTheRules();
 
     // When a file drops its last `mixed`, or uses fewer, lower the number above: the list never grows back
-    expect(array_sum($uses))->toBeLessThanOrEqual(39);
+    expect(array_sum($uses))->toBeLessThanOrEqual(38);
 });

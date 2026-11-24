@@ -502,7 +502,7 @@ test('a password reset that fails changes nothing of an account whose address wa
     'a confirmation that differs' => [['password_confirmation' => 'Another-password-of-2026!']],
 ]);
 
-test('a password reset changes only the password of an account with a verified address', function () {
+test('a password reset changes the password of an account with a verified address, and ends its sessions by their version', function () {
     $account = firstProofAccount(verified: true);
     $user = $account['user'];
     $before = $user->fresh();
@@ -514,7 +514,8 @@ test('a password reset changes only the password of an account with a verified a
 
     $fresh = $user->fresh();
     expect($fresh->email_verified_at?->toDateTimeString())->toBe(FIRST_PROOF_VERIFIED_AT)
-        ->and($fresh->session_version)->toBe(0)
+        // A reset ends every session of the account: the version goes up by 1 (ADR 0066)
+        ->and($fresh->session_version)->toBe(1)
         ->and(Hash::check(FIRST_PROOF_NEW_PASSWORD, (string) $fresh->password))->toBeTrue()
         ->and($fresh->two_factor_secret)->toBe($before->two_factor_secret)
         ->and($fresh->two_factor_recovery_codes)->toBe($before->two_factor_recovery_codes)
@@ -898,7 +899,8 @@ test('a proof that loses the race to another proof of the same address goes on a
 
     $fresh = $user->fresh();
     expect($fresh->hasVerifiedEmail())->toBeTrue()
-        ->and($fresh->session_version)->toBe(0)
+        // A reset ends every session of a verified account: the version goes up by 1 (ADR 0066)
+        ->and($fresh->session_version)->toBe($way === 'reset' ? 1 : 0)
         ->and($fresh->hasEnabledTwoFactorAuthentication())->toBeTrue()
         ->and($fresh->two_factor_secret)->toBe($before->two_factor_secret)
         // A reset of the framework gives a new remember token to every account

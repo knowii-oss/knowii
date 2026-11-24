@@ -9,6 +9,7 @@ use App\Events\AccessGroups\AccessGroupsChanged;
 use App\Events\CommunityMembers\CommunityMembersChanged;
 use App\Events\Spaces\SpaceTreeChanged;
 use App\Http\Controllers\Inertia\InviteLinkController;
+use App\Http\Middleware\AcceptOnlyTheSessionOnPages;
 use App\Http\Middleware\EndOutdatedSessions;
 use App\Http\Middleware\LandOnlyOnOwnHostNames;
 use App\Http\Middleware\StartSessionWithoutTokenAddresses;
@@ -472,9 +473,11 @@ test('the session middleware is the one of the application, with the cache that 
         EndOutdatedSessions::class,
     ];
     // The check of the email address comes before the bindings of the route (ADR 0022)
-    expect(array_slice($router->gatherRouteMiddleware($router->getRoutes()->getByName('dashboard')), 0, 11))->toBe([
+    // The pages accept the session only: that check comes right after the sign-in check (ADR 0022)
+    expect(array_slice($router->gatherRouteMiddleware($router->getRoutes()->getByName('dashboard')), 0, 12))->toBe([
         ...$start,
         Authenticate::class.':sanctum',
+        AcceptOnlyTheSessionOnPages::class,
         AuthenticateSession::class,
         EnsureEmailIsVerified::class,
         SubstituteBindings::class,

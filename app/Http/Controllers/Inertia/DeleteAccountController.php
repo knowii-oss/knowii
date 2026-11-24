@@ -2,18 +2,16 @@
 
 namespace App\Http\Controllers\Inertia;
 
-use App\Constants;
 use App\Contracts\Users\DeletesAccounts;
 use App\Enums\KnowiiAccountDeletionProof;
 use App\Exceptions\BusinessException;
 use App\Models\User;
 use App\Support\AccountDeletion;
-use App\Support\SecondFactor;
+use App\Support\BrowserHistory;
 use Illuminate\Contracts\Auth\StatefulGuard;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -43,14 +41,10 @@ class DeleteAccountController extends Controller
         } else {
             $password = $request->input('password');
 
-            // A few tries a minute, as on the API: a session that someone else holds cannot guess the password
-            $key = 'account-deletion-password:'.($user->cuid ?? $request->ip());
-            if (RateLimiter::tooManyAttempts($key, Constants::ACCOUNT_DELETIONS_PER_MINUTE)) {
-                throw ValidationException::withMessages(['password' => __('Too many tries. Please wait a minute, then try again.')]);
-            }
-
+            // The action that checks the password counts a wrong one for the session, together with the other places that
+            // ask for the current password, and ends the session at its fifth wrong one in 15 minutes
+            // (App\Support\PasswordTries)
             if ($user === null || ! is_string($password) || ! app(ConfirmPassword::class)($guard, $user, $password)) {
-                RateLimiter::hit($key, 60);
                 if ($user !== null) {
                     Log::warning('Account deletion refused', ['reason' => 'wrong_password', 'user' => $user->cuid]);
                 }
@@ -64,7 +58,8 @@ class DeleteAccountController extends Controller
                 'delete_content' => ['sometimes', 'boolean'],
                 'code' => ['nullable', 'string', 'max:64'],
             ])->validate();
-            $this->checkSecondFactor($request, $user);
+            $code = $request->input('code');
+            AccountDeletion::checkSecondFactor($user, is_string($code) ? $code : null);
 
             // The model of the request, whose password was checked: the action compares its version of the sessions with the
             // row that it locks (ADR 0059)
@@ -75,6 +70,8 @@ class DeleteAccountController extends Controller
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+        // The browser forgets the pages of the member that its history keeps
+        BrowserHistory::clear($request);
 
         return Inertia::location(url('/'));
     }
@@ -102,38 +99,14 @@ class DeleteAccountController extends Controller
             'code' => ['nullable', 'string', 'max:64'],
         ])->validate();
 
-        $this->checkSecondFactor($request, $user);
+        $code = $request->input('code');
+        AccountDeletion::checkSecondFactor($user, is_string($code) ? $code : null);
 
         try {
             app(DeletesAccounts::class)->deleteAfterSignIn($user->fresh() ?? $user, $request->only(['delete_content']));
         } catch (BusinessException) {
             // The proof expired or was used in the meantime
             throw ValidationException::withMessages(['sign_in' => AccountDeletion::webSignInNeededMessage()]);
-        }
-    }
-
-    /**
-     * The code of two-factor authentication, when it is on, for every account: with a password or with the proof of a
-     * new sign-in. A few tries a minute, as on the API.
-     *
-     * @throws ValidationException
-     */
-    private function checkSecondFactor(Request $request, User $user): void
-    {
-        if ($user->hasEnabledTwoFactorAuthentication()) {
-            $key = 'account-deletion-code:'.$user->cuid;
-            if (RateLimiter::tooManyAttempts($key, Constants::ACCOUNT_DELETIONS_PER_MINUTE)) {
-                throw ValidationException::withMessages(['code' => __('Too many tries. Please wait a minute, then try again.')]);
-            }
-            $code = $request->input('code');
-            if (! is_string($code) || $code === '') {
-                throw ValidationException::withMessages(['code' => __('Enter the code of your authenticator app or a recovery code.')]);
-            }
-            if (! SecondFactor::passesEither($user, $code)) {
-                RateLimiter::hit($key, 60);
-                Log::warning('Account deletion refused', ['reason' => 'wrong_code', 'user' => $user->cuid]);
-                throw ValidationException::withMessages(['code' => __('The provided two factor authentication code was invalid.')]);
-            }
         }
     }
 }

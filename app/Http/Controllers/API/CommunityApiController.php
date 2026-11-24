@@ -135,7 +135,9 @@ class CommunityApiController extends Controller
 
     /**
      * Transfer the ownership of the community to one of its admins (owner only, #1339, ADR 0035). The new owner gets
-     * an email, and the former owner becomes an admin. The owner confirms with their password. Never for a personal
+     * an email, and the former owner becomes an admin. The owner confirms with their password: after 5 wrong passwords in
+     * 15 minutes of the tokens of the account together, each token of the account gets a 429 until the 15 minutes are over
+     * (`Retry-After`). A session of the web application ends at its fifth wrong password (401). Never for a personal
      * community. Returns the community.
      *
      * @throws AuthenticationException
