@@ -14,6 +14,7 @@ use App\Http\Middleware\AuthenticateIfPresent;
 use App\Http\Middleware\EndOutdatedSessions;
 use App\Http\Middleware\EnsureRequestIsJson;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\LandOnlyOnOwnHostNames;
 use App\Http\Middleware\RecordLastVisit;
 use App\Http\Middleware\RefuseUnconfiguredInstance;
 use App\Http\Middleware\RequireTokenAbility;
@@ -41,6 +42,7 @@ use Illuminate\Http\Response;
 use Illuminate\Routing\Exceptions\InvalidSignatureException;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -82,6 +84,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->insertAfter(TrustProxies::class, AnswerOnlyForOwnHostNames::class);
 
         $middleware->web(append: [
+            // After a sign-in, the application goes only to an address of its own host names (ADR 0068): the session keeps
+            // no other intended address (see the priority below)
+            LandOnlyOnOwnHostNames::class,
             // A session of an account that was taken over since its sign-in ends here (ADR 0059), before anything reads
             // the account of the session (see the priority below)
             EndOutdatedSessions::class,
@@ -122,6 +127,11 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->statefulApi();
+
+        // The check of the intended address (ADR 0068) comes right after the start of the session: before every middleware
+        // that writes the address (the sign-in check, the check of the email address, the confirmation of the password) and
+        // before every answer that reads it
+        $middleware->appendToPriorityList(StartSession::class, LandOnlyOnOwnHostNames::class);
 
         // The end of a session of an earlier version (ADR 0059) comes before the middleware of the framework that reads the
         // account of the session: the sign-in check of the routes, the limits per account, the check of the password and the

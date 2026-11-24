@@ -140,8 +140,10 @@ return [
     |--------------------------------------------------------------------------
     |
     | Here you may change the name of the session cookie that is created by
-    | the framework. Typically, you should not need to change this value
-    | since doing so does not grant a meaningful security improvement.
+    | the framework. In production the name starts with "__Host-" (for
+    | example "__Host-knowii_session"): the session cookie belongs to the
+    | one host of the instance (ADR 0068). Plain http, as in development,
+    | cannot use this prefix.
     |
     */
 
@@ -168,13 +170,29 @@ return [
     | Session Cookie Domain
     |--------------------------------------------------------------------------
     |
-    | This value determines the domain and subdomains the session cookie is
-    | available to. By default, the cookie will be available to the root
-    | domain and all subdomains. Typically, this shouldn't be changed.
+    | Leave this value empty: the session cookie, the cookie "XSRF-TOKEN"
+    | and the cookie "Remember me" then belong to the one host of the
+    | instance (ADR 0068). With a value, the three cookies belong to that
+    | domain and to every host under it.
     |
     */
 
     'domain' => env('SESSION_DOMAIN'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | A Session Cookie For More Than One Host
+    |--------------------------------------------------------------------------
+    |
+    | In production the instance answers only when the session cookie belongs
+    | to its one host: the name of the cookie starts with "__Host-" and the
+    | session domain is empty (App\Http\Middleware\RefuseUnconfiguredInstance).
+    | Only an instance that must share its session with the other hosts of
+    | its domain sets this value to true. See SELF_HOSTING.md.
+    |
+    */
+
+    'allow_domain_cookie' => filter_var(env('SESSION_ALLOW_DOMAIN_COOKIE', false), FILTER_VALIDATE_BOOLEAN),
 
     /*
     |--------------------------------------------------------------------------

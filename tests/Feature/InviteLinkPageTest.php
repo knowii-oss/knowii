@@ -10,6 +10,7 @@ use App\Events\CommunityMembers\CommunityMembersChanged;
 use App\Events\Spaces\SpaceTreeChanged;
 use App\Http\Controllers\Inertia\InviteLinkController;
 use App\Http\Middleware\EndOutdatedSessions;
+use App\Http\Middleware\LandOnlyOnOwnHostNames;
 use App\Http\Middleware\StartSessionWithoutTokenAddresses;
 use App\Models\AccessGroup;
 use App\Models\AccessGroupMember;
@@ -464,20 +465,22 @@ test('the session middleware is the one of the application, with the cache that 
         EncryptCookies::class,
         AddQueuedCookiesToResponse::class,
         StartSession::class,
+        // The check of the intended address comes right after the start of the session (ADR 0068)
+        LandOnlyOnOwnHostNames::class,
         ShareErrorsFromSession::class,
         PreventRequestForgery::class,
         EndOutdatedSessions::class,
     ];
     // The check of the email address comes before the bindings of the route (ADR 0022)
-    expect(array_slice($router->gatherRouteMiddleware($router->getRoutes()->getByName('dashboard')), 0, 10))->toBe([
+    expect(array_slice($router->gatherRouteMiddleware($router->getRoutes()->getByName('dashboard')), 0, 11))->toBe([
         ...$start,
         Authenticate::class.':sanctum',
         AuthenticateSession::class,
         EnsureEmailIsVerified::class,
         SubstituteBindings::class,
     ])
-        ->and(array_slice($router->gatherRouteMiddleware($router->getRoutes()->getByName('invite-links.open')), 0, 6))->toBe($start)
-        ->and(array_slice($router->gatherRouteMiddleware($router->getRoutes()->getByName('invite-links.show')), 0, 6))->toBe($start);
+        ->and(array_slice($router->gatherRouteMiddleware($router->getRoutes()->getByName('invite-links.open')), 0, 7))->toBe($start)
+        ->and(array_slice($router->gatherRouteMiddleware($router->getRoutes()->getByName('invite-links.show')), 0, 7))->toBe($start);
 });
 
 test('a member reads the page one time: the session forgets the link', function () {
