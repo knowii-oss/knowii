@@ -51,12 +51,12 @@ final class EventPublication
     }
 
     /**
-     * A person who may not see the event gets the answer of an event that does not exist (404): nothing tells them that
-     * it exists, nor its state. Called first by the actions that change an event.
+     * A person who may not see the event, or a visitor, gets the answer of an event that does not exist (404): nothing
+     * tells them that it exists, nor its state. Called first by the actions that change an event and by the reads.
      *
      * @throws ModelNotFoundException<Event>
      */
-    public static function assertVisible(User $user, Event $event): void
+    public static function assertVisible(?User $user, Event $event): void
     {
         if (! Gate::forUser($user)->allows('view', $event)) {
             throw (new ModelNotFoundException)->setModel(Event::class, [$event->cuid]);

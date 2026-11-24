@@ -17,7 +17,9 @@ use Illuminate\Http\Request;
  * The level that the current member chose for a space (#1475, ADR 0042, design 2.2): `all` (Everything), `mine` (Only
  * what is for me) or `none` (Muted). `level` is the level that applies, `chosen` says whether the member chose it, and
  * `default` is the level that applies without a choice (what a manager set, else the built-in default). Only a member of
- * the community who can view the space has a level for it (403 otherwise).
+ * the community who can view the space has a level for it: a space that the person cannot read answers as a space that
+ * does not exist (404) for a person who is not a member, and 403 for a member outside its access groups; a person who is
+ * not a member gets 403 in a public space and on the list of the community.
  */
 class NotificationLevelApiController extends Controller
 {

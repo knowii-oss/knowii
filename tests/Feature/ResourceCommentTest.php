@@ -52,11 +52,11 @@ test('members comment a resource and reply, through the API (#1034)', function (
         ->and($comment->community_id)->toBe($this->c['community']->id);
 });
 
-test('outsiders neither read nor write the comments of a resource (#1034)', function () {
+test('outsiders neither read nor write the comments of a resource (#1034): the space answers as one that does not exist', function () {
     $this->actingAs($this->c['outsider']);
 
-    $this->getJson(resourceCommentsPath($this->resource))->assertForbidden();
-    $this->postJson(resourceCommentsPath($this->resource), ['body' => 'Hello'])->assertForbidden();
+    $this->getJson(resourceCommentsPath($this->resource))->assertNotFound();
+    $this->postJson(resourceCommentsPath($this->resource), ['body' => 'Hello'])->assertNotFound();
 });
 
 test('authors edit their comments, moderators delete any comment (#1034)', function () {
@@ -76,7 +76,7 @@ test('members react to the comments of a resource (#1034)', function () {
     $this->actingAs($this->c['admin'])->postJson(resourceCommentsPath($this->resource, $comment, '/reactions'), ['emoji' => '👍'])
         ->assertOk()->assertJsonPath('data', [['emoji' => '👍', 'count' => 1, 'reacted' => true]]);
     $this->getJson(resourceCommentsPath($this->resource, $comment, '/reactions'))->assertOk();
-    $this->actingAs($this->c['outsider'])->postJson(resourceCommentsPath($this->resource, $comment, '/reactions'), ['emoji' => '👍'])->assertForbidden();
+    $this->actingAs($this->c['outsider'])->postJson(resourceCommentsPath($this->resource, $comment, '/reactions'), ['emoji' => '👍'])->assertNotFound();
 });
 
 test('a comment is only reachable through its own resource (#1034)', function () {

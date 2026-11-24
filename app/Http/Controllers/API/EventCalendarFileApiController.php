@@ -40,8 +40,9 @@ class EventCalendarFileApiController extends Controller
      * in UTC, the title, the first 300 characters of the description, the address of the page, the sequence (a moved
      * event gives the same UID and a higher SEQUENCE) and the status (CONFIRMED, or CANCELLED for a cancelled event).
      * The meeting address and the place are in it only when you may see them, as in `GET .../events/{event}`. For the
-     * members of the community who can see the event: 401 without an account, 404 for an event that you may not see
-     * (also a draft of another host), 403 for a person who is not a member, 422 for a draft. A refusal is the JSON error
+     * members of the community who can see the event: 401 without an account; a space that you cannot read answers first
+     * (`SpaceAccess`: 404 for a person who is not a member, 403 for a member); then 404 for an event that you may not see
+     * (a draft of another host), 403 for a person who is not a member, 422 for a draft. A refusal is the JSON error
      * of the API. The file names no member, and nothing records the download. A browser gets it only through the link of a
      * page, which sends the Referer that the session needs: a typed address gets 401. A calendar application cannot
      * subscribe to it: it needs your session or a token with events:read.

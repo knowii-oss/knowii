@@ -27,7 +27,9 @@ use Illuminate\Validation\ValidationException;
 /**
  * The answers of members to an event (#1515, ADR 0053): Yes, Replay only or No. A member reads and writes their own
  * answer, and nobody writes the answer of another member. The host, the owner and the admins read who answered Yes and
- * Replay only. A person who may not see the event gets the answer of an event that does not exist (404) from every route.
+ * Replay only. A space that the person cannot read answers first (`SpaceAccess`: 404 for a person who is not a member,
+ * 403 for a member). A person who may not see the event (a draft of another host) gets the answer of an event that does
+ * not exist (404) from every route.
  * The writes are delegated to the action (ADR 0006).
  */
 class EventAnswerApiController extends Controller

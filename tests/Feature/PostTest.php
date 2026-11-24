@@ -176,10 +176,10 @@ test('a post of another space gives a 404', function () {
     $this->actingAs($this->c['member'])->getJson(postsPath($this->space, $post, ApiRoutes::COMMUNITY_SPACE_POST))->assertNotFound();
 });
 
-test('outsiders cannot read posts of members-only spaces', function () {
+test('outsiders cannot read posts of members-only spaces: the space answers as one that does not exist', function () {
     $this->space->update(['visibility' => KnowiiSpaceVisibility::Members]);
 
-    $this->actingAs($this->c['outsider'])->getJson(postsPath($this->space))->assertForbidden();
+    $this->actingAs($this->c['outsider'])->getJson(postsPath($this->space))->assertNotFound();
 });
 
 test('posting is rate limited', function () {

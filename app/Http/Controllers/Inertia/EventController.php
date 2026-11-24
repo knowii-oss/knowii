@@ -4,14 +4,13 @@ namespace App\Http\Controllers\Inertia;
 
 use App\Actions\Events\DeleteEvent;
 use App\Contracts\Notifications\TracksSpaceVisits;
-use App\Enums\KnowiiNoAccessKind;
 use App\Enums\KnowiiSpaceType;
 use App\Models\Community;
 use App\Models\Event;
 use App\Models\Space;
 use App\Support\CommentThread;
 use App\Support\CommunityRoles;
-use App\Support\NoAccess;
+use App\Support\SpaceAccess;
 use App\Support\SpaceTree;
 use App\Support\TimeZones;
 use App\Support\UpcomingEvents;
@@ -121,19 +120,16 @@ class EventController extends Controller
     }
 
     /**
-     * The community and its events space, for a reader who may read the space. A space of another type does not exist
-     * here. A signed-in person who is not a member gets the page without access.
+     * The community and its events space, for a reader who may read the space (`SpaceAccess`). A space of another type
+     * does not exist here.
      *
      * @return array{0: Community, 1: Space}
      */
     private static function space(Request $request, string $communitySlug, string $spaceSlug): array
     {
-        $community = Community::where('slug', $communitySlug)->firstOrFail();
-        $space = $community->spaces()->where('slug', $spaceSlug)->where('type', KnowiiSpaceType::Events)->firstOrFail();
-        // The policies of the space and of its events read the community: it is known
-        $space->setRelation('community', $community);
-
-        NoAccess::authorizeView($request, $community, $space, KnowiiNoAccessKind::Space);
+        // The access to the space comes first: the type of a space that the reader cannot read never leaves
+        [$community, $space] = SpaceAccess::forPage($request, $communitySlug, $spaceSlug);
+        abort_unless($space->type === KnowiiSpaceType::Events, 404);
 
         // A member who opens the space has visited it: the dot of the navigation goes (#1476). Before the navigation is built
         if ($request->user() !== null) {

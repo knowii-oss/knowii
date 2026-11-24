@@ -120,17 +120,16 @@ test('an author who left the community no longer edits or deletes their message,
         ->and($message->fresh()->isDeleted())->toBeFalse();
 });
 
-test('moderators delete any message; other members do not (#1185)', function (string $who, bool $allowed) {
+test('moderators delete any message; other members do not (#1185)', function (string $who, int $status) {
     $message = ChatMessage::factory()->inSpace($this->space)->create(['author_id' => $this->c['owner']->id]);
 
-    $response = $this->actingAs($this->c[$who])->deleteJson(chatPath($this->space, $message));
-
-    $allowed ? $response->assertOk() : $response->assertForbidden();
+    $this->actingAs($this->c[$who])->deleteJson(chatPath($this->space, $message))->assertStatus($status);
 })->with([
-    'admin' => ['admin', true],
-    'moderator with delete_content' => ['moderator', true],
-    'member' => ['member', false],
-    'outsider' => ['outsider', false],
+    'admin' => ['admin', 200],
+    'moderator with delete_content' => ['moderator', 200],
+    'member' => ['member', 403],
+    // An outsider: the members space answers as a space that does not exist
+    'outsider' => ['outsider', 404],
 ]);
 
 test('members react to messages (#1176)', function () {
@@ -141,7 +140,7 @@ test('members react to messages (#1176)', function () {
         ->assertJsonPath('data.0.emoji', '👍')
         ->assertJsonPath('data.0.reacted', true);
 
-    $this->actingAs($this->c['outsider'])->postJson(chatPath($this->space, $message, 'reactions'), ['emoji' => '👍'])->assertForbidden();
+    $this->actingAs($this->c['outsider'])->postJson(chatPath($this->space, $message, 'reactions'), ['emoji' => '👍'])->assertNotFound();
 });
 
 test('the unread markers follow what each member read (#1185)', function () {

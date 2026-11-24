@@ -118,7 +118,8 @@ test('only the managers of the course add materials (#1336)', function (string $
     'admin' => ['admin', 201],
     'moderator' => ['moderator', 201],
     'member' => ['member', 403],
-    'outsider' => ['outsider', 403],
+    // The members course answers an outsider as a space that does not exist
+    'outsider' => ['outsider', 404],
 ]);
 
 test('a moderator outside the groups of a groups course does not manage its materials (#1336, #1325)', function () {
@@ -231,7 +232,8 @@ test('members list the materials in their order, with their lesson or section (#
         ->assertJsonPath('data.0.page_cuid', $this->lesson->cuid);
 
     $this->actingAs($this->c['member'])->getJson(materialsPath($this->course, null, '?page=unknowncuid'))->assertStatus(400);
-    $this->actingAs($this->c['outsider'])->getJson(materialsPath($this->course))->assertForbidden();
+    // An outsider: the members course answers as a space that does not exist
+    $this->actingAs($this->c['outsider'])->getJson(materialsPath($this->course))->assertNotFound();
 
     expect([$course->page_id, $section->page_id])->toBe([null, $this->section->id]);
 });
@@ -255,7 +257,8 @@ test('nobody downloads a file of a course that they cannot read (#1336)', functi
 
     $this->app['auth']->forgetGuards();
     $this->getJson($download)->assertUnauthorized();
-    $this->actingAs($this->c['outsider'])->getJson($download)->assertForbidden();
+    // An outsider: the members course answers as a space that does not exist
+    $this->actingAs($this->c['outsider'])->getJson($download)->assertNotFound();
 
     // A material of another course of the same community: 404 (scoped binding)
     $other = Space::factory()->inGroup($this->spaceGroup)->create(['type' => KnowiiSpaceType::Course]);

@@ -127,13 +127,14 @@ test('the curator and the members who manage the spaces change the type and the 
         ->assertJsonPath('data.level', 'expert');
 })->with(['curator' => ['member'], 'owner' => ['owner'], 'admin' => ['admin']]);
 
-test('other members cannot change a resource (#1246)', function (string $who) {
+test('other members cannot change a resource (#1246)', function (string $who, int $status) {
     [$c, $space, $resource] = typedResource(['curator_id' => null]);
 
-    $this->actingAs($c[$who])->patchJson(resourceUpdatePath($space, $resource), ['type' => 'video'])->assertForbidden();
+    $this->actingAs($c[$who])->patchJson(resourceUpdatePath($space, $resource), ['type' => 'video'])->assertStatus($status);
 
     expect($resource->refresh()->type)->toBe(KnowiiResourceType::Other);
-})->with(['member' => ['member'], 'moderator without the right' => ['moderator'], 'outsider' => ['outsider']]);
+    // An outsider: the members space answers as a space that does not exist
+})->with(['member' => ['member', 403], 'moderator without the right' => ['moderator', 403], 'outsider' => ['outsider', 404]]);
 
 test('an unknown type is refused', function () {
     [$c, $space, $resource] = typedResource();

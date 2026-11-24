@@ -44,7 +44,7 @@ test('the resources API requires authentication', function () {
     $response->assertStatus(Response::HTTP_UNAUTHORIZED);
 });
 
-test('the resources API rejects a request from an unauthorized user', function () {
+test('the resources API answers a person who is not a member as for a space that does not exist', function () {
     $owner = User::factory()->withUserProfile()->withPersonalCommunity()->create();
     $path = textArticlesPathFor($owner);
 
@@ -56,8 +56,8 @@ test('the resources API rejects a request from an unauthorized user', function (
         'level' => KnowiiResourceLevel::Beginner->value,
     ], ['Accept' => 'application/json']);
 
-    $response->assertStatus(Response::HTTP_FORBIDDEN);
-    expect($response->json('type'))->toBe(KnowiiApiResponseType::AuthorizationIssue->value);
+    $response->assertStatus(Response::HTTP_NOT_FOUND);
+    expect($response->json('type'))->toBe(KnowiiApiResponseType::NotFound->value);
 });
 
 test('the resources API returns not found for an unknown community', function () {
@@ -252,8 +252,9 @@ test('the resources list never carries the large fields (#877)', function () {
 test('only the readers of a space list its resources (#877)', function () {
     [$c, $space] = resourcesSpaceWithResources(1);
 
-    $this->getJson(resourcesListPath($space))->assertUnauthorized();
-    $this->actingAs($c['outsider'])->getJson(resourcesListPath($space))->assertForbidden();
+    // A visitor and an outsider: the answer of a space that does not exist
+    $this->getJson(resourcesListPath($space))->assertNotFound();
+    $this->actingAs($c['outsider'])->getJson(resourcesListPath($space))->assertNotFound();
 });
 
 test('the resources list refuses a space of another community (#877)', function () {
@@ -292,8 +293,9 @@ test('members get one resource with its large fields (#876)', function () {
 test('only the readers of a space get its resources (#876)', function () {
     [$c, $space, $resources] = resourcesSpaceWithResources(1);
 
-    $this->getJson(resourcePath($space, $resources[0]))->assertUnauthorized();
-    $this->actingAs($c['outsider'])->getJson(resourcePath($space, $resources[0]))->assertForbidden();
+    // A visitor and an outsider: the answer of a space that does not exist
+    $this->getJson(resourcePath($space, $resources[0]))->assertNotFound();
+    $this->actingAs($c['outsider'])->getJson(resourcePath($space, $resources[0]))->assertNotFound();
 });
 
 test('a resource of another space gives a 404 (#876)', function () {

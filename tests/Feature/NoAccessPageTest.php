@@ -203,16 +203,32 @@ test('an outsider of a community with a public page still gets the public page o
         ->assertOk()->assertInertia(fn ($inertia) => $inertia->component('Communities/Public'));
 });
 
-test('a page that does not exist still answers 404, never the page without access', function (string $kind) {
+test('a space or an item that does not exist answers as one that the person cannot read, and a community that does not exist answers 404', function (string $kind) {
     noAccessCommunity($kind);
     $community = $this->c['community']->slug;
+    $hidden = $this->actingAs($this->c['outsider'])->get(noAccessPages()['space']['url']);
+    $hidden->assertForbidden();
+    $hiddenPage = $hidden->inertiaPage();
+    unset($hiddenPage['url'], $hiddenPage['props']['ziggy']['location']);
 
+    // Under the community: the same page without access as for a space that exists
     foreach ([
         route('spaces.show', ['communitySlug' => $community, 'spaceSlug' => 'no-such-space']),
         route('posts.show', ['communitySlug' => $community, 'spaceSlug' => 'no-such-space', 'postSlug' => 'no-such-post']),
         route('posts.show', ['communitySlug' => $community, 'spaceSlug' => $this->space->slug, 'postSlug' => 'no-such-post']),
         route('pages.show', ['communitySlug' => $community, 'spaceSlug' => 'no-such-space', 'pageSlug' => 'no-such-page']),
         route('resources.show', ['communitySlug' => $community, 'spaceSlug' => 'no-such-space', 'resourceSlug' => 'no-such-resource']),
+    ] as $url) {
+        $response = $this->actingAs($this->c['outsider'])->get($url);
+
+        $response->assertForbidden();
+        $page = $response->inertiaPage();
+        unset($page['url'], $page['props']['ziggy']['location']);
+        expect($page)->toBe($hiddenPage, $url);
+    }
+
+    // A community that does not exist: 404, never the page without access
+    foreach ([
         route('spaces.show', ['communitySlug' => 'no-such-community', 'spaceSlug' => $this->space->slug]),
         route('communities.about', ['communitySlug' => 'no-such-community']),
         route('communities.show', ['communitySlug' => 'no-such-community']),
@@ -235,23 +251,27 @@ test('a member who may not read a space of access groups keeps the answer of bef
     expect((string) $response->getContent())->not->toContain(NO_ACCESS_COMPONENT)->not->toContain('SECRET-GROUPS-SPACE');
 });
 
-test('a request that expects JSON gets the answer of before', function () {
+test('a request that expects JSON gets the answer of a space that does not exist', function () {
     noAccessCommunity('open');
 
     $response = $this->actingAs($this->c['outsider'])->getJson(noAccessPages()['space']['url']);
+    $missing = $this->actingAs($this->c['outsider'])->getJson(route('spaces.show', ['communitySlug' => $this->c['community']->slug, 'spaceSlug' => 'no-such-space']));
 
-    $response->assertForbidden()->assertJsonPath('type', 'authorizationIssue')->assertJsonPath('message', 'This action is unauthorized.');
+    $response->assertNotFound();
+    expect($response->json())->toBe($missing->assertNotFound()->json());
     expect((string) $response->getContent())->not->toContain(NO_ACCESS_COMPONENT)->not->toContain(NO_ACCESS_COMMUNITY_NAME);
 });
 
-test('in production, a request that expects JSON gets the JSON 403 of the API, not the error page (#1716)', function () {
+test('in production, a request that expects JSON gets the JSON 404 of the API, not the error page (#1716)', function () {
     noAccessCommunity('open');
     configuredInstance();
     app()->detectEnvironment(fn () => 'production');
 
     $response = $this->actingAs($this->c['outsider'])->getJson(noAccessPages()['space']['url']);
+    $missing = $this->actingAs($this->c['outsider'])->getJson(route('spaces.show', ['communitySlug' => $this->c['community']->slug, 'spaceSlug' => 'no-such-space']));
 
-    $response->assertForbidden()->assertHeader('Content-Type', 'application/json')->assertJsonPath('type', 'authorizationIssue');
+    $response->assertNotFound()->assertHeader('Content-Type', 'application/json');
+    expect($response->json())->toBe($missing->json());
     expect((string) $response->getContent())->not->toContain(NO_ACCESS_COMPONENT)->not->toContain('"component"')->not->toContain(NO_ACCESS_COMMUNITY_NAME);
 });
 
@@ -281,7 +301,10 @@ test('the page without access shows outside the local and testing environments, 
         ->assertForbidden()->assertInertia(fn ($inertia) => $inertia->component(NO_ACCESS_COMPONENT)->where('community', null));
     $this->actingAs($this->c['member'])->get(route('spaces.show', ['communitySlug' => $this->c['community']->slug, 'spaceSlug' => $groups->slug]))
         ->assertForbidden()->assertInertia(fn ($inertia) => $inertia->component('Error')->where('status', 403));
+    // A space that does not exist answers a person who is not a member as a space that they cannot read
     $this->actingAs($this->c['outsider'])->get(route('spaces.show', ['communitySlug' => $this->c['community']->slug, 'spaceSlug' => 'no-such-space']))
+        ->assertForbidden()->assertInertia(fn ($inertia) => $inertia->component(NO_ACCESS_COMPONENT)->where('community', null));
+    $this->actingAs($this->c['outsider'])->get(route('communities.show', ['communitySlug' => 'no-such-community']))
         ->assertNotFound()->assertInertia(fn ($inertia) => $inertia->component('Error')->where('status', 404));
 });
 

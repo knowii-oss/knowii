@@ -13,7 +13,8 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
  * comments themselves (CommentPolicy, EventPolicy::comment): the same order as the other routes of an event.
  *
  * 1. A person who may not see the event gets the answer of an event that does not exist (404), also for a write of
- *    their own comment: a member who lost the access to the space learns nothing more of the event.
+ *    their own comment. On the API, a space that the person cannot read answers before (`SpaceAccess`): a member who
+ *    lost the access to the space learns nothing more of the event.
  * 2. A person who is not a member of the community is refused (403).
  * 3. A new comment on a draft is refused (422): a draft takes no comments.
  *

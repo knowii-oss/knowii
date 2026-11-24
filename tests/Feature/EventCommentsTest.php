@@ -127,7 +127,8 @@ test('each reader gets the answer of rule 10 from each route of the comments of 
 })->with([
     // A visitor reads the comments of a public space, and writes nothing
     'a visitor, public space' => [null, 'public', ['list' => 200, 'create' => 401, 'react' => 401, 'who reacted' => 401, 'update' => 401, 'delete' => 401]],
-    'a visitor, members space' => [null, 'members', ['list' => 401, 'create' => 401, 'react' => 401, 'who reacted' => 401, 'update' => 401, 'delete' => 401]],
+    // Elsewhere the list answers as an event that does not exist; a write asks for an account first
+    'a visitor, members space' => [null, 'members', ['list' => 404, 'create' => 401, 'react' => 401, 'who reacted' => 401, 'update' => 401, 'delete' => 401]],
     // A signed-in person who is not a member reads a public space (the comments and who reacted) and is refused a write;
     // elsewhere the event does not exist
     'an outsider, public space' => ['outsider', 'public', ['list' => 200, 'create' => 403, 'react' => 403, 'who reacted' => 200, 'update' => 403, 'delete' => 403]],
@@ -190,7 +191,7 @@ test('a draft takes no comment, also from its host, the owner and an admin (422)
     expect(Comment::query()->count())->toBe(0);
 })->with(['host', 'owner', 'admin']);
 
-test('a draft does not exist for a member who may not see it, and a visitor gets the answer of the public reads', function () {
+test('a draft does not exist for a member who may not see it, nor for a visitor', function () {
     $draft = EventModel::factory()->inSpace($this->spaces['public'])->hostedBy($this->c['host'])->draft()->create();
 
     ecmAs('member');
@@ -199,7 +200,7 @@ test('a draft does not exist for a member who may not see it, and a visitor gets
     ecmAs('outsider');
     $this->postJson(ecmPath($draft), ['body' => 'Hello'])->assertNotFound();
     ecmAs(null);
-    $this->getJson(ecmPath($draft))->assertUnauthorized();
+    $this->getJson(ecmPath($draft))->assertNotFound();
     $this->postJson(ecmPath($draft), ['body' => 'Hello'])->assertUnauthorized();
 });
 
@@ -230,7 +231,7 @@ test('a new comment reads the state of the event inside a shared lock of its row
 // A member who lost the access (rules 11 and 52)
 // ---------------------------------------------------------------------------------------------------------------------
 
-test('a member who lost the access group of a groups space gets 404 on every route, also for their own comment, which stays', function () {
+test('a member who lost the access group of a groups space gets the refusal of the space on every route, also for their own comment, which stays', function () {
     $space = Space::factory()->inGroup($this->group)->create(['type' => KnowiiSpaceType::Events, 'visibility' => KnowiiSpaceVisibility::Groups, 'posting_policy' => KnowiiSpacePostingPolicy::Members]);
     $buyers = AccessGroup::query()->create(['community_id' => $this->c['community']->id, 'name' => 'Buyers']);
     $space->accessGroups()->attach($buyers);
@@ -241,12 +242,12 @@ test('a member who lost the access group of a groups space gets 404 on every rou
     $buyers->members()->detach($this->c['member']->id);
     ecmAs('member');
 
-    $this->getJson(ecmPath($event))->assertNotFound();
-    $this->postJson(ecmPath($event), ['body' => 'Again'])->assertNotFound();
-    $this->patchJson(ecmPath($event, $comment), ['body' => 'Changed'])->assertNotFound();
-    $this->deleteJson(ecmPath($event, $comment))->assertNotFound();
-    $this->postJson(ecmPath($event, $comment, '/reactions'), ['emoji' => '👍'])->assertNotFound();
-    $this->getJson(ecmPath($event, $comment, '/reactions'))->assertNotFound();
+    $this->getJson(ecmPath($event))->assertForbidden();
+    $this->postJson(ecmPath($event), ['body' => 'Again'])->assertForbidden();
+    $this->patchJson(ecmPath($event, $comment), ['body' => 'Changed'])->assertForbidden();
+    $this->deleteJson(ecmPath($event, $comment))->assertForbidden();
+    $this->postJson(ecmPath($event, $comment, '/reactions'), ['emoji' => '👍'])->assertForbidden();
+    $this->getJson(ecmPath($event, $comment, '/reactions'))->assertForbidden();
 
     // The comment stays under the name of its author, and in the export of that member
     $kept = $comment->fresh();

@@ -301,10 +301,10 @@ test('a session that a takeover ended gets 401 as the JSON error of the API, nev
     ecfBrowserGet($member, $this->open, fromThePage: true)->assertUnauthorized();
 });
 
-test('a member who cannot read the space gets the body of an event that does not exist', function () {
-    $missing = ecfGet('going', $this->inGroups)->assertNotFound();
+test('a member who cannot read the space gets the refusal of the space, the same for an event that does not exist', function () {
+    $missing = ecfGet('going', $this->inGroups)->assertForbidden();
     $this->app['auth']->forgetGuards();
-    $none = $this->actingAs($this->c['going'])->get(ecfPath($this->inGroups, eventCuid: 'nothing-here'), ['Accept' => 'text/html'])->assertNotFound();
+    $none = $this->actingAs($this->c['going'])->get(ecfPath($this->inGroups, eventCuid: 'nothing-here'), ['Accept' => 'text/html'])->assertForbidden();
 
     expect($missing->headers->get('Content-Type'))->toStartWith('application/json')
         ->and($missing->json())->toBe($none->json());
@@ -545,14 +545,14 @@ test('a member who left the community gets 403 in a public space and 404 in anot
     ecfGet('member', $this->open)->assertNotFound();
 });
 
-test('a member who lost the access group of a "groups" space gets the body of an event that does not exist, and the file again when the access is back', function () {
+test('a member who lost the access group of a "groups" space gets the refusal of the space, the same for an event that does not exist, and the file again when the access is back', function () {
     EventAnswer::factory()->to($this->inGroups)->of($this->c['member'])->yes()->create();
     expect(ecfFile('member', $this->inGroups))->toContain(ECF_MEETING_URL);
 
     $this->buyers->members()->detach($this->c['member']->id);
-    $gone = ecfGet('member', $this->inGroups)->assertNotFound();
+    $gone = ecfGet('member', $this->inGroups)->assertForbidden();
     $this->app['auth']->forgetGuards();
-    $none = $this->actingAs(User::query()->findOrFail($this->c['member']->id))->get(ecfPath($this->inGroups, eventCuid: 'nothing-here'), ['Accept' => 'text/html'])->assertNotFound();
+    $none = $this->actingAs(User::query()->findOrFail($this->c['member']->id))->get(ecfPath($this->inGroups, eventCuid: 'nothing-here'), ['Accept' => 'text/html'])->assertForbidden();
     expect($gone->json())->toBe($none->json())
         // The answer stays
         ->and(EventAnswer::query()->where('event_id', $this->inGroups->id)->where('user_id', $this->c['member']->id)->exists())->toBeTrue();

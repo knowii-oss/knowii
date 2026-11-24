@@ -58,7 +58,8 @@ test('owners, admins and moderators of the space delete any resource; other memb
 
     $other = CommunityResource::factory()->create(['space_id' => $this->space->id, 'curator_id' => $this->c['admin']->profile->id]);
     $this->actingAs($this->c['member'])->deleteJson(deletableResourcePath($other))->assertForbidden();
-    $this->actingAs($this->c['outsider'])->deleteJson(deletableResourcePath($other))->assertForbidden();
+    // An outsider: the members space answers as a space that does not exist
+    $this->actingAs($this->c['outsider'])->deleteJson(deletableResourcePath($other))->assertNotFound();
 
     expect(CommunityResource::query()->whereKey($other->id)->exists())->toBeTrue();
 });

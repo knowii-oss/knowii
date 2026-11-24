@@ -232,7 +232,7 @@ test('the list of the community has the guards of the public page: 404 to a visi
     evaRead('member', evaCommunityPath())->assertOk();
 });
 
-test('a visitor and an outsider read a public events space, and get the answer of the other public reads elsewhere', function () {
+test('a visitor and an outsider read a public events space, and get the answer of a space or an event that does not exist elsewhere', function () {
     foreach (['visitor', 'outsider', 'member'] as $reader) {
         evaRead($reader, evaPath(ApiRoutes::COMMUNITY_SPACE_EVENTS, $this->spaces['public']))->assertOk();
         evaRead($reader, evaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $this->spaces['public'], $this->published['public']))->assertOk()
@@ -241,13 +241,13 @@ test('a visitor and an outsider read a public events space, and get the answer o
     }
     expect(evaTitles(evaRead('visitor', evaPath(ApiRoutes::COMMUNITY_SPACE_EVENTS, $this->spaces['public']))))->not->toContain('Draft public');
 
-    // A members space, and a draft in a public space
-    evaRead('visitor', evaPath(ApiRoutes::COMMUNITY_SPACE_EVENTS, $this->spaces['members']))->assertUnauthorized();
-    evaRead('outsider', evaPath(ApiRoutes::COMMUNITY_SPACE_EVENTS, $this->spaces['members']))->assertForbidden();
-    evaRead('visitor', evaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $this->spaces['members'], $this->published['members']))->assertUnauthorized();
+    // A members space, and a draft in a public space: the answer of a space or an event that does not exist
+    evaRead('visitor', evaPath(ApiRoutes::COMMUNITY_SPACE_EVENTS, $this->spaces['members']))->assertNotFound();
+    evaRead('outsider', evaPath(ApiRoutes::COMMUNITY_SPACE_EVENTS, $this->spaces['members']))->assertNotFound();
+    evaRead('visitor', evaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $this->spaces['members'], $this->published['members']))->assertNotFound();
     // A signed-in person who cannot read the space: the event does not exist for them (see the test of the 404 below)
     evaRead('outsider', evaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $this->spaces['members'], $this->published['members']))->assertNotFound();
-    evaRead('visitor', evaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $this->spaces['public'], $this->drafts['public']))->assertUnauthorized();
+    evaRead('visitor', evaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $this->spaces['public'], $this->drafts['public']))->assertNotFound();
     evaRead('moderator', evaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $this->spaces['public'], $this->drafts['public']))->assertOk();
 });
 
@@ -272,26 +272,27 @@ test('the read of a draft answers 404 to a reader who cannot see it, as the writ
     }
 });
 
-test('the read of a published event of a space that the reader cannot read answers 404, with the body of an event that does not exist', function () {
+test('the read of a published event of a space that the reader cannot read answers as an event that does not exist, or with the refusal of the space for a member', function () {
     $groups = Space::factory()->inGroup($this->spaces['members']->spaceGroup)->create(['type' => KnowiiSpaceType::Events, 'visibility' => KnowiiSpaceVisibility::Groups]);
     $buyers = AccessGroup::query()->create(['community_id' => $this->c['community']->id, 'name' => 'Buyers']);
     $groups->accessGroups()->attach($buyers);
     $forBuyers = EventModel::factory()->inSpace($groups)->hostedBy($this->c['owner'])->create(['title' => 'For the buyers']);
     $cancelled = EventModel::factory()->inSpace($groups)->hostedBy($this->c['owner'])->cancelled()->create(['title' => 'Cancelled for the buyers']);
 
-    // A member and a moderator without the access group, and a signed-in person who is not a member, in a "groups" and
-    // in a "members" space
+    // A member and a moderator without the access group get the refusal of the space (403), a signed-in person who is not
+    // a member the answer of an event that does not exist (404), in a "groups" and in a "members" space: the same answer
+    // for an event that exists and for one that does not
     $cases = [
-        ['member', $groups, $forBuyers],
-        ['member', $groups, $cancelled],
-        ['moderator', $groups, $forBuyers],
-        ['outsider', $groups, $forBuyers],
-        ['outsider', $this->spaces['members'], $this->published['members']],
+        ['member', $groups, $forBuyers, 403],
+        ['member', $groups, $cancelled, 403],
+        ['moderator', $groups, $forBuyers, 403],
+        ['outsider', $groups, $forBuyers, 404],
+        ['outsider', $this->spaces['members'], $this->published['members'], 404],
     ];
-    foreach ($cases as $index => [$reader, $space, $event]) {
+    foreach ($cases as $index => [$reader, $space, $event, $status]) {
         $missing = EventModel::factory()->inSpace($space)->make(['cuid' => 'nothing-here']);
-        $ofHidden = evaRead($reader, evaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $space, $event))->assertNotFound();
-        $ofMissing = evaRead($reader, evaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $space, $missing))->assertNotFound();
+        $ofHidden = evaRead($reader, evaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $space, $event))->assertStatus($status);
+        $ofMissing = evaRead($reader, evaPath(ApiRoutes::COMMUNITY_SPACE_EVENT, $space, $missing))->assertStatus($status);
 
         expect($ofHidden->getContent())->toBe($ofMissing->getContent(), "case {$index}: {$reader}")
             ->and((string) $ofHidden->getContent())->not->toContain('the buyers')->not->toContain($event->cuid);

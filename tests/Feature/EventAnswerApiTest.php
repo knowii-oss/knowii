@@ -204,18 +204,18 @@ test('a draft that the person cannot see gives the body of an event that does no
     expect(EventAnswer::query()->where('event_id', $this->draft->id)->exists())->toBeFalse();
 });
 
-test('an event of a space that the person cannot read answers 404 on the four routes', function () {
+test('an event of a space that the person cannot read answers as its space on the four routes: 404 for a person who is not a member, 403 for a member', function () {
     $hidden = EventModel::factory()->inSpace($this->membersSpace)->hostedBy($this->c['host'])->create();
     $groups = Space::factory()->inGroup($this->group)->create(['type' => KnowiiSpaceType::Events, 'visibility' => KnowiiSpaceVisibility::Groups]);
     $buyers = AccessGroup::query()->create(['community_id' => $this->c['community']->id, 'name' => 'Buyers']);
     $groups->accessGroups()->attach($buyers);
     $forBuyers = EventModel::factory()->inSpace($groups)->hostedBy($this->c['owner'])->create();
 
-    foreach ([['outsider', $hidden], ['member', $forBuyers], ['moderator', $forBuyers]] as [$reader, $event]) {
-        eaaCall($reader, 'GET', eaaAnswer($event))->assertNotFound();
-        eaaCall($reader, 'PUT', eaaAnswer($event), ['answer' => 'yes'])->assertNotFound();
-        eaaCall($reader, 'DELETE', eaaAnswer($event))->assertNotFound();
-        eaaCall($reader, 'GET', eaaAnswers($event))->assertNotFound();
+    foreach ([['outsider', $hidden, 404], ['member', $forBuyers, 403], ['moderator', $forBuyers, 403]] as [$reader, $event, $status]) {
+        eaaCall($reader, 'GET', eaaAnswer($event))->assertStatus($status);
+        eaaCall($reader, 'PUT', eaaAnswer($event), ['answer' => 'yes'])->assertStatus($status);
+        eaaCall($reader, 'DELETE', eaaAnswer($event))->assertStatus($status);
+        eaaCall($reader, 'GET', eaaAnswers($event))->assertStatus($status);
     }
     expect(EventAnswer::query()->whereIn('event_id', [$hidden->id, $forBuyers->id])->exists())->toBeFalse();
 
@@ -541,7 +541,8 @@ test('the last place of a member who lost the access to the space is free: a sec
     eaaCall($fresh('member'), 'PUT', eaaAnswer($event), ['answer' => 'yes'])->assertOk()->assertJsonPath('data.answer', 'yes');
     expect($hostReads())->toBe([1, 1, 1, [$this->c['member']->name]])
         ->and(EventAnswer::query()->where('event_id', $event->id)->where('answer', 'yes')->count())->toBe(2);
-    eaaCall($fresh('going'), 'GET', eaaAnswer($event))->assertNotFound();
+    // Gwen is still a member: the space that she cannot read refuses her
+    eaaCall($fresh('going'), 'GET', eaaAnswer($event))->assertForbidden();
 
     // No member who can read the space has an answer: the event goes back to draft, and comes back
     eaaCall($fresh('member'), 'DELETE', eaaAnswer($event))->assertNoContent();

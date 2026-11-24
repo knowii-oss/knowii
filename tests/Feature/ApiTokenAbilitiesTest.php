@@ -229,13 +229,15 @@ test('a token without the ability gets the same answer for an item that its owne
     }
 });
 
-test('a token with the ability keeps the 404 of an item that its owner cannot see and of an identifier that does not exist (ADR 0022)', function () {
+test('a token with the ability keeps one answer for an item that its owner cannot see and for an identifier that does not exist (ADR 0022)', function () {
     foreach (tabHiddenItems() as $name => $case) {
         $ofItem = tabWithToken(['events:read', 'events:write'], $case['method'], $case['item'], $case['body']);
         $ofMissing = tabWithToken(['events:read', 'events:write'], $case['method'], $case['missing'], $case['body']);
+        // The refusal of a groups space that the member cannot read (ADR 0011 point 10), else the 404 of a draft
+        $status = $name === 'a draft of another host' ? 404 : 403;
 
-        expect($ofItem->getStatusCode())->toBe(404, $name)
-            ->and($ofMissing->getStatusCode())->toBe(404, $name)
+        expect($ofItem->getStatusCode())->toBe($status, $name)
+            ->and($ofMissing->getStatusCode())->toBe($status, $name)
             ->and($ofItem->getContent())->toBe($ofMissing->getContent(), $name);
     }
 });

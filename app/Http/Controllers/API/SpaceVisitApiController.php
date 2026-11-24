@@ -22,7 +22,9 @@ class SpaceVisitApiController extends Controller
     /**
      * The current member visited the space (the client calls it when a space is open without a page load): the dot of the
      * space goes. One row per member and space, replaced at each visit. Only a member of the community who can view the
-     * space visits it (403 otherwise): a visitor and a signed-in person who is not a member never get a row.
+     * space visits it: a visitor and a signed-in person who is not a member never get a row. A space that the person
+     * cannot read answers as a space that does not exist (404) for a person who is not a member, and 403 for a member
+     * outside its access groups; a person who is not a member gets 403 in a public space.
      *
      * @throws AuthenticationException
      * @throws AuthorizationException

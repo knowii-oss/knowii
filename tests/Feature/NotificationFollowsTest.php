@@ -1331,14 +1331,14 @@ test('the follow routes refuse a person who is not a member, a member who cannot
     $post = flwPost($this->author, $this->space);
     $follow = flwThreadPath(ApiRoutes::COMMUNITY_SPACE_POST_FOLLOW, $this->community, $this->space, $post);
 
-    // Not a member: 403, also in a public space
+    // Not a member: 403 in a public space, and the answer of a space that does not exist in a members space
     $public = Space::factory()->inGroup($this->group)->create(['visibility' => KnowiiSpaceVisibility::Public]);
     $publicPost = flwPost($this->author, $public, 'Public', 'Public body');
     $publicFollow = flwThreadPath(ApiRoutes::COMMUNITY_SPACE_POST_FOLLOW, $this->community, $public, $publicPost);
-    foreach ([$follow, $publicFollow] as $path) {
-        $this->actingAs($this->c['outsider'])->getJson($path)->assertForbidden();
-        $this->actingAs($this->c['outsider'])->putJson($path)->assertForbidden();
-        $this->actingAs($this->c['outsider'])->deleteJson($path)->assertForbidden();
+    foreach ([[$follow, 404], [$publicFollow, 403]] as [$path, $status]) {
+        $this->actingAs($this->c['outsider'])->getJson($path)->assertStatus($status);
+        $this->actingAs($this->c['outsider'])->putJson($path)->assertStatus($status);
+        $this->actingAs($this->c['outsider'])->deleteJson($path)->assertStatus($status);
     }
     $this->actingAs($this->c['outsider'])->putJson(flwThreadPath(ApiRoutes::COMMUNITY_SPACE_POST_MUTE, $this->community, $public, $publicPost))->assertForbidden();
     $this->actingAs($this->c['outsider'])->deleteJson(flwThreadPath(ApiRoutes::COMMUNITY_SPACE_POST_MUTE, $this->community, $public, $publicPost))->assertForbidden();
@@ -1409,8 +1409,9 @@ test('the level routes of a space: read, choose, go back to the default', functi
     $this->putJson($path, [])->assertStatus(400);
     $this->putJson(flwSpacePath(ApiRoutes::COMMUNITY_SPACE_NOTIFICATION_LEVEL, $this->community, $this->course), ['level' => 'all'])->assertStatus(422);
     $this->getJson(flwSpacePath(ApiRoutes::COMMUNITY_SPACE_NOTIFICATION_LEVEL, $this->community, Space::factory()->inGroup($this->group)->create(['type' => KnowiiSpaceType::Link, 'url' => 'https://example.com'])))->assertStatus(422);
-    $this->actingAs($this->c['outsider'])->getJson($path)->assertForbidden();
-    $this->actingAs($this->c['outsider'])->putJson($path, ['level' => 'mine'])->assertForbidden();
+    // Not a member: the members space answers as a space that does not exist
+    $this->actingAs($this->c['outsider'])->getJson($path)->assertNotFound();
+    $this->actingAs($this->c['outsider'])->putJson($path, ['level' => 'mine'])->assertNotFound();
 });
 
 test('the level of a space that the member cannot view is a 403, and a space of another community is a 404', function () {

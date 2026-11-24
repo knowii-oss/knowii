@@ -678,8 +678,8 @@ export const knowiiApiClient = {
           'Failed to load the events.',
         ),
       /**
-       * One event, with its description. A 403 means "not for this reader" (a draft, a space that the reader may not
-       * read), a 404 that the event is gone
+       * One event, with its description. A 403 means a space that the member may not read, a 404 an event that is gone
+       * or that this reader may not see (a draft): both mean "not for this reader"
        */
       get: (communityCuid: string, spaceCuid: string, eventCuid: string): Promise<ApiResult<SpaceEvent>> =>
         apiRequest(

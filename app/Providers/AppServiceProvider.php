@@ -280,6 +280,7 @@ use App\Support\ProviderRemovals;
 use App\Support\RequestCredential;
 use App\Support\ReverbLiveConnections;
 use App\Support\ReverbPresenceChannels;
+use App\Support\SpaceAccess;
 use Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider;
 use Illuminate\Broadcasting\BroadcastManager;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -403,6 +404,9 @@ class AppServiceProvider extends ServiceProvider
         // A tag that the reader may not see answers 404 before the token abilities and the controller (here, not in a route
         // file: the cached routes do not keep a binding)
         Route::bind(ApiRoutes::PARAM_MEMBER_TAG, MemberTagsOfMembers::bindRoute(...));
+        // A space that the reader may not read: the answer of a space that does not exist for a person who is not a member,
+        // the refusal for a member, before any item of the space is read (SpaceAccess)
+        Route::bind(ApiRoutes::PARAM_SPACE, SpaceAccess::bindRoute(...));
         app()->singleton(SetsAccessGroupSpaceGroups::class, SetAccessGroupSpaceGroups::class);
         app()->singleton(SetsSpaceGroupAccessGroups::class, SetSpaceGroupAccessGroups::class);
         app()->singleton(AcceptsCommunityInvitations::class, AcceptCommunityInvitation::class);

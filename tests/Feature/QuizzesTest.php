@@ -292,7 +292,8 @@ test('the answers of an attempt are checked against the quiz (#1335)', function 
 
 test('only the managers of the course write and delete a quiz (#1335)', function () {
     $this->actingAs($this->c['member'])->putJson(quizPath($this->lesson), quizBody())->assertForbidden();
-    $this->actingAs($this->c['outsider'])->putJson(quizPath($this->lesson), quizBody())->assertForbidden();
+    // An outsider: the members course answers as a space that does not exist
+    $this->actingAs($this->c['outsider'])->putJson(quizPath($this->lesson), quizBody())->assertNotFound();
 
     foreach (['owner', 'admin', 'moderator'] as $who) {
         $this->actingAs($this->c[$who])->putJson(quizPath($this->lesson), quizBody())->assertOk();
@@ -306,8 +307,9 @@ test('outsiders read the quiz of a public course but keep no result (#1335)', fu
     $this->actingAs($this->c['admin'])->putJson(quizPath($this->lesson), quizBody())->assertOk();
     $answers = quizAnswers($this->lesson, [['4'], ['2', '4']]);
 
-    $this->actingAs($this->c['outsider'])->getJson(quizPath($this->lesson))->assertForbidden();
-    $this->actingAs($this->c['outsider'])->postJson(quizPath($this->lesson, true), $answers)->assertForbidden();
+    // A members course answers an outsider as a space that does not exist
+    $this->actingAs($this->c['outsider'])->getJson(quizPath($this->lesson))->assertNotFound();
+    $this->actingAs($this->c['outsider'])->postJson(quizPath($this->lesson, true), $answers)->assertNotFound();
 
     $this->course->update(['visibility' => KnowiiSpaceVisibility::Public]);
     $this->actingAs($this->c['outsider'])->getJson(quizPath($this->lesson))

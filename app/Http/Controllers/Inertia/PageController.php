@@ -3,13 +3,11 @@
 namespace App\Http\Controllers\Inertia;
 
 use App\Contracts\Notifications\TracksSpaceVisits;
-use App\Enums\KnowiiNoAccessKind;
 use App\Enums\KnowiiSpaceType;
-use App\Models\Community;
 use App\Models\Page;
 use App\Support\CourseProgress;
-use App\Support\NoAccess;
 use App\Support\Quizzes;
+use App\Support\SpaceAccess;
 use App\Support\SpaceTree;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -26,10 +24,9 @@ class PageController extends Controller
 {
     public function show(Request $request, string $communitySlug, string $spaceSlug, string $pageSlug): Response
     {
-        $community = Community::where('slug', $communitySlug)->firstOrFail();
-        $space = $community->spaces()->where('slug', $spaceSlug)->whereIn('type', [KnowiiSpaceType::Pages, KnowiiSpaceType::Course])->firstOrFail();
-
-        NoAccess::authorizeView($request, $community, $space, KnowiiNoAccessKind::Space);
+        // The access to the space comes first: the type of a space that the reader cannot read never leaves
+        [$community, $space] = SpaceAccess::forPage($request, $communitySlug, $spaceSlug);
+        abort_unless(in_array($space->type, [KnowiiSpaceType::Pages, KnowiiSpaceType::Course], true), 404);
 
         // A member who opens the space has visited it: the dot of the navigation goes (#1476). Before the navigation is built
         if ($request->user() !== null) {
