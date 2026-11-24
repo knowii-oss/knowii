@@ -26,8 +26,8 @@ use Illuminate\Support\Str;
 final class SecretAddresses
 {
     /**
-     * The route parameters whose value is a secret: the token of a sign-in link, of a password reset and of an invite link,
-     * and the hash of the address of a signed link
+     * The route parameters whose value is a secret: the token of a sign-in link, of the link of a sign-up, of a password
+     * reset and of an invite link, and the hash of the address of a signed link
      *
      * @var list<string>
      */
@@ -52,6 +52,7 @@ final class SecretAddresses
         'invite/*',
         ApiRoutes::BASE_PATH.'/invite-links/*',
         'login/link/*',
+        'register/link/*',
         'reset-password/*',
         'email/verify/*',
         'user/email-change/*',

@@ -122,6 +122,9 @@ function firstProofAccount(bool $verified): array
 function firstProofSignInLink(string $email = FIRST_PROOF_EMAIL): string
 {
     Mail::fake();
+    // The test asks again at once: the link of a minute ago does not hold the next one back
+    $cuid = User::query()->whereRaw('lower(email) = ?', [mb_strtolower($email)])->value('cuid');
+    Cache::forget('magic-link-sent:'.$cuid);
     test()->post('/login/link', ['email' => $email])->assertRedirect(route('login'));
     $token = '';
     Mail::assertQueued(MagicLink::class, function (MagicLink $mail) use (&$token) {
@@ -1142,17 +1145,22 @@ test('the takeover needs the address that was proved: a row with another address
         ->and($user->fresh()->hasVerifiedEmail())->toBeTrue();
 });
 
-test('a proof of the address of before that comes after a correction takes nothing over', function () {
+test('a proof of the address of before while a correction waits takes the account over, and the pending address goes', function () {
     $account = firstProofAccount(verified: false);
     $user = $account['user'];
     // The model of the proof, read before the correction
     $stale = User::query()->findOrFail($user->id);
     Notification::fake();
+    // The correction waits for the link of the new address (ADR 0058): the account keeps the address of before
     app(UpdatesUserProfileInformation::class)->update(User::query()->findOrFail($user->id), ['name' => 'Ada Lovelace', 'email' => 'ada.corrected@example.org', 'current_password' => FIRST_PROOF_PASSWORD]);
+    expect($user->fresh()->pending_email)->toBe('ada.corrected@example.org');
 
-    expect(app(TakesOverUnverifiedAccounts::class)->takeOver($stale, KnowiiAddressProof::SignInLink, FIRST_PROOF_EMAIL))->toBe(KnowiiTakeOverResult::OtherAddress)
-        ->and($stale->email)->toBe('ada.corrected@example.org');
-    firstProofOnlyTheAddressChanged($account, 'ada.corrected@example.org');
+    expect(app(TakesOverUnverifiedAccounts::class)->takeOver($stale, KnowiiAddressProof::SignInLink, FIRST_PROOF_EMAIL))->toBe(KnowiiTakeOverResult::TookOver)
+        ->and($stale->email)->toBe(FIRST_PROOF_EMAIL);
+    $fresh = $user->fresh();
+    expect($fresh->hasVerifiedEmail())->toBeTrue()
+        ->and($fresh->pending_email)->toBeNull()
+        ->and($fresh->password)->toBeNull();
 });
 
 test('a sign-in link of the address of before, used while a correction is stored, answers as a link that does not work', function () {

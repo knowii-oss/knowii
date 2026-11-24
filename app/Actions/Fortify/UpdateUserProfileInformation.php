@@ -8,14 +8,12 @@ use App\Contracts\Users\VerifiesUsernameAvailability;
 use App\Exceptions\TechnicalException;
 use App\Models\User;
 use App\Models\UserProfile;
-use App\Rules\FreeEmailAddress;
 use App\Rules\KnownTimeZone;
 use App\Support\EmailChangeBudget;
 use App\Support\ProfileFieldVisibility;
 use App\Support\ProfileHeadline;
 use App\Support\TimeZones;
 use Closure;
-use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
@@ -30,10 +28,11 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
      * Validate and update the given user's profile information.
      *
      * A change of the email address (#1706, ADR 0058), compared without regard to the case:
-     * 1. An account with a verified address keeps it. The new address waits for its confirmation (ChangesEmailAddresses):
-     *    the link goes to it, and the account has it only when the link is opened.
-     * 2. An account whose address was never verified changes it at once, as a correction, and the address check goes to the
-     *    new address. Its other fields do not change until the address is verified.
+     * 1. The account keeps its address. The new address waits for its confirmation (ChangesEmailAddresses): a queued job
+     *    sends the link to it, and the account has it only when the link is opened. An account whose address was never
+     *    verified corrects it the same way (a correction): its other fields do not change until the address is verified.
+     * 2. The answer is the same for a new address that another account has and one that no account has: the request never
+     *    reads another account. The job sends the mail "This address already has an account" in place of the link.
      * 3. The current password confirms the change when the account has one.
      * 4. Each change counts in the budget of the mails of a change of the address (EmailChangeBudget), with "Send the link
      *    again".
@@ -71,9 +70,9 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'name' => ['string', 'max:'.Constants::MAX_LENGTH_USER_NAME],
             // WARNING: Those rules must remain aligned with those in VerifyUsernameAvailability.php and with the client-side usernameSchema
             'username' => ['string', 'min:'.Constants::MIN_LENGTH_USER_USERNAME, 'max:'.Constants::MAX_LENGTH_USER_USERNAME, 'regex:'.Constants::ALLOWED_USER_USERNAME_CHARACTERS_REGEX],
-            // No other account has the address, without regard to the case (the sign-in link and the provider find an
-            // account by its address that way). A pending address of another account does not count
-            'email' => ['required', 'email', 'max:'.Constants::MAX_LENGTH_USER_EMAIL, new FreeEmailAddress($user->id)],
+            // The format and the length only: whether another account has the address is for the queued job, so the answer
+            // is the same for every new address (ADR 0058)
+            'email' => ['required', 'email', 'max:'.Constants::MAX_LENGTH_USER_EMAIL],
             // The current password confirms a change of the address (#1706), when the account has one (an account that a
             // provider made has none). The other fields need no password
             ...($checksPassword ? ['current_password' => ['required', 'string', static function (string $attribute, mixed $value, Closure $fail) use ($user, $passwordKey): void {
@@ -108,8 +107,8 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 
         // WARNING: Profile information updates are NOT allowed until the user has verified their email address
         // This is important to avoid abuse of the system where users register using a mail they don't own to take over an unclaimed user profile, and try to modify it
-        // The address itself is the exception (#1706): a person who typed it wrong corrects it, and the address check goes
-        // to the corrected address
+        // The address itself is the exception (#1706): a person who typed it wrong corrects it, and the link goes to the
+        // corrected address
         if (! $user->hasVerifiedEmail()) {
             if ($changesAddress) {
                 $this->correctUnverifiedAddress($user, trim($input['email']), $input['current_password'] ?? null);
@@ -168,54 +167,38 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     }
 
     /**
-     * The correction of an address that was never verified (#1706): it applies at once, and the address check goes to the
-     * new address. There is no pending address for such an account. In one transaction, on the row of the account read
-     * again and locked: the password is checked against that row, and the correction applies only while the row still has
-     * no verified address. A row that another proof verified in between changes nothing: no pending change is made and no
-     * mail goes, and the request ends without an error. Returns whether the correction applied; the model holds the stored
-     * values after the call.
+     * The correction of an address that was never verified (#1706, ADR 0058): a pending address, as a change. The link of a
+     * free address confirms it, and the account then has the new address, verified; an address that another account has
+     * gets the mail without a link, and the account keeps its address. The address check of the stored address and the
+     * takeover by its first proof stay (the takeover clears the pending address, ADR 0059). In one transaction, on the row
+     * of the account read again and locked: the password is checked against that row, and the correction waits only while
+     * the row still has no verified address. A row that another proof verified in between changes nothing: no pending
+     * address and no mail, and the request ends without an error. Returns whether the correction waits now; the model
+     * holds the stored values after the call.
      *
      * @throws ValidationException
      */
     final public function correctUnverifiedAddress(User $user, string $address, #[SensitiveParameter] ?string $password): bool
     {
-        try {
-            $applied = DB::transaction(static function () use ($user, $address, $password): bool {
-                // The row as it is stored now, locked until the commit
-                $account = User::query()->lockForUpdate()->findOrFail($user->id);
-                if ($account->hasVerifiedEmail()) {
-                    return false;
-                }
-                if ($account->hasPassword() && (! is_string($password) || ! Hash::check($password, (string) $account->password))) {
-                    throw ValidationException::withMessages(['current_password' => __('The provided password does not match your current password.')])->errorBag('updateProfileInformation');
-                }
+        $waits = DB::transaction(static function () use ($user, $address, $password): bool {
+            // The row as it is stored now, locked until the commit
+            $account = User::query()->lockForUpdate()->findOrFail($user->id);
+            if ($account->hasVerifiedEmail()) {
+                return false;
+            }
+            if ($account->hasPassword() && (! is_string($password) || ! Hash::check($password, (string) $account->password))) {
+                throw ValidationException::withMessages(['current_password' => __('The provided password does not match your current password.')])->errorBag('updateProfileInformation');
+            }
 
-                $previous = $account->email;
-                $account->forceFill([
-                    'email' => $address,
-                    'email_verified_at' => null,
-                    'pending_email' => null,
-                    'pending_email_requested_at' => null,
-                ])->save();
-                // Keep the user profile in sync
-                $account->profile()->update(['email' => $account->email]);
-                // A reset link of the address of before has no use any more
-                DB::table('password_reset_tokens')->where('email', $previous)->delete();
+            app(ChangesEmailAddresses::class)->request($account, $address);
 
-                return true;
-            });
-        } catch (UniqueConstraintViolationException) {
-            // Another account took the address between the check and the write: the error of the check, never an error page
-            throw ValidationException::withMessages(FreeEmailAddress::takenMessages())->errorBag('updateProfileInformation');
-        }
+            return true;
+        });
 
         // The caller goes on with the stored values
         $user->refresh();
-        if ($applied) {
-            $user->sendEmailVerificationNotification();
-        }
 
-        return $applied;
+        return $waits;
     }
 
     /**

@@ -102,6 +102,8 @@ export const OIDC_CONNECT_URL = 'oidc.connect';
 // A signed-in member without a password confirms the deletion of the account with a new sign-in: a POST (#1521)
 export const OIDC_CONFIRM_DELETION_URL = 'oidc.confirm-deletion';
 export const REGISTER_URL = 'register';
+// The page of the link of a sign-up: the password, then the account (ADR 0065)
+export const REGISTER_LINK_STORE_URL = 'register.link.store';
 export const LOGOUT_URL = 'logout';
 export const PASSWORD_CONFIRM_URL = 'password.confirm';
 // URL for sending password forgotten requests

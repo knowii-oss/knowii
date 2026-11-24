@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\DummyPassword;
 use App\Support\SecondFactor;
 use App\Traits\ApiResponses;
 use Dedoc\Scramble\Attributes\BodyParameter;
@@ -12,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Timebox;
 
 class LoginApiController extends Controller
 {
@@ -36,12 +38,23 @@ class LoginApiController extends Controller
             'recovery_code' => ['nullable', 'string', 'max:64'],
         ]);
 
-        // Check the password without logging in: the session starts only after every factor (#1256)
-        // The stored address is in lower case: the sign-in works with any casing of the address
-        $user = User::query()->where('email', mb_strtolower($input['email']))->first();
-        // An account without a password (created by a sign-in provider) cannot log in here
-        $storedPassword = $user?->password;
-        if ($user === null || $storedPassword === null || ! Hash::check($input['password'], $storedPassword)) {
+        // Check the password without logging in: the session starts only after every factor (#1256). A sign-in takes the
+        // same time for an address with and without an account (documentation/architecture/backend.md): every failed check
+        // costs one hash check (DummyPassword when there is no hash to compare), inside the timebox of the framework
+        $user = (new Timebox)->call(static function () use ($input): ?User {
+            // The stored address is in lower case: the sign-in works with any casing of the address
+            $user = User::query()->where('email', mb_strtolower($input['email']))->first();
+            // An account without a password (created by a sign-in provider) cannot log in here
+            $storedPassword = $user?->password;
+            if ($user === null || $storedPassword === null || $storedPassword === '') {
+                DummyPassword::check($input['password']);
+
+                return null;
+            }
+
+            return Hash::check($input['password'], $storedPassword) ? $user : null;
+        }, self::timeboxMicroseconds());
+        if ($user === null) {
             return self::authenticationIssue('The provided credentials do not match our records.');
         }
 
@@ -83,5 +96,15 @@ class LoginApiController extends Controller
         }
 
         return self::success("Welcome to Knowii's API 🎉", null, null);
+    }
+
+    /**
+     * The least time of a password check, in microseconds: `auth.timebox_duration`, 200 ms by default, as the web sign-in
+     */
+    private static function timeboxMicroseconds(): int
+    {
+        $duration = config('auth.timebox_duration', 200000);
+
+        return is_int($duration) && $duration > 0 ? $duration : 200000;
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Fortify\CreateNewUser;
 use App\ApiRoutes;
 use App\Contracts\Posts\CreatesPosts;
 use App\Contracts\Realtime\ReadsPresenceChannels;
@@ -19,7 +20,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Testing\TestResponse;
-use Laravel\Fortify\Contracts\CreatesNewUsers;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -176,13 +176,12 @@ dataset('mlv managers', ['owner', 'admin', 'mm']);
 // ---------------------------------------------------------------------------------------------------------------------
 
 test('a new account is shown in the member lists, and so is a row created without the column (#1466)', function () {
-    $created = app(CreatesNewUsers::class)->create([
+    $created = app(CreateNewUser::class)->createFromLink([
         'name' => 'Grace Qzregister',
-        'email' => 'grace-qzregister@example.com',
         'password' => 'a-Long-Password-9!',
         'password_confirmation' => 'a-Long-Password-9!',
         'terms' => true,
-    ]);
+    ], 'grace-qzregister@example.com');
     expect($created->refresh()->show_in_member_list)->toBeTrue()
         ->and($created->showsInMemberList())->toBeTrue();
 

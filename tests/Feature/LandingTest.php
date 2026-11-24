@@ -27,6 +27,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
+use Illuminate\Testing\TestResponse;
 use Laravel\Fortify\Contracts\TwoFactorAuthenticationProvider;
 use Laravel\Fortify\Contracts\TwoFactorLoginResponse as TwoFactorLoginResponseContract;
 use Laravel\Fortify\Contracts\VerifyEmailResponse as VerifyEmailResponseContract;
@@ -157,14 +158,22 @@ function landingNewBrowser(): void
 }
 
 /**
- * A visitor signs up with the form, in the browser of the test
+ * A visitor sends the sign-up form, in the browser of the test (ADR 0065): no account yet. Returns the token of the link of
+ * the mail
  */
-function landingSignUp(): User
+function landingSignUp(): string
 {
-    test()->post('/register', ['name' => 'Grace Hopper', 'email' => 'grace@example.com', 'password' => LANDING_PASSWORD, 'password_confirmation' => LANDING_PASSWORD, 'terms' => true])
-        ->assertRedirect();
+    test()->post('/register', ['name' => 'Grace Hopper', 'email' => 'grace@example.com'])->assertRedirect(route('register'));
 
-    return User::query()->where('email', 'grace@example.com')->firstOrFail();
+    return (string) signUpLinkToken('grace@example.com');
+}
+
+/**
+ * The page of the link of the sign-up: the account is made, verified, and the person is signed in
+ */
+function landingFinishSignUp(string $token): TestResponse
+{
+    return test()->post('/register/link/'.$token, ['name' => 'Grace Hopper', 'password' => LANDING_PASSWORD, 'password_confirmation' => LANDING_PASSWORD, 'terms' => true]);
 }
 
 /**
@@ -559,33 +568,37 @@ test('the link of the address check with a landing lives 60 minutes, as the link
     expect($grace->fresh()?->hasVerifiedEmail())->toBeFalse();
 });
 
-test('a sign-up from a page of a community: the link of the mail holds the landing, and its signature is valid', function (string $page) {
+test('a sign-up from a page of a community: the pending sign-up holds the landing, and the link lands there in another browser', function (string $page) {
     landingCommunity();
 
     landingNewBrowser();
     $this->get($page)->assertOk();
-    landingSignUp();
-    $link = landingLinkOfTheMail();
+    $token = landingSignUp();
 
-    expect(landingOfTheLink($link))->toBe($page)
-        ->and(URL::hasValidSignature(Request::create($link)))->toBeTrue();
+    // The link of the mail holds only its token (ADR 0065)
+    expect(landingAddressOfTheMail('/register/link/'))->toBe(route('register.link.show', ['token' => $token]));
+
+    landingNewBrowser();
+    landingFinishSignUp($token)->assertRedirect(URL::to($page));
+    expect(User::query()->where('email', 'grace@example.com')->sole()->hasVerifiedEmail())->toBeTrue();
 })->with([
     'the public page of the community' => [LANDING_HOME],
     'a public space' => [LANDING_SPACE],
     'a public post' => [LANDING_POST],
 ]);
 
-test('a sign-up from an address that sent the visitor to the sign-in page: the link of the mail holds that address', function () {
+test('a sign-up from an address that sent the visitor to the sign-in page: the link lands in the community, on the page only when the person may read it', function () {
     landingCommunity();
 
     landingNewBrowser();
     $this->get(LANDING_MEMBERS_SPACE)->assertRedirect(route('login'));
-    landingSignUp();
+    $token = landingSignUp();
 
-    expect(landingOfTheLink(landingLinkOfTheMail()))->toBe(LANDING_MEMBERS_SPACE);
+    landingNewBrowser();
+    landingFinishSignUp($token)->assertRedirect(URL::to(LANDING_HOME));
 });
 
-test('a sign-up from another place: the link of the mail holds no landing', function (string $from) {
+test('a sign-up from another place: the link holds no landing', function (string $from) {
     $c = landingCommunity();
     $invitation = $c['community']->communityInvitations()->create(['email' => 'grace@example.com', 'role' => KnowiiCommunityMemberRole::Member]);
     $addresses = [
@@ -598,13 +611,23 @@ test('a sign-up from another place: the link of the mail holds no landing', func
     if (isset($addresses[$from])) {
         $this->get($addresses[$from])->assertRedirect(route('login'));
     }
-    landingSignUp();
-    $link = landingLinkOfTheMail();
+    $token = landingSignUp();
 
-    expect($link)->toContain('/email/verify/')
-        ->and(landingOfTheLink($link))->toBeNull()
-        ->and(URL::hasValidSignature(Request::create($link)))->toBeTrue();
+    landingNewBrowser();
+    landingFinishSignUp($token)->assertRedirect(route('dashboard').'?verified=1');
 })->with(['the dashboard', 'the link of an invitation', 'the details of a community', 'nothing']);
+
+test('a sign-up in the same browser keeps the link of an invitation that the session holds', function () {
+    $c = landingCommunity();
+    $invitation = $c['community']->communityInvitations()->create(['email' => 'grace@example.com', 'role' => KnowiiCommunityMemberRole::Member]);
+    $accept = URL::temporarySignedRoute('community-invitations.accept', $invitation->expiresAt(), ['invitation' => $invitation]);
+
+    landingNewBrowser();
+    $this->get($accept)->assertRedirect(route('login'));
+    $token = landingSignUp();
+
+    landingFinishSignUp($token)->assertRedirect($accept);
+});
 
 test('"Resend verification email" holds the landing of its session, and none without one', function () {
     landingCommunity();
@@ -618,16 +641,19 @@ test('"Resend verification email" holds the landing of its session, and none wit
         ->and(landingOfTheLink(landingLinkOfTheMail()))->toBeNull();
 });
 
-test('a correction of an address that was never verified holds the landing of its session, and a verified member gets no address check', function () {
+test('a correction of an address that was never verified waits for the link of the new address, as a change, and a verified member gets no address check', function () {
     $c = landingCommunity();
     $grace = landingGrace();
 
-    // An address that was never verified changes at once, and the address check goes to it (#1706, ADR 0058)
+    // An address that was never verified is corrected as a change (ADR 0058): the link goes to the new address, and the
+    // account keeps its address until the link is opened
     $this->actingAs($grace)->withSession(['url.intended' => URL::to(LANDING_SPACE)])
         ->put('/user/profile-information', ['name' => $grace->name, 'email' => 'first-new-address@example.com', 'current_password' => 'password'])->assertSessionHasNoErrors();
-    expect($grace->fresh()?->email)->toBe('first-new-address@example.com')
+    expect($grace->fresh()?->email)->toBe('grace@example.com')
+        ->and($grace->fresh()?->pending_email)->toBe('first-new-address@example.com')
         ->and($grace->fresh()?->hasVerifiedEmail())->toBeFalse()
-        ->and(landingOfTheLink(landingLinkOfTheMail()))->toBe(LANDING_SPACE);
+        ->and(landingAddressOfTheMail('/user/email-change/'))->not->toBe('')
+        ->and(landingLinkOfTheMail())->toBe('');
 
     // A verified member keeps the verified address: the new one waits for the link of its own mail, not the address check
     $member = $c['member'];
@@ -649,17 +675,17 @@ test('the link of the address check, opened in another browser, lands on the pag
     $c = landingCommunity();
     $url = URL::to(LANDING_HOME);
 
-    // The first browser: a visitor reads the public page of the community and signs up
-    landingNewBrowser();
-    $this->get($url)->assertOk();
-    $grace = landingSignUp();
+    // The first browser: an account whose address was never verified (an account of before ADR 0065) asks for the
+    // address check from the public page of the community
+    $grace = landingGrace();
+    $this->actingAs($grace)->withSession(['url.intended' => $url])->post('/email/verification-notification')->assertSessionHasNoErrors();
     $link = landingLinkOfTheMail();
     expect($link)->not->toBe('');
 
     // Another browser: the link asks for a sign-in first, then it verifies the address and lands in the community
     landingNewBrowser();
     $this->get($link)->assertRedirect(route('login'));
-    $this->post('/login', ['email' => 'grace@example.com', 'password' => LANDING_PASSWORD])->assertRedirect($link);
+    $this->post('/login', ['email' => 'grace@example.com', 'password' => 'password'])->assertRedirect($link);
     $this->get($link)->assertRedirect($url);
     expect($grace->fresh()?->hasVerifiedEmail())->toBeTrue();
 
@@ -672,14 +698,13 @@ test('the link of the address check, opened in another browser, lands on the pag
 test('the link of the address check, opened in another browser, lands on the post that the person came from', function () {
     landingCommunity();
 
-    landingNewBrowser();
-    $this->get(LANDING_POST)->assertOk();
-    landingSignUp();
+    $grace = landingGrace();
+    $this->actingAs($grace)->withSession(['url.intended' => URL::to(LANDING_POST)])->post('/email/verification-notification')->assertSessionHasNoErrors();
     $link = landingLinkOfTheMail();
 
     landingNewBrowser();
     $this->get($link)->assertRedirect(route('login'));
-    $this->post('/login', ['email' => 'grace@example.com', 'password' => LANDING_PASSWORD])->assertRedirect($link);
+    $this->post('/login', ['email' => 'grace@example.com', 'password' => 'password'])->assertRedirect($link);
     $this->get($link)->assertRedirect(URL::to(LANDING_POST));
 
     app('auth')->forgetGuards();

@@ -18,6 +18,7 @@ use App\Http\Controllers\Inertia\NotificationsPageController;
 use App\Http\Controllers\Inertia\OpenIdConnectController;
 use App\Http\Controllers\Inertia\PageController;
 use App\Http\Controllers\Inertia\PostController;
+use App\Http\Controllers\Inertia\SignUpLinkController;
 use App\Http\Controllers\Inertia\SpaceController;
 use App\Http\Controllers\LegalPageController;
 use App\Http\Controllers\Mail\MailStopController;
@@ -163,10 +164,15 @@ Route::middleware([
 
 // Sign in with a link sent by email (#703, ADR 0023)
 Route::middleware('guest')->group(function () {
-    Route::post('/login/link', [MagicLinkController::class, 'store'])->middleware('throttle:magic-link')->name('login.link.store');
+    Route::post('/login/link', [MagicLinkController::class, 'store'])->middleware('throttle:sign-in-link')->name('login.link.store');
     Route::get('/login/link/{token}', [MagicLinkController::class, 'show'])->name('login.link.show');
     Route::post('/login/link/{token}', [MagicLinkController::class, 'consume'])->middleware('throttle:magic-link')->name('login.link.consume');
 });
+
+// The link of the mail of a sign-up (ADR 0065): the page with the password, then the account. The page does not use the
+// link up: mail scanners open links. No guest middleware: a session of an account gets a line that says why (the controller)
+Route::get('/register/link/{token}', [SignUpLinkController::class, 'show'])->name('register.link.show');
+Route::post('/register/link/{token}', [SignUpLinkController::class, 'store'])->middleware('throttle:sign-up-link')->name('register.link.store');
 
 // Sign in with an OpenID Connect provider, or connect it to the account of a signed-in member (#1385, ADR 0045), or confirm
 // the deletion of an account without a password (#1521, ADR 0052). The routes answer 404 unless the instance configures a

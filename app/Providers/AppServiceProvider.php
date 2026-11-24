@@ -561,6 +561,33 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by(mb_strtolower(is_string($email) ? $email : '').'|'.$request->ip());
         });
 
+        // Each request of the sign-in link form can send an email: the numbers of the password reset form, per address and
+        // IP, and 20 an hour per IP alone (documentation/architecture/backend.md). The use of a link keeps `magic-link`
+        RateLimiter::for('sign-in-link', static function (Request $request) {
+            $email = $request->input('email');
+
+            return [
+                Limit::perMinute(5)->by(mb_strtolower(is_string($email) ? $email : '').'|'.$request->ip()),
+                Limit::perHour(Constants::SIGN_IN_LINKS_PER_IP_PER_HOUR)->by('ip|'.$request->ip()),
+            ];
+        });
+
+        // Each request of the sign-up form can send an email (ADR 0065): the numbers of the password reset form, per address
+        // and IP, and 20 an hour per IP alone
+        RateLimiter::for('sign-up', static function (Request $request) {
+            $email = $request->input('email');
+
+            return [
+                Limit::perMinute(5)->by(mb_strtolower(is_string($email) ? $email : '').'|'.$request->ip()),
+                Limit::perHour(Constants::SIGN_UPS_PER_IP_PER_HOUR)->by('ip|'.$request->ip()),
+            ];
+        });
+
+        // The use of the link of a sign-up (ADR 0065): per IP address, as the use of a sign-in link
+        RateLimiter::for('sign-up-link', static function (Request $request) {
+            return Limit::perMinute(Constants::SIGN_UP_LINKS_PER_MINUTE)->by('sign-up-link:'.$request->ip());
+        });
+
         // Each request of the password reset form can send an email: the numbers of the sign-in link, per address and IP,
         // and 20 an hour per IP alone, which one person never reaches
         RateLimiter::for('password-reset', static function (Request $request) {

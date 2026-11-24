@@ -3,6 +3,7 @@
 use App\Actions\Resources\CaptureResourcePage;
 use App\Enums\KnowiiCommunityMemberRole;
 use App\Enums\KnowiiCommunityVisibility;
+use App\Mail\FinishSignUp;
 use App\Models\Community;
 use App\Models\User;
 use App\Models\UserIdentity;
@@ -14,8 +15,13 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Log\Events\MessageLogged;
+use Illuminate\Mail\Transport\ArrayTransport;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Testing\Fakes\MailFake;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 /*
@@ -327,4 +333,63 @@ function entCaptureLogs(): ArrayObject
     });
 
     return $logged;
+}
+
+/**
+ * The token of the last mail "Finish your sign-up" to the address (ADR 0065): from the fake of the mailer when the test
+ * fakes it, else from the link of the last such mail of the array mailer. Null: no such mail
+ */
+function signUpLinkToken(string $email): ?string
+{
+    $mailer = Mail::getFacadeRoot();
+    if ($mailer instanceof MailFake) {
+        $mail = Mail::queued(FinishSignUp::class, static fn (FinishSignUp $mail): bool => $mail->hasTo($email))->last()
+            ?? Mail::sent(FinishSignUp::class, static fn (FinishSignUp $mail): bool => $mail->hasTo($email))->last();
+
+        return $mail instanceof FinishSignUp ? $mail->token : null;
+    }
+
+    $transport = Mail::mailer('array')->getSymfonyTransport();
+    if (! $transport instanceof ArrayTransport) {
+        return null;
+    }
+    foreach ($transport->messages()->reverse() as $message) {
+        $original = $message->getOriginalMessage();
+        $to = method_exists($original, 'getTo') ? array_map(static fn ($address) => $address->getAddress(), $original->getTo()) : [];
+        $body = method_exists($original, 'getTextBody') ? (string) $original->getTextBody() : '';
+        if (in_array($email, $to, true) && preg_match('#/register/link/([A-Za-z0-9]{64})#', $body, $match) === 1) {
+            return $match[1];
+        }
+    }
+
+    return null;
+}
+
+/**
+ * The whole sign-up, as a person does it (ADR 0065): the form (the name and the address), the work of the queue, then the
+ * page of the link of the mail (the name, the password, the terms, the zone). The fields of both are in one list; the
+ * ones of the page get the defaults of a valid page. Returns the answer of the page of the link
+ *
+ * @param  array<string, mixed>  $fields
+ */
+function signUpThroughLink(array $fields): TestResponse
+{
+    $fields = ['terms' => true, ...$fields];
+    if (! array_key_exists('password_confirmation', $fields) && array_key_exists('password', $fields)) {
+        $fields['password_confirmation'] = $fields['password'];
+    }
+
+    $form = array_intersect_key($fields, array_flip(['name', 'email', 'turnstile_token', 'website']));
+    test()->post('/register', $form)->assertSessionHasNoErrors();
+    if (config('queue.default') !== 'sync') {
+        Artisan::call('queue:work', ['connection' => config('queue.default'), '--stop-when-empty' => true, '--queue' => 'default', '--sleep' => 0, '--tries' => 1]);
+    }
+
+    $email = is_string($fields['email'] ?? null) ? mb_strtolower($fields['email']) : '';
+    $token = signUpLinkToken($email);
+    expect($token)->not->toBeNull();
+
+    $page = array_intersect_key($fields, array_flip(['name', 'password', 'password_confirmation', 'terms', 'time_zone']));
+
+    return test()->post('/register/link/'.$token, $page);
 }

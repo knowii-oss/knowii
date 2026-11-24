@@ -458,8 +458,9 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * The mail of the address check, for the sign-up, "Resend verification email" and the correction of an address that was
-     * never verified (a change of a verified address waits for its own link, #1706, ADR 0058). Its link
+     * The mail of the address check, for "Resend verification email" of an account whose address was never verified: the
+     * sign-up makes a verified account (ADR 0065), and a change or a correction of the address waits for its own link
+     * (#1706, ADR 0058). Its link
      * carries the page of a community that the session of the request holds, if any (#1612, ADR 0057): the link lands
      * there, also in another browser.
      */

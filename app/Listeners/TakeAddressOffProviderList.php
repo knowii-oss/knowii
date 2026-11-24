@@ -15,7 +15,8 @@ use Throwable;
 
 /**
  * A mail that a person asks for is always tried (#1478, ADR 0054, groundwork 7.2): the sign-in link, the password reset,
- * the address check and the confirmation of a new address (App\Support\MailKinds, kind `asked_for`, also for the two
+ * the address check, the confirmation of a new address, the two mails of the sign-up form and the mail of a change to an
+ * address that has an account (ADR 0065, ADR 0058) (App\Support\MailKinds, kind `asked_for`, also for the two
  * notifications of the framework). Before such a mail goes through Resend to an address that the platform suppressed
  * for a reason that the provider lists too (a hard bounce, a complaint, the list of the provider), the provider is asked
  * to take the address off its list, within the cap of App\Support\ProviderRemovals. Above the cap, or when the removal

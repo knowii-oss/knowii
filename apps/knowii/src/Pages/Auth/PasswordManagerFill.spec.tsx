@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type * as Common from '@knowii/common';
-import RegisterPage from './Register';
+import FinishSignUpPage from './FinishSignUp';
 
 const posts: Array<Record<string, unknown>> = [];
 
@@ -42,8 +42,8 @@ function fillLikeAPasswordManager(input: HTMLElement, value: string) {
 }
 
 describe('password managers (#813)', () => {
-  it('a suggested password fills both password fields of the sign-up', async () => {
-    render(<RegisterPage />);
+  it('a suggested password fills both password fields of the page of the link of a sign-up', async () => {
+    render(<FinishSignUpPage token="a-token" valid email="grace@example.com" name="Grace Hopper" />);
     const password = screen.getByLabelText('Password', { exact: true });
     const confirmation = screen.getByLabelText('Confirm password');
 
@@ -51,12 +51,12 @@ describe('password managers (#813)', () => {
     expect(password).toHaveAttribute('name', 'password');
     expect(confirmation).toHaveAttribute('autocomplete', 'new-password');
     expect(confirmation).toHaveAttribute('name', 'password_confirmation');
+    // The address of the account, for the password manager
+    expect(document.querySelector('input[name="email"]')).toHaveAttribute('autocomplete', 'username');
 
     fillLikeAPasswordManager(password, 'Xk8-suggested-Pq2-strong');
     fillLikeAPasswordManager(confirmation, 'Xk8-suggested-Pq2-strong');
-    await userEvent.type(screen.getByLabelText('Name'), 'Grace Hopper');
-    await userEvent.type(screen.getByLabelText('Email'), 'grace@example.com');
-    await userEvent.click(screen.getByRole('button', { name: 'Register' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Create my account' }));
 
     expect(posts.at(-1)).toMatchObject({ password: 'Xk8-suggested-Pq2-strong', password_confirmation: 'Xk8-suggested-Pq2-strong' });
   });

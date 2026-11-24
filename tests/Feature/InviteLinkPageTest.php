@@ -76,14 +76,22 @@ function ilpageNewBrowser(): void
 }
 
 /**
- * A visitor signs up with the form, in the browser of the test
+ * A visitor sends the sign-up form, in the browser of the test (ADR 0065): no account yet. Returns the token of the link of
+ * the mail
  */
-function ilpageSignUp(): User
+function ilpageSignUp(): string
 {
-    test()->post('/register', ['name' => 'Grace Hopper', 'email' => 'grace@example.com', 'password' => ILPAGE_PASSWORD, 'password_confirmation' => ILPAGE_PASSWORD, 'terms' => true])
-        ->assertRedirect();
+    test()->post('/register', ['name' => 'Grace Hopper', 'email' => 'grace@example.com'])->assertRedirect(route('register'));
 
-    return User::query()->where('email', 'grace@example.com')->firstOrFail();
+    return (string) signUpLinkToken('grace@example.com');
+}
+
+/**
+ * The page of the link of the sign-up: the account is made, verified, and the person is signed in
+ */
+function ilpageFinishSignUp(string $token): TestResponse
+{
+    return test()->post('/register/link/'.$token, ['name' => 'Grace Hopper', 'password' => ILPAGE_PASSWORD, 'password_confirmation' => ILPAGE_PASSWORD, 'terms' => true]);
 }
 
 /**
@@ -261,25 +269,22 @@ test('the token of a link is in no prop of another page', function () {
 // The way in
 // ---------------------------------------------------------------------------------------------------------------------
 
-test('a visitor opens the link, signs up, confirms the address in the same browser, comes back to the page and joins', function () {
+test('a visitor opens the link, signs up, opens the link of the mail in the same browser, comes back to the page and joins', function () {
     ilpageNewBrowser();
     ilpageOpen($this->link);
     $this->get(route('invite-links.show'))->assertOk()->assertInertia(fn ($page) => $page->where('state', 'join'));
 
-    $grace = ilpageSignUp();
-    $link = ilpageAddressOfTheMail('/email/verify/');
-    parse_str((string) parse_url($link, PHP_URL_QUERY), $query);
+    $token = ilpageSignUp();
+    $link = ilpageAddressOfTheMail('/register/link/');
 
-    // The link of the address check holds no landing and no token
-    expect($link)->toContain('/email/verify/')
-        ->and($query)->not->toHaveKey(Landing::LINK_PARAMETER)
-        ->and($link)->not->toContain($this->link->token)
+    // The link of the mail of the sign-up holds only its own token (ADR 0065)
+    expect($link)->toBe(route('register.link.show', ['token' => $token]))
         ->and(ilpageAllMails())->not->toContain($this->link->token)->not->toContain('/invite');
 
-    // An account without a verified address goes to the address check, which keeps the page
-    $this->get(route('invite-links.show'))->assertRedirect(route('verification.notice'));
-    $this->get($link)->assertRedirect(route('invite-links.show'));
-    expect($grace->fresh()?->hasVerifiedEmail())->toBeTrue();
+    // The account is made, verified, and the session keeps the page of the invite link
+    ilpageFinishSignUp($token)->assertRedirect(route('invite-links.show'));
+    $grace = User::query()->where('email', 'grace@example.com')->sole();
+    expect($grace->hasVerifiedEmail())->toBeTrue();
 
     app('auth')->forgetGuards();
     $this->get(route('invite-links.show'))->assertOk()->assertInertia(fn ($page) => $page->where('state', 'join')->missing('token'));
@@ -350,17 +355,15 @@ test('a sign-in with a password, with the second factor, or with a sign-in link 
     $this->get(route('invite-links.show'))->assertOk()->assertInertia(fn ($page) => $page->where('state', 'join')->missing('token'));
 })->with(['a password', 'the second factor', 'a sign-in link']);
 
-test('a person who confirms the address in another browser lands as before, and opens the link again', function () {
+test('a person who opens the link of the sign-up in another browser lands as before, and opens the invite link again', function () {
     ilpageNewBrowser();
     ilpageOpen($this->link);
     $this->get(route('invite-links.show'))->assertOk();
-    $grace = ilpageSignUp();
-    $link = ilpageAddressOfTheMail('/email/verify/');
+    $token = ilpageSignUp();
 
     ilpageNewBrowser();
-    $this->post('/login', ['email' => 'grace@example.com', 'password' => ILPAGE_PASSWORD]);
-    $this->get($link)->assertRedirect(route('dashboard').'?verified=1');
-    expect($grace->fresh()?->hasVerifiedEmail())->toBeTrue();
+    ilpageFinishSignUp($token)->assertRedirect(route('dashboard').'?verified=1');
+    expect(User::query()->where('email', 'grace@example.com')->sole()->hasVerifiedEmail())->toBeTrue();
 
     app('auth')->forgetGuards();
     ilpageOpen($this->link);

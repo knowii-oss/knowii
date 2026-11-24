@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Auth\PendingSignUps;
 use App\ApiRoutes;
 use App\Contracts\Auth\SendsMagicLinks;
 use App\Enums\KnowiiCommunityMemberRole;
@@ -56,6 +57,8 @@ afterEach(function () {
  */
 const SA_ROUTES = [
     'login/link/{token}' => ['guest', 'account'],
+    // The link of the mail of a sign-up (ADR 0065): only a visitor reaches its page
+    'register/link/{token}' => ['guest'],
     'reset-password/{token}' => ['guest', 'account'],
     'email/verify/{id}/{hash}' => ['guest', 'account', 'another'],
     'user/email-change/{userCuid}/{hash}' => ['guest', 'account', 'another'],
@@ -192,6 +195,10 @@ function saCase(string $address, string $state): array
             };
 
             return ['url' => $url, 'secrets' => [$token], 'as' => null];
+        case 'register/link/{token}':
+            $token = PendingSignUps::start('Grace Hopper', 'grace.new@example.com', null);
+
+            return ['url' => route('register.link.show', ['token' => $token]), 'secrets' => [$token], 'as' => $as];
         case 'reset-password/{token}':
         case 'a reset link with a path too long':
         case 'a reset link in capital letters':
@@ -685,6 +692,16 @@ function saQueuedMail(): array
 }
 
 /**
+ * Run the job of the form with a real worker: it queues the mail (documentation/architecture/backend.md)
+ */
+function saRunFormJob(): void
+{
+    // Only the job of the form runs: the other jobs of the accounts of the test are not part of it
+    DB::table('jobs')->where('payload', 'not like', '%SendSignInLink%')->where('payload', 'not like', '%SendEmailChangeMail%')->delete();
+    Artisan::call('queue:work', ['connection' => 'database', '--once' => true, '--queue' => 'default', '--sleep' => 0, '--tries' => 1]);
+}
+
+/**
  * Run the queued mail with a real worker, and return the text of every mail that was sent
  */
 function saRunQueuedMail(string $queue): string
@@ -703,6 +720,7 @@ test('a queued sign-in mail is encrypted in the queue, and the worker still send
     User::factory()->withUserProfile()->withPersonalCommunity()->create(['email' => 'ada@example.com']);
 
     app(SendsMagicLinks::class)->send(['email' => 'ada@example.com']);
+    saRunFormJob();
 
     $queued = saQueuedMail();
     $mail = $queued['mailable'];
@@ -720,6 +738,7 @@ test('a queued mail that confirms a new address is encrypted in the queue, and t
 
     $this->actingAs($ada)->put('/user/profile-information', ['name' => $ada->name, 'email' => 'ada.new@example.com', 'current_password' => 'password-of-ada'])
         ->assertSessionHasNoErrors();
+    saRunFormJob();
 
     $queued = saQueuedMail();
     $mail = $queued['mailable'];
