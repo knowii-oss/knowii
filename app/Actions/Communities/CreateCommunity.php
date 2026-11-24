@@ -10,6 +10,7 @@ use App\Models\Community;
 use App\Models\User;
 use App\Rules\AvailableCommunityName;
 use App\Support\LegalPages;
+use App\Support\PlainText;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -37,6 +38,7 @@ class CreateCommunity implements CreatesCommunities
 
         Log::debug('Validating the input');
 
+        PlainText::clean($input, ['name'], ['description']);
         $validator = Validator::make($input, [
             // WARNING: Those validation rules must match those in the community creation form in Dashboard.tsx and those in UpdateCommunityName.php
             // The fields MUST also match the ones listed in CommunityApiController

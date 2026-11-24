@@ -8,6 +8,7 @@ use App\Jobs\Middleware\SkipSuppressedNotificationMail;
 use App\Mail\CommunityInvitation;
 use App\Mail\CommunityOwnershipTransferred;
 use App\Mail\ConfirmNewEmailAddress;
+use App\Mail\EmailAddressChanged;
 use App\Mail\EmailAddressHasAccount;
 use App\Mail\FinishSignUp;
 use App\Mail\MagicLink;
@@ -198,11 +199,11 @@ test('a mail that waited for more than 2 hours is not sent late: the worker fail
 });
 
 test('the account mailables have no limiter, no hold, and stay on the queue default (#1477)', function () {
-    foreach ([MagicLink::class, ConfirmNewEmailAddress::class, FinishSignUp::class, SignUpAccountExists::class, EmailAddressHasAccount::class, CommunityInvitation::class, CommunityOwnershipTransferred::class, MailBudgetAlert::class] as $class) {
+    foreach ([MagicLink::class, ConfirmNewEmailAddress::class, FinishSignUp::class, SignUpAccountExists::class, EmailAddressHasAccount::class, EmailAddressChanged::class, CommunityInvitation::class, CommunityOwnershipTransferred::class, MailBudgetAlert::class] as $class) {
         // The only middleware of an account mail keeps the text of an error out of the log (HideMailErrorText)
-        $middleware = method_exists($class, 'middleware') ? array_map(static fn (object $item): string => $item::class, (new ReflectionClass($class))->newInstanceWithoutConstructor()->middleware()) : [];
+        $middleware = array_map(static fn (object $item): string => $item::class, (new ReflectionClass($class))->newInstanceWithoutConstructor()->middleware());
         expect(is_subclass_of($class, NotificationMail::class))->toBeFalse()
-            ->and($middleware === [] || $middleware === [HideMailErrorText::class])->toBeTrue()
+            ->and($middleware)->toBe([HideMailErrorText::class])
             ->and(method_exists($class, 'retryUntil'))->toBeFalse()
             ->and((new ReflectionClass($class))->newInstanceWithoutConstructor()->queue)->toBeNull();
     }
@@ -449,13 +450,13 @@ test('a job that throws does not note the activity of the mail worker (#1477)', 
 // The count of sent mail
 
 test('a sent mail counts each recipient: to, cc and bcc (#1477)', function () {
-    Mail::to('ada@example.com')->cc('bob@example.com')->bcc('cy@example.com')->send(new MagicLink('a-token'));
+    Mail::to('ada@example.com')->cc('bob@example.com')->bcc('cy@example.com')->sendNow(new MagicLink('a-token'));
 
     expect((int) DB::table('mail_usage_months')->where('month', '2026-11-01')->value('sent_count'))->toBe(3);
 });
 
 test('two sends give the sum, and a notification mail counts too (#1477)', function () {
-    Mail::to('ada@example.com')->send(new MagicLink('a-token'));
+    Mail::to('ada@example.com')->sendNow(new MagicLink('a-token'));
     Mail::to(['bob@example.com', 'cy@example.com'])->queue(new TestNotificationMail);
     mailQueueRunWorker();
 
@@ -468,16 +469,16 @@ test('two sends give the sum, and a notification mail counts too (#1477)', funct
 test('a send that throws counts nothing (#1477)', function () {
     mailQueueUseRefusingMailer('monthly_quota_exceeded');
 
-    expect(fn () => Mail::to('ada@example.com')->send(new MagicLink('a-token')))->toThrow(TransportException::class);
+    expect(fn () => Mail::to('ada@example.com')->sendNow(new MagicLink('a-token')))->toThrow(TransportException::class);
     expect(DB::table('mail_usage_months')->count())->toBe(0);
 });
 
 test('a new month gets a new row (#1477)', function () {
     Carbon::setTestNow(CarbonImmutable::parse('2026-11-30T23:59:59Z'));
-    Mail::to('ada@example.com')->send(new MagicLink('a-token'));
+    Mail::to('ada@example.com')->sendNow(new MagicLink('a-token'));
     Carbon::setTestNow(CarbonImmutable::parse('2026-12-01T00:00:00Z'));
-    Mail::to('ada@example.com')->send(new MagicLink('a-token'));
-    Mail::to('bob@example.com')->send(new MagicLink('a-token'));
+    Mail::to('ada@example.com')->sendNow(new MagicLink('a-token'));
+    Mail::to('bob@example.com')->sendNow(new MagicLink('a-token'));
 
     expect(DB::table('mail_usage_months')->orderBy('month')->pluck('sent_count', 'month')->map(fn ($count) => (int) $count)->all())
         ->toBe(['2026-11-01' => 1, '2026-12-01' => 2]);
@@ -493,7 +494,7 @@ test('a recorder that fails never breaks the send (#1477)', function () {
     });
     Log::spy();
 
-    Mail::to('ada@example.com')->send(new MagicLink('a-token'));
+    Mail::to('ada@example.com')->sendNow(new MagicLink('a-token'));
     Mail::to('ada@example.com')->queue(new TestNotificationMail);
     mailQueueRunWorker();
 

@@ -3,7 +3,7 @@
     same address as its List-Unsubscribe header), the settings, then the operator and its postal address. The words are the
     ones that the owner approved. `plain` gives the plain-text part, in the same order, each address on its own line after
     its label. NotificationMail::footerData() gives the values; the reason line ("You got this because ...") comes with
-    slice 4c.
+    slice 4c. In a Markdown mail, "{{ }}" escapes no quote: an address in an attribute is written "{!! e(...) !!}" (ADR 0069).
 --}}
 @if ($plain ?? false)
 {{-- Plain text: no HTML escape --}}
@@ -12,8 +12,8 @@ Settings: {!! $settingsUrl !!}
 {!! $operatorLine !!}
 @else
 <ul>
-    <li><a href="{{ $stopUrl }}">Stop emails like this</a></li>
-    <li><a href="{{ $settingsUrl }}">Settings</a></li>
+    <li><a href="{!! e($stopUrl) !!}">Stop emails like this</a></li>
+    <li><a href="{!! e($settingsUrl) !!}">Settings</a></li>
 </ul>
 <p>{{ $operatorLine }}</p>
 @endif

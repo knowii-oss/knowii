@@ -7,6 +7,7 @@ use App\Events\Spaces\SpaceContentChanged;
 use App\Models\Page;
 use App\Models\User;
 use App\Support\Markdown;
+use App\Support\PlainText;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -21,6 +22,7 @@ class UpdatePage implements UpdatesPages
     {
         Gate::forUser($user)->authorize('managePages', $page->space);
 
+        PlainText::clean($input, ['title']);
         /** @var array{title?: string, body?: string|null, video_url?: string|null} $validated */
         $validated = Validator::make($input, CreatePage::rules(false, $page->kind))->validate();
         if ($validated === []) {

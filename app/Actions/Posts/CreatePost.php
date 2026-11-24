@@ -15,6 +15,7 @@ use App\Models\Post;
 use App\Models\Space;
 use App\Models\User;
 use App\Rules\MaxMarkdownImages;
+use App\Support\PlainText;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -35,6 +36,7 @@ class CreatePost implements CreatesPosts
             throw new BusinessException('Posts can only be written in discussion spaces');
         }
 
+        PlainText::clean($input, ['title']);
         /** @var array{title: string, body: string, notify_now?: bool} $validated */
         $validated = Validator::make($input, [...self::rules(true), 'notify_now' => ['sometimes', 'boolean']])->validate();
 

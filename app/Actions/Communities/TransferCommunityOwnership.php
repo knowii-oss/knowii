@@ -66,7 +66,7 @@ class TransferCommunityOwnership implements TransfersCommunityOwnership
             $community->users()->attach($user, ['role' => KnowiiCommunityMemberRole::Admin]);
         });
 
-        Mail::to($newOwner)->queue((new CommunityOwnershipTransferred($community, $user))->recordDelivery($newOwner));
+        Mail::to($newOwner->email)->queue((new CommunityOwnershipTransferred($community, $user))->recordDelivery($newOwner));
 
         Log::info('Community ownership transferred', ['community' => $community->cuid, 'from' => $user->cuid, 'to' => $newOwner->cuid]);
         CommunityMembersChanged::dispatch($community->cuid);

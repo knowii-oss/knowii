@@ -19,6 +19,7 @@ use App\Rules\WholeNumber;
 use App\Support\CommunityRoles;
 use App\Support\EventTimes;
 use App\Support\Markdown;
+use App\Support\PlainText;
 use App\Support\TimeZones;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
@@ -48,6 +49,7 @@ class CreateEvent implements CreatesEvents
             throw new BusinessException('Events can only be created in events spaces');
         }
 
+        PlainText::clean($input, ['title', 'place', 'cover_alt']);
         /** @var array{title: string, body?: string|null, starts_at: string, ends_at: string, time_zone: string, meeting_url?: string|null, place?: string|null, location_visibility?: string, cover_upload_cuid?: string|null, cover_alt?: string|null, capacity?: int|string|null, replay_expected?: bool|int|string, host_cuid?: string|null, state?: string, notify_now?: bool} $validated */
         $validated = Validator::make($input, [
             ...self::rules(true),

@@ -8,6 +8,7 @@ use App\Knowii;
 use App\Models\Community;
 use App\Models\User;
 use App\Rules\FreeEmailAddress;
+use App\Support\PlainText;
 use App\Support\TimeZones;
 use App\Support\Turnstile;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -49,6 +50,9 @@ class CreateNewUser implements CreatesNewUsers
      */
     final public function validateForm(array $input): array
     {
+        // The name is one line of plain text (ADR 0069): cleaned before it is counted
+        PlainText::clean($input, ['name']);
+
         // WARNING: Those rules must remain aligned with those in UpdateUserProfileInformation.php
         $validator = Validator::make($input, [
             'name' => ['required', 'string', 'max:'.Constants::MAX_LENGTH_USER_NAME],
@@ -87,6 +91,7 @@ class CreateNewUser implements CreatesNewUsers
      */
     final public function validateFinish(array $input): array
     {
+        PlainText::clean($input, ['name']);
         $validator = Validator::make($input, [
             'name' => ['required', 'string', 'max:'.Constants::MAX_LENGTH_USER_NAME],
             'password' => $this->passwordRules(),

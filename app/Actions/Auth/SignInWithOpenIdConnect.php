@@ -12,6 +12,7 @@ use App\Exceptions\OpenIdConnectException;
 use App\Models\User;
 use App\Models\UserIdentity;
 use App\Support\OpenIdIdentity;
+use App\Support\PlainText;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -140,8 +141,10 @@ class SignInWithOpenIdConnect implements SignsInWithOpenIdConnect
 
     private static function cleanName(?string $name): ?string
     {
-        $name = trim(preg_replace('/[\p{C}]+/u', ' ', (string) $name) ?? '');
-        $name = mb_substr($name, 0, self::MAX_NAME_LENGTH);
+        // No control, format, private or unassigned character: a provider sends none in a name. Then one line of plain
+        // text, as a name that a person types (ADR 0069)
+        $name = PlainText::oneLine(preg_replace('/[\p{C}]+/u', ' ', (string) $name) ?? '') ?? '';
+        $name = trim(mb_substr($name, 0, self::MAX_NAME_LENGTH));
 
         return $name === '' ? null : $name;
     }

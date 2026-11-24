@@ -11,8 +11,8 @@ use App\Models\UserProfile;
 use App\Rules\KnownTimeZone;
 use App\Support\EmailChangeBudget;
 use App\Support\PasswordTries;
+use App\Support\PlainText;
 use App\Support\ProfileFieldVisibility;
-use App\Support\ProfileHeadline;
 use App\Support\TimeZones;
 use Closure;
 use Illuminate\Auth\AuthenticationException;
@@ -47,11 +47,10 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
      */
     final public function update(User $user, array $input): void
     {
-        // The headline (#1688) is one line of plain text: it is cleaned before it is counted, here and not in the request,
-        // because the action is also called without a request. A value that is not a text fails the rule below
-        if (is_string($input['headline'] ?? null)) {
-            $input['headline'] = ProfileHeadline::clean($input['headline']);
-        }
+        // The name, the headline (#1688) and the location are one line of plain text, and the bio is plain text of several
+        // lines (ADR 0069): they are cleaned before they are counted, here and not in the request, because the action is
+        // also called without a request. A value that is not a text fails the rule below
+        PlainText::clean($input, ['name', 'headline', 'location'], ['bio']);
 
         $newAddress = is_string($input['email'] ?? null) ? trim($input['email']) : null;
         $changesAddress = $newAddress !== null && mb_strtolower($newAddress) !== mb_strtolower($user->email);

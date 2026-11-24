@@ -26,7 +26,7 @@ use Tests\TestCase;
  * The headline of a profile (#1688, ADR 0020): one line of plain text that a member writes about themselves. The member
  * writes it on the profile form and chooses who sees it. The member page and the entries of the member list hold it only
  * when the member shows it, for every reader: a manager gets what a member gets. The cleaning itself is in
- * tests/Unit/ProfileHeadlineTest.php.
+ * tests/Unit/PlainTextTest.php.
  */
 
 // A text that no page holds by accident, with no character that JSON or HTML writes in another way

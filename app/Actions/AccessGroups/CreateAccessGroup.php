@@ -9,6 +9,7 @@ use App\Exceptions\BusinessException;
 use App\Models\AccessGroup;
 use App\Models\Community;
 use App\Models\User;
+use App\Support\PlainText;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -22,7 +23,7 @@ class CreateAccessGroup implements CreatesAccessGroups
     {
         Gate::forUser($user)->authorize('manageAccessGroups', $community);
 
-        $input['name'] = is_string($input['name'] ?? null) ? trim($input['name']) : ($input['name'] ?? null);
+        PlainText::clean($input, ['name'], ['description']);
         /** @var array{name: string, description?: string|null} $validated */
         $validated = Validator::make($input, AccessGroupInputRules::editable($community, true))->validate();
 

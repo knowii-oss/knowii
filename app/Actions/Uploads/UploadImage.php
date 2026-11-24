@@ -8,6 +8,7 @@ use App\Models\Community;
 use App\Models\Upload;
 use App\Models\User;
 use App\Support\ImageProcessor;
+use App\Support\PlainText;
 use App\Support\UploadSizes;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Gate;
@@ -25,6 +26,7 @@ class UploadImage implements UploadsImages
     {
         Gate::forUser($user)->authorize('uploadImage', $community);
 
+        PlainText::clean($input, ['alt']);
         /** @var array{file: UploadedFile, alt: string} $validated */
         $validated = Validator::make($input, [
             // WARNING: aligned with uploadFormSchema (upload.schema.ts)

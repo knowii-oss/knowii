@@ -8,6 +8,7 @@ use App\Events\Spaces\SpaceTreeChanged;
 use App\Models\Space;
 use App\Models\SpaceGroup;
 use App\Models\User;
+use App\Support\PlainText;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Auth\Access\Gate as GateContract;
 use Illuminate\Support\Facades\Gate;
@@ -32,6 +33,7 @@ class UpdateSpaceGroup implements UpdatesSpaceGroups
         $gate->authorize('manageSpaces', $spaceGroup->community);
         self::authorizeEverySpace($gate, $spaceGroup);
 
+        PlainText::clean($input, ['name']);
         /** @var array{name: string} $validated */
         $validated = Validator::make($input, [
             'name' => ['required', 'string', 'min:'.Constants::MIN_LENGTH_SPACE_GROUP_NAME, 'max:'.Constants::MAX_LENGTH_SPACE_GROUP_NAME],

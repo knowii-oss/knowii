@@ -1,7 +1,7 @@
 @component('mail::message')
 {{ __('Use this link to sign in to Knowii.') }}
 
-@component('mail::button', ['url' => $url])
+@component('mail::button', ['url' => App\Support\MailText::address($url)])
 {{ __('Sign in') }}
 @endcomponent
 

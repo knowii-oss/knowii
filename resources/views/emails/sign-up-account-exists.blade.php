@@ -3,11 +3,11 @@
 
 {{ __('If it was you, sign in. If you forgot your password, reset it, or ask for a sign-in link on the sign-in page.') }}
 
-@component('mail::button', ['url' => $signInUrl])
+@component('mail::button', ['url' => App\Support\MailText::address($signInUrl)])
 {{ __('Sign in') }}
 @endcomponent
 
-[{{ __('Reset my password') }}]({{ $resetUrl }})
+[{{ __('Reset my password') }}]({!! e($resetUrl) !!})
 
 {{ __('If it was not you, ignore this email: nothing changed in your account.') }}
 @endcomponent

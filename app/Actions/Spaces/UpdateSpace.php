@@ -9,6 +9,7 @@ use App\Events\Spaces\SpaceTreeChanged;
 use App\Jobs\PruneUnviewableNotifications;
 use App\Models\Space;
 use App\Models\User;
+use App\Support\PlainText;
 use App\Support\Positions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -34,6 +35,7 @@ class UpdateSpace implements UpdatesSpaces
         // A group space stays out of reach of the managers who cannot read it (#1325, ADR 0025)
         Gate::forUser($user)->authorize('view', $space);
 
+        PlainText::clean($input, ['name', 'emoji'], ['description']);
         /** @var array{name?: string, description?: string|null, emoji?: string|null, visibility?: string, posting_policy?: string, space_group_cuid?: string, access_groups?: list<string>, url?: string, default_notification_level?: string|null} $validated */
         $validated = Validator::make($input, [
             ...SpaceInputRules::editable(false),

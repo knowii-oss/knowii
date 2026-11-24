@@ -19,6 +19,7 @@ use App\Models\User;
 use App\Notifications\VerifyEmailAddress;
 use App\Support\Landing;
 use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Http\Request;
 use Illuminate\Routing\CompiledRouteCollection;
@@ -533,7 +534,7 @@ test('without a session there is no landing, and nothing to remember', function 
 // The mail of the address check
 // ---------------------------------------------------------------------------------------------------------------------
 
-test('the mail of the address check keeps its words, its life and its queue', function () {
+test('the mail of the address check keeps its words and its life, and goes through the queue, encrypted', function () {
     $grace = landingGrace();
 
     $before = (new VerifyEmail)->toMail($grace);
@@ -543,7 +544,7 @@ test('the mail of the address check keeps its words, its life and its queue', fu
         ->and($after->introLines)->toBe($before->introLines)
         ->and($after->outroLines)->toBe($before->outroLines)
         ->and($after->actionText)->toBe($before->actionText)
-        ->and(new VerifyEmailAddress(LANDING_HOME))->not->toBeInstanceOf(ShouldQueue::class)
+        ->and(new VerifyEmailAddress(LANDING_HOME))->toBeInstanceOf(ShouldQueue::class)->toBeInstanceOf(ShouldBeEncrypted::class)
         ->and(app(VerifyEmailResponseContract::class))->toBeInstanceOf(VerifyEmailResponse::class);
 
 });

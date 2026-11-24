@@ -16,7 +16,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Log\Events\MessageLogged;
+use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Transport\ArrayTransport;
+use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
@@ -312,6 +314,70 @@ function legalTextsWithout(string ...$without): array
     }
 
     return $files;
+}
+
+/**
+ * Every mail class of the application (ADR 0069), the abstract ones too: each class of a file of `app/`, in any folder,
+ * that is a Mailable, or a notification with a toMail() method. A new mail class is found wherever it lives. The tests of
+ * the search give another folder and its namespace.
+ *
+ * @return list<class-string>
+ */
+function applicationMailClasses(?string $root = null, string $namespace = 'App\\'): array
+{
+    $root = rtrim($root ?? dirname(__DIR__).'/app', '/').'/';
+    $classes = [];
+    foreach (applicationPhpFiles($root) as $path) {
+        $class = $namespace.str_replace('/', '\\', substr($path, strlen($root), -4));
+        if (! class_exists($class)) {
+            continue;
+        }
+        if (is_subclass_of($class, Mailable::class) || (is_subclass_of($class, Notification::class) && method_exists($class, 'toMail'))) {
+            $classes[] = $class;
+        }
+    }
+    sort($classes);
+
+    return $classes;
+}
+
+/**
+ * The files of `app/` (or of another folder) that send a mail with no mail class, so with no queue, no encryption and no
+ * hidden error text (ADR 0069): Mail::raw(), Mail::html(), Mail::plain() and Mail::send() with a view and a closure, also
+ * through a named mailer, and a mailable of an anonymous class. A mail of a class goes through Mail::to(...).
+ *
+ * @return list<string> The paths, from the folder
+ */
+function applicationMailSendsWithoutAClass(?string $root = null): array
+{
+    $root = rtrim($root ?? dirname(__DIR__).'/app', '/').'/';
+    $sends = [];
+    foreach (applicationPhpFiles($root) as $path) {
+        $code = (string) file_get_contents($path);
+        if (preg_match('/\bMail::(?:mailer\([^)]*\)\s*->\s*)?(?:raw|html|plain|send)\s*\(|new\s+class\b[^{]*\bextends\s+\\\\?(?:Illuminate\\\\Mail\\\\)?Mailable\b/', $code) === 1) {
+            $sends[] = substr($path, strlen($root));
+        }
+    }
+    sort($sends);
+
+    return $sends;
+}
+
+/**
+ * Every PHP file of a folder and of its folders
+ *
+ * @return list<string>
+ */
+function applicationPhpFiles(string $root): array
+{
+    $paths = [];
+    foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS)) as $file) {
+        if ($file instanceof SplFileInfo && $file->getExtension() === 'php') {
+            $paths[] = $file->getPathname();
+        }
+    }
+
+    return $paths;
 }
 
 /**

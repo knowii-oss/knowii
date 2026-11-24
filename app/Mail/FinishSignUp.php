@@ -6,6 +6,7 @@ use App\Jobs\Middleware\HideMailErrorText;
 use App\Mail\Concerns\HasDeliveryRow;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeEncrypted;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
@@ -14,7 +15,7 @@ use Illuminate\Queue\SerializesModels;
  * password, and the account is made. An account mail of level 0 (ADR 0054): the queue `default`, never held. It holds the
  * token, so it is encrypted in the queue (ADR 0064). A mail that fails keeps no recipient address (HideMailErrorText).
  */
-class FinishSignUp extends Mailable implements ShouldBeEncrypted
+class FinishSignUp extends Mailable implements ShouldBeEncrypted, ShouldQueue
 {
     use HasDeliveryRow, Queueable, SerializesModels;
 
