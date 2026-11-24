@@ -6,6 +6,7 @@ use App\Jobs\Middleware\HideMailErrorText;
 use App\Mail\Concerns\HasDeliveryRow;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeEncrypted;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
@@ -14,7 +15,7 @@ use Illuminate\Queue\SerializesModels;
  * (ADR 0054): the default queue, never held. It holds the signed link, so it is encrypted in the queue (ADR 0064). A mail
  * that fails keeps no recipient address: neither the log nor `failed_jobs` gets the text of the error (HideMailErrorText).
  */
-class ConfirmNewEmailAddress extends Mailable implements ShouldBeEncrypted
+class ConfirmNewEmailAddress extends Mailable implements ShouldBeEncrypted, ShouldQueue
 {
     use HasDeliveryRow, Queueable, SerializesModels;
 

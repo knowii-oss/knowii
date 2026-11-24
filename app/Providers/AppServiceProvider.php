@@ -286,6 +286,7 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
+use Illuminate\Mail\Markdown as MailMarkdown;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Session\SessionManager;
 use Illuminate\Support\Facades\RateLimiter;
@@ -327,6 +328,10 @@ class AppServiceProvider extends ServiceProvider
         // From a trusted proxy, the application reads the address of the client, the host name, the port and the scheme, and
         // no other value. The list holds for every way to trust a proxy, so it is set also when TRUSTED_PROXIES is empty
         TrustProxies::withHeaders(Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_HOST | Request::HEADER_X_FORWARDED_PORT | Request::HEADER_X_FORWARDED_PROTO);
+
+        // Every "{{ }}" of a Markdown mail prints its value as text, not as a link or as HTML (ADR 0069). A sentence with a
+        // value of a person goes through App\Support\MailText::plain(), which also makes it one line with no Markdown at all
+        MailMarkdown::withSecuredEncoding();
 
         // Register singletons implementing contracts (cfr \App\Contracts)
         app()->singleton(VerifiesUsernameAvailability::class, VerifyUsernameAvailability::class);

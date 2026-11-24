@@ -20,6 +20,7 @@ use DateInterval;
 use DateTimeInterface;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\Factory;
+use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Mail\Mailable;
@@ -35,7 +36,8 @@ use Visus\Cuid2\Cuid2;
  * The base of every notification mail (#1477, ADR 0054; the first one comes with slice 4c). It fixes how the mail is
  * delivered, so that a subclass only builds its content:
  *
- * - the queue: `config('mail.queue')` (`mail` by default, read by a worker of its own), set when the mail is queued;
+ * - the queue: `config('mail.queue')` (`mail` by default, read by a worker of its own), set when the mail is queued. The
+ *   job holds the address of the recipient, so it is encrypted in the queue (ADR 0064);
  * - the middleware: the hold of the mail budget, then the skip of a suppressed address or a stopped group (#1478), then
  *   the rate limiter `mail` (`AppServiceProvider`). A job that the limiter releases is not failed;
  * - the retries: until Constants::MAIL_NOTIFICATION_RETRY_HOURS after the mail was due (the time it was queued, or the
@@ -57,7 +59,7 @@ use Visus\Cuid2\Cuid2;
  * Account mail (`MagicLink`, `CommunityInvitation`, `CommunityOwnershipTransferred`, `MailBudgetAlert`, the address
  * verification) does not extend it: it stays on `default`, with no limiter and no hold.
  */
-abstract class NotificationMail extends Mailable implements ShouldQueue
+abstract class NotificationMail extends Mailable implements ShouldBeEncrypted, ShouldQueue
 {
     use HasDeliveryRow, Queueable, SerializesModels;
 

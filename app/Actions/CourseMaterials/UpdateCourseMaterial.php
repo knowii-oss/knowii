@@ -6,6 +6,7 @@ use App\Constants;
 use App\Contracts\CourseMaterials\UpdatesCourseMaterials;
 use App\Models\CourseMaterial;
 use App\Models\User;
+use App\Support\PlainText;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -26,6 +27,7 @@ class UpdateCourseMaterial implements UpdatesCourseMaterials
     {
         Gate::forUser($user)->authorize('managePages', $material->space);
 
+        PlainText::clean($input, ['title']);
         /** @var array{title?: string, url?: string} $validated */
         $validated = Validator::make($input, [
             'title' => ['sometimes', 'required', 'string', 'min:'.Constants::MIN_LENGTH_COURSE_MATERIAL_TITLE, 'max:'.Constants::MAX_LENGTH_COURSE_MATERIAL_TITLE],

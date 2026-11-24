@@ -6,6 +6,7 @@ use App\Contracts\Posts\UpdatesPosts;
 use App\Events\Spaces\SpaceContentChanged;
 use App\Models\Post;
 use App\Models\User;
+use App\Support\PlainText;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -22,6 +23,7 @@ class UpdatePost implements UpdatesPosts
 
         Gate::forUser($user)->authorize('update', $post);
 
+        PlainText::clean($input, ['title']);
         /** @var array{title?: string, body?: string} $validated */
         $validated = Validator::make($input, CreatePost::rules(false))->validate();
 

@@ -14,6 +14,7 @@ use App\Models\Space;
 use App\Models\User;
 use App\Rules\MaxMarkdownImages;
 use App\Support\Markdown;
+use App\Support\PlainText;
 use App\Support\Positions;
 use App\Support\VideoEmbed;
 use Closure;
@@ -40,6 +41,7 @@ class CreatePage implements CreatesPages
         $kindInput = Validator::make($input, ['kind' => ['sometimes', Rule::enum(KnowiiPageKind::class)]])->validate();
         $kind = KnowiiPageKind::from($kindInput['kind'] ?? KnowiiPageKind::Page->value);
 
+        PlainText::clean($input, ['title']);
         /** @var array{title: string, body?: string|null, video_url?: string|null} $validated */
         $validated = Validator::make($input, self::rules(true, $kind))->validate();
         self::assertVideoAllowed($space, $kind, $validated['video_url'] ?? null);

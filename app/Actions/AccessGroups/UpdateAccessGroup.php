@@ -7,6 +7,7 @@ use App\Events\AccessGroups\AccessGroupsChanged;
 use App\Events\Spaces\SpaceTreeChanged;
 use App\Models\AccessGroup;
 use App\Models\User;
+use App\Support\PlainText;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 
@@ -20,9 +21,7 @@ class UpdateAccessGroup implements UpdatesAccessGroups
         $community = $group->community;
         Gate::forUser($user)->authorize('manageAccessGroups', $community);
 
-        if (is_string($input['name'] ?? null)) {
-            $input['name'] = trim($input['name']);
-        }
+        PlainText::clean($input, ['name'], ['description']);
         /** @var array{name?: string, description?: string|null} $validated */
         $validated = Validator::make($input, AccessGroupInputRules::editable($community, false, $group->id))->validate();
 

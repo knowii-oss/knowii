@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use App\Support\PlainText;
 use Carbon\Exceptions\InvalidFormatException;
 use Dom\HTMLDocument;
 use Illuminate\Support\Carbon;
@@ -254,14 +255,15 @@ trait ProcessHtml
     }
 
     /**
-     * The first value that is not empty after trimming and whitespace collapsing, or null.
+     * The first value that is not empty after its cleaning, or null. A text of a page of another site is one line of
+     * plain text, as a text that a member types (ADR 0069).
      *
      * @param  list<string|null>  $values
      */
     private function firstNonEmpty(array $values): ?string
     {
         foreach ($values as $value) {
-            $value = trim((string) preg_replace('/\s+/u', ' ', (string) $value));
+            $value = PlainText::oneLine((string) preg_replace('/\s+/u', ' ', (string) $value)) ?? '';
             if ($value !== '') {
                 return $value;
             }
@@ -335,7 +337,7 @@ trait ProcessHtml
 
         $keywords = [];
         foreach ($candidates as $candidate) {
-            $keyword = mb_strtolower(trim((string) preg_replace('/\s+/u', ' ', $candidate)));
+            $keyword = mb_strtolower(PlainText::oneLine((string) preg_replace('/\s+/u', ' ', $candidate)) ?? '');
             if ($keyword !== '' && mb_strlen($keyword) <= self::KEYWORD_MAX_LENGTH && ! in_array($keyword, $keywords, true)) {
                 $keywords[] = $keyword;
             }

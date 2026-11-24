@@ -11,6 +11,7 @@ use App\Models\Community;
 use App\Models\Space;
 use App\Models\SpaceGroup;
 use App\Models\User;
+use App\Support\PlainText;
 use App\Support\Positions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -29,6 +30,7 @@ class CreateSpace implements CreatesSpaces
 
         Gate::forUser($user)->authorize('manageSpaces', $community);
 
+        PlainText::clean($input, ['name', 'emoji'], ['description']);
         /** @var array{name: string, description?: string|null, emoji?: string|null, type: string, visibility: string, posting_policy?: string, space_group_cuid: string, access_groups?: list<string>, url?: string} $validated */
         $validated = Validator::make($input, SpaceInputRules::create())->validate();
         SpaceInputRules::refusePublicInPersonalCommunity($community, $validated['visibility']);

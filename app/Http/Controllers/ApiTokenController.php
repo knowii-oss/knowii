@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Constants;
 use App\Models\User;
+use App\Support\PlainText;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Laravel\Jetstream\Http\Controllers\Inertia\ApiTokenController as JetstreamApiTokenController;
 use Laravel\Jetstream\Jetstream;
@@ -24,13 +26,16 @@ class ApiTokenController extends JetstreamApiTokenController
      */
     public function store(Request $request)
     {
+        // The name of a token is one line of plain text (ADR 0069)
+        $input = $request->all();
+        PlainText::clean($input, ['name']);
         /** @var array{name: string, expires_in?: string, permissions?: array<array-key, string>} $validated */
-        $validated = $request->validate([
+        $validated = Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
             'expires_in' => ['sometimes', 'string', Rule::in(Constants::API_TOKEN_EXPIRY_CHOICES)],
             'permissions' => ['sometimes', 'array'],
             'permissions.*' => ['string'],
-        ]);
+        ])->validate();
 
         $expiresIn = $validated['expires_in'] ?? Constants::API_TOKEN_DEFAULT_EXPIRY;
         $expiresAt = $expiresIn === 'never' ? null : now()->addDays((int) $expiresIn);

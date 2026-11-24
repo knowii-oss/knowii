@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Constants;
 use App\Contracts\InvitationImports\SendsInvitationImportMails;
+use App\Jobs\Middleware\HideMailErrorText;
 use App\Jobs\Middleware\HoldInvitationImportMail;
 use App\Support\MailSettings;
 use Carbon\CarbonImmutable;
@@ -47,13 +48,15 @@ class SendInvitationImportMail implements ShouldQueue
     }
 
     /**
-     * The hold comes first: a held mail does not use a place of the rate limit
+     * A failed send keeps no text of the error, which can name the recipient (HideMailErrorText, outside the others, so
+     * that the hold still reads a refusal for a quota). The hold comes before the limit: a held mail does not use a place
+     * of the rate limit
      *
      * @return list<object>
      */
     public function middleware(): array
     {
-        return [new HoldInvitationImportMail, new RateLimited('mail')];
+        return [new HideMailErrorText, new HoldInvitationImportMail, new RateLimited('mail')];
     }
 
     /**

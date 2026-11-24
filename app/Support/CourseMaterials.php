@@ -97,11 +97,13 @@ final class CourseMaterials
     }
 
     /**
-     * The name that members see and download: no path, no control characters.
+     * The name that members see and download: no path, and one line of plain text (ADR 0069): no control character and no
+     * character that changes the direction of the text, so the end of the name is the end that the member reads.
      */
     public static function displayName(string $original): string
     {
-        $name = trim((string) preg_replace('/[\x00-\x1F\x7F"\\\\\/]+/u', '', basename(str_replace('\\', '/', $original))));
+        $name = PlainText::oneLine(basename(str_replace('\\', '/', $original))) ?? '';
+        $name = trim((string) preg_replace('/[\x00-\x1F\x7F"\\\\\/]+/u', '', $name));
 
         return $name === '' ? 'file' : mb_substr($name, 0, 200);
     }

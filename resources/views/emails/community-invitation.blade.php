@@ -1,10 +1,10 @@
 @component('mail::message')
-{{ __('You are invited to join the :community community on Knowii.', ['community' => $communityName]) }}
+{{ App\Support\MailText::plain(__('You are invited to join the :community community on Knowii.', ['community' => $communityName])) }}
 
 @if (Laravel\Fortify\Features::enabled(Laravel\Fortify\Features::registration()))
 {{ __('If you do not have an account, create one with this email address first:') }}
 
-@component('mail::button', ['url' => route('register')])
+@component('mail::button', ['url' => App\Support\MailText::address(route('register'))])
 {{ __('Create an account') }}
 @endcomponent
 
@@ -13,7 +13,7 @@
 {{ __('Sign in with this email address, then accept the invitation:') }}
 @endif
 
-@component('mail::button', ['url' => $acceptUrl])
+@component('mail::button', ['url' => App\Support\MailText::address($acceptUrl)])
 {{ __('Accept the invitation') }}
 @endcomponent
 
@@ -23,6 +23,6 @@
 
 ---
 
-{{ __(':name invited you to the :community community. :operator runs Knowii and sends this email for that community. We got your email address from the person who invited you and use it only for this invitation. If you do nothing, we delete the invitation and your address :period after it expires.', ['name' => $inviterName, 'community' => $communityName, 'operator' => $operator, 'period' => $deletedAfter]) }}@if ($privacyPolicyUrl !== null) {{ __('Your rights are in the privacy policy: :link.', ['link' => $privacyPolicyUrl]) }}@endif
+{{ App\Support\MailText::plain(__(':name invited you to the :community community. :operator runs Knowii and sends this email for that community. We got your email address from the person who invited you and use it only for this invitation. If you do nothing, we delete the invitation and your address :period after it expires.', ['name' => $inviterName, 'community' => $communityName, 'operator' => $operator, 'period' => $deletedAfter])) }}@if ($privacyPolicyUrl !== null) {{ __('Your rights are in the privacy policy: :link.', ['link' => $privacyPolicyUrl]) }}@endif
 
 @endcomponent

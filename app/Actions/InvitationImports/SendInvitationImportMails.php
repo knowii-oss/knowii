@@ -71,7 +71,8 @@ class SendInvitationImportMails implements SendsInvitationImportMails
         }
         $invitation->forceFill(['created_at' => $now, 'bounced_at' => null, 'bounce_type' => null])->syncOriginal();
         $invitation->setRelation('community', $community);
-        Mail::to($invitation->email)->send((new CommunityInvitationMail($invitation, $import->user ?? $community->owner))->recordDelivery(invitation: $invitation));
+        // Sent now, inside this job: the mail of an invitation is a queued mail, and send() would give it a second job
+        Mail::to($invitation->email)->sendNow((new CommunityInvitationMail($invitation, $import->user ?? $community->owner))->recordDelivery(invitation: $invitation));
 
         $this->end($row, $queuedCount, KnowiiInvitationImportOutcome::Sent, ['sent_at' => now()]);
     }

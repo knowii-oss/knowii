@@ -12,6 +12,7 @@ use App\Models\Page;
 use App\Models\Space;
 use App\Models\User;
 use App\Support\CourseMaterials;
+use App\Support\PlainText;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -57,6 +58,7 @@ class CreateCourseMaterial implements CreatesCourseMaterials
             $rules['file'] = ['required', 'file', 'max:'.CourseMaterials::maxKilobytes(), 'mimetypes:'.implode(',', CourseMaterials::MIME_TYPES), 'extensions:'.implode(',', CourseMaterials::EXTENSIONS)];
         }
 
+        PlainText::clean($input, ['title']);
         /** @var array{title: string, page?: string|null, url?: string, file?: UploadedFile} $validated */
         $validated = Validator::make($input, $rules)->validate();
 

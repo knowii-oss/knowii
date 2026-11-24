@@ -13,6 +13,7 @@ use App\Models\Event;
 use App\Models\User;
 use App\Rules\MaxMarkdownImages;
 use App\Support\Markdown;
+use App\Support\PlainText;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -49,6 +50,7 @@ class UpdateEvent implements UpdatesEvents
         EventPublication::assertVisible($user, $event);
         Gate::forUser($user)->authorize('update', $event);
 
+        PlainText::clean($input, ['title', 'place', 'cover_alt']);
         /** @var array{title?: string, body?: string|null, starts_at?: string, ends_at?: string, time_zone?: string, meeting_url?: string|null, place?: string|null, location_visibility?: string, cover_upload_cuid?: string|null, cover_alt?: string|null, capacity?: int|string|null, replay_expected?: bool|int|string, host_cuid?: string, replay_url?: string|null, notes?: string|null} $validated */
         $validated = Validator::make($input, [
             ...CreateEvent::rules(false),

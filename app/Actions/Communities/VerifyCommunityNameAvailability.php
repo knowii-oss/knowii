@@ -8,6 +8,7 @@ use App\Enums\KnowiiCommunityVisibility;
 use App\Models\Community;
 use App\Models\User;
 use App\Rules\AvailableCommunityName;
+use App\Support\PlainText;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Gate;
@@ -26,6 +27,7 @@ class VerifyCommunityNameAvailability implements VerifiesCommunityNameAvailabili
      */
     final public function verify(User $user, array $input): bool
     {
+        PlainText::clean($input, ['name']);
         // WARNING: the same rules as CreateCommunity.php, UpdateCommunity.php and newCommunitySchema (community.schema.ts)
         /** @var array{name: string, community?: string|null} $validated */
         $validated = Validator::make($input, [

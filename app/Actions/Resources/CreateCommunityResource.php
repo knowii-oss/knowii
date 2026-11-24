@@ -15,6 +15,7 @@ use App\Models\CommunityResource;
 use App\Models\Resource;
 use App\Models\Space;
 use App\Models\User;
+use App\Support\PlainText;
 use App\Support\SafeUrl;
 use App\Traits\UrlCleanup;
 use Illuminate\Support\Facades\DB;
@@ -50,6 +51,7 @@ class CreateCommunityResource implements CreatesCommunityResources
             throw new BusinessException('Resources can only be added to resources spaces');
         }
 
+        PlainText::clean($input, ['name'], ['description']);
         /** @var array{name?: string|null, description?: string|null, url: string, level: string, type?: string|null, capture?: bool} $input */
         $input = Validator::make($input, [
             // Optional: the title of the page replaces it after the capture (#1062)

@@ -8,6 +8,7 @@ use App\Enums\KnowiiCommunityVisibility;
 use App\Models\Community;
 use App\Models\User;
 use App\Rules\AvailableCommunityName;
+use App\Support\PlainText;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -29,6 +30,7 @@ class UpdateCommunity implements UpdatesCommunities
     {
         Gate::forUser($user)->authorize('update', $community);
 
+        PlainText::clean($input, ['name'], ['description']);
         // WARNING: the same rules as CreateCommunity.php and newCommunitySchema (community.schema.ts)
         /** @var array{name?: string, description?: string|null, visibility?: string, direct_messages_enabled?: bool} $validated */
         $validated = Validator::make($input, [

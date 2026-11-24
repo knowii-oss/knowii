@@ -9,6 +9,7 @@ use App\Exceptions\BusinessException;
 use App\Models\Community;
 use App\Models\SpaceGroup;
 use App\Models\User;
+use App\Support\PlainText;
 use App\Support\Positions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -26,6 +27,7 @@ class CreateSpaceGroup implements CreatesSpaceGroups
 
         Gate::forUser($user)->authorize('manageSpaces', $community);
 
+        PlainText::clean($input, ['name']);
         /** @var array{name: string} $validated */
         $validated = Validator::make($input, [
             // WARNING: The fields MUST also match the ones listed in SpaceGroupApiController

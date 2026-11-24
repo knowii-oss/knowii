@@ -43,6 +43,7 @@ use Carbon\CarbonInterface;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
+use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Mail\Transport\ArrayTransport;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -52,6 +53,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
+use Tests\Fixtures\Mail\RecipientNamingTransport;
 use Tests\Fixtures\Mail\RefusingTransport;
 
 /*
@@ -1033,6 +1035,30 @@ test('a mail that fails after its retries leaves the row failed (#1390)', functi
         ->and(DB::table('failed_jobs')->count())->toBe(1)
         ->and((string) DB::table('failed_jobs')->value('payload'))->not->toContain('qx-1@example.com')
         ->and($import->refresh()->state)->toBe(KnowiiInvitationImportState::Done);
+});
+
+test('a mail that the provider refuses with the address in its error text leaves the address in no failed job and in no log line', function () {
+    $import = importSent($this->community, $this->c['owner'], ['qx-1@example.com']);
+    Mail::extend('recipient-naming', static fn () => new RecipientNamingTransport);
+    config(['mail.mailers.recipient-naming' => ['transport' => 'recipient-naming'], 'mail.default' => 'recipient-naming']);
+    Mail::purge('recipient-naming');
+    $logged = new ArrayObject;
+    Event::listen(MessageLogged::class, function (MessageLogged $event) use ($logged) {
+        $logged[] = $event->message.' '.implode(' ', array_map(static fn (mixed $value): string => $value instanceof Throwable ? (string) $value : (string) json_encode($value, JSON_UNESCAPED_SLASHES), $event->context));
+    });
+
+    foreach (range(1, 3) as $try) {
+        DB::table('jobs')->where('queue', 'mail')->update(['available_at' => now()->getTimestamp()]);
+        importRunWorker();
+    }
+
+    $failed = DB::table('failed_jobs')->sole();
+    $left = (string) json_encode($failed, JSON_UNESCAPED_SLASHES).stripslashes((string) $failed->payload).implode("\n", $logged->getArrayCopy());
+    expect(importRows($import))->toBe([2 => ['failed', null, null]])
+        ->and((string) $failed->exception)->toContain('The mail could not be sent (Symfony\Component\Mailer\Exception\TransportException)')
+        ->and(implode("\n", $logged->getArrayCopy()))->toContain('The mail could not be sent')
+        ->and(stripos($left, 'qx-1@example.com'))->toBeFalse()
+        ->and(stripos($left, 'Recipient address rejected'))->toBeFalse();
 });
 
 test('a cancelled invitation and a person who joined meanwhile are skipped (#1390)', function () {

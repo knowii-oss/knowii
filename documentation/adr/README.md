@@ -93,3 +93,4 @@ Do not write an ADR for a bug fix, a refactor that keeps the structure, or a fea
 | [0066](0066-the-session-version-ends-the-other-sessions-of-an-account.md)                      | The session version ends the other sessions of an account                        | Accepted |
 | [0067](0067-the-tries-of-the-current-password-count-for-what-signed-the-request-in.md)         | The tries of the current password count for what signed the request in           | Accepted |
 | [0068](0068-the-cookies-belong-to-one-host.md)                                                 | The cookies belong to one host                                                   | Accepted |
+| [0069](0069-names-are-one-line-of-plain-text-and-mails-print-plain-text.md)                    | Names are one line of plain text, and mails print plain text                     | Accepted |

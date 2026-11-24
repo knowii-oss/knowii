@@ -1,7 +1,7 @@
 @component('mail::message')
 {{ __('Someone asked to create an account on Knowii with this email address. If it was you, open this link to choose your password and finish your sign-up.') }}
 
-@component('mail::button', ['url' => $url])
+@component('mail::button', ['url' => App\Support\MailText::address($url)])
 {{ __('Finish my sign-up') }}
 @endcomponent
 

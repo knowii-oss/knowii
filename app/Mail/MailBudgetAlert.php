@@ -2,10 +2,13 @@
 
 namespace App\Mail;
 
+use App\Jobs\Middleware\HideMailErrorText;
 use App\Mail\Concerns\HasDeliveryRow;
 use App\Support\MailBudgetCheck;
 use Carbon\CarbonImmutable;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeEncrypted;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
@@ -13,8 +16,10 @@ use Illuminate\Queue\SerializesModels;
  * The alert of the mail budget to the operator (#1477, ADR 0054), sent by `mail:check-budget` to the addresses of
  * MAIL_ALERT_TO only, never to a member: at 80% of the monthly quota, and when notification mail is held. It is account
  * mail (level 0): a plain mailable on the queue `default`, never held, so it still goes while notification mail is held.
+ * It holds an address of the operator, so it is encrypted in the queue (ADR 0064). A mail that fails keeps no recipient
+ * address (HideMailErrorText).
  */
-class MailBudgetAlert extends Mailable
+class MailBudgetAlert extends Mailable implements ShouldBeEncrypted, ShouldQueue
 {
     use HasDeliveryRow, Queueable, SerializesModels;
 
@@ -27,6 +32,16 @@ class MailBudgetAlert extends Mailable
         public int $holdPercent,
         public ?CarbonImmutable $heldUntil,
     ) {}
+
+    /**
+     * A mail that fails keeps no recipient address: neither the log nor `failed_jobs` gets the text of the error
+     *
+     * @return list<object>
+     */
+    public function middleware(): array
+    {
+        return [new HideMailErrorText];
+    }
 
     /**
      * @return $this
