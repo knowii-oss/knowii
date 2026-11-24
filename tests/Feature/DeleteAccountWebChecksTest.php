@@ -5,6 +5,7 @@ use App\Events\Spaces\SpaceTreeChanged;
 use App\Models\User;
 use App\Support\AccountDeletion;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\TwoFactorAuthenticationProvider;
 use PragmaRX\Google2FA\Google2FA;
@@ -64,6 +65,19 @@ test('a recovery code works and is used up', function () {
     expect($user->fresh())->toBeNull();
 });
 
+test('the code is the last check: a deletion refused for its option keeps the recovery code and counts no try', function () {
+    $user = User::factory()->withUserProfile()->create();
+    webChecksTurnOnTwoFactor($user);
+
+    $this->actingAs($user)->delete('/user', ['password' => 'password', 'code' => 'recovery-one', 'delete_content' => 'maybe'])
+        ->assertSessionHasErrors('delete_content')
+        ->assertSessionDoesntHaveErrors('code');
+
+    expect($user->fresh())->not->toBeNull()
+        ->and($user->fresh()->recoveryCodes())->toContain('recovery-one')
+        ->and(RateLimiter::attempts('second-factor-tries:minute:'.$user->cuid))->toBe(0);
+});
+
 test('a wrong password never reaches the code, and the code is not asked without two-factor authentication', function () {
     $user = User::factory()->withUserProfile()->create();
     webChecksTurnOnTwoFactor($user);
@@ -96,11 +110,11 @@ test('the fifth wrong password of the web deletion in 15 minutes ends the sessio
     expect($user->fresh())->toBeNull();
 });
 
-test('wrong codes of the deletion that are sent at the same time give at most 3 checks of a code a minute', function (int $counted) {
+test('wrong codes of the deletion that are sent at the same time give at most 5 checks of a code a minute', function (int $counted) {
     $user = User::factory()->withUserProfile()->create();
     webChecksTurnOnTwoFactor($user);
     $user = $user->fresh();
-    expect(Constants::ACCOUNT_DELETIONS_PER_MINUTE)->toBe(3);
+    expect(Constants::SECOND_FACTOR_TRIES_PER_MINUTE)->toBe(5);
 
     // The wrong codes that the minute already counted
     foreach (range(1, $counted) as $try) {
@@ -154,7 +168,7 @@ test('wrong codes of the deletion that are sent at the same time give at most 3 
     }
 
     // A check for each place that the minute has left, and the next code is refused before its check
-    $left = Constants::ACCOUNT_DELETIONS_PER_MINUTE - $counted;
+    $left = Constants::SECOND_FACTOR_TRIES_PER_MINUTE - $counted;
     expect($checks)->toBe($left)
         ->and($started)->toBe($left + 1)
         ->and(array_count_values($answers))->toBe([
@@ -179,13 +193,13 @@ test('a right code of the deletion uses no try, and a request without a code nei
 
     // A right code, then more requests without a code than the limit of a minute
     AccountDeletion::checkSecondFactor($user, app(Google2FA::class)->getCurrentOtp($secret));
-    foreach ([null, '', null, '', null] as $none) {
+    foreach ([null, '', null, '', null, ''] as $none) {
         expect(fn () => AccountDeletion::checkSecondFactor($user, $none))->toThrow(ValidationException::class, 'Enter the code of your authenticator app or a recovery code.');
     }
 
-    // The three tries of the minute are all there
-    foreach (range(1, 3) as $try) {
+    // The five tries of the minute are all there
+    foreach (range(1, 5) as $try) {
         expect(fn () => AccountDeletion::checkSecondFactor($user, '00000'.$try))->toThrow(ValidationException::class, 'The provided two factor authentication code was invalid.');
     }
-    expect(fn () => AccountDeletion::checkSecondFactor($user, '000004'))->toThrow(ValidationException::class, 'Too many tries. Please wait a minute, then try again.');
+    expect(fn () => AccountDeletion::checkSecondFactor($user, '000006'))->toThrow(ValidationException::class, 'Too many tries. Please wait a minute, then try again.');
 });

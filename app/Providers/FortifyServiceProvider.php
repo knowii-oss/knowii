@@ -12,9 +12,13 @@ use App\Actions\Fortify\RedirectIfTwoFactorAuthenticatable;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
+use App\Constants;
+use App\Http\Controllers\Inertia\NewPasswordController;
 use App\Http\Controllers\Inertia\PasswordResetLinkController;
 use App\Http\Controllers\Inertia\RegisteredUserController;
+use App\Http\Controllers\Inertia\TwoFactorAuthenticatedSessionController;
 use App\Http\Requests\TwoFactorLoginRequest;
+use App\Http\Responses\FailedPasswordResetResponse;
 use App\Http\Responses\LogoutResponse;
 use App\Http\Responses\TwoFactorLoginResponse;
 use App\Http\Responses\VerifyEmailResponse;
@@ -33,13 +37,16 @@ use Laravel\Fortify\Actions\ConfirmTwoFactorAuthentication as FortifyConfirmTwoF
 use Laravel\Fortify\Actions\DisableTwoFactorAuthentication as FortifyDisableTwoFactorAuthentication;
 use Laravel\Fortify\Actions\EnableTwoFactorAuthentication as FortifyEnableTwoFactorAuthentication;
 use Laravel\Fortify\Actions\GenerateNewRecoveryCodes as FortifyGenerateNewRecoveryCodes;
+use Laravel\Fortify\Contracts\FailedPasswordResetResponse as FailedPasswordResetResponseContract;
 use Laravel\Fortify\Contracts\LogoutResponse as LogoutResponseContract;
 use Laravel\Fortify\Contracts\RedirectsIfTwoFactorAuthenticatable;
 use Laravel\Fortify\Contracts\TwoFactorLoginResponse as TwoFactorLoginResponseContract;
 use Laravel\Fortify\Contracts\VerifyEmailResponse as VerifyEmailResponseContract;
 use Laravel\Fortify\Fortify;
+use Laravel\Fortify\Http\Controllers\NewPasswordController as FortifyNewPasswordController;
 use Laravel\Fortify\Http\Controllers\PasswordResetLinkController as FortifyPasswordResetLinkController;
 use Laravel\Fortify\Http\Controllers\RegisteredUserController as FortifyRegisteredUserController;
+use Laravel\Fortify\Http\Controllers\TwoFactorAuthenticatedSessionController as FortifyTwoFactorAuthenticatedSessionController;
 use Laravel\Fortify\Http\Requests\TwoFactorLoginRequest as FortifyTwoFactorLoginRequest;
 
 class FortifyServiceProvider extends ServiceProvider
@@ -58,6 +65,10 @@ class FortifyServiceProvider extends ServiceProvider
         // The password reset form gives the same answer for every address, and the broker runs in a queued job
         // (documentation/architecture/backend.md)
         $this->app->bind(FortifyPasswordResetLinkController::class, PasswordResetLinkController::class);
+        // The page of the reset gives the same answer for every link that does not work, does the same work for every
+        // address, and has the limiter `password-update` (App\Support\PasswordResetBroker)
+        $this->app->bind(FortifyNewPasswordController::class, NewPasswordController::class);
+        $this->app->singleton(FailedPasswordResetResponseContract::class, FailedPasswordResetResponse::class);
         // The sign-up form gives the same answer for every address: it queues one job, and the account is made when the link
         // of its mail is opened (ADR 0065)
         $this->app->bind(FortifyRegisteredUserController::class, RegisteredUserController::class);
@@ -66,6 +77,10 @@ class FortifyServiceProvider extends ServiceProvider
         $this->app->scoped(RedirectsIfTwoFactorAuthenticatable::class, RedirectIfTwoFactorAuthenticatable::class);
         // A challenge of the second factor for an account that has none any more ends on the sign-in page (ADR 0059)
         $this->app->bind(FortifyTwoFactorLoginRequest::class, TwoFactorLoginRequest::class);
+        // The codes of the challenge count per account, with every other place that checks a code (App\Support\
+        // SecondFactorTries). The challenge has no other limiter (config `fortify.limiters.two-factor` is null): the page
+        // shows the words of the tries of the account
+        $this->app->bind(FortifyTwoFactorAuthenticatedSessionController::class, TwoFactorAuthenticatedSessionController::class);
         // An account whose address was never verified cannot turn the second factor on (ADR 0059): "Enable", new recovery
         // codes and the confirmation are refused
         $this->app->bind(FortifyEnableTwoFactorAuthentication::class, EnableTwoFactorAuthentication::class);
@@ -123,11 +138,12 @@ class FortifyServiceProvider extends ServiceProvider
 
             $throttleKey = Str::transliterate($username.'|'.$request->ip());
 
-            return Limit::perMinute(5)->by($throttleKey);
+            // Per address and IP address, and per IP address alone for any addresses (the web and the API sign-in)
+            return [
+                Limit::perMinute(5)->by($throttleKey),
+                Limit::perMinute(Constants::SIGN_INS_PER_IP_PER_MINUTE)->by('login-ip|'.$request->ip()),
+            ];
         });
 
-        RateLimiter::for('two-factor', function (Request $request) {
-            return Limit::perMinute(5)->by($request->session()->get('login.id'));
-        });
     }
 }

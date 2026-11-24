@@ -15,6 +15,7 @@ use App\Mail\FinishSignUp;
 use App\Mail\MagicLink;
 use App\Mail\MailBudgetAlert;
 use App\Mail\NotificationMail;
+use App\Mail\SecondFactorLocked;
 use App\Mail\SignUpAccountExists;
 use App\Models\Community;
 use App\Models\User;
@@ -109,6 +110,8 @@ function mailQueuedCase(string $class): Closure
             return $queue(new MagicLink(str_repeat('b2', 32)));
         case MailBudgetAlert::class:
             return $queue(new MailBudgetAlert(CarbonImmutable::parse('2026-11-01', 'UTC'), 2400, 3000, 80, MailBudgetCheck::SOURCE_PROVIDER, 90, null));
+        case SecondFactorLocked::class:
+            return $queue(new SecondFactorLocked(CarbonImmutable::parse('2026-11-24T11:00:00Z'), 'Europe/Brussels'));
         case SignUpAccountExists::class:
             return $queue(new SignUpAccountExists);
         case TestNotificationMail::class:

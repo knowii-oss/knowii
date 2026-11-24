@@ -2,12 +2,10 @@
 
 namespace App\Support;
 
-use App\Constants;
 use App\Enums\KnowiiAccountDeletionProof;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -31,35 +29,16 @@ final class AccountDeletion
 
     /**
      * The code of two-factor authentication, when it is on, for every account: with a password or with the proof of a
-     * new sign-in, on the page and on the API. A few wrong codes a minute per account, counted together for both. The
-     * password, or the proof of the sign-in, is checked before it.
-     *
-     * A code is counted before it is checked, in one step of the cache, as a try of the password (App\Support\
-     * PasswordTries): codes that are sent at the same time cannot pass the limit together. Only a wrong code counts: a
-     * right one gives its own place back, and a request without a code takes none.
+     * new sign-in, on the page and on the API. The password, or the proof of the sign-in, is checked before it. The wrong
+     * codes count per account with every other place that checks a code (App\Support\SecondFactorTries).
      *
      * @throws ValidationException
      */
     public static function checkSecondFactor(User $user, ?string $code): void
     {
-        if (! $user->hasEnabledTwoFactorAuthentication()) {
-            return;
-        }
-
-        if ($code === null || $code === '') {
-            throw ValidationException::withMessages(['code' => __('Enter the code of your authenticator app or a recovery code.')]);
-        }
-
-        // Counted first: this code has its place before it is read
-        $key = 'account-deletion-code:'.$user->cuid;
-        if (RateLimiter::increment($key, 60) > Constants::ACCOUNT_DELETIONS_PER_MINUTE) {
-            throw ValidationException::withMessages(['code' => __('Too many tries. Please wait a minute, then try again.')]);
-        }
-        if (! SecondFactor::passesEither($user, $code)) {
+        SecondFactorTries::validate($user, $code, onWrongCode: static function () use ($user): void {
             Log::warning('Account deletion refused', ['reason' => 'wrong_code', 'user' => $user->cuid]);
-            throw ValidationException::withMessages(['code' => __('The provided two factor authentication code was invalid.')]);
-        }
-        RateLimiter::decrement($key, 60);
+        });
     }
 
     public static function proofOf(User $user): KnowiiAccountDeletionProof

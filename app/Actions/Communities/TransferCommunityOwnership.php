@@ -11,6 +11,7 @@ use App\Mail\CommunityOwnershipTransferred;
 use App\Models\Community;
 use App\Models\User;
 use App\Support\PasswordTries;
+use App\Support\SecondFactorTries;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
@@ -29,7 +30,8 @@ class TransferCommunityOwnership implements TransfersCommunityOwnership
     /**
      * The owner gives the community to one of its admins (#1339, ADR 0035). The new owner leaves the member table
      * (the owner is not a row of it), and the former owner becomes an admin, in one transaction. The owner confirms
-     * with their password: they cannot undo the change by themselves.
+     * with their password, and with the code of two-factor authentication when it is on: they cannot undo the change by
+     * themselves.
      *
      * @throws AuthenticationException When the session made too many wrong tries of the password: it is ended
      * @throws AuthorizationException
@@ -41,10 +43,11 @@ class TransferCommunityOwnership implements TransfersCommunityOwnership
     {
         Gate::forUser($user)->authorize('transferOwnership', $community);
 
-        /** @var array{member: string, password: string} $validated */
+        /** @var array{member: string, password: string, code?: string|null} $validated */
         $validated = Validator::make($input, [
             'member' => ['required', 'string'],
             'password' => ['required', 'string'],
+            'code' => ['nullable', 'string', 'max:64'],
         ])->validate();
 
         // The password is checked with the tries of what signed the request in (App\Support\PasswordTries): a wrong one
@@ -59,6 +62,12 @@ class TransferCommunityOwnership implements TransfersCommunityOwnership
         if ($role !== KnowiiCommunityMemberRole::Admin) {
             throw new BusinessException('Only an admin can become the owner. Make this member an admin first');
         }
+
+        // Two-factor authentication is never skipped, as for the deletion of the account: the wrong codes count per account
+        // with every other place that checks a code. The code is the last check, so a transfer that is refused for another
+        // reason never uses a recovery code and never counts a try
+        $code = $input['code'] ?? null;
+        SecondFactorTries::validate($user, is_string($code) ? $code : null);
 
         DB::transaction(static function () use ($community, $user, $newOwner): void {
             $community->users()->detach($newOwner);

@@ -224,6 +224,25 @@ class Constants
     // Requests of the page of the link of a sign-up per minute and per IP address: the numbers of a sign-in link
     public const int SIGN_UP_LINKS_PER_MINUTE = 5;
 
+    // Requests of the page of a password reset (`POST /reset-password`) per minute and per IP address: the numbers of the
+    // page of the link of a sign-up
+    public const int PASSWORD_UPDATES_PER_MINUTE = 5;
+
+    // Sign-ins with a password (the web and the API) per minute and per IP address alone, for any addresses, beside the
+    // limit per address and IP address
+    public const int SIGN_INS_PER_IP_PER_MINUTE = 30;
+
+    // Account mails of each kind per recipient address and per day (App\Support\AccountMailCaps): the sign-in link, the
+    // sign-up mail, the password reset mail, the mail of a change of the address
+    public const int ACCOUNT_MAILS_PER_ADDRESS_PER_DAY = 10;
+
+    // After the cap of the day, one more account mail of the same kind goes to the address at most once in these hours
+    public const int ACCOUNT_MAILS_OVER_THE_CAP_GAP_HOURS = 3;
+
+    // A password reset link is replaced by a new one only after these seconds: a request before sends no mail, and the link
+    // of the first mail keeps working
+    public const int PASSWORD_RESET_LINK_SECONDS = 300;
+
     // The largest page of the pending invitations (#1390): a file adds up to 1000 of them. WARNING: aligned with constants.ts
     public const int MAX_INVITATIONS_PAGE_LIMIT = 1000;
 
@@ -293,8 +312,18 @@ class Constants
     public const int OWNERSHIP_TRANSFERS_PER_MINUTE = 5;
 
     // Deletions of the own account through the API (#1492) per minute, per session or per API token: each one checks the
-    // password. Also the wrong codes of two-factor authentication per minute and per account, on the page and on the API
+    // password
     public const int ACCOUNT_DELETIONS_PER_MINUTE = 3;
+
+    // Wrong codes of two-factor authentication per account, for every place that checks a code together (App\Support\
+    // SecondFactorTries): the challenge of the sign-in, the API sign-in, the deletion of the account, the transfer of a
+    // community. Per minute AND per hour
+    public const int SECOND_FACTOR_TRIES_PER_MINUTE = 5;
+
+    public const int SECOND_FACTOR_TRIES_PER_HOUR = 10;
+
+    // The challenge of the second factor of a web sign-in ends after these minutes: the person signs in again
+    public const int SECOND_FACTOR_CHALLENGE_MINUTES = 10;
 
     // Wrong current passwords for every place that asks for the current password together (App\Support\PasswordTries):
     // per session that a sign-in made, per account for the sessions that the "Remember me" cookie made, and per account
@@ -306,6 +335,9 @@ class Constants
     // The link of a change of the email address (#1706): send it again, cancel the change, open it. Per minute and per user,
     // for the web and the API together. A link is a mail
     public const int EMAIL_CHANGES_PER_MINUTE = 6;
+
+    // Changes of the email address in the profile form per day and per account: each one sends a mail to a new address
+    public const int EMAIL_CHANGES_PER_DAY = 5;
 
     // The mails "This address already has an account" of a change of the address, per recipient and hour (ADR 0058): one a
     // minute at most too

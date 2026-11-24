@@ -563,15 +563,13 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perHour(1)->by('mail-suppression:'.self::rateLimitKey($request));
         });
 
-        // Each sign-in link sends an email (#703): per address and IP, like the login
+        // The use of a sign-in link (#703): per IP address, never with a value of the request
         RateLimiter::for('magic-link', static function (Request $request) {
-            $email = $request->input('email');
-
-            return Limit::perMinute(5)->by(mb_strtolower(is_string($email) ? $email : '').'|'.$request->ip());
+            return Limit::perMinute(5)->by('magic-link:'.$request->ip());
         });
 
         // Each request of the sign-in link form can send an email: the numbers of the password reset form, per address and
-        // IP, and 20 an hour per IP alone (documentation/architecture/backend.md). The use of a link keeps `magic-link`
+        // IP, and 20 an hour per IP alone (documentation/architecture/backend.md). The use of a link has `magic-link`
         RateLimiter::for('sign-in-link', static function (Request $request) {
             $email = $request->input('email');
 
@@ -595,6 +593,12 @@ class AppServiceProvider extends ServiceProvider
         // The use of the link of a sign-up (ADR 0065): per IP address, as the use of a sign-in link
         RateLimiter::for('sign-up-link', static function (Request $request) {
             return Limit::perMinute(Constants::SIGN_UP_LINKS_PER_MINUTE)->by('sign-up-link:'.$request->ip());
+        });
+
+        // The page of a password reset checks a link (documentation/architecture/backend.md): per IP address, the numbers of
+        // the use of a sign-up link
+        RateLimiter::for('password-update', static function (Request $request) {
+            return Limit::perMinute(Constants::PASSWORD_UPDATES_PER_MINUTE)->by('password-update:'.$request->ip());
         });
 
         // Each request of the password reset form can send an email: the numbers of the sign-in link, per address and IP,

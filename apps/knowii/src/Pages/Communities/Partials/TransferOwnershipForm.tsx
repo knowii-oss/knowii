@@ -5,7 +5,7 @@ import type { CommunityMember } from '@knowii/common';
 import { knowiiApiClient, useAppData } from '@knowii/common';
 import ActionSection from '@/Components/ActionSection';
 import type { SelectOption } from '@/Components/ui';
-import { Button, Dialog, InputError, PasswordInput, Select, Spinner } from '@/Components/ui';
+import { Button, Dialog, InputError, PasswordInput, Select, Spinner, TextInput } from '@/Components/ui';
 
 interface Props {
   communityCuid: string;
@@ -18,6 +18,10 @@ interface Props {
    * Called once the community has a new owner: the page loads its permissions again
    */
   onTransferred: () => void;
+  /**
+   * The owner has two-factor authentication: the dialog asks for a code of the authenticator app or a recovery code too
+   */
+  twoFactor?: boolean;
 }
 
 // The owner comes first, then the admins: one page holds every admin of a normal community
@@ -25,15 +29,17 @@ const ADMINS_PAGE_SIZE = 100;
 
 /**
  * The owner gives the community to one of its admins and becomes an admin (#1339, ADR 0035). They confirm with their
- * password: they cannot take the community back by themselves.
+ * password, and with a code of their authenticator app or a recovery code when two-factor authentication is on: they
+ * cannot take the community back by themselves.
  */
-export default function TransferOwnershipForm({ communityCuid, communityName, refreshKey = 0, onTransferred }: Props) {
+export default function TransferOwnershipForm({ communityCuid, communityName, refreshKey = 0, onTransferred, twoFactor = false }: Props) {
   const { showToast } = useAppData();
 
   const [open, setOpen] = useState(false);
   const [admins, setAdmins] = useState<CommunityMember[] | null>(null);
   const [memberCuid, setMemberCuid] = useState<string | null>(null);
   const [password, setPassword] = useState('');
+  const [code, setCode] = useState('');
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [busy, setBusy] = useState(false);
   const passwordRef = useRef<HTMLInputElement | null>(null);
@@ -69,13 +75,23 @@ export default function TransferOwnershipForm({ communityCuid, communityName, re
     }
   }, [open, hasLoadedAdmins]);
 
-  // A wrong password: the focus goes back to the field, once it is enabled again (a disabled field refuses the focus)
+  // A wrong password or code: the focus goes back to the field, once it is enabled again (a disabled field refuses the
+  // focus)
   const passwordError = errors['password']?.[0];
+  const codeError = errors['code']?.[0];
+  // The server asks for the code of an owner with two-factor authentication, also when the page did not know it
+  const asksCode = twoFactor || codeError !== undefined;
+  const codeRef = useRef<HTMLInputElement | null>(null);
   useEffect(() => {
-    if (!busy && passwordError !== undefined) {
-      passwordRef.current?.focus();
+    if (busy) {
+      return;
     }
-  }, [busy, passwordError]);
+    if (passwordError !== undefined) {
+      passwordRef.current?.focus();
+    } else if (codeError !== undefined) {
+      codeRef.current?.focus();
+    }
+  }, [busy, passwordError, codeError]);
 
   const options = useMemo<SelectOption<string>[]>(
     () => (admins ?? []).map((member) => ({ value: member.cuid, label: `${member.name} (@${member.username})` })),
@@ -90,6 +106,7 @@ export default function TransferOwnershipForm({ communityCuid, communityName, re
 
   const reset = () => {
     setPassword('');
+    setCode('');
     setErrors({});
     setMemberCuid(null);
     setAdmins(null);
@@ -103,11 +120,13 @@ export default function TransferOwnershipForm({ communityCuid, communityName, re
     }
     setBusy(true);
     setErrors({});
-    const result = await knowiiApiClient.communities.transferOwnership(communityCuid, memberCuid, password);
+    const result = asksCode
+      ? await knowiiApiClient.communities.transferOwnership(communityCuid, memberCuid, password, code)
+      : await knowiiApiClient.communities.transferOwnership(communityCuid, memberCuid, password);
     setBusy(false);
     if (!result.ok) {
       setErrors(result.errors);
-      if (!result.errors['password']) {
+      if (!result.errors['password'] && !result.errors['code']) {
         showToast({ severity: 'error', summary: result.message });
       }
       return;
@@ -203,6 +222,26 @@ export default function TransferOwnershipForm({ communityCuid, communityName, re
               />
               <InputError className="mt-2" message={errors['password']?.[0]} />
             </div>
+            {asksCode && (
+              <div>
+                <label htmlFor="transfer-ownership-code" className="text-sm">
+                  The code of your authenticator app or a recovery code
+                </label>
+                <TextInput
+                  id="transfer-ownership-code"
+                  className="mt-1"
+                  ref={codeRef}
+                  value={code}
+                  onChange={(event) => setCode(event.target.value)}
+                  required
+                  inputMode="text"
+                  autoComplete="one-time-code"
+                  invalid={!!errors['code']?.length}
+                  disabled={busy}
+                />
+                <InputError className="mt-2" message={errors['code']?.[0]} />
+              </div>
+            )}
           </form>
         )}
       </Dialog>

@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Sleep;
+use Illuminate\Support\ViewErrorBag;
 use Laravel\Fortify\Features;
 use Symfony\Component\Mailer\Exception\TransportException;
 use Symfony\Component\Mailer\SentMessage;
@@ -466,4 +467,75 @@ test('the reset form takes 20 requests an hour from one IP, for any addresses: t
     $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.9'])->postJson('/forgot-password', ['email' => 'person22@example.com'])->assertOk();
     $this->travel(61)->minutes();
     $this->withServerVariables(['REMOTE_ADDR' => '127.0.0.1'])->postJson('/forgot-password', ['email' => 'person23@example.com'])->assertOk();
+});
+
+// ---------------------------------------------------------------------------------------------------------------------
+// The page of the reset: one answer for every address
+// ---------------------------------------------------------------------------------------------------------------------
+
+const PASSWORD_RESET_DEAD_LINK = 'This password reset link expired or was already used. Ask for a new one.';
+
+/**
+ * The address and the token of a request of the reset page for a case where the link does not work
+ *
+ * @return array{0: string, 1: string}
+ */
+function passwordResetDeadLink(string $case): array
+{
+    return match ($case) {
+        'no account' => ['nobody@example.com', str_repeat('a', 64)],
+        'an account without a link' => [passwordResetAccount()->email, str_repeat('a', 64)],
+        'a wrong token' => (function (): array {
+            Password::broker()->createToken(passwordResetAccount());
+
+            return [PASSWORD_RESET_EMAIL, str_repeat('a', 64)];
+        })(),
+        'an old link' => (function (): array {
+            $token = Password::broker()->createToken(passwordResetAccount());
+            test()->travel(61)->minutes();
+
+            return [PASSWORD_RESET_EMAIL, $token];
+        })(),
+    };
+}
+
+test('the reset page gives the same answer for every address and every link that does not work', function (string $kind) {
+    $answers = [];
+    foreach (['no account', 'an account without a link', 'a wrong token', 'an old link'] as $case) {
+        User::query()->delete();
+        DB::table('password_reset_tokens')->delete();
+        $this->travelBack();
+        newBrowser();
+        [$address, $token] = passwordResetDeadLink($case);
+        $body = ['token' => $token, 'email' => $address, 'password' => PASSWORD_RESET_NEW_PASSWORD, 'password_confirmation' => PASSWORD_RESET_NEW_PASSWORD];
+
+        if ($kind === 'form') {
+            // The page that the browser shows: the same address for every case of this test
+            $response = $this->from('/reset-password/the-link')->post('/reset-password', $body);
+            $errors = session('errors');
+            $answers[$case] = [$response->status(), $response->headers->get('Location'), $errors instanceof ViewErrorBag ? $errors->getBag('default')->toArray() : $errors];
+        } else {
+            $response = $this->postJson('/reset-password', $body);
+            $answers[$case] = [$response->status(), $response->json()];
+        }
+    }
+
+    expect(array_unique(array_map('json_encode', $answers)))->toHaveCount(1);
+    if ($kind === 'form') {
+        expect($answers['no account'][0])->toBe(302)
+            ->and($answers['no account'][1])->toBe(url('/reset-password/the-link'))
+            ->and(data_get($answers['no account'][2], 'default.messages.email'))->toBe([PASSWORD_RESET_DEAD_LINK]);
+    } else {
+        expect($answers['no account'][0])->toBe(400)->and($answers['no account'][1]['errors'])->toBe(['email' => [PASSWORD_RESET_DEAD_LINK]]);
+    }
+})->with(['form', 'json']);
+
+test('the reset page takes 5 requests a minute from one IP address, for any addresses and tokens', function () {
+    foreach (range(1, 5) as $i) {
+        $this->postJson('/reset-password', ['token' => "token-$i", 'email' => "person$i@example.com", 'password' => PASSWORD_RESET_NEW_PASSWORD, 'password_confirmation' => PASSWORD_RESET_NEW_PASSWORD])->assertStatus(400);
+    }
+    $this->postJson('/reset-password', ['token' => 'token-6', 'email' => 'person6@example.com', 'password' => PASSWORD_RESET_NEW_PASSWORD, 'password_confirmation' => PASSWORD_RESET_NEW_PASSWORD])->assertStatus(429);
+
+    // Another IP address is not counted
+    $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.9'])->postJson('/reset-password', ['token' => 'token-7', 'email' => 'person7@example.com', 'password' => PASSWORD_RESET_NEW_PASSWORD, 'password_confirmation' => PASSWORD_RESET_NEW_PASSWORD])->assertStatus(400);
 });

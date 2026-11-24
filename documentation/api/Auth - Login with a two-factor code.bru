@@ -24,5 +24,5 @@ body:json {
 }
 
 docs {
-  For an account with two-factor authentication (#1256). Without code or recovery_code, the login answers 401 with metadata.two_factor_required = true. Send the code of the authenticator app, or "recovery_code" instead (each recovery code works once). The session and the token start only after both factors. Rate limited with the web login (5 per minute per email and IP).
+  For an account with two-factor authentication (#1256). Without code or recovery_code, the login answers 401 with metadata.two_factor_required = true. Send the code of the authenticator app, or "recovery_code" instead (each recovery code works once). The session and the token start only after both factors. Rate limited with the web login (5 per minute per email and IP, and 30 per minute per IP). The codes count per account with the web sign-in and the other places that ask for a code: after 5 wrong codes in a minute or 10 in an hour, every code of the account gets 429 (`Retry-After`) until the time is over. Only a request with the right password counts.
 }

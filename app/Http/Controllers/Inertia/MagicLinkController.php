@@ -8,6 +8,7 @@ use App\Contracts\Auth\SendsMagicLinks;
 use App\Contracts\Auth\TakesOverUnverifiedAccounts;
 use App\Enums\KnowiiAddressProof;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\TwoFactorLoginRequest;
 use App\Models\User;
 use App\Support\Landing;
 use Illuminate\Http\RedirectResponse;
@@ -87,7 +88,7 @@ class MagicLinkController extends Controller
         // is decided before the code: the session keeps only the path of the landing of the link, and the answer of the
         // challenge reads it for the account that passed (App\Http\Responses\TwoFactorLoginResponse, #1612, ADR 0057)
         if ($user->hasEnabledTwoFactorAuthentication()) {
-            $request->session()->put(['login.id' => $user->getKey(), 'login.remember' => false]);
+            $request->session()->put(['login.id' => $user->getKey(), 'login.remember' => false, TwoFactorLoginRequest::STARTED_AT_KEY => TwoFactorLoginRequest::startedNow()]);
             Landing::holdForChallenge($request, $landing);
 
             return redirect()->route('two-factor.login');

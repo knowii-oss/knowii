@@ -10,6 +10,7 @@ use App\Contracts\Users\DeletesAccounts;
 use App\Contracts\Users\UpdatesTimeZones;
 use App\Enums\KnowiiAddressProof;
 use App\Enums\KnowiiTakeOverResult;
+use App\Http\Responses\FailedPasswordResetResponse;
 use App\Mail\MagicLink;
 use App\Models\User;
 use App\Models\UserEntitlement;
@@ -1187,7 +1188,7 @@ test('a password reset of the address of before, sent while a correction is stor
 
     $this->post('/reset-password', ['token' => $token, 'email' => FIRST_PROOF_EMAIL, 'password' => FIRST_PROOF_NEW_PASSWORD, 'password_confirmation' => FIRST_PROOF_NEW_PASSWORD])
         ->assertRedirect()
-        ->assertSessionHasErrors(['email' => __(Password::INVALID_TOKEN)]);
+        ->assertSessionHasErrors(['email' => FailedPasswordResetResponse::MESSAGE]);
 
     $this->assertGuest();
     firstProofOnlyTheAddressChanged($account, 'ada.corrected@example.org');
@@ -1340,7 +1341,7 @@ test('a password reset of an account that is deleted before the reset is stored 
 
     $this->post('/reset-password', ['token' => $token, 'email' => FIRST_PROOF_EMAIL, 'password' => FIRST_PROOF_NEW_PASSWORD, 'password_confirmation' => FIRST_PROOF_NEW_PASSWORD])
         ->assertRedirect()
-        ->assertSessionHasErrors(['email' => __(Password::INVALID_TOKEN)]);
+        ->assertSessionHasErrors(['email' => FailedPasswordResetResponse::MESSAGE]);
 
     $this->assertGuest();
     expect(count($deleted))->toBe(1)

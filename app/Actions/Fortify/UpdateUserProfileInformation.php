@@ -14,6 +14,7 @@ use App\Support\PasswordTries;
 use App\Support\PlainText;
 use App\Support\ProfileFieldVisibility;
 use App\Support\TimeZones;
+use App\Support\TooManyTries;
 use Closure;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\DB;
@@ -36,7 +37,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
      *    reads another account. The job sends the mail "This address already has an account" in place of the link.
      * 3. The current password confirms the change when the account has one.
      * 4. Each change counts in the budget of the mails of a change of the address (EmailChangeBudget), with "Send the link
-     *    again".
+     *    again", and in a budget of the day (Constants::EMAIL_CHANGES_PER_DAY).
      * The same address in another case is no change: the account keeps the stored address.
      *
      * @param  array<mixed>  $input
@@ -56,9 +57,10 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         $changesAddress = $newAddress !== null && mb_strtolower($newAddress) !== mb_strtolower($user->email);
         $checksPassword = $changesAddress && $user->hasPassword();
 
-        // Each change of the address sends a mail: one budget with "Send the link again" (#1706, ADR 0058)
-        if ($changesAddress && EmailChangeBudget::isUsedUpBy($user)) {
-            throw ValidationException::withMessages(['email' => __('Too many tries. Please wait a minute, then try again.')])->errorBag('updateProfileInformation');
+        // Each change of the address sends a mail: one budget with "Send the link again" (#1706, ADR 0058), and a few a day
+        $wait = $changesAddress ? EmailChangeBudget::waitFor($user) : 0;
+        if ($wait > 0) {
+            throw ValidationException::withMessages(['email' => TooManyTries::words($wait)])->errorBag('updateProfileInformation');
         }
 
         // WARNING: Those rules must remain aligned with those in CreateNewUser.php

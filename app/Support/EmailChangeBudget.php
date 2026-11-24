@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\RateLimiter;
  * Constants::EMAIL_CHANGES_PER_MINUTE a minute per account. The routes of the link, of "Send the link again" and of "Cancel
  * the change" (web and API) count through the limiter `email-changes` (the middleware throttle:email-changes); the profile
  * form counts each change of the address, and each correction of an address that was never verified, on the same key.
+ * The profile form also counts them for the day: Constants::EMAIL_CHANGES_PER_DAY a day per account, each to a new
+ * address.
  */
 final class EmailChangeBudget
 {
@@ -29,19 +31,34 @@ final class EmailChangeBudget
     }
 
     /**
-     * Whether the account used its budget of this minute
+     * The seconds until the account may change its address again in the profile form: 0 while its budget of the minute and
+     * of the day has room
      */
-    public static function isUsedUpBy(User $user): bool
+    public static function waitFor(User $user): int
     {
-        return RateLimiter::tooManyAttempts(self::key($user), Constants::EMAIL_CHANGES_PER_MINUTE);
+        $wait = 0;
+        if (RateLimiter::tooManyAttempts(self::key($user), Constants::EMAIL_CHANGES_PER_MINUTE)) {
+            $wait = max(1, RateLimiter::availableIn(self::key($user)));
+        }
+        if (RateLimiter::tooManyAttempts(self::dayKey($user), Constants::EMAIL_CHANGES_PER_DAY)) {
+            $wait = max($wait, 1, RateLimiter::availableIn(self::dayKey($user)));
+        }
+
+        return $wait;
     }
 
     /**
-     * Counts one request of the account that sends a mail
+     * Counts one change of the address of the profile form, which sends a mail: for the minute and for the day
      */
     public static function count(User $user): void
     {
         RateLimiter::hit(self::key($user), 60);
+        RateLimiter::hit(self::dayKey($user), 86400);
+    }
+
+    private static function dayKey(User $user): string
+    {
+        return self::LIMITER.':day:'.self::accountKey($user);
     }
 
     private static function accountKey(User $user): string

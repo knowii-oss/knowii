@@ -116,7 +116,8 @@ return [
 
     'limiters' => [
         'login' => 'login',
-        'two-factor' => 'two-factor',
+        // None: the codes of the challenge count per account (App\Support\SecondFactorTries)
+        'two-factor' => null,
     ],
 
     /*

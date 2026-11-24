@@ -9,6 +9,7 @@ use App\Enums\KnowiiCommunityMemberRole;
 use App\Enums\KnowiiCommunityVisibility;
 use App\Enums\KnowiiSpaceType;
 use App\Enums\KnowiiSpaceVisibility;
+use App\Http\Requests\TwoFactorLoginRequest;
 use App\Http\Responses\TwoFactorLoginResponse;
 use App\Http\Responses\VerifyEmailResponse;
 use App\Models\Community;
@@ -1188,7 +1189,7 @@ test('the landing that a session kept for a challenge is checked for the account
 
     // A session that kept the path of a link, and the challenge of this account
     landingNewBrowser();
-    $this->withSession(['login.id' => $c[$who]->id, 'login.remember' => false, LANDING_HELD => LANDING_MEMBERS_SPACE])
+    $this->withSession(['login.id' => $c[$who]->id, 'login.remember' => false, TwoFactorLoginRequest::STARTED_AT_KEY => TwoFactorLoginRequest::startedNow(), LANDING_HELD => LANDING_MEMBERS_SPACE])
         ->post('/two-factor-challenge', ['code' => (new Google2FA)->getCurrentOtp($secret)])
         ->assertRedirect($after === 'the dashboard' ? route('dashboard') : URL::to($after))
         ->assertSessionMissing(LANDING_HELD);

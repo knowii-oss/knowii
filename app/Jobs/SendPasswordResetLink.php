@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Support\AccountMailCaps;
 use Illuminate\Auth\Events\PasswordResetLinkSent;
 use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Contracts\Queue\ShouldBeEncrypted;
@@ -18,8 +19,9 @@ use Throwable;
  * The work of the password reset form, for every address that has the format of an address (documentation/architecture/
  * backend.md): the steps of the broker of the framework, without its timebox. The request only queues this job, so its
  * answer does the same work for every address, and nobody waits for the job: a job for an address without an account is
- * one query. The job finds the account, keeps the throttle of the broker (a link a minute), makes the token and queues
- * the reset mail (`App\Notifications\ResetPasswordLink`). It holds the address, so it is encrypted in the queue. It runs
+ * one query. The job finds the account, keeps the throttle of the broker (a new link only when the last one is older than
+ * 5 minutes: else nothing is sent, and the first link keeps working), keeps the daily cap of the address
+ * (App\Support\AccountMailCaps), makes the token and queues the reset mail (`App\Notifications\ResetPasswordLink`). It holds the address, so it is encrypted in the queue. It runs
  * on the queue `default`, as the other account mails, with no limiter and no hold.
  *
  * The job always ends as done: every case ends it, and so does an error. Two jobs for the same address at the same
@@ -44,6 +46,11 @@ class SendPasswordResetLink implements ShouldBeEncrypted, ShouldQueue
             $user = $broker->getUser(['email' => $this->email]);
             $tokens = $broker->getRepository();
             if ($user === null || $tokens->recentlyCreatedToken($user)) {
+                return;
+            }
+            if (! AccountMailCaps::take(AccountMailCaps::PASSWORD_RESET, $user->getEmailForPasswordReset())) {
+                Log::info('A password reset link is not sent: the address got all its reset mails of the day', ['job' => $this->jobId()]);
+
                 return;
             }
 
