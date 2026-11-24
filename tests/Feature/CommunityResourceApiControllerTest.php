@@ -317,3 +317,20 @@ test('resources expose only the public summary of their curator (#1234)', functi
         expect(array_keys($curator))->toEqualCanonicalizing(['cuid', 'name', 'username', 'avatar_url']);
     }
 });
+
+test('a resource shows the dates of its entry in the community, never those of another community', function () {
+    Queue::fake();
+    $first = User::factory()->withUserProfile()->withPersonalCommunity()->create();
+    $second = User::factory()->withUserProfile()->withPersonalCommunity()->create();
+    $body = ['url' => 'https://example.com/shared-article', 'level' => KnowiiResourceLevel::Beginner->value];
+
+    $this->actingAs($first)->postJson(textArticlesPathFor($first), $body)->assertCreated();
+    CommunityResource::query()->firstOrFail()->resource->update(['last_captured_at' => now(), 'last_checked_at' => now(), 'view_count' => 7, 'share_count' => 3]);
+
+    $this->travel(1)->days();
+    $response = $this->actingAs($second)->postJson(textArticlesPathFor($second), $body)->assertCreated();
+
+    $resource = $response->json('data.resource');
+    expect($response->json('data.created_at'))->toBe(now()->startOfSecond()->toJSON())
+        ->and($resource)->not->toHaveKeys(['created_at', 'updated_at', 'last_captured_at', 'last_checked_at', 'check_failures_count', 'view_count', 'share_count']);
+});

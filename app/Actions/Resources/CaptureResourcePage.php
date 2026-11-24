@@ -2,6 +2,7 @@
 
 namespace App\Actions\Resources;
 
+use App\Constants;
 use App\Contracts\Resources\CapturesResourcePages;
 use App\Enums\KnowiiCaptureSource;
 use App\Enums\KnowiiResourceType;
@@ -42,12 +43,16 @@ class CaptureResourcePage implements CapturesResourcePages
         $resource = $communityResource->resource;
         $url = (string) $resource->url;
 
+        $this->fetchWithin(null);
         try {
             $page = $this->fetchPage($url);
         } catch (BusinessException $e) {
-            // SafeUrl refused the address or a redirect, or the page is too large: another try gives the same answer
+            // SafeUrl refused the address or a redirect, or the page is too large or too slow: another try gives the
+            // same answer
             throw new CaptureFailedException($e->getMessage(), 0, $e);
         }
+        // The cover, the icon and the images of the article share one time budget
+        $this->fetchWithin(Constants::CAPTURE_IMAGES_SECONDS);
 
         $status = $page['status'];
         if ($status === 404 || $status === 410) {
@@ -179,6 +184,13 @@ class CaptureResourcePage implements CapturesResourcePages
             Log::debug('The readable content could not become Markdown', ['reason' => $e->getMessage()]);
 
             return [null, $excerpt];
+        }
+
+        if (mb_strlen($markdown) > Constants::MAX_CAPTURE_MARKDOWN_LENGTH) {
+            // A longer article is cut at its last paragraph before the limit: the link of the resource has the rest
+            $cut = mb_substr($markdown, 0, Constants::MAX_CAPTURE_MARKDOWN_LENGTH);
+            $paragraph = mb_strrpos($cut, "\n\n");
+            $markdown = rtrim($paragraph === false ? $cut : mb_substr($cut, 0, $paragraph));
         }
 
         return [$markdown === '' ? null : $markdown, $excerpt];

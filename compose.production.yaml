@@ -69,6 +69,22 @@ services:
       retries: 3
       start_period: 30s
 
+  # The worker of the captures of resources (ADR 0018): a long list of captures never delays the live updates, the
+  # notifications or the account mails. Each capture job sets its own time limit (80 seconds).
+  queue-captures:
+    <<: *knowii
+    command: ['php', 'artisan', 'queue:work', '--queue=captures', '--sleep=3', '--tries=3']
+    stop_grace_period: 90s
+    depends_on:
+      app:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'knowii-healthcheck-process', 'queue:work']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
   # The WebSocket server (Laravel Reverb). The proxy forwards /app/ and /apps/ to its published port.
   reverb:
     <<: *knowii

@@ -20,6 +20,13 @@ trait ProcessHtml
     private const int KEYWORD_MAX_LENGTH = 100;
 
     /**
+     * The last parsed page and its document
+     *
+     * @var array{0: string, 1: HTMLDocument}|null
+     */
+    private ?array $parsedHtml = null;
+
+    /**
      * Clean the HTML using HTMLPurifier
      *
      * @param  string  $html
@@ -251,7 +258,12 @@ trait ProcessHtml
             return null;
         }
 
-        return HTMLDocument::createFromString($html, LIBXML_NOERROR);
+        // Each getter reads the same page: it is parsed once (the getters only read the document)
+        if ($this->parsedHtml === null || $this->parsedHtml[0] !== $html) {
+            $this->parsedHtml = [$html, HTMLDocument::createFromString($html, LIBXML_NOERROR)];
+        }
+
+        return $this->parsedHtml[1];
     }
 
     /**

@@ -126,13 +126,14 @@ final class OpenIdConnectClient implements ReadsOpenIdConnectIdentities
     }
 
     /**
-     * The discovery document, checked and cached. Only the members that the client uses are kept.
+     * The discovery document, checked and cached. Only the members that the client uses are kept. With `$limitFailures`
+     * (a call that anybody can send) a failure is kept for a minute: see {@see self::refuseAfterRecentFailure()}.
      *
      * @return array{authorization_endpoint: string, token_endpoint: string, jwks_uri: string, token_auth: 'basic'|'post'}
      *
      * @throws OpenIdConnectException
      */
-    private function discovery(): array
+    private function discovery(bool $limitFailures = false): array
     {
         $issuer = $this->issuer();
         $key = 'oidc:discovery:'.hash('sha256', $issuer);
@@ -146,10 +147,16 @@ final class OpenIdConnectClient implements ReadsOpenIdConnectIdentities
             }
         }
 
-        $document = $this->fetchJson(rtrim($issuer, '/').'/.well-known/openid-configuration');
-        $endpoints = $this->endpointsOf($document, true);
-        if ($endpoints === null) {
-            throw new OpenIdConnectException('discovery_refused');
+        $url = rtrim($issuer, '/').'/.well-known/openid-configuration';
+        $this->refuseAfterRecentFailure($url, $limitFailures);
+        try {
+            $endpoints = $this->endpointsOf($this->fetchJson($url), true);
+            if ($endpoints === null) {
+                throw new OpenIdConnectException('discovery_refused');
+            }
+        } catch (OpenIdConnectException $e) {
+            $this->rememberFailure($url, $limitFailures);
+            throw $e;
         }
 
         Cache::put($key, $endpoints, self::CACHE_SECONDS);
@@ -331,7 +338,7 @@ final class OpenIdConnectClient implements ReadsOpenIdConnectIdentities
         }
         // The shape, the algorithm and the type come before any request to the provider
         [$algorithm, $keyId] = $this->header($jws, $type);
-        $claims = $this->verified($jws, $algorithm, $keyId, $this->discovery()['jwks_uri'], true);
+        $claims = $this->verified($jws, $algorithm, $keyId, $this->discovery(true)['jwks_uri'], true);
 
         if (($claims['iss'] ?? null) !== $this->issuer()) {
             throw new OpenIdConnectException('wrong_issuer');
@@ -403,7 +410,8 @@ final class OpenIdConnectClient implements ReadsOpenIdConnectIdentities
     /**
      * The claims of a token whose signature is valid for the key of its key id. With `$limitRefresh` (a call that anybody
      * can send, like the change call of #1386) the keys are read again for an unknown key id at most once a minute: the
-     * calls of a stranger cannot make the server read the keys of the provider at the rate of their requests.
+     * calls of a stranger cannot make the server read the keys of the provider at the rate of their requests, also while
+     * the provider fails.
      *
      * @return Claims
      *
@@ -411,10 +419,10 @@ final class OpenIdConnectClient implements ReadsOpenIdConnectIdentities
      */
     private function verified(string $token, string $algorithm, ?string $keyId, string $jwksUri, bool $limitRefresh = false): array
     {
-        [$jwk, $fresh] = $this->findKey($jwksUri, $algorithm, $keyId, false);
+        [$jwk, $fresh] = $this->findKey($jwksUri, $algorithm, $keyId, false, $limitRefresh);
         if ($jwk === null && $keyId !== null && ! $fresh && (! $limitRefresh || Cache::add('oidc:jwks:refreshed:'.hash('sha256', $jwksUri), true, self::KEY_REFRESH_SECONDS))) {
             // An unknown key id: the provider may have rotated its keys. Read them again, once
-            [$jwk] = $this->findKey($jwksUri, $algorithm, $keyId, true);
+            [$jwk] = $this->findKey($jwksUri, $algorithm, $keyId, true, $limitRefresh);
         }
         if ($jwk === null) {
             throw new OpenIdConnectException('unknown_key');
@@ -511,9 +519,9 @@ final class OpenIdConnectClient implements ReadsOpenIdConnectIdentities
      *
      * @throws OpenIdConnectException
      */
-    private function findKey(string $jwksUri, string $algorithm, ?string $keyId, bool $refresh): array
+    private function findKey(string $jwksUri, string $algorithm, ?string $keyId, bool $refresh, bool $limitFailures = false): array
     {
-        [$keys, $fresh] = $this->keys($jwksUri, $refresh);
+        [$keys, $fresh] = $this->keys($jwksUri, $refresh, $limitFailures);
 
         $candidates = [];
         foreach ($keys as $jwk) {
@@ -540,7 +548,7 @@ final class OpenIdConnectClient implements ReadsOpenIdConnectIdentities
      *
      * @throws OpenIdConnectException
      */
-    private function keys(string $jwksUri, bool $refresh): array
+    private function keys(string $jwksUri, bool $refresh, bool $limitFailures = false): array
     {
         $cacheKey = 'oidc:jwks:'.hash('sha256', $jwksUri);
 
@@ -555,11 +563,17 @@ final class OpenIdConnectClient implements ReadsOpenIdConnectIdentities
             }
         }
 
-        $document = $this->fetchJson($jwksUri);
-        $list = $document['keys'] ?? null;
-        $keys = is_array($list) ? $this->cleanKeys($list) : [];
-        if ($keys === []) {
-            throw new OpenIdConnectException('no_keys');
+        $this->refuseAfterRecentFailure($jwksUri, $limitFailures);
+        try {
+            $document = $this->fetchJson($jwksUri);
+            $list = $document['keys'] ?? null;
+            $keys = is_array($list) ? $this->cleanKeys($list) : [];
+            if ($keys === []) {
+                throw new OpenIdConnectException('no_keys');
+            }
+        } catch (OpenIdConnectException $e) {
+            $this->rememberFailure($jwksUri, $limitFailures);
+            throw $e;
         }
 
         Cache::put($cacheKey, $keys, self::CACHE_SECONDS);
@@ -625,6 +639,27 @@ final class OpenIdConnectClient implements ReadsOpenIdConnectIdentities
         $bytes = ltrim(JWT::urlsafeB64Decode($modulus), "\0");
 
         return strlen($bytes) * 8;
+    }
+
+    /**
+     * With `$limitFailures` (a call that anybody can send), a failed read of a document of the provider (no answer, an
+     * error, a document that is not usable) is kept for a minute, and a read in that minute fails without a request: while
+     * the provider fails, the calls of a stranger cannot make the server wait for it at the rate of their requests.
+     *
+     * @throws OpenIdConnectException
+     */
+    private function refuseAfterRecentFailure(string $url, bool $limitFailures): void
+    {
+        if ($limitFailures && Cache::has('oidc:failed:'.hash('sha256', $url))) {
+            throw new OpenIdConnectException('provider_unreachable');
+        }
+    }
+
+    private function rememberFailure(string $url, bool $limitFailures): void
+    {
+        if ($limitFailures) {
+            Cache::put('oidc:failed:'.hash('sha256', $url), true, self::KEY_REFRESH_SECONDS);
+        }
     }
 
     /**

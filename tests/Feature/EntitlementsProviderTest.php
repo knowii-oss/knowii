@@ -558,6 +558,26 @@ test('unknown key ids make the server read the keys again once a minute at most,
     expect($keyReads())->toBe($before + 2);
 });
 
+test('while the provider fails, the change call asks it at most once a minute', function (string $failing) {
+    Queue::fake();
+    if ($failing === 'discovery') {
+        $this->provider->discoveryStatus = 500;
+    } else {
+        $this->provider->jwks = [];
+    }
+    $path = $failing === 'discovery' ? '/.well-known/openid-configuration' : '/jwks';
+    $reads = fn () => Http::recorded(fn ($request) => str_ends_with($request->url(), $path))->count();
+
+    foreach (range(1, 5) as $i) {
+        entPost(entEventToken($this->provider, entEventClaims()))->assertStatus(401);
+    }
+    expect($reads())->toBe(1);
+
+    $this->travel(61)->seconds();
+    entPost(entEventToken($this->provider, entEventClaims()))->assertStatus(401);
+    expect($reads())->toBe(2);
+})->with(['the discovery' => ['discovery'], 'the keys' => ['keys']]);
+
 test('the webhook is public: no session, no cookie, no CSRF token, no token ability, and it is limited per address (#1386)', function () {
     $route = Route::getRoutes()->getByName('oidc.entitlements.webhook');
     expect($route)->not->toBeNull();

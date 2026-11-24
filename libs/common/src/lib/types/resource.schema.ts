@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { baseEntitySchema } from './base-entity.schema';
+import { identifiableSchema } from './identifiable.schema';
 import { slugSchema } from './slug.schema';
 
 // Resource type: a fixed list (ADR 0018, #1246). WARNING: aligned with KnowiiResourceType.php and ResourceTypeIcon.tsx
@@ -42,7 +42,9 @@ export const getIconForResourceLevel = (level: ResourceLevel): string => {
   return (resourceLevelSchemaOptions.find((option) => option.level === level) ?? resourceLevelSchemaOptions[0])?.icon ?? '';
 };
 
-export const resourceSchema = baseEntitySchema.extend(slugSchema.shape).extend({
+// The page that a community resource points to, shared by the communities of the instance (ADR 0018): without its own
+// dates and counters. The community resource has the dates of the entry in its community
+export const resourceSchema = identifiableSchema.extend(slugSchema.shape).extend({
   name: z.string(),
   description: z.string().nullable(),
   excerpt: z.string().nullable(),
@@ -59,11 +61,6 @@ export const resourceSchema = baseEntitySchema.extend(slugSchema.shape).extend({
   // The type detected at capture; the community resource has the type that its community uses
   type: resourceTypeSchema,
   is_featured: z.boolean(),
-  view_count: z.number().int().default(0),
-  share_count: z.number().int().default(0),
-  last_captured_at: z.coerce.date().nullable(),
-  last_checked_at: z.coerce.date().nullable(),
-  check_failures_count: z.number().int().default(0).nullable(),
   is_unavailable: z.boolean().nullable(),
 });
 

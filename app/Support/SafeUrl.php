@@ -16,6 +16,23 @@ final class SafeUrl
 
     private const array ALLOWED_PORTS = [80, 443];
 
+    private const string REFUSED_HOST = 'This address cannot be fetched.';
+
+    /**
+     * Ranges that GLOBAL_RANGE lets through but that are not a public host: NAT64 (an IPv4 address inside an IPv6
+     * one), IPv4-compatible IPv6, site-local IPv6, and multicast
+     *
+     * @var list<array{0: string, 1: int}>
+     */
+    private const array SPECIAL_RANGES = [
+        ['64:ff9b::', 96],
+        ['64:ff9b:1::', 48],
+        ['::', 96],
+        ['fec0::', 10],
+        ['ff00::', 8],
+        ['224.0.0.0', 4],
+    ];
+
     /**
      * Resolves a host to its IP addresses. Replaced in tests: they must not depend on the DNS.
      *
@@ -52,19 +69,59 @@ final class SafeUrl
             throw new BusinessException('This address uses a port that cannot be fetched');
         }
 
+        // One answer for every refused host: the answer never tells whether a name exists in the network of the server
         $addresses = filter_var($host, FILTER_VALIDATE_IP) !== false ? [$host] : self::resolve($host);
         if ($addresses === []) {
-            throw new BusinessException('The address of this site cannot be found');
+            throw new BusinessException(self::REFUSED_HOST);
         }
 
         foreach ($addresses as $address) {
-            // GLOBAL_RANGE refuses private, loopback, link-local, reserved, shared (100.64/10) and mapped addresses
-            if (filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_GLOBAL_RANGE) === false) {
-                throw new BusinessException('This address points to a private or local network');
+            if (! self::isPublicAddress($address)) {
+                throw new BusinessException(self::REFUSED_HOST);
             }
         }
 
         return $addresses[0];
+    }
+
+    /**
+     * Whether an IP address is a public one that the server may connect to
+     */
+    public static function isPublicAddress(string $address): bool
+    {
+        // GLOBAL_RANGE refuses private, loopback, link-local, reserved, shared (100.64/10) and mapped addresses
+        if (filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_GLOBAL_RANGE) === false) {
+            return false;
+        }
+
+        $binary = (string) inet_pton($address);
+        foreach (self::SPECIAL_RANGES as [$network, $bits]) {
+            if (self::inRange($binary, (string) inet_pton($network), $bits)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static function inRange(string $address, string $network, int $bits): bool
+    {
+        if (strlen($address) !== strlen($network)) {
+            return false;
+        }
+
+        $bytes = intdiv($bits, 8);
+        if (strncmp($address, $network, $bytes) !== 0) {
+            return false;
+        }
+
+        $rest = $bits % 8;
+        if ($rest === 0) {
+            return true;
+        }
+        $mask = (0xFF << (8 - $rest)) & 0xFF;
+
+        return (ord($address[$bytes]) & $mask) === (ord($network[$bytes]) & $mask);
     }
 
     /**

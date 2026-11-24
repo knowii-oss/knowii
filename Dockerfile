@@ -1,5 +1,5 @@
 # Production image of Knowii (#1172, ADR 0046). One image runs the application services of
-# compose.production.yaml (app, queue, queue-mail, reverb, scheduler) with another command. No development tools.
+# compose.production.yaml (app, queue, queue-mail, queue-captures, reverb, scheduler) with another command. No development tools.
 # The Sail image for development stays in docker/8.5/.
 #
 # Build:  docker build -t knowii:local .
