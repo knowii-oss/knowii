@@ -38,6 +38,10 @@ export interface SpaceDialogProps {
    * The address of the page of a space. Given: the toast after a create offers "Open the space" (#1576).
    */
   spaceHref?: ((space: Space) => string) | undefined;
+  /**
+   * A personal community: its spaces are never public, so the form does not offer "Public" (the server refuses it).
+   */
+  personalCommunity?: boolean | undefined;
 }
 
 const typeOptions = SPACE_TYPES.map((type) => ({
@@ -46,6 +50,7 @@ const typeOptions = SPACE_TYPES.map((type) => ({
   icon: SPACE_TYPE_LABELS[type].emoji,
 }));
 const visibilityOptions = SPACE_VISIBILITIES.map((visibility) => ({ value: visibility, label: SPACE_VISIBILITY_LABELS[visibility] }));
+const personalVisibilityOptions = visibilityOptions.filter((option) => option.value !== 'public');
 const postingPolicyOptions = SPACE_POSTING_POLICIES.map((policy) => ({ value: policy, label: SPACE_POSTING_POLICY_LABELS[policy] }));
 
 type DefaultLevel = 'all' | 'mine';
@@ -88,6 +93,7 @@ export function SpaceDialog({
   onClose,
   onSaved,
   spaceHref,
+  personalCommunity = false,
 }: SpaceDialogProps) {
   const { showToast } = useAppData();
   // The access groups of the community, for a "groups" space (#1241)
@@ -373,7 +379,7 @@ export function SpaceDialog({
               <Select<SpaceVisibility>
                 id="space-visibility"
                 className="mt-1"
-                options={visibilityOptions}
+                options={personalCommunity ? personalVisibilityOptions : visibilityOptions}
                 value={field.value}
                 onChange={(value) => {
                   field.onChange(value);

@@ -135,7 +135,9 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
         // The create and rename forms call it while the user types (#1136)
         Route::post(ApiRoutes::COMMUNITIES_IS_NAME_AVAILABLE, [CommunityApiController::class, 'isNameAvailable'])->middleware('ability:communities:read')->middleware('throttle:name-checks');
         Route::patch(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'update'])->middleware('ability:communities:write');
-        Route::delete(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'destroy'])->middleware('ability:communities:write');
+        // The deletion of a community has its own ability, never in the default set of a token (ADR 0022), and its body
+        // names the community
+        Route::delete(ApiRoutes::COMMUNITY, [CommunityApiController::class, 'destroy'])->middleware('ability:communities:delete');
         Route::patch(ApiRoutes::COMMUNITY_MODERATOR_PERMISSIONS, [ModeratorPermissionApiController::class, 'update'])->middleware('ability:communities:write');
         // Who can join the community (#1486)
         Route::patch(ApiRoutes::COMMUNITY_JOIN_POLICY, [JoinPolicyApiController::class, 'update'])->middleware('ability:communities:write');
@@ -322,8 +324,8 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::patch(ApiRoutes::COMMUNITY_ACCESS_GROUP, [AccessGroupApiController::class, 'update'])->middleware('ability:groups:write');
             Route::delete(ApiRoutes::COMMUNITY_ACCESS_GROUP, [AccessGroupApiController::class, 'destroy'])->middleware('ability:groups:write');
             Route::get(ApiRoutes::COMMUNITY_ACCESS_GROUP_MEMBERS, [AccessGroupApiController::class, 'members'])->middleware('ability:groups:read');
-            Route::post(ApiRoutes::COMMUNITY_ACCESS_GROUP_MEMBERS, [AccessGroupApiController::class, 'addMember'])->middleware('ability:groups:write');
-            Route::delete(ApiRoutes::COMMUNITY_ACCESS_GROUP_MEMBER, [AccessGroupApiController::class, 'removeMember'])->middleware('ability:groups:write');
+            Route::post(ApiRoutes::COMMUNITY_ACCESS_GROUP_MEMBERS, [AccessGroupApiController::class, 'addMember'])->middleware('ability:groups:write')->middleware('throttle:access-group-members');
+            Route::delete(ApiRoutes::COMMUNITY_ACCESS_GROUP_MEMBER, [AccessGroupApiController::class, 'removeMember'])->middleware('ability:groups:write')->middleware('throttle:access-group-members');
             // An access group opens whole space groups (#1422, ADR 0041)
             Route::get(ApiRoutes::COMMUNITY_ACCESS_GROUP_SPACE_GROUPS, [AccessGroupApiController::class, 'spaceGroups'])->middleware('ability:groups:read');
             Route::put(ApiRoutes::COMMUNITY_ACCESS_GROUP_SPACE_GROUPS, [AccessGroupApiController::class, 'setSpaceGroups'])->middleware('ability:groups:write');
@@ -341,8 +343,8 @@ Route::prefix(ApiRoutes::VERSION)->group(function () {
             Route::patch(ApiRoutes::COMMUNITY_MEMBER_TAG, [MemberTagApiController::class, 'update'])->middleware('ability:member-tags:write');
             Route::delete(ApiRoutes::COMMUNITY_MEMBER_TAG, [MemberTagApiController::class, 'destroy'])->middleware('ability:member-tags:write');
             Route::get(ApiRoutes::COMMUNITY_MEMBER_TAG_MEMBERS, [MemberTagApiController::class, 'members'])->middleware('ability:member-tags:read');
-            Route::post(ApiRoutes::COMMUNITY_MEMBER_TAG_MEMBERS, [MemberTagApiController::class, 'addMember'])->middleware('ability:member-tags:write');
-            Route::delete(ApiRoutes::COMMUNITY_MEMBER_TAG_MEMBER, [MemberTagApiController::class, 'removeMember'])->middleware('ability:member-tags:write');
+            Route::post(ApiRoutes::COMMUNITY_MEMBER_TAG_MEMBERS, [MemberTagApiController::class, 'addMember'])->middleware('ability:member-tags:write')->middleware('throttle:member-tag-members');
+            Route::delete(ApiRoutes::COMMUNITY_MEMBER_TAG_MEMBER, [MemberTagApiController::class, 'removeMember'])->middleware('ability:member-tags:write')->middleware('throttle:member-tag-members');
         });
 
         // Invitations (#1242). scopeBindings: an invitation of another community gives a 404

@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * Items whose Markdown can show uploaded images (posts, comments, #1201). Uses the same item column as the reactions
  * and the mentions (ADR 0014).
+ *
+ * @property int $community_id
  */
 trait UsesUploads
 {
@@ -22,8 +24,9 @@ trait UsesUploads
     }
 
     /**
-     * Record the uploads that the body uses, so that `uploads:prune` keeps them. Any upload counts, also one of another
-     * community (a quote): its file is public anyway.
+     * Record the uploads that the body uses, so that `uploads:prune` keeps them. Only an upload of the community of the
+     * item counts: an uploaded image lives as long as content of its own community shows it. A text that holds the path
+     * of an upload of another community shows the image while it exists, and records nothing.
      */
     final public function syncUploadUsages(string $body): void
     {
@@ -34,7 +37,7 @@ trait UsesUploads
             return;
         }
 
-        foreach (Upload::query()->whereIn('cuid', $cuids)->pluck('id') as $uploadId) {
+        foreach (Upload::query()->where('community_id', $this->community_id)->whereIn('cuid', $cuids)->pluck('id') as $uploadId) {
             $this->uploadUsages()->create(['upload_id' => $uploadId]);
         }
     }

@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Enums\KnowiiCommunityMemberRole;
+use App\Enums\KnowiiCommunityVisibility;
 use App\Enums\KnowiiModeratorPermission;
 use App\Enums\KnowiiSpacePostingPolicy;
 use App\Enums\KnowiiSpaceType;
@@ -23,11 +24,17 @@ class SpacePolicy
     /**
      * The one place of the reading rule (#1387, ADR 0044). A public space is readable by anyone, a visitor included,
      * except a chat space: it holds running talk and stays for signed-in people, also when it is public. Other spaces
-     * are readable by the community members only.
+     * are readable by the community members only. A space of a personal community is for its owner only, whatever its
+     * stored visibility: a personal community has no other member and no public space.
      */
     final public function view(?User $user, Space $space): bool
     {
         if ($space->visibility === KnowiiSpaceVisibility::Public) {
+            // A space of a personal community is for its owner only, whatever its stored visibility (ADR 0044)
+            if ($space->community->visibility === KnowiiCommunityVisibility::Personal) {
+                return $user !== null && $user->ownsCommunity($space->community);
+            }
+
             return $user !== null || $space->type !== KnowiiSpaceType::Chat;
         }
 

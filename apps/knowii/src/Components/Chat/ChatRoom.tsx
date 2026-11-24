@@ -28,6 +28,8 @@ export interface ChatRoomProps {
   canWrite: boolean;
   canReact: boolean;
   canModerate: boolean;
+  // False in a conversation where the member may no longer write: no "Edit" on their own messages. A chat space leaves it out
+  canEditOwn?: boolean | undefined;
   // A member of the community of a chat space can follow, mute or stop following a thread (#1497)
   follow?: { spaceCuid: string } | undefined;
   // Why the member cannot write, shown instead of the field (a block, direct messages turned off)
@@ -339,6 +341,7 @@ export function ChatRoom(props: ChatRoomProps) {
     currentUserCuid,
     canReact: props.canReact,
     canModerate: props.canModerate,
+    canEditOwn: props.canEditOwn,
     onEdit: (message: ChatMessage) => setEditingCuid(message.cuid),
     onCancelEdit: (message: ChatMessage) => stopEditing(message, false),
     onSave: save,

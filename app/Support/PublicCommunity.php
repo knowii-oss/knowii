@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Constants;
+use App\Enums\KnowiiCommunityVisibility;
 use App\Enums\KnowiiSpaceType;
 use App\Enums\KnowiiSpaceVisibility;
 use App\Models\Community;
@@ -17,16 +18,21 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * The public page of a community (#1485, ADR 0044): what a visitor and a signed-in person who is not a member may
- * read of a community. It exists only for a community with at least one public space that is not a chat space. A chat
- * space is never part of it, nor are the spaces that are not public.
+ * read of a community. It exists only for a shared community with at least one public space that is not a chat space.
+ * A chat space is never part of it, nor are the spaces that are not public. A personal community has no public page:
+ * it is the place of one person, and its spaces are never public (SpaceInputRules).
  */
 final class PublicCommunity
 {
     /**
-     * Whether the community has a public space that is not a chat space
+     * Whether the community is shared and has a public space that is not a chat space
      */
     public static function exists(Community $community): bool
     {
+        if ($community->visibility === KnowiiCommunityVisibility::Personal) {
+            return false;
+        }
+
         return $community->spaces()
             ->where('visibility', KnowiiSpaceVisibility::Public->value)
             ->where('type', '!=', KnowiiSpaceType::Chat->value)

@@ -176,6 +176,31 @@ test('participants read, edit, delete and react; the read marker clears the unre
     $this->actingAs($this->c['member'])->getJson($messagePath)->assertOk()->assertJsonPath('data.body', null);
 });
 
+test('a member edits a direct message only while they may still write in the conversation', function (string $case) {
+    $cuid = writeTo($this->c['member'], [$this->c['admin']], 'First');
+    $message = ChatMessage::query()->latest('id')->firstOrFail();
+    $messagePath = conversationPath($cuid, ApiRoutes::COMMUNITY_CONVERSATION_MESSAGE, $message->cuid);
+
+    if ($case === 'block') {
+        $this->actingAs($this->c['admin'])->putJson(ApiRoutes::path(ApiRoutes::USER_BLOCK, [ApiRoutes::PARAM_USER_CUID => $this->c['member']->cuid]))->assertOk();
+    } else {
+        $this->community->update(['direct_messages_enabled' => false]);
+    }
+    $this->app['auth']->forgetGuards();
+    $author = User::query()->findOrFail($this->c['member']->id);
+    Event::fake([ConversationChanged::class]);
+
+    $this->actingAs($author)->postJson(conversationPath($cuid, ApiRoutes::COMMUNITY_CONVERSATION_MESSAGES), ['body' => 'New'])->assertForbidden();
+    $this->actingAs($author)->patchJson($messagePath, ['body' => 'Changed'])->assertForbidden();
+    expect($message->fresh()->body)->toBe('First');
+    Event::assertNotDispatched(ConversationChanged::class);
+
+    // The author still reads the conversation and still deletes their own message
+    $this->actingAs($author)->getJson($messagePath)->assertOk()->assertJsonPath('data.body', 'First');
+    $this->actingAs($author)->deleteJson($messagePath)->assertOk();
+    expect($message->fresh()->isDeleted())->toBeTrue();
+})->with(['after a block' => ['block'], 'when the community turned direct messages off' => ['off']]);
+
 test('a direct message mentions its participants only', function () {
     writeTo($this->c['member'], [$this->c['admin']], "Hi @{$this->c['admin']->username} and @{$this->c['moderator']->username}");
 
@@ -210,6 +235,54 @@ test('a new message goes to the conversation channel and to the channel of each 
             && array_keys($event->broadcastWith()) === ['conversation_cuid', 'message_cuid', 'author_cuid']
             && $channels === $expected;
     });
+});
+
+test('the live updates of a conversation are for the participants who are still members of the community', function () {
+    // The owner is a member without a membership row: they keep the updates
+    $cuid = writeTo($this->c['member'], [$this->c['admin'], $this->c['moderator'], $this->c['owner']]);
+    $this->actingAs($this->c['owner'])
+        ->deleteJson(ApiRoutes::path(ApiRoutes::COMMUNITY_MEMBER, [ApiRoutes::PARAM_COMMUNITY => $this->community->cuid, ApiRoutes::PARAM_MEMBER => $this->c['moderator']->cuid]))
+        ->assertSuccessful();
+    expect($this->community->users()->whereKey($this->c['moderator']->id)->exists())->toBeFalse()
+        ->and(Conversation::query()->where('cuid', $cuid)->firstOrFail()->hasParticipant($this->c['moderator']))->toBeTrue();
+    $this->app['auth']->forgetGuards();
+
+    Event::fake([ConversationChanged::class]);
+    $this->actingAs($this->c['member'])->postJson(conversationPath($cuid, ApiRoutes::COMMUNITY_CONVERSATION_MESSAGES), ['body' => 'After the removal'])->assertCreated();
+
+    Event::assertDispatched(ConversationChanged::class, function (ConversationChanged $event) use ($cuid) {
+        $channels = array_map(fn (PrivateChannel $channel) => $channel->name, $event->broadcastOn());
+        $expected = ['private-conversation.'.$cuid, 'private-user.'.$this->c['admin']->cuid, 'private-user.'.$this->c['member']->cuid, 'private-user.'.$this->c['owner']->cuid];
+        sort($channels);
+        sort($expected);
+
+        return $channels === $expected && ! in_array($this->c['moderator']->cuid, $event->participantCuids, true);
+    });
+});
+
+test('the unread count of direct messages is for the conversations of the communities of which the person is still a member', function () {
+    $count = function (User $user): int {
+        $this->app['auth']->forgetGuards();
+
+        return $this->actingAs(User::query()->findOrFail($user->id))->getJson(ApiRoutes::path(ApiRoutes::NOTIFICATIONS_COUNT))->assertOk()->json('data.messages');
+    };
+    $cuid = writeTo($this->c['member'], [$this->c['admin'], $this->c['moderator'], $this->c['owner']]);
+    expect($count($this->c['moderator']))->toBe(1)->and($count($this->c['owner']))->toBe(1);
+
+    $this->community->removeUser($this->c['moderator']);
+    $this->app['auth']->forgetGuards();
+    $this->actingAs($this->c['member'])->postJson(conversationPath($cuid, ApiRoutes::COMMUNITY_CONVERSATION_MESSAGES), ['body' => 'After the removal'])->assertCreated();
+
+    // The person who left reads nothing of the conversation, so nothing of it is counted for them
+    expect($count($this->c['moderator']))->toBe(0)
+        ->and($count($this->c['owner']))->toBe(1)
+        ->and($count($this->c['admin']))->toBe(1);
+    $this->app['auth']->forgetGuards();
+    $this->actingAs(User::query()->findOrFail($this->c['moderator']->id))->getJson(conversationPath($cuid))->assertForbidden();
+
+    // Back in the community, the person finds the conversation and its unread messages again
+    $this->community->users()->attach($this->c['moderator'], ['role' => 'member']);
+    expect($count($this->c['moderator']))->toBe(1);
 });
 
 test('the channels of a conversation are for its participants, the channel of a member for that member', function () {

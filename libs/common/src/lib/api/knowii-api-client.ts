@@ -498,6 +498,8 @@ export const knowiiApiClient = {
         const response = await fetch(requestUrl, {
           method: 'delete',
           headers: defaultHeaders,
+          // The request names the community that it deletes: the server compares the name
+          body: JSON.stringify({ name: input.name }),
         });
 
         return response.status === HttpStatus.NO_CONTENT;
@@ -1650,13 +1652,15 @@ export const knowiiApiClient = {
           }
         },
         /**
-         * Add a member of the community, named by cuid, username or email (#1241). Adding twice changes nothing.
+         * Add a member of the community, named by cuid, username or email (#1241). Adding twice changes nothing. By cuid
+         * or username the answer is the member. By email the answer holds no member (204), whether a member of the
+         * community has the address or not: `data` is then undefined.
          */
-        add: (communityCuid: string, groupCuid: string, input: AccessGroupMemberInput): Promise<ApiResult<Author>> =>
+        add: (communityCuid: string, groupCuid: string, input: AccessGroupMemberInput): Promise<ApiResult<Author | undefined>> =>
           apiRequest(
             'post',
             accessGroupPath(communityCuid, groupCuid, COMMUNITY_ACCESS_GROUP_MEMBERS_API_PATH),
-            authorSchema,
+            authorSchema.optional(),
             'Failed to add the member.',
             input,
           ),

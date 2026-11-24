@@ -12,6 +12,11 @@ export interface ChatMessageItemProps {
   currentUserCuid: string | null;
   canReact: boolean;
   canModerate: boolean;
+  /**
+   * Whether the member may edit their own messages here. False in a conversation where they may no longer write (a
+   * block, direct messages turned off): the server refuses the edit, the delete of an own message stays.
+   */
+  canEditOwn?: boolean | undefined;
   editing: boolean;
   onEdit: (message: ChatMessage) => void;
   onCancelEdit: (message: ChatMessage) => void;
@@ -93,7 +98,7 @@ export function ChatMessageItem(props: ChatMessageItemProps) {
               Reply in thread
             </Button>
           )}
-          {own && !props.editing && (
+          {own && props.canEditOwn !== false && !props.editing && (
             <Button
               variant="ghost"
               size="sm"

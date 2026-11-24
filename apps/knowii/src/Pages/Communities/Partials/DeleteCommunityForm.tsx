@@ -31,13 +31,15 @@ export default function DeleteCommunityForm(props: Props) {
     reValidateMode: 'onChange',
   });
 
-  const deleteCommunity = deleteCommunityForm.handleSubmit(async () => {
+  const deleteCommunity = deleteCommunityForm.handleSubmit(async (data) => {
     setLoading(true);
 
+    // The server checks the name again: the request names the community that it deletes
     const succeeded = await knowiiApiClient.communities.delete({
       community: {
         cuid: props.communityCuid,
       },
+      name: data.communityName,
     });
 
     if (succeeded) {

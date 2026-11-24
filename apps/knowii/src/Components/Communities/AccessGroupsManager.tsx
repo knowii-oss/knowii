@@ -53,6 +53,11 @@ function validate(form: AccessGroupForm): FieldErrors {
   return errors;
 }
 
+/**
+ * The answer of the server to a moderator who adds a member by email address
+ */
+const EMAIL_SELECTOR_MESSAGE = 'Only the owner and the administrators add a member by email address. Use the username.';
+
 function serverErrors(errors: Record<string, string[]>): FieldErrors {
   return { name: errors['name']?.[0], description: errors['description']?.[0] };
 }
@@ -191,10 +196,11 @@ function GroupRulesDialog(props: { communityCuid: string; group: AccessGroup | n
 }
 
 /**
- * The members of one group (#1241): add a member of the community by username or email, remove members.
+ * The members of one group (#1241): add a member of the community by username or email, remove members. Only the owner
+ * and the admins add by email address: a moderator adds by username.
  */
-function GroupMembersDialog(props: { communityCuid: string; group: AccessGroup | null; onClose: () => void }) {
-  const { communityCuid, group, onClose } = props;
+function GroupMembersDialog(props: { communityCuid: string; group: AccessGroup | null; byEmail: boolean; onClose: () => void }) {
+  const { communityCuid, group, byEmail, onClose } = props;
   const { showToast } = useAppData();
   const [members, setMembers] = useState<AccessGroupMember[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
@@ -277,15 +283,20 @@ function GroupMembersDialog(props: { communityCuid: string; group: AccessGroup |
     }
     const value = who.trim();
     if (value === '') {
-      setError('Enter a username or an email address');
+      setError(byEmail ? 'Enter a username or an email address' : 'Enter a username');
+      return;
+    }
+    // An email has a character before the @ (@ada-lovelace is a username)
+    const isEmail = /^[^@\s]+@\S+$/.test(value);
+    if (isEmail && !byEmail) {
+      setError(EMAIL_SELECTOR_MESSAGE);
       return;
     }
     setAdding(true);
     const result = await knowiiApiClient.communities.accessGroups.members.add(
       communityCuid,
       group.cuid,
-      // An email has a character before the @ (@ada-lovelace is a username)
-      /^[^@\s]+@\S+$/.test(value) ? { email: value } : { username: value.replace(/^@/, '') },
+      isEmail ? { email: value } : { username: value.replace(/^@/, '') },
     );
     setAdding(false);
     if (!result.ok) {
@@ -294,7 +305,16 @@ function GroupMembersDialog(props: { communityCuid: string; group: AccessGroup |
     }
     setWho('');
     setError(undefined);
-    showToast({ severity: 'success', summary: `${result.data.name} added to ${group.name}` });
+    // By email the server answers without the member, whether a member of the community has the address or not
+    showToast(
+      result.data
+        ? { severity: 'success', summary: `${result.data.name} added to ${group.name}` }
+        : {
+            severity: 'info',
+            summary: 'Address sent',
+            detail: `If a member of the community has this address, they are now in ${group.name}.`,
+          },
+    );
     void load(0);
   };
 
@@ -339,7 +359,7 @@ function GroupMembersDialog(props: { communityCuid: string; group: AccessGroup |
         }}
       >
         <div className="flex-1">
-          <InputLabel htmlFor="access-group-member">Username or email</InputLabel>
+          <InputLabel htmlFor="access-group-member">{byEmail ? 'Username or email' : 'Username'}</InputLabel>
           <TextInput
             id="access-group-member"
             // The dialog opens to add a member: the field gets the focus
@@ -348,7 +368,7 @@ function GroupMembersDialog(props: { communityCuid: string; group: AccessGroup |
             wrapperClassName="mt-1"
             value={who}
             onChange={(event) => setWho(event.target.value)}
-            placeholder="ada-lovelace or ada@example.com"
+            placeholder={byEmail ? 'ada-lovelace or ada@example.com' : 'ada-lovelace'}
             invalid={!!error}
             aria-describedby={error ? 'access-group-member-error' : undefined}
           />
@@ -738,6 +758,8 @@ export function AccessGroupsManager({ communityCuid, permissions, refreshKey = 0
       <GroupMembersDialog
         communityCuid={communityCuid}
         group={membersOf}
+        // The owner and the admins (who manage the groups) also add by email address
+        byEmail={permissions.canManageAccessGroups}
         onClose={() => {
           setMembersOf(null);
           void reload();

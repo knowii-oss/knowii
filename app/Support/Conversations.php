@@ -46,7 +46,9 @@ final class Conversations
     }
 
     /**
-     * The messages after the read marker of the member in the conversations that they take part in, by the others
+     * The messages after the read marker of the member in the conversations that they take part in, by the others. Only
+     * in the communities of which the person is still a member (the owner, or a membership): a person who left or was
+     * removed reads nothing of the conversation (ConversationPolicy::view), so nothing of it is counted for them.
      */
     private static function unreadMessages(User $user): QueryBuilder
     {
@@ -55,6 +57,9 @@ final class Conversations
             ->where('conversation_participants.user_id', $user->id)
             ->whereColumn('chat_messages.id', '>', 'conversation_participants.last_read_message_id')
             ->where(fn (QueryBuilder $query) => $query->whereNull('chat_messages.author_id')->orWhere('chat_messages.author_id', '!=', $user->id))
+            ->where(fn (QueryBuilder $query) => $query
+                ->whereIn('chat_messages.community_id', DB::table('communities')->select('id')->where('owner_id', $user->id))
+                ->orWhereIn('chat_messages.community_id', DB::table('community_members')->select('community_id')->where('user_id', $user->id)))
             ->whereNull('chat_messages.deleted_at');
     }
 

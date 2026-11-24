@@ -608,6 +608,16 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(Constants::INVITATIONS_PER_MINUTE)->by(self::rateLimitKey($request));
         });
 
+        // The add and the remove of a member of an access group (ADR 0025), by hand or by a sync: one limit for both
+        RateLimiter::for('access-group-members', static function (Request $request) {
+            return Limit::perMinute(Constants::ACCESS_GROUP_MEMBER_CHANGES_PER_MINUTE)->by(self::rateLimitKey($request));
+        });
+
+        // The add and the remove of a member tag on a member (ADR 0060): one limit for both
+        RateLimiter::for('member-tag-members', static function (Request $request) {
+            return Limit::perMinute(Constants::MEMBER_TAG_MEMBER_CHANGES_PER_MINUTE)->by(self::rateLimitKey($request));
+        });
+
         // The upload, the confirm and the send again of an import of invitations from a file (#1390, ADR 0061)
         RateLimiter::for('invitation-imports', static function (Request $request) {
             return Limit::perMinute(Constants::INVITATION_IMPORTS_PER_MINUTE)->by(self::rateLimitKey($request));

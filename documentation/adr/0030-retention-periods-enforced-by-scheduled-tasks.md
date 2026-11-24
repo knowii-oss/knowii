@@ -15,6 +15,7 @@ The privacy policy (#77) tells members how long Knowii keeps each kind of data. 
 2. Scheduled tasks apply them every day (`routes/console.php`): `uploads:prune`, `retention:prune` (invitations, API tokens, failed jobs, password reset tokens, database sessions, database cache entries, community export files after `RETENTION_EXPORTS_DAYS`, 7 days by default, #1353) and `mailing-lists:prune` (EmailOctopus API: waitlist contacts after 12 months, unconfirmed and unsubscribed contacts after 30 days). Each task has a dry run.
 3. The legal pages show the periods through placeholders filled from `Retention::periods()`, never as numbers typed in the text.
 4. Periods that the server applies (log rotation, backups) are configuration values too. `SELF_HOSTING.md` tells the operator to use the same numbers. The backup script of #1182 reads `RETENTION_BACKUPS_*`.
+5. An uploaded image lives as long as content of its own community shows it (2026-11-24): `uploads:prune` deletes an upload that no post, comment, message, page or event uses, and a usage is recorded only for an upload of the same community as the item (`UsesUploads::syncUploadUsages`). A text that holds the path of an upload of another community shows the image while it exists, and records nothing: the file goes with the content of the community that owns it.
 
 ## Consequences
 

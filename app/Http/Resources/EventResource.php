@@ -8,6 +8,7 @@ use App\Models\Space;
 use App\Models\Upload;
 use App\Models\User;
 use App\Support\EventAnswers;
+use App\Support\MentionLinks;
 use App\Support\VideoEmbed;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
@@ -92,14 +93,15 @@ class EventResource extends AbstractKnowiiJsonResource
             // The community of the event, when a read loaded it (#1515): "My events" names it. A reader of the event knows it
             'community' => $this->whenLoaded('community', fn (Community $community) => ['cuid' => $community->cuid, 'slug' => $community->slug, 'name' => $community->name]),
             'body' => $this->serializeLargeFields ? $event->body : null,
-            'body_html' => $this->serializeLargeFields ? $event->body_html : null,
+            // A mention is a link for a member of the community only (MentionLinks)
+            'body_html' => $this->serializeLargeFields ? MentionLinks::forReader($event->body_html, $request, $event->community_id) : null,
             // After the event (#1516): the replay for the members who can see the event, cut on the server
             'can_view_replay' => $canViewReplay,
             'replay_url' => $canViewReplay ? $event->replay_url : null,
             'replay' => $canViewReplay ? VideoEmbed::parse($event->replay_url) : null,
             // For every reader of the event, with the description. Empty: no notes
             'notes' => $this->serializeLargeFields ? $event->notes : null,
-            'notes_html' => $this->serializeLargeFields ? $event->notes_html : null,
+            'notes_html' => $this->serializeLargeFields ? MentionLinks::forReader($event->notes_html, $request, $event->community_id) : null,
             'created_at' => $event->created_at,
             'updated_at' => $event->updated_at,
         ];

@@ -19,7 +19,7 @@ Which names matter depends on the instance: knowii.net protects the DeveloPassio
 4. `App\Rules\AvailableCommunityName` treats a reserved name as taken, for the creation, the rename and the name check. The answer is the same as for a name in use, so nobody reads the list through the API.
 5. The accounts of `COMMUNITY_RESERVED_NAMES_OWNERS` (email addresses, separated by commas) can use a reserved name. The address must be verified. These are the administrators of the instance; there is no administrator role in the database yet.
 6. A community keeps its own name: a name that becomes reserved later does not block the settings of the community that has it.
-7. Personal communities are not checked, like in ADR 0033.
+7. The reserved names hold for every community, a personal one too (2026-11-24): a personal community gets its address from its name like a shared one, so `CreateCommunity` and `UpdateCommunity` refuse a reserved name, and a name that gives the address of one, for it as well. The accounts of point 5 keep their right, and a personal community that already has such a name keeps it (point 6). Only the unique name of ADR 0033 stays a rule of the shared communities. The personal community of a sign-up is named "<name>'s Space", which is never a reserved name.
 
 ## Consequences
 

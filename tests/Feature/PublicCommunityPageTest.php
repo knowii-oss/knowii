@@ -2,6 +2,7 @@
 
 use App\ApiRoutes;
 use App\Constants;
+use App\Enums\KnowiiCommunityVisibility;
 use App\Enums\KnowiiSpaceType;
 use App\Enums\KnowiiSpaceVisibility;
 use App\Models\AccessGroup;
@@ -12,6 +13,9 @@ use App\Models\Post;
 use App\Models\Space;
 use App\Models\SpaceGroup;
 use App\Models\User;
+use App\Support\PublicCommunity;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Testing\TestResponse;
 use Laravel\Sanctum\Sanctum;
@@ -530,4 +534,88 @@ test('community: a community that is not shared keeps its page for members only'
     $this->actingAs($owner)->get($url)->assertOk()->assertInertia(fn ($page) => $page->component('Communities/Show'));
     app('auth')->forgetGuards();
     $this->get($url)->assertRedirect(route('login'));
+});
+
+test('community: a personal community has no public page, also with a space that says public', function () {
+    $owner = User::factory()->withUserProfile()->create();
+    $community = Community::factory()->create(['owner_id' => $owner->id, 'visibility' => KnowiiCommunityVisibility::Personal, 'name' => 'Field notes', 'description' => 'The notes of one person']);
+    $group = SpaceGroup::factory()->create(['community_id' => $community->id]);
+    // A row that the actions refuse: the page does not depend on them
+    $space = Space::factory()->inGroup($group)->create(['type' => KnowiiSpaceType::Discussion, 'visibility' => KnowiiSpaceVisibility::Public]);
+    Post::factory()->inSpace($space)->create(['author_id' => $owner->id, 'title' => 'A note of the owner']);
+    $outsider = User::factory()->withUserProfile()->create();
+    $url = route('communities.show', ['communitySlug' => $community->slug]);
+    $params = [ApiRoutes::PARAM_COMMUNITY => $community->cuid];
+
+    expect(PublicCommunity::exists($community))->toBeFalse()
+        ->and(PublicCommunity::showsPublicPage(null, $community))->toBeFalse()
+        ->and(PublicCommunity::showsPublicPage($outsider, $community))->toBeFalse();
+
+    // A visitor: the sign-in page on the web, 404 from the API, as for a community that does not exist
+    $this->get($url)->assertRedirect(route('login'));
+    foreach ([ApiRoutes::COMMUNITY, ApiRoutes::COMMUNITY_SPACE_GROUPS, ApiRoutes::COMMUNITY_NEWEST_POSTS] as $route) {
+        $response = $this->getJson(ApiRoutes::path($route, $params))->assertNotFound();
+        expect($response->getContent())->not->toContain('Field notes')->not->toContain('A note of the owner');
+    }
+
+    // A signed-in person who is not a member: the page without access, with nothing of the community
+    $page = $this->actingAs($outsider)->get($url)->assertForbidden();
+    expect($page->getContent())->not->toContain('Field notes')->not->toContain('The notes of one person')->not->toContain('A note of the owner');
+    $this->actingAs($outsider)->getJson(ApiRoutes::path(ApiRoutes::COMMUNITY, $params))->assertForbidden();
+
+    // The owner reads their community
+    app('auth')->forgetGuards();
+    $this->actingAs($owner)->get($url)->assertOk()->assertInertia(fn ($page) => $page->component('Communities/Show'));
+});
+
+test('community: a space of a personal community is for its owner only, also when its row says public', function () {
+    $owner = User::factory()->withUserProfile()->create();
+    $community = Community::factory()->create(['owner_id' => $owner->id, 'visibility' => KnowiiCommunityVisibility::Personal]);
+    $group = SpaceGroup::factory()->create(['community_id' => $community->id]);
+    $discussion = Space::factory()->inGroup($group)->create(['type' => KnowiiSpaceType::Discussion, 'visibility' => KnowiiSpaceVisibility::Members]);
+    $events = Space::factory()->inGroup($group)->create(['type' => KnowiiSpaceType::Events, 'visibility' => KnowiiSpaceVisibility::Members]);
+    // A row that the actions refuse, written in the database: the reading rule does not depend on them
+    DB::table('spaces')->whereIn('id', [$discussion->id, $events->id])->update(['visibility' => KnowiiSpaceVisibility::Public->value]);
+    $post = Post::factory()->inSpace($discussion)->create(['author_id' => $owner->id, 'title' => 'A note of the owner']);
+    EventModel::factory()->inSpace($events)->hostedBy($owner)->create(['title' => 'A meeting of the owner']);
+    $outsider = User::factory()->withUserProfile()->create();
+    $params = [ApiRoutes::PARAM_COMMUNITY => $community->cuid];
+
+    $reads = [
+        'web space' => fn () => test()->get(route('spaces.show', ['communitySlug' => $community->slug, 'spaceSlug' => $discussion->slug])),
+        'web post' => fn () => test()->get(route('posts.show', ['communitySlug' => $community->slug, 'spaceSlug' => $discussion->slug, 'postSlug' => $post->slug])),
+        'api space' => fn () => test()->getJson(ApiRoutes::path(ApiRoutes::COMMUNITY_SPACE, [...$params, ApiRoutes::PARAM_SPACE => $discussion->cuid])),
+        'api posts' => fn () => test()->getJson(ApiRoutes::path(ApiRoutes::COMMUNITY_SPACE_POSTS, [...$params, ApiRoutes::PARAM_SPACE => $discussion->cuid])),
+        'api events' => fn () => test()->getJson(ApiRoutes::path(ApiRoutes::COMMUNITY_SPACE_EVENTS, [...$params, ApiRoutes::PARAM_SPACE => $events->cuid])),
+    ];
+
+    $statuses = [];
+    foreach ([null, $outsider] as $reader) {
+        foreach ($reads as $what => $read) {
+            app('auth')->forgetGuards();
+            test()->flushSession();
+            if ($reader !== null) {
+                test()->actingAs($reader);
+            }
+            $response = $read();
+            $statuses[($reader === null ? 'visitor ' : 'outsider ').$what] = $response->getStatusCode();
+            expect($response->getContent())->not->toContain('A note of the owner')->not->toContain('A meeting of the owner');
+        }
+        expect(Gate::forUser($reader)->check('view', $discussion->fresh()))->toBeFalse()
+            ->and(Gate::forUser($reader)->check('view', $events->fresh()))->toBeFalse();
+    }
+    // A visitor: the sign-in page on the web, 401 from the API; another account: 403
+    expect($statuses)->toBe([
+        'visitor web space' => 302, 'visitor web post' => 302, 'visitor api space' => 401, 'visitor api posts' => 401, 'visitor api events' => 401,
+        'outsider web space' => 403, 'outsider web post' => 403, 'outsider api space' => 403, 'outsider api posts' => 403, 'outsider api events' => 403,
+    ]);
+
+    // The owner reads the spaces, the post and the event
+    app('auth')->forgetGuards();
+    test()->actingAs($owner);
+    foreach ($reads as $read) {
+        $read()->assertOk();
+    }
+    expect($reads['api posts']()->getContent())->toContain('A note of the owner')
+        ->and($reads['api events']()->getContent())->toContain('A meeting of the owner');
 });

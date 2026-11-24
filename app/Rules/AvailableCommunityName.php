@@ -15,8 +15,10 @@ use Illuminate\Contracts\Validation\ValidationRule;
  * shared community has the same name, whatever the case, or has the address (slug) that this name gives.
  * Personal communities never take a name: each member has one, and nobody else sees it.
  *
- * A reserved name (ADR 0036, #1340) is taken for everyone except the administrators of the instance. The answer is
- * the same as for a name that a community has: nobody learns which names are reserved.
+ * A reserved name (ADR 0036, #1340) is taken for everyone except the administrators of the instance, for every
+ * community: a personal community gets its address from its name like a shared one, so it cannot have a reserved name
+ * or a name that gives the address of one. The answer is the same as for a name that a community has: nobody learns
+ * which names are reserved.
  */
 final readonly class AvailableCommunityName implements ValidationRule
 {
@@ -25,10 +27,11 @@ final readonly class AvailableCommunityName implements ValidationRule
     /**
      * @param  Community|null  $except  the community that is renamed: its own name and address stay available to it
      * @param  User|null  $user  the user who creates or renames the community: reserved names are for some users only
+     * @param  bool  $unique  false for a personal community: only the reserved names are refused, never a name in use
      */
-    public function __construct(private ?Community $except = null, private ?User $user = null) {}
+    public function __construct(private ?Community $except = null, private ?User $user = null, private bool $unique = true) {}
 
-    public static function isAvailable(string $name, ?Community $except = null, ?User $user = null): bool
+    public static function isAvailable(string $name, ?Community $except = null, ?User $user = null, bool $unique = true): bool
     {
         $name = trim($name);
         $slug = SlugService::createSlug(Community::class, 'slug', $name, ['unique' => false]);
@@ -37,6 +40,10 @@ final readonly class AvailableCommunityName implements ValidationRule
         $isOwnName = $except !== null && (mb_strtolower($except->name) === mb_strtolower($name) || $except->slug === $slug);
         if (! $isOwnName && ReservedCommunityNames::isReserved($name) && ! ReservedCommunityNames::canBeUsedBy($user)) {
             return false;
+        }
+
+        if (! $unique) {
+            return true;
         }
 
         return ! Community::query()
@@ -48,7 +55,7 @@ final readonly class AvailableCommunityName implements ValidationRule
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (is_string($value) && ! self::isAvailable($value, $this->except, $this->user)) {
+        if (is_string($value) && ! self::isAvailable($value, $this->except, $this->user, $this->unique)) {
             $fail(self::MESSAGE);
         }
     }

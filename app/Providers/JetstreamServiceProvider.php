@@ -165,6 +165,8 @@ class JetstreamServiceProvider extends ServiceProvider
             'account:delete',
             'communities:read',
             'communities:write',
+            // Deletes a community that the member owns (ADR 0022, ADR 0035): never in the default set, it cannot be undone
+            'communities:delete',
             'posts:read',
             'posts:write',
             'chat:read',

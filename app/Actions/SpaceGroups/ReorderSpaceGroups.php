@@ -7,6 +7,7 @@ use App\Events\Spaces\SpaceTreeChanged;
 use App\Models\Community;
 use App\Models\SpaceGroup;
 use App\Models\User;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -17,10 +18,16 @@ class ReorderSpaceGroups implements ReordersSpaceGroups
 {
     /**
      * Set the order of all the space groups of a community. The input lists every group of the community once.
+     *
+     * A manager moves a group only when they can read every space of it (UpdateSpaceGroup::authorizeEverySpace): the
+     * other groups move around a group that holds a space that they cannot read.
+     *
+     * @throws AuthorizationException
      */
     final public function reorder(User $user, Community $community, array $input): Collection
     {
-        Gate::forUser($user)->authorize('manageSpaces', $community);
+        $gate = Gate::forUser($user);
+        $gate->authorize('manageSpaces', $community);
 
         /** @var array{space_group_cuids: list<string>} $validated */
         $validated = Validator::make($input, [
@@ -35,6 +42,16 @@ class ReorderSpaceGroups implements ReordersSpaceGroups
             throw ValidationException::withMessages([
                 'space_group_cuids' => 'List every space group of the community exactly once',
             ]);
+        }
+
+        // A group moves when its place among the groups changes
+        $current = $groups->keys()->all();
+        foreach ($requested as $index => $cuid) {
+            if (($current[$index] ?? null) !== $cuid) {
+                /** @var SpaceGroup $group */
+                $group = $groups->get($cuid);
+                UpdateSpaceGroup::authorizeEverySpace($gate, $group->setRelation('community', $community));
+            }
         }
 
         DB::transaction(function () use ($requested, $groups) {

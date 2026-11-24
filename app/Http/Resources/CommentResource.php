@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Comment;
+use App\Support\MentionLinks;
 use Illuminate\Http\Request;
 
 /**
@@ -23,7 +24,8 @@ class CommentResource extends AbstractKnowiiJsonResource
             'cuid' => $this->cuid,
             // A deleted comment is a marker (#1344): no text, no author, whatever the row holds
             'body' => $deleted ? '' : $this->body,
-            'body_html' => $deleted ? '' : $this->body_html,
+            // A mention is a link for a member of the community only (MentionLinks)
+            'body_html' => $deleted ? '' : MentionLinks::forReader($this->body_html, $request, $this->community_id),
             'edited_at' => $this->edited_at,
             'author' => $deleted ? null : $this->author?->toResource(AuthorResource::class),
             'parent_cuid' => $this->parent_id === null ? null : ($this->relationLoaded('parent') ? $this->parent?->cuid : $this->parent()->value('cuid')),

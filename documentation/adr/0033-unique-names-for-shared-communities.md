@@ -16,7 +16,7 @@ The address (slug) of a community never changes after a rename (#508), so an old
 ## Decision
 
 1. The name of a shared community (private or public) is unique among the shared communities. A name is taken when another shared community has the same name, whatever the case, or has the address that this name gives (so "Knowledge-Builders" is taken by "Knowledge Builders", and the old name of a renamed community stays taken).
-2. Personal communities never take a name, and nobody checks theirs.
+2. Personal communities never take a name, and nobody checks theirs for uniqueness. The reserved names of [ADR 0036](0036-reserved-community-names.md) hold for them too.
 3. `App\Rules\AvailableCommunityName` holds the rule. `CreateCommunity` and `UpdateCommunity` apply it (a 400 validation error on `name`). A community that is renamed keeps its own name and address available to itself.
 4. `POST /api/v1/communities/is-name-available` (ability `communities:read`, rate limited) answers `{ "available": bool }` for a name. The answer never tells which community took the name, or whether it is private. To check a new name for a community, its owner sends its cuid in `community`; anyone else gets a 403.
 5. A partial unique index on `lower(name)` for the shared communities stops two requests that create the same name at the same time.

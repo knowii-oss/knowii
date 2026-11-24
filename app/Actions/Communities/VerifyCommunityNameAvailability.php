@@ -4,6 +4,7 @@ namespace App\Actions\Communities;
 
 use App\Constants;
 use App\Contracts\Communities\VerifiesCommunityNameAvailability;
+use App\Enums\KnowiiCommunityVisibility;
 use App\Models\Community;
 use App\Models\User;
 use App\Rules\AvailableCommunityName;
@@ -38,6 +39,7 @@ class VerifyCommunityNameAvailability implements VerifiesCommunityNameAvailabili
             Gate::forUser($user)->authorize('update', $except);
         }
 
-        return AvailableCommunityName::isAvailable($validated['name'], $except, $user);
+        // A personal community never takes a name (ADR 0033): for it, only the reserved names are taken (ADR 0036)
+        return AvailableCommunityName::isAvailable($validated['name'], $except, $user, $except?->visibility !== KnowiiCommunityVisibility::Personal);
     }
 }

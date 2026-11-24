@@ -41,6 +41,7 @@ class UpdateSpace implements UpdatesSpaces
             // does not mute a space for the members: a mute is the choice of each member
             'default_notification_level' => ['sometimes', 'nullable', Rule::in([KnowiiSpaceNotificationLevel::All->value, KnowiiSpaceNotificationLevel::Mine->value])],
         ])->validate();
+        SpaceInputRules::refusePublicInPersonalCommunity($community, $validated['visibility'] ?? null);
 
         // "Everything" is a stream of new posts or events: only a discussion space and an events space (#1513) have one as a
         // default, and a chat space is never at "Everything" by default

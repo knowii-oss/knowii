@@ -9,12 +9,14 @@ use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Events\Dispatchable;
 
 /**
  * A message of a conversation changed (#1186, ADR 0028). Identifiers only, like SpaceContentChanged: the page loads the
  * message through the API, which checks the access. On the private channel of the conversation (participants only),
- * and on the channel of each participant, so their lists and unread counts follow.
+ * and on the channel of each participant who is still a member of the community, so their lists and unread counts
+ * follow.
  */
 class ConversationChanged implements ShouldBroadcast, ShouldDispatchAfterCommit
 {
@@ -39,13 +41,26 @@ class ConversationChanged implements ShouldBroadcast, ShouldDispatchAfterCommit
         public readonly array $participantCuids,
     ) {}
 
+    /**
+     * The event goes to the participants who are still members of the community: its owner, or a person with a
+     * membership (the rule of ConversationPolicy::view). A participant who left or was removed keeps the row of the
+     * conversation, for a return, and gets nothing of it meanwhile.
+     */
     public static function forMessage(string $name, ChatMessage $message, ?string $authorCuid = null): self
     {
         /** @var Conversation $conversation */
         $conversation = $message->conversation;
+        $community = $conversation->community;
 
         /** @var list<string> $participantCuids */
-        $participantCuids = $conversation->participants()->pluck('cuid')->map(fn (mixed $cuid) => is_string($cuid) ? $cuid : '')->values()->all();
+        $participantCuids = $conversation->participants()
+            ->where(static fn (Builder $query) => $query
+                ->where('users.id', $community->owner_id)
+                ->orWhereIn('users.id', $community->users()->select('users.id')))
+            ->pluck('cuid')
+            ->map(fn (mixed $cuid) => is_string($cuid) ? $cuid : '')
+            ->values()
+            ->all();
 
         return new self($name, $conversation->cuid, $message->cuid, $authorCuid, $participantCuids);
     }
