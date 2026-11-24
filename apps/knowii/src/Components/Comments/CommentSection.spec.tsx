@@ -2,7 +2,7 @@ import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest';
 import axe from 'axe-core';
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { Comment } from '@knowii/common';
+import type { Comment, Paginated } from '@knowii/common';
 import { AppDataProvider, knowiiApiClient } from '@knowii/common';
 import { CommentSection } from './CommentSection';
 import { emitSocketEvent } from '@/test-utils/fake-echo';
@@ -23,6 +23,25 @@ function comment(cuid: string, author: typeof ada, body: string, parent: string 
     replies,
     created_at: now,
     updated_at: now,
+  };
+}
+
+/**
+ * One page of comments that holds every comment (ADR 0073)
+ */
+function onePage(items: Comment[], nextOffset: number | null = null, totalCount?: number): Paginated<Comment> {
+  const total = totalCount ?? items.reduce((count, item) => count + 1 + (item.replies?.length ?? 0), 0);
+  return {
+    items,
+    pagination: {
+      limit: 100,
+      offset: 0,
+      previousOffset: null,
+      nextOffset,
+      currentPage: 1,
+      pageCount: Math.max(1, Math.ceil(total / 100)),
+      totalCount: total,
+    },
   };
 }
 
@@ -214,7 +233,7 @@ describe('CommentSection on an event (#1516)', () => {
   it('loads the comments again on a live update of this event, never on one of another event, post or resource', async () => {
     const list = vi
       .spyOn(knowiiApiClient.communities.comments, 'list')
-      .mockResolvedValue({ ok: true, message: '', data: [...initial, comment('c3', bob, 'Live one')] });
+      .mockResolvedValue({ ok: true, message: '', data: onePage([...initial, comment('c3', bob, 'Live one')]) });
     renderSection({ subject });
 
     act(() => emitSocketEvent(channel, 'space.comment.created', { space_cuid: 'space', event_cuid: 'other', comment_cuid: 'x1' }));
@@ -224,7 +243,7 @@ describe('CommentSection on an event (#1516)', () => {
 
     act(() => emitSocketEvent(channel, 'space.comment.created', { space_cuid: 'space', event_cuid: 'event', comment_cuid: 'c3' }));
     expect(await screen.findByText('Live one')).toBeInTheDocument();
-    expect(list).toHaveBeenCalledWith(subject);
+    expect(list).toHaveBeenCalledWith(subject, 0);
   });
 
   it('has no automated violation (axe)', async () => {
@@ -348,7 +367,7 @@ describe('CommentSection focus after a reply or an edit (#1624)', () => {
       comment('c2', bob, 'Second'),
       comment('c3', bob, 'Live one'),
     ];
-    vi.spyOn(knowiiApiClient.communities.comments, 'list').mockResolvedValue({ ok: true, message: '', data: live });
+    vi.spyOn(knowiiApiClient.communities.comments, 'list').mockResolvedValue({ ok: true, message: '', data: onePage(live) });
     renderSection();
 
     const editor = await writeReply(screen.getByRole('button', { name: 'Reply to Ada' }), 'Me too');
@@ -380,11 +399,11 @@ describe('CommentSection focus after a reply or an edit (#1624)', () => {
     const list = vi.spyOn(knowiiApiClient.communities.comments, 'list').mockResolvedValue({
       ok: true,
       message: '',
-      data: [
+      data: onePage([
         comment('c1', ada, 'First', null, [comment('r1', bob, 'A reply', 'c1'), comment('r2', ada, 'Me too', 'c1')]),
         comment('c2', bob, 'Second'),
         comment('c3', bob, 'Live one'),
-      ],
+      ]),
     });
     renderSection();
 
@@ -408,7 +427,7 @@ describe('CommentSection live updates (#1180)', () => {
   it('loads the comments again when one of this post changes, and keeps the reply being typed', async () => {
     const list = vi
       .spyOn(knowiiApiClient.communities.comments, 'list')
-      .mockResolvedValue({ ok: true, message: '', data: [...initial, comment('c3', bob, 'Live one')] });
+      .mockResolvedValue({ ok: true, message: '', data: onePage([...initial, comment('c3', bob, 'Live one')]) });
     const onCountChange = renderSection();
 
     await userEvent.click(screen.getByRole('button', { name: 'Reply to Ada' }));
@@ -418,7 +437,7 @@ describe('CommentSection live updates (#1180)', () => {
     act(() => emitSocketEvent(channel, 'space.comment.created', { space_cuid: 'space', post_cuid: 'post', comment_cuid: 'c3' }));
 
     expect(await screen.findByText('Live one')).toBeInTheDocument();
-    expect(list).toHaveBeenCalledWith({ communityCuid: 'community', spaceCuid: 'space', postCuid: 'post' });
+    expect(list).toHaveBeenCalledWith({ communityCuid: 'community', spaceCuid: 'space', postCuid: 'post' }, 0);
     expect(onCountChange).toHaveBeenLastCalledWith(4);
     expect(screen.getByRole('textbox', { name: 'Reply to Ada' })).toHaveValue('Half-written');
   });
@@ -519,6 +538,70 @@ describe('CommentSection permalinks and collapsed threads (#1205)', () => {
 
     expect(screen.getByText('A reply')).toBeInTheDocument();
     expect(document.getElementById('comment-r1')).toHaveFocus();
+  });
+});
+
+describe('CommentSection pages (ADR 0073)', () => {
+  const channel = 'community.community.space.space';
+  // The first page ends inside the thread of Ada: the next page has Ada again with her next reply, then Bob
+  const first = [comment('c1', ada, 'First', null, [comment('r1', bob, 'A reply', 'c1')])];
+  const second = onePage(
+    [comment('c1', ada, 'First', null, [comment('r2', ada, 'Another reply', 'c1')]), comment('c2', bob, 'Second')],
+    null,
+    4,
+  );
+
+  beforeEach(() => {
+    window.localStorage.clear();
+    window.history.replaceState(null, '', '/community/c/space/s/post/p');
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  it('counts every comment, and "Load more comments" adds the next page to the threads', async () => {
+    const list = vi.spyOn(knowiiApiClient.communities.comments, 'list').mockResolvedValue({ ok: true, message: '', data: second });
+    renderSection({ initialComments: first, initialPagination: onePage(first, 2, 4).pagination });
+
+    expect(screen.getByRole('heading', { name: '4 comments' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Load more comments' }));
+
+    expect(list).toHaveBeenCalledWith({ communityCuid: 'community', spaceCuid: 'space', postCuid: 'post' }, 2);
+    const replies = screen.getByRole('list', { name: 'Replies to the comment by Ada' });
+    expect(
+      within(replies)
+        .getAllByRole('article')
+        .map((item) => item.id),
+    ).toEqual(['comment-r1', 'comment-r2']);
+    expect(screen.getAllByRole('article', { name: 'Comment by Ada' })).toHaveLength(2);
+    // The focus goes to the first new thread, and every comment is loaded
+    await waitFor(() => expect(document.getElementById('comment-c2')).toHaveFocus());
+    expect(screen.queryByRole('button', { name: 'Load more comments' })).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '4 comments' })).toBeInTheDocument();
+  });
+
+  it('loads the pages until the comment of a link, and gives it the focus in its collapsed thread', async () => {
+    window.localStorage.setItem('knowii:collapsed-comments:post', JSON.stringify(['c2']));
+    window.history.replaceState(null, '', '/community/c/space/s/post/p#comment-c2');
+    vi.spyOn(knowiiApiClient.communities.comments, 'list').mockResolvedValue({ ok: true, message: '', data: second });
+
+    renderSection({ initialComments: first, initialPagination: onePage(first, 2, 4).pagination });
+
+    await waitFor(() => expect(document.getElementById('comment-c2')).toHaveFocus());
+    expect(screen.getByText('Second')).toBeInTheDocument();
+  });
+
+  it('loads again the pages that it shows on a live update, not more', async () => {
+    const list = vi
+      .spyOn(knowiiApiClient.communities.comments, 'list')
+      .mockResolvedValueOnce({ ok: true, message: '', data: onePage([...first, comment('c3', bob, 'Live one')], 2, 5) });
+    renderSection({ initialComments: first, initialPagination: onePage(first, 2, 4).pagination });
+
+    act(() => emitSocketEvent(channel, 'space.comment.created', { space_cuid: 'space', post_cuid: 'post', comment_cuid: 'c3' }));
+
+    expect(await screen.findByText('Live one')).toBeInTheDocument();
+    expect(list).toHaveBeenCalledTimes(1);
+    expect(list).toHaveBeenCalledWith({ communityCuid: 'community', spaceCuid: 'space', postCuid: 'post' }, 0);
+    expect(screen.getByRole('heading', { name: '5 comments' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Load more comments' })).toBeInTheDocument();
   });
 });
 

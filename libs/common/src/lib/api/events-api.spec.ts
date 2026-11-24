@@ -393,7 +393,8 @@ describe('the calls of the comments of an event (#1516)', () => {
     await run({ data: [] }, () => knowiiApiClient.communities.reactions.whoReacted({ ...subject, commentCuid: 'k1' }));
 
     expect(calls).toEqual([
-      ['GET', base],
+      // One page of the comments (ADR 0073)
+      ['GET', `${base}?limit=100&offset=0`],
       ['POST', base],
       ['PATCH', `${base}/k1`],
       ['DELETE', `${base}/k1`],
@@ -405,10 +406,10 @@ describe('the calls of the comments of an event (#1516)', () => {
   it('keeps the addresses of the comments of a post and of a resource', async () => {
     let fetchMock = answer({ data: [] });
     await knowiiApiClient.communities.comments.list({ communityCuid: 'c1', spaceCuid: 's1', postCuid: 'p1' });
-    expect(callOf(fetchMock).url).toBe('/api/v1/communities/c1/spaces/s1/posts/p1/comments');
+    expect(callOf(fetchMock).url).toBe('/api/v1/communities/c1/spaces/s1/posts/p1/comments?limit=100&offset=0');
 
     fetchMock = answer({ data: [] });
-    await knowiiApiClient.communities.comments.list({ communityCuid: 'c1', spaceCuid: 's1', resourceCuid: 'r1' });
-    expect(callOf(fetchMock).url).toBe('/api/v1/communities/c1/spaces/s1/resources/r1/comments');
+    await knowiiApiClient.communities.comments.list({ communityCuid: 'c1', spaceCuid: 's1', resourceCuid: 'r1' }, 200);
+    expect(callOf(fetchMock).url).toBe('/api/v1/communities/c1/spaces/s1/resources/r1/comments?limit=100&offset=200');
   });
 });

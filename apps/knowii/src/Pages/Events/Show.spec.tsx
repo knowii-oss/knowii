@@ -2,12 +2,23 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
-import type { Comment, Community, EventPermissions, SpaceEvent } from '@knowii/common';
+import type { Comment, Community, EventPermissions, Pagination, SpaceEvent } from '@knowii/common';
 import { AppDataProvider, knowiiApiClient } from '@knowii/common';
 import { emitSocketEvent } from '@/test-utils/fake-echo';
 import { EVENT_TEST_NOW, eventFixture, eventsCommunity, eventsRoute, eventsSpace } from '@/test-utils/events';
 import { Toaster } from '@/Components/ui';
 import EventPage from './Show';
+
+// The comments of the page fit in one page (ADR 0073)
+const ONE_PAGE = (comments: Comment[]): Pagination => ({
+  limit: 100,
+  offset: 0,
+  previousOffset: null,
+  nextOffset: null,
+  currentPage: 1,
+  pageCount: 1,
+  totalCount: comments.reduce((count, comment) => count + 1 + (comment.replies?.length ?? 0), 0),
+});
 
 // An address with a script scheme, in two parts: it must never become a link
 const NOT_AN_ADDRESS = ['java', 'script:alert(1)'].join('');
@@ -112,7 +123,15 @@ function renderPage(event: SpaceEvent, { reader = 'member', zone = 'America/New_
   const community = { ...eventsCommunity, is_member: reader === 'member' } as Community;
   return render(
     <AppDataProvider>
-      <EventPage community={community} space={eventsSpace} spaceGroups={[]} event={event} comments={comments} permissions={permissions} />
+      <EventPage
+        community={community}
+        space={eventsSpace}
+        spaceGroups={[]}
+        event={event}
+        comments={comments}
+        commentsPagination={ONE_PAGE(comments)}
+        permissions={permissions}
+      />
       <Toaster />
     </AppDataProvider>,
   );
@@ -483,7 +502,15 @@ describe('the page of an event (#1514, design 6.2)', () => {
       const { rerender } = renderPage(going({ places_left: 28 }));
       const page = (event: SpaceEvent) => (
         <AppDataProvider>
-          <EventPage community={eventsCommunity} space={eventsSpace} spaceGroups={[]} event={event} comments={[]} permissions={NONE} />
+          <EventPage
+            community={eventsCommunity}
+            space={eventsSpace}
+            spaceGroups={[]}
+            event={event}
+            comments={[]}
+            commentsPagination={ONE_PAGE([])}
+            permissions={NONE}
+          />
           <Toaster />
         </AppDataProvider>
       );
@@ -775,7 +802,15 @@ describe('the page of an event (#1514, design 6.2)', () => {
       shared.user = { cuid: 'me', time_zone: 'America/New_York' };
       const tree = (event: SpaceEvent) => (
         <AppDataProvider>
-          <EventPage community={eventsCommunity} space={eventsSpace} spaceGroups={[]} event={event} comments={[]} permissions={ALL} />
+          <EventPage
+            community={eventsCommunity}
+            space={eventsSpace}
+            spaceGroups={[]}
+            event={event}
+            comments={[]}
+            commentsPagination={ONE_PAGE([])}
+            permissions={ALL}
+          />
         </AppDataProvider>
       );
       const { rerender } = render(tree(withBody({ state: 'draft' })));
@@ -1058,7 +1093,15 @@ describe('the page of an event (#1514, design 6.2)', () => {
         const { rerender } = renderPage(withBody({ places_left: 1 }), { permissions: ALL });
         const page = (event: SpaceEvent) => (
           <AppDataProvider>
-            <EventPage community={eventsCommunity} space={eventsSpace} spaceGroups={[]} event={event} comments={[]} permissions={ALL} />
+            <EventPage
+              community={eventsCommunity}
+              space={eventsSpace}
+              spaceGroups={[]}
+              event={event}
+              comments={[]}
+              commentsPagination={ONE_PAGE([])}
+              permissions={ALL}
+            />
             <Toaster />
           </AppDataProvider>
         );
@@ -1131,6 +1174,7 @@ describe('the page of an event (#1514, design 6.2)', () => {
               spaceGroups={[]}
               event={withBody({ places_left: 1, my_answer: 'yes' })}
               comments={[]}
+              commentsPagination={ONE_PAGE([])}
               permissions={NONE}
             />
             <Toaster />
@@ -1222,7 +1266,15 @@ describe('the page of an event (#1514, design 6.2)', () => {
 
     const page = (event: SpaceEvent) => (
       <AppDataProvider>
-        <EventPage community={eventsCommunity} space={eventsSpace} spaceGroups={[]} event={event} comments={[]} permissions={NONE} />
+        <EventPage
+          community={eventsCommunity}
+          space={eventsSpace}
+          spaceGroups={[]}
+          event={event}
+          comments={[]}
+          commentsPagination={ONE_PAGE([])}
+          permissions={NONE}
+        />
         <Toaster />
       </AppDataProvider>
     );

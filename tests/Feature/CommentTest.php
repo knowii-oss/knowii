@@ -1,6 +1,7 @@
 <?php
 
 use App\ApiRoutes;
+use App\Constants;
 use App\Contracts\Comments\CreatesComments;
 use App\Contracts\Comments\DeletesComments;
 use App\Contracts\Comments\UpdatesComments;
@@ -164,3 +165,48 @@ test('editing or deleting a comment of a post needs the access to its space (#15
     ($route === 'update' ? $this->patchJson(commentsPath($post, $comment), ['body' => 'Changed']) : $this->deleteJson(commentsPath($post, $comment)))->assertForbidden();
     expect($comment->fresh()?->body)->toBe('Mine');
 })->with(['update', 'delete']);
+
+test('the comments are paged, the replies counted, and a page that starts inside a thread has its top-level comment again', function () {
+    $first = Comment::factory()->onPost($this->post)->create(['body' => 'First', 'created_at' => now()->subMinutes(10)]);
+    $second = Comment::factory()->onPost($this->post)->create(['body' => 'Second', 'created_at' => now()->subMinutes(9)]);
+    // Replies come after the next top-level comment in time, and stay in their thread
+    foreach ([1, 2, 3] as $minute) {
+        Comment::factory()->replyTo($first)->create(['body' => "Reply {$minute}", 'created_at' => now()->subMinutes(5 - $minute)]);
+    }
+    $this->actingAs($this->c['member']);
+
+    $page = fn (int $offset) => $this->getJson(commentsPath($this->post)."?limit=2&offset={$offset}")->assertOk();
+
+    $one = $page(0);
+    expect($one->json('data.*.body'))->toBe(['First'])
+        ->and($one->json('data.0.replies.*.body'))->toBe(['Reply 1'])
+        ->and($one->json('metadata.totalCount'))->toBe(5)
+        ->and($one->json('metadata.pagination.nextOffset'))->toBe(2);
+    $two = $page(2);
+    expect($two->json('data.*.cuid'))->toBe([$first->cuid])
+        ->and($two->json('data.0.replies.*.body'))->toBe(['Reply 2', 'Reply 3'])
+        ->and($two->json('data.0.replies.0.parent_cuid'))->toBe($first->cuid);
+    $three = $page(4);
+    expect($three->json('data.*.cuid'))->toBe([$second->cuid])
+        ->and($three->json('data.0.replies'))->toBe([])
+        ->and($three->json('metadata.pagination.nextOffset'))->toBeNull();
+});
+
+test('one page holds at most 100 comments, and the post page gets the first page with its pagination', function () {
+    Comment::factory()->count(Constants::COMMENTS_PER_PAGE + 5)->onPost($this->post)->create();
+    $this->actingAs($this->c['member']);
+
+    $list = $this->getJson(commentsPath($this->post).'?limit=1000')->assertOk();
+    expect($list->json('data'))->toHaveCount(Constants::COMMENTS_PER_PAGE)
+        ->and($list->json('metadata.pagination.limit'))->toBe(Constants::COMMENTS_PER_PAGE)
+        ->and($list->json('metadata.pagination.nextOffset'))->toBe(Constants::COMMENTS_PER_PAGE)
+        ->and($list->json('metadata.totalCount'))->toBe(Constants::COMMENTS_PER_PAGE + 5);
+    // Without a limit: the first 100
+    expect($this->getJson(commentsPath($this->post))->json('data'))->toHaveCount(Constants::COMMENTS_PER_PAGE);
+
+    $this->get(route('posts.show', ['communitySlug' => $this->c['community']->slug, 'spaceSlug' => $this->space->slug, 'postSlug' => $this->post->slug]))
+        ->assertInertia(fn ($page) => $page->component('Posts/Show')
+            ->has('comments', Constants::COMMENTS_PER_PAGE)
+            ->where('commentsPagination.nextOffset', Constants::COMMENTS_PER_PAGE)
+            ->where('commentsPagination.totalCount', Constants::COMMENTS_PER_PAGE + 5));
+});

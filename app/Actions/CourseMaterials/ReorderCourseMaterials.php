@@ -2,6 +2,7 @@
 
 namespace App\Actions\CourseMaterials;
 
+use App\Constants;
 use App\Contracts\CourseMaterials\ReordersCourseMaterials;
 use App\Models\Space;
 use App\Models\User;
@@ -30,7 +31,7 @@ class ReorderCourseMaterials implements ReordersCourseMaterials
         /** @var array{page?: string|null, materials: list<string>} $validated */
         $validated = Validator::make($input, [
             'page' => ['sometimes', 'nullable', 'string'],
-            'materials' => ['required', 'array', 'list'],
+            'materials' => ['required', 'array', 'list', 'max:'.Constants::MAX_COURSE_MATERIALS_PER_TARGET],
             'materials.*' => ['required', 'string', 'distinct'],
         ])->validate();
 

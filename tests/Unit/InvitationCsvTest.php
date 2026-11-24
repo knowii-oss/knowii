@@ -173,3 +173,18 @@ test('a file larger than 1 MB is refused before it is read', function () {
     expect(InvitationCsv::read($path)->error)->toBe('The file is larger than 1 MB');
     unlink($path);
 });
+
+test('a file of empty lines or of one long line is read with little memory', function (string $content, ?string $error) {
+    memory_reset_peak_usage();
+    $before = memory_get_usage();
+
+    $result = InvitationCsv::parse($content);
+
+    expect($result->error)->toBe($error)
+        ->and(memory_get_peak_usage() - $before)->toBeLessThan(24 * 1024 * 1024);
+})->with([
+    'one million line breaks' => [str_repeat("\n", 1024 * 1024), 'The file needs a column named email'],
+    'one million cells in the header' => ['email'.str_repeat(',', 1024 * 1024)."\n", 'A file holds at most 20 columns'],
+    'one million cells in a row' => ["email\nada@example.com".str_repeat(',', 1024 * 1024)."\n", null],
+    'many short rows' => ["email\n".str_repeat("a\n", 500 * 1024), 'A file holds at most 1000 rows. Split it into several files.'],
+]);

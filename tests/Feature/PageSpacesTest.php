@@ -1,6 +1,7 @@
 <?php
 
 use App\ApiRoutes;
+use App\Constants;
 use App\Contracts\Uploads\UploadsImages;
 use App\Enums\KnowiiSpaceType;
 use App\Enums\KnowiiSpaceVisibility;
@@ -10,6 +11,7 @@ use App\Models\Space;
 use App\Models\SpaceGroup;
 use App\Models\Upload;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 
@@ -145,4 +147,36 @@ test('the token abilities guard the page routes (ADR 0022)', function () {
 
     $this->withToken($token)->getJson(pagesPath($this->space))->assertOk();
     $this->withToken($token)->postJson(pagesPath($this->space), ['title' => 'A page', 'body' => 'Text'])->assertForbidden();
+});
+
+test('the list of the pages is paged, with a largest offset, and reads no text of a page', function () {
+    $pages = Page::factory()->count(5)->sequence(fn ($sequence) => ['position' => $sequence->index, 'title' => 'Page '.($sequence->index + 1)])
+        ->create(['community_id' => $this->c['community']->id, 'space_id' => $this->space->id, 'author_id' => $this->c['admin']->id]);
+    $queries = [];
+    DB::listen(function ($query) use (&$queries) {
+        if (str_contains($query->sql, 'from "pages"')) {
+            $queries[] = $query->sql;
+        }
+    });
+
+    $list = $this->actingAs($this->c['member'])->getJson(pagesPath($this->space).'?limit=2&offset=1')->assertOk();
+
+    expect($list->json('data.*.title'))->toBe(['Page 2', 'Page 3'])
+        ->and($list->json('metadata.pagination.totalCount'))->toBe(5)
+        ->and($list->json('metadata.pagination.nextOffset'))->toBe(3)
+        ->and(implode("\n", $queries))->not->toContain('"body"')->not->toContain('"body_html"')->not->toContain('"pages".*')->not->toContain('select * from "pages"');
+    // Without a limit: every page of the space, which holds at most MAX_PAGES_PER_SPACE
+    expect($this->getJson(pagesPath($this->space))->json('data'))->toHaveCount(5)
+        // An offset after the largest one is the largest one
+        ->and($this->getJson(pagesPath($this->space).'?offset=999999999')->json('metadata.pagination.offset'))->toBe(Constants::MAX_PAGES_PER_SPACE);
+    expect($pages)->toHaveCount(5);
+});
+
+test('a space holds at most 500 pages', function () {
+    Page::factory()->count(Constants::MAX_PAGES_PER_SPACE)->sequence(fn ($sequence) => ['position' => $sequence->index])
+        ->create(['community_id' => $this->c['community']->id, 'space_id' => $this->space->id, 'author_id' => $this->c['admin']->id]);
+
+    $this->actingAs($this->c['admin'])->postJson(pagesPath($this->space), ['title' => 'One more', 'body' => 'Text'])
+        ->assertStatus(422)
+        ->assertJsonPath('message', 'A space can have at most 500 pages');
 });

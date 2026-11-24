@@ -23,7 +23,7 @@ class UploadApiController extends Controller
      *
      * @throws AuthenticationException
      */
-    #[BodyParameter('file', description: 'JPEG, PNG, WebP or GIF, up to 10 MB and 40 megapixels. Re-encoded (metadata removed) and scaled down to 2,000 pixels on the longest side', required: true, type: 'file')]
+    #[BodyParameter('file', description: 'JPEG, PNG, WebP or GIF, up to 10 MB and 25 megapixels. Re-encoded (metadata removed) and scaled down to 2,000 pixels on the longest side', required: true, type: 'file')]
     #[BodyParameter('alt', description: 'Text alternative for screen readers (required, up to 500 characters)', required: true, type: 'string', example: 'The Knowii logo on a dark background')]
     final public function store(Request $request, Community $community): JsonResponse
     {

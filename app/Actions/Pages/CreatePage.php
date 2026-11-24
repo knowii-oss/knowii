@@ -9,6 +9,7 @@ use App\Contracts\Pages\CreatesPages;
 use App\Enums\KnowiiPageKind;
 use App\Enums\KnowiiSpaceType;
 use App\Events\Spaces\SpaceContentChanged;
+use App\Exceptions\BusinessException;
 use App\Models\Page;
 use App\Models\Space;
 use App\Models\User;
@@ -45,6 +46,9 @@ class CreatePage implements CreatesPages
         /** @var array{title: string, body?: string|null, video_url?: string|null} $validated */
         $validated = Validator::make($input, self::rules(true, $kind))->validate();
         self::assertVideoAllowed($space, $kind, $validated['video_url'] ?? null);
+        if ($space->pages()->count() >= Constants::MAX_PAGES_PER_SPACE) {
+            throw new BusinessException('A space can have at most '.Constants::MAX_PAGES_PER_SPACE.' pages');
+        }
 
         $page = DB::transaction(function () use ($space, $user, $validated, $kind) {
             // A section is a heading: no text (#1188)

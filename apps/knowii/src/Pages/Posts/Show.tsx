@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { router } from '@inertiajs/react';
-import type { Comment, Community, Post, PostPermissions, Space, SpaceGroup, SpaceContentPayload } from '@knowii/common';
+import type { Comment, Community, Pagination, Post, PostPermissions, Space, SpaceGroup, SpaceContentPayload } from '@knowii/common';
 import {
   COMMUNITY_URL,
   POST_URL,
@@ -31,6 +31,8 @@ interface Props {
   spaceGroups: SpaceGroup[];
   post: Post;
   comments: Comment[];
+  // The first page of the comments (ADR 0073)
+  commentsPagination: Pagination;
   permissions: PostPermissions;
 }
 
@@ -47,6 +49,11 @@ export default function PostPage(props: Props) {
   const [busy, setBusy] = useState(false);
   // The comments of the page, for the delete dialog (#1565)
   const [comments, setComments] = useState<Comment[]>(props.comments);
+  // Every comment is loaded, and the number of every comment of the post (ADR 0073: the comments are paged)
+  const [commentsState, setCommentsState] = useState({
+    complete: props.commentsPagination.nextOffset === null,
+    total: props.commentsPagination.totalCount,
+  });
   // After a delete that leaves a marker, the focus goes to its title once the dialog is closed (#1565)
   const focusTitleAfterClose = useRef(false);
   const focusAfterRender = useFocusAfterRender();
@@ -61,7 +68,7 @@ export default function PostPage(props: Props) {
     : props.permissions;
   const canDelete = permissions.canDeletePost || (isMarker && permissions.canDeletePostWithComments);
   const deletesComments = isMarker || (permissions.canDeletePostWithComments && deleteComments);
-  const commentCount = countAllComments(comments);
+  const commentCount = commentsState.complete ? countAllComments(comments) : commentsState.total;
 
   const spaceHref = route(SPACE_URL, { communitySlug: community.slug, spaceSlug: space.slug });
 
@@ -158,7 +165,7 @@ export default function PostPage(props: Props) {
       return;
     }
     // A marker stays for the comments of other people (#1565): the person stays here and sees it with the discussion
-    if (postBecomesMarker(post, comments, currentUserCuid, withComments)) {
+    if (postBecomesMarker(post, comments, currentUserCuid, withComments, commentsState.complete)) {
       const marker = await knowiiApiClient.communities.posts.get(community.cuid, space.cuid, post.cuid);
       setDeleting(false);
       if (marker.ok && marker.data.deleted_at !== null) {
@@ -260,10 +267,14 @@ export default function PostPage(props: Props) {
         <CommentSection
           subject={{ communityCuid: community.cuid, spaceCuid: space.cuid, postCuid: post.cuid }}
           initialComments={props.comments}
+          initialPagination={props.commentsPagination}
           currentUserCuid={currentUserCuid}
           canComment={permissions.canComment}
           canModerate={permissions.canModerate}
-          onCommentsChange={setComments}
+          onCommentsChange={(next, complete, total) => {
+            setComments(next);
+            setCommentsState({ complete, total });
+          }}
         />
       </CommunityShell>
 
@@ -283,7 +294,7 @@ export default function PostPage(props: Props) {
         onAfterClose={afterDeletionDialog}
         size="sm"
         title="Delete this post?"
-        description={[postDeletionLine(post, comments, currentUserCuid, deletesComments), 'This cannot be undone.']
+        description={[postDeletionLine(post, comments, currentUserCuid, deletesComments, commentsState.complete), 'This cannot be undone.']
           .filter((line) => line !== null)
           .join(' ')}
         footer={

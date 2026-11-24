@@ -271,6 +271,7 @@ use App\Contracts\Users\UpdatesOnlineStatus;
 use App\Contracts\Users\UpdatesTimeZones;
 use App\Contracts\Users\VerifiesUsernameAvailability;
 use App\Http\Controllers\Inertia\MemberController;
+use App\Http\Middleware\EnsureRequestIsJson;
 use App\Http\Middleware\StartSessionWithoutTokenAddresses;
 use App\Models\User;
 use App\Support\EmailChangeBudget;
@@ -282,6 +283,10 @@ use App\Support\ReverbLiveConnections;
 use App\Support\ReverbPresenceChannels;
 use App\Support\SpaceAccess;
 use Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider;
+use Dedoc\Scramble\Scramble;
+use Dedoc\Scramble\Support\Generator\Operation;
+use Dedoc\Scramble\Support\Generator\Response as OpenApiResponse;
+use Dedoc\Scramble\Support\RouteInfo;
 use Illuminate\Broadcasting\BroadcastManager;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Cache\Factory as CacheFactory;
@@ -290,6 +295,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
 use Illuminate\Mail\Markdown as MailMarkdown;
+use Illuminate\Routing\Route as RoutingRoute;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Session\SessionManager;
 use Illuminate\Support\Facades\Broadcast;
@@ -691,6 +697,47 @@ class AppServiceProvider extends ServiceProvider
             return $request->user() instanceof User
                 ? Limit::none()
                 : Limit::perMinute(Constants::PUBLIC_READS_PER_MINUTE)->by('ip:'.$request->ip());
+        });
+
+        // Every route of the API (ADR 0073): per account, the reads and the writes apart, or per IP address for a visitor. A
+        // route with a limiter of its own keeps it too. A token shares the count of its account. A read marker
+        // (ApiRoutes::READ_MARKERS) counts as a read: the pages send one as the member reads
+        RateLimiter::for('api', static function (Request $request) {
+            $user = $request->user();
+            if (! $user instanceof User) {
+                return Limit::perMinute(Constants::PUBLIC_READS_PER_MINUTE)->by('ip:'.$request->ip());
+            }
+
+            $route = $request->route();
+            $uri = $route instanceof RoutingRoute ? $route->uri() : '';
+            $isReadMarker = str_starts_with($uri, ApiRoutes::BASE_PATH.'/')
+                && in_array(substr($uri, strlen(ApiRoutes::BASE_PATH) + 1), ApiRoutes::READ_MARKERS, true);
+
+            return $isReadMarker || in_array($request->getRealMethod(), ['GET', 'HEAD'], true)
+                ? Limit::perMinute(Constants::API_READS_PER_MINUTE)->by('read:user:'.$user->id)
+                : Limit::perMinute(Constants::API_WRITES_PER_MINUTE)->by('write:user:'.$user->id);
+        });
+
+        // The pages that visitors read (ADR 0073): per IP address for a request without an account. A signed-in request is
+        // not counted here
+        RateLimiter::for('public-pages', static function (Request $request) {
+            return $request->user() instanceof User
+                ? Limit::none()
+                : Limit::perMinute(Constants::PUBLIC_PAGES_PER_MINUTE)->by('ip:'.$request->ip());
+        });
+
+        // The OpenAPI document (ADR 0073): every route answers 429 over its limit, and a write whose body is larger than
+        // 1 MB answers 413, except on the upload routes
+        Scramble::configure()->withOperationTransformers(static function (Operation $operation, RouteInfo $routeInfo): void {
+            $codes = array_map(static fn ($response) => $response instanceof OpenApiResponse ? $response->code : null, $operation->responses ?? []);
+            if (! in_array(429, $codes, true)) {
+                $operation->addResponse(OpenApiResponse::make(429)->setDescription('Too many requests: the limit of this route or of the API, per account (reads and writes apart) or per IP address for a visitor. Retry after the seconds of the Retry-After header'));
+            }
+            $method = strtoupper($operation->method);
+            $request = Request::create('/'.$routeInfo->route->uri(), $method);
+            if (in_array($method, ['POST', 'PUT', 'PATCH'], true) && ! EnsureRequestIsJson::isUploadRoute($request) && ! in_array(413, $codes, true)) {
+                $operation->addResponse(OpenApiResponse::make(413)->setDescription('The body of the request is larger than 1 MB'));
+            }
         });
 
         // Notification mail (#1477, ADR 0054): job middleware of App\Mail\NotificationMail. One key for every mail worker, so

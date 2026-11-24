@@ -66,3 +66,16 @@ test('members see the avatar of other members, never a third-party placeholder (
         ->assertJsonPath('data.0.avatar_url', null)
         ->assertJsonMissingPath('data.3.avatar_path');
 });
+
+test('an avatar over 25 megapixels is refused from its size, before it is decoded; one under the limit passes', function () {
+    $this->actingAs($this->user)
+        ->post('/api/v1/user/avatar', ['file' => oneColorPng(8000, 5000)], ['Accept' => 'application/json'])
+        ->assertStatus(422)
+        ->assertJsonPath('message', 'This image is too large: at most 25 megapixels.');
+    expect($this->user->fresh()?->avatar_path)->toBeNull();
+
+    $this->actingAs($this->user)
+        ->post('/api/v1/user/avatar', ['file' => oneColorPng(6000, 4000)], ['Accept' => 'application/json'])
+        ->assertOk();
+    expect($this->user->fresh()?->avatar_path)->not->toBeNull();
+});

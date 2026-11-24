@@ -1,5 +1,5 @@
 import AppLayout from '@/Layouts/AppLayout';
-import type { Comment, Community, CommunityResource, Space, SpaceGroup } from '@knowii/common';
+import type { Comment, Community, CommunityResource, Pagination, Space, SpaceGroup } from '@knowii/common';
 import { useMemo, useState } from 'react';
 import { router } from '@inertiajs/react';
 import {
@@ -33,6 +33,8 @@ interface Props {
   resource: CommunityResource;
   // Comments on the resource (#1034)
   comments: Comment[];
+  // The first page of the comments (ADR 0073)
+  commentsPagination: Pagination;
   // The captured article (#1247): members only, null otherwise
   article: CapturedArticleData | null;
   permissions: { canComment: boolean; canModerate: boolean; canCapture: boolean; canUpdate: boolean; canDelete: boolean };
@@ -151,6 +153,7 @@ export default function ResourcePage(props: Props) {
         <CommentSection
           subject={{ communityCuid: community.cuid, spaceCuid: space.cuid, resourceCuid: resource.cuid }}
           initialComments={props.comments}
+          initialPagination={props.commentsPagination}
           currentUserCuid={page.props.auth.user?.cuid ?? null}
           canComment={props.permissions.canComment}
           canModerate={props.permissions.canModerate}

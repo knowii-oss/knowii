@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef } from 'react';
 import { router } from '@inertiajs/react';
-import type { Comment, Community, EventPermissions, Space, SpaceContentPayload, SpaceEvent, SpaceGroup } from '@knowii/common';
+import type { Comment, Community, EventPermissions, Pagination, Space, SpaceContentPayload, SpaceEvent, SpaceGroup } from '@knowii/common';
 import { COMMUNITY_URL, EVENT_EDIT_URL, SPACE_TYPE_LABELS, SPACE_URL, useSocket, useTypedPage } from '@knowii/common';
 import AppLayout from '@/Layouts/AppLayout';
 import { breadcrumbHome } from '@/Components/BreadcrumbHome';
@@ -37,6 +37,8 @@ interface Props {
   event: SpaceEvent;
   // The comments of the event (#1516), for every reader of the event
   comments: Comment[];
+  // The first page of the comments (ADR 0073)
+  commentsPagination: Pagination;
   permissions: EventPermissions;
 }
 
@@ -57,7 +59,7 @@ interface Props {
  * cancels the one that runs, a save of the answer cancels it too, and no load starts while a save runs: the load after
  * the save brings what the server then holds. An older event never lands after a newer one.
  */
-export default function EventPage({ community, space, spaceGroups, event, comments, permissions }: Props) {
+export default function EventPage({ community, space, spaceGroups, event, comments, commentsPagination, permissions }: Props) {
   const user = useTypedPage().props.auth.user;
   const now = useNow();
   const isMember = community.is_member === true;
@@ -230,6 +232,7 @@ export default function EventPage({ community, space, spaceGroups, event, commen
           <CommentSection
             subject={{ communityCuid: community.cuid, spaceCuid: space.cuid, eventCuid: event.cuid }}
             initialComments={comments}
+            initialPagination={commentsPagination}
             currentUserCuid={user?.cuid ?? null}
             canComment={permissions.canComment}
             canModerate={permissions.canModerate}

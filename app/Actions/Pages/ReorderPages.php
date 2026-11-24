@@ -2,6 +2,7 @@
 
 namespace App\Actions\Pages;
 
+use App\Constants;
 use App\Contracts\Pages\ReordersPages;
 use App\Events\Spaces\SpaceContentChanged;
 use App\Models\Space;
@@ -23,7 +24,7 @@ class ReorderPages implements ReordersPages
 
         /** @var array{pages: list<string>} $validated */
         $validated = Validator::make($input, [
-            'pages' => ['required', 'array', 'list'],
+            'pages' => ['required', 'array', 'list', 'max:'.Constants::MAX_PAGES_PER_SPACE],
             'pages.*' => ['required', 'string', 'distinct'],
         ])->validate();
 

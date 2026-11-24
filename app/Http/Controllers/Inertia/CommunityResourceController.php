@@ -40,6 +40,7 @@ class CommunityResourceController extends Controller
         $resource = $space->resources()->where('slug', $resourceSlug)->with($isMember ? ['curator', 'resource', 'capture', 'space'] : ['curator', 'resource', 'space'])->firstOrFail();
 
         JsonResource::withoutWrapping();
+        $comments = CommentThread::page($resource, CommentThread::firstPage());
 
         // WARNING: The props passed here must remain aligned with the props expected by the page (Pages/Resources/Show.tsx)
         return Jetstream::inertia()->render($request, 'Resources/Show', [
@@ -51,7 +52,9 @@ class CommunityResourceController extends Controller
             // The captured article (#1247): members of the community only, never visitors (ADR 0018)
             'article' => $isMember ? $this->article($resource) : null,
             // Comments on the resource (#1034)
-            'comments' => CommentThread::for($resource)->toResourceCollection(),
+            'comments' => $comments['items']->toResourceCollection(),
+            // The pagination of the comments (ADR 0073): the page loads the next ones
+            'commentsPagination' => $comments['metadata']['pagination'],
             'permissions' => [
                 'canComment' => Gate::check('comment', $resource),
                 'canModerate' => Gate::check('moderate', $space),

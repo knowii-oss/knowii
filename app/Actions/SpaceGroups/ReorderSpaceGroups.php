@@ -2,6 +2,7 @@
 
 namespace App\Actions\SpaceGroups;
 
+use App\Constants;
 use App\Contracts\SpaceGroups\ReordersSpaceGroups;
 use App\Events\Spaces\SpaceTreeChanged;
 use App\Models\Community;
@@ -31,7 +32,7 @@ class ReorderSpaceGroups implements ReordersSpaceGroups
 
         /** @var array{space_group_cuids: list<string>} $validated */
         $validated = Validator::make($input, [
-            'space_group_cuids' => ['required', 'array'],
+            'space_group_cuids' => ['required', 'array', 'max:'.Constants::MAX_SPACE_GROUPS_PER_COMMUNITY],
             'space_group_cuids.*' => ['required', 'string', 'distinct'],
         ])->validate();
 

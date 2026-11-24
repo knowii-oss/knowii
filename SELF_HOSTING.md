@@ -489,6 +489,31 @@ The example serves `www.<YOUR_DOMAIN>` too. The simple way for a `www` name is a
 
 The `www-data` user (or the user of PHP-FPM) must be able to write to `storage/` and `bootstrap/cache/`.
 
+### Limits of requests and of the body
+
+Knowii limits the requests itself ([ADR 0073](documentation/adr/0073-every-api-route-has-a-limit-of-requests.md)): every route of the API has 600 reads and 120 writes a minute per account, and 60 requests a minute per IP address without an account; the pages that visitors read have 120 a minute per IP address. Some routes have a lower limit of their own. Over a limit, the answer is `429` with `Retry-After`.
+
+A request body is limited to 1 MB (`413`), except a form with files (`multipart/form-data`) on the four upload routes, which check their files themselves; a body in chunks without a length gets `411`. Knowii checks the length of a body before it reads it, but PHP reads a form body before Knowii starts: the proxy must limit the body too. Give it two values: 1 MB for every path, and the size of the largest upload (`post_max_size` of PHP, 55 MB in `docker/production/php.ini`) for the upload routes only. With nginx, in the `server` block of the application:
+
+```nginx
+# Every path: 1 MB
+client_max_body_size 1m;
+
+# The upload routes: the image of a post or a page, the avatar, the file of a course and the file of invitations
+location ~ ^/api/v1/(user/avatar|communities/[^/]+/(uploads|invitation-imports|spaces/[^/]+/materials))$ {
+    client_max_body_size 55m;
+    # Behind a container: the same lines as the location of the application (proxy_pass)
+    # With PHP-FPM: send the request to index.php here, not through try_files (the PHP location has the 1 MB limit)
+    # include fastcgi_params;
+    # fastcgi_param SCRIPT_FILENAME $realpath_root/index.php;
+    # fastcgi_pass unix:/run/php/php8.5-fpm.sock;
+}
+```
+
+The proxy answers `413` itself over its limit. The production image of Knowii limits the body of every path to 60 MB (`docker/production/Caddyfile`), a little above `post_max_size`.
+
+The limits per IP address read the address that the proxy gives in `X-Forwarded-For` (`TRUSTED_PROXIES`). The examples of this guide replace that header with the address of the client: keep that line in your proxy, else a client chooses its address and every visitor behind a CDN shares one count.
+
 ## 8. Update your instance
 
 Read the release notes (`CHANGELOG.md`) before you update. They tell you about new or changed environment values.

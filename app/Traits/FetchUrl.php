@@ -7,6 +7,7 @@ use App\Exceptions\BusinessException;
 use App\Support\SafeUrl;
 use App\Support\SizeLimitedStream;
 use Carbon\CarbonImmutable;
+use CurlHandle;
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
@@ -64,7 +65,7 @@ trait FetchUrl
             ...$options,
             'curl' => SafeUrl::pinnedResolveOption($url, $address) + [
                 // A second net: the address that curl really connects to must be public too
-                CURLOPT_PREREQFUNCTION => static fn (mixed $handle, string $primaryIp): int => SafeUrl::isPublicAddress($primaryIp) ? CURL_PREREQFUNC_OK : CURL_PREREQFUNC_ABORT,
+                CURLOPT_PREREQFUNCTION => static fn (CurlHandle $handle, string $primaryIp): int => SafeUrl::isPublicAddress($primaryIp) ? CURL_PREREQFUNC_OK : CURL_PREREQFUNC_ABORT,
             ],
             'allow_redirects' => false,
         ];

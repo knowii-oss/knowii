@@ -38,6 +38,7 @@ class EventController extends Controller
         $user = $request->user();
 
         JsonResource::withoutWrapping();
+        $comments = CommentThread::page($event, CommentThread::firstPage());
         $canDelete = Gate::check('delete', $event);
 
         // WARNING: The props passed here must remain aligned with the props expected by the page (Pages/Events/Show.tsx)
@@ -48,7 +49,9 @@ class EventController extends Controller
             // The resource cuts the meeting address and the place for the readers who may not see them
             'event' => $event->toResource()->withLargeFields(),
             // The comments of the event (#1516), for every reader of the event: a visitor of a public space too
-            'comments' => CommentThread::for($event)->toResourceCollection(),
+            'comments' => $comments['items']->toResourceCollection(),
+            // The pagination of the comments (ADR 0073): the page loads the next ones
+            'commentsPagination' => $comments['metadata']['pagination'],
             // All false for a visitor and for a person who is not a member (ADR 0044 point 8)
             'permissions' => [
                 'canUpdate' => Gate::check('update', $event),

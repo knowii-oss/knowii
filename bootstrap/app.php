@@ -16,6 +16,7 @@ use App\Http\Middleware\EndOutdatedSessions;
 use App\Http\Middleware\EnsureRequestIsJson;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\LandOnlyOnOwnHostNames;
+use App\Http\Middleware\LimitRequestBodySize;
 use App\Http\Middleware\RecordLastVisit;
 use App\Http\Middleware\RefuseUnconfiguredInstance;
 use App\Http\Middleware\RequireTokenAbility;
@@ -83,6 +84,10 @@ return Application::configure(basePath: dirname(__DIR__))
             // The nonce of the Vite scripts is one of the policy, made before anything can render a page (the error page of
             // a middleware too)
             AddViteContentSecurityPolicyNonce::class,
+
+            // A request body is limited to 1 MB, except on the upload routes (ADR 0073): before the session and before
+            // anything reads or decodes the input
+            LimitRequestBodySize::class,
         ]);
 
         // The application answers only for its own host names (APP_URL, TRUSTED_HOSTS and the loopback names), with a 400
@@ -135,6 +140,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // The API is never indexed (#104)
             AddRobotsHeader::class,
+
+            // Every route of the API has a limit of requests (ADR 0073). The priority list (below) runs it after the sign-in
+            // and the token ability, as the limiters of the routes; a route with a limiter of its own keeps it too
+            'throttle:api',
         ]);
 
         $middleware->statefulApi();

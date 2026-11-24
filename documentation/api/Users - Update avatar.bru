@@ -19,5 +19,5 @@ body:multipart-form {
 }
 
 docs {
-  Replaces the avatar of the current user (#109, ADR 0021). multipart/form-data with a JPEG, PNG, WebP or GIF image, up to 10 MB. The server crops the centered square, scales it to 256 pixels and re-encodes it to WebP (no metadata). Returns the current user with avatar_url. Rate limited with the uploads.
+  Replaces the avatar of the current user (#109, ADR 0021). multipart/form-data with a JPEG, PNG, WebP or GIF image, up to 10 MB and 25 megapixels. The server crops the centered square, scales it to 256 pixels and re-encodes it to WebP (no metadata). Returns the current user with avatar_url. Rate limited with the uploads.
 }

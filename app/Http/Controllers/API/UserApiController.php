@@ -71,8 +71,8 @@ class UserApiController extends Controller
     }
 
     /**
-     * Replace the avatar of the current user (#109): a JPEG, PNG, WebP or GIF image of 10 MB at most, re-encoded and
-     * cropped to a square. Returns the current user with avatar_url.
+     * Replace the avatar of the current user (#109): a JPEG, PNG, WebP or GIF image of 10 MB and 25 megapixels at most,
+     * re-encoded and cropped to a square. Returns the current user with avatar_url.
      *
      * @throws AuthenticationException
      */

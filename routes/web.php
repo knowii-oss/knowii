@@ -104,6 +104,8 @@ Route::middleware([
 Route::middleware([
     'auth.optional',
     config('jetstream.auth_session'),
+    // Per IP address for a visitor (ADR 0073)
+    'throttle:public-pages',
 ])->group(function () {
     // The community home (#1485): a member gets the community, a visitor and an outsider get its public page if it has one
     Route::get('/community/{communitySlug}', [CommunityController::class, 'show'])->name('communities.show');

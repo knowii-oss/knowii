@@ -5,9 +5,14 @@ meta {
 }
 
 get {
-  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a discussion space>/posts/<post cuid>/comments
+  url: {{BASE_URL}}/api/v1/communities/nswswk8w8wso0ko8owwk8k0w/spaces/<cuid of a discussion space>/posts/<post cuid>/comments?limit=100&offset=0
   body: none
   auth: none
+}
+
+params:query {
+  limit: 100
+  offset: 0
 }
 
 headers {
@@ -15,6 +20,6 @@ headers {
 }
 
 docs {
-  The comments of a post, oldest first, each with its replies (oldest first). metadata.totalCount counts comments and replies.
+  The comments of a post, oldest first, each with its replies (oldest first). metadata.totalCount counts comments and replies. Offset pagination (limit, offset; metadata.pagination): at most 100 comments per answer, the replies counted (the default and largest limit is 100); a page that starts inside a thread has its top-level comment again, with the next replies only.
   Public: in a public space this request works without a session and without a token (the response carries the name, username and avatar of the authors, never more). Every other space answers 401 without an account.
 }

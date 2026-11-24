@@ -110,3 +110,16 @@ test('outsiders get a 403 from the upload API', function () {
         ->post(uploadsPath(), ['file' => UploadedFile::fake()->image('a.png'), 'alt' => 'x'], ['Accept' => 'application/json'])
         ->assertForbidden();
 });
+
+test('an image of a post over 25 megapixels is refused from its size, before it is decoded; one under the limit passes', function () {
+    $this->actingAs($this->c['member']);
+
+    $this->post(uploadsPath(), ['file' => oneColorPng(8000, 5000), 'alt' => 'Too large'], ['Accept' => 'application/json'])
+        ->assertStatus(422)
+        ->assertJsonPath('message', 'This image is too large: at most 25 megapixels.');
+    expect(Upload::count())->toBe(0);
+
+    $this->post(uploadsPath(), ['file' => oneColorPng(6000, 4000), 'alt' => 'Large'], ['Accept' => 'application/json'])
+        ->assertCreated()
+        ->assertJsonPath('data.width', Constants::MAX_UPLOAD_IMAGE_DIMENSION);
+});

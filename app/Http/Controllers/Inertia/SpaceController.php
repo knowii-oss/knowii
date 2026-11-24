@@ -7,6 +7,7 @@ use App\Contracts\Notifications\TracksSpaceVisits;
 use App\Enums\KnowiiSpaceType;
 use App\Models\ChatMessage;
 use App\Models\ChatRead;
+use App\Models\Page;
 use App\Models\Space;
 use App\Models\User;
 use App\Support\CourseProgress;
@@ -97,7 +98,7 @@ class SpaceController extends Controller
         $chat = $space->type === KnowiiSpaceType::Chat ? self::chat($space, $request->user()) : null;
 
         // Page spaces and course spaces: the titles of the pages, lessons and sections, in their order (#1179, #1188)
-        $pages = $space->type->holdsPages() ? $space->pages()->withExists('quiz')->get()->toResourceCollection() : null;
+        $pages = $space->type->holdsPages() ? $space->pages()->select(Page::LIST_COLUMNS)->withExists('quiz')->get()->toResourceCollection() : null;
 
         // Course spaces: the progress of the member (#1304); none for a signed-in outsider of a public course
         $user = $request->user();

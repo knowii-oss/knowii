@@ -29,10 +29,21 @@ export function commentBecomesMarker(target: Comment, currentUserCuid: string | 
 }
 
 /**
- * The post stays as a marker for the comments of other people
+ * The post stays as a marker for the comments of other people. While some comments are not loaded (`complete` false,
+ * ADR 0073), it may: the page asks the server for the post after the delete
  */
-export function postBecomesMarker(post: Post, comments: Comment[], currentUserCuid: string | null, withComments: boolean): boolean {
-  return !withComments && post.deleted_at === null && allComments(comments).some((comment) => isOfOtherPeople(comment, currentUserCuid));
+export function postBecomesMarker(
+  post: Post,
+  comments: Comment[],
+  currentUserCuid: string | null,
+  withComments: boolean,
+  complete = true,
+): boolean {
+  return (
+    !withComments &&
+    post.deleted_at === null &&
+    (!complete || allComments(comments).some((comment) => isOfOtherPeople(comment, currentUserCuid)))
+  );
 }
 
 /**
@@ -58,7 +69,13 @@ export function commentDeletionLine(target: Comment, currentUserCuid: string | n
 /**
  * The line of the delete dialog of a post that says what happens to the discussion, or null when it has none
  */
-export function postDeletionLine(post: Post, comments: Comment[], currentUserCuid: string | null, withComments: boolean): string | null {
+export function postDeletionLine(
+  post: Post,
+  comments: Comment[],
+  currentUserCuid: string | null,
+  withComments: boolean,
+  complete = true,
+): string | null {
   const all = allComments(comments);
   if (all.length === 0) {
     return null;
@@ -66,7 +83,11 @@ export function postDeletionLine(post: Post, comments: Comment[], currentUserCui
   if (withComments || post.deleted_at !== null) {
     return 'Its comments are deleted too.';
   }
-  if (postBecomesMarker(post, comments, currentUserCuid, false)) {
+  // Some comments are not loaded (ADR 0073): the page does not know whether they are of other people
+  if (!complete && !postBecomesMarker(post, comments, currentUserCuid, false)) {
+    return 'Your comments under it are deleted too. If it has comments of other people, they stay and the post is replaced by a marker.';
+  }
+  if (postBecomesMarker(post, comments, currentUserCuid, false, complete)) {
     return isOwn(post, currentUserCuid)
       ? 'The comments of other people stay. Your post is replaced by a marker.'
       : 'The comments of other people stay. The post is replaced by a marker.';
