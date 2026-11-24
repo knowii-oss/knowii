@@ -171,7 +171,7 @@ Shared shapes of the API envelope (`App\Traits\ApiResponses`): the metadata is `
 
 ## Middleware
 
-1. The API checks the abilities of a token and the email address before it reads the item of the route: `RequireTokenAbility` (`ability:`) and `EnsureEmailIsVerified` (`verified`) come after the sign-in check and before `SubstituteBindings` in the priority list of `bootstrap/app.php` ([ADR 0022](../adr/0022-api-token-abilities.md)).
+1. The API checks the abilities of a token and the email address before it reads the item of the route: `RequireTokenAbility` (`ability:`) and `EnsureEmailIsVerified` (`verified`) come after the sign-in check and before `SubstituteBindings` in the priority list of `bootstrap/app.php` ([ADR 0022](../adr/0022-api-token-abilities.md)). The abilities also come before the limits of a route (`ThrottleRequests`): a token without the ability uses up no try of the account.
 2. Every answer has the security headers, also a redirect and an error that a middleware gives: `SecureHeadersMiddleware` is first in the global stack and `AddViteContentSecurityPolicyNonce` comes right after `RefuseUnconfiguredInstance`, so the headers of `config/secure-headers.php`, and a Content Security Policy whose nonce is the one of the Vite scripts, are on the redirect to the sign-in page, a 404 of a route binding, a 403, a 419, a 429, the 503 of an instance that is not configured and the error page (`tests/Feature/SecurityHeadersTest.php`).
 
 ## Error handling
