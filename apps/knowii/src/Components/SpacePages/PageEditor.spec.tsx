@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { Page } from '@knowii/common';
@@ -14,6 +14,8 @@ vi.mock('@inertiajs/react', () => ({
 
 const UPDATED_AT = '2026-11-17T09:00:00.000Z';
 const LATER = '2026-11-18T09:00:00.000Z';
+// The date of the tests: a kept text has a maximum age, so the tests never read the real date
+const TODAY = '2026-11-18T12:00:00.000Z';
 
 function existingPage(updatedAt = UPDATED_AT): Page {
   return {
@@ -62,7 +64,13 @@ const waitForWrite = () => new Promise((resolve) => setTimeout(resolve, KEPT_TEX
 describe('the page editor keeps the text that was not saved (#1622)', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    // Only the date is fixed: the timers of the editor and of the tests stay real
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date(TODAY) });
     window.localStorage.clear();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('keeps the text of a new lesson for the space, with the video address', async () => {
