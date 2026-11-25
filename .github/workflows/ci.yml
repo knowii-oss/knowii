@@ -7,27 +7,21 @@ permissions:
   actions: read
   contents: read
 
+# A new push to a pull request stops the run of the push before it
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# The jobs run at the same time (#1740): the static checks, the front-end, and the back-end tests in shards. The job
+# `main` waits for all of them: it is the check that the branch protection requires.
 jobs:
-  main:
+  static:
+    name: Static checks
     runs-on: ubuntu-latest
-    # Same database engine and major version as docker-compose.yml and production (SELF_HOSTING.md)
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          POSTGRES_USER: sail
-          POSTGRES_PASSWORD: secret
-          POSTGRES_DB: testing
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U sail -d testing"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          # The formatting check of a pull request compares with its base branch
           fetch-depth: 0
           # No later step uses git with the token
           persist-credentials: false
@@ -54,9 +48,6 @@ jobs:
             echo "::warning title=npm audit (development dependencies)::Open advisories in the development dependencies. Read the log of this step."
           fi
 
-      - uses: nrwl/nx-set-shas@e602fada7ad5987b0f7b1905e7a99ea1c661514c # v5.1.0
-
-      # Cache composer dependencies
       - name: Cache composer dependencies
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -64,12 +55,14 @@ jobs:
           key: composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: |
             composer-
-
       # Reference: https://github.com/shivammathur/setup-php
+      # No coverage driver: Xdebug slows every PHP command (#1740)
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: '8.5'
           extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, pgsql, pdo_pgsql, bcmath, soap, intl, gd, exif, iconv
+          coverage: none
+          ini-values: opcache.enable_cli=1
       - name: Create .env file
         run: |
           php -r "file_exists('.env') || copy('.env.example', '.env');"
@@ -82,7 +75,62 @@ jobs:
       - name: Audit PHP dependencies security
         run: composer audit
 
-      # Runs after composer install: the type check resolves `ziggy-js` from vendor/tightenco/ziggy
+      # Prettier reads every file in seconds. Pint took 3 minutes for every PHP file (#1740): on a pull request it
+      # reads the PHP files that the pull request changes, and every file when its configuration or version changes.
+      - name: Check the formatting (Prettier and Pint)
+        env:
+          NX_NO_CLOUD: true
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          npx nx format:check --all
+          base="$(git merge-base "origin/$BASE_REF" HEAD)"
+          if git diff --name-only "$base" HEAD | grep -qxE 'pint\.json|composer\.lock'; then
+            ./vendor/bin/pint --test --parallel
+          else
+            mapfile -t files < <(git diff --name-only --diff-filter=ACMR "$base" HEAD -- '*.php')
+            if [ "${#files[@]}" -gt 0 ]; then
+              ./vendor/bin/pint --test "${files[@]}"
+            else
+              echo "No PHP file changed"
+            fi
+          fi
+      - name: Static analysis of the back-end (PHPStan)
+        run: composer lint
+
+  frontend:
+    name: Front-end
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Nx Affected compares with the base of the pull request
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26
+          cache: 'npm'
+      - name: Install front-end dependencies
+        run: npm ci
+      - uses: nrwl/nx-set-shas@e602fada7ad5987b0f7b1905e7a99ea1c661514c # v5.1.0
+
+      # The type check resolves `ziggy-js` from vendor/tightenco/ziggy
+      - name: Cache composer dependencies
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            composer-
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.5'
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, pgsql, pdo_pgsql, bcmath, soap, intl, gd, exif, iconv
+          coverage: none
+      - name: Install back-end dependencies
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
       # Nx Affected runs only tasks affected by the changes in this PR. Learn more: https://nx.dev/ci/features/affected
       - name: Lint, type-check and test the front-end
         run: npx nx affected -t lint typecheck test
@@ -98,33 +146,99 @@ jobs:
         run: npm run storybook:build
         env:
           NX_NO_CLOUD: true
-      - name: Check the formatting (Prettier and Pint)
-        run: |
-          npx nx format:check --all
-          ./vendor/bin/pint --test
-        env:
-          NX_NO_CLOUD: true
-      - name: Static analysis of the back-end (PHPStan)
-        run: composer lint
 
-      # Build the front-end assets so the Vite manifest
-      # (public/build/manifest.json) exists for the back-end tests below.
-      # Runs after composer install because the build resolves the `ziggy-js`
-      # tsconfig alias from vendor/tightenco/ziggy. The manifest is no longer
-      # committed to Git; it is generated here (and on deploy).
+  backend-tests:
+    name: Back-end tests (${{ matrix.shard }}/3)
+    runs-on: ubuntu-latest
+    strategy:
+      # Every shard reports its failures, also when another one fails
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    # Same database engine and major version as docker-compose.yml and production (SELF_HOSTING.md)
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: sail
+          POSTGRES_PASSWORD: secret
+          POSTGRES_DB: testing
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U sail -d testing"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: testing
+      DB_USERNAME: sail
+      DB_PASSWORD: secret
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The back-end tests read the Vite manifest (public/build/manifest.json). The build resolves the `ziggy-js`
+      # tsconfig alias from vendor/tightenco/ziggy, so it comes after composer install.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26
+          cache: 'npm'
+      - name: Install front-end dependencies
+        run: npm ci
+      - name: Cache composer dependencies
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            composer-
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.5'
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, pgsql, pdo_pgsql, bcmath, soap, intl, gd, exif, iconv
+          coverage: none
+      - name: Create .env file
+        run: |
+          php -r "file_exists('.env') || copy('.env.example', '.env');"
+      - name: Install back-end dependencies
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+      - name: Generate Laravel key
+        run: php artisan key:generate
       - name: Build front-end assets
         run: npm run build
       - name: Configure FS permissions
         run: chmod -R 777 storage bootstrap/cache
-      - name: Run database migrations
-        env: &postgres-env
-          DB_CONNECTION: pgsql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 5432
-          DB_DATABASE: testing
-          DB_USERNAME: sail
-          DB_PASSWORD: secret
-        run: php artisan migrate --force
+
+      # One process for each CPU, each with its own database (testing_test_1...). tests/.pest/shards.json holds the
+      # time of each test file, so the shards take about the same time.
       - name: Execute back-end tests
-        env: *postgres-env
-        run: php artisan test
+        env:
+          TEST_PROCESSES: 4
+        run: bash tools/test/run.sh --shard=${{ matrix.shard }}/3 --log-junit junit.xml
+      # A warning for each test slower than the limit (#1740), and the slowest tests in the summary of the run
+      - name: Report the slow tests
+        if: always()
+        run: php tools/test/slow-tests.php junit.xml
+
+  # The check that the branch protection of main requires: green only when every job above is green
+  main:
+    name: main
+    runs-on: ubuntu-latest
+    needs: [static, frontend, backend-tests]
+    if: always()
+    steps:
+      - name: Every job is green
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Results: $RESULTS"
+          for result in $RESULTS; do
+            if [ "$result" != "success" ]; then
+              exit 1
+            fi
+          done
