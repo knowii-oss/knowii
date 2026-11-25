@@ -154,10 +154,31 @@ If you want to run the production version locally, you can:
 - `composer sail:clean`: Stop the application and rebuild the container images
 - `composer serve`: Start the application
 - `composer start`: Start the application
-- `composer test`: Test the back-end code
+- `composer test`: Test the back-end code (the whole suite, in parallel; see "Back-end tests" below)
+- `composer test:affected`: Test only the back-end code that your change touches
 - `npm run storybook`: Start the catalogue of the component toolkit (Storybook, on port 6006)
 - `npm run storybook:build`: Build the static site of the catalogue in `dist/storybook`
 - `npm run test`: Test the front-end code
+
+### Back-end tests
+
+The Pest suite has about 5 200 tests. Two commands run it, in the container (or with `composer test` and `composer test:affected` from the host):
+
+```sh
+# Only the tests that your change touches: use it while you work
+docker compose exec -T -u sail laravel.test bash tools/test/affected.sh            # against origin/main
+docker compose exec -T -u sail laravel.test bash tools/test/affected.sh <base>     # against another branch or commit
+
+# The whole suite: the pull request runs it in CI
+docker compose exec -T -u sail laravel.test bash tools/test/run.sh
+docker compose exec -T -u sail laravel.test bash tools/test/run.sh tests/Feature/LandingTest.php --filter=robots
+```
+
+1. `tools/test/run.sh` runs Pest in parallel, with Xdebug and PCOV off and with the opcode cache of the command line (`tools/test/php/tests.ini`). These settings make a test about three times faster. Each process has its own database (`testing_test_1`, `testing_test_2`...), kept for the next run.
+2. The number of processes is three quarters of the CPUs by default, so the machine stays usable. `TEST_PROCESSES=4` changes it. `TEST_COVERAGE=1` keeps PCOV on, for `--coverage`.
+3. `tools/test/affected.sh` runs all of `tests/Unit`, the feature tests that read the files of the tree, and the other tests of the changed files (the test impact analysis of Pest, `--tia`). A change to Composer, the configuration, the routes, the migrations, the service providers or the test setup runs the whole suite. The first run on a machine records the map of the tests and runs every test once.
+4. A full run takes about 2 minutes on the development machine when it does nothing else (12 CPUs, 9 processes). `php artisan test` still works, but it is about three times slower: it keeps Xdebug and PCOV on.
+5. In CI, the back-end tests run in 3 shards at the same time (`--shard`). `tests/.pest/shards.json` holds the time of each test file, so the shards take about the same time; `bash tools/test/run.sh --update-shards` writes it again after a large change to the tests. A test slower than 10 seconds gets a warning in CI.
 
 ### IntelliJ / PHPStorm
 

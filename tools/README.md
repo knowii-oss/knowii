@@ -6,6 +6,7 @@ Helper scripts for the people who work on the Knowii Platform. They are not part
 | ------------------------------- | ------------------------------------------------------------------------------------------------- |
 | [`screen-atlas/`](screen-atlas) | Takes a picture of every screen, in every state, for every role, at two widths and in both themes |
 | [`merge/`](merge)               | Merges a pull request only when every check is green                                              |
+| [`test/`](test)                 | Runs the back-end tests fast, or only the tests that a change touches                             |
 | [`windows/`](windows)           | The setup of a Windows machine: commit through the container, a fast development server           |
 
 ## Screen atlas
@@ -38,7 +39,11 @@ The `a11y-*.mjs` scripts are the checks of the accessibility reviewer (axe-core,
 
 ## Merge gate
 
-`bash tools/merge/gate-merge.sh <pull request number>` waits for the checks and merges with a rebase only when every check is a success. It exists because a merge command does not stop on a failed check for a person who may bypass the branch protection.
+`bash tools/merge/gate-merge.sh <pull request number>` waits for the checks and merges with a rebase only when every check is a success. It exists because a merge command does not stop on a failed check for a person who may bypass the branch protection. It polls every 60 seconds until no check is pending and every required check of the branch protection of `main` is there (90 minutes at most; `GATE_POLL_SECONDS` and `GATE_TIMEOUT_MINUTES` change them).
+
+## Back-end tests
+
+`tools/test/run.sh` runs the Pest suite in parallel and fast; `tools/test/affected.sh [base]` runs only the tests that a change touches. `CONTRIBUTING.md` ("Back-end tests") says how to use them. `tools/test/slow-tests.php` reports the slow tests of a JUnit file (CI).
 
 ## Windows
 
