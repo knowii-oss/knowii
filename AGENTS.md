@@ -127,7 +127,13 @@ Back-end (Composer / Laravel):
 - `composer lint` — PHPStan/Larastan static analysis
 - `composer security:php` — the taint analysis of Psalm (security scan, ADR 0051); a result is
   a possible security problem: see "Security issues"
-- `php artisan test` — run the Pest suite
+- `bash tools/test/affected.sh [base]` — run only the back-end tests that the change
+  touches (default base `origin/main`), with all of `tests/Unit`; run it in the
+  container while you work. A builder runs this command; the pull request runs the
+  full suite in CI
+- `bash tools/test/run.sh [Pest arguments]` — run the whole Pest suite (or a part of
+  it) in parallel, fast (no Xdebug, no PCOV, the opcode cache); `TEST_PROCESSES`
+  changes the number of processes (see `CONTRIBUTING.md`, "Back-end tests")
 - `composer format` — Laravel Pint
 
 After cloning, run `npm run setup` once to enable the Git hooks (see
@@ -160,8 +166,8 @@ PHPStan, tests and audits run in CI.
   `verbatimModuleSyntax`).
 - Before opening a pull request, run `npm run tsc`, `npm run tsc:spec`,
   `npx nx run-many -t lint typecheck test`, `composer lint` and
-  `php artisan test` (CI runs them, and the formatting check, and fails on
-  any error).
+  `bash tools/test/affected.sh` (CI runs them, the full back-end suite and the
+  formatting check, and fails on any error).
 - Favor readability over premature performance optimization.
 - Use up-to-date, valid syntax.
 

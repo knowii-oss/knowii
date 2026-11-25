@@ -36,6 +36,6 @@ The ini file sets `opcache.validate_timestamps=0`, because a file check costs se
 ## Other points
 
 1. Run `docker compose` in Git Bash with `MSYS_NO_PATHCONV=1`.
-2. Run the tests with `XDEBUG_MODE=off php artisan test --parallel --processes=8`. A full run takes 15 to 20 minutes.
+2. Run the tests with `bash tools/test/affected.sh` (the tests of your change) or `TEST_PROCESSES=8 bash tools/test/run.sh` (the whole suite) in the container: see "Back-end tests" in `CONTRIBUTING.md`.
 3. After a front-end change, run `npm run build` in the container and wait for its end before a browser check.
 4. Never put PHP namespaces in a shell heredoc: the backslashes collapse. Write such files with an editor.

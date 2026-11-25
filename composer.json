@@ -81,7 +81,12 @@
       "sail down"
     ],
     "test": [
-      "sail php artisan test"
+      "Composer\\Config::disableProcessTimeout",
+      "sail bash tools/test/run.sh"
+    ],
+    "test:affected": [
+      "Composer\\Config::disableProcessTimeout",
+      "sail bash tools/test/affected.sh"
     ],
     "lint": [
       "./vendor/bin/phpstan analyze --memory-limit=1G"

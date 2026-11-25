@@ -4,19 +4,26 @@ use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Route as RouteFacade;
 
 /**
- * The OpenAPI document that Scramble generates (served on /docs/api).
+ * The OpenAPI document that Scramble generates (served on /docs/api). The document comes from the code only, and an
+ * export takes seconds: the tests of this file share one export (#1740).
  *
  * @return array{paths: array<string, array<string, array<string, mixed>>>}
  */
 function openApiDocument(): array
 {
+    /** @var array{paths: array<string, array<string, array<string, mixed>>>}|null $cached */
+    static $cached = null;
+    if ($cached !== null) {
+        return $cached;
+    }
+
     $path = tempnam(sys_get_temp_dir(), 'openapi');
     test()->artisan('scramble:export', ['--path' => $path])->assertSuccessful();
     /** @var array{paths: array<string, array<string, array<string, mixed>>>} $document */
     $document = json_decode((string) file_get_contents($path), true, flags: JSON_THROW_ON_ERROR);
     unlink($path);
 
-    return $document;
+    return $cached = $document;
 }
 
 /**
